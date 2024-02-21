@@ -42,8 +42,7 @@ class ProfileHandler extends Base {
               previousJobVideos
             } : IContractorProfile = req.body;
       
-      
-            // Check for validation errors
+                  // Check for validation errors
             const errors = validationResult(req);
         
             if (!errors.isEmpty()) {
@@ -98,7 +97,7 @@ class ProfileHandler extends Base {
             }
       
             
-            const profile =  ContractorProfileModel.create({
+            const profile =  await ContractorProfileModel.findOneAndUpdate({contractorId: contractorId},{
               contractorId: contractorId,
               name,
               gstNumber,
@@ -117,7 +116,7 @@ class ProfileHandler extends Base {
               previousJobPhotos,
               previousJobVideos,
               certnId: certnData.applicant.id
-            })
+            }, { upsert: true, new: true, setDefaultsOnInsert: true })
       
             // send email to contractor
             const htmlCon = htmlContractorDocumentValidatinTemplate(contractor.firstName);

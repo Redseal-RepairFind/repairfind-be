@@ -66,10 +66,8 @@ router.post("/reset-password", validateEmailResetPasswordParams, (req: Request, 
 });
 
 
-
-  const cpUpload = diskUpload.fields([{ name: 'profilePhoto', maxCount: 1 }, { name: 'previousJobPhotos', maxCount: 10 }, { name: 'previousJobVideos', maxCount: 10 }])
-
-router.post("/profiles", checkContractorRole, cpUpload, (req: Request, res: Response, next: NextFunction) => {
+//   const cpUpload = diskUpload.fields([{ name: 'profilePhoto', maxCount: 1 }, { name: 'previousJobPhotos', maxCount: 10 }, { name: 'previousJobVideos', maxCount: 10 }])
+router.post("/profiles", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
     ProfileController(req, res, next).createProfile();
 });
 

@@ -63,36 +63,38 @@ export const uploadToS3 = async (buffer: Buffer, originalFilename: string): Prom
 };
 
 
-export const s3FileUpload =  async (file: Express.Multer.File) : Promise<string | undefined> => {
-  const readFileAsync = promisify(fs.readFile);
-  const s3UploadAsync = promisify(s3.upload.bind(s3));
-
+const readFileAsync = promisify(fs.readFile);
+const s3UploadAsync = promisify(s3.upload.bind(s3));
+export const s3FileUpload = async (files: Express.Multer.File[]): Promise<string[] | undefined> => {
   try {
-      let { originalname, buffer, mimetype, path} = file;
-     
-      if(path && !buffer){
+    const uploadedUrls: string[] = [];
+
+    for (const file of files) {
+      let { originalname, buffer, mimetype, path } = file;
+
+      if (path && !buffer) {
         buffer = await readFileAsync(path);
       }
 
-     
-      // const fileContent = fs.readFileSync(buffer);
       const fileName = originalname?.split('\\')?.pop()?.split('/').pop() ?? '';
-      const objectName = `${new Date().getTime() + fileName }`;
+      const objectName = `${new Date().getTime() + fileName}`;
       const fileExtension = originalname.slice((originalname.lastIndexOf(".") - 1 >>> 0) + 2);
-      
+
       const parameters: AWS.S3.PutObjectRequest = {
-          Bucket: config.aws.s3BucketName,
-          Key: objectName,
-          Body: buffer,
-          ContentType: mimetype ?? `image/${fileExtension}`,
+        Bucket: config.aws.s3BucketName,
+        Key: objectName,
+        Body: buffer,
+        ContentType: mimetype ?? `image/${fileExtension}`,
       };
 
-       const data = await s3UploadAsync(parameters);
-       console.log(`File uploaded successfully. ${data.Location}`);
-       return data.Location;
+      const data = await s3UploadAsync(parameters);
+      console.log(`File uploaded successfully. ${data.Location}`);
+      uploadedUrls.push(data.Location);
+    }
 
+    return uploadedUrls;
   } catch (error) {
-     console.error('Error uploading file to s3:', error);
+    console.error('Error uploading files to s3:', error);
     return undefined;
   }
-} 
+}; 
