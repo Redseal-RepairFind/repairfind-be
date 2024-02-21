@@ -2,11 +2,11 @@ import { validationResult } from "express-validator";
 import bcrypt from "bcrypt";
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import ContractorRegModel from "../../../database/contractor/models/contractor.model";
+import {ContractorModel} from "../../../database/contractor/models/contractor.model";
 import { OTP_EXPIRY_TIME, generateOTP } from "../../../utils/otpGenerator";
 import { sendEmail } from "../../../utils/send_email_utility";
 import ContractorDocumentValidateModel from "../../../database/contractor/models/contractorDocumentValidate.model";
-import { uploadToS3 } from "../../../utils/aws3.utility";
+import { uploadToS3 } from "../../../utils/upload.utility";
 import { v4 as uuidv4 } from "uuid";
 import { htmlMailTemplate } from "../../../templates/sendEmailTemplate";
 import { htmlContractorWelcomeTemplate } from "../../../templates/contractorEmail/contractorWelcomeTemplate";
@@ -38,7 +38,7 @@ export const contractorSignUpController = async (
     }
 
     // try find user with the same email
-    const userEmailExists = await ContractorRegModel.findOne({ email });
+    const userEmailExists = await ContractorModel.findOne({ email });
     
      // check if user exists
      if (userEmailExists) {
@@ -80,7 +80,7 @@ export const contractorSignUpController = async (
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const contractor = new ContractorRegModel({
+    const contractor = new ContractorModel({
       email: email,
       firstName: firstName,
       dateOfBirth: dateOfBirth,
@@ -140,7 +140,7 @@ export const contractorVerifiedEmailController = async (
     }
 
     // try find contractor with the same email
-    const contractor = await ContractorRegModel.findOne({ email });
+    const contractor = await ContractorModel.findOne({ email });
     
     // check if contractor exists
     if (!contractor) {
@@ -200,7 +200,7 @@ export const contractorSignInController = async (
     }
 
     // try find user with the same email
-    const contractor = await ContractorRegModel.findOne({ email });
+    const contractor = await ContractorModel.findOne({ email });
 
     // check if user exists
     if (!contractor) {
@@ -219,7 +219,7 @@ export const contractorSignInController = async (
       return res.status(401).json({ message: "email not verified." });
     }
 
-    const profile = await ContractorRegModel.findOne({ email }).select('-password');
+    const profile = await ContractorModel.findOne({ email }).select('-password');
   
     // generate access token
     const accessToken = jwt.sign(
@@ -271,7 +271,7 @@ export const contractorDeatilController = async (
     const contractorId = contractor.id
 
     //get user info from databas
-    const contractorProfile = await ContractorRegModel.findOne({_id: contractorId}).select('-password');
+    const contractorProfile = await ContractorModel.findOne({_id: contractorId}).select('-password');
 
     const contractorDocument = await ContractorDocumentValidateModel.findOne({contractorId: contractorId})
 
@@ -388,7 +388,7 @@ export const contractorUpdateBioController = async (
     const contractorId = contractor.id
 
     //get user info from databas
-    const contractorProfile = await ContractorRegModel.findOne({_id: contractorId});
+    const contractorProfile = await ContractorModel.findOne({_id: contractorId});
 
     const contractorDocument = await ContractorDocumentValidateModel.findOne({contractorId: contractorId})
 
@@ -403,7 +403,7 @@ export const contractorUpdateBioController = async (
       
     }
 
-    const updateBioData = await ContractorRegModel.findOneAndUpdate(
+    const updateBioData = await ContractorModel.findOneAndUpdate(
       {_id: contractorId},
       {
         location,
@@ -443,7 +443,7 @@ try {
   }
 
   // try find customer with the same email
-  const contractor = await ContractorRegModel.findOne({ email });
+  const contractor = await ContractorModel.findOne({ email });
   
   // check if contractor exists
   if (!contractor) {

@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 import AdminRegModel from "../../../database/admin/models/adminReg.model";
 import ContractorDocumentValidateModel from "../../../database/contractor/models/contractorDocumentValidate.model";
 import ContractorAvailabilityModel from "../../../database/contractor/models/contractorAvaliability.model";
-import ContractorRegModel from "../../../database/contractor/models/contractor.model";
+import {ContractorModel} from "../../../database/contractor/models/contractor.model";
 import JobModel from "../../../database/contractor/models/job.model";
 import CustomerRegModel from "../../../database/customer/models/customerReg.model";
 import ContractorRatingModel from "../../../database/contractor/models/contractorRating.model";
@@ -36,13 +36,13 @@ export const AdminGetContractorDetailController = async (
 
       const skip = (page - 1) * limit;
 
-      const contractors = await ContractorRegModel.find()
+      const contractors = await ContractorModel.find()
       .select('-password')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
 
-      const totalContractor = await ContractorRegModel.countDocuments()
+      const totalContractor = await ContractorModel.countDocuments()
   
       const artisans = [];
       
@@ -125,7 +125,7 @@ export const AdminGetSingleContractorDetailController = async (
     const admin =  req.admin;
     const adminId = admin.id
 
-    const contractor = await ContractorRegModel.findOne({_id: contractorId})
+    const contractor = await ContractorModel.findOne({_id: contractorId})
     .select('-password')
 
     if (!contractor) {
@@ -204,7 +204,7 @@ export const AdminChangeContractorContractorDetailController = async (
     const admin =  req.admin;
     const adminId = admin.id
 
-    const contractor = await ContractorRegModel.findOne({_id: contractorId})
+    const contractor = await ContractorModel.findOne({_id: contractorId})
 
     if (!contractor) {
       return res

@@ -1,6 +1,6 @@
 import { validationResult } from "express-validator";
 import { Request, Response } from "express";
-import ContractorRegModel from "../../../database/contractor/models/contractor.model";
+import {ContractorModel} from "../../../database/contractor/models/contractor.model";
 import CustomerRegModel from "../../../database/customer/models/customerReg.model";
 import JobModel from "../../../database/contractor/models/job.model";
 import { sendEmail } from "../../../utils/send_email_utility";
@@ -31,7 +31,7 @@ export const contractorGetJobRequestContractorController = async (
       const contractorId = contractor.id
   
       //get user info from databas
-      const contractorExist = await ContractorRegModel.findOne({_id: contractorId});
+      const contractorExist = await ContractorModel.findOne({_id: contractorId});
   
       if (!contractorExist) {
         return res
@@ -94,7 +94,7 @@ export const contractorSendJobQuatationController = async (
       const contractorId = contractor.id
   
       //get user info from databas
-      const contractorExist = await ContractorRegModel.findOne({_id: contractorId});
+      const contractorExist = await ContractorModel.findOne({_id: contractorId});
   
       if (!contractorExist) {
         return res
@@ -212,7 +212,7 @@ export const contractorSendJobQuatationControllerTwo = async (
     const contractorId = contractor.id
 
     //get user info from databas
-    const contractorExist = await ContractorRegModel.findOne({_id: contractorId});
+    const contractorExist = await ContractorModel.findOne({_id: contractorId});
 
     if (!contractorExist) {
       return res
@@ -324,7 +324,7 @@ export const contractorSendJobQuatationControllerThree = async (
     const contractorId = contractor.id
 
     //get user info from databas
-    const contractorExist = await ContractorRegModel.findOne({_id: contractorId});
+    const contractorExist = await ContractorModel.findOne({_id: contractorId});
 
     if (!contractorExist) {
       return res
@@ -418,7 +418,7 @@ export const contractorRemoveobQuatationOneByOneControllerfive = async (
     const contractorId = contractor.id
 
     //get user info from databas
-    const contractorExist = await ContractorRegModel.findOne({_id: contractorId});
+    const contractorExist = await ContractorModel.findOne({_id: contractorId});
 
     if (!contractorExist) {
       return res
@@ -522,7 +522,7 @@ export const contractorSendJobQuatationControllerFour = async (
     const contractorId = contractor.id
 
     //get user info from databas
-    const contractorExist = await ContractorRegModel.findOne({_id: contractorId});
+    const contractorExist = await ContractorModel.findOne({_id: contractorId});
 
     console.log(2);
 
@@ -654,7 +654,7 @@ export const contractorGetQuatationContractorController = async (
       const contractorId = contractor.id
   
       //get user info from databas
-      const contractorExist = await ContractorRegModel.findOne({_id: contractorId});
+      const contractorExist = await ContractorModel.findOne({_id: contractorId});
   
       if (!contractorExist) {
         return res
@@ -716,7 +716,7 @@ export const contractorGetQuatationPaymentComfirmAndJobInProgressController = as
     const contractorId = contractor.id
 
     //get user info from databas
-    const contractorExist = await ContractorRegModel.findOne({_id: contractorId});
+    const contractorExist = await ContractorModel.findOne({_id: contractorId});
 
     if (!contractorExist) {
       return res
@@ -779,7 +779,7 @@ export const contractorRejectJobRequestController = async (
     const contractorId = contractor.id
 
     //get user info from databas
-    const contractorExist = await ContractorRegModel.findOne({_id: contractorId});
+    const contractorExist = await ContractorModel.findOne({_id: contractorId});
 
     if (!contractorExist) {
       return res
@@ -856,7 +856,7 @@ export const contractorGeJobRejectedController = async (
     const contractorId = contractor.id
 
     //get user info from databas
-    const contractorExist = await ContractorRegModel.findOne({_id: contractorId});
+    const contractorExist = await ContractorModel.findOne({_id: contractorId});
 
     if (!contractorExist) {
       return res
@@ -917,7 +917,7 @@ export const contractorGeJobHistoryController = async (
     const contractorId = contractor.id
 
     //get user info from databas
-    const contractorExist = await ContractorRegModel.findOne({_id: contractorId});
+    const contractorExist = await ContractorModel.findOne({_id: contractorId});
 
     if (!contractorExist) {
       return res
@@ -981,7 +981,7 @@ export const contractorCompleteJobController = async (
     const contractorId = contractor.id
 
     //get user info from databas
-    const contractorExist = await ContractorRegModel.findOne({_id: contractorId});
+    const contractorExist = await ContractorModel.findOne({_id: contractorId});
 
     if (!contractorExist) {
       return res
@@ -1064,7 +1064,7 @@ export const contractorGeJobCompletedController = async (
     const contractorId = contractor.id
 
     //get user info from databas
-    const contractorExist = await ContractorRegModel.findOne({_id: contractorId});
+    const contractorExist = await ContractorModel.findOne({_id: contractorId});
 
     if (!contractorExist) {
       return res
@@ -1126,7 +1126,7 @@ export const contractorGeJobComfirmController = async (
     const contractorId = contractor.id
 
     //get user info from databas
-    const contractorExist = await ContractorRegModel.findOne({_id: contractorId});
+    const contractorExist = await ContractorModel.findOne({_id: contractorId});
 
     if (!contractorExist) {
       return res
@@ -1189,7 +1189,7 @@ export const contractorGeJobComplainController = async (
     const contractorId = contractor.id
 
     //get user info from databas
-    const contractorExist = await ContractorRegModel.findOne({_id: contractorId});
+    const contractorExist = await ContractorModel.findOne({_id: contractorId});
 
     if (!contractorExist) {
       return res

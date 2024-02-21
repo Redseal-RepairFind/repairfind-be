@@ -2,8 +2,8 @@ import { validationResult } from "express-validator";
 import { Request, Response } from "express";
 import { v4 as uuidv4 } from "uuid";
 import { sendEmail } from "../../../utils/send_email_utility";
-import ContractorRegModel from "../../../database/contractor/models/contractor.model";
-import { uploadToS3 } from "../../../utils/aws3.utility";
+import {ContractorModel} from "../../../database/contractor/models/contractor.model";
+import { uploadToS3 } from "../../../utils/upload.utility";
 import ContractorDocumentValidateModel from "../../../database/contractor/models/contractorDocumentValidate.model";
 import CustomerRegModel from "../../../database/customer/models/customerReg.model";
 import JobModel from "../../../database/contractor/models/job.model";
@@ -55,7 +55,7 @@ export const customerInpectionMonneyCheckoutContractorController = async (
           .json({ message: "incorrect Customer ID" });
       }
 
-      const checkContractor = await ContractorRegModel.findOne({_id: contractorId})
+      const checkContractor = await ContractorModel.findOne({_id: contractorId})
 
       if (!checkContractor) {
         return res
@@ -256,7 +256,7 @@ export const customerGetJobInspectionPaymentOpenController = async (
     for (let i = 0; i < jobRequests.length; i++) {
       const jobRequest = jobRequests[i];
       
-      const contractor = await ContractorRegModel.findOne({_id: jobRequest.contractorId}).select('-password');
+      const contractor = await ContractorModel.findOne({_id: jobRequest.contractorId}).select('-password');
 
       const obj = {
         job: jobRequest,
@@ -319,7 +319,7 @@ export const customerComfirmInpectionMonneyCheckoutContractorController = async 
           .json({ message: "job do not exist or inspection payment has not be initialize" });
       }
 
-      const checkContractor = await ContractorRegModel.findOne({_id: job.contractorId})
+      const checkContractor = await ContractorModel.findOne({_id: job.contractorId})
 
       if (!checkContractor) {
         return res
@@ -461,7 +461,7 @@ const customerComfirmInpection = async (
       return 
     }
 
-    const checkContractor = await ContractorRegModel.findOne({_id: job.contractorId})
+    const checkContractor = await ContractorModel.findOne({_id: job.contractorId})
 
     if (!checkContractor) {
       return 

@@ -1,7 +1,7 @@
 import { validationResult } from "express-validator";
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
-import ContractorRegModel from "../../../database/contractor/models/contractor.model";
+import {ContractorModel} from "../../../database/contractor/models/contractor.model";
 import { OTP_EXPIRY_TIME, generateOTP } from "../../../utils/otpGenerator";
 import { sendEmail } from "../../../utils/send_email_utility";
 import { htmlMailTemplate } from "../../../templates/sendEmailTemplate";
@@ -25,7 +25,7 @@ export const contractorEmailForgotPasswordController = async (
         }
     
         // try find user with the same email
-        const contractor = await ContractorRegModel.findOne({ email });
+        const contractor = await ContractorModel.findOne({ email });
     
          // check if user exists
          if (!contractor) {
@@ -85,7 +85,7 @@ export const contractorEmailResetPasswordController = async (
         }
     
         // try find contractor with the same email
-        const contractor = await ContractorRegModel.findOne({ email });
+        const contractor = await ContractorModel.findOne({ email });
     
          // check if contractor exists
         if (!contractor) {

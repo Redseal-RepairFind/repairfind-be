@@ -1,8 +1,8 @@
 import { validationResult } from "express-validator";
-import { uploadToS3 } from "../../../utils/aws3.utility";
+import { uploadToS3 } from "../../../utils/upload.utility";
 import { v4 as uuidv4 } from "uuid";
 import { Request, Response } from "express";
-import ContractorRegModel from "../../../database/contractor/models/contractor.model";
+import {ContractorModel} from "../../../database/contractor/models/contractor.model";
 import ContractorDocumentValidateModel from "../../../database/contractor/models/contractorDocumentValidate.model";
 import { sendEmail } from "../../../utils/send_email_utility";
 import AdminRegModel from "../../../database/admin/models/adminReg.model";
@@ -47,7 +47,7 @@ export const contractorAddDocumentController = async (
       const contractorId = contractor.id
   
       //get user info from databas
-      const contractorExist = await ContractorRegModel.findOne({_id: contractorId});
+      const contractorExist = await ContractorModel.findOne({_id: contractorId});
   
       if (!contractorExist) {
         return res
@@ -129,7 +129,7 @@ export const contractorAddDocumentController = async (
       }
 
       // update profile image
-      const updateProfile = await ContractorRegModel.findOneAndUpdate(
+      const updateProfile = await ContractorModel.findOneAndUpdate(
         {_id: contractorId},
         {profileImage: profile},
         {new: true}
@@ -226,7 +226,7 @@ export const contractorComfirmCertnValidationController = async (
     const contractorId = contractor.id
 
     //get user info from databas
-    const contractorExist = await ContractorRegModel.findOne({_id: contractorId});
+    const contractorExist = await ContractorModel.findOne({_id: contractorId});
 
     if (!contractorExist) {
       return res

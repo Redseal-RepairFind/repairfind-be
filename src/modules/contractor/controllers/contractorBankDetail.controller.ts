@@ -1,7 +1,7 @@
 import { validationResult } from "express-validator";
 import { Request, Response } from "express";
 import BankDetailModel from "../../../database/contractor/models/contractorBankDetail.model";
-import ContractorRegModel from "../../../database/contractor/models/contractor.model";
+import {ContractorModel} from "../../../database/contractor/models/contractor.model";
 
 
 //contractor enter bank detail/////////////
@@ -30,7 +30,7 @@ export const contractorEnterBankdetailController = async (
       const contractorId = contractor.id
   
       //get user info from databas
-      const contractorExist = await ContractorRegModel.findOne({_id: contractorId});
+      const contractorExist = await ContractorModel.findOne({_id: contractorId});
   
       if (!contractorExist) {
         return res
@@ -91,7 +91,7 @@ export const contractorGetBankDetailController = async (
       const contractorId = contractor.id
   
       //get user info from databas
-      const contractorExist = await ContractorRegModel.findOne({_id: contractorId});
+      const contractorExist = await ContractorModel.findOne({_id: contractorId});
   
       if (!contractorExist) {
         return res

@@ -1,6 +1,6 @@
 import { validationResult } from "express-validator";
 import { Request, Response } from "express";
-import ContractorRegModel from "../../../database/contractor/models/contractor.model";
+import {ContractorModel} from "../../../database/contractor/models/contractor.model";
 import JobModel from "../../../database/contractor/models/job.model";
 import CustomerRegModel from "../../../database/customer/models/customerReg.model";
 
@@ -46,7 +46,7 @@ export const AdminGetJobsrDetailController = async (
             const jobsDetail = jobsDetails[i];
 
             const customer = await CustomerRegModel.findOne({_id: jobsDetail.customerId});
-            const contractor = await ContractorRegModel.findOne({_id: jobsDetail.contractorId})
+            const contractor = await ContractorModel.findOne({_id: jobsDetail.contractorId})
 
             if (!customer || !contractor) continue;
 
@@ -103,7 +103,7 @@ export const AdminGetSingleJobsrDetailController = async (
         }
 
         const customer = await CustomerRegModel.findOne({_id: jobsDetail.customerId});
-        const contractor = await ContractorRegModel.findOne({_id: jobsDetail.contractorId})
+        const contractor = await ContractorModel.findOne({_id: jobsDetail.contractorId})
 
         if (!customer || !contractor) {
             return res

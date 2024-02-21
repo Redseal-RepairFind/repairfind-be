@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import ContractREgModel from "../../../database/contractor/models/contractor.model";
+import {ContractorModel} from "../../../database/contractor/models/contractor.model";
 
 interface JwtPayload {
     email: string;
@@ -29,10 +29,9 @@ export const checkContractorRole = async (
 
   try {
     // Verify JWT and extract payload
-    const payload = jwt.verify(token, secret!) as unknown as JwtPayload;
-   
+    const payload = jwt.verify(token, secret!) as unknown as JwtPayload;   
     // Check if email and mobile are in the MongoDB and belong to an admin role
-    const contractor = await ContractREgModel.findOne({
+    const contractor = await ContractorModel.findOne({
       email: payload.email
     });
 
@@ -43,9 +42,10 @@ export const checkContractorRole = async (
     }
 
     // Add the payload to the request object for later use
-    req.contractor = payload;
+    req.contractor = contractor;
     
     // Call the next middleware function
+
     next();
   } catch (err) {
     console.error(err);

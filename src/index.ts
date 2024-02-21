@@ -48,12 +48,12 @@ const limiter = rateLimit({
 // Middleware
 app.use(limiter);
 //app.use('/api-docs', swaggerUi.serve, swaggerUi.setup());
-app.use(express.urlencoded({ extended: true }));
-app.use(bodyParser.json());
-//app.use(express.static('../public'));
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
 app.use("/uploads", express.static("../public"));
 app.use(express.json());
-//app.use(cors());
 app.use(
   cors({
     origin: "*",

@@ -1,6 +1,6 @@
 import { validationResult } from "express-validator";
 import { Request, Response } from "express";
-import ContractorRegModel from "../../../database/contractor/models/contractor.model";
+import {ContractorModel} from "../../../database/contractor/models/contractor.model";
 import ContractorAvailabilityModel from "../../../database/contractor/models/contractorAvaliability.model";
 
 
@@ -31,7 +31,7 @@ export const contractorSetAvailabilityController = async (
       const contractorId = contractor.id
   
       //get user info from databas
-      const contractorExist = await ContractorRegModel.findOne({_id: contractorId});
+      const contractorExist = await ContractorModel.findOne({_id: contractorId});
   
       if (!contractorExist) {
         return res
@@ -116,7 +116,7 @@ export const contractorSetNotAvailabilityController = async (
       const contractorId = contractor.id
   
       //get user info from databas
-      const contractorExist = await ContractorRegModel.findOne({_id: contractorId});
+      const contractorExist = await ContractorModel.findOne({_id: contractorId});
   
       if (!contractorExist) {
         return res
@@ -180,7 +180,7 @@ export const contractorDeleteAvailabilityController = async (
     const contractorId = contractor.id
 
     //get user info from databas
-    const contractorExist = await ContractorRegModel.findOne({_id: contractorId});
+    const contractorExist = await ContractorModel.findOne({_id: contractorId});
 
     if (!contractorExist) {
       return res
@@ -238,7 +238,7 @@ export const contractorEditAvailabilityController = async (
     const contractorId = contractor.id
 
     //get user info from databas
-    const contractorExist = await ContractorRegModel.findOne({_id: contractorId});
+    const contractorExist = await ContractorModel.findOne({_id: contractorId});
 
     if (!contractorExist) {
       return res

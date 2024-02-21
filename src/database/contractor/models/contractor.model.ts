@@ -94,6 +94,5 @@ const ContractorSchema = new Schema(
 
   ContractorSchema.set('toJSON', { transform: function(doc, ret, options) { delete ret.password; delete ret.emailOtp;  return ret;} });
 
-  const ContractorModel = model<IContractor>("contractors", ContractorSchema);
+  export const ContractorModel = model<IContractor>("contractors", ContractorSchema);
   
-  export default ContractorModel;

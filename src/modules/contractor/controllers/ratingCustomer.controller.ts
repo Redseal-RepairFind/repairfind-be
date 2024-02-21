@@ -1,6 +1,6 @@
 import { validationResult } from "express-validator";
 import { Request, Response } from "express";
-import ContractorRegModel from "../../../database/contractor/models/contractor.model";
+import {ContractorModel} from "../../../database/contractor/models/contractor.model";
 import CustomerRatingModel from "../../../database/customer/models/customerRating.model";
 import ContractorRatedJobModel from "../../../database/contractor/models/contractorRatedJob.model";
 import JobModel from "../../../database/contractor/models/job.model";
@@ -35,7 +35,7 @@ export const contractorRateCustomerController = async (
       const contractorId = contractor.id
   
       //get user info from databas
-      const contractorExist = await ContractorRegModel.findOne({_id: contractorId});
+      const contractorExist = await ContractorModel.findOne({_id: contractorId});
 
       if (!contractorExist) {
         return res
@@ -172,7 +172,7 @@ export const contractorRatingDetailController = async (
     const contractorId = contractor.id
 
     //get user info from databas
-    const contractorExist = await ContractorRegModel.findOne({_id: contractorId});
+    const contractorExist = await ContractorModel.findOne({_id: contractorId});
 
     if (!contractorExist) {
       return res

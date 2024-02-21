@@ -6,7 +6,7 @@ import CustomerRegModel from "../../../database/customer/models/customerReg.mode
 import { OTP_EXPIRY_TIME, generateOTP } from "../../../utils/otpGenerator";
 import { sendEmail } from "../../../utils/send_email_utility";
 import { htmlMailTemplate } from "../../../templates/sendEmailTemplate";
-import { uploadToS3 } from "../../../utils/aws3.utility";
+import { uploadToS3 } from "../../../utils/upload.utility";
 import { v4 as uuidv4 } from "uuid";
 import { htmlcustomerWelcomTemplate } from "../../../templates/customerEmail/customerWelcomTemplate";
 import AdminNoficationModel from "../../../database/admin/models/adminNotification.model";

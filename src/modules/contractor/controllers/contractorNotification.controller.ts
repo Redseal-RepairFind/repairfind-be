@@ -1,6 +1,6 @@
 import { validationResult } from "express-validator";
 import { Request, Response } from "express";
-import ContractorRegModel from "../../../database/contractor/models/contractor.model";
+import {ContractorModel} from "../../../database/contractor/models/contractor.model";
 import ContractorNotificationModel from "../../../database/contractor/models/contractorNotification.model";
 
 
@@ -33,7 +33,7 @@ export const contractorGetNotificationrController = async (
       const skip = (page - 1) * limit;
   
       //get user info from databas
-      const contractorExist = await ContractorRegModel.findOne({_id: contractorId});
+      const contractorExist = await ContractorModel.findOne({_id: contractorId});
   
       if (!contractorExist) {
         return res
@@ -80,7 +80,7 @@ export const contractorViewNotificationrController = async (
       const contractorId = contractor.id
 
       //get user info from databas
-      const contractorExist = await ContractorRegModel.findOne({_id: contractorId});
+      const contractorExist = await ContractorModel.findOne({_id: contractorId});
   
       if (!contractorExist) {
         return res
@@ -128,7 +128,7 @@ export const contractorUnseenNotificationrController = async (
       const contractorId = contractor.id
 
       
-      const contractorExist = await ContractorRegModel.findOne({_id: contractorId});
+      const contractorExist = await ContractorModel.findOne({_id: contractorId});
   
       if (!contractorExist) {
         return res

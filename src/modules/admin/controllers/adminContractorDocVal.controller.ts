@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 import AdminRegModel from "../../../database/admin/models/adminReg.model";
 import ContractorDocumentValidateModel from "../../../database/contractor/models/contractorDocumentValidate.model";
 import ContractorAvailabilityModel from "../../../database/contractor/models/contractorAvaliability.model";
-import ContractorRegModel from "../../../database/contractor/models/contractor.model";
+import {ContractorModel} from "../../../database/contractor/models/contractor.model";
 import { sendEmail } from "../../../utils/send_email_utility";
 import { adminToContractorAfterDocsValidSendEmailHtmlMailTemplate } from "../../../templates/email/adminToContractorDocValTem";
 
@@ -37,7 +37,7 @@ export const AdminGetContractorDocForValController = async (
       for (let i = 0; i < contractorDocs.length; i++) {
         const contractorDoc = contractorDocs[i];
 
-        const contractorProfile = await ContractorRegModel.findOne({_id: contractorDoc.contractorId}).select('-password')
+        const contractorProfile = await ContractorModel.findOne({_id: contractorDoc.contractorId}).select('-password')
 
         const obj = {
             contractorDocument: contractorDoc,
@@ -89,7 +89,7 @@ export const AdminGetSingleContractorDocForValController = async (
             .json({ message: "invalid contractor document ID" });
       }
 
-      const contractorProfile = await ContractorRegModel.findOne({_id: contractorDoc.contractorId}).select('-password')
+      const contractorProfile = await ContractorModel.findOne({_id: contractorDoc.contractorId}).select('-password')
       
       let pendingDocument = {
         contractorDocument: contractorDoc,
@@ -138,7 +138,7 @@ export const AdminValidateContractorDocsController = async (
             .json({ message: "invalid artisan document ID" });
       }
 
-      const contractor = await ContractorRegModel.findOne({_id: contractorDoc.contractorId});
+      const contractor = await ContractorModel.findOne({_id: contractorDoc.contractorId});
     
       if (!contractor) {
         return res

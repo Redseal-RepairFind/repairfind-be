@@ -2,7 +2,7 @@ import { validationResult } from "express-validator";
 import { Request, Response } from "express";
 import ContractorDocumentValidateModel from "../../../database/contractor/models/contractorDocumentValidate.model";
 import ContractorAvailabilityModel from "../../../database/contractor/models/contractorAvaliability.model";
-import ContractorRegModel from "../../../database/contractor/models/contractor.model";
+import {ContractorModel} from "../../../database/contractor/models/contractor.model";
 import ContractorRatingModel from "../../../database/contractor/models/contractorRating.model";
 import BankDetailModel from "../../../database/contractor/models/contractorBankDetail.model";
 
@@ -96,7 +96,7 @@ export const customerSearchForContractorController = async (
         const bankDetail = await BankDetailModel.findOne({contractorId: searchContractor.contractorId})
         if (!bankDetail) continue
 
-        const contractor = await ContractorRegModel.findOne({_id: searchContractor.contractorId})
+        const contractor = await ContractorModel.findOne({_id: searchContractor.contractorId})
         if (!contractor) continue
 
         if (contractor.status != 'active') continue
@@ -169,7 +169,7 @@ export const customerGetAllContractorOnSkillController = async (
 
       if (contractoAvailabilitys.length < 1) continue
 
-      const contractorProfile = await ContractorRegModel.findOne({_id: contractorWithSkill.contractorId}).select('-password');
+      const contractorProfile = await ContractorModel.findOne({_id: contractorWithSkill.contractorId}).select('-password');
       if (contractorProfile?.status != 'active') continue
 
       if (!contractorProfile.documentVerification) continue
@@ -250,7 +250,7 @@ export const customerGetSingleContractorOnSkillController = async (
       .json({ message: "artisan with this skill do not exist" });
     }
 
-    const contractorProfile = await ContractorRegModel.findOne({_id: contractorWithSkill.contractorId}).select('-password');
+    const contractorProfile = await ContractorModel.findOne({_id: contractorWithSkill.contractorId}).select('-password');
     if (!contractorProfile) {
       return res
       .status(401)

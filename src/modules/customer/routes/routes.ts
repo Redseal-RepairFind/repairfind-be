@@ -1,5 +1,5 @@
 import { contractorViewNotificationrController } from "../../contractor/controllers/contractorNotification.controller";
-import { upload } from "../../../utils/upload.utility";
+import { memoryUpload } from "../../../utils/upload.utility";
 import { customerEmailForgotPasswordController, customerEmailResetPasswordController } from "../controllers/customerForgotPassword.controller";
 import { customerAcceptAndPayForJobController, customerComfirmedJobJobController, customerComplaintedJobJobController, customerGetAllSetJobController, customerGetComfirmJobController, customerGetComletedByContractorController, customerGetComplainJobController, customerGetJobQoutationController, customerGetJobQoutationPaymentConfirmAndJobInProgressController, customerGetJobQoutationPaymentOpenController, customerGetJobRejectedontroller, customerJobRequestSentToContractorController, customerSendJobToContractorController, customerVerififyPaymentForJobController } from "../controllers/customerJob.controller";
 import { customerGetNotificationrController, customerUnseenNotificationrController, customerViewNotificationrController } from "../controllers/customerNotification.controller";
@@ -20,7 +20,7 @@ router.post("/resend-email-verification", validatecustomerForgotPasswordParams, 
 router.post("/login", validatecustomeLoginParams, customerSignInController ); // customer login
 router.post("/forgot-password", validatecustomerForgotPasswordParams, customerEmailForgotPasswordController ); // customer forgot passwor
 router.post("/reset-password", validatecustomerResetPasswprdParams, customerEmailResetPasswordController ); // customer reset password
-router.post("/update-profile", checkCustomerRole, upload.single('profileImg'), CustomerUpdateProfileController ); // customer update is profile
+router.post("/update-profile", checkCustomerRole, memoryUpload.single('profileImg'), CustomerUpdateProfileController ); // customer update is profile
 
 
 router.get("/get_popular_contractor", checkCustomerRole, customerGetPopularContractorController ); // customer get popular contractor
@@ -28,7 +28,7 @@ router.get("/search_contractor", checkCustomerRole, customerSearchForContractorC
 router.get("/get_all_contractor_on_skill", validateContractorSearckParams, checkCustomerRole, customerGetAllContractorOnSkillController ); // customer get all contractor on a skill
 router.get("/customer_get_single_contractor", validateCustomerGetContractorParams, checkCustomerRole, customerGetSingleContractorOnSkillController ); // customer get single contractor on a skill
 
-router.post("/customer_send_job",checkCustomerRole, upload.any(), customerSendJobToContractorController ); // customer send job request
+router.post("/customer_send_job",checkCustomerRole, memoryUpload.any(), customerSendJobToContractorController ); // customer send job request
 router.get("/customer_get_job_request",checkCustomerRole, customerJobRequestSentToContractorController ); // customer get job that he send request
 router.get("/customer_get_job_qoutation", checkCustomerRole, customerGetJobQoutationController ); // customer get job that qoutation was sent
 router.post("/customer_accept_and_pay", checkCustomerRole, validateAcceptAndPayParams, customerAcceptAndPayForJobController ); // customer accept and pay
@@ -46,7 +46,7 @@ router.get("/customer_get_job_complain", checkCustomerRole, customerGetComplainJ
 router.get("/customer_get_jobs_history",checkCustomerRole, customerGetAllSetJobController ); // customer get all  job history
 
 
-router.post("/customer_pay_inspection_fees_checkout", checkCustomerRole, upload.any(),  customerInpectionMonneyCheckoutContractorController ); // customer pay for inspection
+router.post("/customer_pay_inspection_fees_checkout", checkCustomerRole, memoryUpload.any(),  customerInpectionMonneyCheckoutContractorController ); // customer pay for inspection
 router.post("/customer_comfirm_inspection_inspection_fees", checkCustomerRole, validateComfirmInspectionPaymentParams, customerComfirmInpectionMonneyCheckoutContractorController ); // customer comfirm inspection money
 router.get("/customer_get_inspection_payment_open", checkCustomerRole, customerGetJobInspectionPaymentOpenController ); // customer get inspection payment open
 

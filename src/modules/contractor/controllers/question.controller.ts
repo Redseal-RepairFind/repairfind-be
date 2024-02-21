@@ -1,7 +1,7 @@
 import { validationResult } from "express-validator";
 import { Request, Response } from "express";
 import QuestionModel from "../../../database/admin/models/question.model";
-import ContractorRegModel from "../../../database/contractor/models/contractor.model";
+import {ContractorModel} from "../../../database/contractor/models/contractor.model";
 import ContractorQuizModel from "../../../database/contractor/models/contractorQuiz.model";
 
 
@@ -28,7 +28,7 @@ export const contractorStartQuizController = async (
       const contractorId = contractor.id
   
       //get user info from databas
-      const contractorExist = await ContractorRegModel.findOne({_id: contractorId});
+      const contractorExist = await ContractorModel.findOne({_id: contractorId});
 
       if (!contractorExist) {
         return res
@@ -103,7 +103,7 @@ export const contractionLoadtQuestionController = async (
       const contractorId = contractor.id
   
       //get user info from databas
-      const contractorExist = await ContractorRegModel.findOne({_id: contractorId});
+      const contractorExist = await ContractorModel.findOne({_id: contractorId});
 
       if (!contractorExist) {
         return res
@@ -173,7 +173,7 @@ export const contractionAnwerQuestionController = async (
       const contractorId = contractor.id
   
       //get user info from databas
-      const contractorExist = await ContractorRegModel.findOne({_id: contractorId});
+      const contractorExist = await ContractorModel.findOne({_id: contractorId});
 
       if (!contractorExist) {
         return res
@@ -255,7 +255,7 @@ export const contractionGetQuizRrsultController = async (
       const contractorId = contractor.id
   
       //get user info from databas
-      const contractorExist = await ContractorRegModel.findOne({_id: contractorId});
+      const contractorExist = await ContractorModel.findOne({_id: contractorId});
 
       if (!contractorExist) {
         return res

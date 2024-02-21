@@ -1,7 +1,7 @@
 import { validationResult } from "express-validator";
 import { Request, Response } from "express";
-import ContractorRegModel from "../../../database/contractor/models/contractor.model";
-import { uploadToS3 } from "../../../utils/aws3.utility";
+import {ContractorModel} from "../../../database/contractor/models/contractor.model";
+import { uploadToS3 } from "../../../utils/upload.utility";
 import { v4 as uuidv4 } from "uuid";
 import JobModel from "../../../database/contractor/models/job.model";
 import ContractorDocumentValidateModel from "../../../database/contractor/models/contractorDocumentValidate.model";
@@ -60,7 +60,7 @@ export const customerSendJobToContractorController = async (
           .json({ message: "incorrect Customer ID" });
       }
 
-      const checkContractor = await ContractorRegModel.findOne({_id: contractorId})
+      const checkContractor = await ContractorModel.findOne({_id: contractorId})
 
       if (!checkContractor) {
         return res
@@ -216,7 +216,7 @@ export const customerJobRequestSentToContractorController = async (
     for (let i = 0; i < jobRequests.length; i++) {
       const jobRequest = jobRequests[i];
       
-      const contractor = await ContractorRegModel.findOne({_id: jobRequest.contractorId}).select('-password');
+      const contractor = await ContractorModel.findOne({_id: jobRequest.contractorId}).select('-password');
 
       const obj = {
         job: jobRequest,
@@ -275,7 +275,7 @@ export const customerGetJobQoutationController = async (
     for (let i = 0; i < jobRequests.length; i++) {
       const jobRequest = jobRequests[i];
       
-      const contractor = await ContractorRegModel.findOne({_id: jobRequest.contractorId}).select('-password');
+      const contractor = await ContractorModel.findOne({_id: jobRequest.contractorId}).select('-password');
 
       const obj = {
         job: jobRequest,
@@ -348,7 +348,7 @@ export const customerAcceptAndPayForJobController = async (
         .json({ message: "job do not exist or qoutation have not be sent" });
     }
 
-    const contractor = await ContractorRegModel.findOne({_id: job.contractorId}).select('-password');
+    const contractor = await ContractorModel.findOne({_id: job.contractorId}).select('-password');
 
     let secret = process.env.STRIPE_KEY || "sk_test_51OTMkGIj2KYudFaR1rNIBOPTaBESYoJco6lTCBZw5a0inyttRJOotcds1rXpXCJDSJrpNmIt2FBAaSxdmuma3ZTF00h48RxVny";
 
@@ -467,7 +467,7 @@ export const customerGetJobQoutationPaymentOpenController = async (
     for (let i = 0; i < jobRequests.length; i++) {
       const jobRequest = jobRequests[i];
       
-      const contractor = await ContractorRegModel.findOne({_id: jobRequest.contractorId}).select('-password');
+      const contractor = await ContractorModel.findOne({_id: jobRequest.contractorId}).select('-password');
 
       const obj = {
         job: jobRequest,
@@ -528,7 +528,7 @@ export const customerVerififyPaymentForJobController = async (
         .json({ message: "job do not exist or payment has not be initialize" });
     }
 
-    const contractor = await ContractorRegModel.findOne({_id: job.contractorId}).select('-password');
+    const contractor = await ContractorModel.findOne({_id: job.contractorId}).select('-password');
 
     if (!contractor) {
       return res
@@ -643,7 +643,7 @@ export const customerGetJobQoutationPaymentConfirmAndJobInProgressController = a
     for (let i = 0; i < jobRequests.length; i++) {
       const jobRequest = jobRequests[i];
       
-      const contractor = await ContractorRegModel.findOne({_id: jobRequest.contractorId}).select('-password');
+      const contractor = await ContractorModel.findOne({_id: jobRequest.contractorId}).select('-password');
 
       const obj = {
         job: jobRequest,
@@ -703,7 +703,7 @@ export const customerGetJobRejectedontroller = async (
     for (let i = 0; i < jobRequests.length; i++) {
       const jobRequest = jobRequests[i];
       
-      const contractor = await ContractorRegModel.findOne({_id: jobRequest.contractorId}).select('-password');
+      const contractor = await ContractorModel.findOne({_id: jobRequest.contractorId}).select('-password');
 
       const obj = {
         job: jobRequest,
@@ -764,7 +764,7 @@ export const customerGetAllSetJobController = async (
       for (let i = 0; i < jobs.length; i++) {
         const job = jobs[i];
 
-        const contractorProfile = await ContractorRegModel.findOne({_id: job.contractorId}).select('-password')
+        const contractorProfile = await ContractorModel.findOne({_id: job.contractorId}).select('-password')
         //const contractorDocument = await ContractorDocumentValidateModel.findOne({contractorId: job.contractorId});
 
         const obj = {
@@ -810,7 +810,7 @@ export const customerVerififyPaymentWebhook = async (
       return
     }
 
-    const contractor = await ContractorRegModel.findOne({_id: job.contractorId}).select('-password');
+    const contractor = await ContractorModel.findOne({_id: job.contractorId}).select('-password');
 
     if (!contractor) {
       return 
@@ -937,7 +937,7 @@ export const customerGetComletedByContractorController = async (
     for (let i = 0; i < jobRequests.length; i++) {
       const jobRequest = jobRequests[i];
       
-      const contractor = await ContractorRegModel.findOne({_id: jobRequest.contractorId}).select('-password');
+      const contractor = await ContractorModel.findOne({_id: jobRequest.contractorId}).select('-password');
 
       const obj = {
         job: jobRequest,
@@ -996,7 +996,7 @@ export const customerComfirmedJobJobController = async (
         .json({ message: "job do not exist or has not been completed by artisan" });
     }
 
-    const contractor = await ContractorRegModel.findOne({_id: job.contractorId}).select('-password');
+    const contractor = await ContractorModel.findOne({_id: job.contractorId}).select('-password');
     if (!contractor) {
       return res
       .status(401)
@@ -1083,7 +1083,7 @@ export const customerGetComfirmJobController = async (
     for (let i = 0; i < jobRequests.length; i++) {
       const jobRequest = jobRequests[i];
       
-      const contractor = await ContractorRegModel.findOne({_id: jobRequest.contractorId}).select('-password');
+      const contractor = await ContractorModel.findOne({_id: jobRequest.contractorId}).select('-password');
 
       const obj = {
         job: jobRequest,
@@ -1146,7 +1146,7 @@ export const customerComplaintedJobJobController = async (
         .json({ message: "job do not exist or has not been completed by artisan" });
     }
 
-    const contractor = await ContractorRegModel.findOne({_id: job.contractorId}).select('-password');
+    const contractor = await ContractorModel.findOne({_id: job.contractorId}).select('-password');
 
     job.status = "complain";
 
@@ -1211,7 +1211,7 @@ export const customerGetComplainJobController = async (
     for (let i = 0; i < jobRequests.length; i++) {
       const jobRequest = jobRequests[i];
       
-      const contractor = await ContractorRegModel.findOne({_id: jobRequest.contractorId}).select('-password');
+      const contractor = await ContractorModel.findOne({_id: jobRequest.contractorId}).select('-password');
 
       const obj = {
         job: jobRequest,

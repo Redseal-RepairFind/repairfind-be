@@ -1,6 +1,6 @@
 import { validationResult } from "express-validator";
 import { Request, Response } from "express";
-import ContractorRegModel from "../../../database/contractor/models/contractor.model";
+import {ContractorModel} from "../../../database/contractor/models/contractor.model";
 import CustomerRegModel from "../../../database/customer/models/customerReg.model";
 import JobModel from "../../../database/contractor/models/job.model";
 import ContractorDocumentValidateModel from "../../../database/contractor/models/contractorDocumentValidate.model";
@@ -51,7 +51,7 @@ export const AdminGetPendingPayoutDetailController = async (
             const customer = await CustomerRegModel.findOne({_id: job.customerId})
             if (!customer) continue
 
-            const contractor = await ContractorRegModel.findOne({_id: job.contractorId})
+            const contractor = await ContractorModel.findOne({_id: job.contractorId})
             if (!contractor) continue
 
             const contractorDocument = await ContractorDocumentValidateModel.findOne({contractorId: contractor._id})
@@ -125,7 +125,7 @@ export const AdminGetCompletedPayoutDetailController = async (
             const customer = await CustomerRegModel.findOne({_id: job.customerId})
             if (!customer) continue
 
-            const contractor = await ContractorRegModel.findOne({_id: job.contractorId})
+            const contractor = await ContractorModel.findOne({_id: job.contractorId})
             if (!contractor) continue
 
             const contractorDocument = await ContractorDocumentValidateModel.findOne({contractorId: contractor._id})
@@ -188,7 +188,7 @@ export const AdminGetSinglePayoutDetailController = async (
         const customer = await CustomerRegModel.findOne({_id: job.customerId})
         if (!customer) return
 
-        const contractor = await ContractorRegModel.findOne({_id: job.contractorId})
+        const contractor = await ContractorModel.findOne({_id: job.contractorId})
         if (!contractor) return
 
         const contractorDocument = await ContractorDocumentValidateModel.findOne({contractorId: contractor._id})

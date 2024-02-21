@@ -1,6 +1,6 @@
 import { validationResult } from "express-validator";
 import { Request, Response } from "express";
-import ContractorRegModel from "../../../database/contractor/models/contractor.model";
+import {ContractorModel} from "../../../database/contractor/models/contractor.model";
 import JobModel from "../../../database/contractor/models/job.model";
 import CustomerRegModel from "../../../database/customer/models/customerReg.model";
 import TransactionModel from "../../../database/admin/models/transaction.model";
@@ -31,7 +31,7 @@ export const AdminGetAppDetailController = async (
         const totalCustomer = await CustomerRegModel.countDocuments();
 
         // get total contractor
-        const totalContractor = await ContractorRegModel.countDocuments();
+        const totalContractor = await ContractorModel.countDocuments();
 
         //get total job
         const totalJob = await JobModel.countDocuments();

@@ -1,4 +1,4 @@
-import { upload } from "../../../utils/upload.utility";
+import { memoryUpload } from "../../../utils/upload.utility";
 import { AdminAddNewSkillController, AdminGetSkillController } from "../controllers/adminAddSkill.controller";
 import { AdminGetContractorDocForValController, AdminGetSingleContractorDocForValController, AdminValidateContractorDocsController } from "../controllers/adminContractorDocVal.controller";
 import { AdminEmailForgotPasswordController, AdminEmailResetPasswordController } from "../controllers/adminForgotPassword";
@@ -59,7 +59,7 @@ router.post("/admin_edit_question", validateEditQuestionParams, checkAdminRole, 
 router.post("/admin_delete_question", validateDeleteQuestionValidationParams, checkAdminRole, AdminDeleteQuestionlController ); // admin delete question
 
 router.get("/app_detail", checkAdminRole, AdminGetAppDetailController ); // admin get app detail
-router.post("/update_profile", checkAdminRole, upload.single('profileImg'), adminUpdateBioController ); // admin update profile
+router.post("/update_profile", checkAdminRole, memoryUpload.single('profileImg'), adminUpdateBioController ); // admin update profile
 
 router.get("/get_all_notification", checkAdminRole,  adminGetNotificationrController ); // admin get all notification
 router.post("/view_unseen_notification", checkAdminRole,  adminViewNotificationrController ); // admin view unseen notification

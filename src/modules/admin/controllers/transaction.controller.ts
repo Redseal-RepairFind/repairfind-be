@@ -1,6 +1,6 @@
 import { validationResult } from "express-validator";
 import { Request, Response } from "express";
-import ContractorRegModel from "../../../database/contractor/models/contractor.model";
+import {ContractorModel} from "../../../database/contractor/models/contractor.model";
 import TransactionModel from "../../../database/admin/models/transaction.model";
 import CustomerRegModel from "../../../database/customer/models/customerReg.model";
 import JobModel from "../../../database/contractor/models/job.model";
@@ -54,7 +54,7 @@ export const AdminGetTransactionDetailController = async (
                 if (!to) continue
                 
             }else if(transaction.to == 'contractor'){
-                to = await ContractorRegModel.findOne({_id: transaction.fromId}).select('-password'); 
+                to = await ContractorModel.findOne({_id: transaction.fromId}).select('-password'); 
                 if (!to) continue 
             } else {
                 to = 'admin'
@@ -65,7 +65,7 @@ export const AdminGetTransactionDetailController = async (
                 if (!from) continue
                 
             }else if(transaction.from == 'contractor'){
-                from = await ContractorRegModel.findOne({_id: transaction.fromId}).select('-password');
+                from = await ContractorModel.findOne({_id: transaction.fromId}).select('-password');
                 if (!from) continue;
 
             } else {
@@ -78,7 +78,7 @@ export const AdminGetTransactionDetailController = async (
             const customer = await CustomerRegModel.findOne({_id: job.customerId})
             if (!customer) continue
 
-            const contractor = await ContractorRegModel.findOne({_id: job.contractorId})
+            const contractor = await ContractorModel.findOne({_id: job.contractorId})
             if (!contractor) continue
 
             const contractorDocument = await ContractorDocumentValidateModel.findOne({contractorId: contractor._id})
@@ -148,7 +148,7 @@ export const AdminGetSingleTransactionDetailController = async (
             to = await CustomerRegModel.findOne({_id: transaction.fromId}).select('-password');
             
         }else if(transaction.to == 'contractor'){
-            to = await ContractorRegModel.findOne({_id: transaction.fromId}).select('-password');  
+            to = await ContractorModel.findOne({_id: transaction.fromId}).select('-password');  
         } else {
             to = 'admin'
         }
@@ -157,7 +157,7 @@ export const AdminGetSingleTransactionDetailController = async (
             from = await CustomerRegModel.findOne({_id: transaction.fromId}).select('-password');
             
         }else if(transaction.from == 'contractor'){
-            from = await ContractorRegModel.findOne({_id: transaction.fromId}).select('-password');  
+            from = await ContractorModel.findOne({_id: transaction.fromId}).select('-password');  
         } else {
             from = 'admin'
         }
@@ -172,7 +172,7 @@ export const AdminGetSingleTransactionDetailController = async (
           customer = null
         }
 
-        let contractor = await ContractorRegModel.findOne({_id: job?.contractorId})
+        let contractor = await ContractorModel.findOne({_id: job?.contractorId})
         if (!contractor) {
           contractor = null
         }

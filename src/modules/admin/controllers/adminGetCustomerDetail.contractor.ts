@@ -2,7 +2,7 @@ import { validationResult } from "express-validator";
 import { Request, Response } from "express";
 import AdminRegModel from "../../../database/admin/models/adminReg.model";
 import CustomerRegModel from "../../../database/customer/models/customerReg.model";
-import ContractorRegModel from "../../../database/contractor/models/contractor.model";
+import {ContractorModel} from "../../../database/contractor/models/contractor.model";
 import JobModel from "../../../database/contractor/models/job.model";
 import CustomerRatingModel from "../../../database/customer/models/customerRating.model";
 
@@ -60,7 +60,7 @@ export const AdminGetCustomerDetailController = async (
         for (let i = 0; i < jobRequests.length; i++) {
           const jobRequest = jobRequests[i];
           
-          const contractor = await ContractorRegModel.findOne({_id: jobRequest.contractorId}).select('-password');
+          const contractor = await ContractorModel.findOne({_id: jobRequest.contractorId}).select('-password');
 
           const obj = {
             job: jobRequest,
@@ -137,7 +137,7 @@ export const AdminGetSingleCustomerDetailController = async (
     for (let i = 0; i < jobRequests.length; i++) {
       const jobRequest = jobRequests[i];
       
-      const contractor = await ContractorRegModel.findOne({_id: jobRequest.contractorId}).select('-password');
+      const contractor = await ContractorModel.findOne({_id: jobRequest.contractorId}).select('-password');
 
       const obj = {
         job: jobRequest,
