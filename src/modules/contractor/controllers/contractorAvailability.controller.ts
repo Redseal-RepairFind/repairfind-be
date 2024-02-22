@@ -39,11 +39,11 @@ export const contractorSetAvailabilityController = async (
           .json({ message: "invalid credential" });
       }
 
-      if (!contractorExist.documentVerification) {
-        return res
-          .status(401)
-          .json({ message: "document not yet verified" });
-      }
+      // if (!contractorExist.documentVerification) {
+      //   return res
+      //     .status(401)
+      //     .json({ message: "document not yet verified" });
+      // }
 
       const checkNumberOfavailabilty = await ContractorAvailabilityModel.countDocuments({contractorId})
 

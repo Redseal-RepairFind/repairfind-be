@@ -22,7 +22,7 @@ class AuthHandler extends Base {
         let req = this.req
         let res = this.res
         try {
-            const { email, password,  firstName, dateOfBirth, lastName, phoneNumber, acceptTerms, accountType } = req.body;
+            const { email, password,  firstName, dateOfBirth, lastName, phoneNumber, acceptTerms, accountType, bussinessName } = req.body;
             const errors = validationResult(req);
 
             if (!errors.isEmpty()) {
@@ -65,6 +65,7 @@ class AuthHandler extends Base {
 
             const hashedPassword = await bcrypt.hash(password, 10);
 
+            
             const contractor = new ContractorModel({
                 email,
                 firstName,
@@ -74,6 +75,10 @@ class AuthHandler extends Base {
                 emailOtp,
                 phoneNumber, acceptTerms, accountType
             });
+
+            if(accountType == 'Company' && bussinessName){
+                // create profile here
+            }
 
             let contractorSaved = await contractor.save();
 
@@ -144,10 +149,27 @@ class AuthHandler extends Base {
 
             await contractor.save();
 
+            const accessToken = jwt.sign(
+                {
+                    id: contractor?._id,
+                    email: contractor.email,
+                },
+                process.env.JWT_CONTRACTOR_SECRET_KEY!,
+                { expiresIn: "24h" }
+            );
+
+            // return access token
             return res.json({
                 success: true,
-                message: "email verified successfully",
+                message: "Login successful",
+                Token: accessToken,
+                contractor
             });
+
+            // return res.json({
+            //     success: true,
+            //     message: "email verified successfully",
+            // });
 
         } catch (err: any) {
             return res.status(500).json({ success: false, message: err.message });

@@ -13,35 +13,25 @@ const ContractorSchema = new Schema(
         unique: true,
         lowercase: true,
       },
+
+      firstName: {
+        type: String,
+      },
+
+      lastName: {
+        type: String,
+      },
+
       password: {
         type: String,
         required: true,
       },
-      firstName: {
-        type: String,
-        required: true,
-      },
+
       dateOfBirth: {
         type: String,
         required: false,
       },
-      lastName: {
-        type: String,
-        required: true,
-      },
-      documentVerification: {
-        type: Boolean,
-        default: false,
-      },
-      location: {
-        type: String,
-      },
-      profileImage: {
-        type: String,
-      },
-      bio: {
-        type: String,
-      },
+     
       status: {
         type: String,
         enum: Object.values(contractorStatus),
@@ -61,14 +51,6 @@ const ContractorSchema = new Schema(
         enum: Object.values(contractorAccountTypes),
       },
 
-      createdAt: {
-        type: Date,
-        default: Date.now,
-      },
-      updatedAt: {
-        type: Date,
-        default: Date.now,
-      }, 
       passwordOtp: {
         otp: String,
         createdTime: Date,
@@ -84,6 +66,15 @@ const ContractorSchema = new Schema(
         createdTime: Date,
         verified: Boolean,
       },
+
+      createdAt: {
+        type: Date,
+        default: Date.now,
+      },
+      updatedAt: {
+        type: Date,
+        default: Date.now,
+      }, 
     
     },
     {

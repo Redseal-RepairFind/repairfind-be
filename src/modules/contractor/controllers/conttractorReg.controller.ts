@@ -395,7 +395,7 @@ export const contractorUpdateBioController = async (
     let profileImage;
 
     if (!file) {
-      profileImage = contractorProfile?.profileImage;
+      // profileImage = contractorProfile?.profileImage;
     }else{
       const filename = uuidv4();
       const result = await uploadToS3(req.file.buffer, `${filename}.jpg`);

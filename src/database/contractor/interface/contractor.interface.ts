@@ -8,10 +8,6 @@ export interface IContractor extends Document {
   email: string;
   password: string;
   dateOfBirth?: string;
-  documentVerification: boolean;
-  location: string;
-  profileImage: string;
-  bio: string;
   status: string;
   phoneNumber: string;
   accountType: string;

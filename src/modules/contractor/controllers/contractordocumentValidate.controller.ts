@@ -297,7 +297,7 @@ export const contractorComfirmCertnValidationController = async (
     }
 
     checkDocument.verified = true;
-    contractorExist.documentVerification = true;
+    // contractorExist.documentVerification = true;
     contractorExist.status = "active";
 
     await checkDocument.save()

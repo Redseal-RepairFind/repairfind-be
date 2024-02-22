@@ -147,7 +147,7 @@ export const AdminValidateContractorDocsController = async (
       }
 
 
-      if (contractorDoc.verified && contractor.documentVerification) {
+      if (contractorDoc.verified) {
         return res
             .status(401)
             .json({ message: "artisan document already verified" });
@@ -156,7 +156,7 @@ export const AdminValidateContractorDocsController = async (
       contractorDoc.verified = true;
       await contractorDoc.save()
 
-      contractor.documentVerification = true;
+      // contractor.documentVerification = true;
       contractor.status = 'active';
       await contractor.save()
 

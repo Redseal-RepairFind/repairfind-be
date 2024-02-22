@@ -101,7 +101,7 @@ export const customerSearchForContractorController = async (
 
         if (contractor.status != 'active') continue
 
-        if (!contractor.documentVerification) continue
+        // if (!contractor.documentVerification) continue
 
         const availability = await ContractorAvailabilityModel.find({contractorId: searchContractor.contractorId});
         if (availability.length < 1) continue
@@ -172,7 +172,7 @@ export const customerGetAllContractorOnSkillController = async (
       const contractorProfile = await ContractorModel.findOne({_id: contractorWithSkill.contractorId}).select('-password');
       if (contractorProfile?.status != 'active') continue
 
-      if (!contractorProfile.documentVerification) continue
+      // if (!contractorProfile.documentVerification) continue
 
       const bankDetail = await BankDetailModel.findOne({contractorId: contractorWithSkill.contractorId})
       if (!bankDetail) continue
@@ -263,11 +263,11 @@ export const customerGetSingleContractorOnSkillController = async (
       .json({ message: "artisan with this skill do not exist" });
     }
 
-    if (!contractorProfile.documentVerification) {
-      return res
-      .status(401)
-      .json({ message: "artisan with this skill do not exist" });
-    }
+    // if (!contractorProfile.documentVerification) {
+    //   return res
+    //   .status(401)
+    //   .json({ message: "artisan with this skill do not exist" });
+    // }
 
     const bankDetail = await BankDetailModel.findOne({contractorId: contractorWithSkill.contractorId})
     if (!bankDetail) {

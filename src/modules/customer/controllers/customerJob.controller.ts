@@ -68,7 +68,7 @@ export const customerSendJobToContractorController = async (
           .json({ message: "artisan does not exit" });
       }
 
-      if (checkContractor.status != 'active' || !checkContractor.documentVerification) {
+      if (checkContractor.status != 'active' ) {
         return res
           .status(401)
           .json({ message: "artisan is not active or not verified" });
