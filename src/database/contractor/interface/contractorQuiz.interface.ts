@@ -1,10 +1,10 @@
 import { Document, Types, ObjectId } from "mongoose";
-import { IContractorReg } from "./contractor.interface";
+import { IContractor } from "./contractor.interface";
 import { IQuestion } from "../../admin/interface/question.interface";
 
 export interface IContractorQuiz extends Document {
   _id: ObjectId;
-  contractorId: IContractorReg['_id']
+  contractorId: IContractor['_id']
   questionId: IQuestion['_id'];
   answer: string[];
   mark: string;

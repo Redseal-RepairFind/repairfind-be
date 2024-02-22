@@ -1,9 +1,9 @@
 import { Document, Types, ObjectId } from "mongoose";
-import { IContractorReg } from "./contractor.interface";
+import { IContractor } from "./contractor.interface";
 
 export interface IBankDetail extends Document {
   _id: ObjectId;
-  contractorId: IContractorReg['_id']
+  contractorId: IContractor['_id']
   financialInstitution: string;
   accountNumber: string;
   transitNumber: string;

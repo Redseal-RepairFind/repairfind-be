@@ -1,9 +1,9 @@
 import { Document, Types, ObjectId } from "mongoose";
-import { IContractorReg } from "./contractor.interface";
+import { IContractor } from "./contractor.interface";
 
 export interface IContractorAvailbility extends Document {
   _id: ObjectId;
-  contractorId: IContractorReg['_id']
+  contractorId: IContractor['_id']
   avialable: string;
   time: {
     from: string;

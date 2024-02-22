@@ -1,5 +1,5 @@
 import { Document, Types, ObjectId } from "mongoose";
-import { IContractorReg } from "./contractor.interface";
+import { IContractor } from "./contractor.interface";
 import { ICustomerReg } from "../../customer/interface/customerReg.interface";
 
 interface Quate {
@@ -20,7 +20,7 @@ interface Qoute {
 
 export interface IJob extends Document {
   _id: ObjectId;
-  contractorId: IContractorReg['_id'];
+  contractorId: IContractor['_id'];
   customerId: ICustomerReg['_id'];
 
   time: Date;

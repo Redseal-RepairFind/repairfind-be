@@ -167,10 +167,6 @@ class ProfileHandler extends Base {
 
             const {
                 name,
-                gstNumber,
-                gstType,
-                location,
-                skill,
                 website,
                 experienceYear,
                 about,
@@ -187,7 +183,6 @@ class ProfileHandler extends Base {
                 { contractorId },
                 {
                     name,
-                    skill,
                     website,
                     experienceYear,
                     about,
