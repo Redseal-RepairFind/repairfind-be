@@ -3,11 +3,11 @@ import { Document, Types, ObjectId } from "mongoose";
 export interface IContractor extends Document {
   _id: ObjectId;
   
+  firstName: string;
+  lastName: string;
   email: string;
   password: string;
-  firstName: string;
-  dateOfBirth: string;
-  lastName: string;
+  dateOfBirth?: string;
   documentVerification: boolean;
   location: string;
   profileImage: string;

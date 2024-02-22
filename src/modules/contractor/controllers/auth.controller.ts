@@ -380,6 +380,55 @@ class AuthHandler extends Base {
             return res.status(500).json({success: false,  message: err.message });
         }
     }
+
+    @handleAsyncError()
+    public async verifyResetPasswordOtp(): Promise<Response> {
+        let req = this.req
+        let res = this.res
+        try {
+            const {
+                email,
+                otp,
+            } = req.body;
+            // Check for validation errors
+            const errors = validationResult(req);
+        
+            if (!errors.isEmpty()) {
+              return res.status(400).json({success: false, message: "Validation errors",  errors: errors.array() });
+            }
+        
+            // try find contractor with the same email
+            const contractor = await ContractorModel.findOne({ email });
+        
+             // check if contractor exists
+            if (!contractor) {
+              return res
+                .status(401)
+                .json({success: false, message: "invalid email" });
+            }
+    
+            const {createdTime} = contractor.passwordOtp
+            const timeDiff = new Date().getTime() - createdTime.getTime();
+    
+            if ( otp !== contractor.passwordOtp.otp) {
+                return res
+                .status(401)
+                .json({sucess: false,  message: "invalid password reset otp" });
+            }
+
+            if ( timeDiff > OTP_EXPIRY_TIME) {
+                return res
+                .status(401)
+                .json({sucess: false,  message: "reset password otp has expired" });
+            }
+    
+            
+            return res.status(200).json({success: true,  message: "password reset otp verified" });
+        
+          } catch (err: any) {
+            return res.status(500).json({success: false,  message: err.message });
+        }
+    }
 }
 
 

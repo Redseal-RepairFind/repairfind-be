@@ -57,6 +57,11 @@ router.post("/resend-email", validateEmailParams, (req: Request, res: Response, 
 router.post("/forgot-password", validateEmailParams, (req: Request, res: Response, next: NextFunction) => {
     AuthController(req, res, next).forgotPassword();
 });
+
+router.post("/reset-password-verification", (req: Request, res: Response, next: NextFunction) => {
+    AuthController(req, res, next).verifyResetPasswordOtp();
+});
+
 router.post("/reset-password", validateEmailResetPasswordParams, (req: Request, res: Response, next: NextFunction) => {
     AuthController(req, res, next).resetPassword();
 });
