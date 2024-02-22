@@ -1,14 +1,7 @@
 import { validationResult } from "express-validator";
-import { s3FileUpload, uploadToS3 } from "../../../utils/upload.utility";
-import { v4 as uuidv4 } from "uuid";
 import { NextFunction, Request, Response } from "express";
 import {ContractorModel} from "../../../database/contractor/models/contractor.model";
-import ContractorDocumentValidateModel from "../../../database/contractor/models/contractorDocumentValidate.model";
-import { sendEmail } from "../../../utils/send_email_utility";
 import AdminRegModel from "../../../database/admin/models/adminReg.model";
-import SkillRegrModel from "../../../database/admin/models/skill.model";
-import fetch from "node-fetch";
-import AdminNoficationModel from "../../../database/admin/models/adminNotification.model";
 import { htmlContractorDocumentValidatinToAdminTemplate } from "../../../templates/adminEmail/adminContractorDocumentTemplate";
 import { htmlContractorDocumentValidatinTemplate } from "../../../templates/contractorEmail/contractorDocumentTemplate";
 import { Base } from "../../../abstracts/base.abstract";
@@ -137,6 +130,91 @@ class ProfileHandler extends Base {
             console.log("error", err)
             res.status(500).json({success: false,  message: err.message });
           }
+    }
+
+    @handleAsyncError()
+    public async getProfile(): Promise<Response | void> {
+      let req = <any>this.req
+      let res = this.res 
+      try {
+            const contractor = req.contractor;
+            const contractorId = contractor.id;
+
+            const profile = await ContractorProfileModel.findOne({ contractorId });
+
+            if (!profile) {
+                return res.status(404).json({ success: false, message: 'Profile not found' });
+            }
+
+            res.json({
+                success: true,
+                message: 'Profile fetched successfully',
+                data: profile,
+            });
+        } catch (err: any) {
+            console.log('error', err);
+            res.status(500).json({ success: false, message: err.message });
+        }
+    }
+
+    @handleAsyncError()
+    public async updateProfile(): Promise<Response | void> {
+        let req = <any>this.req;
+        let res = this.res;
+        try {
+            const contractor = req.contractor;
+            const contractorId = contractor.id;
+
+            const {
+                name,
+                gstNumber,
+                gstType,
+                location,
+                skill,
+                website,
+                experienceYear,
+                about,
+                email,
+                phoneNumber,
+                emergencyJobs,
+                availableDays,
+                profilePhoto,
+                previousJobPhotos,
+                previousJobVideos,
+            } = req.body;
+
+            const profile = await ContractorProfileModel.findOneAndUpdate(
+                { contractorId },
+                {
+                    name,
+                    skill,
+                    website,
+                    experienceYear,
+                    about,
+                    email,
+                    phoneNumber,
+                    emergencyJobs,
+                    availableDays,
+                    profilePhoto,
+                    previousJobPhotos,
+                    previousJobVideos,
+                },
+                { new: true }
+            );
+
+            if (!profile) {
+                return res.status(404).json({ success: false, message: 'Profile not found' });
+            }
+
+            res.json({
+                success: true,
+                message: 'Profile updated successfully',
+                data: profile,
+            });
+        } catch (err: any) {
+            console.log('error', err);
+            res.status(500).json({ success: false, message: err.message });
+        }
     }
 
 }

@@ -40,35 +40,37 @@ import { ProfileController } from "../controllers/profile.controller";
 const express = require("express");
 const router = express.Router();
 
+
+//  AUTH
 router.post("/signup", validateSignupParams, (req: Request, res: Response, next: NextFunction) => {
     AuthController(req, res, next).signUp();
 });
-
 router.post("/email-verification", validateEmailVerificatioParams, (req: Request, res: Response, next: NextFunction) => {
     AuthController(req, res, next).verifyEmail();
 });
-
 router.post("/signin", validateEmailLoginParams, (req: Request, res: Response, next: NextFunction) => {
     AuthController(req, res, next).signin();
 });
-
 router.post("/resend-email", validateEmailParams, (req: Request, res: Response, next: NextFunction) => {
     AuthController(req, res, next).resendEmail();
 });
-
-
 router.post("/forgot-password", validateEmailParams, (req: Request, res: Response, next: NextFunction) => {
     AuthController(req, res, next).forgotPassword();
 });
-
 router.post("/reset-password", validateEmailResetPasswordParams, (req: Request, res: Response, next: NextFunction) => {
     AuthController(req, res, next).resetPassword();
 });
 
-
+// PROFILE
 //   const cpUpload = diskUpload.fields([{ name: 'profilePhoto', maxCount: 1 }, { name: 'previousJobPhotos', maxCount: 10 }, { name: 'previousJobVideos', maxCount: 10 }])
 router.post("/profiles", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
     ProfileController(req, res, next).createProfile();
+});
+router.get("/profiles/me", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
+    ProfileController(req, res, next).getProfile();
+});
+router.patch("/profiles/me", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
+    ProfileController(req, res, next).updateProfile();
 });
 
 
