@@ -1,7 +1,7 @@
 import SMTPTransport from "nodemailer/lib/smtp-transport";
 import nodemailer from "nodemailer";
 import { htmlMailTemplate } from "../templates/sendEmailTemplate";
-import { SendEmailType } from "../types/sendEmail.type";
+import { SendEmailType } from "../abstracts/types/sendEmail.type";
 import { bool } from "aws-sdk/clients/signer";
 
 let transporter: any;

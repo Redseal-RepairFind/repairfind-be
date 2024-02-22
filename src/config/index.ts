@@ -52,6 +52,10 @@ export const config = {
         baseSandboxUrl: <string>process.env.KYC_PROVIDER_SANDBOX_URL
     },
 
+    certn: {
+        certnKey: <string>process.env.CERTN_KEY,
+    },
+
     twilio: {
         accountSid: <string>process.env.TWILIO_ACCOUNT_SID,
         authToken: <string>process.env.AUTH_TOKEN,

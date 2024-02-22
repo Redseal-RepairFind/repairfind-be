@@ -32,7 +32,7 @@ class AuthHandler extends Base {
             const userEmailExists = await ContractorModel.findOne({ email });
 
             if (userEmailExists) {
-                return res.status(401).json({ message: "Email exists already" });
+                return res.status(401).json({success:false, message: "Email exists already" });
             }
 
             const otp = generateOTP();

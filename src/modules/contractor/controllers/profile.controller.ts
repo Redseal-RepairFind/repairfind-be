@@ -15,6 +15,8 @@ import { Base } from "../../../abstracts/base.abstract";
 import { handleAsyncError } from "../../../abstracts/decorators.abstract";
 import { ContractorProfileModel } from "../../../database/contractor/models/contractor_profile.model";
 import { IContractorProfile } from "../../../database/contractor/interface/contractor_profile.interface";
+import { initiateCertnInvite } from "../../../services/certn";
+import { EmailService } from "../../../services";
 
 
 class ProfileHandler extends Base {
@@ -70,7 +72,6 @@ class ProfileHandler extends Base {
             }
       
             // let imageUrl =  s3FileUpload(files['profilePhoto'][0]);
-            // console.log(imageUrl)
           
             const data = {
               request_enhanced_identity_verification: true,
@@ -78,25 +79,7 @@ class ProfileHandler extends Base {
               email: constractor.email
             };
       
-            const options = {
-              method: "POST",
-              headers: {
-                'Authorization': `Bearer ${certnToken}`,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(data),
-            };
-      
-            const certn = await fetch("https://api.certn.co/hr/v1/applications/invite/", options)      
-            const certnData =  await certn.json()
-      
-            if (certnData.applicant.status != 'Pending') {
-              return res
-                .status(401)
-                .json({ message: "unable to initialize certn invite" });
-            }
-      
-            
+
             const profile =  await ContractorProfileModel.findOneAndUpdate({contractorId: contractorId},{
               contractorId: contractorId,
               name,
@@ -115,36 +98,35 @@ class ProfileHandler extends Base {
               profilePhoto,
               previousJobPhotos,
               previousJobVideos,
-              certnId: certnData.applicant.id
             }, { upsert: true, new: true, setDefaultsOnInsert: true })
+
+            initiateCertnInvite(data).then(res=>{
+              profile.certnId =  res.applicant.id
+              profile.save()
+              console.log('Certn invitation sent',  profile.certnId)
+            })
+
       
-            // send email to contractor
+
+            // send email to contractor 
+            // TODO: Emit event and handle email sending from there
             const htmlCon = htmlContractorDocumentValidatinTemplate(contractor.firstName);
-            let emailData = {
-              emailTo: contractor.email,
-              subject: "Document validation from artisan",
-              html: htmlCon
-            };
-      
-            sendEmail(emailData);
             
+            EmailService.send(contractor.email, 'New Profile', htmlCon )
+            .then(() => console.log('Email sent successfully'))
+            .catch(error => console.error('Error sending email:', error));
+
+
+           
             // send email to admin
             const html = htmlContractorDocumentValidatinToAdminTemplate(contractor.firstName)
-            const admins = await AdminRegModel.find();
-      
-            for (let i = 0; i < admins.length; i++) {
-              const admin = admins[i];
-              if (admin.validation) {
-                let emailData = {
-                  emailTo: admin.email,
-                  subject: "Document validation from artisan",
-                  html
-                };
-                sendEmail(emailData);
-              }
-            }
-      
-          
+            const adminsWithEmails = await AdminRegModel.find().select('email');
+            const adminEmails: Array<string> = adminsWithEmails.map(admin => admin.email);
+            EmailService.send(adminEmails, 'New Profile Registered', html, adminEmails)
+                .then(() => console.log('Emails sent successfully with CC'))
+                .catch(error => console.error('Error sending emails:', error));
+            
+
             res.json({  
               success: true,
               message: "Profile created successfully",
@@ -153,7 +135,7 @@ class ProfileHandler extends Base {
             
           } catch (err: any) {
             console.log("error", err)
-            res.status(500).json({ message: err.message });
+            res.status(500).json({success: false,  message: err.message });
           }
     }
 

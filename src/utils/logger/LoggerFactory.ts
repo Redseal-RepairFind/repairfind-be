@@ -1,4 +1,4 @@
-import { ILogger, ILoggerOptions } from '../../interfaces';
+import { ILogger, ILoggerOptions } from '../../abstracts/interfaces';
 import { Log4js } from './Log4js';
 
 export class LoggerFactory {
