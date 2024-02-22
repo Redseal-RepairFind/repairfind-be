@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon src/index.ts",
     "js-dev": "nodemon dist/index.ts",
-    "build": "rm -rf ./dist && tsc && npm run copy-files",
+    "build": "rm -rf ./dist && tsc && npm run",
     "copy-files": "npx copyfiles .env dist/ package.json dist/ package-lock.json dist/ ecosystem.config.js dist/",
     "start": "node dist/index.js",
     "build-start": "npm run build && npm start"
