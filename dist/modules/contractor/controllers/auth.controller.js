@@ -228,7 +228,7 @@ var AuthHandler = /** @class */ (function (_super) {
                         return [2 /*return*/, res.json({
                                 success: true,
                                 message: "Login successful",
-                                Token: accessToken,
+                                accessToken: accessToken,
                                 contractor: contractor
                             })];
                     case 4:
@@ -284,7 +284,7 @@ var AuthHandler = /** @class */ (function (_super) {
                         return [2 /*return*/, res.json({
                                 success: true,
                                 message: "Login successful",
-                                Token: accessToken,
+                                accessToken: accessToken,
                                 profile: profile
                             })];
                     case 5:
