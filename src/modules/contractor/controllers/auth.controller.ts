@@ -162,7 +162,7 @@ class AuthHandler extends Base {
             return res.json({
                 success: true,
                 message: "Login successful",
-                Token: accessToken,
+                accessToken: accessToken,
                 contractor
             });
 
@@ -228,7 +228,7 @@ class AuthHandler extends Base {
             return res.json({
                 success: true,
                 message: "Login successful",
-                Token: accessToken,
+                accessToken: accessToken,
                 profile
             });
 
