@@ -28,7 +28,7 @@ router.post("/email-verification", ContractorHttpRequest.EmailVerificationReques
     AuthController(req, res, next).verifyEmail();
 });
 
-router.post("/signin", ContractorHttpRequest.EmailVerificationRequest, (req: Request, res: Response, next: NextFunction) => {
+router.post("/signin", ContractorHttpRequest.LoginRequest, (req: Request, res: Response, next: NextFunction) => {
     AuthController(req, res, next).signin();
 });
 

@@ -13,7 +13,7 @@ router.post("/signup", requests_1.ContractorHttpRequest.CreateContractorRequest,
 router.post("/email-verification", requests_1.ContractorHttpRequest.EmailVerificationRequest, function (req, res, next) {
     (0, auth_controller_1.AuthController)(req, res, next).verifyEmail();
 });
-router.post("/signin", requests_1.ContractorHttpRequest.EmailVerificationRequest, function (req, res, next) {
+router.post("/signin", requests_1.ContractorHttpRequest.LoginRequest, function (req, res, next) {
     (0, auth_controller_1.AuthController)(req, res, next).signin();
 });
 router.post("/resend-email", requests_1.ContractorHttpRequest.ResendEmailRequest, function (req, res, next) {
