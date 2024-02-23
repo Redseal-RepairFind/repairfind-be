@@ -6,16 +6,6 @@ import { bool } from "aws-sdk/clients/signer";
 
 let transporter: any;
 
-let EMAIL_AUTH = {};
-if(process.env.EMAIL_SMTP_USERNAME && process.env.EMAIL_SMTP_PASSWORD ){
-  EMAIL_AUTH = {
-    user: <string>process.env.EMAIL_SMTP_USERNAME,
-    pass: <string>process.env.EMAIL_SMTP_PASSWORD
-  }
-}
-
-
-
 const transporterInit = () => {
 
 
@@ -24,9 +14,16 @@ const transporterInit = () => {
         service: process.env.EMAIL_SERVICE,
         host: process.env.EMAIL_HOST,
         port: process.env.EMAIL_PORT,
-        secure:  process.env.EMAIL_SECURE == 'true' ? true : false,
-        auth: EMAIL_AUTH,
+        secure: process.env.EMAIL_SECURE == 'true' ? true : false,
+        secureConnection: process.env.EMAIL_SECURE == 'true' ? true : false,
+        
+        auth: process.env.EMAIL_SERVICE ? {
+          user: process.env.EMAIL_SMTP_USERNAME,
+          pass: process.env.EMAIL_SMTP_PASSWORD
+        } : {},
+        
         tls: {
+            rejectUnauthorized: true,
             ciphers: 'SSLv3'
         } 
 

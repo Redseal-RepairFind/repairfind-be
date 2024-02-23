@@ -42,13 +42,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendEmail = void 0;
 var nodemailer_1 = __importDefault(require("nodemailer"));
 var transporter;
-var EMAIL_AUTH = {};
-if (process.env.EMAIL_SMTP_USERNAME && process.env.EMAIL_SMTP_PASSWORD) {
-    EMAIL_AUTH = {
-        user: process.env.EMAIL_SMTP_USERNAME,
-        pass: process.env.EMAIL_SMTP_PASSWORD
-    };
-}
 var transporterInit = function () {
     // Define the nodemailer transporter
     transporter = nodemailer_1.default.createTransport({
@@ -56,8 +49,13 @@ var transporterInit = function () {
         host: process.env.EMAIL_HOST,
         port: process.env.EMAIL_PORT,
         secure: process.env.EMAIL_SECURE == 'true' ? true : false,
-        auth: EMAIL_AUTH,
+        secureConnection: process.env.EMAIL_SECURE == 'true' ? true : false,
+        auth: process.env.EMAIL_SERVICE ? {
+            user: process.env.EMAIL_SMTP_USERNAME,
+            pass: process.env.EMAIL_SMTP_PASSWORD
+        } : {},
         tls: {
+            rejectUnauthorized: true,
             ciphers: 'SSLv3'
         }
     });
