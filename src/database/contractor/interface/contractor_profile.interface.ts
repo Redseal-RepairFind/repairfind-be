@@ -64,7 +64,7 @@ export interface IContractorProfile extends Document {
       type: String,
     },
   },
-
+  profileType: string,
   previousJobPhotos:  Array<IContractorJobPhoto>;
   previousJobVideos: Array<IContractorJobVideo>
 

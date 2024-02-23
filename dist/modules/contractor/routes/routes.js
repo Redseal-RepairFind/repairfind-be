@@ -1,36 +1,36 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var requestValidate_middleware_1 = require("../middleware/requestValidate.middleware");
 var contractorRoleCheck_middleware_1 = require("../middleware/contractorRoleCheck.middleware");
 var auth_controller_1 = require("../controllers/auth.controller");
+var requests_1 = require("../requests");
 var profile_controller_1 = require("../controllers/profile.controller");
 var express = require("express");
 var router = express.Router();
 //  AUTH
-router.post("/signup", requestValidate_middleware_1.validateSignupParams, function (req, res, next) {
+router.post("/signup", requests_1.ContractorHttpRequest.CreateContractorRequest, function (req, res, next) {
     (0, auth_controller_1.AuthController)(req, res, next).signUp();
 });
-router.post("/email-verification", requestValidate_middleware_1.validateEmailVerificatioParams, function (req, res, next) {
+router.post("/email-verification", requests_1.ContractorHttpRequest.EmailVerificationRequest, function (req, res, next) {
     (0, auth_controller_1.AuthController)(req, res, next).verifyEmail();
 });
-router.post("/signin", requestValidate_middleware_1.validateEmailLoginParams, function (req, res, next) {
+router.post("/signin", requests_1.ContractorHttpRequest.EmailVerificationRequest, function (req, res, next) {
     (0, auth_controller_1.AuthController)(req, res, next).signin();
 });
-router.post("/resend-email", requestValidate_middleware_1.validateEmailParams, function (req, res, next) {
+router.post("/resend-email", requests_1.ContractorHttpRequest.ResendEmailRequest, function (req, res, next) {
     (0, auth_controller_1.AuthController)(req, res, next).resendEmail();
 });
-router.post("/forgot-password", requestValidate_middleware_1.validateEmailParams, function (req, res, next) {
+router.post("/forgot-password", requests_1.ContractorHttpRequest.ResendEmailRequest, function (req, res, next) {
     (0, auth_controller_1.AuthController)(req, res, next).forgotPassword();
 });
 router.post("/reset-password-verification", function (req, res, next) {
     (0, auth_controller_1.AuthController)(req, res, next).verifyResetPasswordOtp();
 });
-router.post("/reset-password", requestValidate_middleware_1.validateEmailResetPasswordParams, function (req, res, next) {
+router.post("/reset-password", requests_1.ContractorHttpRequest.PasswordResetRequest, function (req, res, next) {
     (0, auth_controller_1.AuthController)(req, res, next).resetPassword();
 });
 // PROFILE
 //   const cpUpload = diskUpload.fields([{ name: 'profilePhoto', maxCount: 1 }, { name: 'previousJobPhotos', maxCount: 10 }, { name: 'previousJobVideos', maxCount: 10 }])
-router.post("/profiles", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
+router.post("/profiles", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateProfileRequest, function (req, res, next) {
     (0, profile_controller_1.ProfileController)(req, res, next).createProfile();
 });
 router.get("/profiles/me", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
@@ -38,6 +38,13 @@ router.get("/profiles/me", contractorRoleCheck_middleware_1.checkContractorRole,
 });
 router.patch("/profiles/me", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
     (0, profile_controller_1.ProfileController)(req, res, next).updateProfile();
+});
+//  Account
+router.get("/me", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
+    (0, profile_controller_1.ProfileController)(req, res, next).getProfile();
+});
+router.post("/me", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
+    (0, profile_controller_1.ProfileController)(req, res, next).getProfile();
 });
 // router.post("/start_quiz", checkContractorRole, contractorStartQuizController); // contractor start quiz
 // router.get("/load_quiz_question", checkContractorRole, contractionLoadtQuestionController); // contractor load question

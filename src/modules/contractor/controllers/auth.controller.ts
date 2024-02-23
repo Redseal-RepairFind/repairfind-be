@@ -22,7 +22,7 @@ class AuthHandler extends Base {
         let req = this.req
         let res = this.res
         try {
-            const { email, password,  firstName, dateOfBirth, lastName, phoneNumber, acceptTerms, accountType, bussinessName } = req.body;
+            const { email, password,  firstName, dateOfBirth, lastName, phoneNumber, acceptTerms, accountType, companyName } = req.body;
             const errors = validationResult(req);
 
             if (!errors.isEmpty()) {
@@ -73,12 +73,9 @@ class AuthHandler extends Base {
                 lastName,
                 password: hashedPassword,
                 emailOtp,
-                phoneNumber, acceptTerms, accountType
+                phoneNumber, acceptTerms, accountType, companyName
             });
 
-            if(accountType == 'Company' && bussinessName){
-                // create profile here
-            }
 
             let contractorSaved = await contractor.save();
 

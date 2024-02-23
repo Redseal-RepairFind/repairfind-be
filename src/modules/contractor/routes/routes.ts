@@ -1,27 +1,6 @@
 import { diskUpload, memoryUpload } from "../../../utils/upload.utility";
 import { contractorEmailForgotPasswordController, contractorEmailResetPasswordController } from "../controllers/contractorPassword.controller";
 import { ContractorResendEmailController, contractorDeatilController, contractorSignInController, contractorSignUpController, contractorUpdateBioController, contractorVerifiedEmailController } from "../controllers/conttractorReg.controller";
-import { 
-            validateAvailabilityParams,
-            validateBankDetailEquestParams, 
-            validateContractorAwnserQuestionParams, 
-            validateContractorRateCustomerParams,
-            validateEditAvailabilityParams, 
-            validateEmailLoginParams, 
-            validateEmailParams, 
-            validateEmailResetPasswordParams, 
-            validateEmailVerificatioParams, 
-            validateJobIdParams, 
-            validateNotAvailabilityParams,
-            validateREmoveAvailabilityParams, 
-            validateRejectJobREquestParams, 
-            validateSendJobQoutationParams, 
-            validateSendJobQoutationParamsTwo, 
-            validateSentQoutationCompleteParams, 
-            validateSentQoutationOneByOneParams, 
-            validateSignupParams, 
-            validatejobQouteTwoREquestParams 
-        } from "../middleware/requestValidate.middleware";
 
 import { checkContractorRole } from "../middleware/contractorRoleCheck.middleware";
 import { contractorAddDocumentController, contractorComfirmCertnValidationController, getAllSkillController } from "../controllers/contractordocumentValidate.controller";
@@ -33,7 +12,7 @@ import { contractorGetNotificationrController, contractorUnseenNotificationrCont
 import { contractorRateCustomerController, contractorRatingDetailController } from "../controllers/ratingCustomer.controller";
 import { AuthController } from "../controllers/auth.controller";
 import { NextFunction, Request, Response } from "express";
-import { HttpRequest } from "../requests";
+import { ContractorHttpRequest } from "../requests";
 import multer from "multer";
 import { ProfileController } from "../controllers/profile.controller";
 
@@ -42,19 +21,21 @@ const router = express.Router();
 
 
 //  AUTH
-router.post("/signup", validateSignupParams, (req: Request, res: Response, next: NextFunction) => {
+router.post("/signup", ContractorHttpRequest.CreateContractorRequest, (req: Request, res: Response, next: NextFunction) => {
     AuthController(req, res, next).signUp();
 });
-router.post("/email-verification", validateEmailVerificatioParams, (req: Request, res: Response, next: NextFunction) => {
+router.post("/email-verification", ContractorHttpRequest.EmailVerificationRequest, (req: Request, res: Response, next: NextFunction) => {
     AuthController(req, res, next).verifyEmail();
 });
-router.post("/signin", validateEmailLoginParams, (req: Request, res: Response, next: NextFunction) => {
+
+router.post("/signin", ContractorHttpRequest.EmailVerificationRequest, (req: Request, res: Response, next: NextFunction) => {
     AuthController(req, res, next).signin();
 });
-router.post("/resend-email", validateEmailParams, (req: Request, res: Response, next: NextFunction) => {
+
+router.post("/resend-email", ContractorHttpRequest.ResendEmailRequest, (req: Request, res: Response, next: NextFunction) => {
     AuthController(req, res, next).resendEmail();
 });
-router.post("/forgot-password", validateEmailParams, (req: Request, res: Response, next: NextFunction) => {
+router.post("/forgot-password", ContractorHttpRequest.ResendEmailRequest, (req: Request, res: Response, next: NextFunction) => {
     AuthController(req, res, next).forgotPassword();
 });
 
@@ -62,13 +43,13 @@ router.post("/reset-password-verification", (req: Request, res: Response, next: 
     AuthController(req, res, next).verifyResetPasswordOtp();
 });
 
-router.post("/reset-password", validateEmailResetPasswordParams, (req: Request, res: Response, next: NextFunction) => {
+router.post("/reset-password", ContractorHttpRequest.PasswordResetRequest, (req: Request, res: Response, next: NextFunction) => {
     AuthController(req, res, next).resetPassword();
 });
 
 // PROFILE
 //   const cpUpload = diskUpload.fields([{ name: 'profilePhoto', maxCount: 1 }, { name: 'previousJobPhotos', maxCount: 10 }, { name: 'previousJobVideos', maxCount: 10 }])
-router.post("/profiles", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
+router.post("/profiles", checkContractorRole, ContractorHttpRequest.CreateProfileRequest, (req: Request, res: Response, next: NextFunction) => {
     ProfileController(req, res, next).createProfile();
 });
 router.get("/profiles/me", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
@@ -76,6 +57,14 @@ router.get("/profiles/me", checkContractorRole, (req: Request, res: Response, ne
 });
 router.patch("/profiles/me", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
     ProfileController(req, res, next).updateProfile();
+});
+
+//  Account
+router.get("/me", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
+    ProfileController(req, res, next).getProfile();
+});
+router.post("/me", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
+    ProfileController(req, res, next).getProfile();
 });
 
 

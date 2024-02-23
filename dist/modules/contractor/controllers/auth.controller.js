@@ -91,7 +91,7 @@ var AuthHandler = /** @class */ (function (_super) {
     }
     AuthHandler.prototype.signUp = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _a, email, password, firstName, dateOfBirth, lastName, phoneNumber, acceptTerms, accountType, bussinessName, errors, userEmailExists, otp, createdTime, emailOtp, html, emailData, welcomeHtml, welcomeEmailData, hashedPassword, contractor, contractorSaved, adminNoti, err_1;
+            var req, res, _a, email, password, firstName, dateOfBirth, lastName, phoneNumber, acceptTerms, accountType, companyName, errors, userEmailExists, otp, createdTime, emailOtp, html, emailData, welcomeHtml, welcomeEmailData, hashedPassword, contractor, contractorSaved, adminNoti, err_1;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -100,7 +100,7 @@ var AuthHandler = /** @class */ (function (_super) {
                         _b.label = 1;
                     case 1:
                         _b.trys.push([1, 8, , 9]);
-                        _a = req.body, email = _a.email, password = _a.password, firstName = _a.firstName, dateOfBirth = _a.dateOfBirth, lastName = _a.lastName, phoneNumber = _a.phoneNumber, acceptTerms = _a.acceptTerms, accountType = _a.accountType, bussinessName = _a.bussinessName;
+                        _a = req.body, email = _a.email, password = _a.password, firstName = _a.firstName, dateOfBirth = _a.dateOfBirth, lastName = _a.lastName, phoneNumber = _a.phoneNumber, acceptTerms = _a.acceptTerms, accountType = _a.accountType, companyName = _a.companyName;
                         errors = (0, express_validator_1.validationResult)(req);
                         if (!errors.isEmpty()) {
                             return [2 /*return*/, res.status(400).json({ success: false, message: "Validation errors", errors: errors.array() })];
@@ -148,11 +148,9 @@ var AuthHandler = /** @class */ (function (_super) {
                             emailOtp: emailOtp,
                             phoneNumber: phoneNumber,
                             acceptTerms: acceptTerms,
-                            accountType: accountType
+                            accountType: accountType,
+                            companyName: companyName
                         });
-                        if (accountType == 'Company' && bussinessName) {
-                            // create profile here
-                        }
                         return [4 /*yield*/, contractor.save()];
                     case 6:
                         contractorSaved = _b.sent();

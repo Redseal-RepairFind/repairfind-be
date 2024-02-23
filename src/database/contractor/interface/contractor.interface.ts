@@ -5,6 +5,7 @@ export interface IContractor extends Document {
   
   firstName: string;
   lastName: string;
+  companyName: string;
   email: string;
   password: string;
   dateOfBirth?: string;

@@ -18,7 +18,7 @@ class ProfileHandler extends Base {
         let req = <any>this.req
         let res = this.res
         try {
-            const {  
+            let {  
               name,
               gstNumber,
               gstType,
@@ -34,8 +34,11 @@ class ProfileHandler extends Base {
               availableDays,
               profilePhoto,
               previousJobPhotos,
-              previousJobVideos
-            } : IContractorProfile = req.body;
+              previousJobVideos,
+              profileType,
+              firstName,
+              lastName
+            } = req.body;
       
                   // Check for validation errors
             const errors = validationResult(req);
@@ -71,8 +74,13 @@ class ProfileHandler extends Base {
               request_enhanced_criminal_record_check: true,
               email: constractor.email
             };
-      
 
+            if(profileType == 'Employee'){
+              name =  `${firstName} ${lastName}`
+            }
+
+            profileType = contractor.accountType
+      
             const profile =  await ContractorProfileModel.findOneAndUpdate({contractorId: contractorId},{
               contractorId: contractorId,
               name,
@@ -91,6 +99,7 @@ class ProfileHandler extends Base {
               profilePhoto,
               previousJobPhotos,
               previousJobVideos,
+              profileType
             }, { upsert: true, new: true, setDefaultsOnInsert: true })
 
             initiateCertnInvite(data).then(res=>{

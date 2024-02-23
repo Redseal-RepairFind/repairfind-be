@@ -42,6 +42,9 @@ var CompanyProfileSchema = new mongoose_1.Schema({
     gstType: {
         type: String,
     },
+    profileType: {
+        type: String,
+    },
     location: {
         type: IContractorLocationSchema,
     },

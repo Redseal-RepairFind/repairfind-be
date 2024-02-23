@@ -22,6 +22,12 @@ const ContractorSchema = new Schema(
         type: String,
       },
 
+      companyName: {
+        type: String,
+      },
+
+     
+
       password: {
         type: String,
         required: true,

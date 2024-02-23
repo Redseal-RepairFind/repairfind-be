@@ -17,6 +17,9 @@ var ContractorSchema = new mongoose_1.Schema({
     lastName: {
         type: String,
     },
+    companyName: {
+        type: String,
+    },
     password: {
         type: String,
         required: true,

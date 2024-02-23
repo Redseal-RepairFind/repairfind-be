@@ -55,6 +55,10 @@ const CompanyProfileSchema = new Schema<IContractorProfile>(
         type: String, 
       },
 
+      profileType: {
+        type: String,
+      },
+      
       location: {
         type: IContractorLocationSchema,
       },

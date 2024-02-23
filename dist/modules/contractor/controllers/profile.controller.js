@@ -90,7 +90,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     }
     ProfileHandler.prototype.createProfile = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _a, name_1, gstNumber, gstType, location_1, backgrounCheckConsent, skill, website, experienceYear, about, email, phoneNumber, emergencyJobs, availableDays, profilePhoto, previousJobPhotos, previousJobVideos, errors, contractor, contractorId, constractor, certnToken, data, profile_1, htmlCon, html, adminsWithEmails, adminEmails, err_1;
+            var req, res, _a, name_1, gstNumber, gstType, location_1, backgrounCheckConsent, skill, website, experienceYear, about, email, phoneNumber, emergencyJobs, availableDays, profilePhoto, previousJobPhotos, previousJobVideos, profileType, firstName, lastName, errors, contractor, contractorId, constractor, certnToken, data, profile_1, htmlCon, html, adminsWithEmails, adminEmails, err_1;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -99,7 +99,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         _b.label = 1;
                     case 1:
                         _b.trys.push([1, 5, , 6]);
-                        _a = req.body, name_1 = _a.name, gstNumber = _a.gstNumber, gstType = _a.gstType, location_1 = _a.location, backgrounCheckConsent = _a.backgrounCheckConsent, skill = _a.skill, website = _a.website, experienceYear = _a.experienceYear, about = _a.about, email = _a.email, phoneNumber = _a.phoneNumber, emergencyJobs = _a.emergencyJobs, availableDays = _a.availableDays, profilePhoto = _a.profilePhoto, previousJobPhotos = _a.previousJobPhotos, previousJobVideos = _a.previousJobVideos;
+                        _a = req.body, name_1 = _a.name, gstNumber = _a.gstNumber, gstType = _a.gstType, location_1 = _a.location, backgrounCheckConsent = _a.backgrounCheckConsent, skill = _a.skill, website = _a.website, experienceYear = _a.experienceYear, about = _a.about, email = _a.email, phoneNumber = _a.phoneNumber, emergencyJobs = _a.emergencyJobs, availableDays = _a.availableDays, profilePhoto = _a.profilePhoto, previousJobPhotos = _a.previousJobPhotos, previousJobVideos = _a.previousJobVideos, profileType = _a.profileType, firstName = _a.firstName, lastName = _a.lastName;
                         errors = (0, express_validator_1.validationResult)(req);
                         if (!errors.isEmpty()) {
                             return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -125,6 +125,10 @@ var ProfileHandler = /** @class */ (function (_super) {
                             request_enhanced_criminal_record_check: true,
                             email: constractor.email
                         };
+                        if (profileType == 'Employee') {
+                            name_1 = "".concat(firstName, " ").concat(lastName);
+                        }
+                        profileType = contractor.accountType;
                         return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOneAndUpdate({ contractorId: contractorId }, {
                                 contractorId: contractorId,
                                 name: name_1,
@@ -143,6 +147,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                                 profilePhoto: profilePhoto,
                                 previousJobPhotos: previousJobPhotos,
                                 previousJobVideos: previousJobVideos,
+                                profileType: profileType
                             }, { upsert: true, new: true, setDefaultsOnInsert: true })];
                     case 3:
                         profile_1 = _b.sent();
