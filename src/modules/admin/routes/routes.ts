@@ -10,7 +10,7 @@ import { AdminGetAppDetailController } from "../controllers/appDetails.Controlle
 import { AdminGetRevenueAnalysisControlleer, AdminsendEmailsControlleer } from "../controllers/averageRevenue.controller";
 import { AdminGetJobsrDetailController, AdminGetSingleJobsrDetailController, AdminGetTotalJobsrController } from "../controllers/job.controller";
 import { AdminGetCompletedPayoutDetailController, AdminGetPendingPayoutDetailController, AdminGetSinglePayoutDetailController, AdminPayContractorController } from "../controllers/payout.controller";
-import { AdminAddQuestionlController, AdminDeleteQuestionlController, AdminEditQuestionlController, AdminGetAllQuestionController, AdminGetSingleQuestionController, AdminQuizController } from "../controllers/question.controller";
+import { AdminQuizController } from "../controllers/quiz.controller";
 import { AdminGetSingleTransactionDetailController, AdminGetTransactionDetailController } from "../controllers/transaction.controller";
 import { checkAdminRole } from "../middlewares/adminRoleChecker.middleware";
 import { createQuizParams, validatAdminEmailverificationParams, validateAddQuestionParams, validateAddSkillParams, validateAdminForgotPasswordParams, validateAdminLoginParams, validateAdminResetPasswprdParams, validateContractoDocumentIdValidationParams, validateContractorChangeStatusValidationParams, validateContractorIdValidationParams, validateCustomerIdValidationParams, validateDeleteQuestionValidationParams, validateEditQuestionParams, validateJobIdValidationParams, validatePayoutIDParams, validatePayoutIDPayContractorParams, validateQuestionIdValidationParams, validateRevenueDateParams, validateSignupParams, validateSuperAdminValidationParams, validateTRansactionIdValidationParams } from "../middlewares/adminValidate.middleware";
@@ -53,15 +53,16 @@ router.get("/admin_get_total_job", checkAdminRole, AdminGetTotalJobsrController 
 router.get("/admin_get_transaction_detail", checkAdminRole, AdminGetTransactionDetailController ); // admin get transaction detail
 router.get("/admin_get_single_transaction_detail", validateTRansactionIdValidationParams, checkAdminRole, AdminGetSingleTransactionDetailController ); // admin get single transaction detail
 
-router.post("/admin_add_question", validateAddQuestionParams, checkAdminRole, AdminAddQuestionlController ); // admin add question
-router.post("/quiz", createQuizParams, checkAdminRole, AdminQuizController.CreateQuiz ); // admin add question
-router.get("/quiz", createQuizParams, checkAdminRole, AdminQuizController.getAllQuizzes ); // admin add question
-router.get("/admin_get_all_question", checkAdminRole, AdminGetAllQuestionController ); // admin get all question
+router.post("/admin_add_question", validateAddQuestionParams, checkAdminRole, AdminQuizController.AddQuestion ); // admin add question
+router.post("/quizzes", createQuizParams, checkAdminRole, AdminQuizController.CreateQuiz ); // admin create quiz
+router.get("/quizzes", checkAdminRole, AdminQuizController.getAllQuizzes ); // admin get quizes
+router.get("/random-quiz", checkAdminRole, AdminQuizController.getRandomQuiz ); // admin add question
+router.get("/admin_get_all_question", checkAdminRole, AdminQuizController.GetAllQuestions ); // admin get all question
 
 
-router.get("/admin_get_single_question", validateQuestionIdValidationParams, checkAdminRole, AdminGetSingleQuestionController ); // admin get single question
-router.post("/admin_edit_question", validateEditQuestionParams, checkAdminRole, AdminEditQuestionlController ); // admin edit question
-router.post("/admin_delete_question", validateDeleteQuestionValidationParams, checkAdminRole, AdminDeleteQuestionlController ); // admin delete question
+router.get("/admin_get_single_question", validateQuestionIdValidationParams, checkAdminRole, AdminQuizController.GetSingleQuestion ); // admin get single question
+router.post("/admin_edit_question", validateEditQuestionParams, checkAdminRole, AdminQuizController.EditQuestion ); // admin edit question
+router.post("/admin_delete_question", validateDeleteQuestionValidationParams, checkAdminRole, AdminQuizController.DeleteQuestion ); // admin delete question
 
 router.get("/app_detail", checkAdminRole, AdminGetAppDetailController ); // admin get app detail
 router.post("/update_profile", checkAdminRole, memoryUpload.single('profileImg'), adminUpdateBioController ); // admin update profile

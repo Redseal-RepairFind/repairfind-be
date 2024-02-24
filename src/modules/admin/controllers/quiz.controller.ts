@@ -110,7 +110,7 @@ export const getRandomQuiz = async (_: any, res: Response) => {
 
 
 //admin add question /////////////
-export const AdminAddQuestionlController = async (
+export const AddQuestion = async (
     req: any,
     res: Response,
   ) => {
@@ -153,7 +153,7 @@ export const AdminAddQuestionlController = async (
 
 
 //admin get all question /////////////
-export const AdminGetAllQuestionController = async (
+export const GetAllQuestions = async (
     req: any,
     res: Response,
   ) => {
@@ -200,7 +200,7 @@ export const AdminGetAllQuestionController = async (
 
 
 //admin get single question /////////////
-export const AdminGetSingleQuestionController = async (
+export const GetSingleQuestion = async (
     req: any,
     res: Response,
   ) => {
@@ -242,7 +242,7 @@ export const AdminGetSingleQuestionController = async (
 
 
 //admin edit question /////////////
-export const AdminEditQuestionlController = async (
+export const EditQuestion = async (
     req: any,
     res: Response,
   ) => {
@@ -294,7 +294,7 @@ export const AdminEditQuestionlController = async (
 
 
 //admin Delete question /////////////
-export const AdminDeleteQuestionlController = async (
+export const DeleteQuestion = async (
     req: any,
     res: Response,
   ) => {
@@ -334,4 +334,14 @@ export const AdminDeleteQuestionlController = async (
 }
 
 
+export const AdminQuizController = {
+    DeleteQuestion,
+    EditQuestion,
+    GetSingleQuestion,
+    GetAllQuestions,
+    AddQuestion,
+    CreateQuiz,
+    getAllQuizzes,
+    getRandomQuiz
+}
 

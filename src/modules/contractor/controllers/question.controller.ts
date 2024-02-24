@@ -2,7 +2,7 @@ import { validationResult } from "express-validator";
 import { Request, Response } from "express";
 import QuestionModel from "../../../database/admin/models/question.model";
 import {ContractorModel} from "../../../database/contractor/models/contractor.model";
-import ContractorQuizModel from "../../../database/contractor/models/contractorQuiz.model";
+import ContractorQuizModel from "../../../database/contractor/models/contractor_quiz.model";
 
 
 //contractor  start quiz

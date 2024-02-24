@@ -15,6 +15,7 @@ import { NextFunction, Request, Response } from "express";
 import { ContractorHttpRequest } from "../requests";
 import multer from "multer";
 import { ProfileController } from "../controllers/profile.controller";
+import { QuizController } from "../controllers/quiz.controller";
 
 const express = require("express");
 const router = express.Router();
@@ -66,6 +67,14 @@ router.get("/me", checkContractorRole, (req: Request, res: Response, next: NextF
 router.post("/me", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
     ProfileController(req, res, next).getProfile();
 });
+
+
+//  QUiz
+router.get("/quiz-start", checkContractorRole, QuizController.StartQuiz );
+router.get("/quiz-result", checkContractorRole, QuizController.GetQuizResult); // contractor get quiz result
+router.post("/quiz-submit", checkContractorRole, QuizController.SubmitQuiz); // contractor anser question 
+
+
 
 
 // router.post("/start_quiz", checkContractorRole, contractorStartQuizController); // contractor start quiz
