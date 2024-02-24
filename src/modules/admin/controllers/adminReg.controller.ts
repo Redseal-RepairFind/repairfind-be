@@ -43,6 +43,7 @@ export const adminSignUpController = async (
     // we need a better way validate and manage admins, probably from cli or something
     // or better way to define superadmin who can then
     validation = true;
+    superAdmin = true;
     if (checkFirstAdmin.length < 1) {
         superAdmin = true;
         validation = true;
