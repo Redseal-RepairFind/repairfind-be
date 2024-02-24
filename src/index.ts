@@ -90,7 +90,7 @@ app.use(
   })
 );
 app.use("/api/v1/contractor", contractorRoute);
-app.use("/admin", adminRoute);
+app.use("/api/v1/admin", adminRoute);
 app.use("/api/v1/customer", customerRoute);
 
 // // Handle socket connections
