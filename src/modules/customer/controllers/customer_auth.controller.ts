@@ -2,7 +2,7 @@ import { validationResult } from "express-validator";
 import bcrypt from "bcrypt";
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import CustomerRegModel from "../../../database/customer/models/customerReg.model";
+import CustomerModel from "../../../database/customer/models/customer.model";
 import { OTP_EXPIRY_TIME, generateOTP } from "../../../utils/otpGenerator";
 import { sendEmail } from "../../../utils/send_email_utility";
 import { htmlMailTemplate } from "../../../templates/sendEmailTemplate";
@@ -12,7 +12,7 @@ import { htmlcustomerWelcomTemplate } from "../../../templates/customerEmail/cus
 import AdminNoficationModel from "../../../database/admin/models/adminNotification.model";
 
 //customer signup /////////////
-export const customerSignUpController = async (
+export const signUp = async (
     req: Request,
     res: Response,
 ) => {
@@ -21,24 +21,26 @@ export const customerSignUpController = async (
     const {
       email,
       password,
-      fullName,
-      phonenumber,
+      firstName,
+      lastName,
+      acceptTerms,
+      phoneNumber,
     } = req.body;
     // Check for validation errors
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({success: false, message: "Validation errors occured", errors: errors.array() });
     }
 
     // try find user with the same email
-    const userEmailExists = await CustomerRegModel.findOne({ email });
+    const userEmailExists = await CustomerModel.findOne({ email });
     
      // check if user exists
      if (userEmailExists) {
       return res
         .status(401)
-        .json({ message: "Email exists already" });
+        .json({success: false, message: "Email exists already" });
     }
 
     const otp = generateOTP()
@@ -51,9 +53,9 @@ export const customerSignUpController = async (
             verified : false
         }
 
-        const html = htmlMailTemplate(otp, fullName, "We have received a request to verify your email");
+        const html = htmlMailTemplate(otp, firstName, "We have received a request to verify your email");
 
-        const welcomeHtml = htmlcustomerWelcomTemplate(fullName)
+        const welcomeHtml = htmlcustomerWelcomTemplate(lastName)
 
         const welcomeEmailData = {
           emailTo: email,
@@ -77,12 +79,14 @@ export const customerSignUpController = async (
     const hashedPassword = await bcrypt.hash(password, 10);
 
 
-    const customer = new CustomerRegModel({
-      email: email,
-      fullName: fullName,
-      phoneNumber: phonenumber,
+    const customer = new CustomerModel({
+      email,
+      firstName,
+      lastName,
+      phoneNumber,
       password: hashedPassword,
-      emailOtp
+      emailOtp,
+      acceptTerms
     });
     
     let customerSaved = await customer.save();
@@ -90,17 +94,19 @@ export const customerSignUpController = async (
     // admin notification 
     const adminNoti = new AdminNoficationModel({
       title: "New Account Created",
-      message: `A customer - ${fullName}  just created an account.`,
+      message: `A customer - ${lastName}  just created an account.`,
       status: "unseen"
     })
 
     await adminNoti.save();
 
     res.json({
+      success: true,
       message: "Signup successful",
-      user: {
+      data: {
         id: customerSaved._id,
-        fullName: customerSaved.fullName,
+        firstName: customerSaved.firstName,
+        lastName: customerSaved.lastName,
         phoneNumber: customerSaved.phoneNumber,
         email: customerSaved.email,  
       },
@@ -109,14 +115,14 @@ export const customerSignUpController = async (
     
   } catch (err: any) {
     // signup error
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ success: false, message: err.message });
   }
 
 }
 
 
 //customer verified email /////////////
-export const customerVerifiedEmailController = async (
+export const verifyEmail = async (
     req: Request,
     res: Response,
 ) => {
@@ -130,46 +136,60 @@ export const customerVerifiedEmailController = async (
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({success: false, message: "Validation errors", errors: errors.array() });
     }
 
     // try find customer with the same email
-    const customer = await CustomerRegModel.findOne({ email });
+    const customer = await CustomerModel.findOne({ email });
     
     // check if contractor exists
     if (!customer) {
      return res
        .status(401)
-       .json({ message: "invalid email" });
+       .json({success: false, message: "invalid email" });
    }
 
    if (customer.emailOtp.otp != otp) {
        return res
        .status(401)
-       .json({ message: "invalid otp" });
+       .json({success: false, message: "invalid otp" });
    }
 
    if (customer.emailOtp.verified) {
        return res
-       .status(401)
-       .json({ message: "email already verified" });
+       .status(400)
+       .json({success: false, message: "email already verified" });
    }
 
    const timeDiff = new Date().getTime() - customer.emailOtp.createdTime.getTime();
    if (timeDiff > OTP_EXPIRY_TIME) {
-       return res.status(400).json({ message: "otp expired" });
+       return res.status(400).json({success: false, message: "otp expired" });
    }
 
    customer.emailOtp.verified = true;
 
    await customer.save();
 
-    
-   return res.json({ message: "email verified successfully" });
+    // generate access token
+    const accessToken = jwt.sign(
+      { 
+        id: customer?._id,
+        email: customer.email,
+      },
+      process.env.JWT_CONTRACTOR_SECRET_KEY!,
+      { expiresIn: "24h" }
+    );
+
+   return res.json({
+      success: true, 
+      message: "email verified successfully",
+      accessToken,
+      data: customer
+    });
     
   } catch (err: any) {
     // signup error
-    res.status(500).json({ message: err.message });
+    res.status(500).json({success: false, message: err.message });
   }
 
 }
@@ -177,7 +197,7 @@ export const customerVerifiedEmailController = async (
 
 
 //customer signin /////////////
-export const customerSignInController = async (
+export const signIn = async (
     req: Request,
     res: Response,
   ) => {
@@ -195,7 +215,7 @@ export const customerSignInController = async (
       }
   
       // try find user with the same email
-      const customer = await CustomerRegModel.findOne({ email });
+      const customer = await CustomerModel.findOne({ email });
   
       // check if user exists
       if (!customer) {
@@ -214,9 +234,8 @@ export const customerSignInController = async (
         return res.status(401).json({ message: "email not verified." });
       }
 
-      const profile = await CustomerRegModel.findOne({ email }).select('-password');
+      const profile = await CustomerModel.findOne({ email }).select('-password');
   
-    
       // generate access token
       const accessToken = jwt.sign(
         { 
@@ -229,22 +248,22 @@ export const customerSignInController = async (
   
       // return access token
       res.json({
+        status: true,
         message: "Login successful",
-        Token: accessToken,
-        profile
+        accessToken,
+        data: profile
       });
   
       
     } catch (err: any) {
-      // signup error
-      res.status(500).json({ message: err.message });
+      res.status(500).json({status: false,  message: err.message });
     }
   
-  }
+}
 
 
 //customer resend for verification email /////////////
-export const CustomerResendEmailController = async (
+export const resendEmail = async (
   req: Request,
   res: Response,
 ) => {
@@ -257,23 +276,23 @@ try {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    return res.status(400).json({success: false, message: 'Validation error', errors: errors.array() });
   }
 
   // try find customer with the same email
-  const customer = await CustomerRegModel.findOne({ email });
+  const customer = await CustomerModel.findOne({ email });
   
   // check if contractor exists
   if (!customer) {
    return res
      .status(401)
-     .json({ message: "invalid email" });
+     .json({success: false, message: "invalid email" });
   }
 
   if (customer.emailOtp.verified) {
     return res
-     .status(401)
-     .json({ message: "email already verified" });
+     .status(400)
+     .json({success: false, message: "email already verified" });
   }
 
     const otp = generateOTP()
@@ -288,7 +307,7 @@ try {
 
     await customer?.save();
 
-    const html = htmlMailTemplate(otp, customer.fullName, "We have received a request to verify your email");
+    const html = htmlMailTemplate(otp, customer.firstName, "We have received a request to verify your email");
 
 
     let emailData = {
@@ -299,7 +318,7 @@ try {
 
   sendEmail(emailData);
 
- return res.status(200).json({ message: "OTP sent successfully to your email." });
+ return res.status(200).json({success: true, message: "OTP sent successfully to your email." });
   
 } catch (err: any) {
   // signup error
@@ -310,7 +329,7 @@ try {
 
 
 //customer customer update profile /////////////
-export const CustomerUpdateProfileController = async (
+export const updateProfile = async (
   req: any,
   res: Response,
 ) => {
@@ -334,7 +353,7 @@ try {
   const file = req.file;
 
   // try find customer with the same email
-  const customerDb = await CustomerRegModel.findOne({ _id: customerId });
+  const customerDb = await CustomerModel.findOne({ _id: customerId });
   
   // check if customer exists
   if (!customerDb) {
@@ -354,7 +373,7 @@ try {
     
   }
 
-  const updateBioData = await CustomerRegModel.findOneAndUpdate(
+  const updateBioData = await CustomerModel.findOneAndUpdate(
     {_id: customerId},
     {
       fullName: fullName,
@@ -374,5 +393,121 @@ try {
 }
 }
 
+
+export const forgotPassword = async (
+  req: Request,
+  res: Response,
+) => {
+
+  try {
+      const {
+          email,
+      } = req.body;
+      const errors = validationResult(req);
   
+      if (!errors.isEmpty()) {
+        return res.status(400).json({success:false, message:'Validation errors', errors: errors.array() });
+      }
   
+      // try find user with the same email
+      const customer = await CustomerModel.findOne({ email });
+         if (!customer) {
+        return res
+          .status(401)
+          .json({success:false, message: "invalid email" });
+      }
+
+      const otp = generateOTP()
+
+      const createdTime = new Date();
+
+      customer!.passwordOtp = {
+          otp,
+          createdTime,
+          verified : true
+      }
+
+      await customer?.save();
+
+      const html = htmlMailTemplate(otp, customer.firstName, "We have received a request to change your password");
+
+      let emailData = {
+          emailTo: email,
+          subject: "constractor password change",
+          html
+      };
+    
+      sendEmail(emailData);
+  
+      return res.status(200).json({success:true, message: "OTP sent successfully to your email." });
+  
+    } catch (err: any) {
+      res.status(500).json({success:false, message: err.message });
+  }
+  
+}
+
+export const resetPassword = async (
+  req: Request,
+  res: Response,
+) => {
+
+  try {
+      const {
+          email,
+          otp,
+          password
+      } = req.body;
+      // Check for validation errors
+      const errors = validationResult(req);
+  
+      if (!errors.isEmpty()) {
+        return res.status(400).json({success:false, errors: errors.array() });
+      }
+  
+      // try find customerr with the same email
+      const customer = await CustomerModel.findOne({ email });
+  
+       // check if contractor exists
+      if (!customer) {
+        return res
+          .status(401)
+          .json({success:false, message: "invalid email" });
+      }
+
+      const {createdTime, verified} = customer.passwordOtp
+
+      const timeDiff = new Date().getTime() - createdTime.getTime();
+
+      if (!verified || timeDiff > OTP_EXPIRY_TIME || otp !== customer.passwordOtp.otp) {
+          return res
+          .status(401)
+          .json({success:false, message: "unable to reset password" });
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(password, 10); 
+
+      customer.password = hashedPassword;
+      customer.passwordOtp.verified = false;
+
+      await customer.save();
+
+      return res.status(200).json({success:true, message: "password successfully change" });
+  
+    } catch (err: any) {
+      res.status(500).json({success:false, message: err.message });
+  }
+  
+}
+
+  
+export const CustomerAuthController = {
+  signUp,
+  verifyEmail,
+  forgotPassword,
+  resetPassword,
+  signIn,
+  resendEmail,
+  updateProfile
+}

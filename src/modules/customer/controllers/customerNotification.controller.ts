@@ -1,6 +1,6 @@
 import { validationResult } from "express-validator";
 import { Request, Response } from "express";
-import CustomerRegModel from "../../../database/customer/models/customerReg.model";
+import CustomerRegModel from "../../../database/customer/models/customer.model";
 import CustomerNotificationModel from "../../../database/customer/models/customerNotification.model";
 
 

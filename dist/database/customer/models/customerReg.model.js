@@ -54,5 +54,5 @@ var CustomerRegSchema = new mongoose_1.Schema({
 }, {
     timestamps: true,
 });
-var CustomerREgrModel = (0, mongoose_1.model)("CustomerReg", CustomerRegSchema);
-exports.default = CustomerREgrModel;
+var CustomerModel = (0, mongoose_1.model)("CustomerReg", CustomerRegSchema);
+exports.default = CustomerModel;

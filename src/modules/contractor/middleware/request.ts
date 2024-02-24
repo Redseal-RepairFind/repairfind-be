@@ -2,26 +2,7 @@ import { body } from "express-validator";
 
 
 
-export const EmailVerificationRequest = [
-  body("email").isEmail(),
-  body("otp").notEmpty(),
-];
 
-export const LoginRequest = [
-  body("email").isEmail(),
-  body("password").notEmpty(),
-];
-
-
-export const ResendEmailRequest = [
-  body("email").isEmail(),
-];
-
-export const PasswordResetRequest = [
-  body("email").isEmail(),
-  body("otp").notEmpty(),
-  body("password").notEmpty(),
-];
 
 
 // export const validateAvailabilityParams = [

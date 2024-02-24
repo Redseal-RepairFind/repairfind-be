@@ -46,11 +46,12 @@ export const CreateQuiz = async (req: any, res: Response) => {
     }
 
     // Update the quiz with the references to the created questions
-    await QuizModel.findByIdAndUpdate(newQuiz._id, { questions: createdQuestionRefs });
+    const quiz = await QuizModel.findByIdAndUpdate(newQuiz._id, { questions: createdQuestionRefs });
 
     res.json({
       status: true,
       message: 'Quiz and questions successfully entered',
+      data: quiz
     });
   } catch (err: any) {
     // Error handling
@@ -65,7 +66,8 @@ export const getAllQuizzes = async (_: any, res: Response) => {
 
     res.json({
       status: true,
-      quizzes,
+      message: 'Quizzes retrieved',
+      data: quizzes,
     });
   } catch (error: any) {
     res.status(500).json({
@@ -98,7 +100,8 @@ export const getRandomQuiz = async (_: any, res: Response) => {
 
     res.json({
       status: true,
-      quiz: randomQuiz,
+      message: 'Random quize retreived',
+      data: randomQuiz,
     });
   } catch (error: any) {
     res.status(500).json({

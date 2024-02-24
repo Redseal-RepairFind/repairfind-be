@@ -1,5 +1,5 @@
 import { Document, Types, ObjectId } from "mongoose";
-import { ICustomerReg } from "./customerReg.interface";
+import { ICustomerReg } from "./customer.interface";
 
 export interface ICustomerNotificationDocument extends Document {
   _id: ObjectId;

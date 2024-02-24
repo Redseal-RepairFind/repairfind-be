@@ -1,5 +1,5 @@
 import { Document, Types, ObjectId } from "mongoose";
-import { ICustomerReg } from "./customerReg.interface";
+import { ICustomerReg } from "./customer.interface";
 
 interface Rate {
   contractorId: string;

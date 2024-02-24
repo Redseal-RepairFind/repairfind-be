@@ -1,63 +1,72 @@
 
 import { body, query } from "express-validator";
 
-export const validateSignupParams = [
+export const signupParams = [
   body("email").isEmail(),
-  body("fullName").notEmpty(),
-  body("phonenumber").notEmpty(),
+  body("firstName").notEmpty(),
+  body("lastName").notEmpty(),
+  body("phoneNumber").notEmpty(),
   body("password").notEmpty(),
+  body('passwordConfirmation')
+        .exists({ checkFalsy: true }).withMessage('You must type a confirmation password')
+        .custom((value, { req }) => value === req.body.password).withMessage('The passwords do not match'),
+
+  body('acceptTerms')
+        .notEmpty()
+        .custom((value, { req }) => value === true).withMessage('You must accept our terms and conditions'),
+
 ];
 
-export const validatecustomerEmailverificationParams = [
+export const emailVerificationParams = [
     body("email").isEmail(),
     body("otp").notEmpty(),
 ];
 
-export const validatecustomeLoginParams = [
+export const loginParams = [
     body("email").isEmail(),
     body("password").notEmpty(),
 ];
 
-export const validatecustomerForgotPasswordParams = [
+export const forgotPasswordParams = [
     body("email").isEmail(),
 ];
 
-export const validatecustomerResetPasswprdParams = [
+export const resetPasswprdParams = [
     body("email").isEmail(),
     body("otp").notEmpty(),
     body("password").notEmpty(),
 ];
 
-export const validateContractorSearckParams = [
+export const searchParams = [
     query("skill").notEmpty(),
 ];
 
-export const validateCustomerGetContractorParams = [
+export const getContractorParams = [
     query("contractorId").notEmpty(),
     query("skill").notEmpty(),
 ];
 
-export const validateCustomerUpdateProfileParams = [
+export const updateProfileParams = [
     query("fullName").notEmpty(),
     query("location").notEmpty(),
     query("phoneNumber").notEmpty(),
 ];
 
-export const validateAcceptAndPayParams = [
+export const acceptAndPayParams = [
     body("jobId").notEmpty(),
 ];
 
-export const validateComfirmPaymentParams = [
+export const confirmPaymentParams = [
     body("jobId").notEmpty(),
     body("paymentId").notEmpty(),
 ];
 
-export const validateComfirmInspectionPaymentParams = [
+export const confirmInspectionPaymentParams = [
     body("jobId").notEmpty(),
     body("inspectionPaymemtId").notEmpty(),
 ];
 
-export const validateCustomerRateContractorParams = [
+export const rateContractorParams = [
     body("jobId").notEmpty(),
     body("cleanliness")
       .isIn([1, 2, 3, 4, 5])
@@ -80,3 +89,21 @@ export const validateCustomerRateContractorParams = [
     body("communicationText").notEmpty(),
     body("courteousText").notEmpty(),
 ];
+
+
+
+
+export const CustomerHttpRequest = {
+  signupParams,
+  emailVerificationParams,
+  loginParams,
+  forgotPasswordParams,
+  resetPasswprdParams,
+  searchParams,
+  getContractorParams,
+  updateProfileParams,
+  acceptAndPayParams,
+  confirmPaymentParams,
+  confirmInspectionPaymentParams,
+  rateContractorParams,
+}

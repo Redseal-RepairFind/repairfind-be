@@ -1,7 +1,7 @@
 import { Schema, model } from "mongoose";
-import { ICustomerReg } from "../interface/customerReg.interface";
+import { ICustomer } from "../interface/customer.interface";
 
-const CustomerRegSchema = new Schema(
+const CustomerSchema = new  Schema <ICustomer>(
     {
       email: {
         type: String,
@@ -13,7 +13,11 @@ const CustomerRegSchema = new Schema(
         type: String,
         required: true,
       },
-      fullName: {
+      firstName: {
+        type: String,
+        required: true,
+      },
+      lastName: {
         type: String,
         required: true,
       },
@@ -52,6 +56,11 @@ const CustomerRegSchema = new Schema(
         createdTime: Date,
         verified: Boolean,
       },
+      acceptTerms: {
+        otp: String,
+        createdTime: Date,
+        verified: Boolean,
+      },
     
     },
     {
@@ -59,6 +68,17 @@ const CustomerRegSchema = new Schema(
     }
   );
   
-  const CustomerREgrModel = model<ICustomerReg>("CustomerReg", CustomerRegSchema);
+  CustomerSchema.set('toJSON', {
+    transform: function (doc, ret, options) {
+        delete ret.password;
+        delete ret.emailOtp;
+        delete ret.passwordOtp;
+        delete ret.phoneNumberOtp;
+        return ret;
+    }
+});
+
+
+  const CustomerModel = model<ICustomer>("customers", CustomerSchema);
   
-  export default CustomerREgrModel;
+  export default CustomerModel;

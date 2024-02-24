@@ -1,11 +1,12 @@
 import { Document, Types, ObjectId } from "mongoose";
 
-export interface ICustomerReg extends Document {
+export interface ICustomer extends Document {
   _id: ObjectId;
   
   email: string;
   password: string;
-  fullName: string;
+  firstName: string;
+  lastName: string;
   phoneNumber: string;
   location: string;
   profileImg: string;
@@ -24,7 +25,7 @@ export interface ICustomerReg extends Document {
     createdTime: Date;
     verified: boolean;
   };
-
+  acceptTerms: Boolean;
   createdAt: Date;
   updatedAt: Date;
 }

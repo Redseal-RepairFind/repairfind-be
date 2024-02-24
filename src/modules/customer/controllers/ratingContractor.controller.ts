@@ -1,7 +1,7 @@
 import { validationResult } from "express-validator";
 import { Request, Response } from "express";
 import {ContractorModel} from "../../../database/contractor/models/contractor.model";
-import CustomerRegModel from "../../../database/customer/models/customerReg.model";
+import CustomerRegModel from "../../../database/customer/models/customer.model";
 import ContractorRatingModel from "../../../database/contractor/models/contractorRating.model";
 import CustomerRatedJobModel from "../../../database/customer/models/customerRatedJob.mdel";
 import JobModel from "../../../database/contractor/models/job.model";

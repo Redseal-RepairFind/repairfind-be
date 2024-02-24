@@ -7,7 +7,7 @@ import JobModel from "../../../database/contractor/models/job.model";
 import ContractorDocumentValidateModel from "../../../database/contractor/models/contractorDocumentValidate.model";
 import ContractorAvailabilityModel from "../../../database/contractor/models/contractorAvaliability.model";
 import { sendEmail } from "../../../utils/send_email_utility";
-import CustomerRegModel from "../../../database/customer/models/customerReg.model";
+import CustomerRegModel from "../../../database/customer/models/customer.model";
 import stripe from 'stripe';
 import { customerAcceptQouteAndPaySendEmailHtmlMailTemplate } from "../../../templates/email/customerAcceptQuoteTem";
 import { customerToAdminAfterPaymentSendEmailHtmlMailTemplate } from "../../../templates/email/customerPaymoneyForQuateTem";

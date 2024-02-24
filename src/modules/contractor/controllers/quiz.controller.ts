@@ -207,33 +207,3 @@ export const QuizController = {
     GetQuizResult
 }
 
-
-
-function areArraysEqualUnordered(arr1: any, arr2: any) {
-  if (arr1.length !== arr2.length) {
-    return false;
-  }
-
-  const countMap = new Map();
-
-  // Count occurrences in arr1
-  arr1.forEach((item: any) => {
-    countMap.set(item, (countMap.get(item) || 0) + 1);
-  });
-
-  // Decrement occurrences in arr2
-  arr2.forEach((item: any) => {
-    const count = countMap.get(item);
-    if (!count) {
-      return false; // item not found in arr1
-    }
-
-    if (count === 1) {
-      countMap.delete(item);
-    } else {
-      countMap.set(item, count - 1);
-    }
-  });
-
-  return countMap.size === 0;
-}

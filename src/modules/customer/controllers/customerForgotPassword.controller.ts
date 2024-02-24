@@ -1,7 +1,7 @@
 import { validationResult } from "express-validator";
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
-import CustomerRegModel from "../../../database/customer/models/customerReg.model";
+import CustomerRegModel from "../../../database/customer/models/customer.model";
 import { OTP_EXPIRY_TIME, generateOTP } from "../../../utils/otpGenerator";
 import { sendEmail } from "../../../utils/send_email_utility";
 import { htmlMailTemplate } from "../../../templates/sendEmailTemplate";
@@ -47,7 +47,7 @@ export const customerEmailForgotPasswordController = async (
 
         await customer?.save();
 
-        const html = htmlMailTemplate(otp, customer.fullName, "We have received a request to change your password");
+        const html = htmlMailTemplate(otp, customer.firstName, "We have received a request to change your password");
 
         let emailData = {
             emailTo: email,

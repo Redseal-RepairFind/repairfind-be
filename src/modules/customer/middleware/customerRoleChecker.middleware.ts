@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import CustomerREgModel from "../../../database/customer/models/customerReg.model";
+import CustomerREgModel from "../../../database/customer/models/customer.model";
 
 interface JwtPayload {
     email: string;

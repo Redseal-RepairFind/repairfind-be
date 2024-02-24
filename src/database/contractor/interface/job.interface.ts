@@ -1,6 +1,6 @@
 import { Document, Types, ObjectId } from "mongoose";
 import { IContractor } from "./contractor.interface";
-import { ICustomerReg } from "../../customer/interface/customerReg.interface";
+import { ICustomerReg } from "../../customer/interface/customer.interface";
 
 interface Quate {
   material: string;

@@ -5,7 +5,7 @@ import { sendEmail } from "../../../utils/send_email_utility";
 import {ContractorModel} from "../../../database/contractor/models/contractor.model";
 import { uploadToS3 } from "../../../utils/upload.utility";
 import ContractorDocumentValidateModel from "../../../database/contractor/models/contractorDocumentValidate.model";
-import CustomerRegModel from "../../../database/customer/models/customerReg.model";
+import CustomerRegModel from "../../../database/customer/models/customer.model";
 import JobModel from "../../../database/contractor/models/job.model";
 import stripe from 'stripe';
 import { customerSendJobRequestSendEmailHtmlMailTemplate } from "../../../templates/email/custotomerSendRequestTemplate";

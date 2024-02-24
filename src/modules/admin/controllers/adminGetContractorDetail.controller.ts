@@ -5,7 +5,7 @@ import ContractorDocumentValidateModel from "../../../database/contractor/models
 import ContractorAvailabilityModel from "../../../database/contractor/models/contractorAvaliability.model";
 import {ContractorModel} from "../../../database/contractor/models/contractor.model";
 import JobModel from "../../../database/contractor/models/job.model";
-import CustomerRegModel from "../../../database/customer/models/customerReg.model";
+import CustomerRegModel from "../../../database/customer/models/customer.model";
 import ContractorRatingModel from "../../../database/contractor/models/contractorRating.model";
 
 
