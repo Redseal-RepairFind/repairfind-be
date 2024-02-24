@@ -163,7 +163,7 @@ export const contractorSendJobQuatationController = async (
 
       await job.save()
 
-      const html = htmlJobQoutationTemplate(customer.fullName, contractorExist.firstName)
+      const html = htmlJobQoutationTemplate(customer.firstName, contractorExist.firstName)
 
       let emailData = {
         emailTo: customer.email,
@@ -272,7 +272,7 @@ export const contractorSendJobQuatationControllerTwo = async (
 
     await job.save()
 
-    const html = htmlJobQoutationTemplate(customer.fullName, contractorExist.firstName)
+    const html = htmlJobQoutationTemplate(customer.firstName, contractorExist.firstName)
 
     let emailData = {
       emailTo: customer.email,
@@ -603,7 +603,7 @@ export const contractorSendJobQuatationControllerFour = async (
 
     console.log(7);
 
-    const html = htmlJobQoutationTemplate(customer.fullName, contractorExist.firstName)
+    const html = htmlJobQoutationTemplate(customer.firstName, contractorExist.firstName)
 
     let emailData = {
       emailTo: customer.email,

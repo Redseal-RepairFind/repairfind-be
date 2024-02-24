@@ -363,7 +363,7 @@ export const customerComfirmInpectionMonneyCheckoutContractorController = async 
 
       await job.save()
 
-      const html = customerSendJobRequestSendEmailHtmlMailTemplate(checkContractor.firstName, checkCustomer?.fullName)
+      const html = customerSendJobRequestSendEmailHtmlMailTemplate(checkContractor.firstName, checkCustomer?.firstName)
 
       let emailData = {
         emailTo: checkContractor.email,
@@ -481,7 +481,7 @@ const customerComfirmInpection = async (
     transaction.status = 'successful',
     await transaction.save();
 
-    const html = htmlJobRequestTemplate(checkContractor.firstName, checkCustomer.fullName, job.time.toString(), job.description)
+    const html = htmlJobRequestTemplate(checkContractor.firstName, checkCustomer.firstName, job.time.toString(), job.description)
 
     let emailData = {
       emailTo: checkContractor.email,
@@ -511,7 +511,7 @@ const customerComfirmInpection = async (
     // admin notification 
     const adminNoti = new AdminNoficationModel({
       title: "Job Site Visit Payment",
-      message: `${checkCustomer.fullName} just paid $50 for site inspection.`,
+      message: `${checkCustomer.firstName} just paid $50 for site inspection.`,
       status: "unseen"
     })
 

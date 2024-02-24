@@ -42,7 +42,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.customerEmailResetPasswordController = exports.customerEmailForgotPasswordController = void 0;
 var express_validator_1 = require("express-validator");
 var bcrypt_1 = __importDefault(require("bcrypt"));
-var customerReg_model_1 = __importDefault(require("../../../database/customer/models/customerReg.model"));
+var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var otpGenerator_1 = require("../../../utils/otpGenerator");
 var send_email_utility_1 = require("../../../utils/send_email_utility");
 var sendEmailTemplate_1 = require("../../../templates/sendEmailTemplate");
@@ -58,7 +58,7 @@ var customerEmailForgotPasswordController = function (req, res) { return __await
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ email: email })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ email: email })];
             case 1:
                 customer = _a.sent();
                 // check if user exists
@@ -77,7 +77,7 @@ var customerEmailForgotPasswordController = function (req, res) { return __await
                 return [4 /*yield*/, (customer === null || customer === void 0 ? void 0 : customer.save())];
             case 2:
                 _a.sent();
-                html = (0, sendEmailTemplate_1.htmlMailTemplate)(otp, customer.fullName, "We have received a request to change your password");
+                html = (0, sendEmailTemplate_1.htmlMailTemplate)(otp, customer.firstName, "We have received a request to change your password");
                 emailData = {
                     emailTo: email,
                     subject: "constractor password change",
@@ -107,7 +107,7 @@ var customerEmailResetPasswordController = function (req, res) { return __awaite
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ email: email })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ email: email })];
             case 1:
                 customer = _c.sent();
                 // check if contractor exists

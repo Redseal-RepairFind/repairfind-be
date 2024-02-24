@@ -139,7 +139,7 @@ export const customerSendJobToContractorController = async (
       //contractor notification
       const contractorNotic = new ContractorNotificationModel({
         contractorId: checkContractor._id,
-        message: `You've been sent a job request from ${checkCustomer.fullName}`,
+        message: `You've been sent a job request from ${checkCustomer.firstName}`,
         status: "unseen"
       });
 
@@ -157,7 +157,7 @@ export const customerSendJobToContractorController = async (
 
 
 
-      const html = htmlJobRequestTemplate(checkContractor.firstName, checkCustomer.fullName, time, description)
+      const html = htmlJobRequestTemplate(checkContractor.firstName, checkCustomer.firstName, time, description)
 
       let emailData = {
         emailTo: checkContractor.email,
@@ -568,7 +568,7 @@ export const customerVerififyPaymentForJobController = async (
 
     await job.save()
 
-    const html = customerAcceptQouteAndPaySendEmailHtmlMailTemplate(contractor?.firstName, checkCustomer.fullName);
+    const html = customerAcceptQouteAndPaySendEmailHtmlMailTemplate(contractor?.firstName, checkCustomer.firstName);
 
     let emailData = {
       emailTo: contractor.email,
@@ -583,7 +583,7 @@ export const customerVerififyPaymentForJobController = async (
     for (let i = 0; i < admins.length; i++) {
       const admin = admins[i];
 
-      const html = customerToAdminAfterPaymentSendEmailHtmlMailTemplate(contractor.firstName, checkCustomer.fullName);
+      const html = customerToAdminAfterPaymentSendEmailHtmlMailTemplate(contractor.firstName, checkCustomer.firstName);
 
       let emailData = {
         emailTo: admin.email,
@@ -828,7 +828,7 @@ export const customerVerififyPaymentWebhook = async (
     transaction.status = 'successful',
     await transaction.save();
 
-    const html = customerAcceptQouteAndPaySendEmailHtmlMailTemplate(contractor?.firstName, checkCustomer.fullName);
+    const html = customerAcceptQouteAndPaySendEmailHtmlMailTemplate(contractor?.firstName, checkCustomer.firstName);
 
     let emailData = {
       emailTo: contractor.email,
@@ -856,7 +856,7 @@ export const customerVerififyPaymentWebhook = async (
       //admin notification
       const adminNotic = new AdminNoficationModel({
         title: "Job Booked",
-        message: `${job._id} - ${checkCustomer.fullName} booked a job for $${job.totalAmountCustomerToPaid}.`,
+        message: `${job._id} - ${checkCustomer.firstName} booked a job for $${job.totalAmountCustomerToPaid}.`,
         status: "unseen"
       })
 
@@ -867,7 +867,7 @@ export const customerVerififyPaymentWebhook = async (
     //contractor notification
     const contractorNotic = new ContractorNotificationModel({
       contractorId: contractor._id,
-      message: `You've been booked for a job from ${checkCustomer.fullName} for ${job.time}`,
+      message: `You've been booked for a job from ${checkCustomer.firstName} for ${job.time}`,
       status: "unseen"
     });
 
@@ -1028,7 +1028,7 @@ export const customerComfirmedJobJobController = async (
     //admin notification 
     const adminNotic = new AdminNoficationModel({
       title: "Customer Confirmed Job Completed",
-      message: `${jobId} - ${checkCustomer.fullName} has updated this job to completed and comfirm`,
+      message: `${jobId} - ${checkCustomer.firstName} has updated this job to completed and comfirm`,
       status: "unseen"
     })
 
@@ -1155,7 +1155,7 @@ export const customerComplaintedJobJobController = async (
      //admin notification 
      const adminNotic = new AdminNoficationModel({
       title: "Customer Disagreed on Job Completion",
-      message: `${job} - ${checkCustomer.fullName} disagreed that this job has been completed by this contractor ${contractor?.firstName}.`,
+      message: `${job} - ${checkCustomer.firstName} disagreed that this job has been completed by this contractor ${contractor?.firstName}.`,
       status: "unseen"
     })
 

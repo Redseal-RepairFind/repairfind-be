@@ -1,23 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PasswordResetRequest = exports.ResendEmailRequest = exports.LoginRequest = exports.EmailVerificationRequest = void 0;
-var express_validator_1 = require("express-validator");
-exports.EmailVerificationRequest = [
-    (0, express_validator_1.body)("email").isEmail(),
-    (0, express_validator_1.body)("otp").notEmpty(),
-];
-exports.LoginRequest = [
-    (0, express_validator_1.body)("email").isEmail(),
-    (0, express_validator_1.body)("password").notEmpty(),
-];
-exports.ResendEmailRequest = [
-    (0, express_validator_1.body)("email").isEmail(),
-];
-exports.PasswordResetRequest = [
-    (0, express_validator_1.body)("email").isEmail(),
-    (0, express_validator_1.body)("otp").notEmpty(),
-    (0, express_validator_1.body)("password").notEmpty(),
-];
 // export const validateAvailabilityParams = [
 //   body("from").notEmpty(),
 //   body("to").notEmpty(),

@@ -41,7 +41,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.checkCustomerRole = void 0;
 var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-var customerReg_model_1 = __importDefault(require("../../../database/customer/models/customerReg.model"));
+var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var checkCustomerRole = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var secret, authHeader, token, payload, customer, err_1;
     return __generator(this, function (_a) {
@@ -57,7 +57,7 @@ var checkCustomerRole = function (req, res, next) { return __awaiter(void 0, voi
             case 1:
                 _a.trys.push([1, 3, , 4]);
                 payload = jsonwebtoken_1.default.verify(token, secret);
-                return [4 /*yield*/, customerReg_model_1.default.findOne({
+                return [4 /*yield*/, customer_model_1.default.findOne({
                         email: payload.email
                     })];
             case 2:

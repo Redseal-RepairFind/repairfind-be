@@ -45,7 +45,7 @@ var uuid_1 = require("uuid");
 var send_email_utility_1 = require("../../../utils/send_email_utility");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var upload_utility_1 = require("../../../utils/upload.utility");
-var customerReg_model_1 = __importDefault(require("../../../database/customer/models/customerReg.model"));
+var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var job_model_1 = __importDefault(require("../../../database/contractor/models/job.model"));
 var stripe_1 = __importDefault(require("stripe"));
 var custotomerSendRequestTemplate_1 = require("../../../templates/email/custotomerSendRequestTemplate");
@@ -70,7 +70,7 @@ var customerInpectionMonneyCheckoutContractorController = function (req, res) { 
                 }
                 customer = req.customer;
                 customerId = customer.id;
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
             case 1:
                 checkCustomer = _b.sent();
                 if (!checkCustomer) {
@@ -236,7 +236,7 @@ var customerGetJobInspectionPaymentOpenController = function (req, res) { return
                 }
                 customer = req.customer;
                 customerId = customer.id;
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
             case 1:
                 checkCustomer = _b.sent();
                 if (!checkCustomer) {
@@ -295,7 +295,7 @@ var customerComfirmInpectionMonneyCheckoutContractorController = function (req, 
                 }
                 customer = req.customer;
                 customerId = customer.id;
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
             case 1:
                 checkCustomer = _c.sent();
                 if (!checkCustomer) {
@@ -346,7 +346,7 @@ var customerComfirmInpectionMonneyCheckoutContractorController = function (req, 
                 return [4 /*yield*/, job.save()];
             case 5:
                 _c.sent();
-                html = (0, custotomerSendRequestTemplate_1.customerSendJobRequestSendEmailHtmlMailTemplate)(checkContractor.firstName, checkCustomer === null || checkCustomer === void 0 ? void 0 : checkCustomer.fullName);
+                html = (0, custotomerSendRequestTemplate_1.customerSendJobRequestSendEmailHtmlMailTemplate)(checkContractor.firstName, checkCustomer === null || checkCustomer === void 0 ? void 0 : checkCustomer.firstName);
                 emailData = {
                     emailTo: checkContractor.email,
                     subject: "Job request from customer",
@@ -425,7 +425,7 @@ var customerComfirmInpection = function (jobId, customerId, transactionId) { ret
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 14, , 15]);
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
             case 1:
                 checkCustomer = _a.sent();
                 if (!checkCustomer) {
@@ -458,7 +458,7 @@ var customerComfirmInpection = function (jobId, customerId, transactionId) { ret
                 return [4 /*yield*/, transaction.save()];
             case 6:
                 _a.sent();
-                html = (0, jobRequestTemplate_1.htmlJobRequestTemplate)(checkContractor.firstName, checkCustomer.fullName, job.time.toString(), job.description);
+                html = (0, jobRequestTemplate_1.htmlJobRequestTemplate)(checkContractor.firstName, checkCustomer.firstName, job.time.toString(), job.description);
                 emailData = {
                     emailTo: checkContractor.email,
                     subject: "Job request from customer",
@@ -491,7 +491,7 @@ var customerComfirmInpection = function (jobId, customerId, transactionId) { ret
             case 12:
                 adminNoti = new adminNotification_model_1.default({
                     title: "Job Site Visit Payment",
-                    message: "".concat(checkCustomer.fullName, " just paid $50 for site inspection."),
+                    message: "".concat(checkCustomer.firstName, " just paid $50 for site inspection."),
                     status: "unseen"
                 });
                 return [4 /*yield*/, adminNoti.save()];

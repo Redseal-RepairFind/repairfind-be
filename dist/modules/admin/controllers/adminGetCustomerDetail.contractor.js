@@ -41,7 +41,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AdminGetSingleCustomerDetailController = exports.AdminGetCustomerDetailController = void 0;
 var express_validator_1 = require("express-validator");
-var customerReg_model_1 = __importDefault(require("../../../database/customer/models/customerReg.model"));
+var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var job_model_1 = __importDefault(require("../../../database/contractor/models/job.model"));
 var customerRating_model_1 = __importDefault(require("../../../database/customer/models/customerRating.model"));
@@ -62,14 +62,14 @@ var AdminGetCustomerDetailController = function (req, res) { return __awaiter(vo
                 page = page || 1;
                 limit = limit || 50;
                 skip = (page - 1) * limit;
-                return [4 /*yield*/, customerReg_model_1.default.find()
+                return [4 /*yield*/, customer_model_1.default.find()
                         .select('-password')
                         .sort({ createdAt: -1 })
                         .skip(skip)
                         .limit(limit)];
             case 1:
                 customersDetail = _b.sent();
-                return [4 /*yield*/, customerReg_model_1.default.countDocuments()];
+                return [4 /*yield*/, customer_model_1.default.countDocuments()];
             case 2:
                 totalCustomer = _b.sent();
                 customers = [];
@@ -147,7 +147,7 @@ var AdminGetSingleCustomerDetailController = function (req, res) { return __awai
                 }
                 admin = req.admin;
                 adminId = admin.id;
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: customerId })
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })
                         .select('-password')];
             case 1:
                 customer = _a.sent();

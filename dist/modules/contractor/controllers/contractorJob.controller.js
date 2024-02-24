@@ -51,7 +51,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.contractorGeJobComplainController = exports.contractorGeJobComfirmController = exports.contractorGeJobCompletedController = exports.contractorCompleteJobController = exports.contractorGeJobHistoryController = exports.contractorGeJobRejectedController = exports.contractorRejectJobRequestController = exports.contractorGetQuatationPaymentComfirmAndJobInProgressController = exports.contractorGetQuatationContractorController = exports.contractorSendJobQuatationControllerFour = exports.contractorRemoveobQuatationOneByOneControllerfive = exports.contractorSendJobQuatationControllerThree = exports.contractorSendJobQuatationControllerTwo = exports.contractorSendJobQuatationController = exports.contractorGetJobRequestContractorController = void 0;
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
-var customerReg_model_1 = __importDefault(require("../../../database/customer/models/customerReg.model"));
+var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var job_model_1 = __importDefault(require("../../../database/contractor/models/job.model"));
 var send_email_utility_1 = require("../../../utils/send_email_utility");
 var jobQoutationTemplate_1 = require("../../../templates/customerEmail/jobQoutationTemplate");
@@ -87,7 +87,7 @@ var contractorGetJobRequestContractorController = function (req, res) { return _
             case 3:
                 if (!(i < jobRequests.length)) return [3 /*break*/, 6];
                 jobRequest = jobRequests[i];
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: jobRequest.customerId }).select('-password')];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: jobRequest.customerId }).select('-password')];
             case 4:
                 customer = _b.sent();
                 obj = {
@@ -149,7 +149,7 @@ var contractorSendJobQuatationController = function (req, res) { return __awaite
                             .status(401)
                             .json({ message: "invalid quatation format" })];
                 }
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: job.customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: job.customerId })];
             case 3:
                 customer = _b.sent();
                 if (!customer) {
@@ -187,7 +187,7 @@ var contractorSendJobQuatationController = function (req, res) { return __awaite
                 return [4 /*yield*/, job.save()];
             case 4:
                 _b.sent();
-                html = (0, jobQoutationTemplate_1.htmlJobQoutationTemplate)(customer.fullName, contractorExist.firstName);
+                html = (0, jobQoutationTemplate_1.htmlJobQoutationTemplate)(customer.firstName, contractorExist.firstName);
                 emailData = {
                     emailTo: customer.email,
                     subject: "Job qoutetation from artisan",
@@ -240,7 +240,7 @@ var contractorSendJobQuatationControllerTwo = function (req, res) { return __awa
                             .status(401)
                             .json({ message: "job request do not exist" })];
                 }
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: job.customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: job.customerId })];
             case 3:
                 customer = _b.sent();
                 if (!customer) {
@@ -277,7 +277,7 @@ var contractorSendJobQuatationControllerTwo = function (req, res) { return __awa
                 return [4 /*yield*/, job.save()];
             case 4:
                 _b.sent();
-                html = (0, jobQoutationTemplate_1.htmlJobQoutationTemplate)(customer.fullName, contractorExist.firstName);
+                html = (0, jobQoutationTemplate_1.htmlJobQoutationTemplate)(customer.firstName, contractorExist.firstName);
                 emailData = {
                     emailTo: customer.email,
                     subject: "Job qoutetation from artisan",
@@ -333,7 +333,7 @@ var contractorSendJobQuatationControllerThree = function (req, res) { return __a
                             .status(401)
                             .json({ message: "job request do not exist" })];
                 }
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: job.customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: job.customerId })];
             case 3:
                 customer = _b.sent();
                 if (!customer) {
@@ -416,7 +416,7 @@ var contractorRemoveobQuatationOneByOneControllerfive = function (req, res) { re
                             .status(401)
                             .json({ message: "job request do not exist" })];
                 }
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: job.customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: job.customerId })];
             case 3:
                 customer = _b.sent();
                 if (!customer) {
@@ -513,7 +513,7 @@ var contractorSendJobQuatationControllerFour = function (req, res) { return __aw
                             .json({ message: "job request do not exist" })];
                 }
                 console.log(4);
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: job.customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: job.customerId })];
             case 3:
                 customer = _b.sent();
                 if (!customer) {
@@ -558,7 +558,7 @@ var contractorSendJobQuatationControllerFour = function (req, res) { return __aw
             case 4:
                 _b.sent();
                 console.log(7);
-                html = (0, jobQoutationTemplate_1.htmlJobQoutationTemplate)(customer.fullName, contractorExist.firstName);
+                html = (0, jobQoutationTemplate_1.htmlJobQoutationTemplate)(customer.firstName, contractorExist.firstName);
                 emailData = {
                     emailTo: customer.email,
                     subject: "Job qoutetation from artisan",
@@ -612,7 +612,7 @@ var contractorGetQuatationContractorController = function (req, res) { return __
             case 3:
                 if (!(i < jobRequests.length)) return [3 /*break*/, 6];
                 jobRequest = jobRequests[i];
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: jobRequest.customerId }).select('-password')];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: jobRequest.customerId }).select('-password')];
             case 4:
                 customer = _b.sent();
                 obj = {
@@ -670,7 +670,7 @@ var contractorGetQuatationPaymentComfirmAndJobInProgressController = function (r
             case 3:
                 if (!(i < jobRequests.length)) return [3 /*break*/, 6];
                 jobRequest = jobRequests[i];
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: jobRequest.customerId }).select('-password')];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: jobRequest.customerId }).select('-password')];
             case 4:
                 customer = _b.sent();
                 obj = {
@@ -727,7 +727,7 @@ var contractorRejectJobRequestController = function (req, res) { return __awaite
                             .status(401)
                             .json({ message: "job request do not exist" })];
                 }
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: job.customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: job.customerId })];
             case 3:
                 customer = _b.sent();
                 if (!customer) {
@@ -801,7 +801,7 @@ var contractorGeJobRejectedController = function (req, res) { return __awaiter(v
             case 3:
                 if (!(i < jobRequests.length)) return [3 /*break*/, 6];
                 jobRequest = jobRequests[i];
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: jobRequest.customerId }).select('-password')];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: jobRequest.customerId }).select('-password')];
             case 4:
                 customer = _b.sent();
                 obj = {
@@ -859,7 +859,7 @@ var contractorGeJobHistoryController = function (req, res) { return __awaiter(vo
             case 3:
                 if (!(i < jobRequests.length)) return [3 /*break*/, 6];
                 jobRequest = jobRequests[i];
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: jobRequest.customerId }).select('-password')];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: jobRequest.customerId }).select('-password')];
             case 4:
                 customer = _b.sent();
                 obj = {
@@ -916,7 +916,7 @@ var contractorCompleteJobController = function (req, res) { return __awaiter(voi
                             .status(401)
                             .json({ message: "job request do not exist" })];
                 }
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: job.customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: job.customerId })];
             case 3:
                 customer = _a.sent();
                 if (!customer) {
@@ -988,7 +988,7 @@ var contractorGeJobCompletedController = function (req, res) { return __awaiter(
             case 3:
                 if (!(i < jobRequests.length)) return [3 /*break*/, 6];
                 jobRequest = jobRequests[i];
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: jobRequest.customerId }).select('-password')];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: jobRequest.customerId }).select('-password')];
             case 4:
                 customer = _b.sent();
                 obj = {
@@ -1046,7 +1046,7 @@ var contractorGeJobComfirmController = function (req, res) { return __awaiter(vo
             case 3:
                 if (!(i < jobRequests.length)) return [3 /*break*/, 6];
                 jobRequest = jobRequests[i];
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: jobRequest.customerId }).select('-password')];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: jobRequest.customerId }).select('-password')];
             case 4:
                 customer = _b.sent();
                 obj = {
@@ -1104,7 +1104,7 @@ var contractorGeJobComplainController = function (req, res) { return __awaiter(v
             case 3:
                 if (!(i < jobRequests.length)) return [3 /*break*/, 6];
                 jobRequest = jobRequests[i];
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: jobRequest.customerId }).select('-password')];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: jobRequest.customerId }).select('-password')];
             case 4:
                 customer = _b.sent();
                 obj = {

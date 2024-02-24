@@ -50,7 +50,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.customerRatingDetailController = exports.customerRateContractorController = void 0;
 var express_validator_1 = require("express-validator");
-var customerReg_model_1 = __importDefault(require("../../../database/customer/models/customerReg.model"));
+var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var contractorRating_model_1 = __importDefault(require("../../../database/contractor/models/contractorRating.model"));
 var customerRatedJob_mdel_1 = __importDefault(require("../../../database/customer/models/customerRatedJob.mdel"));
 var job_model_1 = __importDefault(require("../../../database/contractor/models/job.model"));
@@ -69,7 +69,7 @@ var customerRateContractorController = function (req, res) { return __awaiter(vo
                 }
                 customer = req.customer;
                 customerId = customer.id;
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
             case 1:
                 checkCustomer = _b.sent();
                 if (!checkCustomer) {
@@ -215,7 +215,7 @@ var customerRatingDetailController = function (req, res) { return __awaiter(void
                 }
                 customer = req.customer;
                 customerId = customer.id;
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
             case 1:
                 checkCustomer = _b.sent();
                 if (!checkCustomer) {

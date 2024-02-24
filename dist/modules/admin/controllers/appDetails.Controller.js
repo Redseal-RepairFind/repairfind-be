@@ -43,7 +43,7 @@ exports.AdminGetAppDetailController = void 0;
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var job_model_1 = __importDefault(require("../../../database/contractor/models/job.model"));
-var customerReg_model_1 = __importDefault(require("../../../database/customer/models/customerReg.model"));
+var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var transaction_model_1 = __importDefault(require("../../../database/admin/models/transaction.model"));
 //get app detail /////////////
 var AdminGetAppDetailController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
@@ -59,7 +59,7 @@ var AdminGetAppDetailController = function (req, res) { return __awaiter(void 0,
                 }
                 admin = req.admin;
                 adminId = admin.id;
-                return [4 /*yield*/, customerReg_model_1.default.countDocuments()];
+                return [4 /*yield*/, customer_model_1.default.countDocuments()];
             case 1:
                 totalCustomer = _b.sent();
                 return [4 /*yield*/, contractor_model_1.ContractorModel.countDocuments()];

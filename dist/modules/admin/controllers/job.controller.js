@@ -43,7 +43,7 @@ exports.AdminGetTotalJobsrController = exports.AdminGetSingleJobsrDetailControll
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var job_model_1 = __importDefault(require("../../../database/contractor/models/job.model"));
-var customerReg_model_1 = __importDefault(require("../../../database/customer/models/customerReg.model"));
+var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 //get jobs detail /////////////
 var AdminGetJobsrDetailController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, page, limit, errors, admin, adminId, skip, jobsDetails, totalJob, jobs, i, jobsDetail, customer, contractor, obj, err_1;
@@ -76,7 +76,7 @@ var AdminGetJobsrDetailController = function (req, res) { return __awaiter(void 
             case 3:
                 if (!(i < jobsDetails.length)) return [3 /*break*/, 7];
                 jobsDetail = jobsDetails[i];
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: jobsDetail.customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: jobsDetail.customerId })];
             case 4:
                 customer = _b.sent();
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: jobsDetail.contractorId })];
@@ -132,7 +132,7 @@ var AdminGetSingleJobsrDetailController = function (req, res) { return __awaiter
                             .status(401)
                             .json({ message: "invalid job ID" })];
                 }
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: jobsDetail.customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: jobsDetail.customerId })];
             case 2:
                 customer = _a.sent();
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: jobsDetail.contractorId })];

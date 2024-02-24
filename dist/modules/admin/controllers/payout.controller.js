@@ -42,7 +42,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AdminPayContractorController = exports.AdminGetSinglePayoutDetailController = exports.AdminGetCompletedPayoutDetailController = exports.AdminGetPendingPayoutDetailController = void 0;
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
-var customerReg_model_1 = __importDefault(require("../../../database/customer/models/customerReg.model"));
+var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var job_model_1 = __importDefault(require("../../../database/contractor/models/job.model"));
 var contractorDocumentValidate_model_1 = __importDefault(require("../../../database/contractor/models/contractorDocumentValidate.model"));
 var payout_model_1 = __importDefault(require("../../../database/admin/models/payout.model"));
@@ -83,7 +83,7 @@ var AdminGetPendingPayoutDetailController = function (req, res) { return __await
                 job = _b.sent();
                 if (!job)
                     return [3 /*break*/, 8];
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: job.customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: job.customerId })];
             case 5:
                 customer = _b.sent();
                 if (!customer)
@@ -163,7 +163,7 @@ var AdminGetCompletedPayoutDetailController = function (req, res) { return __awa
                 job = _b.sent();
                 if (!job)
                     return [3 /*break*/, 8];
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: job.customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: job.customerId })];
             case 5:
                 customer = _b.sent();
                 if (!customer)
@@ -233,7 +233,7 @@ var AdminGetSinglePayoutDetailController = function (req, res) { return __awaite
                 job = _a.sent();
                 if (!job)
                     return [2 /*return*/];
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: job.customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: job.customerId })];
             case 3:
                 customer = _a.sent();
                 if (!customer)

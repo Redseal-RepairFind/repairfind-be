@@ -43,7 +43,7 @@ exports.AdminGetSingleTransactionDetailController = exports.AdminGetTransactionD
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var transaction_model_1 = __importDefault(require("../../../database/admin/models/transaction.model"));
-var customerReg_model_1 = __importDefault(require("../../../database/customer/models/customerReg.model"));
+var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var job_model_1 = __importDefault(require("../../../database/contractor/models/job.model"));
 var contractorDocumentValidate_model_1 = __importDefault(require("../../../database/contractor/models/contractorDocumentValidate.model"));
 //get transaction detail /////////////
@@ -81,7 +81,7 @@ var AdminGetTransactionDetailController = function (req, res) { return __awaiter
                 from = void 0;
                 to = void 0;
                 if (!(transaction.to == 'customer')) return [3 /*break*/, 5];
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: transaction.fromId }).select('-password')];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: transaction.fromId }).select('-password')];
             case 4:
                 to = _b.sent();
                 if (!to)
@@ -100,7 +100,7 @@ var AdminGetTransactionDetailController = function (req, res) { return __awaiter
                 _b.label = 8;
             case 8:
                 if (!(transaction.from == 'customer')) return [3 /*break*/, 10];
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: transaction.fromId }).select('-password')];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: transaction.fromId }).select('-password')];
             case 9:
                 from = _b.sent();
                 if (!from)
@@ -122,7 +122,7 @@ var AdminGetTransactionDetailController = function (req, res) { return __awaiter
                 job = _b.sent();
                 if (!job)
                     return [3 /*break*/, 18];
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: job.customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: job.customerId })];
             case 15:
                 customer = _b.sent();
                 if (!customer)
@@ -192,7 +192,7 @@ var AdminGetSingleTransactionDetailController = function (req, res) { return __a
                 from = void 0;
                 to = void 0;
                 if (!(transaction.to == 'customer')) return [3 /*break*/, 3];
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: transaction.fromId }).select('-password')];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: transaction.fromId }).select('-password')];
             case 2:
                 to = _a.sent();
                 return [3 /*break*/, 6];
@@ -207,7 +207,7 @@ var AdminGetSingleTransactionDetailController = function (req, res) { return __a
                 _a.label = 6;
             case 6:
                 if (!(transaction.from == 'customer')) return [3 /*break*/, 8];
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: transaction.fromId }).select('-password')];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: transaction.fromId }).select('-password')];
             case 7:
                 from = _a.sent();
                 return [3 /*break*/, 11];
@@ -226,7 +226,7 @@ var AdminGetSingleTransactionDetailController = function (req, res) { return __a
                 if (!job) {
                     job = null;
                 }
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: job === null || job === void 0 ? void 0 : job.customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: job === null || job === void 0 ? void 0 : job.customerId })];
             case 13:
                 customer = _a.sent();
                 if (!customer) {

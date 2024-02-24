@@ -45,7 +45,7 @@ var question_model_1 = __importDefault(require("../../../database/admin/models/q
 var quiz_model_1 = __importDefault(require("../../../database/admin/models/quiz.model"));
 //admin create quiz /////////////
 var CreateQuiz = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, video_url, questions, errors, admin, adminId, newQuiz, createdQuestionRefs, _i, questions_1, questionData, question, options, answer, newQuestion, err_1;
+    var _a, video_url, questions, errors, admin, adminId, newQuiz, createdQuestionRefs, _i, questions_1, questionData, question, options, answer, newQuestion, quiz, err_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -84,15 +84,13 @@ var CreateQuiz = function (req, res) { return __awaiter(void 0, void 0, void 0, 
             case 4:
                 _i++;
                 return [3 /*break*/, 2];
-            case 5: 
-            // Update the quiz with the references to the created questions
-            return [4 /*yield*/, quiz_model_1.default.findByIdAndUpdate(newQuiz._id, { questions: createdQuestionRefs })];
+            case 5: return [4 /*yield*/, quiz_model_1.default.findByIdAndUpdate(newQuiz._id, { questions: createdQuestionRefs })];
             case 6:
-                // Update the quiz with the references to the created questions
-                _b.sent();
+                quiz = _b.sent();
                 res.json({
                     status: true,
                     message: 'Quiz and questions successfully entered',
+                    data: quiz
                 });
                 return [3 /*break*/, 8];
             case 7:
@@ -116,7 +114,8 @@ var getAllQuizzes = function (_, res) { return __awaiter(void 0, void 0, void 0,
                 quizzes = _a.sent();
                 res.json({
                     status: true,
-                    quizzes: quizzes,
+                    message: 'Quizzes retrieved',
+                    data: quizzes,
                 });
                 return [3 /*break*/, 3];
             case 2:
@@ -156,7 +155,8 @@ var getRandomQuiz = function (_, res) { return __awaiter(void 0, void 0, void 0,
                 randomQuiz.questions = randomQuestions;
                 res.json({
                     status: true,
-                    quiz: randomQuiz,
+                    message: 'Random quize retreived',
+                    data: randomQuiz,
                 });
                 return [3 /*break*/, 4];
             case 3:

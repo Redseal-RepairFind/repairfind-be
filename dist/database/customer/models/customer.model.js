@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var mongoose_1 = require("mongoose");
-var CustomerRegSchema = new mongoose_1.Schema({
+var CustomerSchema = new mongoose_1.Schema({
     email: {
         type: String,
         required: true,
@@ -12,7 +12,11 @@ var CustomerRegSchema = new mongoose_1.Schema({
         type: String,
         required: true,
     },
-    fullName: {
+    firstName: {
+        type: String,
+        required: true,
+    },
+    lastName: {
         type: String,
         required: true,
     },
@@ -51,8 +55,22 @@ var CustomerRegSchema = new mongoose_1.Schema({
         createdTime: Date,
         verified: Boolean,
     },
+    acceptTerms: {
+        otp: String,
+        createdTime: Date,
+        verified: Boolean,
+    },
 }, {
     timestamps: true,
 });
-var CustomerModel = (0, mongoose_1.model)("CustomerReg", CustomerRegSchema);
+CustomerSchema.set('toJSON', {
+    transform: function (doc, ret, options) {
+        delete ret.password;
+        delete ret.emailOtp;
+        delete ret.passwordOtp;
+        delete ret.phoneNumberOtp;
+        return ret;
+    }
+});
+var CustomerModel = (0, mongoose_1.model)("customers", CustomerSchema);
 exports.default = CustomerModel;

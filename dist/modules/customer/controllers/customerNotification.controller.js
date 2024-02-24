@@ -41,7 +41,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.customerUnseenNotificationrController = exports.customerViewNotificationrController = exports.customerGetNotificationrController = void 0;
 var express_validator_1 = require("express-validator");
-var customerReg_model_1 = __importDefault(require("../../../database/customer/models/customerReg.model"));
+var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var customerNotification_model_1 = __importDefault(require("../../../database/customer/models/customerNotification.model"));
 //customer get all notification/////////////
 var customerGetNotificationrController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
@@ -57,7 +57,7 @@ var customerGetNotificationrController = function (req, res) { return __awaiter(
                 }
                 customer = req.customer;
                 customerId = customer.id;
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
             case 1:
                 checkCustomer = _b.sent();
                 if (!checkCustomer) {
@@ -102,7 +102,7 @@ var customerViewNotificationrController = function (req, res) { return __awaiter
                 }
                 customer = req.customer;
                 customerId = customer.id;
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
             case 1:
                 checkCustomer = _b.sent();
                 if (!checkCustomer) {
@@ -143,7 +143,7 @@ var customerUnseenNotificationrController = function (req, res) { return __await
                 }
                 customer = req.customer;
                 customerId = customer.id;
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
             case 1:
                 checkCustomer = _b.sent();
                 if (!checkCustomer) {

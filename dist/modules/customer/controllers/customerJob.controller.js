@@ -46,7 +46,7 @@ var upload_utility_1 = require("../../../utils/upload.utility");
 var uuid_1 = require("uuid");
 var job_model_1 = __importDefault(require("../../../database/contractor/models/job.model"));
 var send_email_utility_1 = require("../../../utils/send_email_utility");
-var customerReg_model_1 = __importDefault(require("../../../database/customer/models/customerReg.model"));
+var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var stripe_1 = __importDefault(require("stripe"));
 var customerAcceptQuoteTem_1 = require("../../../templates/email/customerAcceptQuoteTem");
 var customerPaymoneyForQuateTem_1 = require("../../../templates/email/customerPaymoneyForQuateTem");
@@ -74,7 +74,7 @@ var customerSendJobToContractorController = function (req, res) { return __await
                 }
                 customer = req.customer;
                 customerId = customer.id;
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
             case 1:
                 checkCustomer = _b.sent();
                 if (!checkCustomer) {
@@ -151,7 +151,7 @@ var customerSendJobToContractorController = function (req, res) { return __await
                 _b.sent();
                 contractorNotic = new contractorNotification_model_1.default({
                     contractorId: checkContractor._id,
-                    message: "You've been sent a job request from ".concat(checkCustomer.fullName),
+                    message: "You've been sent a job request from ".concat(checkCustomer.firstName),
                     status: "unseen"
                 });
                 return [4 /*yield*/, contractorNotic.save()];
@@ -165,7 +165,7 @@ var customerSendJobToContractorController = function (req, res) { return __await
                 return [4 /*yield*/, customerNotic.save()];
             case 9:
                 _b.sent();
-                html = (0, jobRequestTemplate_1.htmlJobRequestTemplate)(checkContractor.firstName, checkCustomer.fullName, time, description);
+                html = (0, jobRequestTemplate_1.htmlJobRequestTemplate)(checkContractor.firstName, checkCustomer.firstName, time, description);
                 emailData = {
                     emailTo: checkContractor.email,
                     subject: "Job request from customer",
@@ -202,7 +202,7 @@ var customerJobRequestSentToContractorController = function (req, res) { return 
                 }
                 customer = req.customer;
                 customerId = customer.id;
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
             case 1:
                 checkCustomer = _b.sent();
                 if (!checkCustomer) {
@@ -260,7 +260,7 @@ var customerGetJobQoutationController = function (req, res) { return __awaiter(v
                 }
                 customer = req.customer;
                 customerId = customer.id;
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
             case 1:
                 checkCustomer = _b.sent();
                 if (!checkCustomer) {
@@ -318,7 +318,7 @@ var customerAcceptAndPayForJobController = function (req, res) { return __awaite
                 }
                 customer = req.customer;
                 customerId = customer.id;
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
             case 1:
                 checkCustomer = _a.sent();
                 if (!checkCustomer) {
@@ -437,7 +437,7 @@ var customerGetJobQoutationPaymentOpenController = function (req, res) { return 
                 }
                 customer = req.customer;
                 customerId = customer.id;
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
             case 1:
                 checkCustomer = _b.sent();
                 if (!checkCustomer) {
@@ -496,7 +496,7 @@ var customerVerififyPaymentForJobController = function (req, res) { return __awa
                 }
                 customer = req.customer;
                 customerId = customer.id;
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
             case 1:
                 checkCustomer = _c.sent();
                 if (!checkCustomer) {
@@ -546,7 +546,7 @@ var customerVerififyPaymentForJobController = function (req, res) { return __awa
                 return [4 /*yield*/, job.save()];
             case 5:
                 _c.sent();
-                html = (0, customerAcceptQuoteTem_1.customerAcceptQouteAndPaySendEmailHtmlMailTemplate)(contractor === null || contractor === void 0 ? void 0 : contractor.firstName, checkCustomer.fullName);
+                html = (0, customerAcceptQuoteTem_1.customerAcceptQouteAndPaySendEmailHtmlMailTemplate)(contractor === null || contractor === void 0 ? void 0 : contractor.firstName, checkCustomer.firstName);
                 emailData = {
                     emailTo: contractor.email,
                     subject: "Artisan payment for the job",
@@ -563,7 +563,7 @@ var customerVerififyPaymentForJobController = function (req, res) { return __awa
             case 8:
                 if (!(i < admins.length)) return [3 /*break*/, 11];
                 admin = admins[i];
-                html_1 = (0, customerPaymoneyForQuateTem_1.customerToAdminAfterPaymentSendEmailHtmlMailTemplate)(contractor.firstName, checkCustomer.fullName);
+                html_1 = (0, customerPaymoneyForQuateTem_1.customerToAdminAfterPaymentSendEmailHtmlMailTemplate)(contractor.firstName, checkCustomer.firstName);
                 emailData_1 = {
                     emailTo: admin.email,
                     subject: "Artisan payment for the job",
@@ -605,7 +605,7 @@ var customerGetJobQoutationPaymentConfirmAndJobInProgressController = function (
                 }
                 customer = req.customer;
                 customerId = customer.id;
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
             case 1:
                 checkCustomer = _b.sent();
                 if (!checkCustomer) {
@@ -663,7 +663,7 @@ var customerGetJobRejectedontroller = function (req, res) { return __awaiter(voi
                 }
                 customer = req.customer;
                 customerId = customer.id;
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
             case 1:
                 checkCustomer = _b.sent();
                 if (!checkCustomer) {
@@ -773,7 +773,7 @@ var customerVerififyPaymentWebhook = function (jobId, customerId, transactionId)
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 17, , 18]);
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
             case 1:
                 checkCustomer = _a.sent();
                 if (!checkCustomer) {
@@ -805,7 +805,7 @@ var customerVerififyPaymentWebhook = function (jobId, customerId, transactionId)
                 return [4 /*yield*/, transaction.save()];
             case 6:
                 _a.sent();
-                html = (0, customerAcceptQuoteTem_1.customerAcceptQouteAndPaySendEmailHtmlMailTemplate)(contractor === null || contractor === void 0 ? void 0 : contractor.firstName, checkCustomer.fullName);
+                html = (0, customerAcceptQuoteTem_1.customerAcceptQouteAndPaySendEmailHtmlMailTemplate)(contractor === null || contractor === void 0 ? void 0 : contractor.firstName, checkCustomer.firstName);
                 emailData = {
                     emailTo: contractor.email,
                     subject: "Artisan payment for the job",
@@ -833,7 +833,7 @@ var customerVerififyPaymentWebhook = function (jobId, customerId, transactionId)
                 _a.sent();
                 adminNotic = new adminNotification_model_1.default({
                     title: "Job Booked",
-                    message: "".concat(job._id, " - ").concat(checkCustomer.fullName, " booked a job for $").concat(job.totalAmountCustomerToPaid, "."),
+                    message: "".concat(job._id, " - ").concat(checkCustomer.firstName, " booked a job for $").concat(job.totalAmountCustomerToPaid, "."),
                     status: "unseen"
                 });
                 return [4 /*yield*/, adminNotic.save()];
@@ -846,7 +846,7 @@ var customerVerififyPaymentWebhook = function (jobId, customerId, transactionId)
             case 13:
                 contractorNotic = new contractorNotification_model_1.default({
                     contractorId: contractor._id,
-                    message: "You've been booked for a job from ".concat(checkCustomer.fullName, " for ").concat(job.time),
+                    message: "You've been booked for a job from ".concat(checkCustomer.firstName, " for ").concat(job.time),
                     status: "unseen"
                 });
                 return [4 /*yield*/, contractorNotic.save()];
@@ -893,7 +893,7 @@ var customerGetComletedByContractorController = function (req, res) { return __a
                 }
                 customer = req.customer;
                 customerId = customer.id;
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
             case 1:
                 checkCustomer = _b.sent();
                 if (!checkCustomer) {
@@ -951,7 +951,7 @@ var customerComfirmedJobJobController = function (req, res) { return __awaiter(v
                 }
                 customer = req.customer;
                 customerId = customer.id;
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
             case 1:
                 checkCustomer = _a.sent();
                 if (!checkCustomer) {
@@ -1003,7 +1003,7 @@ var customerComfirmedJobJobController = function (req, res) { return __awaiter(v
                 _a.sent();
                 adminNotic = new adminNotification_model_1.default({
                     title: "Customer Confirmed Job Completed",
-                    message: "".concat(jobId, " - ").concat(checkCustomer.fullName, " has updated this job to completed and comfirm"),
+                    message: "".concat(jobId, " - ").concat(checkCustomer.firstName, " has updated this job to completed and comfirm"),
                     status: "unseen"
                 });
                 return [4 /*yield*/, adminNotic.save()];
@@ -1038,7 +1038,7 @@ var customerGetComfirmJobController = function (req, res) { return __awaiter(voi
                 }
                 customer = req.customer;
                 customerId = customer.id;
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
             case 1:
                 checkCustomer = _b.sent();
                 if (!checkCustomer) {
@@ -1096,7 +1096,7 @@ var customerComplaintedJobJobController = function (req, res) { return __awaiter
                 }
                 customer = req.customer;
                 customerId = customer.id;
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
             case 1:
                 checkCustomer = _a.sent();
                 if (!checkCustomer) {
@@ -1123,7 +1123,7 @@ var customerComplaintedJobJobController = function (req, res) { return __awaiter
                 _a.sent();
                 adminNotic = new adminNotification_model_1.default({
                     title: "Customer Disagreed on Job Completion",
-                    message: "".concat(job, " - ").concat(checkCustomer.fullName, " disagreed that this job has been completed by this contractor ").concat(contractor === null || contractor === void 0 ? void 0 : contractor.firstName, "."),
+                    message: "".concat(job, " - ").concat(checkCustomer.firstName, " disagreed that this job has been completed by this contractor ").concat(contractor === null || contractor === void 0 ? void 0 : contractor.firstName, "."),
                     status: "unseen"
                 });
                 return [4 /*yield*/, adminNotic.save()];
@@ -1157,7 +1157,7 @@ var customerGetComplainJobController = function (req, res) { return __awaiter(vo
                 }
                 customer = req.customer;
                 customerId = customer.id;
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
             case 1:
                 checkCustomer = _b.sent();
                 if (!checkCustomer) {

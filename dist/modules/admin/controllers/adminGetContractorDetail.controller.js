@@ -45,7 +45,7 @@ var contractorDocumentValidate_model_1 = __importDefault(require("../../../datab
 var contractorAvaliability_model_1 = __importDefault(require("../../../database/contractor/models/contractorAvaliability.model"));
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var job_model_1 = __importDefault(require("../../../database/contractor/models/job.model"));
-var customerReg_model_1 = __importDefault(require("../../../database/customer/models/customerReg.model"));
+var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var contractorRating_model_1 = __importDefault(require("../../../database/contractor/models/contractorRating.model"));
 //get contractor detail /////////////
 var AdminGetContractorDetailController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
@@ -102,7 +102,7 @@ var AdminGetContractorDetailController = function (req, res) { return __awaiter(
             case 8:
                 if (!(i_1 < jobRequests.length)) return [3 /*break*/, 11];
                 jobRequest = jobRequests[i_1];
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: jobRequest.customerId }).select('-password')];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: jobRequest.customerId }).select('-password')];
             case 9:
                 customer = _b.sent();
                 obj = {
@@ -188,7 +188,7 @@ var AdminGetSingleContractorDetailController = function (req, res) { return __aw
             case 6:
                 if (!(i < jobRequests.length)) return [3 /*break*/, 9];
                 jobRequest = jobRequests[i];
-                return [4 /*yield*/, customerReg_model_1.default.findOne({ _id: jobRequest.customerId }).select('-password')];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: jobRequest.customerId }).select('-password')];
             case 7:
                 customer = _a.sent();
                 obj = {

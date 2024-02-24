@@ -1,5 +1,5 @@
 import { Document, Types, ObjectId } from "mongoose";
-import { ICustomerReg } from "./customer.interface";
+import { ICustomer } from "./customer.interface";
 
 interface Rate {
   contractorId: string;
@@ -14,7 +14,7 @@ interface Rate {
 
 export interface ICustomerRating extends Document {
   _id: ObjectId;
-  customerId: ICustomerReg['_id'];
+  customerId: ICustomer['_id'];
   rate: Rate[];
   avgEnvironment: number;
   avgReceptive: number;
