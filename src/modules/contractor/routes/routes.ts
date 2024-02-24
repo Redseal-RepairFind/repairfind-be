@@ -1,19 +1,9 @@
 import { diskUpload, memoryUpload } from "../../../utils/upload.utility";
-import { contractorEmailForgotPasswordController, contractorEmailResetPasswordController } from "../controllers/contractorPassword.controller";
-import { ContractorResendEmailController, contractorDeatilController, contractorSignInController, contractorSignUpController, contractorUpdateBioController, contractorVerifiedEmailController } from "../controllers/conttractorReg.controller";
 
 import { checkContractorRole } from "../middleware/contractorRoleCheck.middleware";
-import { contractorAddDocumentController, contractorComfirmCertnValidationController, getAllSkillController } from "../controllers/contractordocumentValidate.controller";
-import { contractorDeleteAvailabilityController, contractorEditAvailabilityController, contractorSetAvailabilityController, contractorSetNotAvailabilityController } from "../controllers/contractorAvailability.controller";
-import { contractorCompleteJobController, contractorGeJobComfirmController, contractorGeJobComplainController, contractorGeJobCompletedController, contractorGeJobHistoryController, contractorGeJobRejectedController, contractorGetJobRequestContractorController, contractorGetQuatationContractorController, contractorGetQuatationPaymentComfirmAndJobInProgressController, contractorRejectJobRequestController, contractorRemoveobQuatationOneByOneControllerfive, contractorSendJobQuatationController, contractorSendJobQuatationControllerFour, contractorSendJobQuatationControllerThree, contractorSendJobQuatationControllerTwo } from "../controllers/contractorJob.controller";
-import { contractorEnterBankdetailController, contractorGetBankDetailController } from "../controllers/contractorBankDetail.controller";
-import { contractionAnwerQuestionController, contractionGetQuizRrsultController, contractionLoadtQuestionController, contractorStartQuizController } from "../controllers/question.controller";
-import { contractorGetNotificationrController, contractorUnseenNotificationrController, contractorViewNotificationrController } from "../controllers/contractorNotification.controller";
-import { contractorRateCustomerController, contractorRatingDetailController } from "../controllers/ratingCustomer.controller";
 import { AuthController } from "../controllers/auth.controller";
 import { NextFunction, Request, Response } from "express";
 import { ContractorHttpRequest } from "../requests";
-import multer from "multer";
 import { ProfileController } from "../controllers/profile.controller";
 import { QuizController } from "../controllers/quiz.controller";
 
@@ -73,8 +63,6 @@ router.post("/me", checkContractorRole, (req: Request, res: Response, next: Next
 router.get("/quiz-start", checkContractorRole, QuizController.StartQuiz );
 router.get("/quiz-result", checkContractorRole, QuizController.GetQuizResult); // contractor get quiz result
 router.post("/quiz-submit", checkContractorRole, QuizController.SubmitQuiz); // contractor anser question 
-
-
 
 
 // router.post("/start_quiz", checkContractorRole, contractorStartQuizController); // contractor start quiz

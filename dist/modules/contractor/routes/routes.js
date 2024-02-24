@@ -4,6 +4,7 @@ var contractorRoleCheck_middleware_1 = require("../middleware/contractorRoleChec
 var auth_controller_1 = require("../controllers/auth.controller");
 var requests_1 = require("../requests");
 var profile_controller_1 = require("../controllers/profile.controller");
+var quiz_controller_1 = require("../controllers/quiz.controller");
 var express = require("express");
 var router = express.Router();
 //  AUTH
@@ -46,6 +47,10 @@ router.get("/me", contractorRoleCheck_middleware_1.checkContractorRole, function
 router.post("/me", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
     (0, profile_controller_1.ProfileController)(req, res, next).getProfile();
 });
+//  QUiz
+router.get("/quiz-start", contractorRoleCheck_middleware_1.checkContractorRole, quiz_controller_1.QuizController.StartQuiz);
+router.get("/quiz-result", contractorRoleCheck_middleware_1.checkContractorRole, quiz_controller_1.QuizController.GetQuizResult); // contractor get quiz result
+router.post("/quiz-submit", contractorRoleCheck_middleware_1.checkContractorRole, quiz_controller_1.QuizController.SubmitQuiz); // contractor anser question 
 // router.post("/start_quiz", checkContractorRole, contractorStartQuizController); // contractor start quiz
 // router.get("/load_quiz_question", checkContractorRole, contractionLoadtQuestionController); // contractor load question
 // router.post("/answer_question", checkContractorRole, validateContractorAwnserQuestionParams, contractionAnwerQuestionController); // contractor anser question 

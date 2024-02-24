@@ -12,7 +12,7 @@ var appDetails_Controller_1 = require("../controllers/appDetails.Controller");
 var averageRevenue_controller_1 = require("../controllers/averageRevenue.controller");
 var job_controller_1 = require("../controllers/job.controller");
 var payout_controller_1 = require("../controllers/payout.controller");
-var question_controller_1 = require("../controllers/question.controller");
+var quiz_controller_1 = require("../controllers/quiz.controller");
 var transaction_controller_1 = require("../controllers/transaction.controller");
 var adminRoleChecker_middleware_1 = require("../middlewares/adminRoleChecker.middleware");
 var adminValidate_middleware_1 = require("../middlewares/adminValidate.middleware");
@@ -41,13 +41,14 @@ router.get("/admin_get_single_job_detail", adminValidate_middleware_1.validateJo
 router.get("/admin_get_total_job", adminRoleChecker_middleware_1.checkAdminRole, job_controller_1.AdminGetTotalJobsrController); // admin get total job
 router.get("/admin_get_transaction_detail", adminRoleChecker_middleware_1.checkAdminRole, transaction_controller_1.AdminGetTransactionDetailController); // admin get transaction detail
 router.get("/admin_get_single_transaction_detail", adminValidate_middleware_1.validateTRansactionIdValidationParams, adminRoleChecker_middleware_1.checkAdminRole, transaction_controller_1.AdminGetSingleTransactionDetailController); // admin get single transaction detail
-router.post("/admin_add_question", adminValidate_middleware_1.validateAddQuestionParams, adminRoleChecker_middleware_1.checkAdminRole, question_controller_1.AdminAddQuestionlController); // admin add question
-router.post("/quiz", adminValidate_middleware_1.createQuizParams, adminRoleChecker_middleware_1.checkAdminRole, question_controller_1.AdminQuizController.CreateQuiz); // admin add question
-router.get("/quiz", adminValidate_middleware_1.createQuizParams, adminRoleChecker_middleware_1.checkAdminRole, question_controller_1.AdminQuizController.getAllQuizzes); // admin add question
-router.get("/admin_get_all_question", adminRoleChecker_middleware_1.checkAdminRole, question_controller_1.AdminGetAllQuestionController); // admin get all question
-router.get("/admin_get_single_question", adminValidate_middleware_1.validateQuestionIdValidationParams, adminRoleChecker_middleware_1.checkAdminRole, question_controller_1.AdminGetSingleQuestionController); // admin get single question
-router.post("/admin_edit_question", adminValidate_middleware_1.validateEditQuestionParams, adminRoleChecker_middleware_1.checkAdminRole, question_controller_1.AdminEditQuestionlController); // admin edit question
-router.post("/admin_delete_question", adminValidate_middleware_1.validateDeleteQuestionValidationParams, adminRoleChecker_middleware_1.checkAdminRole, question_controller_1.AdminDeleteQuestionlController); // admin delete question
+router.post("/admin_add_question", adminValidate_middleware_1.validateAddQuestionParams, adminRoleChecker_middleware_1.checkAdminRole, quiz_controller_1.AdminQuizController.AddQuestion); // admin add question
+router.post("/quizzes", adminValidate_middleware_1.createQuizParams, adminRoleChecker_middleware_1.checkAdminRole, quiz_controller_1.AdminQuizController.CreateQuiz); // admin create quiz
+router.get("/quizzes", adminRoleChecker_middleware_1.checkAdminRole, quiz_controller_1.AdminQuizController.getAllQuizzes); // admin get quizes
+router.get("/random-quiz", adminRoleChecker_middleware_1.checkAdminRole, quiz_controller_1.AdminQuizController.getRandomQuiz); // admin add question
+router.get("/admin_get_all_question", adminRoleChecker_middleware_1.checkAdminRole, quiz_controller_1.AdminQuizController.GetAllQuestions); // admin get all question
+router.get("/admin_get_single_question", adminValidate_middleware_1.validateQuestionIdValidationParams, adminRoleChecker_middleware_1.checkAdminRole, quiz_controller_1.AdminQuizController.GetSingleQuestion); // admin get single question
+router.post("/admin_edit_question", adminValidate_middleware_1.validateEditQuestionParams, adminRoleChecker_middleware_1.checkAdminRole, quiz_controller_1.AdminQuizController.EditQuestion); // admin edit question
+router.post("/admin_delete_question", adminValidate_middleware_1.validateDeleteQuestionValidationParams, adminRoleChecker_middleware_1.checkAdminRole, quiz_controller_1.AdminQuizController.DeleteQuestion); // admin delete question
 router.get("/app_detail", adminRoleChecker_middleware_1.checkAdminRole, appDetails_Controller_1.AdminGetAppDetailController); // admin get app detail
 router.post("/update_profile", adminRoleChecker_middleware_1.checkAdminRole, upload_utility_1.memoryUpload.single('profileImg'), adminReg_controller_1.adminUpdateBioController); // admin update profile
 router.get("/get_all_notification", adminRoleChecker_middleware_1.checkAdminRole, adminNotification_controller_1.adminGetNotificationrController); // admin get all notification

@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AdminDeleteQuestionlController = exports.AdminEditQuestionlController = exports.AdminGetSingleQuestionController = exports.AdminGetAllQuestionController = exports.AdminAddQuestionlController = exports.getRandomQuiz = exports.getAllQuizzes = exports.CreateQuiz = void 0;
+exports.AdminQuizController = exports.DeleteQuestion = exports.EditQuestion = exports.GetSingleQuestion = exports.GetAllQuestions = exports.AddQuestion = exports.getRandomQuiz = exports.getAllQuizzes = exports.CreateQuiz = void 0;
 var express_validator_1 = require("express-validator");
 var question_model_1 = __importDefault(require("../../../database/admin/models/question.model"));
 var quiz_model_1 = __importDefault(require("../../../database/admin/models/quiz.model"));
@@ -172,7 +172,7 @@ var getRandomQuiz = function (_, res) { return __awaiter(void 0, void 0, void 0,
 }); };
 exports.getRandomQuiz = getRandomQuiz;
 //admin add question /////////////
-var AdminAddQuestionlController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+var AddQuestion = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, question, options, answer, errors, admin, adminId, newQuestion, err_2;
     return __generator(this, function (_b) {
         switch (_b.label) {
@@ -206,9 +206,9 @@ var AdminAddQuestionlController = function (req, res) { return __awaiter(void 0,
         }
     });
 }); };
-exports.AdminAddQuestionlController = AdminAddQuestionlController;
+exports.AddQuestion = AddQuestion;
 //admin get all question /////////////
-var AdminGetAllQuestionController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+var GetAllQuestions = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, page, limit, errors, admin, adminId, skip, questions, totalQuestion, err_3;
     return __generator(this, function (_b) {
         switch (_b.label) {
@@ -246,9 +246,9 @@ var AdminGetAllQuestionController = function (req, res) { return __awaiter(void 
         }
     });
 }); };
-exports.AdminGetAllQuestionController = AdminGetAllQuestionController;
+exports.GetAllQuestions = GetAllQuestions;
 //admin get single question /////////////
-var AdminGetSingleQuestionController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+var GetSingleQuestion = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var questionId, errors, admin, adminId, question, err_4;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -282,9 +282,9 @@ var AdminGetSingleQuestionController = function (req, res) { return __awaiter(vo
         }
     });
 }); };
-exports.AdminGetSingleQuestionController = AdminGetSingleQuestionController;
+exports.GetSingleQuestion = GetSingleQuestion;
 //admin edit question /////////////
-var AdminEditQuestionlController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+var EditQuestion = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, question, options, answer, questionId, errors, admin, adminId, questionDb, err_5;
     return __generator(this, function (_b) {
         switch (_b.label) {
@@ -325,9 +325,9 @@ var AdminEditQuestionlController = function (req, res) { return __awaiter(void 0
         }
     });
 }); };
-exports.AdminEditQuestionlController = AdminEditQuestionlController;
+exports.EditQuestion = EditQuestion;
 //admin Delete question /////////////
-var AdminDeleteQuestionlController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+var DeleteQuestion = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var questionId, errors, admin, adminId, deleteQuestion, err_6;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -361,4 +361,14 @@ var AdminDeleteQuestionlController = function (req, res) { return __awaiter(void
         }
     });
 }); };
-exports.AdminDeleteQuestionlController = AdminDeleteQuestionlController;
+exports.DeleteQuestion = DeleteQuestion;
+exports.AdminQuizController = {
+    DeleteQuestion: exports.DeleteQuestion,
+    EditQuestion: exports.EditQuestion,
+    GetSingleQuestion: exports.GetSingleQuestion,
+    GetAllQuestions: exports.GetAllQuestions,
+    AddQuestion: exports.AddQuestion,
+    CreateQuiz: exports.CreateQuiz,
+    getAllQuizzes: exports.getAllQuizzes,
+    getRandomQuiz: exports.getRandomQuiz
+};
