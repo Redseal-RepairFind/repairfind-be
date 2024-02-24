@@ -98,7 +98,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         res = this.res;
                         _b.label = 1;
                     case 1:
-                        _b.trys.push([1, 5, , 6]);
+                        _b.trys.push([1, 6, , 7]);
                         _a = req.body, name_1 = _a.name, gstNumber = _a.gstNumber, gstType = _a.gstType, location_1 = _a.location, backgrounCheckConsent = _a.backgrounCheckConsent, skill = _a.skill, website = _a.website, experienceYear = _a.experienceYear, about = _a.about, email = _a.email, phoneNumber = _a.phoneNumber, emergencyJobs = _a.emergencyJobs, availableDays = _a.availableDays, profilePhoto = _a.profilePhoto, previousJobPhotos = _a.previousJobPhotos, previousJobVideos = _a.previousJobVideos, profileType = _a.profileType, firstName = _a.firstName, lastName = _a.lastName;
                         errors = (0, express_validator_1.validationResult)(req);
                         if (!errors.isEmpty()) {
@@ -129,8 +129,8 @@ var ProfileHandler = /** @class */ (function (_super) {
                             name_1 = "".concat(firstName, " ").concat(lastName);
                         }
                         profileType = contractor.accountType;
-                        return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOneAndUpdate({ contractorId: contractorId }, {
-                                contractorId: contractorId,
+                        return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOneAndUpdate({ contractor: contractorId }, {
+                                contractor: contractorId,
                                 name: name_1,
                                 gstNumber: gstNumber,
                                 gstType: gstType,
@@ -148,9 +148,16 @@ var ProfileHandler = /** @class */ (function (_super) {
                                 previousJobPhotos: previousJobPhotos,
                                 previousJobVideos: previousJobVideos,
                                 profileType: profileType
-                            }, { upsert: true, new: true, setDefaultsOnInsert: true })];
+                            }, { upsert: true, new: true, setDefaultsOnInsert: true })
+                            // Update the ContractorModel with the profile ID
+                        ];
                     case 3:
                         profile_1 = _b.sent();
+                        // Update the ContractorModel with the profile ID
+                        contractor.profile = profile_1._id;
+                        return [4 /*yield*/, contractor.save()];
+                    case 4:
+                        _b.sent();
                         (0, certn_1.initiateCertnInvite)(data).then(function (res) {
                             profile_1.certnId = res.applicant.id;
                             profile_1.save();
@@ -162,7 +169,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                             .catch(function (error) { return console.error('Error sending email:', error); });
                         html = (0, adminContractorDocumentTemplate_1.htmlContractorDocumentValidatinToAdminTemplate)(contractor.firstName);
                         return [4 /*yield*/, adminReg_model_1.default.find().select('email')];
-                    case 4:
+                    case 5:
                         adminsWithEmails = _b.sent();
                         adminEmails = adminsWithEmails.map(function (admin) { return admin.email; });
                         services_1.EmailService.send(adminEmails, 'New Profile Registered', html, adminEmails)
@@ -173,13 +180,13 @@ var ProfileHandler = /** @class */ (function (_super) {
                             message: "Profile created successfully",
                             data: profile_1
                         });
-                        return [3 /*break*/, 6];
-                    case 5:
+                        return [3 /*break*/, 7];
+                    case 6:
                         err_1 = _b.sent();
                         console.log("error", err_1);
                         res.status(500).json({ success: false, message: err_1.message });
-                        return [3 /*break*/, 6];
-                    case 6: return [2 /*return*/];
+                        return [3 /*break*/, 7];
+                    case 7: return [2 /*return*/];
                 }
             });
         });
@@ -197,9 +204,14 @@ var ProfileHandler = /** @class */ (function (_super) {
                         _a.trys.push([1, 3, , 4]);
                         contractor = req.contractor;
                         contractorId = contractor.id;
-                        return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractorId: contractorId })];
+                        return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: contractorId }).populate({
+                                path: 'contractor', // Specify the path to populate
+                                model: 'contractors', // Specify the model to use for population
+                            })
+                                .exec()];
                     case 2:
                         profile = _a.sent();
+                        ;
                         if (!profile) {
                             return [2 /*return*/, res.status(404).json({ success: false, message: 'Profile not found' })];
                         }
@@ -267,6 +279,40 @@ var ProfileHandler = /** @class */ (function (_super) {
             });
         });
     };
+    ProfileHandler.prototype.getUser = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var req, res, contractorId, contractor, err_4;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        req = this.req;
+                        res = this.res;
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        contractorId = req.contractor.id;
+                        return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId).populate('profile').exec()];
+                    case 2:
+                        contractor = _a.sent();
+                        if (!contractor) {
+                            return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor not found' })];
+                        }
+                        res.json({
+                            success: true,
+                            message: 'Account fetched successfully',
+                            data: contractor,
+                        });
+                        return [3 /*break*/, 4];
+                    case 3:
+                        err_4 = _a.sent();
+                        console.log('error', err_4);
+                        res.status(500).json({ success: false, message: err_4.message });
+                        return [3 /*break*/, 4];
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
     __decorate([
         (0, decorators_abstract_1.handleAsyncError)(),
         __metadata("design:type", Function),
@@ -285,6 +331,12 @@ var ProfileHandler = /** @class */ (function (_super) {
         __metadata("design:paramtypes", []),
         __metadata("design:returntype", Promise)
     ], ProfileHandler.prototype, "updateProfile", null);
+    __decorate([
+        (0, decorators_abstract_1.handleAsyncError)(),
+        __metadata("design:type", Function),
+        __metadata("design:paramtypes", []),
+        __metadata("design:returntype", Promise)
+    ], ProfileHandler.prototype, "getUser", null);
     return ProfileHandler;
 }(base_abstract_1.Base));
 var ProfileController = function () {

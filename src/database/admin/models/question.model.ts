@@ -1,8 +1,22 @@
-import { Schema, model } from "mongoose";
-import { IQuestion } from "../interface/question.interface";
+import mongoose, { ObjectId, Schema, model } from "mongoose";
+
+
+export interface IQuestion extends Document {
+  _id: ObjectId;
+  quiz: ObjectId;
+  question: string;
+  options: string[];
+  answer: string[];
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 const QuestionSchema = new Schema(
     {
+      quiz: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'quiz'
+      },
       question: {
         type: String,
         required: true,

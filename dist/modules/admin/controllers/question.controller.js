@@ -39,12 +39,101 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AdminDeleteQuestionlController = exports.AdminEditQuestionlController = exports.AdminGetSingleQuestionController = exports.AdminGetAllQuestionController = exports.AdminAddQuestionlController = void 0;
+exports.AdminQuizController = exports.AdminDeleteQuestionlController = exports.AdminEditQuestionlController = exports.AdminGetSingleQuestionController = exports.AdminGetAllQuestionController = exports.AdminAddQuestionlController = exports.getAllQuizzes = exports.CreateQuiz = void 0;
 var express_validator_1 = require("express-validator");
 var question_model_1 = __importDefault(require("../../../database/admin/models/question.model"));
+var quiz_model_1 = __importDefault(require("../../../database/admin/models/quiz.model"));
+//admin create quiz /////////////
+var CreateQuiz = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, video_url, questions, errors, admin, adminId, newQuiz, createdQuestionRefs, _i, questions_1, questionData, question, options, answer, newQuestion, err_1;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 7, , 8]);
+                _a = req.body, video_url = _a.video_url, questions = _a.questions;
+                errors = (0, express_validator_1.validationResult)(req);
+                if (!errors.isEmpty()) {
+                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                }
+                admin = req.admin;
+                adminId = admin.id;
+                return [4 /*yield*/, quiz_model_1.default.create({
+                        video_url: video_url,
+                        questions: [], // Initially empty, we'll fill this in later
+                    })];
+            case 1:
+                newQuiz = _b.sent();
+                createdQuestionRefs = [];
+                _i = 0, questions_1 = questions;
+                _b.label = 2;
+            case 2:
+                if (!(_i < questions_1.length)) return [3 /*break*/, 5];
+                questionData = questions_1[_i];
+                question = questionData.question, options = questionData.options, answer = questionData.answer;
+                return [4 /*yield*/, question_model_1.default.create({
+                        quiz: newQuiz._id,
+                        question: question,
+                        options: options,
+                        answer: answer,
+                    })];
+            case 3:
+                newQuestion = _b.sent();
+                // Store the reference to the created question
+                createdQuestionRefs.push(newQuestion._id);
+                _b.label = 4;
+            case 4:
+                _i++;
+                return [3 /*break*/, 2];
+            case 5: 
+            // Update the quiz with the references to the created questions
+            return [4 /*yield*/, quiz_model_1.default.findByIdAndUpdate(newQuiz._id, { questions: createdQuestionRefs })];
+            case 6:
+                // Update the quiz with the references to the created questions
+                _b.sent();
+                res.json({
+                    status: true,
+                    message: 'Quiz and questions successfully entered',
+                });
+                return [3 /*break*/, 8];
+            case 7:
+                err_1 = _b.sent();
+                // Error handling
+                res.status(500).json({ status: false, message: err_1.message });
+                return [3 /*break*/, 8];
+            case 8: return [2 /*return*/];
+        }
+    });
+}); };
+exports.CreateQuiz = CreateQuiz;
+var getAllQuizzes = function (_, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var quizzes, error_1;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                return [4 /*yield*/, quiz_model_1.default.find().exec()];
+            case 1:
+                quizzes = _a.sent();
+                res.json({
+                    status: true,
+                    quizzes: quizzes,
+                });
+                return [3 /*break*/, 3];
+            case 2:
+                error_1 = _a.sent();
+                res.status(500).json({
+                    status: false,
+                    message: error_1.message,
+                });
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getAllQuizzes = getAllQuizzes;
 //admin add question /////////////
 var AdminAddQuestionlController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, question, options, answer, errors, admin, adminId, newQuestion, err_1;
+    var _a, question, options, answer, errors, admin, adminId, newQuestion, err_2;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -69,9 +158,9 @@ var AdminAddQuestionlController = function (req, res) { return __awaiter(void 0,
                 });
                 return [3 /*break*/, 3];
             case 2:
-                err_1 = _b.sent();
+                err_2 = _b.sent();
                 // signup error
-                res.status(500).json({ message: err_1.message });
+                res.status(500).json({ message: err_2.message });
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
         }
@@ -80,7 +169,7 @@ var AdminAddQuestionlController = function (req, res) { return __awaiter(void 0,
 exports.AdminAddQuestionlController = AdminAddQuestionlController;
 //admin get all question /////////////
 var AdminGetAllQuestionController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, page, limit, errors, admin, adminId, skip, questions, totalQuestion, err_2;
+    var _a, page, limit, errors, admin, adminId, skip, questions, totalQuestion, err_3;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -109,9 +198,9 @@ var AdminGetAllQuestionController = function (req, res) { return __awaiter(void 
                 });
                 return [3 /*break*/, 4];
             case 3:
-                err_2 = _b.sent();
+                err_3 = _b.sent();
                 // signup error
-                res.status(500).json({ message: err_2.message });
+                res.status(500).json({ message: err_3.message });
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
         }
@@ -120,7 +209,7 @@ var AdminGetAllQuestionController = function (req, res) { return __awaiter(void 
 exports.AdminGetAllQuestionController = AdminGetAllQuestionController;
 //admin get single question /////////////
 var AdminGetSingleQuestionController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var questionId, errors, admin, adminId, question, err_3;
+    var questionId, errors, admin, adminId, question, err_4;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -145,9 +234,9 @@ var AdminGetSingleQuestionController = function (req, res) { return __awaiter(vo
                 });
                 return [3 /*break*/, 3];
             case 2:
-                err_3 = _a.sent();
+                err_4 = _a.sent();
                 // signup error
-                res.status(500).json({ message: err_3.message });
+                res.status(500).json({ message: err_4.message });
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
         }
@@ -156,7 +245,7 @@ var AdminGetSingleQuestionController = function (req, res) { return __awaiter(vo
 exports.AdminGetSingleQuestionController = AdminGetSingleQuestionController;
 //admin edit question /////////////
 var AdminEditQuestionlController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, question, options, answer, questionId, errors, admin, adminId, questionDb, err_4;
+    var _a, question, options, answer, questionId, errors, admin, adminId, questionDb, err_5;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -187,10 +276,10 @@ var AdminEditQuestionlController = function (req, res) { return __awaiter(void 0
                 });
                 return [3 /*break*/, 4];
             case 3:
-                err_4 = _b.sent();
+                err_5 = _b.sent();
                 // signup error
-                console.log("error", err_4);
-                res.status(500).json({ message: err_4.message });
+                console.log("error", err_5);
+                res.status(500).json({ message: err_5.message });
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
         }
@@ -199,7 +288,7 @@ var AdminEditQuestionlController = function (req, res) { return __awaiter(void 0
 exports.AdminEditQuestionlController = AdminEditQuestionlController;
 //admin Delete question /////////////
 var AdminDeleteQuestionlController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var questionId, errors, admin, adminId, deleteQuestion, err_5;
+    var questionId, errors, admin, adminId, deleteQuestion, err_6;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -224,12 +313,21 @@ var AdminDeleteQuestionlController = function (req, res) { return __awaiter(void
                 });
                 return [3 /*break*/, 3];
             case 2:
-                err_5 = _a.sent();
+                err_6 = _a.sent();
                 // signup error
-                res.status(500).json({ message: err_5.message });
+                res.status(500).json({ message: err_6.message });
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
         }
     });
 }); };
 exports.AdminDeleteQuestionlController = AdminDeleteQuestionlController;
+exports.AdminQuizController = {
+    DeleteQuestion: exports.AdminDeleteQuestionlController,
+    EditQuestion: exports.AdminEditQuestionlController,
+    GetSingleQuestion: exports.AdminGetSingleQuestionController,
+    GetAllQuestion: exports.AdminGetAllQuestionController,
+    AddQuestion: exports.AdminAddQuestionlController,
+    CreateQuiz: exports.CreateQuiz,
+    getAllQuizzes: exports.getAllQuizzes
+};

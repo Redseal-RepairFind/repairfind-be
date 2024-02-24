@@ -10,10 +10,10 @@ import { AdminGetAppDetailController } from "../controllers/appDetails.Controlle
 import { AdminGetRevenueAnalysisControlleer, AdminsendEmailsControlleer } from "../controllers/averageRevenue.controller";
 import { AdminGetJobsrDetailController, AdminGetSingleJobsrDetailController, AdminGetTotalJobsrController } from "../controllers/job.controller";
 import { AdminGetCompletedPayoutDetailController, AdminGetPendingPayoutDetailController, AdminGetSinglePayoutDetailController, AdminPayContractorController } from "../controllers/payout.controller";
-import { AdminAddQuestionlController, AdminDeleteQuestionlController, AdminEditQuestionlController, AdminGetAllQuestionController, AdminGetSingleQuestionController } from "../controllers/question.controller";
+import { AdminAddQuestionlController, AdminDeleteQuestionlController, AdminEditQuestionlController, AdminGetAllQuestionController, AdminGetSingleQuestionController, AdminQuizController } from "../controllers/question.controller";
 import { AdminGetSingleTransactionDetailController, AdminGetTransactionDetailController } from "../controllers/transaction.controller";
 import { checkAdminRole } from "../middlewares/adminRoleChecker.middleware";
-import { validatAdminEmailverificationParams, validateAddQuestionParams, validateAddSkillParams, validateAdminForgotPasswordParams, validateAdminLoginParams, validateAdminResetPasswprdParams, validateContractoDocumentIdValidationParams, validateContractorChangeStatusValidationParams, validateContractorIdValidationParams, validateCustomerIdValidationParams, validateDeleteQuestionValidationParams, validateEditQuestionParams, validateJobIdValidationParams, validatePayoutIDParams, validatePayoutIDPayContractorParams, validateQuestionIdValidationParams, validateRevenueDateParams, validateSignupParams, validateSuperAdminValidationParams, validateTRansactionIdValidationParams } from "../middlewares/adminValidate.middleware";
+import { createQuizParams, validatAdminEmailverificationParams, validateAddQuestionParams, validateAddSkillParams, validateAdminForgotPasswordParams, validateAdminLoginParams, validateAdminResetPasswprdParams, validateContractoDocumentIdValidationParams, validateContractorChangeStatusValidationParams, validateContractorIdValidationParams, validateCustomerIdValidationParams, validateDeleteQuestionValidationParams, validateEditQuestionParams, validateJobIdValidationParams, validatePayoutIDParams, validatePayoutIDPayContractorParams, validateQuestionIdValidationParams, validateRevenueDateParams, validateSignupParams, validateSuperAdminValidationParams, validateTRansactionIdValidationParams } from "../middlewares/adminValidate.middleware";
 
 const express = require("express");
 const router = express.Router();
@@ -26,6 +26,7 @@ router.post("/admin_forgot_password", validateAdminForgotPasswordParams, AdminEm
 router.post("/admin_reset_password", validateAdminResetPasswprdParams, AdminEmailResetPasswordController ); // admin reset password
 router.get("/super_admin_get_list_of_admin", checkAdminRole, SuperAdminGetAllAdminController ); // super get the list of admin
 router.post("/super_admin_validate_other_admin", validateSuperAdminValidationParams, checkAdminRole, SuperAdminValidateOtherAdminController ); // super admin validate other admin
+
 
 
 router.get("/admin_get_contractor_detail", checkAdminRole, AdminGetContractorDetailController ); // admin get contractor detail
@@ -53,7 +54,11 @@ router.get("/admin_get_transaction_detail", checkAdminRole, AdminGetTransactionD
 router.get("/admin_get_single_transaction_detail", validateTRansactionIdValidationParams, checkAdminRole, AdminGetSingleTransactionDetailController ); // admin get single transaction detail
 
 router.post("/admin_add_question", validateAddQuestionParams, checkAdminRole, AdminAddQuestionlController ); // admin add question
+router.post("/quiz", createQuizParams, checkAdminRole, AdminQuizController.CreateQuiz ); // admin add question
+router.get("/quiz", createQuizParams, checkAdminRole, AdminQuizController.getAllQuizzes ); // admin add question
 router.get("/admin_get_all_question", checkAdminRole, AdminGetAllQuestionController ); // admin get all question
+
+
 router.get("/admin_get_single_question", validateQuestionIdValidationParams, checkAdminRole, AdminGetSingleQuestionController ); // admin get single question
 router.post("/admin_edit_question", validateEditQuestionParams, checkAdminRole, AdminEditQuestionlController ); // admin edit question
 router.post("/admin_delete_question", validateDeleteQuestionValidationParams, checkAdminRole, AdminDeleteQuestionlController ); // admin delete question

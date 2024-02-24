@@ -24,23 +24,19 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var mongoose_1 = __importStar(require("mongoose"));
-var QuestionSchema = new mongoose_1.Schema({
-    quiz: {
-        type: mongoose_1.default.Schema.Types.ObjectId,
-        ref: 'quiz'
-    },
-    question: {
+var QuizShema = new mongoose_1.Schema({
+    video_url: {
         type: String,
         required: true,
+        unique: true,
+        index: true
     },
-    options: {
-        type: [String],
-        required: true,
-    },
-    answer: {
-        type: [String],
-        required: true,
-    },
+    questions: [
+        {
+            type: mongoose_1.default.Schema.Types.ObjectId,
+            ref: "questions"
+        }
+    ],
     createdAt: {
         type: Date,
         default: Date.now,
@@ -52,5 +48,5 @@ var QuestionSchema = new mongoose_1.Schema({
 }, {
     timestamps: true,
 });
-var QuestionModel = (0, mongoose_1.model)("question", QuestionSchema);
-exports.default = QuestionModel;
+var QuizModel = (0, mongoose_1.model)("quizes", QuizShema);
+exports.default = QuizModel;

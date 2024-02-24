@@ -27,8 +27,9 @@ var IContractorJobVideoSchema = new mongoose_1.Schema({
     title: String,
 });
 var CompanyProfileSchema = new mongoose_1.Schema({
-    contractorId: {
-        type: mongoose_1.Schema.Types.ObjectId, ref: config_1.config.mongodb.collections.contractors,
+    contractor: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: "contractors",
         required: true,
     },
     name: {

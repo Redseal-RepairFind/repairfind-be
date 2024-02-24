@@ -14,7 +14,7 @@ exports.CreateContractorRequest = [
     (0, express_validator_1.body)('phoneNumber').notEmpty(),
     (0, express_validator_1.body)('accountType')
         .notEmpty()
-        .isIn(['Individual', 'Company', 'JourneyMan']).withMessage('Account type must be one of: Individual, Company or JourneyMan'),
+        .isIn(['Individual', 'Company', 'Employee']).withMessage('Account type must be one of: Individual, Company or Employee'),
     (0, express_validator_1.body)('acceptTerms')
         .notEmpty()
         .custom(function (value, _a) {

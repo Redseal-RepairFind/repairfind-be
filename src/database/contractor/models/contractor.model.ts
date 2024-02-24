@@ -2,11 +2,19 @@ import { Schema, model } from "mongoose";
 import { IContractor } from "../interface/contractor.interface";
 import { contractorAccountTypes } from "../../../constants";
 import { contractorStatus } from "../../../constants/contractorStatus";
+import { config } from "../../../config";
+import { ContractorProfileModel } from "./contractor_profile.model";
 
 
 const ContractorSchema = new Schema(
     {
     
+      profile: {
+        type: Schema.Types.ObjectId, 
+        ref: "contractor_profiles",
+        required: false,
+      },
+
       email: {
         type: String,
         required: true,
@@ -27,7 +35,6 @@ const ContractorSchema = new Schema(
       },
 
      
-
       password: {
         type: String,
         required: true,
@@ -89,7 +96,17 @@ const ContractorSchema = new Schema(
   );
   
 
-  ContractorSchema.set('toJSON', { transform: function(doc, ret, options) { delete ret.password; delete ret.emailOtp;  return ret;} });
 
-  export const ContractorModel = model<IContractor>("contractors", ContractorSchema);
+// Rest of your schema
+
+ContractorSchema.set('toJSON', {
+    transform: function (doc, ret, options) {
+        delete ret.password;
+        delete ret.emailOtp;
+        delete ret.passwordOtp;
+        return ret;
+    }
+});
+
+export const ContractorModel = model<IContractor>("contractors", ContractorSchema);
   

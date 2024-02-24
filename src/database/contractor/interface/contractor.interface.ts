@@ -2,7 +2,7 @@ import { Document, Types, ObjectId } from "mongoose";
 
 export interface IContractor extends Document {
   _id: ObjectId;
-  
+  profile: ObjectId;
   firstName: string;
   lastName: string;
   companyName: string;
@@ -13,7 +13,6 @@ export interface IContractor extends Document {
   phoneNumber: string;
   accountType: string;
   acceptTerms: string;
-
   passwordOtp: {
     otp: string;
     createdTime: Date;

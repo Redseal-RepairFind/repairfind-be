@@ -1,6 +1,7 @@
 import { Document, Types, ObjectId } from "mongoose";
 import { IContractor } from "./contractor.interface";
-import { IQuestion } from "../../admin/interface/question.interface";
+import { IQuestion } from "../../admin/models/question.model";
+
 
 export interface IContractorQuiz extends Document {
   _id: ObjectId;

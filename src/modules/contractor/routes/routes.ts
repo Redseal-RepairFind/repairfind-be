@@ -61,7 +61,7 @@ router.patch("/profiles/me", checkContractorRole, (req: Request, res: Response, 
 
 //  Account
 router.get("/me", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
-    ProfileController(req, res, next).getProfile();
+    ProfileController(req, res, next).getUser();
 });
 router.post("/me", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
     ProfileController(req, res, next).getProfile();

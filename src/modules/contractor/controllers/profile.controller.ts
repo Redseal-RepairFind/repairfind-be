@@ -81,8 +81,8 @@ class ProfileHandler extends Base {
 
             profileType = contractor.accountType
       
-            const profile =  await ContractorProfileModel.findOneAndUpdate({contractorId: contractorId},{
-              contractorId: contractorId,
+            const profile =  await ContractorProfileModel.findOneAndUpdate({contractor: contractorId},{
+              contractor: contractorId,
               name,
               gstNumber,
               gstType,
@@ -101,6 +101,10 @@ class ProfileHandler extends Base {
               previousJobVideos,
               profileType
             }, { upsert: true, new: true, setDefaultsOnInsert: true })
+
+            // Update the ContractorModel with the profile ID
+            contractor.profile = profile._id;
+            await contractor.save();
 
             initiateCertnInvite(data).then(res=>{
               profile.certnId =  res.applicant.id
@@ -149,7 +153,11 @@ class ProfileHandler extends Base {
             const contractor = req.contractor;
             const contractorId = contractor.id;
 
-            const profile = await ContractorProfileModel.findOne({ contractorId });
+            const profile = await ContractorProfileModel.findOne({ contractor: contractorId }).populate({
+              path: 'contractor', // Specify the path to populate
+              model: 'contractors', // Specify the model to use for population
+            })
+            .exec();;
 
             if (!profile) {
                 return res.status(404).json({ success: false, message: 'Profile not found' });
@@ -214,6 +222,31 @@ class ProfileHandler extends Base {
                 success: true,
                 message: 'Profile updated successfully',
                 data: profile,
+            });
+        } catch (err: any) {
+            console.log('error', err);
+            res.status(500).json({ success: false, message: err.message });
+        }
+    }
+
+
+    @handleAsyncError()
+    public async getUser(): Promise<Response | void> {
+      let req = <any>this.req
+      let res = this.res 
+      try {
+            const contractorId = req.contractor.id;
+
+            const contractor = await ContractorModel.findById(contractorId).populate('profile').exec();
+
+            if (!contractor) {
+                return res.status(404).json({ success: false, message: 'Contractor not found' });
+            }
+
+            res.json({
+                success: true,
+                message: 'Account fetched successfully',
+                data: contractor,
             });
         } catch (err: any) {
             console.log('error', err);

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validatePayoutIDPayContractorParams = exports.validatePayoutIDParams = exports.validateRevenueDateParams = exports.validateDeleteQuestionValidationParams = exports.validateEditQuestionParams = exports.validateQuestionIdValidationParams = exports.validateAddQuestionParams = exports.validateTRansactionIdValidationParams = exports.validateJobIdValidationParams = exports.validateAddSkillParams = exports.validateContractoDocumentIdValidationParams = exports.validateContractorChangeStatusValidationParams = exports.validateCustomerIdValidationParams = exports.validateContractorIdValidationParams = exports.validateSuperAdminValidationParams = exports.validateAdminResetPasswprdParams = exports.validateAdminForgotPasswordParams = exports.validateAdminLoginParams = exports.validatAdminEmailverificationParams = exports.validateSignupParams = void 0;
+exports.validatePayoutIDPayContractorParams = exports.validatePayoutIDParams = exports.validateRevenueDateParams = exports.validateDeleteQuestionValidationParams = exports.validateEditQuestionParams = exports.validateQuestionIdValidationParams = exports.createQuizParams = exports.validateAddQuestionParams = exports.validateTRansactionIdValidationParams = exports.validateJobIdValidationParams = exports.validateAddSkillParams = exports.validateContractoDocumentIdValidationParams = exports.validateContractorChangeStatusValidationParams = exports.validateCustomerIdValidationParams = exports.validateContractorIdValidationParams = exports.validateSuperAdminValidationParams = exports.validateAdminResetPasswprdParams = exports.validateAdminForgotPasswordParams = exports.validateAdminLoginParams = exports.validatAdminEmailverificationParams = exports.validateSignupParams = void 0;
 var express_validator_1 = require("express-validator");
 exports.validateSignupParams = [
     (0, express_validator_1.body)("email").isEmail(),
@@ -59,6 +59,13 @@ exports.validateAddQuestionParams = [
     (0, express_validator_1.body)("answer")
         .notEmpty().isArray()
         .withMessage('Each item in rejectedReason must be a string'),
+];
+exports.createQuizParams = [
+    (0, express_validator_1.body)('video_url').notEmpty().isString(),
+    (0, express_validator_1.body)('questions').notEmpty().isArray().withMessage('Questions must be an array'),
+    (0, express_validator_1.body)('questions.*.question').notEmpty().isString().withMessage('Question must be a string'),
+    (0, express_validator_1.body)('questions.*.options').notEmpty().isArray().withMessage('Options must be an array'),
+    (0, express_validator_1.body)('questions.*.answer').notEmpty().isArray().withMessage('Answer must be an array of strings'),
 ];
 exports.validateQuestionIdValidationParams = [
     (0, express_validator_1.query)("questionId").notEmpty(),

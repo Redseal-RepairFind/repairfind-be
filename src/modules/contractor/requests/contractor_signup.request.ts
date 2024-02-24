@@ -9,7 +9,7 @@ export const CreateContractorRequest = [
     body('phoneNumber').notEmpty(),
     body('accountType')
         .notEmpty()
-        .isIn(['Individual', 'Company', 'JourneyMan']).withMessage('Account type must be one of: Individual, Company or JourneyMan'),
+        .isIn(['Individual', 'Company', 'Employee']).withMessage('Account type must be one of: Individual, Company or Employee'),
     body('acceptTerms')
         .notEmpty()
         .custom((value, { req }) => value === true).withMessage('You must accept our terms and conditions'),

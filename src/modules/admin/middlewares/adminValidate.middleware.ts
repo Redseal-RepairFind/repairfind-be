@@ -72,6 +72,15 @@ export const validateAddQuestionParams = [
     .withMessage('Each item in rejectedReason must be a string'),
 ];
 
+
+export const createQuizParams = [
+    body('video_url').notEmpty().isString(),
+    body('questions').notEmpty().isArray().withMessage('Questions must be an array'),
+    body('questions.*.question').notEmpty().isString().withMessage('Question must be a string'),
+    body('questions.*.options').notEmpty().isArray().withMessage('Options must be an array'),
+    body('questions.*.answer').notEmpty().isArray().withMessage('Answer must be an array of strings'),
+];
+
 export const validateQuestionIdValidationParams = [
     query("questionId").notEmpty(),
 ];

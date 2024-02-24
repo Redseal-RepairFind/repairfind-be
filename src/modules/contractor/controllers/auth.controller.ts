@@ -43,7 +43,7 @@ class AuthHandler extends Base {
                 verified: false
             };
 
-            const html = htmlMailTemplate(otp, firstName, "We have received a request to verify your email");
+            const html = htmlMailTemplate(otp, firstName ?? companyName, "We have received a request to verify your email");
 
             let emailData = {
                 emailTo: email,
@@ -190,7 +190,7 @@ class AuthHandler extends Base {
             }
 
             // try find user with the same email
-            const contractor = await ContractorModel.findOne({ email });
+            let contractor = await ContractorModel.findOne({ email }).populate('profile');
 
             // check if user exists
             if (!contractor) {
@@ -209,8 +209,7 @@ class AuthHandler extends Base {
                 return res.status(401).json({success: false, message: "email not verified." });
             }
 
-            const profile = await ContractorModel.findOne({ email }).select('-password');
-
+        
             // generate access token
             const accessToken = jwt.sign(
                 {
@@ -226,7 +225,7 @@ class AuthHandler extends Base {
                 success: true,
                 message: "Login successful",
                 accessToken: accessToken,
-                profile
+                user:contractor
             });
 
 

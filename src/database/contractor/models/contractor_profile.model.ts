@@ -37,10 +37,13 @@ const IContractorJobVideoSchema = new Schema<IContractorJobPhoto>({
 const CompanyProfileSchema = new Schema<IContractorProfile>(
     {
     
-      contractorId: {
-        type: Schema.Types.ObjectId, ref: config.mongodb.collections.contractors,
+      contractor: {
+        type: Schema.Types.ObjectId, 
+        ref: "contractors",
         required: true,
       },
+
+      
 
       name: {
         type: String,

@@ -28,7 +28,7 @@ export interface IContractorLocation extends Document  {
 
 export interface IContractorProfile extends Document {
   _id: ObjectId;
-  contractorId: IContractor['_id']
+  contractor: IContractor['_id']
   name: string;
   gstNumber: string;
   gstType: string;

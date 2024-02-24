@@ -41,7 +41,7 @@ router.patch("/profiles/me", contractorRoleCheck_middleware_1.checkContractorRol
 });
 //  Account
 router.get("/me", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
-    (0, profile_controller_1.ProfileController)(req, res, next).getProfile();
+    (0, profile_controller_1.ProfileController)(req, res, next).getUser();
 });
 router.post("/me", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
     (0, profile_controller_1.ProfileController)(req, res, next).getProfile();

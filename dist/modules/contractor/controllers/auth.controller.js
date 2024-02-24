@@ -118,7 +118,7 @@ var AuthHandler = /** @class */ (function (_super) {
                             createdTime: createdTime,
                             verified: false
                         };
-                        html = (0, sendEmailTemplate_1.htmlMailTemplate)(otp, firstName, "We have received a request to verify your email");
+                        html = (0, sendEmailTemplate_1.htmlMailTemplate)(otp, firstName !== null && firstName !== void 0 ? firstName : companyName, "We have received a request to verify your email");
                         emailData = {
                             emailTo: email,
                             subject: "email verification",
@@ -239,7 +239,7 @@ var AuthHandler = /** @class */ (function (_super) {
     };
     AuthHandler.prototype.signin = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _a, email, password, errors, contractor, isPasswordMatch, profile, accessToken, err_3;
+            var req, res, _a, email, password, errors, contractor, isPasswordMatch, accessToken, err_3;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -247,13 +247,13 @@ var AuthHandler = /** @class */ (function (_super) {
                         res = this.res;
                         _b.label = 1;
                     case 1:
-                        _b.trys.push([1, 5, , 6]);
+                        _b.trys.push([1, 4, , 5]);
                         _a = req.body, email = _a.email, password = _a.password;
                         errors = (0, express_validator_1.validationResult)(req);
                         if (!errors.isEmpty()) {
                             return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation errors', errors: errors.array() })];
                         }
-                        return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ email: email })];
+                        return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ email: email }).populate('profile')];
                     case 2:
                         contractor = _b.sent();
                         // check if user exists
@@ -271,9 +271,6 @@ var AuthHandler = /** @class */ (function (_super) {
                         if (!contractor.emailOtp.verified) {
                             return [2 /*return*/, res.status(401).json({ success: false, message: "email not verified." })];
                         }
-                        return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ email: email }).select('-password')];
-                    case 4:
-                        profile = _b.sent();
                         accessToken = jsonwebtoken_1.default.sign({
                             id: contractor === null || contractor === void 0 ? void 0 : contractor._id,
                             email: contractor.email,
@@ -283,12 +280,12 @@ var AuthHandler = /** @class */ (function (_super) {
                                 success: true,
                                 message: "Login successful",
                                 accessToken: accessToken,
-                                profile: profile
+                                user: contractor
                             })];
-                    case 5:
+                    case 4:
                         err_3 = _b.sent();
                         return [2 /*return*/, res.status(500).json({ success: false, message: err_3.message })];
-                    case 6: return [2 /*return*/];
+                    case 5: return [2 /*return*/];
                 }
             });
         });

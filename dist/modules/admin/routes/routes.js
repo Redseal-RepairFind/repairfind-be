@@ -42,6 +42,8 @@ router.get("/admin_get_total_job", adminRoleChecker_middleware_1.checkAdminRole,
 router.get("/admin_get_transaction_detail", adminRoleChecker_middleware_1.checkAdminRole, transaction_controller_1.AdminGetTransactionDetailController); // admin get transaction detail
 router.get("/admin_get_single_transaction_detail", adminValidate_middleware_1.validateTRansactionIdValidationParams, adminRoleChecker_middleware_1.checkAdminRole, transaction_controller_1.AdminGetSingleTransactionDetailController); // admin get single transaction detail
 router.post("/admin_add_question", adminValidate_middleware_1.validateAddQuestionParams, adminRoleChecker_middleware_1.checkAdminRole, question_controller_1.AdminAddQuestionlController); // admin add question
+router.post("/quiz", adminValidate_middleware_1.createQuizParams, adminRoleChecker_middleware_1.checkAdminRole, question_controller_1.AdminQuizController.CreateQuiz); // admin add question
+router.get("/quiz", adminValidate_middleware_1.createQuizParams, adminRoleChecker_middleware_1.checkAdminRole, question_controller_1.AdminQuizController.getAllQuizzes); // admin add question
 router.get("/admin_get_all_question", adminRoleChecker_middleware_1.checkAdminRole, question_controller_1.AdminGetAllQuestionController); // admin get all question
 router.get("/admin_get_single_question", adminValidate_middleware_1.validateQuestionIdValidationParams, adminRoleChecker_middleware_1.checkAdminRole, question_controller_1.AdminGetSingleQuestionController); // admin get single question
 router.post("/admin_edit_question", adminValidate_middleware_1.validateEditQuestionParams, adminRoleChecker_middleware_1.checkAdminRole, question_controller_1.AdminEditQuestionlController); // admin edit question
