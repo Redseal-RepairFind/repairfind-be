@@ -114,7 +114,7 @@ app.use("/", router.get("/", function (req, res) {
     res.json("Hello");
 }));
 app.use("/api/v1/contractor", routes_1.default);
-app.use("/admin", routes_2.default);
+app.use("/api/v1/admin", routes_2.default);
 app.use("/api/v1/customer", routes_3.default);
 // // Handle socket connections
 // chatSocketConfigUser(io);
