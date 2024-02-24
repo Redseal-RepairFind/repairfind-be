@@ -69,6 +69,9 @@ var adminSignUpController = function (req, res) { return __awaiter(void 0, void 
                 return [4 /*yield*/, adminReg_model_1.default.find()];
             case 2:
                 checkFirstAdmin = _b.sent();
+                // we need a better way validate and manage admins, probably from cli or something
+                // or better way to define superadmin who can then
+                validation = true;
                 if (checkFirstAdmin.length < 1) {
                     superAdmin = true;
                     validation = true;
