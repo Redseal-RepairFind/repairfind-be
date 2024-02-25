@@ -31,10 +31,14 @@ export const forgotPasswordParams = [
     body("email").isEmail(),
 ];
 
-export const resetPasswprdParams = [
+export const resetPasswordParams = [
     body("email").isEmail(),
     body("otp").notEmpty(),
     body("password").notEmpty(),
+];
+export const verifyPasswordOtpParams = [
+    body("email").isEmail(),
+    body("otp").notEmpty(),
 ];
 
 export const searchParams = [
@@ -98,7 +102,7 @@ export const CustomerHttpRequest = {
   emailVerificationParams,
   loginParams,
   forgotPasswordParams,
-  resetPasswprdParams,
+  resetPasswordParams,
   searchParams,
   getContractorParams,
   updateProfileParams,
@@ -106,4 +110,5 @@ export const CustomerHttpRequest = {
   confirmPaymentParams,
   confirmInspectionPaymentParams,
   rateContractorParams,
+  verifyPasswordOtpParams
 }

@@ -15,7 +15,9 @@ router.post("/login", CustomerHttpRequest.loginParams, CustomerAuthController.si
 router.post("/email-verification", CustomerHttpRequest.emailVerificationParams, CustomerAuthController.verifyEmail ); // customer verified email
 router.post("/resend-email-verification", CustomerHttpRequest.forgotPasswordParams, CustomerAuthController.resendEmail ); // customer resend email
 router.post("/forgot-password", CustomerHttpRequest.forgotPasswordParams, CustomerAuthController.forgotPassword ); // customer forgot passwor
-router.post("/reset-password", CustomerHttpRequest.resetPasswprdParams, CustomerAuthController.resetPassword  ); // customer reset password
+router.post("/reset-password", CustomerHttpRequest.resetPasswordParams, CustomerAuthController.resetPassword  ); // customer reset password
+router.post("/reset-password-verification", CustomerHttpRequest.verifyPasswordOtpParams,  CustomerAuthController.verifyResetPasswordOtp ); // verify password reset opt
+
 router.post("/update-profile", checkCustomerRole, memoryUpload.single('profileImg'), CustomerAuthController.updateProfile ); // customer update is profile
 
 

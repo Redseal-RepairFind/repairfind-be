@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerAuthController = exports.resetPassword = exports.forgotPassword = exports.updateProfile = exports.resendEmail = exports.signIn = exports.verifyEmail = exports.signUp = void 0;
+exports.CustomerAuthController = exports.verifyResetPasswordOtp = exports.resetPassword = exports.forgotPassword = exports.updateProfile = exports.resendEmail = exports.signIn = exports.verifyEmail = exports.signUp = void 0;
 var express_validator_1 = require("express-validator");
 var bcrypt_1 = __importDefault(require("bcrypt"));
 var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
@@ -450,6 +450,44 @@ var resetPassword = function (req, res) { return __awaiter(void 0, void 0, void 
     });
 }); };
 exports.resetPassword = resetPassword;
+var verifyResetPasswordOtp = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, email, otp, errors, customer, _b, createdTime, verified, timeDiff, err_8;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
+            case 0:
+                _c.trys.push([0, 3, , 4]);
+                _a = req.body, email = _a.email, otp = _a.otp;
+                errors = (0, express_validator_1.validationResult)(req);
+                if (!errors.isEmpty()) {
+                    return [2 /*return*/, res.status(400).json({ success: false, errors: errors.array() })];
+                }
+                return [4 /*yield*/, customer_model_1.default.findOne({ email: email })];
+            case 1:
+                customer = _c.sent();
+                // Check if customer exists
+                if (!customer) {
+                    return [2 /*return*/, res.status(401).json({ success: false, message: "Invalid email" })];
+                }
+                _b = customer.passwordOtp, createdTime = _b.createdTime, verified = _b.verified;
+                timeDiff = new Date().getTime() - createdTime.getTime();
+                if (!verified || timeDiff > otpGenerator_1.OTP_EXPIRY_TIME || otp !== customer.passwordOtp.otp) {
+                    return [2 /*return*/, res.status(401).json({ success: false, message: "Unable to verify OTP" })];
+                }
+                // Mark the OTP as verified
+                customer.passwordOtp.verified = true;
+                return [4 /*yield*/, customer.save()];
+            case 2:
+                _c.sent();
+                return [2 /*return*/, res.status(200).json({ success: true, message: "OTP verified successfully" })];
+            case 3:
+                err_8 = _c.sent();
+                res.status(500).json({ success: false, message: err_8.message });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.verifyResetPasswordOtp = verifyResetPasswordOtp;
 exports.CustomerAuthController = {
     signUp: exports.signUp,
     verifyEmail: exports.verifyEmail,
@@ -457,5 +495,6 @@ exports.CustomerAuthController = {
     resetPassword: exports.resetPassword,
     signIn: exports.signIn,
     resendEmail: exports.resendEmail,
-    updateProfile: exports.updateProfile
+    updateProfile: exports.updateProfile,
+    verifyResetPasswordOtp: exports.verifyResetPasswordOtp
 };

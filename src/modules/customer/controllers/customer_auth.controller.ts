@@ -501,6 +501,50 @@ export const resetPassword = async (
   
 }
 
+export const verifyResetPasswordOtp = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const { email, otp } = req.body;
+
+    // Check for validation errors
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, errors: errors.array() });
+    }
+
+    // Try to find customer with the given email
+    const customer = await CustomerModel.findOne({ email });
+
+    // Check if customer exists
+    if (!customer) {
+      return res.status(401).json({ success: false, message: "Invalid email" });
+    }
+
+    const { createdTime, verified } = customer.passwordOtp;
+
+    const timeDiff = new Date().getTime() - createdTime.getTime();
+
+    if (!verified || timeDiff > OTP_EXPIRY_TIME || otp !== customer.passwordOtp.otp) {
+      return res.status(401).json({ success: false, message: "Unable to verify OTP" });
+    }
+
+    // Mark the OTP as verified
+    customer.passwordOtp.verified = true;
+
+    await customer.save();
+
+    return res.status(200).json({ success: true, message: "OTP verified successfully" });
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+
+
+
   
 export const CustomerAuthController = {
   signUp,
@@ -509,5 +553,6 @@ export const CustomerAuthController = {
   resetPassword,
   signIn,
   resendEmail,
-  updateProfile
+  updateProfile,
+  verifyResetPasswordOtp
 }

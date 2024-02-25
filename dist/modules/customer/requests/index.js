@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerHttpRequest = exports.rateContractorParams = exports.confirmInspectionPaymentParams = exports.confirmPaymentParams = exports.acceptAndPayParams = exports.updateProfileParams = exports.getContractorParams = exports.searchParams = exports.resetPasswprdParams = exports.forgotPasswordParams = exports.loginParams = exports.emailVerificationParams = exports.signupParams = void 0;
+exports.CustomerHttpRequest = exports.rateContractorParams = exports.confirmInspectionPaymentParams = exports.confirmPaymentParams = exports.acceptAndPayParams = exports.updateProfileParams = exports.getContractorParams = exports.searchParams = exports.verifyPasswordOtpParams = exports.resetPasswordParams = exports.forgotPasswordParams = exports.loginParams = exports.emailVerificationParams = exports.signupParams = void 0;
 var express_validator_1 = require("express-validator");
 exports.signupParams = [
     (0, express_validator_1.body)("email").isEmail(),
@@ -32,10 +32,14 @@ exports.loginParams = [
 exports.forgotPasswordParams = [
     (0, express_validator_1.body)("email").isEmail(),
 ];
-exports.resetPasswprdParams = [
+exports.resetPasswordParams = [
     (0, express_validator_1.body)("email").isEmail(),
     (0, express_validator_1.body)("otp").notEmpty(),
     (0, express_validator_1.body)("password").notEmpty(),
+];
+exports.verifyPasswordOtpParams = [
+    (0, express_validator_1.body)("email").isEmail(),
+    (0, express_validator_1.body)("otp").notEmpty(),
 ];
 exports.searchParams = [
     (0, express_validator_1.query)("skill").notEmpty(),
@@ -88,7 +92,7 @@ exports.CustomerHttpRequest = {
     emailVerificationParams: exports.emailVerificationParams,
     loginParams: exports.loginParams,
     forgotPasswordParams: exports.forgotPasswordParams,
-    resetPasswprdParams: exports.resetPasswprdParams,
+    resetPasswordParams: exports.resetPasswordParams,
     searchParams: exports.searchParams,
     getContractorParams: exports.getContractorParams,
     updateProfileParams: exports.updateProfileParams,
@@ -96,4 +100,5 @@ exports.CustomerHttpRequest = {
     confirmPaymentParams: exports.confirmPaymentParams,
     confirmInspectionPaymentParams: exports.confirmInspectionPaymentParams,
     rateContractorParams: exports.rateContractorParams,
+    verifyPasswordOtpParams: exports.verifyPasswordOtpParams
 };
