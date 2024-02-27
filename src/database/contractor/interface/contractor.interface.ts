@@ -1,5 +1,7 @@
 import { Document, Types, ObjectId } from "mongoose";
 
+
+
 export interface IContractor extends Document {
   _id: ObjectId;
   profile: ObjectId;
@@ -28,7 +30,6 @@ export interface IContractor extends Document {
     createdTime: Date;
     verified: boolean;
   };
-
   createdAt: Date;
   updatedAt: Date;
 }

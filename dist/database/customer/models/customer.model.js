@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var mongoose_1 = require("mongoose");
+var customer_interface_1 = require("../interface/customer.interface");
 var CustomerSchema = new mongoose_1.Schema({
     email: {
         type: String,
@@ -60,6 +61,11 @@ var CustomerSchema = new mongoose_1.Schema({
         createdTime: Date,
         verified: Boolean,
     },
+    provider: {
+        type: String,
+        enum: Object.values(customer_interface_1.CustomerAuthProviders),
+        default: customer_interface_1.CustomerAuthProviders.PASSWORD
+    }
 }, {
     timestamps: true,
 });

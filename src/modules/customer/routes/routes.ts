@@ -18,6 +18,9 @@ router.post("/forgot-password", CustomerHttpRequest.forgotPasswordParams, Custom
 router.post("/reset-password", CustomerHttpRequest.resetPasswordParams, CustomerAuthController.resetPassword  ); // customer reset password
 router.post("/reset-password-verification", CustomerHttpRequest.verifyPasswordOtpParams,  CustomerAuthController.verifyResetPasswordOtp ); // verify password reset opt
 
+router.post("/google-signon", CustomerHttpRequest.verifySocialSignon,  CustomerAuthController.googleSignon ); // verify password reset opt
+router.post("/facebook-signon", CustomerHttpRequest.verifySocialSignon,  CustomerAuthController.facebookSignon ); // verify password reset opt
+
 router.post("/update-profile", checkCustomerRole, memoryUpload.single('profileImg'), CustomerAuthController.updateProfile ); // customer update is profile
 
 

@@ -21,6 +21,9 @@ export const emailVerificationParams = [
     body("email").isEmail(),
     body("otp").notEmpty(),
 ];
+export const verifySocialSignon = [
+    body("accessToken").notEmpty(),
+];
 
 export const loginParams = [
     body("email").isEmail(),
@@ -110,5 +113,6 @@ export const CustomerHttpRequest = {
   confirmPaymentParams,
   confirmInspectionPaymentParams,
   rateContractorParams,
-  verifyPasswordOtpParams
+  verifyPasswordOtpParams,
+  verifySocialSignon
 }

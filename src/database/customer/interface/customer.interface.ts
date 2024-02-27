@@ -1,5 +1,12 @@
 import { Document, Types, ObjectId } from "mongoose";
 
+export enum CustomerAuthProviders  {
+  PASSWORD = "PASSWORD",
+  GOOGLE = "GOOGLE",
+  FACEBOOK = "FACEBOOK",
+  APPLE = "APPLE",
+}
+
 export interface ICustomer extends Document {
   _id: ObjectId;
   
@@ -26,6 +33,7 @@ export interface ICustomer extends Document {
     verified: boolean;
   };
   acceptTerms: Boolean;
+  provider: CustomerAuthProviders
   createdAt: Date;
   updatedAt: Date;
 }

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerHttpRequest = exports.rateContractorParams = exports.confirmInspectionPaymentParams = exports.confirmPaymentParams = exports.acceptAndPayParams = exports.updateProfileParams = exports.getContractorParams = exports.searchParams = exports.verifyPasswordOtpParams = exports.resetPasswordParams = exports.forgotPasswordParams = exports.loginParams = exports.emailVerificationParams = exports.signupParams = void 0;
+exports.CustomerHttpRequest = exports.rateContractorParams = exports.confirmInspectionPaymentParams = exports.confirmPaymentParams = exports.acceptAndPayParams = exports.updateProfileParams = exports.getContractorParams = exports.searchParams = exports.verifyPasswordOtpParams = exports.resetPasswordParams = exports.forgotPasswordParams = exports.loginParams = exports.verifySocialSignon = exports.emailVerificationParams = exports.signupParams = void 0;
 var express_validator_1 = require("express-validator");
 exports.signupParams = [
     (0, express_validator_1.body)("email").isEmail(),
@@ -24,6 +24,9 @@ exports.signupParams = [
 exports.emailVerificationParams = [
     (0, express_validator_1.body)("email").isEmail(),
     (0, express_validator_1.body)("otp").notEmpty(),
+];
+exports.verifySocialSignon = [
+    (0, express_validator_1.body)("accessToken").notEmpty(),
 ];
 exports.loginParams = [
     (0, express_validator_1.body)("email").isEmail(),
@@ -100,5 +103,6 @@ exports.CustomerHttpRequest = {
     confirmPaymentParams: exports.confirmPaymentParams,
     confirmInspectionPaymentParams: exports.confirmInspectionPaymentParams,
     rateContractorParams: exports.rateContractorParams,
-    verifyPasswordOtpParams: exports.verifyPasswordOtpParams
+    verifyPasswordOtpParams: exports.verifyPasswordOtpParams,
+    verifySocialSignon: exports.verifySocialSignon
 };

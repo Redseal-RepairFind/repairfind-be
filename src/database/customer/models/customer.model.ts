@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import { ICustomer } from "../interface/customer.interface";
+import { CustomerAuthProviders, ICustomer } from "../interface/customer.interface";
 
 const CustomerSchema = new  Schema <ICustomer>(
     {
@@ -61,6 +61,11 @@ const CustomerSchema = new  Schema <ICustomer>(
         createdTime: Date,
         verified: Boolean,
       },
+      provider: {
+        type: String,
+        enum: Object.values(CustomerAuthProviders),
+        default:  CustomerAuthProviders.PASSWORD
+      }
     
     },
     {

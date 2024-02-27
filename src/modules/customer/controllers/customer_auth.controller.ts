@@ -10,11 +10,14 @@ import { uploadToS3 } from "../../../utils/upload.utility";
 import { v4 as uuidv4 } from "uuid";
 import { htmlcustomerWelcomTemplate } from "../../../templates/customerEmail/customerWelcomTemplate";
 import AdminNoficationModel from "../../../database/admin/models/adminNotification.model";
+import { GoogleServiceProvider } from "../../../services/google";
+import { CustomerAuthProviders } from "../../../database/customer/interface/customer.interface";
+import { FacebookServiceProvider } from "../../../services/facebook";
 
 //customer signup /////////////
 export const signUp = async (
-    req: Request,
-    res: Response,
+  req: Request,
+  res: Response,
 ) => {
 
   try {
@@ -30,48 +33,48 @@ export const signUp = async (
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-      return res.status(400).json({success: false, message: "Validation errors occured", errors: errors.array() });
+      return res.status(400).json({ success: false, message: "Validation errors occured", errors: errors.array() });
     }
 
     // try find user with the same email
     const userEmailExists = await CustomerModel.findOne({ email });
-    
-     // check if user exists
-     if (userEmailExists) {
+
+    // check if user exists
+    if (userEmailExists) {
       return res
         .status(401)
-        .json({success: false, message: "Email exists already" });
+        .json({ success: false, message: "Email exists already" });
     }
 
     const otp = generateOTP()
 
-        const createdTime = new Date();
+    const createdTime = new Date();
 
-        const emailOtp = {
-            otp,
-            createdTime,
-            verified : false
-        }
+    const emailOtp = {
+      otp,
+      createdTime,
+      verified: false
+    }
 
-        const html = htmlMailTemplate(otp, firstName, "We have received a request to verify your email");
+    const html = htmlMailTemplate(otp, firstName, "We have received a request to verify your email");
 
-        const welcomeHtml = htmlcustomerWelcomTemplate(lastName)
+    const welcomeHtml = htmlcustomerWelcomTemplate(lastName)
 
-        const welcomeEmailData = {
-          emailTo: email,
-          subject: "welcome",
-          html: welcomeHtml
-        }
+    const welcomeEmailData = {
+      emailTo: email,
+      subject: "welcome",
+      html: welcomeHtml
+    }
 
-        let emailData = {
-            emailTo: email,
-            subject: "email verification",
-            html
-        };
+    let emailData = {
+      emailTo: email,
+      subject: "email verification",
+      html
+    };
 
-        sendEmail(welcomeEmailData)
+    sendEmail(welcomeEmailData)
 
-        sendEmail(emailData);
+    sendEmail(emailData);
 
 
 
@@ -88,7 +91,7 @@ export const signUp = async (
       emailOtp,
       acceptTerms
     });
-    
+
     let customerSaved = await customer.save();
 
     // admin notification 
@@ -108,11 +111,11 @@ export const signUp = async (
         firstName: customerSaved.firstName,
         lastName: customerSaved.lastName,
         phoneNumber: customerSaved.phoneNumber,
-        email: customerSaved.email,  
+        email: customerSaved.email,
       },
 
     });
-    
+
   } catch (err: any) {
     // signup error
     res.status(500).json({ success: false, message: err.message });
@@ -123,56 +126,56 @@ export const signUp = async (
 
 //customer verified email /////////////
 export const verifyEmail = async (
-    req: Request,
-    res: Response,
+  req: Request,
+  res: Response,
 ) => {
 
   try {
     const {
-        email,
-        otp
+      email,
+      otp
     } = req.body;
     // Check for validation errors
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-      return res.status(400).json({success: false, message: "Validation errors", errors: errors.array() });
+      return res.status(400).json({ success: false, message: "Validation errors", errors: errors.array() });
     }
 
     // try find customer with the same email
     const customer = await CustomerModel.findOne({ email });
-    
+
     // check if contractor exists
     if (!customer) {
-     return res
-       .status(401)
-       .json({success: false, message: "invalid email" });
-   }
+      return res
+        .status(401)
+        .json({ success: false, message: "invalid email" });
+    }
 
-   if (customer.emailOtp.otp != otp) {
-       return res
-       .status(401)
-       .json({success: false, message: "invalid otp" });
-   }
+    if (customer.emailOtp.otp != otp) {
+      return res
+        .status(401)
+        .json({ success: false, message: "invalid otp" });
+    }
 
-   if (customer.emailOtp.verified) {
-       return res
-       .status(400)
-       .json({success: false, message: "email already verified" });
-   }
+    if (customer.emailOtp.verified) {
+      return res
+        .status(400)
+        .json({ success: false, message: "email already verified" });
+    }
 
-   const timeDiff = new Date().getTime() - customer.emailOtp.createdTime.getTime();
-   if (timeDiff > OTP_EXPIRY_TIME) {
-       return res.status(400).json({success: false, message: "otp expired" });
-   }
+    const timeDiff = new Date().getTime() - customer.emailOtp.createdTime.getTime();
+    if (timeDiff > OTP_EXPIRY_TIME) {
+      return res.status(400).json({ success: false, message: "otp expired" });
+    }
 
-   customer.emailOtp.verified = true;
+    customer.emailOtp.verified = true;
 
-   await customer.save();
+    await customer.save();
 
     // generate access token
     const accessToken = jwt.sign(
-      { 
+      {
         id: customer?._id,
         email: customer.email,
       },
@@ -180,16 +183,16 @@ export const verifyEmail = async (
       { expiresIn: "24h" }
     );
 
-   return res.json({
-      success: true, 
+    return res.json({
+      success: true,
       message: "email verified successfully",
       accessToken,
       data: customer
     });
-    
+
   } catch (err: any) {
     // signup error
-    res.status(500).json({success: false, message: err.message });
+    res.status(500).json({ success: false, message: err.message });
   }
 
 }
@@ -198,67 +201,72 @@ export const verifyEmail = async (
 
 //customer signin /////////////
 export const signIn = async (
-    req: Request,
-    res: Response,
-  ) => {
-  
-    try {
-      const {
-        email,
-        password,
-      } = req.body;
-        // Check for validation errors
-      const errors = validationResult(req);
-  
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-      }
-  
-      // try find user with the same email
-      const customer = await CustomerModel.findOne({ email });
-  
-      // check if user exists
-      if (!customer) {
-        return res
-          .status(401)
-          .json({ message: "invalid credential" });
-      }
-  
-      // compare password with hashed password in database
-      const isPasswordMatch = await bcrypt.compare(password, customer.password);
-      if (!isPasswordMatch) {
-        return res.status(401).json({ message: "incorrect credential." });
-      }
-  
-      if (!customer.emailOtp.verified) {
-        return res.status(401).json({ message: "email not verified." });
-      }
+  req: Request,
+  res: Response,
+) => {
 
-      const profile = await CustomerModel.findOne({ email }).select('-password');
-  
-      // generate access token
-      const accessToken = jwt.sign(
-        { 
-          id: customer?._id,
-          email: customer.email,
-        },
-        process.env.JWT_CONTRACTOR_SECRET_KEY!,
-        { expiresIn: "24h" }
-      );
-  
-      // return access token
-      res.json({
-        status: true,
-        message: "Login successful",
-        accessToken,
-        data: profile
-      });
-  
-      
-    } catch (err: any) {
-      res.status(500).json({status: false,  message: err.message });
+  try {
+    const {
+      email,
+      password,
+    } = req.body;
+    // Check for validation errors
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
     }
-  
+
+    // try find user with the same email
+    const customer = await CustomerModel.findOne({ email });
+
+    // check if user exists
+    if (!customer) {
+      return res
+        .status(401)
+        .json({ message: "invalid credential" });
+    }
+
+    // compare password with hashed password in database
+    const isPasswordMatch = await bcrypt.compare(password, customer.password);
+    
+    if (!customer.password && customer.provider) {
+      return res.status(401).json({success: false, message: `Account is associated with ${customer.provider} account` });
+    }
+
+    if (!isPasswordMatch) {
+      return res.status(401).json({ message: "incorrect credential." });
+    }
+
+    if (!customer.emailOtp.verified) {
+      return res.status(401).json({ message: "email not verified." });
+    }
+
+    const profile = await CustomerModel.findOne({ email }).select('-password');
+
+    // generate access token
+    const accessToken = jwt.sign(
+      {
+        id: customer?._id,
+        email: customer.email,
+      },
+      process.env.JWT_CONTRACTOR_SECRET_KEY!,
+      { expiresIn: "24h" }
+    );
+
+    // return access token
+    res.json({
+      status: true,
+      message: "Login successful",
+      accessToken,
+      data: profile
+    });
+
+
+  } catch (err: any) {
+    res.status(500).json({ status: false, message: err.message });
+  }
+
 }
 
 
@@ -268,41 +276,41 @@ export const resendEmail = async (
   res: Response,
 ) => {
 
-try {
-  const {
+  try {
+    const {
       email,
-  } = req.body;
-  // Check for validation errors
-  const errors = validationResult(req);
+    } = req.body;
+    // Check for validation errors
+    const errors = validationResult(req);
 
-  if (!errors.isEmpty()) {
-    return res.status(400).json({success: false, message: 'Validation error', errors: errors.array() });
-  }
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, message: 'Validation error', errors: errors.array() });
+    }
 
-  // try find customer with the same email
-  const customer = await CustomerModel.findOne({ email });
-  
-  // check if contractor exists
-  if (!customer) {
-   return res
-     .status(401)
-     .json({success: false, message: "invalid email" });
-  }
+    // try find customer with the same email
+    const customer = await CustomerModel.findOne({ email });
 
-  if (customer.emailOtp.verified) {
-    return res
-     .status(400)
-     .json({success: false, message: "email already verified" });
-  }
+    // check if contractor exists
+    if (!customer) {
+      return res
+        .status(401)
+        .json({ success: false, message: "invalid email" });
+    }
+
+    if (customer.emailOtp.verified) {
+      return res
+        .status(400)
+        .json({ success: false, message: "email already verified" });
+    }
 
     const otp = generateOTP()
 
     const createdTime = new Date();
 
     customer!.emailOtp = {
-        otp,
-        createdTime,
-        verified : false
+      otp,
+      createdTime,
+      verified: false
     }
 
     await customer?.save();
@@ -311,19 +319,19 @@ try {
 
 
     let emailData = {
-        emailTo: email,
-        subject: "email verification",
-        html
+      emailTo: email,
+      subject: "email verification",
+      html
     };
 
-  sendEmail(emailData);
+    sendEmail(emailData);
 
- return res.status(200).json({success: true, message: "OTP sent successfully to your email." });
-  
-} catch (err: any) {
-  // signup error
-  res.status(500).json({ message: err.message });
-}
+    return res.status(200).json({ success: true, message: "OTP sent successfully to your email." });
+
+  } catch (err: any) {
+    // signup error
+    res.status(500).json({ message: err.message });
+  }
 }
 
 
@@ -334,63 +342,63 @@ export const updateProfile = async (
   res: Response,
 ) => {
 
-try {
-  const {
+  try {
+    const {
       fullName,
       location,
       phoneNumber
-  } = req.body;
-  // Check for validation errors
-  const errors = validationResult(req);
+    } = req.body;
+    // Check for validation errors
+    const errors = validationResult(req);
 
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const customer = req.customer;
+    const customerId = customer.id
+
+    const file = req.file;
+
+    // try find customer with the same email
+    const customerDb = await CustomerModel.findOne({ _id: customerId });
+
+    // check if customer exists
+    if (!customerDb) {
+      return res
+        .status(401)
+        .json({ message: "incorrect Id" });
+    }
+
+    let profileImage;
+
+    if (!file) {
+      profileImage = customerDb.profileImg;
+    } else {
+      const filename = uuidv4();
+      const result = await uploadToS3(req.file.buffer, `${filename}.jpg`);
+      profileImage = result?.Location!;
+
+    }
+
+    const updateBioData = await CustomerModel.findOneAndUpdate(
+      { _id: customerId },
+      {
+        fullName: fullName,
+        phoneNumber: phoneNumber,
+        location: location,
+        profileImg: profileImage
+      },
+      { new: true }
+    )
+
+
+    return res.status(200).json({ message: "data successfully updated" });
+
+  } catch (err: any) {
+    // signup error
+    res.status(500).json({ message: err.message });
   }
-
-  const customer =  req.customer;
-  const customerId = customer.id
-
-  const file = req.file;
-
-  // try find customer with the same email
-  const customerDb = await CustomerModel.findOne({ _id: customerId });
-  
-  // check if customer exists
-  if (!customerDb) {
-   return res
-     .status(401)
-     .json({ message: "incorrect Id" });
-  }
-
-  let profileImage;
-
-  if (!file) {
-    profileImage = customerDb.profileImg;
-  }else{
-    const filename = uuidv4();
-    const result = await uploadToS3(req.file.buffer, `${filename}.jpg`);
-    profileImage = result?.Location!;
-    
-  }
-
-  const updateBioData = await CustomerModel.findOneAndUpdate(
-    {_id: customerId},
-    {
-      fullName: fullName,
-      phoneNumber: phoneNumber,
-      location: location,
-      profileImg: profileImage
-    },
-    {new: true}
-  )
-
-  
- return res.status(200).json({ message: "data successfully updated" });
-  
-} catch (err: any) {
-  // signup error
-  res.status(500).json({ message: err.message });
-}
 }
 
 
@@ -400,51 +408,51 @@ export const forgotPassword = async (
 ) => {
 
   try {
-      const {
-          email,
-      } = req.body;
-      const errors = validationResult(req);
-  
-      if (!errors.isEmpty()) {
-        return res.status(400).json({success:false, message:'Validation errors', errors: errors.array() });
-      }
-  
-      // try find user with the same email
-      const customer = await CustomerModel.findOne({ email });
-         if (!customer) {
-        return res
-          .status(401)
-          .json({success:false, message: "invalid email" });
-      }
+    const {
+      email,
+    } = req.body;
+    const errors = validationResult(req);
 
-      const otp = generateOTP()
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, message: 'Validation errors', errors: errors.array() });
+    }
 
-      const createdTime = new Date();
+    // try find user with the same email
+    const customer = await CustomerModel.findOne({ email });
+    if (!customer) {
+      return res
+        .status(401)
+        .json({ success: false, message: "invalid email" });
+    }
 
-      customer!.passwordOtp = {
-          otp,
-          createdTime,
-          verified : true
-      }
+    const otp = generateOTP()
 
-      await customer?.save();
+    const createdTime = new Date();
 
-      const html = htmlMailTemplate(otp, customer.firstName, "We have received a request to change your password");
+    customer!.passwordOtp = {
+      otp,
+      createdTime,
+      verified: true
+    }
 
-      let emailData = {
-          emailTo: email,
-          subject: "constractor password change",
-          html
-      };
-    
-      sendEmail(emailData);
-  
-      return res.status(200).json({success:true, message: "OTP sent successfully to your email." });
-  
-    } catch (err: any) {
-      res.status(500).json({success:false, message: err.message });
+    await customer?.save();
+
+    const html = htmlMailTemplate(otp, customer.firstName, "We have received a request to change your password");
+
+    let emailData = {
+      emailTo: email,
+      subject: "constractor password change",
+      html
+    };
+
+    sendEmail(emailData);
+
+    return res.status(200).json({ success: true, message: "OTP sent successfully to your email." });
+
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
   }
-  
+
 }
 
 export const resetPassword = async (
@@ -453,53 +461,54 @@ export const resetPassword = async (
 ) => {
 
   try {
-      const {
-          email,
-          otp,
-          password
-      } = req.body;
-      // Check for validation errors
-      const errors = validationResult(req);
-  
-      if (!errors.isEmpty()) {
-        return res.status(400).json({success:false, errors: errors.array() });
-      }
-  
-      // try find customerr with the same email
-      const customer = await CustomerModel.findOne({ email });
-  
-       // check if contractor exists
-      if (!customer) {
-        return res
-          .status(401)
-          .json({success:false, message: "invalid email" });
-      }
+    const {
+      email,
+      otp,
+      password
+    } = req.body;
+    // Check for validation errors
+    const errors = validationResult(req);
 
-      const {createdTime, verified} = customer.passwordOtp
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, errors: errors.array() });
+    }
 
-      const timeDiff = new Date().getTime() - createdTime.getTime();
+    // try find customerr with the same email
+    const customer = await CustomerModel.findOne({ email });
 
-      if (!verified || timeDiff > OTP_EXPIRY_TIME || otp !== customer.passwordOtp.otp) {
-          return res
-          .status(401)
-          .json({success:false, message: "unable to reset password" });
-      }
+    // check if contractor exists
+    if (!customer) {
+      return res
+        .status(401)
+        .json({ success: false, message: "invalid email" });
+    }
 
-      // Hash password
-      const hashedPassword = await bcrypt.hash(password, 10); 
+    const { createdTime, verified } = customer.passwordOtp
 
-      customer.password = hashedPassword;
-      customer.passwordOtp.verified = false;
+    const timeDiff = new Date().getTime() - createdTime.getTime();
 
-      await customer.save();
+    if (!verified || timeDiff > OTP_EXPIRY_TIME || otp !== customer.passwordOtp.otp) {
+      return res
+        .status(401)
+        .json({ success: false, message: "unable to reset password" });
+    }
 
-      return res.status(200).json({success:true, message: "password successfully change" });
-  
-    } catch (err: any) {
-      res.status(500).json({success:false, message: err.message });
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    customer.password = hashedPassword;
+    customer.passwordOtp.verified = false;
+
+    await customer.save();
+
+    return res.status(200).json({ success: true, message: "password successfully change" });
+
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
   }
-  
+
 }
+
 
 export const verifyResetPasswordOtp = async (
   req: Request,
@@ -543,9 +552,249 @@ export const verifyResetPasswordOtp = async (
 };
 
 
+//customer signup /////////////
+export const googleSignon = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const {
+      accessToken,
+    } = req.body;
+    // Check for validation errors
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, message: "Validation errors", errors: errors.array() });
+    }
+
+    // call google service here
+    const providerUser = await GoogleServiceProvider.getUserInfo(accessToken)
+
+    const { email, name, picture, sub } = providerUser;
+
+    const firstName = name.split(' ')[0]
+    const lastName = name.split(' ')[1]
+
+    const createdTime = new Date();
+    const emailOtp = {
+      otp: sub,
+      createdTime,
+      verified: true
+    }
+
+    const user = await CustomerModel.findOneAndUpdate(
+      { email },
+      {
+        $setOnInsert: { // Set fields only during insert (when the user doesn't exist)
+          email,
+          firstName,
+          lastName,
+          provider: CustomerAuthProviders.GOOGLE,
+          profileImg: picture,
+          emailOtp: {
+            otp: sub,
+            createdTime: new Date(),
+            verified: true,
+          },
+        },
+      },
+      {
+        new: true, // Return the updated document
+        upsert: true, // Create a new document if it doesn't exist
+        setDefaultsOnInsert: true, // Set default values for fields during insert
+      }
+    );
 
 
-  
+    const token = jwt.sign(
+      {
+        id: user._id,
+        email: user.email,
+      },
+      process.env.JWT_CONTRACTOR_SECRET_KEY!,
+      { expiresIn: '24h' }
+    );
+
+
+    res.json({
+      status: true,
+      message: 'Login successful',
+      accessToken: token,
+      data: {
+        id: user._id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
+    });
+
+
+  } catch (err: any) {
+    // signup error
+    res.status(500).json({ success: false, message: err.message });
+  }
+
+}
+
+
+
+export const facebookSignon = async (req: Request, res: Response) => {
+  try {
+    const { accessToken } = req.body;
+
+    // Check for validation errors
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, message: 'Validation errors', errors: errors.array() });
+    }
+
+    // call Facebook service here
+    const providerUser = await FacebookServiceProvider.getFacebookUserInfo(accessToken);
+
+    const { id, name, email, picture } = providerUser;
+
+    const firstName = name.split(' ')[0];
+    const lastName = name.split(' ')[1];
+
+    const createdTime = new Date();
+    const emailOtp = {
+      otp: id,
+      createdTime,
+      verified: true,
+    };
+
+    const user = await CustomerModel.findOneAndUpdate(
+      { email },
+      {
+        $setOnInsert: { // Set fields only during insert (when the user doesn't exist)
+          email,
+          firstName,
+          lastName,
+          provider: CustomerAuthProviders.FACEBOOK,
+          profileImg: picture?.data?.url,
+          emailOtp: {
+            otp: id,
+            createdTime: new Date(),
+            verified: true,
+          },
+        },
+      },
+      {
+        new: true, // Return the updated document
+        upsert: true, // Create a new document if it doesn't exist
+        setDefaultsOnInsert: true, // Set default values for fields during insert
+      }
+    );
+
+    const token = jwt.sign(
+      {
+        id: user._id,
+        email: user.email,
+      },
+      process.env.JWT_CONTRACTOR_SECRET_KEY!,
+      { expiresIn: '24h' }
+    );
+
+    res.json({
+      status: true,
+      message: 'Login successful',
+      accessToken: token,
+      data: {
+        id: user._id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
+    });
+  } catch (err: any) {
+    // signup error
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+
+export const appleSignon = async (req: Request, res: Response) => {
+  try {
+    const { id_token, email, first_name, last_name } = req.body;
+
+    // Check for validation errors
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, message: 'Validation errors', errors: errors.array() });
+    }
+
+    // You need to verify the Apple ID token. You can use a library like `apple-authentication-jwt` for this.
+    // Install it using: npm install apple-authentication-jwt
+
+    const decodedToken = {
+      sub: 'ds',
+      email: 'sd'
+    }// await verifyAppleIdToken(id_token);
+
+    // Extract necessary information from the decoded token
+    const appleUserId = decodedToken.sub;
+    const appleEmail = decodedToken.email;
+
+    const firstName = first_name;
+    const lastName = last_name;
+
+    const createdTime = new Date();
+    const emailOtp = {
+      otp: appleUserId,
+      createdTime,
+      verified: true,
+    };
+
+    const user = await CustomerModel.findOneAndUpdate(
+      { email: appleEmail },
+      {
+        $setOnInsert: { // Set fields only during insert (when the user doesn't exist)
+          email: appleEmail,
+          firstName,
+          lastName,
+          provider: CustomerAuthProviders.APPLE,
+          emailOtp,
+        },
+      },
+      {
+        new: true, // Return the updated document
+        upsert: true, // Create a new document if it doesn't exist
+        setDefaultsOnInsert: true, // Set default values for fields during insert
+      }
+    );
+
+    const token = jwt.sign(
+      {
+        id: user._id,
+        email: user.email,
+      },
+      process.env.JWT_CONTRACTOR_SECRET_KEY!,
+      { expiresIn: '24h' }
+    );
+
+    res.json({
+      status: true,
+      message: 'Login successful',
+      accessToken: token,
+      data: {
+        id: user._id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
+    });
+  } catch (err: any) {
+    // Handle errors appropriately
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+
+
+
 export const CustomerAuthController = {
   signUp,
   verifyEmail,
@@ -554,5 +803,7 @@ export const CustomerAuthController = {
   signIn,
   resendEmail,
   updateProfile,
-  verifyResetPasswordOtp
+  verifyResetPasswordOtp,
+  googleSignon,
+  facebookSignon
 }

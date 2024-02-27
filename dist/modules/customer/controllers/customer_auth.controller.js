@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerAuthController = exports.verifyResetPasswordOtp = exports.resetPassword = exports.forgotPassword = exports.updateProfile = exports.resendEmail = exports.signIn = exports.verifyEmail = exports.signUp = void 0;
+exports.CustomerAuthController = exports.appleSignon = exports.facebookSignon = exports.googleSignon = exports.verifyResetPasswordOtp = exports.resetPassword = exports.forgotPassword = exports.updateProfile = exports.resendEmail = exports.signIn = exports.verifyEmail = exports.signUp = void 0;
 var express_validator_1 = require("express-validator");
 var bcrypt_1 = __importDefault(require("bcrypt"));
 var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
@@ -51,6 +51,9 @@ var upload_utility_1 = require("../../../utils/upload.utility");
 var uuid_1 = require("uuid");
 var customerWelcomTemplate_1 = require("../../../templates/customerEmail/customerWelcomTemplate");
 var adminNotification_model_1 = __importDefault(require("../../../database/admin/models/adminNotification.model"));
+var google_1 = require("../../../services/google");
+var customer_interface_1 = require("../../../database/customer/interface/customer.interface");
+var facebook_1 = require("../../../services/facebook");
 //customer signup /////////////
 var signUp = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, email, password, firstName, lastName, acceptTerms, phoneNumber, errors, userEmailExists, otp, createdTime, emailOtp, html, welcomeHtml, welcomeEmailData, emailData, hashedPassword, customer, customerSaved, adminNoti, err_1;
@@ -221,6 +224,9 @@ var signIn = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                 return [4 /*yield*/, bcrypt_1.default.compare(password, customer.password)];
             case 2:
                 isPasswordMatch = _b.sent();
+                if (!customer.password && customer.provider) {
+                    return [2 /*return*/, res.status(401).json({ success: false, message: "Account is associated with ".concat(customer.provider, " account") })];
+                }
                 if (!isPasswordMatch) {
                     return [2 /*return*/, res.status(401).json({ message: "incorrect credential." })];
                 }
@@ -488,6 +494,213 @@ var verifyResetPasswordOtp = function (req, res) { return __awaiter(void 0, void
     });
 }); };
 exports.verifyResetPasswordOtp = verifyResetPasswordOtp;
+//customer signup /////////////
+var googleSignon = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var accessToken, errors, providerUser, email, name_1, picture, sub, firstName, lastName, createdTime, emailOtp, user, token, err_9;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 3, , 4]);
+                accessToken = req.body.accessToken;
+                errors = (0, express_validator_1.validationResult)(req);
+                if (!errors.isEmpty()) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "Validation errors", errors: errors.array() })];
+                }
+                return [4 /*yield*/, google_1.GoogleServiceProvider.getUserInfo(accessToken)];
+            case 1:
+                providerUser = _a.sent();
+                email = providerUser.email, name_1 = providerUser.name, picture = providerUser.picture, sub = providerUser.sub;
+                firstName = name_1.split(' ')[0];
+                lastName = name_1.split(' ')[1];
+                createdTime = new Date();
+                emailOtp = {
+                    otp: sub,
+                    createdTime: createdTime,
+                    verified: true
+                };
+                return [4 /*yield*/, customer_model_1.default.findOneAndUpdate({ email: email }, {
+                        $setOnInsert: {
+                            email: email,
+                            firstName: firstName,
+                            lastName: lastName,
+                            provider: customer_interface_1.CustomerAuthProviders.GOOGLE,
+                            profileImg: picture,
+                            emailOtp: {
+                                otp: sub,
+                                createdTime: new Date(),
+                                verified: true,
+                            },
+                        },
+                    }, {
+                        new: true, // Return the updated document
+                        upsert: true, // Create a new document if it doesn't exist
+                        setDefaultsOnInsert: true, // Set default values for fields during insert
+                    })];
+            case 2:
+                user = _a.sent();
+                token = jsonwebtoken_1.default.sign({
+                    id: user._id,
+                    email: user.email,
+                }, process.env.JWT_CONTRACTOR_SECRET_KEY, { expiresIn: '24h' });
+                res.json({
+                    status: true,
+                    message: 'Login successful',
+                    accessToken: token,
+                    data: {
+                        id: user._id,
+                        email: user.email,
+                        firstName: user.firstName,
+                        lastName: user.lastName,
+                    },
+                });
+                return [3 /*break*/, 4];
+            case 3:
+                err_9 = _a.sent();
+                // signup error
+                res.status(500).json({ success: false, message: err_9.message });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.googleSignon = googleSignon;
+var facebookSignon = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var accessToken, errors, providerUser, id, name_2, email, picture, firstName, lastName, createdTime, emailOtp, user, token, err_10;
+    var _a;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 3, , 4]);
+                accessToken = req.body.accessToken;
+                errors = (0, express_validator_1.validationResult)(req);
+                if (!errors.isEmpty()) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation errors', errors: errors.array() })];
+                }
+                return [4 /*yield*/, facebook_1.FacebookServiceProvider.getFacebookUserInfo(accessToken)];
+            case 1:
+                providerUser = _b.sent();
+                id = providerUser.id, name_2 = providerUser.name, email = providerUser.email, picture = providerUser.picture;
+                firstName = name_2.split(' ')[0];
+                lastName = name_2.split(' ')[1];
+                createdTime = new Date();
+                emailOtp = {
+                    otp: id,
+                    createdTime: createdTime,
+                    verified: true,
+                };
+                return [4 /*yield*/, customer_model_1.default.findOneAndUpdate({ email: email }, {
+                        $setOnInsert: {
+                            email: email,
+                            firstName: firstName,
+                            lastName: lastName,
+                            provider: customer_interface_1.CustomerAuthProviders.FACEBOOK,
+                            profileImg: (_a = picture === null || picture === void 0 ? void 0 : picture.data) === null || _a === void 0 ? void 0 : _a.url,
+                            emailOtp: {
+                                otp: id,
+                                createdTime: new Date(),
+                                verified: true,
+                            },
+                        },
+                    }, {
+                        new: true, // Return the updated document
+                        upsert: true, // Create a new document if it doesn't exist
+                        setDefaultsOnInsert: true, // Set default values for fields during insert
+                    })];
+            case 2:
+                user = _b.sent();
+                token = jsonwebtoken_1.default.sign({
+                    id: user._id,
+                    email: user.email,
+                }, process.env.JWT_CONTRACTOR_SECRET_KEY, { expiresIn: '24h' });
+                res.json({
+                    status: true,
+                    message: 'Login successful',
+                    accessToken: token,
+                    data: {
+                        id: user._id,
+                        email: user.email,
+                        firstName: user.firstName,
+                        lastName: user.lastName,
+                    },
+                });
+                return [3 /*break*/, 4];
+            case 3:
+                err_10 = _b.sent();
+                // signup error
+                res.status(500).json({ success: false, message: err_10.message });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.facebookSignon = facebookSignon;
+var appleSignon = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, id_token, email, first_name, last_name, errors, decodedToken, appleUserId, appleEmail, firstName, lastName, createdTime, emailOtp, user, token, err_11;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 2, , 3]);
+                _a = req.body, id_token = _a.id_token, email = _a.email, first_name = _a.first_name, last_name = _a.last_name;
+                errors = (0, express_validator_1.validationResult)(req);
+                if (!errors.isEmpty()) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation errors', errors: errors.array() })];
+                }
+                decodedToken = {
+                    sub: 'ds',
+                    email: 'sd'
+                } // await verifyAppleIdToken(id_token);
+                ;
+                appleUserId = decodedToken.sub;
+                appleEmail = decodedToken.email;
+                firstName = first_name;
+                lastName = last_name;
+                createdTime = new Date();
+                emailOtp = {
+                    otp: appleUserId,
+                    createdTime: createdTime,
+                    verified: true,
+                };
+                return [4 /*yield*/, customer_model_1.default.findOneAndUpdate({ email: appleEmail }, {
+                        $setOnInsert: {
+                            email: appleEmail,
+                            firstName: firstName,
+                            lastName: lastName,
+                            provider: customer_interface_1.CustomerAuthProviders.APPLE,
+                            emailOtp: emailOtp,
+                        },
+                    }, {
+                        new: true, // Return the updated document
+                        upsert: true, // Create a new document if it doesn't exist
+                        setDefaultsOnInsert: true, // Set default values for fields during insert
+                    })];
+            case 1:
+                user = _b.sent();
+                token = jsonwebtoken_1.default.sign({
+                    id: user._id,
+                    email: user.email,
+                }, process.env.JWT_CONTRACTOR_SECRET_KEY, { expiresIn: '24h' });
+                res.json({
+                    status: true,
+                    message: 'Login successful',
+                    accessToken: token,
+                    data: {
+                        id: user._id,
+                        email: user.email,
+                        firstName: user.firstName,
+                        lastName: user.lastName,
+                    },
+                });
+                return [3 /*break*/, 3];
+            case 2:
+                err_11 = _b.sent();
+                // Handle errors appropriately
+                res.status(500).json({ success: false, message: err_11.message });
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.appleSignon = appleSignon;
 exports.CustomerAuthController = {
     signUp: exports.signUp,
     verifyEmail: exports.verifyEmail,
@@ -496,5 +709,7 @@ exports.CustomerAuthController = {
     signIn: exports.signIn,
     resendEmail: exports.resendEmail,
     updateProfile: exports.updateProfile,
-    verifyResetPasswordOtp: exports.verifyResetPasswordOtp
+    verifyResetPasswordOtp: exports.verifyResetPasswordOtp,
+    googleSignon: exports.googleSignon,
+    facebookSignon: exports.facebookSignon
 };
