@@ -75,6 +75,8 @@ var ContractorQuizSchema = new mongoose_1.Schema({
     // }
 }, {
     timestamps: true,
+    // toJSON: { virtuals: true },
+    // toObject: { virtuals: true }
 });
 ContractorQuizSchema.virtual('result').get(function () {
     return __awaiter(this, void 0, void 0, function () {

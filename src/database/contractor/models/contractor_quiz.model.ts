@@ -57,15 +57,16 @@ const ContractorQuizSchema = new Schema<IContractorQuiz>(
   },
   {
     timestamps: true,
+    // toJSON: { virtuals: true },
+    // toObject: { virtuals: true }
   }
+  
 );
 
 
 
 ContractorQuizSchema.virtual('result').get(async function () {
-  // Retrieve the associated questions for the quiz
   const questions: IQuestion[] = await QuestionModel.find({ quiz: this.quiz });
-
   const totalQuestions = questions.length;
   const totalCorrect = this.response.filter((response) => response.correct).length;
   const totalWrong = totalQuestions - totalCorrect;
@@ -81,7 +82,6 @@ ContractorQuizSchema.virtual('result').get(async function () {
     passed
   };
 });
-
 
 
 const ContractorQuizModel = model<IContractorQuiz>('contractor_quizzes', ContractorQuizSchema);

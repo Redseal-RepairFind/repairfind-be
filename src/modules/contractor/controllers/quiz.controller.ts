@@ -169,32 +169,18 @@ export const SubmitQuiz = async (
       { new: true, upsert: true }
     );
 
-    // If upsert: true is used, and no document matches the query, findOneAndUpdate will create a new document.
-    // If a document matches the query, it will update the existing document and return the updated document.
     if (!contractorQuiz) {
-      // Handle the case where the contractorQuiz is not found or created.
       return res.status(500).json({success:false, message: 'Failed to update or create ContractorQuiz' });
     }
 
-    // // Compute result statistics
-    // const totalQuestions = quizResults.length;
-    // const totalCorrect = quizResults.filter((response: {question: string, userAnswer: string, correct: bool }) => response.correct).length;
-    // const totalWrong = totalQuestions - totalCorrect;
-    // const totalAnswered = response.length;
-    
-    // const result = {
-    //   totalQuestions,
-    //   totalCorrect,
-    //   totalWrong,
-    //   totalAnswered
-    // }
-
-    // contractorQuiz.result = result
-    
+    const result = await contractorQuiz.result
     res.json({
       success: true,
       message: 'Quiz results submitted successfully',
-      data: contractorQuiz,
+      data: {
+        ...contractorQuiz.toJSON(),
+        result,
+      },
     });
   } catch (err: any) {
     res.status(500).json({ success:false, message: err.message });
