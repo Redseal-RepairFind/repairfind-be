@@ -94,7 +94,7 @@ exports.CreateProfileRequest = [
     (0, express_validator_1.body)("phoneNumber").if(function (value, _a) {
         var req = _a.req;
         return req.contractor.accountType !== 'Employee';
-    }).notEmpty().isNumeric(),
+    }).optional().isNumeric(),
     (0, express_validator_1.body)("emergencyJobs").if(function (value, _a) {
         var req = _a.req;
         return req.contractor.accountType !== 'Employee';

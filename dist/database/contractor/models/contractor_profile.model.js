@@ -4,7 +4,7 @@ exports.ContractorProfileModel = void 0;
 var mongoose_1 = require("mongoose");
 var config_1 = require("../../../config");
 // Define subdocument schemas
-var IContractorLocationSchema = new mongoose_1.Schema({
+var ContractorLocationSchema = new mongoose_1.Schema({
     address: String,
     city: String,
     region: String,
@@ -12,19 +12,26 @@ var IContractorLocationSchema = new mongoose_1.Schema({
     latitude: String,
     longitude: String,
 });
-var IContractorJobPhotoSchema = new mongoose_1.Schema({
+var ContractorJobPhotoSchema = new mongoose_1.Schema({
     url: String,
     description: String,
     mime: String,
     size: String,
     title: String,
 });
-var IContractorJobVideoSchema = new mongoose_1.Schema({
+var ContractorJobVideoSchema = new mongoose_1.Schema({
     url: String,
     description: String,
     mime: String,
     size: String,
     title: String,
+});
+// Subdocument schema for bank details
+var BankDetailsSchema = new mongoose_1.Schema({
+    institutionName: String,
+    transitNumber: String,
+    institutionNumber: String,
+    accountNumber: String,
 });
 var CompanyProfileSchema = new mongoose_1.Schema({
     contractor: {
@@ -47,7 +54,7 @@ var CompanyProfileSchema = new mongoose_1.Schema({
         type: String,
     },
     location: {
-        type: IContractorLocationSchema,
+        type: ContractorLocationSchema,
     },
     backgrounCheckConsent: {
         type: Boolean,
@@ -83,10 +90,13 @@ var CompanyProfileSchema = new mongoose_1.Schema({
         type: Boolean,
     },
     previousJobPhotos: {
-        type: [IContractorJobPhotoSchema],
+        type: [ContractorJobPhotoSchema],
     },
     previousJobVideos: {
-        type: [IContractorJobVideoSchema],
+        type: [ContractorJobVideoSchema],
+    },
+    bankDetails: {
+        type: BankDetailsSchema, // Embed the BankDetails subdocument
     },
     certnId: {
         type: String,

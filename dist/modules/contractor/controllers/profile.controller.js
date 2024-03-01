@@ -101,7 +101,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     }
     ProfileHandler.prototype.createProfile = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _a, name_1, gstNumber, gstType, location_1, backgrounCheckConsent, skill, website, experienceYear, about, email, phoneNumber, emergencyJobs, availableDays, profilePhoto, previousJobPhotos, previousJobVideos, profileType, firstName, lastName, errors, contractor, contractorId, constractor, certnToken, data, profile_1, htmlCon, html, adminsWithEmails, adminEmails, err_1;
+            var req, res, _a, name_1, gstNumber, gstType, location_1, backgrounCheckConsent, skill, website, experienceYear, about, email, phoneNumber, emergencyJobs, availableDays, profilePhoto, previousJobPhotos, previousJobVideos, profileType, firstName, lastName, errors, contractor, contractorId, constractor, certnToken, data, profile_1, contractorResponse, htmlCon, html, adminsWithEmails, adminEmails, err_1;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -169,6 +169,8 @@ var ProfileHandler = /** @class */ (function (_super) {
                         return [4 /*yield*/, contractor.save()];
                     case 4:
                         _b.sent();
+                        contractorResponse = __assign(__assign({}, contractor.toJSON()), { // Convert to plain JSON object
+                            profile: profile_1 });
                         (0, certn_1.initiateCertnInvite)(data).then(function (res) {
                             profile_1.certnId = res.applicant.id;
                             profile_1.save();
@@ -189,7 +191,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         res.json({
                             success: true,
                             message: "Profile created successfully",
-                            data: profile_1
+                            data: contractorResponse
                         });
                         return [3 /*break*/, 7];
                     case 6:

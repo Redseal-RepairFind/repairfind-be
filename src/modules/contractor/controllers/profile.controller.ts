@@ -106,6 +106,14 @@ class ProfileHandler extends Base {
             contractor.profile = profile._id;
             await contractor.save();
 
+
+            const contractorResponse = {
+              //@ts-ignore
+             ...contractor.toJSON(), // Convert to plain JSON object
+               profile
+           };
+
+
             initiateCertnInvite(data).then(res=>{
               profile.certnId =  res.applicant.id
               profile.save()
@@ -136,7 +144,7 @@ class ProfileHandler extends Base {
             res.json({  
               success: true,
               message: "Profile created successfully",
-              data: profile
+              data: contractorResponse
             });
             
           } catch (err: any) {
