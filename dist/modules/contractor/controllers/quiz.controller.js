@@ -131,7 +131,7 @@ var GetQuizResult = function (req, res) { return __awaiter(void 0, void 0, void 
 }); };
 exports.GetQuizResult = GetQuizResult;
 var SubmitQuiz = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, quizId, response, errors, contractor, contractorId, contractorExist, quiz, questions_1, quizResults, contractorQuiz, totalQuestions, totalCorrect, totalWrong, totalAnswered, result, err_2;
+    var _a, quizId, response, errors, contractor, contractorId, contractorExist, quiz, questions_1, quizResults, contractorQuiz, err_2;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -184,17 +184,18 @@ var SubmitQuiz = function (req, res) { return __awaiter(void 0, void 0, void 0, 
                     // Handle the case where the contractorQuiz is not found or created.
                     return [2 /*return*/, res.status(500).json({ success: false, message: 'Failed to update or create ContractorQuiz' })];
                 }
-                totalQuestions = quizResults.length;
-                totalCorrect = quizResults.filter(function (response) { return response.correct; }).length;
-                totalWrong = totalQuestions - totalCorrect;
-                totalAnswered = response.length;
-                result = {
-                    totalQuestions: totalQuestions,
-                    totalCorrect: totalCorrect,
-                    totalWrong: totalWrong,
-                    totalAnswered: totalAnswered
-                };
-                contractorQuiz.result = result;
+                // // Compute result statistics
+                // const totalQuestions = quizResults.length;
+                // const totalCorrect = quizResults.filter((response: {question: string, userAnswer: string, correct: bool }) => response.correct).length;
+                // const totalWrong = totalQuestions - totalCorrect;
+                // const totalAnswered = response.length;
+                // const result = {
+                //   totalQuestions,
+                //   totalCorrect,
+                //   totalWrong,
+                //   totalAnswered
+                // }
+                // contractorQuiz.result = result
                 res.json({
                     success: true,
                     message: 'Quiz results submitted successfully',

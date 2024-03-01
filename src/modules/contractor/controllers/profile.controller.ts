@@ -236,8 +236,15 @@ class ProfileHandler extends Base {
       let res = this.res 
       try {
             const contractorId = req.contractor.id;
-
             const contractor = await ContractorModel.findById(contractorId).populate('profile').exec();
+            const quiz = await contractor?.quiz ?? null
+            
+            const contractorResponse = {
+               //@ts-ignore
+              ...contractor.toJSON(), // Convert to plain JSON object
+                //@ts-ignore
+              quiz,
+            };
 
             if (!contractor) {
                 return res.status(404).json({ success: false, message: 'Contractor not found' });
@@ -245,8 +252,8 @@ class ProfileHandler extends Base {
 
             res.json({
                 success: true,
-                message: 'Account fetched successfully',
-                data: contractor,
+                message: 'Account fetchedd successfully',
+                data: contractorResponse,
             });
         } catch (err: any) {
             console.log('error', err);

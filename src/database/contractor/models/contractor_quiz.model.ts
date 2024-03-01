@@ -1,5 +1,6 @@
 import { ObjectId, Schema, model, Document } from 'mongoose';
 import { IContractor } from '../interface/contractor.interface';
+import QuestionModel, { IQuestion } from '../../admin/models/question.model';
 
 interface IQuestionResponse {
   question: string;
@@ -50,14 +51,37 @@ const ContractorQuizSchema = new Schema<IContractorQuiz>(
       type: [QuestionResultSchema],
       default: [],
     },
-    result:{
-      type: Object
-    }
+    // result:{
+    //   type: Object
+    // }
   },
   {
     timestamps: true,
   }
 );
+
+
+
+ContractorQuizSchema.virtual('result').get(async function () {
+  // Retrieve the associated questions for the quiz
+  const questions: IQuestion[] = await QuestionModel.find({ quiz: this.quiz });
+
+  const totalQuestions = questions.length;
+  const totalCorrect = this.response.filter((response) => response.correct).length;
+  const totalWrong = totalQuestions - totalCorrect;
+  const totalAnswered = this.response.length;
+   const percentageCorrect = (totalCorrect / totalQuestions) * 100;
+   const passed = percentageCorrect >= 70;
+
+  return {
+    totalQuestions,
+    totalCorrect,
+    totalWrong,
+    totalAnswered,
+    passed
+  };
+});
+
 
 
 const ContractorQuizModel = model<IContractorQuiz>('contractor_quizzes', ContractorQuizSchema);

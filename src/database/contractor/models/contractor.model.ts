@@ -3,10 +3,10 @@ import { IContractor } from "../interface/contractor.interface";
 import { contractorAccountTypes } from "../../../constants";
 import { contractorStatus } from "../../../constants/contractorStatus";
 import { config } from "../../../config";
-import { ContractorProfileModel } from "./contractor_profile.model";
+import ContractorQuizModel from "./contractor_quiz.model";
 
 
-const ContractorSchema = new Schema(
+const ContractorSchema = new Schema <IContractor>(
     {
     
       profile: {
@@ -107,6 +107,15 @@ ContractorSchema.set('toJSON', {
         return ret;
     }
 });
+
+
+ContractorSchema.virtual('quiz').get(async function () {
+  const latestQuiz: any = await ContractorQuizModel.findOne({ contractor: this._id }).sort({ createdAt: -1 });
+  return await latestQuiz?.result
+});
+
+
+
 
 export const ContractorModel = model<IContractor>("contractors", ContractorSchema);
   

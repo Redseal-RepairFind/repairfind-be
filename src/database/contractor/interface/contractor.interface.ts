@@ -14,7 +14,7 @@ export interface IContractor extends Document {
   status: string;
   phoneNumber: string;
   accountType: string;
-  acceptTerms: string;
+  acceptTerms: Boolean;
   passwordOtp: {
     otp: string;
     createdTime: Date;
@@ -32,4 +32,5 @@ export interface IContractor extends Document {
   };
   createdAt: Date;
   updatedAt: Date;
+  quiz: any;
 }

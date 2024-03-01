@@ -14,6 +14,17 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -280,35 +291,42 @@ var ProfileHandler = /** @class */ (function (_super) {
         });
     };
     ProfileHandler.prototype.getUser = function () {
+        var _a;
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, contractorId, contractor, err_4;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            var req, res, contractorId, contractor, quiz, contractorResponse, err_4;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
                     case 0:
                         req = this.req;
                         res = this.res;
-                        _a.label = 1;
+                        _b.label = 1;
                     case 1:
-                        _a.trys.push([1, 3, , 4]);
+                        _b.trys.push([1, 4, , 5]);
                         contractorId = req.contractor.id;
                         return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId).populate('profile').exec()];
                     case 2:
-                        contractor = _a.sent();
+                        contractor = _b.sent();
+                        return [4 /*yield*/, (contractor === null || contractor === void 0 ? void 0 : contractor.quiz)];
+                    case 3:
+                        quiz = (_a = _b.sent()) !== null && _a !== void 0 ? _a : null;
+                        contractorResponse = __assign(__assign({}, contractor.toJSON()), { // Convert to plain JSON object
+                            //@ts-ignore
+                            quiz: quiz });
                         if (!contractor) {
                             return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor not found' })];
                         }
                         res.json({
                             success: true,
-                            message: 'Account fetched successfully',
-                            data: contractor,
+                            message: 'Account fetchedd successfully',
+                            data: contractorResponse,
                         });
-                        return [3 /*break*/, 4];
-                    case 3:
-                        err_4 = _a.sent();
+                        return [3 /*break*/, 5];
+                    case 4:
+                        err_4 = _b.sent();
                         console.log('error', err_4);
                         res.status(500).json({ success: false, message: err_4.message });
-                        return [3 /*break*/, 4];
-                    case 4: return [2 /*return*/];
+                        return [3 /*break*/, 5];
+                    case 5: return [2 /*return*/];
                 }
             });
         });

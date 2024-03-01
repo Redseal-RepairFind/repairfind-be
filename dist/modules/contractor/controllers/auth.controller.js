@@ -14,6 +14,17 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -176,24 +187,25 @@ var AuthHandler = /** @class */ (function (_super) {
         });
     };
     AuthHandler.prototype.verifyEmail = function () {
+        var _a;
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _a, email, otp, errors, contractor, timeDiff, accessToken, err_2;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var req, res, _b, email, otp, errors, contractor, timeDiff, accessToken, quiz, contractorResponse, err_2;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
                         req = this.req;
                         res = this.res;
-                        _b.label = 1;
+                        _c.label = 1;
                     case 1:
-                        _b.trys.push([1, 4, , 5]);
-                        _a = req.body, email = _a.email, otp = _a.otp;
+                        _c.trys.push([1, 5, , 6]);
+                        _b = req.body, email = _b.email, otp = _b.otp;
                         errors = (0, express_validator_1.validationResult)(req);
                         if (!errors.isEmpty()) {
                             return [2 /*return*/, res.status(400).json({ success: false, message: "validation errors", errors: errors.array() })];
                         }
                         return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ email: email })];
                     case 2:
-                        contractor = _b.sent();
+                        contractor = _c.sent();
                         // check if contractor exists
                         if (!contractor) {
                             return [2 /*return*/, res
@@ -217,45 +229,52 @@ var AuthHandler = /** @class */ (function (_super) {
                         contractor.emailOtp.verified = true;
                         return [4 /*yield*/, contractor.save()];
                     case 3:
-                        _b.sent();
+                        _c.sent();
                         accessToken = jsonwebtoken_1.default.sign({
                             id: contractor === null || contractor === void 0 ? void 0 : contractor._id,
                             email: contractor.email,
                         }, process.env.JWT_CONTRACTOR_SECRET_KEY, { expiresIn: "24h" });
+                        return [4 /*yield*/, (contractor === null || contractor === void 0 ? void 0 : contractor.quiz)];
+                    case 4:
+                        quiz = (_a = _c.sent()) !== null && _a !== void 0 ? _a : null;
+                        contractorResponse = __assign(__assign({}, contractor.toJSON()), { // Convert to plain JSON object
+                            //@ts-ignore
+                            quiz: quiz });
                         // return access token
                         return [2 /*return*/, res.json({
                                 success: true,
                                 message: "Login successful",
                                 accessToken: accessToken,
-                                contractor: contractor
+                                user: contractorResponse
                             })];
-                    case 4:
-                        err_2 = _b.sent();
+                    case 5:
+                        err_2 = _c.sent();
                         return [2 /*return*/, res.status(500).json({ success: false, message: err_2.message })];
-                    case 5: return [2 /*return*/];
+                    case 6: return [2 /*return*/];
                 }
             });
         });
     };
     AuthHandler.prototype.signin = function () {
+        var _a;
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _a, email, password, errors, contractor, isPasswordMatch, accessToken, err_3;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var req, res, _b, email, password, errors, contractor, isPasswordMatch, quiz, contractorResponse, accessToken, err_3;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
                         req = this.req;
                         res = this.res;
-                        _b.label = 1;
+                        _c.label = 1;
                     case 1:
-                        _b.trys.push([1, 4, , 5]);
-                        _a = req.body, email = _a.email, password = _a.password;
+                        _c.trys.push([1, 5, , 6]);
+                        _b = req.body, email = _b.email, password = _b.password;
                         errors = (0, express_validator_1.validationResult)(req);
                         if (!errors.isEmpty()) {
                             return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation errors', errors: errors.array() })];
                         }
                         return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ email: email }).populate('profile')];
                     case 2:
-                        contractor = _b.sent();
+                        contractor = _c.sent();
                         // check if user exists
                         if (!contractor) {
                             return [2 /*return*/, res
@@ -264,13 +283,19 @@ var AuthHandler = /** @class */ (function (_super) {
                         }
                         return [4 /*yield*/, bcrypt_1.default.compare(password, contractor.password)];
                     case 3:
-                        isPasswordMatch = _b.sent();
+                        isPasswordMatch = _c.sent();
                         if (!isPasswordMatch) {
                             return [2 /*return*/, res.status(401).json({ success: false, message: "incorrect credential." })];
                         }
                         if (!contractor.emailOtp.verified) {
                             return [2 /*return*/, res.status(401).json({ success: false, message: "email not verified." })];
                         }
+                        return [4 /*yield*/, (contractor === null || contractor === void 0 ? void 0 : contractor.quiz)];
+                    case 4:
+                        quiz = (_a = _c.sent()) !== null && _a !== void 0 ? _a : null;
+                        contractorResponse = __assign(__assign({}, contractor.toJSON()), { // Convert to plain JSON object
+                            //@ts-ignore
+                            quiz: quiz });
                         accessToken = jsonwebtoken_1.default.sign({
                             id: contractor === null || contractor === void 0 ? void 0 : contractor._id,
                             email: contractor.email,
@@ -280,12 +305,12 @@ var AuthHandler = /** @class */ (function (_super) {
                                 success: true,
                                 message: "Login successful",
                                 accessToken: accessToken,
-                                user: contractor
+                                user: contractorResponse
                             })];
-                    case 4:
-                        err_3 = _b.sent();
+                    case 5:
+                        err_3 = _c.sent();
                         return [2 /*return*/, res.status(500).json({ success: false, message: err_3.message })];
-                    case 5: return [2 /*return*/];
+                    case 6: return [2 /*return*/];
                 }
             });
         });

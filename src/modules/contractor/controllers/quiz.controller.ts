@@ -176,20 +176,21 @@ export const SubmitQuiz = async (
       return res.status(500).json({success:false, message: 'Failed to update or create ContractorQuiz' });
     }
 
-    // Compute result statistics
-    const totalQuestions = quizResults.length;
-    const totalCorrect = quizResults.filter((response: {question: string, userAnswer: string, correct: bool }) => response.correct).length;
-    const totalWrong = totalQuestions - totalCorrect;
-    const totalAnswered = response.length;
+    // // Compute result statistics
+    // const totalQuestions = quizResults.length;
+    // const totalCorrect = quizResults.filter((response: {question: string, userAnswer: string, correct: bool }) => response.correct).length;
+    // const totalWrong = totalQuestions - totalCorrect;
+    // const totalAnswered = response.length;
     
-    const result = {
-      totalQuestions,
-      totalCorrect,
-      totalWrong,
-      totalAnswered
-    }
+    // const result = {
+    //   totalQuestions,
+    //   totalCorrect,
+    //   totalWrong,
+    //   totalAnswered
+    // }
 
-    contractorQuiz.result = result
+    // contractorQuiz.result = result
+    
     res.json({
       success: true,
       message: 'Quiz results submitted successfully',

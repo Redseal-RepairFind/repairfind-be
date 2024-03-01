@@ -155,12 +155,20 @@ class AuthHandler extends Base {
                 { expiresIn: "24h" }
             );
 
+            const quiz = await contractor?.quiz ?? null
+            const contractorResponse = {
+               //@ts-ignore
+              ...contractor.toJSON(), // Convert to plain JSON object
+                //@ts-ignore
+              quiz,
+            };
+
             // return access token
             return res.json({
                 success: true,
                 message: "Login successful",
                 accessToken: accessToken,
-                contractor
+                user: contractorResponse
             });
 
             // return res.json({
@@ -209,6 +217,15 @@ class AuthHandler extends Base {
                 return res.status(401).json({success: false, message: "email not verified." });
             }
 
+
+            const quiz = await contractor?.quiz ?? null
+            const contractorResponse = {
+               //@ts-ignore
+              ...contractor.toJSON(), // Convert to plain JSON object
+                //@ts-ignore
+              quiz,
+            };
+
         
             // generate access token
             const accessToken = jwt.sign(
@@ -225,7 +242,7 @@ class AuthHandler extends Base {
                 success: true,
                 message: "Login successful",
                 accessToken: accessToken,
-                user:contractor
+                user:contractorResponse
             });
 
 
