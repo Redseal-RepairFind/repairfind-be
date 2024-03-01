@@ -16,12 +16,11 @@ import http from "http";
 // import * as swaggerDocument from './swagger/swagger.json';
 // import swaggerUi from 'swagger-ui-express';
 
-//contractor routes
-import contractorRoute from "./modules/contractor/routes/routes";
-// //admin routes
-import adminRoute from "./modules/admin/routes/routes";
-//customer route
-import customerRoute from "./modules/customer/routes/routes";
+
+import contractorRoute from "./modules/contractor/routes/routes"; //contractor routes
+import adminRoute from "./modules/admin/routes/routes"; // //admin routes
+import customerRoute from "./modules/customer/routes/routes"; //customer route
+import commonRoute from "./modules/common/routes/routes";
 const router = express.Router();
 
 const app = express();
@@ -81,10 +80,7 @@ const MONGODB_URI = process.env.MONGODB_URI as string;
   }
 })();
 
-// Router middleware
-//app.use("/", routes);
-app.use(
-  "/",
+app.use("/",
   router.get("/", (req, res) => {
     res.json("Hello");
   })
@@ -92,6 +88,7 @@ app.use(
 app.use("/api/v1/contractor", contractorRoute);
 app.use("/api/v1/admin", adminRoute);
 app.use("/api/v1/customer", customerRoute);
+app.use("/api/v1/common", commonRoute);
 
 // // Handle socket connections
 // chatSocketConfigUser(io);

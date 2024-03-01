@@ -7,7 +7,7 @@ import { htmlContractorDocumentValidatinTemplate } from "../../../templates/cont
 import { Base } from "../../../abstracts/base.abstract";
 import { handleAsyncError } from "../../../abstracts/decorators.abstract";
 import { ContractorProfileModel } from "../../../database/contractor/models/contractor_profile.model";
-import { IContractorProfile } from "../../../database/contractor/interface/contractor_profile.interface";
+import { IContractorBankDetails, IContractorProfile } from "../../../database/contractor/interface/contractor_profile.interface";
 import { initiateCertnInvite } from "../../../services/certn";
 import { EmailService } from "../../../services";
 
@@ -205,7 +205,7 @@ class ProfileHandler extends Base {
             } = req.body;
 
             const profile = await ContractorProfileModel.findOneAndUpdate(
-                { contractorId },
+                { contractor: contractorId },
                 {
                     name,
                     website,
@@ -268,6 +268,54 @@ class ProfileHandler extends Base {
             res.status(500).json({ success: false, message: err.message });
         }
     }
+
+    @handleAsyncError()
+    public async updateBankDetails(): Promise<Response | void> {
+      let req = <any>this.req
+      let res = this.res 
+      try {
+        const { institutionName, transitNumber, institutionNumber, accountNumber } = req.body;
+    
+        // Check for validation errors
+        const errors = validationResult(req);
+    
+        if (!errors.isEmpty()) {
+          return res.status(400).json({ errors: errors.array() });
+        }
+    
+        // Assuming that you have a middleware to attach the contractor ID to the request
+        const contractorId: string = req.contractor.id;
+    
+        // Check if the contractor profile exists
+        const contractorProfile: IContractorProfile | null = await ContractorProfileModel.findOne({ contractor: contractorId });
+    
+        if (!contractorProfile) {
+          return res.status(404).json({ success: false, message: 'Contractor profile not found' });
+        }
+    
+        // Update the bankDetails subdocument
+        contractorProfile.bankDetails = <IContractorBankDetails> {
+          institutionName,
+          transitNumber,
+          institutionNumber,
+          accountNumber,
+        };
+    
+        // Save the updated contractor profile
+        await contractorProfile.save();
+    
+        res.json({
+          success: true,
+          message: 'Contractor profile bank details updated successfully',
+          data: contractorProfile,
+        });
+      } catch (err: any) {
+        res.status(500).json({ success: false, message: err.message });
+      }
+
+    }
+
+    
 
 }
 

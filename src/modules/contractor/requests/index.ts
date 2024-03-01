@@ -93,6 +93,14 @@ export const EmailVerificationRequest = [
     body("password").notEmpty(),
   ];
 
+  export const UpdateBankDetailRequest = [
+    body("institutionName").notEmpty(),
+    body("transitNumber").notEmpty(),
+    body("institutionNumber").notEmpty(),
+    body("accountNumber").notEmpty(),
+  ];
+
+
 
 export const ContractorHttpRequest = {
     CreateProfileRequest,
@@ -100,6 +108,7 @@ export const ContractorHttpRequest = {
     EmailVerificationRequest,
     LoginRequest,
     ResendEmailRequest,
-    PasswordResetRequest
+    PasswordResetRequest,
+    UpdateBankDetailRequest
     
 }

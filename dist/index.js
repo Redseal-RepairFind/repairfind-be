@@ -56,12 +56,10 @@ var http_1 = __importDefault(require("http"));
 // import chatSocketConfigUser from "./user/socket/socket";
 // import * as swaggerDocument from './swagger/swagger.json';
 // import swaggerUi from 'swagger-ui-express';
-//contractor routes
-var routes_1 = __importDefault(require("./modules/contractor/routes/routes"));
-// //admin routes
-var routes_2 = __importDefault(require("./modules/admin/routes/routes"));
-//customer route
-var routes_3 = __importDefault(require("./modules/customer/routes/routes"));
+var routes_1 = __importDefault(require("./modules/contractor/routes/routes")); //contractor routes
+var routes_2 = __importDefault(require("./modules/admin/routes/routes")); // //admin routes
+var routes_3 = __importDefault(require("./modules/customer/routes/routes")); //customer route
+var routes_4 = __importDefault(require("./modules/common/routes/routes"));
 var router = express_1.default.Router();
 var app = (0, express_1.default)();
 var csrfProtection = (0, csurf_1.default)({ cookie: true });
@@ -108,14 +106,13 @@ var MONGODB_URI = process.env.MONGODB_URI;
         return [2 /*return*/];
     });
 }); })();
-// Router middleware
-//app.use("/", routes);
 app.use("/", router.get("/", function (req, res) {
     res.json("Hello");
 }));
 app.use("/api/v1/contractor", routes_1.default);
 app.use("/api/v1/admin", routes_2.default);
 app.use("/api/v1/customer", routes_3.default);
+app.use("/api/v1/common", routes_4.default);
 // // Handle socket connections
 // chatSocketConfigUser(io);
 // app initialized port

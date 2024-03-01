@@ -17,12 +17,14 @@ export interface IContractorJobVideo extends Document  {
   title?: string
 }
 
-export interface IContractorBankDetails extends Document  {
+export interface IContractorBankDetails  extends Document  {
   institutionName: string,
   transitNumber: string,
   institutionNumber: string,
   accountNumber: string,
 }
+
+
 
 export interface IContractorLocation extends Document  {
   address: string,
@@ -34,6 +36,7 @@ export interface IContractorLocation extends Document  {
 }
 
 export interface IContractorProfile extends Document {
+  contractorProfile: { institutionName: any; transitNumber: any; institutionNumber: any; accountNumber: any; };
   _id: ObjectId;
   contractor: IContractor['_id']
   name: string;

@@ -50,6 +50,10 @@ router.patch("/profiles/me", checkContractorRole, (req: Request, res: Response, 
     ProfileController(req, res, next).updateProfile();
 });
 
+router.post("/profiles/bank-details", checkContractorRole, ContractorHttpRequest.UpdateBankDetailRequest, (req: Request, res: Response, next: NextFunction) => {
+    ProfileController(req, res, next).updateBankDetails();
+});
+
 //  Account
 router.get("/me", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
     ProfileController(req, res, next).getUser();

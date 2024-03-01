@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorHttpRequest = exports.PasswordResetRequest = exports.ResendEmailRequest = exports.LoginRequest = exports.EmailVerificationRequest = exports.CreateProfileRequest = exports.CreateContractorRequest = void 0;
+exports.ContractorHttpRequest = exports.UpdateBankDetailRequest = exports.PasswordResetRequest = exports.ResendEmailRequest = exports.LoginRequest = exports.EmailVerificationRequest = exports.CreateProfileRequest = exports.CreateContractorRequest = void 0;
 var express_validator_1 = require("express-validator");
 exports.CreateContractorRequest = [
     (0, express_validator_1.body)('email').isEmail(),
@@ -142,11 +142,18 @@ exports.PasswordResetRequest = [
     (0, express_validator_1.body)("otp").notEmpty(),
     (0, express_validator_1.body)("password").notEmpty(),
 ];
+exports.UpdateBankDetailRequest = [
+    (0, express_validator_1.body)("institutionName").notEmpty(),
+    (0, express_validator_1.body)("transitNumber").notEmpty(),
+    (0, express_validator_1.body)("institutionNumber").notEmpty(),
+    (0, express_validator_1.body)("accountNumber").notEmpty(),
+];
 exports.ContractorHttpRequest = {
     CreateProfileRequest: exports.CreateProfileRequest,
     CreateContractorRequest: exports.CreateContractorRequest,
     EmailVerificationRequest: exports.EmailVerificationRequest,
     LoginRequest: exports.LoginRequest,
     ResendEmailRequest: exports.ResendEmailRequest,
-    PasswordResetRequest: exports.PasswordResetRequest
+    PasswordResetRequest: exports.PasswordResetRequest,
+    UpdateBankDetailRequest: exports.UpdateBankDetailRequest
 };

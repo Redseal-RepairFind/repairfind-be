@@ -40,6 +40,9 @@ router.get("/profiles/me", contractorRoleCheck_middleware_1.checkContractorRole,
 router.patch("/profiles/me", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
     (0, profile_controller_1.ProfileController)(req, res, next).updateProfile();
 });
+router.post("/profiles/bank-details", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.UpdateBankDetailRequest, function (req, res, next) {
+    (0, profile_controller_1.ProfileController)(req, res, next).updateBankDetails();
+});
 //  Account
 router.get("/me", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
     (0, profile_controller_1.ProfileController)(req, res, next).getUser();

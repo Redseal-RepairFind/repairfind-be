@@ -258,7 +258,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         contractor = req.contractor;
                         contractorId = contractor.id;
                         _a = req.body, name_2 = _a.name, website = _a.website, experienceYear = _a.experienceYear, about = _a.about, email = _a.email, phoneNumber = _a.phoneNumber, emergencyJobs = _a.emergencyJobs, availableDays = _a.availableDays, profilePhoto = _a.profilePhoto, previousJobPhotos = _a.previousJobPhotos, previousJobVideos = _a.previousJobVideos;
-                        return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOneAndUpdate({ contractorId: contractorId }, {
+                        return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOneAndUpdate({ contractor: contractorId }, {
                                 name: name_2,
                                 website: website,
                                 experienceYear: experienceYear,
@@ -333,6 +333,56 @@ var ProfileHandler = /** @class */ (function (_super) {
             });
         });
     };
+    ProfileHandler.prototype.updateBankDetails = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var req, res, _a, institutionName, transitNumber, institutionNumber, accountNumber, errors, contractorId, contractorProfile, err_5;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        req = this.req;
+                        res = this.res;
+                        _b.label = 1;
+                    case 1:
+                        _b.trys.push([1, 4, , 5]);
+                        _a = req.body, institutionName = _a.institutionName, transitNumber = _a.transitNumber, institutionNumber = _a.institutionNumber, accountNumber = _a.accountNumber;
+                        errors = (0, express_validator_1.validationResult)(req);
+                        if (!errors.isEmpty()) {
+                            return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                        }
+                        contractorId = req.contractor.id;
+                        return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: contractorId })];
+                    case 2:
+                        contractorProfile = _b.sent();
+                        if (!contractorProfile) {
+                            return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor profile not found' })];
+                        }
+                        // Update the bankDetails subdocument
+                        contractorProfile.bankDetails = {
+                            institutionName: institutionName,
+                            transitNumber: transitNumber,
+                            institutionNumber: institutionNumber,
+                            accountNumber: accountNumber,
+                        };
+                        // Save the updated contractor profile
+                        return [4 /*yield*/, contractorProfile.save()];
+                    case 3:
+                        // Save the updated contractor profile
+                        _b.sent();
+                        res.json({
+                            success: true,
+                            message: 'Contractor profile bank details updated successfully',
+                            data: contractorProfile,
+                        });
+                        return [3 /*break*/, 5];
+                    case 4:
+                        err_5 = _b.sent();
+                        res.status(500).json({ success: false, message: err_5.message });
+                        return [3 /*break*/, 5];
+                    case 5: return [2 /*return*/];
+                }
+            });
+        });
+    };
     __decorate([
         (0, decorators_abstract_1.handleAsyncError)(),
         __metadata("design:type", Function),
@@ -357,6 +407,12 @@ var ProfileHandler = /** @class */ (function (_super) {
         __metadata("design:paramtypes", []),
         __metadata("design:returntype", Promise)
     ], ProfileHandler.prototype, "getUser", null);
+    __decorate([
+        (0, decorators_abstract_1.handleAsyncError)(),
+        __metadata("design:type", Function),
+        __metadata("design:paramtypes", []),
+        __metadata("design:returntype", Promise)
+    ], ProfileHandler.prototype, "updateBankDetails", null);
     return ProfileHandler;
 }(base_abstract_1.Base));
 var ProfileController = function () {
