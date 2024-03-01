@@ -1,10 +1,10 @@
 import { Schema, model } from "mongoose";
 import { config } from "../../../config";
-import { IContractorProfile, IContractorJobPhoto, IContractorJobVideo, IContractorLocation } from "../interface/contractor_profile.interface";
+import { IContractorProfile, IContractorJobPhoto, IContractorJobVideo, IContractorLocation, IContractorBankDetails } from "../interface/contractor_profile.interface";
 
 
 // Define subdocument schemas
-const IContractorLocationSchema = new Schema<IContractorLocation>({
+const ContractorLocationSchema = new Schema<IContractorLocation>({
   address: String,
   city: String,
   region: String,
@@ -14,7 +14,7 @@ const IContractorLocationSchema = new Schema<IContractorLocation>({
 });
 
 
-const IContractorJobPhotoSchema = new Schema<IContractorJobPhoto>({
+const ContractorJobPhotoSchema = new Schema<IContractorJobPhoto>({
   url: String,
   description: String,
   mime: String,
@@ -24,7 +24,7 @@ const IContractorJobPhotoSchema = new Schema<IContractorJobPhoto>({
 
 
 
-const IContractorJobVideoSchema = new Schema<IContractorJobPhoto>({
+const ContractorJobVideoSchema = new Schema<IContractorJobPhoto>({
   url: String,
   description: String,
   mime: String,
@@ -32,6 +32,15 @@ const IContractorJobVideoSchema = new Schema<IContractorJobPhoto>({
   title: String,
 });
 
+
+
+// Subdocument schema for bank details
+const BankDetailsSchema = new Schema<IContractorBankDetails>({
+  institutionName: String,
+  transitNumber: String,
+  institutionNumber: String,
+  accountNumber: String,
+});
 
 
 const CompanyProfileSchema = new Schema<IContractorProfile>(
@@ -63,7 +72,7 @@ const CompanyProfileSchema = new Schema<IContractorProfile>(
       },
       
       location: {
-        type: IContractorLocationSchema,
+        type: ContractorLocationSchema,
       },
 
       backgrounCheckConsent: {
@@ -108,11 +117,15 @@ const CompanyProfileSchema = new Schema<IContractorProfile>(
       },
 
       previousJobPhotos: {
-        type: [IContractorJobPhotoSchema],
+        type: [ContractorJobPhotoSchema],
       },
 
       previousJobVideos: {
-        type: [IContractorJobVideoSchema],
+        type: [ContractorJobVideoSchema],
+      },
+
+      bankDetails: {
+        type: BankDetailsSchema, // Embed the BankDetails subdocument
       },
 
       certnId: {

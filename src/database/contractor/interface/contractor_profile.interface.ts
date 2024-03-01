@@ -17,6 +17,13 @@ export interface IContractorJobVideo extends Document  {
   title?: string
 }
 
+export interface IContractorBankDetails extends Document  {
+  institutionName: string,
+  transitNumber: string,
+  institutionNumber: string,
+  accountNumber: string,
+}
+
 export interface IContractorLocation extends Document  {
   address: string,
   city: string,
@@ -67,6 +74,7 @@ export interface IContractorProfile extends Document {
   profileType: string,
   previousJobPhotos:  Array<IContractorJobPhoto>;
   previousJobVideos: Array<IContractorJobVideo>
+  bankDetails: IContractorBankDetails
 
   certnId: string;
 

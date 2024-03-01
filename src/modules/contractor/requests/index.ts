@@ -54,7 +54,7 @@ export const CreateProfileRequest  = [
     body("about").if((value: any, { req }: any) =>  req.contractor.accountType !== 'Employee').optional(),
     body("website").if((value: any, { req }: any) =>  req.contractor.accountType !== 'Employee').optional().isURL(),
     body("email").if((value: any, { req }: any) => req.contractor.accountType !== 'Employee').optional().isEmail(),
-    body("phoneNumber").if((value: any, { req }: any) =>  req.contractor.accountType !== 'Employee').notEmpty().isNumeric(),
+    body("phoneNumber").if((value: any, { req }: any) =>  req.contractor.accountType !== 'Employee').optional().isNumeric(),
     body("emergencyJobs").if((value: any, { req }: any) =>  req.contractor.accountType !== 'Employee').notEmpty(),
     body("availableDays").if((value: any, { req }: any) =>  req.contractor.accountType !== 'Employee').notEmpty().isArray(),
     body("previousJobPhotos").if((value: any, { req }: any) =>  req.contractor.accountType !== 'Employee').optional().isArray().notEmpty().custom((value) => validateMediaArray(value)),
