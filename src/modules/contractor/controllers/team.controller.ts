@@ -26,56 +26,15 @@ export const inviteToTeam = async (req: any, res: Response) => {
             return res.status(400).json({ success: false, message: 'Only Company can create and manage teams' });
         }
 
-        // Check if the contractor is valid and is a Company Type
+
+        // Ensure that the member being invited has an Individual or Employee account type
         const member = await ContractorModel.findById(memberId);
-        if (!member) {
-            return res.status(400).json({ success: false, message: 'Invalid contractor or contractor type' });
+        if (!member || member.accountType !== 'Individual' && member.accountType !== 'Employee') {
+            return res.status(400).json({ success: false, message: 'Invalid contractor or contractor type. Only Individual and Employee types can be invited to a team.' });
         }
 
        
-        // Check if the member is already part of any team with 'PENDING' status
-        // const existingTeamMember = await ContractorTeamModel.findOne({
-        //     'members.contractor': memberId,
-        //     'members.status': 'PENDING',
-        // });
-
-        // if (existingTeamMember) {
-        //     // Resend the invitation email to the existing team member
-        //     const htmlContent = NewTeamInvitationEmail(member.firstName, existingTeamMember.name);
-        //     EmailService.send(member.email, 'Resent Team Invitation', htmlContent)
-        //         .then(() => console.log('Email sent successfully'))
-        //         .catch(error => console.error('Error sending email:', error));
-
-        //     return res.json({ success: true, message: 'Invitation resent successfully', data: existingTeamMember });
-        // }
-
-        // Check if the member is already part of any team with 'PENDING' or 'ACTIVE' status
-        const existingTeamMember = await ContractorTeamModel.findOne({
-            'members.contractor': memberId,
-            'members.status': { $in: ['PENDING', 'ACTIVE'] },
-        });
-
-        if (existingTeamMember) {
-            // Check if any member in the team has 'ACTIVE' status
-            const isActiveMember = existingTeamMember.members.some(member => member.status === 'ACTIVE');
-
-            if (isActiveMember) {
-                return res.json({ success: true, message: 'Contractor is already part of an active team', data: existingTeamMember });
-            } else {
-                // Resend the invitation email to all existing team members
-                const resendInvitations = existingTeamMember.members.map(async (teamMember) => {
-                    const htmlContent = NewTeamInvitationEmail(member.firstName, existingTeamMember.name);
-                    await EmailService.send(member.email, 'Team Invitation Reminder', htmlContent);
-                });
-
-                await Promise.all(resendInvitations);
-
-                return res.json({ success: true, message: 'Invitations resent successfully', data: existingTeamMember });
-            }
-        }
-        
-        
-
+       
         // Check if the contractor already has a team
         const existingTeamForContractor = await ContractorTeamModel.findOne({
             'contractor': contractorId
@@ -95,6 +54,35 @@ export const inviteToTeam = async (req: any, res: Response) => {
             teamId = newTeam._id;
         }
 
+
+
+         // Check if the member is already part of any team with 'PENDING' or 'ACTIVE' status
+         const existingTeamMember = await ContractorTeamModel.findOne({
+            'members.contractor': memberId,
+            'members.status': { $in: ['PENDING', 'ACTIVE'] },
+        });
+
+        
+        if (existingTeamMember) {
+            // Check if any member in the team has 'ACTIVE' status
+            const isActiveMember = existingTeamMember.members.some(member => member.status === 'ACTIVE');
+
+            if (isActiveMember) {
+                return res.json({ success: true, message: 'Contractor is already part of an active team'});
+            } else {
+                
+                // Resend the invitation email to all existing team members
+                const resendInvitations = existingTeamMember.members.map(async (teamMember) => {
+                    const htmlContent = NewTeamInvitationEmail(member.firstName, contractor.companyName);
+                    await EmailService.send(member.email, 'Team Invitation Reminder', htmlContent);
+                });
+                console.log(member, contractor)
+                await Promise.all(resendInvitations);
+                return res.json({ success: true, message: 'Invitations resent successfully'});
+            }
+        }
+
+
         // Add the contractor to the team
         const updatedTeam: IContractorTeam | null = await ContractorTeamModel.findByIdAndUpdate(
             teamId,
@@ -111,12 +99,12 @@ export const inviteToTeam = async (req: any, res: Response) => {
         }
 
         // Send mail to the invited user
-        const htmlContent = NewTeamInvitationEmail(member.firstName, updatedTeam.name);
+        const htmlContent = NewTeamInvitationEmail(member.firstName, contractor.companyName);
         EmailService.send(member.email, 'New Team Invitation', htmlContent)
             .then(() => console.log('Email sent successfully'))
             .catch(error => console.error('Error sending email:', error));
 
-        res.json({ success: true, message: 'Invitation sent successfully', data: updatedTeam });
+        res.json({ success: true, message: 'Invitation sent successfully' });
     } catch (error) {
         console.error('Error inviting to team:', error);
         res.status(500).json({ success: false, message: 'Internal Server Error' });

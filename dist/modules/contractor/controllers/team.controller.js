@@ -46,7 +46,7 @@ var express_validator_1 = require("express-validator");
 var services_1 = require("../../../services");
 var team_invitation_email_template_1 = require("../../../templates/contractorEmail/team_invitation_email.template");
 var inviteToTeam = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, memberId, role, contractorId, errors, contractor, member_1, existingTeamMember_1, isActiveMember, resendInvitations, existingTeamForContractor, teamId, newTeam, updatedTeam, htmlContent, error_1;
+    var _a, memberId, role, contractorId, errors, contractor_1, member_1, existingTeamForContractor, teamId, newTeam, existingTeamMember, isActiveMember, resendInvitations, updatedTeam, htmlContent, error_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -59,33 +59,51 @@ var inviteToTeam = function (req, res) { return __awaiter(void 0, void 0, void 0
                 }
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
             case 1:
-                contractor = _b.sent();
-                if (!contractor || contractor.accountType !== 'Company') {
+                contractor_1 = _b.sent();
+                if (!contractor_1 || contractor_1.accountType !== 'Company') {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Only Company can create and manage teams' })];
                 }
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(memberId)];
             case 2:
                 member_1 = _b.sent();
-                if (!member_1) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid contractor or contractor type' })];
+                if (!member_1 || member_1.accountType !== 'Individual' && member_1.accountType !== 'Employee') {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid contractor or contractor type. Only Individual and Employee types can be invited to a team.' })];
                 }
                 return [4 /*yield*/, contractor_team_model_1.default.findOne({
-                        'members.contractor': memberId,
-                        'members.status': { $in: ['PENDING', 'ACTIVE'] },
+                        'contractor': contractorId
                     })];
             case 3:
-                existingTeamMember_1 = _b.sent();
-                if (!existingTeamMember_1) return [3 /*break*/, 6];
-                isActiveMember = existingTeamMember_1.members.some(function (member) { return member.status === 'ACTIVE'; });
-                if (!isActiveMember) return [3 /*break*/, 4];
-                return [2 /*return*/, res.json({ success: true, message: 'Contractor is already part of an active team', data: existingTeamMember_1 })];
-            case 4:
-                resendInvitations = existingTeamMember_1.members.map(function (teamMember) { return __awaiter(void 0, void 0, void 0, function () {
+                existingTeamForContractor = _b.sent();
+                teamId = void 0;
+                if (!existingTeamForContractor) return [3 /*break*/, 4];
+                // If the contractor already has a team, use the existing team
+                teamId = existingTeamForContractor._id;
+                return [3 /*break*/, 6];
+            case 4: return [4 /*yield*/, contractor_team_model_1.default.create({
+                    contractor: contractorId,
+                    name: contractor_1.firstName
+                })];
+            case 5:
+                newTeam = _b.sent();
+                teamId = newTeam._id;
+                _b.label = 6;
+            case 6: return [4 /*yield*/, contractor_team_model_1.default.findOne({
+                    'members.contractor': memberId,
+                    'members.status': { $in: ['PENDING', 'ACTIVE'] },
+                })];
+            case 7:
+                existingTeamMember = _b.sent();
+                if (!existingTeamMember) return [3 /*break*/, 10];
+                isActiveMember = existingTeamMember.members.some(function (member) { return member.status === 'ACTIVE'; });
+                if (!isActiveMember) return [3 /*break*/, 8];
+                return [2 /*return*/, res.json({ success: true, message: 'Contractor is already part of an active team' })];
+            case 8:
+                resendInvitations = existingTeamMember.members.map(function (teamMember) { return __awaiter(void 0, void 0, void 0, function () {
                     var htmlContent;
                     return __generator(this, function (_a) {
                         switch (_a.label) {
                             case 0:
-                                htmlContent = (0, team_invitation_email_template_1.NewTeamInvitationEmail)(member_1.firstName, existingTeamMember_1.name);
+                                htmlContent = (0, team_invitation_email_template_1.NewTeamInvitationEmail)(member_1.firstName, contractor_1.companyName);
                                 return [4 /*yield*/, services_1.EmailService.send(member_1.email, 'Team Invitation Reminder', htmlContent)];
                             case 1:
                                 _a.sent();
@@ -93,28 +111,11 @@ var inviteToTeam = function (req, res) { return __awaiter(void 0, void 0, void 0
                         }
                     });
                 }); });
+                console.log(member_1, contractor_1);
                 return [4 /*yield*/, Promise.all(resendInvitations)];
-            case 5:
-                _b.sent();
-                return [2 /*return*/, res.json({ success: true, message: 'Invitations resent successfully', data: existingTeamMember_1 })];
-            case 6: return [4 /*yield*/, contractor_team_model_1.default.findOne({
-                    'contractor': contractorId
-                })];
-            case 7:
-                existingTeamForContractor = _b.sent();
-                teamId = void 0;
-                if (!existingTeamForContractor) return [3 /*break*/, 8];
-                // If the contractor already has a team, use the existing team
-                teamId = existingTeamForContractor._id;
-                return [3 /*break*/, 10];
-            case 8: return [4 /*yield*/, contractor_team_model_1.default.create({
-                    contractor: contractorId,
-                    name: contractor.firstName
-                })];
             case 9:
-                newTeam = _b.sent();
-                teamId = newTeam._id;
-                _b.label = 10;
+                _b.sent();
+                return [2 /*return*/, res.json({ success: true, message: 'Invitations resent successfully' })];
             case 10: return [4 /*yield*/, contractor_team_model_1.default.findByIdAndUpdate(teamId, {
                     $addToSet: {
                         members: { contractor: member_1.id, role: role, status: 'PENDING' },
@@ -125,11 +126,11 @@ var inviteToTeam = function (req, res) { return __awaiter(void 0, void 0, void 0
                 if (!updatedTeam) {
                     return [2 /*return*/, res.status(500).json({ success: false, message: 'Failed to update team' })];
                 }
-                htmlContent = (0, team_invitation_email_template_1.NewTeamInvitationEmail)(member_1.firstName, updatedTeam.name);
+                htmlContent = (0, team_invitation_email_template_1.NewTeamInvitationEmail)(member_1.firstName, contractor_1.companyName);
                 services_1.EmailService.send(member_1.email, 'New Team Invitation', htmlContent)
                     .then(function () { return console.log('Email sent successfully'); })
                     .catch(function (error) { return console.error('Error sending email:', error); });
-                res.json({ success: true, message: 'Invitation sent successfully', data: updatedTeam });
+                res.json({ success: true, message: 'Invitation sent successfully' });
                 return [3 /*break*/, 13];
             case 12:
                 error_1 = _b.sent();
