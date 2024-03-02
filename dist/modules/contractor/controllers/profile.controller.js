@@ -390,7 +390,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     };
     ProfileHandler.prototype.updateBankDetails = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _a, institutionName, transitNumber, institutionNumber, accountNumber, errors, contractorId, contractorProfile, contractorResponse, err_6;
+            var req, res, _a, institutionName, transitNumber, institutionNumber, accountNumber, errors, contractorId, contractor, profile, contractorResponse, err_6;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -405,30 +405,31 @@ var ProfileHandler = /** @class */ (function (_super) {
                             return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                         }
                         contractorId = req.contractor.id;
+                        contractor = req.contractor;
                         return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: contractorId })];
                     case 2:
-                        contractorProfile = _b.sent();
-                        if (!contractorProfile) {
+                        profile = _b.sent();
+                        if (!profile) {
                             return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor profile not found' })];
                         }
                         // Update the bankDetails subdocument
-                        contractorProfile.bankDetails = {
+                        profile.bankDetails = {
                             institutionName: institutionName,
                             transitNumber: transitNumber,
                             institutionNumber: institutionNumber,
                             accountNumber: accountNumber,
                         };
                         // Save the updated contractor profile
-                        return [4 /*yield*/, contractorProfile.save()];
+                        return [4 /*yield*/, profile.save()];
                     case 3:
                         // Save the updated contractor profile
                         _b.sent();
                         contractorResponse = __assign(__assign({}, contractor.toJSON()), { // Convert to plain JSON object
-                            contractorProfile: contractorProfile });
+                            profile: profile });
                         res.json({
                             success: true,
                             message: 'Contractor profile bank details updated successfully',
-                            data: contractorProfile,
+                            data: contractorResponse,
                         });
                         return [3 /*break*/, 5];
                     case 4:

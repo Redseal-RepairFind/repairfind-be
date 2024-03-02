@@ -340,6 +340,7 @@ class ProfileHandler extends Base {
     
         // Check for validation errors
         const errors = validationResult(req);
+        
     
         if (!errors.isEmpty()) {
           return res.status(400).json({ errors: errors.array() });
@@ -347,16 +348,17 @@ class ProfileHandler extends Base {
     
         // Assuming that you have a middleware to attach the contractor ID to the request
         const contractorId: string = req.contractor.id;
+        const contractor = req.contractor;
     
         // Check if the contractor profile exists
-        const contractorProfile: IContractorProfile | null = await ContractorProfileModel.findOne({ contractor: contractorId });
+        const profile: IContractorProfile | null = await ContractorProfileModel.findOne({ contractor: contractorId });
     
-        if (!contractorProfile) {
+        if (!profile) {
           return res.status(404).json({ success: false, message: 'Contractor profile not found' });
         }
     
         // Update the bankDetails subdocument
-        contractorProfile.bankDetails = <IContractorBankDetails> {
+        profile.bankDetails = <IContractorBankDetails> {
           institutionName,
           transitNumber,
           institutionNumber,
@@ -364,18 +366,18 @@ class ProfileHandler extends Base {
         };
     
         // Save the updated contractor profile
-        await contractorProfile.save();
+        await profile.save();
 
         const contractorResponse = {
           //@ts-ignore
          ...contractor.toJSON(), // Convert to plain JSON object
-          contractorProfile
+         profile
        };
     
         res.json({
           success: true,
           message: 'Contractor profile bank details updated successfully',
-          data: contractorProfile,
+          data: contractorResponse,
         });
       } catch (err: any) {
         res.status(500).json({ success: false, message: err.message });
