@@ -64,6 +64,10 @@ const ContractorSchema = new Schema <IContractor>(
         enum: Object.values(contractorAccountTypes),
       },
 
+      profilePhoto: {
+        type: Object,
+      },
+
       passwordOtp: {
         otp: String,
         createdTime: Date,

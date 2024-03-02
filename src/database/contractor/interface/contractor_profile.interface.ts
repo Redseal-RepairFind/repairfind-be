@@ -43,23 +43,6 @@ export interface IContractorProfile extends Document {
   gstNumber: string;
   gstType: string;
   location: IContractorLocation
-  
-  profilePhoto: {
-    type: object
-    properties: {
-      url: {
-        type: String,
-        required: true,
-      },
-      label?: {
-        type: String,
-        unique: true,
-      },
-      descriptions?: {
-        type: Array<string>,
-      },
-    }
-  };
   backgrounCheckConsent: boolean;
   skill: string;
   experienceYear: number;

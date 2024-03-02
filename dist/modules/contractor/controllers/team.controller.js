@@ -143,40 +143,65 @@ var inviteToTeam = function (req, res) { return __awaiter(void 0, void 0, void 0
 }); };
 exports.inviteToTeam = inviteToTeam;
 var getTeam = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var contractorId, contractor, companyTeam, error_2;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var contractorId, contractor, companyTeam, _a, email, name_1, searchCriteria, contractorsNotInTeam, error_2;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
-                _a.trys.push([0, 3, , 4]);
+                _b.trys.push([0, 4, , 5]);
                 contractorId = req.contractor.id;
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
             case 1:
-                contractor = _a.sent();
-                if (!contractor || contractor.accountType !== 'Company') {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Only Company can retrieve team information' })];
+                contractor = _b.sent();
+                if (!contractor || contractor.accountType !== "Company") {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "Only Company can retrieve team information" })];
                 }
                 return [4 /*yield*/, contractor_team_model_1.default.findOne({
-                        'contractor': contractorId
-                    }).populate('members.contractor')];
+                        contractor: contractorId,
+                    })
+                        .populate("members.contractor")
+                        .exec()];
             case 2:
-                companyTeam = _a.sent();
+                companyTeam = _b.sent();
                 if (!companyTeam) {
-                    return [2 /*return*/, res.json({ success: true, message: 'Company does not have a team', data: null })];
+                    return [2 /*return*/, res.json({ success: true, message: "Company does not have a team", data: null })];
                 }
-                res.json({ success: true, message: 'Team information retrieved successfully', data: companyTeam });
-                return [3 /*break*/, 4];
+                _a = req.query, email = _a.email, name_1 = _a.name;
+                searchCriteria = {
+                    accountType: { $in: ["Individual", "Employee"] },
+                    _id: { $nin: companyTeam.members.map(function (member) { return member.contractor; }) },
+                };
+                if (email) {
+                    // Case-insensitive search by email
+                    searchCriteria.email = { $regex: new RegExp(email, "i") };
+                }
+                if (name_1) {
+                    // Case-insensitive search by name
+                    searchCriteria.$or = [
+                        { firstName: { $regex: new RegExp(name_1, "i") } },
+                        { lastName: { $regex: new RegExp(name_1, "i") } },
+                    ];
+                }
+                return [4 /*yield*/, contractor_model_1.ContractorModel.find(searchCriteria)];
             case 3:
-                error_2 = _a.sent();
-                console.error('Error retrieving team information:', error_2);
-                res.status(500).json({ success: false, message: 'Internal Server Error' });
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/];
+                contractorsNotInTeam = _b.sent();
+                res.json({
+                    success: true,
+                    message: "Team information retrieved successfully",
+                    data: contractorsNotInTeam,
+                });
+                return [3 /*break*/, 5];
+            case 4:
+                error_2 = _b.sent();
+                console.error("Error retrieving team information:", error_2);
+                res.status(500).json({ success: false, message: "Internal Server Error" });
+                return [3 /*break*/, 5];
+            case 5: return [2 /*return*/];
         }
     });
 }); };
 exports.getTeam = getTeam;
 var searchContractorsNotInTeam = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var contractorId, contractor, companyTeam, _a, name_1, email, searchCriteria, contractorsNotInTeam, error_3;
+    var contractorId, contractor, companyTeam, _a, name_2, email, searchCriteria, contractorsNotInTeam, error_3;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -196,16 +221,16 @@ var searchContractorsNotInTeam = function (req, res) { return __awaiter(void 0, 
                 if (!companyTeam) {
                     return [2 /*return*/, res.json({ success: true, message: 'Company does not have a team', data: [] })];
                 }
-                _a = req.query, name_1 = _a.name, email = _a.email;
+                _a = req.query, name_2 = _a.name, email = _a.email;
                 searchCriteria = {
                     accountType: { $in: ['Individual', 'Employee'] },
                     _id: { $nin: companyTeam.members.map(function (member) { return member.contractor; }) }
                 };
-                if (name_1) {
+                if (name_2) {
                     // Case-insensitive search by name
                     searchCriteria.$or = [
-                        { firstName: { $regex: new RegExp(name_1, 'i') } },
-                        { lastName: { $regex: new RegExp(name_1, 'i') } }
+                        { firstName: { $regex: new RegExp(name_2, 'i') } },
+                        { lastName: { $regex: new RegExp(name_2, 'i') } }
                     ];
                 }
                 if (email) {

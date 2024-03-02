@@ -52,8 +52,6 @@ const CompanyProfileSchema = new Schema<IContractorProfile>(
         required: true,
       },
 
-      
-
       name: {
         type: String,
         required: true,   
@@ -61,7 +59,7 @@ const CompanyProfileSchema = new Schema<IContractorProfile>(
 
       gstNumber: {
         type: String,
-        required: true, 
+        required: false, 
       },
       gstType: {
         type: String, 
@@ -107,11 +105,6 @@ const CompanyProfileSchema = new Schema<IContractorProfile>(
       about: {
         type: String,
       },
-
-      profilePhoto: {
-        type: Object,
-      },
-
       emergencyJobs: {
         type: Boolean,
       },

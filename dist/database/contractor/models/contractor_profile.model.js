@@ -45,7 +45,7 @@ var CompanyProfileSchema = new mongoose_1.Schema({
     },
     gstNumber: {
         type: String,
-        required: true,
+        required: false,
     },
     gstType: {
         type: String,
@@ -82,9 +82,6 @@ var CompanyProfileSchema = new mongoose_1.Schema({
     },
     about: {
         type: String,
-    },
-    profilePhoto: {
-        type: Object,
     },
     emergencyJobs: {
         type: Boolean,

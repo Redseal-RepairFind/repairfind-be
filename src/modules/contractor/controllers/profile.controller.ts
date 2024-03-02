@@ -35,12 +35,11 @@ class ProfileHandler extends Base {
               profilePhoto,
               previousJobPhotos,
               previousJobVideos,
-              profileType,
               firstName,
               lastName
             } = req.body;
       
-                  // Check for validation errors
+            // Check for validation errors
             const errors = validationResult(req);
         
             if (!errors.isEmpty()) {
@@ -75,12 +74,12 @@ class ProfileHandler extends Base {
               email: constractor.email
             };
 
-            if(profileType == 'Employee'){
+            const profileType = contractor.accountType
+
+            if(profileType == 'Employee' || profileType == 'Individual'){
               name =  `${firstName} ${lastName}`
             }
 
-            profileType = contractor.accountType
-      
             const profile =  await ContractorProfileModel.findOneAndUpdate({contractor: contractorId},{
               contractor: contractorId,
               name,
@@ -104,6 +103,7 @@ class ProfileHandler extends Base {
 
             // Update the ContractorModel with the profile ID
             contractor.profile = profile._id;
+            contractor.profilePhoto = profilePhoto;
             await contractor.save();
 
 
@@ -192,16 +192,24 @@ class ProfileHandler extends Base {
             const {
                 name,
                 website,
+                accountType, // for account upgrade
                 experienceYear,
                 about,
                 email,
                 phoneNumber,
                 emergencyJobs,
-                availableDays,
                 profilePhoto,
+                availableDays,
                 previousJobPhotos,
                 previousJobVideos,
             } = req.body;
+
+            // Check for validation errors
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+              return res.status(400).json({ errors: errors.array() });
+            }
+
 
             const profile = await ContractorProfileModel.findOneAndUpdate(
                 { contractor: contractorId },
@@ -214,7 +222,6 @@ class ProfileHandler extends Base {
                     phoneNumber,
                     emergencyJobs,
                     availableDays,
-                    profilePhoto,
                     previousJobPhotos,
                     previousJobVideos,
                 },
@@ -225,10 +232,56 @@ class ProfileHandler extends Base {
                 return res.status(404).json({ success: false, message: 'Profile not found' });
             }
 
+            contractor.profilePhoto = profilePhoto;
+            await contractor.save();
+
             res.json({
                 success: true,
                 message: 'Profile updated successfully',
                 data: profile,
+            });
+        } catch (err: any) {
+            console.log('error', err);
+            res.status(500).json({ success: false, message: err.message });
+        }
+    }
+
+    @handleAsyncError()
+    public async updateAccount(): Promise<Response | void> {
+        let req = <any>this.req;
+        let res = this.res;
+        try {
+            const contractor = req.contractor;
+            const contractorId = contractor.id;
+
+            const {
+                name,
+                firstName,
+                lastName,
+                profilePhoto,
+                phoneNumber,
+            } = req.body;
+
+            const account = await ContractorModel.findOneAndUpdate(
+                { _id: contractorId },
+                {
+                  name,
+                  firstName,
+                  lastName,
+                  profilePhoto,
+                  phoneNumber
+                },
+                { new: true }
+            );
+
+            if (!account) {
+                return res.status(404).json({ success: false, message: 'Account not found' });
+            }
+
+            res.json({
+                success: true,
+                message: 'Account updated successfully',
+                data: account,
             });
         } catch (err: any) {
             console.log('error', err);
@@ -313,8 +366,7 @@ class ProfileHandler extends Base {
       }
 
     }
-
-    
+  
 
 }
 

@@ -38,7 +38,7 @@ router.post("/profiles", contractorRoleCheck_middleware_1.checkContractorRole, r
 router.get("/profiles/me", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
     (0, profile_controller_1.ProfileController)(req, res, next).getProfile();
 });
-router.patch("/profiles/me", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
+router.put("/profiles/me", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateProfileRequest, function (req, res, next) {
     (0, profile_controller_1.ProfileController)(req, res, next).updateProfile();
 });
 router.post("/profiles/bank-details", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.UpdateBankDetailRequest, function (req, res, next) {
@@ -48,8 +48,8 @@ router.post("/profiles/bank-details", contractorRoleCheck_middleware_1.checkCont
 router.get("/me", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
     (0, profile_controller_1.ProfileController)(req, res, next).getUser();
 });
-router.post("/me", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
-    (0, profile_controller_1.ProfileController)(req, res, next).getProfile();
+router.patch("/me", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateProfileRequest, function (req, res, next) {
+    (0, profile_controller_1.ProfileController)(req, res, next).updateAccount();
 });
 //  QUiz
 router.get("/quiz-start", contractorRoleCheck_middleware_1.checkContractorRole, quiz_controller_1.QuizController.StartQuiz);

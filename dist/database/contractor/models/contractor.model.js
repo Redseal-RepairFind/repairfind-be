@@ -88,6 +88,9 @@ var ContractorSchema = new mongoose_1.Schema({
         type: String,
         enum: Object.values(constants_1.contractorAccountTypes),
     },
+    profilePhoto: {
+        type: Object,
+    },
     passwordOtp: {
         otp: String,
         createdTime: Date,

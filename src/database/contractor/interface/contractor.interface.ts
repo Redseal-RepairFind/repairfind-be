@@ -14,6 +14,22 @@ export interface IContractor extends Document {
   status: string;
   phoneNumber: string;
   accountType: string;
+  profilePhoto: {
+    type: object
+    properties: {
+      url: {
+        type: String,
+        required: true,
+      },
+      label?: {
+        type: String,
+        unique: true,
+      },
+      descriptions?: {
+        type: Array<string>,
+      },
+    }
+  };
   acceptTerms: Boolean;
   passwordOtp: {
     otp: string;
