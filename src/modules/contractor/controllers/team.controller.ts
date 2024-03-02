@@ -33,8 +33,7 @@ export const inviteToTeam = async (req: any, res: Response) => {
             return res.status(400).json({ success: false, message: 'Invalid contractor or contractor type. Only Individual and Employee types can be invited to a team.' });
         }
 
-       
-       
+
         // Check if the contractor already has a team
         const existingTeamForContractor = await ContractorTeamModel.findOne({
             'contractor': contractorId
@@ -54,10 +53,8 @@ export const inviteToTeam = async (req: any, res: Response) => {
             teamId = newTeam._id;
         }
 
-
-
-         // Check if the member is already part of any team with 'PENDING' or 'ACTIVE' status
-         const existingTeamMember = await ContractorTeamModel.findOne({
+        // Check if the member is already part of any team with 'PENDING' or 'ACTIVE' status
+        const existingTeamMember = await ContractorTeamModel.findOne({
             'members.contractor': memberId,
             'members.status': { $in: ['PENDING', 'ACTIVE'] },
         });
@@ -112,9 +109,93 @@ export const inviteToTeam = async (req: any, res: Response) => {
 };
 
 
+export const getTeam = async (req: any, res: Response) => {
+    try {
+        const contractorId = req.contractor.id;
+
+        // Check if the contractor is valid and is a Company Type
+        const contractor = await ContractorModel.findById(contractorId);
+        if (!contractor || contractor.accountType !== 'Company') {
+            return res.status(400).json({ success: false, message: 'Only Company can retrieve team information' });
+        }
+
+        // Check if the company has a team
+        const companyTeam = await ContractorTeamModel.findOne({
+            'contractor': contractorId
+        }).populate('members.contractor');
+
+        if (!companyTeam) {
+            return res.json({ success: true, message: 'Company does not have a team', data: null });
+        }
+
+        res.json({ success: true, message: 'Team information retrieved successfully', data: companyTeam });
+    } catch (error) {
+        console.error('Error retrieving team information:', error);
+        res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+};
+
+
+export const searchContractorsNotInTeam = async (req: any, res: Response) => {
+    try {
+        const contractorId = req.contractor.id;
+
+        // Check if the contractor is valid and is a Company Type
+        const contractor = await ContractorModel.findById(contractorId);
+        if (!contractor || contractor.accountType !== 'Company') {
+            return res.status(400).json({ success: false, message: 'Only Company can perform this operation' });
+        }
+
+        // Get the company's team
+        const companyTeam = await ContractorTeamModel.findOne({
+            'contractor': contractorId
+        });
+
+        if (!companyTeam) {
+            return res.json({ success: true, message: 'Company does not have a team', data: [] });
+        }
+
+        // Get the search parameters (name and email)
+        const { name, email } = req.query;
+
+        // Define the search criteria based on name and email
+        const searchCriteria: any = {
+            accountType: { $in: ['Individual', 'Employee'] },
+            _id: { $nin: companyTeam.members.map(member => member.contractor) }
+        };
+
+        if (name) {
+            // Case-insensitive search by name
+            searchCriteria.$or = [
+                { firstName: { $regex: new RegExp(name, 'i') } },
+                { lastName: { $regex: new RegExp(name, 'i') } }
+            ];
+        }
+
+        if (email) {
+            // Case-insensitive search by email
+            searchCriteria.email = { $regex: new RegExp(email, 'i') };
+        }
+
+        // Get contractors with type "Individual" and "Employee" who are not in any team and match the search criteria
+        const contractorsNotInTeam = await ContractorModel.find(searchCriteria);
+
+        res.json({ success: true, message: 'Contractors not in any team retrieved successfully', data: contractorsNotInTeam });
+    } catch (error) {
+        console.error('Error searching for contractors not in any team:', error);
+        res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+};
+
+
+
+
+
 
 
 export const TeamController = {
     inviteToTeam,
+    getTeam,
+    searchContractorsNotInTeam
 }
 

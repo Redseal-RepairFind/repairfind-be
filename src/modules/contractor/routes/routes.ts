@@ -72,6 +72,9 @@ router.post("/quiz-submit", checkContractorRole, QuizController.SubmitQuiz); // 
 
 //  Company Team
 router.post("/teams/invite", checkContractorRole, ContractorHttpRequest.InviteToTeam, TeamController.inviteToTeam );
+router.get("/teams", checkContractorRole, TeamController.getTeam); // contractor get quiz result
+router.get("/teams/search-contractors", checkContractorRole, TeamController.searchContractorsNotInTeam); // contractor get quiz result
+
 router.get("/teams/members", checkContractorRole, QuizController.GetQuizResult); // contractor get quiz result
 router.delete("/teams/members/12367886", checkContractorRole, QuizController.SubmitQuiz); // contractor anser question 
 router.patch("/teams/members/12367886", checkContractorRole, QuizController.SubmitQuiz); // contractor anser question 

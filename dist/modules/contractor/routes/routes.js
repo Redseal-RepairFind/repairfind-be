@@ -57,6 +57,8 @@ router.get("/quiz-result", contractorRoleCheck_middleware_1.checkContractorRole,
 router.post("/quiz-submit", contractorRoleCheck_middleware_1.checkContractorRole, quiz_controller_1.QuizController.SubmitQuiz); // contractor anser question 
 //  Company Team
 router.post("/teams/invite", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.InviteToTeam, team_controller_1.TeamController.inviteToTeam);
+router.get("/teams", contractorRoleCheck_middleware_1.checkContractorRole, team_controller_1.TeamController.getTeam); // contractor get quiz result
+router.get("/teams/search-contractors", contractorRoleCheck_middleware_1.checkContractorRole, team_controller_1.TeamController.searchContractorsNotInTeam); // contractor get quiz result
 router.get("/teams/members", contractorRoleCheck_middleware_1.checkContractorRole, quiz_controller_1.QuizController.GetQuizResult); // contractor get quiz result
 router.delete("/teams/members/12367886", contractorRoleCheck_middleware_1.checkContractorRole, quiz_controller_1.QuizController.SubmitQuiz); // contractor anser question 
 router.patch("/teams/members/12367886", contractorRoleCheck_middleware_1.checkContractorRole, quiz_controller_1.QuizController.SubmitQuiz); // contractor anser question 
