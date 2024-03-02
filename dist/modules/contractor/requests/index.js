@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorHttpRequest = exports.UpdateBankDetailRequest = exports.PasswordResetRequest = exports.ResendEmailRequest = exports.LoginRequest = exports.EmailVerificationRequest = exports.CreateProfileRequest = exports.CreateContractorRequest = void 0;
+exports.ContractorHttpRequest = exports.InviteToTeam = exports.UpdateBankDetailRequest = exports.PasswordResetRequest = exports.ResendEmailRequest = exports.LoginRequest = exports.EmailVerificationRequest = exports.CreateProfileRequest = exports.CreateContractorRequest = void 0;
 var express_validator_1 = require("express-validator");
 exports.CreateContractorRequest = [
     (0, express_validator_1.body)('email').isEmail(),
@@ -148,6 +148,10 @@ exports.UpdateBankDetailRequest = [
     (0, express_validator_1.body)("institutionNumber").notEmpty(),
     (0, express_validator_1.body)("accountNumber").notEmpty(),
 ];
+exports.InviteToTeam = [
+    (0, express_validator_1.body)("memberId").notEmpty(),
+    (0, express_validator_1.body)("role").notEmpty(),
+];
 exports.ContractorHttpRequest = {
     CreateProfileRequest: exports.CreateProfileRequest,
     CreateContractorRequest: exports.CreateContractorRequest,
@@ -155,5 +159,6 @@ exports.ContractorHttpRequest = {
     LoginRequest: exports.LoginRequest,
     ResendEmailRequest: exports.ResendEmailRequest,
     PasswordResetRequest: exports.PasswordResetRequest,
-    UpdateBankDetailRequest: exports.UpdateBankDetailRequest
+    UpdateBankDetailRequest: exports.UpdateBankDetailRequest,
+    InviteToTeam: exports.InviteToTeam
 };

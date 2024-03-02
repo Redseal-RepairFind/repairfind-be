@@ -100,6 +100,11 @@ export const EmailVerificationRequest = [
     body("accountNumber").notEmpty(),
   ];
 
+  export const InviteToTeam = [
+    body("memberId").notEmpty(),
+    body("role").notEmpty(),
+  ];
+
 
 
 export const ContractorHttpRequest = {
@@ -109,6 +114,7 @@ export const ContractorHttpRequest = {
     LoginRequest,
     ResendEmailRequest,
     PasswordResetRequest,
-    UpdateBankDetailRequest
+    UpdateBankDetailRequest,
+    InviteToTeam
     
 }

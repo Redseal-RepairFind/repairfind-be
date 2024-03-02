@@ -5,6 +5,7 @@ var auth_controller_1 = require("../controllers/auth.controller");
 var requests_1 = require("../requests");
 var profile_controller_1 = require("../controllers/profile.controller");
 var quiz_controller_1 = require("../controllers/quiz.controller");
+var team_controller_1 = require("../controllers/team.controller");
 var express = require("express");
 var router = express.Router();
 //  AUTH
@@ -54,6 +55,12 @@ router.post("/me", contractorRoleCheck_middleware_1.checkContractorRole, functio
 router.get("/quiz-start", contractorRoleCheck_middleware_1.checkContractorRole, quiz_controller_1.QuizController.StartQuiz);
 router.get("/quiz-result", contractorRoleCheck_middleware_1.checkContractorRole, quiz_controller_1.QuizController.GetQuizResult); // contractor get quiz result
 router.post("/quiz-submit", contractorRoleCheck_middleware_1.checkContractorRole, quiz_controller_1.QuizController.SubmitQuiz); // contractor anser question 
+//  Company Team
+router.post("/teams/invite", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.InviteToTeam, team_controller_1.TeamController.inviteToTeam);
+router.get("/teams/members", contractorRoleCheck_middleware_1.checkContractorRole, quiz_controller_1.QuizController.GetQuizResult); // contractor get quiz result
+router.delete("/teams/members/12367886", contractorRoleCheck_middleware_1.checkContractorRole, quiz_controller_1.QuizController.SubmitQuiz); // contractor anser question 
+router.patch("/teams/members/12367886", contractorRoleCheck_middleware_1.checkContractorRole, quiz_controller_1.QuizController.SubmitQuiz); // contractor anser question 
+router.get("/teams/members/12367886", contractorRoleCheck_middleware_1.checkContractorRole, quiz_controller_1.QuizController.SubmitQuiz); // contractor anser question 
 // router.post("/start_quiz", checkContractorRole, contractorStartQuizController); // contractor start quiz
 // router.get("/load_quiz_question", checkContractorRole, contractionLoadtQuestionController); // contractor load question
 // router.post("/answer_question", checkContractorRole, validateContractorAwnserQuestionParams, contractionAnwerQuestionController); // contractor anser question 

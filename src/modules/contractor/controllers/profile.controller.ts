@@ -125,7 +125,6 @@ class ProfileHandler extends Base {
             // send email to contractor 
             // TODO: Emit event and handle email sending from there
             const htmlCon = htmlContractorDocumentValidatinTemplate(contractor.firstName);
-            
             EmailService.send(contractor.email, 'New Profile', htmlCon )
             .then(() => console.log('Email sent successfully'))
             .catch(error => console.error('Error sending email:', error));

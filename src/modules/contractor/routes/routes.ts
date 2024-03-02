@@ -6,6 +6,7 @@ import { NextFunction, Request, Response } from "express";
 import { ContractorHttpRequest } from "../requests";
 import { ProfileController } from "../controllers/profile.controller";
 import { QuizController } from "../controllers/quiz.controller";
+import { TeamController } from "../controllers/team.controller";
 
 const express = require("express");
 const router = express.Router();
@@ -68,6 +69,13 @@ router.get("/quiz-start", checkContractorRole, QuizController.StartQuiz );
 router.get("/quiz-result", checkContractorRole, QuizController.GetQuizResult); // contractor get quiz result
 router.post("/quiz-submit", checkContractorRole, QuizController.SubmitQuiz); // contractor anser question 
 
+
+//  Company Team
+router.post("/teams/invite", checkContractorRole, ContractorHttpRequest.InviteToTeam, TeamController.inviteToTeam );
+router.get("/teams/members", checkContractorRole, QuizController.GetQuizResult); // contractor get quiz result
+router.delete("/teams/members/12367886", checkContractorRole, QuizController.SubmitQuiz); // contractor anser question 
+router.patch("/teams/members/12367886", checkContractorRole, QuizController.SubmitQuiz); // contractor anser question 
+router.get("/teams/members/12367886", checkContractorRole, QuizController.SubmitQuiz); // contractor anser question 
 
 // router.post("/start_quiz", checkContractorRole, contractorStartQuizController); // contractor start quiz
 // router.get("/load_quiz_question", checkContractorRole, contractionLoadtQuestionController); // contractor load question
