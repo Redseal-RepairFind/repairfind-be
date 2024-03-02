@@ -280,6 +280,9 @@ var ProfileHandler = /** @class */ (function (_super) {
                         if (!profile) {
                             return [2 /*return*/, res.status(404).json({ success: false, message: 'Profile not found' })];
                         }
+                        if (accountType) {
+                            contractor.accountType = accountType;
+                        }
                         contractor.profilePhoto = profilePhoto;
                         return [4 /*yield*/, contractor.save()];
                     case 3:

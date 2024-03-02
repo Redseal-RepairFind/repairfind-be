@@ -232,6 +232,9 @@ class ProfileHandler extends Base {
                 return res.status(404).json({ success: false, message: 'Profile not found' });
             }
 
+            if(accountType){
+              contractor.accountType = accountType;
+            }
             contractor.profilePhoto = profilePhoto;
             await contractor.save();
 

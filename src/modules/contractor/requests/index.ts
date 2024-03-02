@@ -43,7 +43,6 @@ export const CreateProfileRequest  = [
         .exists({ checkFalsy: true }).withMessage('Background consent is required')
         .custom((value) => value === true).withMessage('You must consent to us running a background check'),
 
-
     //  only validate when  accountType  is  Company and Individual
     body("name").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) !== 'Employee').notEmpty(),
     body("skill").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').notEmpty(),
