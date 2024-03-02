@@ -133,40 +133,79 @@ export const getTeam = async (req: any, res: Response) => {
         });
       }
   
-      // Get the search parameters (name and email)
-      const { email, name } = req.query;
-  
-      // Define the search criteria based on name and email
-      let searchCriteria: any = {
-        accountType: { $in: ["Individual", "Employee"] },
-        _id: { $nin: companyTeam.members.map((member) => member.contractor) },
-      };
-  
-      if (email) {
-        searchCriteria.email = { $regex: new RegExp(email, "i") };
-      }
-  
-      if (name) {
-        // Case-insensitive search by name
-        searchCriteria.$or = [
-          { firstName: { $regex: new RegExp(name, "i") } },
-          { lastName: { $regex: new RegExp(name, "i") } },
-        ];
-      }
-  
-      // Get contractors with type "Individual" and "Employee" who are not in any team and match the search criteria
-      const contractorsNotInTeam = await ContractorModel.find(searchCriteria);
-  
       res.json({
         success: true,
         message: "Team information retrieved successfully",
-        data: contractorsNotInTeam,
+        // data: companyTeam,
+        data: {
+            id: companyTeam.id,
+            name: companyTeam.name,
+            members:companyTeam.members.map(member => member.contractor)
+        },
       });
     } catch (error) {
       console.error("Error retrieving team information:", error);
       res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 };
+
+
+// export const getTeam = async (req: any, res: Response) => {
+//     try {
+//         const contractorId = req.contractor.id;
+//         const { email } = req.query;
+
+//         // Check if the contractor is valid and is a Company Type
+//         const contractor = await ContractorModel.findById(contractorId);
+//         if (!contractor || contractor.accountType !== "Company") {
+//             return res.status(400).json({ success: false, message: "Only Company can retrieve team information" });
+//         }
+
+//         // Check if the company has a team
+//         let companyTeam = await ContractorTeamModel.findOne({
+//             contractor: contractorId,
+//         })
+//             .populate("members.contractor")
+//             .exec();
+
+//         if (!companyTeam) {
+//             companyTeam = await ContractorTeamModel.create({
+//                 contractor: contractorId,
+//                 name: contractor.firstName
+//             });
+//         }
+
+//         // Define the search criteria based on email
+//         let searchCriteria: any = {
+//             _id: { $in: companyTeam.members.map((member) => member.contractor) },
+//         };
+
+//         if (email) {
+//             searchCriteria["members.contractor.email"] = { $regex: new RegExp(email, "i") };
+//         }
+
+//         // Get team members based on search criteria
+//         const teamMembers = await ContractorTeamModel.aggregate([
+//             { $match: { _id: companyTeam._id } },
+//             { $unwind: "$members" },
+//             { $match: searchCriteria },
+//             { $project: { _id: 0, "members.contractor": 1 } },
+//         ]);
+
+//         res.json({
+//             success: true,
+//             message: "Team information retrieved successfully",
+//             data: {
+//                 id: companyTeam.id,
+//                 name: companyTeam.name,
+//                 members: teamMembers.map(member => member.members.contractor),
+//             },
+//         });
+//     } catch (error) {
+//         console.error("Error retrieving team information:", error);
+//         res.status(500).json({ success: false, message: "Internal Server Error" });
+//     }
+// };
 
 
 export const searchContractorsNotInTeam = async (req: any, res: Response) => {
