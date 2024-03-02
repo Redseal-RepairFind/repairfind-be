@@ -147,7 +147,7 @@ var getTeam = function (req, res) { return __awaiter(void 0, void 0, void 0, fun
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 4, , 5]);
+                _b.trys.push([0, 6, , 7]);
                 contractorId = req.contractor.id;
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
             case 1:
@@ -162,16 +162,21 @@ var getTeam = function (req, res) { return __awaiter(void 0, void 0, void 0, fun
                         .exec()];
             case 2:
                 companyTeam = _b.sent();
-                if (!companyTeam) {
-                    return [2 /*return*/, res.json({ success: true, message: "Company does not have a team", data: null })];
-                }
+                if (!!companyTeam) return [3 /*break*/, 4];
+                return [4 /*yield*/, contractor_team_model_1.default.create({
+                        contractor: contractorId,
+                        name: contractor.firstName
+                    })];
+            case 3:
+                companyTeam = _b.sent();
+                _b.label = 4;
+            case 4:
                 _a = req.query, email = _a.email, name_1 = _a.name;
                 searchCriteria = {
                     accountType: { $in: ["Individual", "Employee"] },
                     _id: { $nin: companyTeam.members.map(function (member) { return member.contractor; }) },
                 };
                 if (email) {
-                    // Case-insensitive search by email
                     searchCriteria.email = { $regex: new RegExp(email, "i") };
                 }
                 if (name_1) {
@@ -182,20 +187,20 @@ var getTeam = function (req, res) { return __awaiter(void 0, void 0, void 0, fun
                     ];
                 }
                 return [4 /*yield*/, contractor_model_1.ContractorModel.find(searchCriteria)];
-            case 3:
+            case 5:
                 contractorsNotInTeam = _b.sent();
                 res.json({
                     success: true,
                     message: "Team information retrieved successfully",
                     data: contractorsNotInTeam,
                 });
-                return [3 /*break*/, 5];
-            case 4:
+                return [3 /*break*/, 7];
+            case 6:
                 error_2 = _b.sent();
                 console.error("Error retrieving team information:", error_2);
                 res.status(500).json({ success: false, message: "Internal Server Error" });
-                return [3 /*break*/, 5];
-            case 5: return [2 /*return*/];
+                return [3 /*break*/, 7];
+            case 7: return [2 /*return*/];
         }
     });
 }); };

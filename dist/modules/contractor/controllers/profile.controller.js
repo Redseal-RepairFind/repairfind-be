@@ -247,7 +247,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     };
     ProfileHandler.prototype.updateProfile = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, contractor, contractorId, _a, name_2, website, accountType, experienceYear, about, email, phoneNumber, emergencyJobs, profilePhoto, availableDays, previousJobPhotos, previousJobVideos, errors, profile, err_3;
+            var req, res, contractor, contractorId, _a, name_2, website, accountType, experienceYear, about, email, phoneNumber, emergencyJobs, profilePhoto, availableDays, previousJobPhotos, previousJobVideos, errors, profile, contractorResponse, err_3;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -287,10 +287,12 @@ var ProfileHandler = /** @class */ (function (_super) {
                         return [4 /*yield*/, contractor.save()];
                     case 3:
                         _b.sent();
+                        contractorResponse = __assign(__assign({}, contractor.toJSON()), { // Convert to plain JSON object
+                            profile: profile });
                         res.json({
                             success: true,
                             message: 'Profile updated successfully',
-                            data: profile,
+                            data: contractorResponse,
                         });
                         return [3 /*break*/, 5];
                     case 4:
@@ -388,7 +390,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     };
     ProfileHandler.prototype.updateBankDetails = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _a, institutionName, transitNumber, institutionNumber, accountNumber, errors, contractorId, contractorProfile, err_6;
+            var req, res, _a, institutionName, transitNumber, institutionNumber, accountNumber, errors, contractorId, contractorProfile, contractorResponse, err_6;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -421,6 +423,8 @@ var ProfileHandler = /** @class */ (function (_super) {
                     case 3:
                         // Save the updated contractor profile
                         _b.sent();
+                        contractorResponse = __assign(__assign({}, contractor.toJSON()), { // Convert to plain JSON object
+                            contractorProfile: contractorProfile });
                         res.json({
                             success: true,
                             message: 'Contractor profile bank details updated successfully',

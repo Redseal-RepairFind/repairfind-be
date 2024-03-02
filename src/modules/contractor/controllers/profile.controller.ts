@@ -238,10 +238,17 @@ class ProfileHandler extends Base {
             contractor.profilePhoto = profilePhoto;
             await contractor.save();
 
+            const contractorResponse = {
+              //@ts-ignore
+             ...contractor.toJSON(), // Convert to plain JSON object
+               profile
+           };
+
+
             res.json({
                 success: true,
                 message: 'Profile updated successfully',
-                data: profile,
+                data: contractorResponse,
             });
         } catch (err: any) {
             console.log('error', err);
@@ -358,6 +365,12 @@ class ProfileHandler extends Base {
     
         // Save the updated contractor profile
         await contractorProfile.save();
+
+        const contractorResponse = {
+          //@ts-ignore
+         ...contractor.toJSON(), // Convert to plain JSON object
+          contractorProfile
+       };
     
         res.json({
           success: true,

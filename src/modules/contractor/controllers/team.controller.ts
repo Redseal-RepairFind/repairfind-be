@@ -109,8 +109,6 @@ export const inviteToTeam = async (req: any, res: Response) => {
 };
 
 
-
-
 export const getTeam = async (req: any, res: Response) => {
     try {
       const contractorId = req.contractor.id;
@@ -122,14 +120,17 @@ export const getTeam = async (req: any, res: Response) => {
       }
   
       // Check if the company has a team
-      const companyTeam = await ContractorTeamModel.findOne({
+      let companyTeam = await ContractorTeamModel.findOne({
         contractor: contractorId,
       })
         .populate("members.contractor")
         .exec();
   
       if (!companyTeam) {
-        return res.json({ success: true, message: "Company does not have a team", data: null });
+         companyTeam = await ContractorTeamModel.create({
+            contractor: contractorId,
+            name: contractor.firstName
+        });
       }
   
       // Get the search parameters (name and email)
@@ -142,7 +143,6 @@ export const getTeam = async (req: any, res: Response) => {
       };
   
       if (email) {
-        // Case-insensitive search by email
         searchCriteria.email = { $regex: new RegExp(email, "i") };
       }
   
@@ -166,7 +166,7 @@ export const getTeam = async (req: any, res: Response) => {
       console.error("Error retrieving team information:", error);
       res.status(500).json({ success: false, message: "Internal Server Error" });
     }
-  };
+};
 
 
 export const searchContractorsNotInTeam = async (req: any, res: Response) => {
