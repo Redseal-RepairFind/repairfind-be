@@ -1,11 +1,9 @@
 
 
 import { Request, Response } from 'express';
-import { Types } from 'mongoose';
 import ContractorTeamModel, { IContractorTeam } from '../../../database/contractor/models/contractor_team.model';
 import { ContractorModel } from '../../../database/contractor/models/contractor.model';
 import { validationResult } from 'express-validator';
-import { htmlContractorDocumentValidatinTemplate } from '../../../templates/contractorEmail/contractorDocumentTemplate';
 import { EmailService } from '../../../services';
 import { NewTeamInvitationEmail } from '../../../templates/contractorEmail/team_invitation_email.template';
 

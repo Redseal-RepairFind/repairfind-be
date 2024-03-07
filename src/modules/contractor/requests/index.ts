@@ -39,7 +39,7 @@ export const CreateProfileRequest  = [
     body("profilePhoto.url").optional().isURL(),
     body("location.latitude").notEmpty().isNumeric(),
     body("location.longitude").notEmpty().isNumeric(),
-    body('backgrounCheckConsent')
+    body('backgroundCheckConsent')
         .exists({ checkFalsy: true }).withMessage('Background consent is required')
         .custom((value) => value === true).withMessage('You must consent to us running a background check'),
 
@@ -105,6 +105,24 @@ export const EmailVerificationRequest = [
 
 
 
+  export const CreateScheduleRequest = [
+    body('dates').optional().isArray().withMessage('Dates should be an array').notEmpty().withMessage('Dates array should not be empty'),
+    body('type').optional().isString().withMessage('Event type should be a string').notEmpty().withMessage('Schedule type cannot be empty'),
+    body('recurrence.frequency').optional().isString().withMessage('Recurrence frequency should be a string'),
+    body('recurrence.interval').optional().isNumeric().withMessage('Recurrence interval should be a number'),
+  
+    body('events').optional().isArray().withMessage('Events should be an array').notEmpty().withMessage('Events array should not be empty'),
+    body('events.*.title').optional().isString().withMessage('Event title should be a string').notEmpty().withMessage('Event title cannot be empty'),
+    body('events.*.type').optional().isString().withMessage('Event type should be a string').notEmpty().withMessage('Event type cannot be empty'),
+    body('events.*.startTime').optional().isISO8601().withMessage('Invalid start time format'),
+    body('events.*.endTime').optional().isISO8601().withMessage('Invalid end time format'),
+    body('events.*.booking').optional().isNumeric().withMessage('Booking should be a number'),
+    body('events.*.description').optional().isString().withMessage('Description should be a string'),
+  ];
+  
+  
+
+
 export const ContractorHttpRequest = {
     CreateProfileRequest,
     CreateContractorRequest,
@@ -113,6 +131,7 @@ export const ContractorHttpRequest = {
     ResendEmailRequest,
     PasswordResetRequest,
     UpdateBankDetailRequest,
-    InviteToTeam
+    InviteToTeam,
+    CreateScheduleRequest
     
 }

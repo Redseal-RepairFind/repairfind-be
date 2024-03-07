@@ -7,6 +7,7 @@ import { ContractorHttpRequest } from "../requests";
 import { ProfileController } from "../controllers/profile.controller";
 import { QuizController } from "../controllers/quiz.controller";
 import { TeamController } from "../controllers/team.controller";
+import { ScheduleContractor } from "../controllers/schedule.controller";
 
 const express = require("express");
 const router = express.Router();
@@ -75,11 +76,19 @@ router.post("/quiz-submit", checkContractorRole, QuizController.SubmitQuiz); // 
 router.post("/teams/invite", checkContractorRole, ContractorHttpRequest.InviteToTeam, TeamController.inviteToTeam );
 router.get("/teams", checkContractorRole, TeamController.getTeam); // contractor get quiz result
 router.get("/teams/search-contractors", checkContractorRole, TeamController.searchContractorsNotInTeam); // contractor get quiz result
-
 router.get("/teams/members", checkContractorRole, QuizController.GetQuizResult); // contractor get quiz result
 router.delete("/teams/members/12367886", checkContractorRole, QuizController.SubmitQuiz); // contractor anser question 
 router.patch("/teams/members/12367886", checkContractorRole, QuizController.SubmitQuiz); // contractor anser question 
 router.get("/teams/members/12367886", checkContractorRole, QuizController.SubmitQuiz); // contractor anser question 
+
+
+//  Contractor Schedule
+router.post("/schedules", checkContractorRole, ContractorHttpRequest.CreateScheduleRequest, ScheduleContractor.createSchedule );
+router.get("/schedules", checkContractorRole, ScheduleContractor.getSchedulesByDate);
+router.post("/schedules/events", checkContractorRole, ScheduleContractor.addOrUpdateSchedule);
+router.get("/schedules/events", checkContractorRole, ScheduleContractor.getEventsByMonth);
+
+
 
 // router.post("/start_quiz", checkContractorRole, contractorStartQuizController); // contractor start quiz
 // router.get("/load_quiz_question", checkContractorRole, contractionLoadtQuestionController); // contractor load question

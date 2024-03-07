@@ -6,6 +6,7 @@ var requests_1 = require("../requests");
 var profile_controller_1 = require("../controllers/profile.controller");
 var quiz_controller_1 = require("../controllers/quiz.controller");
 var team_controller_1 = require("../controllers/team.controller");
+var schedule_controller_1 = require("../controllers/schedule.controller");
 var express = require("express");
 var router = express.Router();
 //  AUTH
@@ -63,6 +64,11 @@ router.get("/teams/members", contractorRoleCheck_middleware_1.checkContractorRol
 router.delete("/teams/members/12367886", contractorRoleCheck_middleware_1.checkContractorRole, quiz_controller_1.QuizController.SubmitQuiz); // contractor anser question 
 router.patch("/teams/members/12367886", contractorRoleCheck_middleware_1.checkContractorRole, quiz_controller_1.QuizController.SubmitQuiz); // contractor anser question 
 router.get("/teams/members/12367886", contractorRoleCheck_middleware_1.checkContractorRole, quiz_controller_1.QuizController.SubmitQuiz); // contractor anser question 
+//  Contractor Schedule
+router.post("/schedules", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateScheduleRequest, schedule_controller_1.ScheduleContractor.createSchedule);
+router.get("/schedules", contractorRoleCheck_middleware_1.checkContractorRole, schedule_controller_1.ScheduleContractor.getSchedulesByDate);
+router.post("/schedules/events", contractorRoleCheck_middleware_1.checkContractorRole, schedule_controller_1.ScheduleContractor.addOrUpdateSchedule);
+router.get("/schedules/events", contractorRoleCheck_middleware_1.checkContractorRole, schedule_controller_1.ScheduleContractor.getEventsByMonth);
 // router.post("/start_quiz", checkContractorRole, contractorStartQuizController); // contractor start quiz
 // router.get("/load_quiz_question", checkContractorRole, contractionLoadtQuestionController); // contractor load question
 // router.post("/answer_question", checkContractorRole, validateContractorAwnserQuestionParams, contractionAnwerQuestionController); // contractor anser question 

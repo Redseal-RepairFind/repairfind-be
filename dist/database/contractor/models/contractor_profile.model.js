@@ -56,7 +56,7 @@ var CompanyProfileSchema = new mongoose_1.Schema({
     location: {
         type: ContractorLocationSchema,
     },
-    backgrounCheckConsent: {
+    backgroundCheckConsent: {
         type: Boolean,
     },
     skill: {
@@ -77,7 +77,11 @@ var CompanyProfileSchema = new mongoose_1.Schema({
     availableDays: {
         type: Array,
         items: {
-            type: String,
+            type: Array,
+            items: {
+                type: String,
+                enum: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+            },
         },
     },
     about: {

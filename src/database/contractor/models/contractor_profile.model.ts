@@ -73,7 +73,7 @@ const CompanyProfileSchema = new Schema<IContractorProfile>(
         type: ContractorLocationSchema,
       },
 
-      backgrounCheckConsent: {
+      backgroundCheckConsent: {
         type: Boolean,
       },
       skill: {
@@ -98,7 +98,11 @@ const CompanyProfileSchema = new Schema<IContractorProfile>(
       availableDays: {
         type: Array,
         items: {
-          type: String,
+          type: Array,
+          items: {
+            type: String,
+            enum: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+          },
         },
       },
 

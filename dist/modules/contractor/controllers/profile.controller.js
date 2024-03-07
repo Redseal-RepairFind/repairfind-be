@@ -101,7 +101,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     }
     ProfileHandler.prototype.createProfile = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _a, name_1, gstNumber, gstType, location_1, backgrounCheckConsent, skill, website, experienceYear, about, email, phoneNumber, emergencyJobs, availableDays, profilePhoto, previousJobPhotos, previousJobVideos, firstName, lastName, errors, contractor, contractorId, constractor, certnToken, data, profileType, profile_1, contractorResponse, htmlCon, html, adminsWithEmails, adminEmails, err_1;
+            var req, res, _a, name_1, gstNumber, gstType, location_1, backgroundCheckConsent, skill, website, experienceYear, about, email, phoneNumber, emergencyJobs, availableDays, profilePhoto, previousJobPhotos, previousJobVideos, firstName, lastName, errors, contractor, contractorId, constractor, certnToken, data, profileType, profile_1, contractorResponse, htmlCon, html, adminsWithEmails, adminEmails, err_1;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -110,7 +110,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         _b.label = 1;
                     case 1:
                         _b.trys.push([1, 6, , 7]);
-                        _a = req.body, name_1 = _a.name, gstNumber = _a.gstNumber, gstType = _a.gstType, location_1 = _a.location, backgrounCheckConsent = _a.backgrounCheckConsent, skill = _a.skill, website = _a.website, experienceYear = _a.experienceYear, about = _a.about, email = _a.email, phoneNumber = _a.phoneNumber, emergencyJobs = _a.emergencyJobs, availableDays = _a.availableDays, profilePhoto = _a.profilePhoto, previousJobPhotos = _a.previousJobPhotos, previousJobVideos = _a.previousJobVideos, firstName = _a.firstName, lastName = _a.lastName;
+                        _a = req.body, name_1 = _a.name, gstNumber = _a.gstNumber, gstType = _a.gstType, location_1 = _a.location, backgroundCheckConsent = _a.backgroundCheckConsent, skill = _a.skill, website = _a.website, experienceYear = _a.experienceYear, about = _a.about, email = _a.email, phoneNumber = _a.phoneNumber, emergencyJobs = _a.emergencyJobs, availableDays = _a.availableDays, profilePhoto = _a.profilePhoto, previousJobPhotos = _a.previousJobPhotos, previousJobVideos = _a.previousJobVideos, firstName = _a.firstName, lastName = _a.lastName;
                         errors = (0, express_validator_1.validationResult)(req);
                         if (!errors.isEmpty()) {
                             return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -146,7 +146,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                                 gstNumber: gstNumber,
                                 gstType: gstType,
                                 location: location_1,
-                                backgrounCheckConsent: backgrounCheckConsent,
+                                backgroundCheckConsent: backgroundCheckConsent,
                                 skill: skill,
                                 website: website,
                                 experienceYear: experienceYear,

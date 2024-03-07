@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorHttpRequest = exports.InviteToTeam = exports.UpdateBankDetailRequest = exports.PasswordResetRequest = exports.ResendEmailRequest = exports.LoginRequest = exports.EmailVerificationRequest = exports.CreateProfileRequest = exports.CreateContractorRequest = void 0;
+exports.ContractorHttpRequest = exports.CreateScheduleRequest = exports.InviteToTeam = exports.UpdateBankDetailRequest = exports.PasswordResetRequest = exports.ResendEmailRequest = exports.LoginRequest = exports.EmailVerificationRequest = exports.CreateProfileRequest = exports.CreateContractorRequest = void 0;
 var express_validator_1 = require("express-validator");
 exports.CreateContractorRequest = [
     (0, express_validator_1.body)('email').isEmail(),
@@ -54,7 +54,7 @@ exports.CreateProfileRequest = [
     (0, express_validator_1.body)("profilePhoto.url").optional().isURL(),
     (0, express_validator_1.body)("location.latitude").notEmpty().isNumeric(),
     (0, express_validator_1.body)("location.longitude").notEmpty().isNumeric(),
-    (0, express_validator_1.body)('backgrounCheckConsent')
+    (0, express_validator_1.body)('backgroundCheckConsent')
         .exists({ checkFalsy: true }).withMessage('Background consent is required')
         .custom(function (value) { return value === true; }).withMessage('You must consent to us running a background check'),
     //  only validate when  accountType  is  Company and Individual
@@ -150,6 +150,19 @@ exports.InviteToTeam = [
     (0, express_validator_1.body)("memberId").notEmpty(),
     (0, express_validator_1.body)("role").notEmpty(),
 ];
+exports.CreateScheduleRequest = [
+    (0, express_validator_1.body)('dates').optional().isArray().withMessage('Dates should be an array').notEmpty().withMessage('Dates array should not be empty'),
+    (0, express_validator_1.body)('type').optional().isString().withMessage('Event type should be a string').notEmpty().withMessage('Schedule type cannot be empty'),
+    (0, express_validator_1.body)('recurrence.frequency').optional().isString().withMessage('Recurrence frequency should be a string'),
+    (0, express_validator_1.body)('recurrence.interval').optional().isNumeric().withMessage('Recurrence interval should be a number'),
+    (0, express_validator_1.body)('events').optional().isArray().withMessage('Events should be an array').notEmpty().withMessage('Events array should not be empty'),
+    (0, express_validator_1.body)('events.*.title').optional().isString().withMessage('Event title should be a string').notEmpty().withMessage('Event title cannot be empty'),
+    (0, express_validator_1.body)('events.*.type').optional().isString().withMessage('Event type should be a string').notEmpty().withMessage('Event type cannot be empty'),
+    (0, express_validator_1.body)('events.*.startTime').optional().isISO8601().withMessage('Invalid start time format'),
+    (0, express_validator_1.body)('events.*.endTime').optional().isISO8601().withMessage('Invalid end time format'),
+    (0, express_validator_1.body)('events.*.booking').optional().isNumeric().withMessage('Booking should be a number'),
+    (0, express_validator_1.body)('events.*.description').optional().isString().withMessage('Description should be a string'),
+];
 exports.ContractorHttpRequest = {
     CreateProfileRequest: exports.CreateProfileRequest,
     CreateContractorRequest: exports.CreateContractorRequest,
@@ -158,5 +171,6 @@ exports.ContractorHttpRequest = {
     ResendEmailRequest: exports.ResendEmailRequest,
     PasswordResetRequest: exports.PasswordResetRequest,
     UpdateBankDetailRequest: exports.UpdateBankDetailRequest,
-    InviteToTeam: exports.InviteToTeam
+    InviteToTeam: exports.InviteToTeam,
+    CreateScheduleRequest: exports.CreateScheduleRequest
 };

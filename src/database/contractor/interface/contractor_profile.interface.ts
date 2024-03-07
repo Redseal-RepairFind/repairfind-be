@@ -43,7 +43,7 @@ export interface IContractorProfile extends Document {
   gstNumber: string;
   gstType: string;
   location: IContractorLocation
-  backgrounCheckConsent: boolean;
+  backgroundCheckConsent: boolean;
   skill: string;
   experienceYear: number;
   about: string;
