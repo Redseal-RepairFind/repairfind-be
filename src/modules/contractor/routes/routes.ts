@@ -48,7 +48,7 @@ router.post("/profiles", checkContractorRole, ContractorHttpRequest.CreateProfil
 router.get("/profiles/me", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
     ProfileController(req, res, next).getProfile();
 });
-router.put("/profiles/me", checkContractorRole,  ContractorHttpRequest.CreateProfileRequest, (req: Request, res: Response, next: NextFunction) => {
+router.put("/profiles/me", checkContractorRole,  ContractorHttpRequest.UpdateProfileRequest, (req: Request, res: Response, next: NextFunction) => {
     ProfileController(req, res, next).updateProfile();
 });
 

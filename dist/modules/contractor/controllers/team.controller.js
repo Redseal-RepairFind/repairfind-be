@@ -158,7 +158,10 @@ var getTeam = function (req, res) { return __awaiter(void 0, void 0, void 0, fun
                 return [4 /*yield*/, contractor_team_model_1.default.findOne({
                         contractor: contractorId,
                     })
-                        .populate("members.contractor")
+                        .populate({
+                        path: "members.contractor",
+                        select: "id firstName lastName email",
+                    })
                         .exec()];
             case 2:
                 companyTeam = _a.sent();
@@ -174,11 +177,17 @@ var getTeam = function (req, res) { return __awaiter(void 0, void 0, void 0, fun
                 res.json({
                     success: true,
                     message: "Team information retrieved successfully",
-                    // data: companyTeam,
                     data: {
                         id: companyTeam.id,
                         name: companyTeam.name,
-                        members: companyTeam.members.map(function (member) { return member.contractor; })
+                        members: companyTeam.members.map(function (member) { return ({
+                            id: member.contractor.id,
+                            firstName: member.contractor.firstName,
+                            lastName: member.contractor.lastName,
+                            email: member.contractor.email,
+                            role: member.role,
+                            status: member.status,
+                        }); }),
                     },
                 });
                 return [3 /*break*/, 6];

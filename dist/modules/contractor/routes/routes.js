@@ -39,7 +39,7 @@ router.post("/profiles", contractorRoleCheck_middleware_1.checkContractorRole, r
 router.get("/profiles/me", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
     (0, profile_controller_1.ProfileController)(req, res, next).getProfile();
 });
-router.put("/profiles/me", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateProfileRequest, function (req, res, next) {
+router.put("/profiles/me", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.UpdateProfileRequest, function (req, res, next) {
     (0, profile_controller_1.ProfileController)(req, res, next).updateProfile();
 });
 router.post("/profiles/bank-details", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.UpdateBankDetailRequest, function (req, res, next) {

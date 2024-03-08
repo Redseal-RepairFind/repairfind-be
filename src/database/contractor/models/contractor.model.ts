@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Schema, model } from "mongoose";
 import { IContractor } from "../interface/contractor.interface";
 import { contractorAccountTypes } from "../../../constants";
@@ -6,6 +7,11 @@ import { config } from "../../../config";
 import ContractorQuizModel from "./contractor_quiz.model";
 
 
+export enum CONTRACTOR_TYPES  {
+  INDIVIDUAL = "Individual",
+  EMPLOYEE = "Employee",
+  COMPANY = "Company"
+}
 const ContractorSchema = new Schema <IContractor>(
     {
     
@@ -103,23 +109,29 @@ const ContractorSchema = new Schema <IContractor>(
 
 // Rest of your schema
 
-ContractorSchema.set('toJSON', {
-    transform: function (doc, ret, options) {
-        delete ret.password;
-        delete ret.emailOtp;
-        delete ret.passwordOtp;
-        return ret;
-    }
-});
-
-
 ContractorSchema.virtual('quiz').get(async function () {
   const latestQuiz: any = await ContractorQuizModel.findOne({ contractor: this._id }).sort({ createdAt: -1 });
   return await latestQuiz?.result
 });
 
+ContractorSchema.virtual('name').get(function () {
+  if (this.accountType === CONTRACTOR_TYPES.INDIVIDUAL || this.accountType === CONTRACTOR_TYPES.EMPLOYEE) {
+    return `${this.firstName} ${this.lastName}`;
+  } else if (this.accountType === CONTRACTOR_TYPES.COMPANY) {
+    return this.companyName;
+  }
+});
 
 
+ContractorSchema.set('toJSON', {
+    transform: function (doc, ret, options) {
+        delete ret.password;
+        delete ret.emailOtp;
+        delete ret.passwordOtp;
+        ret.name = doc.name;
+        return ret;
+    }
+});
 
 export const ContractorModel = model<IContractor>("contractors", ContractorSchema);
   

@@ -39,11 +39,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorModel = void 0;
+exports.ContractorModel = exports.CONTRACTOR_TYPES = void 0;
+// @ts-nocheck
 var mongoose_1 = require("mongoose");
 var constants_1 = require("../../../constants");
 var contractorStatus_1 = require("../../../constants/contractorStatus");
 var contractor_quiz_model_1 = __importDefault(require("./contractor_quiz.model"));
+var CONTRACTOR_TYPES;
+(function (CONTRACTOR_TYPES) {
+    CONTRACTOR_TYPES["INDIVIDUAL"] = "Individual";
+    CONTRACTOR_TYPES["EMPLOYEE"] = "Employee";
+    CONTRACTOR_TYPES["COMPANY"] = "Company";
+})(CONTRACTOR_TYPES || (exports.CONTRACTOR_TYPES = CONTRACTOR_TYPES = {}));
 var ContractorSchema = new mongoose_1.Schema({
     profile: {
         type: mongoose_1.Schema.Types.ObjectId,
@@ -118,14 +125,6 @@ var ContractorSchema = new mongoose_1.Schema({
     timestamps: true,
 });
 // Rest of your schema
-ContractorSchema.set('toJSON', {
-    transform: function (doc, ret, options) {
-        delete ret.password;
-        delete ret.emailOtp;
-        delete ret.passwordOtp;
-        return ret;
-    }
-});
 ContractorSchema.virtual('quiz').get(function () {
     return __awaiter(this, void 0, void 0, function () {
         var latestQuiz;
@@ -139,5 +138,22 @@ ContractorSchema.virtual('quiz').get(function () {
             }
         });
     });
+});
+ContractorSchema.virtual('name').get(function () {
+    if (this.accountType === CONTRACTOR_TYPES.INDIVIDUAL || this.accountType === CONTRACTOR_TYPES.EMPLOYEE) {
+        return "".concat(this.firstName, " ").concat(this.lastName);
+    }
+    else if (this.accountType === CONTRACTOR_TYPES.COMPANY) {
+        return this.companyName;
+    }
+});
+ContractorSchema.set('toJSON', {
+    transform: function (doc, ret, options) {
+        delete ret.password;
+        delete ret.emailOtp;
+        delete ret.passwordOtp;
+        ret.name = doc.name;
+        return ret;
+    }
 });
 exports.ContractorModel = (0, mongoose_1.model)("contractors", ContractorSchema);

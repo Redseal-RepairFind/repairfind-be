@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorHttpRequest = exports.CreateScheduleRequest = exports.InviteToTeam = exports.UpdateBankDetailRequest = exports.PasswordResetRequest = exports.ResendEmailRequest = exports.LoginRequest = exports.EmailVerificationRequest = exports.CreateProfileRequest = exports.CreateContractorRequest = void 0;
+exports.ContractorHttpRequest = exports.CreateScheduleRequest = exports.InviteToTeam = exports.UpdateBankDetailRequest = exports.PasswordResetRequest = exports.ResendEmailRequest = exports.LoginRequest = exports.EmailVerificationRequest = exports.UpdateProfileRequest = exports.CreateProfileRequest = exports.CreateContractorRequest = void 0;
 var express_validator_1 = require("express-validator");
 exports.CreateContractorRequest = [
     (0, express_validator_1.body)('email').isEmail(),
@@ -57,12 +57,9 @@ exports.CreateProfileRequest = [
     (0, express_validator_1.body)('backgroundCheckConsent')
         .exists({ checkFalsy: true }).withMessage('Background consent is required')
         .custom(function (value) { return value === true; }).withMessage('You must consent to us running a background check'),
+    (0, express_validator_1.body)("skill").notEmpty(),
     //  only validate when  accountType  is  Company and Individual
     (0, express_validator_1.body)("name").if(function (value, _a) {
-        var req = _a.req;
-        return (req.body.accountType || req.contractor.accountType) !== 'Employee';
-    }).notEmpty(),
-    (0, express_validator_1.body)("skill").if(function (value, _a) {
         var req = _a.req;
         return (req.body.accountType || req.contractor.accountType) !== 'Employee';
     }).notEmpty(),
@@ -94,6 +91,72 @@ exports.CreateProfileRequest = [
         var req = _a.req;
         return (req.body.accountType || req.contractor.accountType) !== 'Employee';
     }).optional().isNumeric(),
+    (0, express_validator_1.body)("emergencyJobs").if(function (value, _a) {
+        var req = _a.req;
+        return (req.body.accountType || req.contractor.accountType) !== 'Employee';
+    }).notEmpty(),
+    (0, express_validator_1.body)("availableDays").if(function (value, _a) {
+        var req = _a.req;
+        return (req.body.accountType || req.contractor.accountType) !== 'Employee';
+    }).notEmpty().isArray(),
+    (0, express_validator_1.body)("previousJobPhotos").if(function (value, _a) {
+        var req = _a.req;
+        return (req.body.accountType || req.contractor.accountType) !== 'Employee';
+    }).optional().isArray().notEmpty().custom(function (value) { return validateMediaArray(value); }),
+    (0, express_validator_1.body)("previousJobVideos").if(function (value, _a) {
+        var req = _a.req;
+        return (req.body.accountType || req.contractor.accountType) !== 'Employee';
+    }).optional().isArray().notEmpty().custom(function (value) { return validateMediaArray(value); }),
+    //  validate only for 'Employee
+    (0, express_validator_1.body)("firstName").if(function (value, _a) {
+        var req = _a.req;
+        return (req.body.accountType || req.contractor.accountType) === 'Employee';
+    }).notEmpty(),
+    (0, express_validator_1.body)("lastName").if(function (value, _a) {
+        var req = _a.req;
+        return (req.body.accountType || req.contractor.accountType) === 'Employee';
+    }).notEmpty(),
+];
+exports.UpdateProfileRequest = [
+    //  validate for all
+    (0, express_validator_1.body)("location.address").notEmpty(),
+    (0, express_validator_1.body)("profilePhoto.url").optional().isURL(),
+    (0, express_validator_1.body)("location.latitude").notEmpty().isNumeric(),
+    (0, express_validator_1.body)("location.longitude").notEmpty().isNumeric(),
+    (0, express_validator_1.body)("skill").notEmpty(),
+    //  only validate when  accountType  is  Company and Individual
+    (0, express_validator_1.body)("name").if(function (value, _a) {
+        var req = _a.req;
+        return (req.body.accountType || req.contractor.accountType) !== 'Employee';
+    }).notEmpty(),
+    (0, express_validator_1.body)("gstNumber").if(function (value, _a) {
+        var req = _a.req;
+        return (req.body.accountType || req.contractor.accountType) !== 'Employee';
+    }).notEmpty(),
+    (0, express_validator_1.body)("gstType").if(function (value, _a) {
+        var req = _a.req;
+        return (req.body.accountType || req.contractor.accountType) !== 'Employee';
+    }).notEmpty(),
+    (0, express_validator_1.body)("experienceYear").if(function (value, _a) {
+        var req = _a.req;
+        return (req.body.accountType || req.contractor.accountType) !== 'Employee';
+    }).optional().isNumeric(),
+    (0, express_validator_1.body)("about").if(function (value, _a) {
+        var req = _a.req;
+        return (req.body.accountType || req.contractor.accountType) !== 'Employee';
+    }).optional(),
+    (0, express_validator_1.body)("website").if(function (value, _a) {
+        var req = _a.req;
+        return (req.body.accountType || req.contractor.accountType) !== 'Employee';
+    }).optional().isURL(),
+    (0, express_validator_1.body)("email").if(function (value, _a) {
+        var req = _a.req;
+        return (req.body.accountType || req.contractor.accountType) !== 'Employee';
+    }).optional().isEmail(),
+    (0, express_validator_1.body)("phoneNumber").if(function (value, _a) {
+        var req = _a.req;
+        return (req.body.accountType || req.contractor.accountType) !== 'Employee';
+    }).optional().isObject(),
     (0, express_validator_1.body)("emergencyJobs").if(function (value, _a) {
         var req = _a.req;
         return (req.body.accountType || req.contractor.accountType) !== 'Employee';
@@ -172,5 +235,6 @@ exports.ContractorHttpRequest = {
     PasswordResetRequest: exports.PasswordResetRequest,
     UpdateBankDetailRequest: exports.UpdateBankDetailRequest,
     InviteToTeam: exports.InviteToTeam,
-    CreateScheduleRequest: exports.CreateScheduleRequest
+    CreateScheduleRequest: exports.CreateScheduleRequest,
+    UpdateProfileRequest: exports.UpdateProfileRequest
 };

@@ -121,7 +121,10 @@ export const getTeam = async (req: any, res: Response) => {
       let companyTeam = await ContractorTeamModel.findOne({
         contractor: contractorId,
       })
-        .populate("members.contractor")
+        .populate({
+            path: "members.contractor",
+            select: "id firstName lastName email",
+        })
         .exec();
   
       if (!companyTeam) {
@@ -134,12 +137,18 @@ export const getTeam = async (req: any, res: Response) => {
       res.json({
         success: true,
         message: "Team information retrieved successfully",
-        // data: companyTeam,
         data: {
             id: companyTeam.id,
             name: companyTeam.name,
-            members:companyTeam.members.map(member => member.contractor)
-        },
+            members: companyTeam.members.map((member: any) => ({
+              id: member.contractor.id,
+              firstName: member.contractor.firstName,
+              lastName: member.contractor.lastName,
+              email: member.contractor.email,
+              role: member.role,
+              status: member.status,
+            })),
+          },
       });
     } catch (error) {
       console.error("Error retrieving team information:", error);
