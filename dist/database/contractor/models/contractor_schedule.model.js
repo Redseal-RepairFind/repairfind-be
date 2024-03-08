@@ -100,7 +100,6 @@ ContractorScheduleSchema.statics.handleRecurringEvents = function (originalSched
                 case 0: return [4 /*yield*/, this.findById({ _id: originalScheduleId })];
                 case 1:
                     originalSchedule = _a.sent();
-                    console.log('Original schedule not found', originalScheduleId);
                     if (!originalSchedule) {
                         console.log('Original schedule not found', originalScheduleId);
                         return [2 /*return*/, []];
@@ -139,7 +138,6 @@ ContractorScheduleSchema.statics.handleRecurringEvents = function (originalSched
                         })];
                 case 4:
                     newSchedule = _a.sent();
-                    console.log(i, originalScheduleId, originalSchedule.id, newSchedule.id);
                     _a.label = 5;
                 case 5:
                     i++;
@@ -149,50 +147,6 @@ ContractorScheduleSchema.statics.handleRecurringEvents = function (originalSched
         });
     });
 };
-// ContractorScheduleSchema.statics.handleRecurringEvents = async function (
-//   originalScheduleId: Types.ObjectId
-// ): Promise<Document[]> {
-//   const originalSchedule = await this.findById(originalScheduleId);
-//   if (!originalSchedule) {
-//     console.error('Original schedule not found');
-//     return [];
-//   }
-//   // Delete existing recurrent schedules with the same originalScheduleId
-//   await this.deleteMany({ originalSchedule: originalScheduleId });
-//   const newSchedules: Document[] = [];
-//   if (originalSchedule.recurrence?.frequency && originalSchedule.recurrence?.interval) {
-//     let { frequency, interval } = originalSchedule.recurrence;
-//     // Create new schedules based on the recurrence rules
-//     for (let i = 1; i <= interval; i++) {
-//       const newDate = new Date(originalSchedule.date);
-//       // Adjust the date based on the recurrence frequency
-//       switch (frequency) {
-//         case 'Daily':
-//           newDate.setDate(newDate.getDate() + i);
-//           break;
-//         case 'Weekly':
-//           newDate.setDate(newDate.getDate() + i * 7);
-//           break;
-//         case 'Monthly':
-//           newDate.setMonth(newDate.getMonth() + i);
-//           break;
-//         // Add more cases for other recurrence frequencies as needed
-//       }
-//       // Check if the new date is within the same year as the original schedule's date
-//       if (newDate.getFullYear() == originalSchedule.date.getFullYear()) {
-//         const newSchedule = await this.create({
-//           contractor: originalSchedule.contractor,
-//           date: newDate,
-//           type: originalSchedule.type,
-//           recurrence: originalSchedule.recurrence,
-//           originalSchedule: originalScheduleId, // Set reference to the original schedule
-//         });
-//         newSchedules.push(newSchedule);
-//       }
-//     }
-//   }
-//   return newSchedules;
-// };
 ContractorScheduleSchema.statics.activeCampaignsToRedis = function () {
     this
         .find()
