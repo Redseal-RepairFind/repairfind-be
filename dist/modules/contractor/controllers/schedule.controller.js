@@ -51,12 +51,59 @@ exports.ScheduleContractor = exports.getEventsByMonth = exports.addOrUpdateSched
 var contractor_schedule_model_1 = require("../../../database/contractor/models/contractor_schedule.model");
 var express_validator_1 = require("express-validator");
 var date_fns_1 = require("date-fns");
+// export const createSchedule = async (req: any, res: Response) => {
+//   try {
+//     // Check for validation errors
+//     const errors = validationResult(req);
+//     if (!errors.isEmpty()) {
+//       return res.status(400).json({ success: false, message: 'Validation errors', errors: errors.array() });
+//     }
+//     // Extract data from the request
+//     const { dates, type, recurrence } = req.body;
+//     const contractorId = req.contractor.id;
+//     // Create an array to store the created schedules and conflicts
+//     const schedules: IContractorSchedule[] = [];
+//     const conflicts: { date: Date; message: string }[] = [];
+//     // Iterate through the array of dates and create each schedule
+//     for (const date of dates) {
+//       // Check if a schedule already exists for the given date
+//       const existingSchedule = await ContractorScheduleModel.findOne({ contractor: contractorId, date, type });
+//       if (existingSchedule) {
+//         conflicts.push({ date, message: 'Same type of schedule already exists for the given date' });
+//       } else {
+//         // Create a new schedule if no conflict
+//         const newScheduleData: IContractorSchedule = {
+//           contractor: contractorId,
+//           date,
+//           type,
+//           recurrence,
+//         };
+//         const newSchedule = await ContractorScheduleModel.create(newScheduleData);
+//         schedules.push(newSchedule);
+//       }
+//     }
+//     const responseMessage = conflicts.length
+//       ? 'Some schedules could not be created due to conflicts'
+//       : 'Schedules created successfully';
+//     res.json({
+//       success: true,
+//       message: responseMessage,
+//       data: { schedules, conflicts },
+//     });
+//   } catch (error: any) {
+//     if (error.code === 11000) {
+//       return res.status(400).json({ success: false, message: 'A schedule already exists for the given date' });
+//     }
+//     console.error('Error creating schedules:', error);
+//     res.status(500).json({ success: false, message: 'Internal Server Error' });
+//   }
+// };
 var createSchedule = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, dates, type, recurrence, contractorId, schedules, conflicts, _i, dates_1, date, existingSchedule, newScheduleData, newSchedule, responseMessage, error_1;
+    var errors, _a, dates, type, recurrence, contractorId, schedules, updatedSchedules, _i, dates_1, date, existingSchedule, updatedSchedule, newScheduleData, newSchedule, error_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 7, , 8]);
+                _b.trys.push([0, 8, , 9]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation errors', errors: errors.array() })];
@@ -64,19 +111,25 @@ var createSchedule = function (req, res) { return __awaiter(void 0, void 0, void
                 _a = req.body, dates = _a.dates, type = _a.type, recurrence = _a.recurrence;
                 contractorId = req.contractor.id;
                 schedules = [];
-                conflicts = [];
+                updatedSchedules = [];
                 _i = 0, dates_1 = dates;
                 _b.label = 1;
             case 1:
-                if (!(_i < dates_1.length)) return [3 /*break*/, 6];
+                if (!(_i < dates_1.length)) return [3 /*break*/, 7];
                 date = dates_1[_i];
-                return [4 /*yield*/, contractor_schedule_model_1.ContractorScheduleModel.findOne({ contractor: contractorId, date: date, type: type })];
+                return [4 /*yield*/, contractor_schedule_model_1.ContractorScheduleModel.findOne({ contractor: contractorId, date: date })];
             case 2:
                 existingSchedule = _b.sent();
-                if (!existingSchedule) return [3 /*break*/, 3];
-                conflicts.push({ date: date, message: 'Same type of schedule already exists for the given date' });
-                return [3 /*break*/, 5];
+                if (!existingSchedule) return [3 /*break*/, 4];
+                // Update the existing schedule if it exists
+                existingSchedule.recurrence = recurrence;
+                existingSchedule.type = type;
+                return [4 /*yield*/, existingSchedule.save()];
             case 3:
+                updatedSchedule = _b.sent();
+                updatedSchedules.push(updatedSchedule);
+                return [3 /*break*/, 6];
+            case 4:
                 newScheduleData = {
                     contractor: contractorId,
                     date: date,
@@ -84,32 +137,29 @@ var createSchedule = function (req, res) { return __awaiter(void 0, void 0, void
                     recurrence: recurrence,
                 };
                 return [4 /*yield*/, contractor_schedule_model_1.ContractorScheduleModel.create(newScheduleData)];
-            case 4:
+            case 5:
                 newSchedule = _b.sent();
                 schedules.push(newSchedule);
-                _b.label = 5;
-            case 5:
+                _b.label = 6;
+            case 6:
                 _i++;
                 return [3 /*break*/, 1];
-            case 6:
-                responseMessage = conflicts.length
-                    ? 'Some schedules could not be created due to conflicts'
-                    : 'Schedules created successfully';
+            case 7:
                 res.json({
                     success: true,
-                    message: responseMessage,
-                    data: { schedules: schedules, conflicts: conflicts },
+                    message: 'Schedules created/updated successfully',
+                    data: { schedules: schedules, updatedSchedules: updatedSchedules },
                 });
-                return [3 /*break*/, 8];
-            case 7:
+                return [3 /*break*/, 9];
+            case 8:
                 error_1 = _b.sent();
                 if (error_1.code === 11000) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'A schedule already exists for the given date' })];
                 }
-                console.error('Error creating schedules:', error_1);
+                console.error('Error creating/updating schedules:', error_1);
                 res.status(500).json({ success: false, message: 'Internal Server Error' });
-                return [3 /*break*/, 8];
-            case 8: return [2 /*return*/];
+                return [3 /*break*/, 9];
+            case 9: return [2 /*return*/];
         }
     });
 }); };

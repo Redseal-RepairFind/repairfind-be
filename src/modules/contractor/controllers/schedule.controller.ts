@@ -6,6 +6,62 @@ import { validationResult } from 'express-validator';
 import { isValid, startOfMonth, endOfMonth, startOfYear, endOfYear, format, getDate } from 'date-fns';
 
 
+// export const createSchedule = async (req: any, res: Response) => {
+//   try {
+//     // Check for validation errors
+//     const errors = validationResult(req);
+//     if (!errors.isEmpty()) {
+//       return res.status(400).json({ success: false, message: 'Validation errors', errors: errors.array() });
+//     }
+
+//     // Extract data from the request
+//     const { dates, type, recurrence } = req.body;
+//     const contractorId = req.contractor.id;
+
+//     // Create an array to store the created schedules and conflicts
+//     const schedules: IContractorSchedule[] = [];
+//     const conflicts: { date: Date; message: string }[] = [];
+
+//     // Iterate through the array of dates and create each schedule
+//     for (const date of dates) {
+//       // Check if a schedule already exists for the given date
+//       const existingSchedule = await ContractorScheduleModel.findOne({ contractor: contractorId, date, type });
+
+//       if (existingSchedule) {
+//         conflicts.push({ date, message: 'Same type of schedule already exists for the given date' });
+//       } else {
+//         // Create a new schedule if no conflict
+//         const newScheduleData: IContractorSchedule = {
+//           contractor: contractorId,
+//           date,
+//           type,
+//           recurrence,
+//         };
+
+//         const newSchedule = await ContractorScheduleModel.create(newScheduleData);
+//         schedules.push(newSchedule);
+//       }
+//     }
+
+//     const responseMessage = conflicts.length
+//       ? 'Some schedules could not be created due to conflicts'
+//       : 'Schedules created successfully';
+
+//     res.json({
+//       success: true,
+//       message: responseMessage,
+//       data: { schedules, conflicts },
+//     });
+//   } catch (error: any) {
+//     if (error.code === 11000) {
+//       return res.status(400).json({ success: false, message: 'A schedule already exists for the given date' });
+//     }
+
+//     console.error('Error creating schedules:', error);
+//     res.status(500).json({ success: false, message: 'Internal Server Error' });
+//   }
+// };
+
 export const createSchedule = async (req: any, res: Response) => {
   try {
     // Check for validation errors
@@ -20,17 +76,21 @@ export const createSchedule = async (req: any, res: Response) => {
 
     // Create an array to store the created schedules and conflicts
     const schedules: IContractorSchedule[] = [];
-    const conflicts: { date: Date; message: string }[] = [];
+    const updatedSchedules: IContractorSchedule[] = [];
 
-    // Iterate through the array of dates and create each schedule
+    // Iterate through the array of dates and create/update each schedule
     for (const date of dates) {
-      // Check if a schedule already exists for the given date
-      const existingSchedule = await ContractorScheduleModel.findOne({ contractor: contractorId, date, type });
+      // Find the existing schedule for the given date and type
+      const existingSchedule = await ContractorScheduleModel.findOne({ contractor: contractorId, date });
 
       if (existingSchedule) {
-        conflicts.push({ date, message: 'Same type of schedule already exists for the given date' });
+        // Update the existing schedule if it exists
+        existingSchedule.recurrence = recurrence;
+        existingSchedule.type = type;
+        const updatedSchedule = await existingSchedule.save();
+        updatedSchedules.push(updatedSchedule);
       } else {
-        // Create a new schedule if no conflict
+        // Create a new schedule if it doesn't exist
         const newScheduleData: IContractorSchedule = {
           contractor: contractorId,
           date,
@@ -43,24 +103,21 @@ export const createSchedule = async (req: any, res: Response) => {
       }
     }
 
-    const responseMessage = conflicts.length
-      ? 'Some schedules could not be created due to conflicts'
-      : 'Schedules created successfully';
-
     res.json({
       success: true,
-      message: responseMessage,
-      data: { schedules, conflicts },
+      message: 'Schedules created/updated successfully',
+      data: { schedules, updatedSchedules },
     });
   } catch (error: any) {
     if (error.code === 11000) {
       return res.status(400).json({ success: false, message: 'A schedule already exists for the given date' });
     }
 
-    console.error('Error creating schedules:', error);
+    console.error('Error creating/updating schedules:', error);
     res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 };
+
 
 
 

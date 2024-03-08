@@ -93,25 +93,28 @@ var ContractorScheduleSchema = new mongoose_1.Schema({
     },
 });
 ContractorScheduleSchema.statics.handleRecurringEvents = function (originalScheduleId) {
-    var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var originalSchedule, newSchedules, _c, frequency, interval, i, newDate, newSchedule;
-        return __generator(this, function (_d) {
-            switch (_d.label) {
-                case 0: return [4 /*yield*/, this.findById(originalScheduleId)];
+        var originalSchedule, frequency, i, newDate, newSchedule;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, this.findById({ _id: originalScheduleId })];
                 case 1:
-                    originalSchedule = _d.sent();
+                    originalSchedule = _a.sent();
+                    console.log('Original schedule not found', originalScheduleId);
                     if (!originalSchedule) {
-                        console.error('Original schedule not found');
+                        console.log('Original schedule not found', originalScheduleId);
                         return [2 /*return*/, []];
                     }
-                    newSchedules = [];
-                    if (!(((_a = originalSchedule.recurrence) === null || _a === void 0 ? void 0 : _a.frequency) && ((_b = originalSchedule.recurrence) === null || _b === void 0 ? void 0 : _b.interval))) return [3 /*break*/, 6];
-                    _c = originalSchedule.recurrence, frequency = _c.frequency, interval = _c.interval;
-                    i = 1;
-                    _d.label = 2;
+                    // Delete existing recurrent schedules with the same originalScheduleId
+                    return [4 /*yield*/, this.deleteMany({ originalSchedule: originalScheduleId })];
                 case 2:
-                    if (!(i <= interval)) return [3 /*break*/, 6];
+                    // Delete existing recurrent schedules with the same originalScheduleId
+                    _a.sent();
+                    frequency = originalSchedule.recurrence.frequency;
+                    i = 1;
+                    _a.label = 3;
+                case 3:
+                    if (!(i <= 400)) return [3 /*break*/, 6];
                     newDate = new Date(originalSchedule.date);
                     // Adjust the date based on the recurrence frequency
                     switch (frequency) {
@@ -126,27 +129,70 @@ ContractorScheduleSchema.statics.handleRecurringEvents = function (originalSched
                             break;
                         // Add more cases for other recurrence frequencies as needed
                     }
-                    if (!(newDate.getFullYear() == originalSchedule.date.getFullYear())) return [3 /*break*/, 4];
+                    if (!(newDate.getFullYear() == originalSchedule.date.getFullYear())) return [3 /*break*/, 5];
                     return [4 /*yield*/, this.create({
                             contractor: originalSchedule.contractor,
                             date: newDate,
                             type: originalSchedule.type,
-                            recurrence: originalSchedule.recurrence,
+                            // recurrence: originalSchedule.recurrence,
                             originalSchedule: originalScheduleId, // Set reference to the original schedule
                         })];
-                case 3:
-                    newSchedule = _d.sent();
-                    newSchedules.push(newSchedule);
-                    _d.label = 4;
-                case 4: return [2 /*return*/, newSchedules];
+                case 4:
+                    newSchedule = _a.sent();
+                    console.log(i, originalScheduleId, originalSchedule.id, newSchedule.id);
+                    _a.label = 5;
                 case 5:
                     i++;
-                    return [3 /*break*/, 2];
-                case 6: return [2 /*return*/, newSchedules];
+                    return [3 /*break*/, 3];
+                case 6: return [2 /*return*/];
             }
         });
     });
 };
+// ContractorScheduleSchema.statics.handleRecurringEvents = async function (
+//   originalScheduleId: Types.ObjectId
+// ): Promise<Document[]> {
+//   const originalSchedule = await this.findById(originalScheduleId);
+//   if (!originalSchedule) {
+//     console.error('Original schedule not found');
+//     return [];
+//   }
+//   // Delete existing recurrent schedules with the same originalScheduleId
+//   await this.deleteMany({ originalSchedule: originalScheduleId });
+//   const newSchedules: Document[] = [];
+//   if (originalSchedule.recurrence?.frequency && originalSchedule.recurrence?.interval) {
+//     let { frequency, interval } = originalSchedule.recurrence;
+//     // Create new schedules based on the recurrence rules
+//     for (let i = 1; i <= interval; i++) {
+//       const newDate = new Date(originalSchedule.date);
+//       // Adjust the date based on the recurrence frequency
+//       switch (frequency) {
+//         case 'Daily':
+//           newDate.setDate(newDate.getDate() + i);
+//           break;
+//         case 'Weekly':
+//           newDate.setDate(newDate.getDate() + i * 7);
+//           break;
+//         case 'Monthly':
+//           newDate.setMonth(newDate.getMonth() + i);
+//           break;
+//         // Add more cases for other recurrence frequencies as needed
+//       }
+//       // Check if the new date is within the same year as the original schedule's date
+//       if (newDate.getFullYear() == originalSchedule.date.getFullYear()) {
+//         const newSchedule = await this.create({
+//           contractor: originalSchedule.contractor,
+//           date: newDate,
+//           type: originalSchedule.type,
+//           recurrence: originalSchedule.recurrence,
+//           originalSchedule: originalScheduleId, // Set reference to the original schedule
+//         });
+//         newSchedules.push(newSchedule);
+//       }
+//     }
+//   }
+//   return newSchedules;
+// };
 ContractorScheduleSchema.statics.activeCampaignsToRedis = function () {
     this
         .find()
@@ -157,16 +203,19 @@ ContractorScheduleSchema.post('save', function (doc) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: 
-                // @ts-ignore
-                return [4 /*yield*/, doc.constructor.handleRecurringEvents(doc._id)];
+                case 0:
+                    if (!!doc.originalSchedule) return [3 /*break*/, 2];
+                    // @ts-ignore
+                    return [4 /*yield*/, doc.constructor.handleRecurringEvents(doc._id)];
                 case 1:
                     // @ts-ignore
                     _a.sent();
-                    // doc.
-                    // @ts-ignore
-                    // console.log(doc.constructor.activeCampaignsToRedis)
-                    return [2 /*return*/];
+                    _a.label = 2;
+                case 2: 
+                // doc.
+                // @ts-ignore
+                // console.log(doc.constructor.activeCampaignsToRedis)
+                return [2 /*return*/];
             }
         });
     });
