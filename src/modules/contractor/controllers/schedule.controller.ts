@@ -76,7 +76,6 @@ export const createSchedule = async (req: any, res: Response) => {
 
     // Create an array to store the created schedules and conflicts
     const schedules: IContractorSchedule[] = [];
-    const updatedSchedules: IContractorSchedule[] = [];
 
     // Iterate through the array of dates and create/update each schedule
     for (const date of dates) {
@@ -88,7 +87,7 @@ export const createSchedule = async (req: any, res: Response) => {
         existingSchedule.recurrence = recurrence;
         existingSchedule.type = type;
         const updatedSchedule = await existingSchedule.save();
-        updatedSchedules.push(updatedSchedule);
+        schedules.push(updatedSchedule);
       } else {
         // Create a new schedule if it doesn't exist
         const newScheduleData: IContractorSchedule = {
@@ -105,8 +104,8 @@ export const createSchedule = async (req: any, res: Response) => {
 
     res.json({
       success: true,
-      message: 'Schedules created/updated successfully',
-      data: { schedules, updatedSchedules },
+      message: 'Schedules created successfully',
+      data: schedules,
     });
   } catch (error: any) {
     if (error.code === 11000) {

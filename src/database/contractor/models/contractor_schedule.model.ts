@@ -9,8 +9,8 @@ export interface IRecurrence {
 // Interface for the Event schema
 export interface IEvent {
   date?: Date;
-  startTime?: Date|undefined;
-  endTime?: Date|undefined;
+  startTime?: Date | undefined;
+  endTime?: Date | undefined;
   type?: string;
   booking: number;
   note?: string;
@@ -83,86 +83,68 @@ const ContractorScheduleSchema = new Schema<IContractorSchedule>({
     type: Schema.Types.ObjectId,
     ref: 'contractor_schedules',
   },
-  
+
 });
 
 
 
 ContractorScheduleSchema.statics.handleRecurringEvents = async function (
-  originalScheduleId: Types.ObjectId
+  scheduleId: Types.ObjectId
 ) {
-  const originalSchedule = await this.findById({_id: originalScheduleId});
+  const originalSchedule = await this.findById({ _id: scheduleId });
 
   if (!originalSchedule) {
-    console.log('Original schedule not found', originalScheduleId);
+    console.log('Original schedule not found', scheduleId);
     return [];
   }
 
-   // Delete existing recurrent schedules with the same originalScheduleId
-   await this.deleteMany({ originalSchedule: originalScheduleId });
+  // Delete existing recurrent schedules with the same originalScheduleId
+  // await this.deleteMany({ originalSchedule: scheduleId });
 
-  // const newSchedules: Document[] = [];
+  let { frequency } = originalSchedule.recurrence;
 
-    let { frequency } = originalSchedule.recurrence;
-
-    // Create new schedules based on the recurrence rules
-    for (let i = 1; i <= 400; i++) {
-      const newDate = new Date(originalSchedule.date);
+  // Create new schedules based on the recurrence rules
+  for (let i = 1; i <= 400; i++) {
+    const newDate = new Date(originalSchedule.date);
 
 
-      // Adjust the date based on the recurrence frequency
-      switch (frequency) {
-        case 'Daily':
-          newDate.setDate(newDate.getDate() + i);
-          break;
-        case 'Weekly':
-          newDate.setDate(newDate.getDate() + i * 7);
-          break;
-        case 'Monthly':
-          newDate.setMonth(newDate.getMonth() + i);
-          break;
-        // Add more cases for other recurrence frequencies as needed
-      }
-
-      // Check if the new date is within the same year as the original schedule's date
-      if (newDate.getFullYear() == originalSchedule.date.getFullYear()) {
-        const newSchedule = await this.create({
-          contractor: originalSchedule.contractor,
-          date: newDate,
-          type: originalSchedule.type,
-          // recurrence: originalSchedule.recurrence,
-          originalSchedule: originalScheduleId, // Set reference to the original schedule
-        });
-  
-        // console.log(i, originalScheduleId, originalSchedule.id, newSchedule.id)
-
-
-        // newSchedules.push(newSchedule);
-      }
-      // return newSchedules;
+    // Adjust the date based on the recurrence frequency
+    switch (frequency) {
+      case 'Daily':
+        newDate.setDate(newDate.getDate() + i);
+        break;
+      case 'Weekly':
+        newDate.setDate(newDate.getDate() + i * 7);
+        break;
+      case 'Monthly':
+        newDate.setMonth(newDate.getMonth() + i);
+        break;
+      // Add more cases for other recurrence frequencies as needed
     }
 
-  // }
+    // Check if the new date is within the same year as the original schedule's date
+    if (newDate.getFullYear() == originalSchedule.date.getFullYear()) {
+      await this.findOneAndUpdate({ contractor: originalSchedule.contractor, date: newDate },{
+        contractor: originalSchedule.contractor,
+        date: newDate,
+        type: originalSchedule.type,
+        originalSchedule: scheduleId, // Set reference to the original schedule
+      }, { upsert: true, new: true, setDefaultsOnInsert: true });
+    }
+  }
 
-  // return newSchedules;
 };
 
 
 
-
-ContractorScheduleSchema.statics.activeCampaignsToRedis = function () {
-  this
-      .find()
-      .where('active').equals(true)
-};
 
 // Post hook for save method
 ContractorScheduleSchema.post<IContractorSchedule>('save', async function (doc) {
-   // @ts-ignore
-   if(!doc.originalSchedule){
+  // @ts-ignore
+  if (doc.recurrence) {
     // @ts-ignore
     await doc.constructor.handleRecurringEvents(doc._id);
-   }
+  }
 
   // doc.
   // @ts-ignore

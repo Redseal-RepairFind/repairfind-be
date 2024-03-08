@@ -99,7 +99,7 @@ var date_fns_1 = require("date-fns");
 //   }
 // };
 var createSchedule = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, dates, type, recurrence, contractorId, schedules, updatedSchedules, _i, dates_1, date, existingSchedule, updatedSchedule, newScheduleData, newSchedule, error_1;
+    var errors, _a, dates, type, recurrence, contractorId, schedules, _i, dates_1, date, existingSchedule, updatedSchedule, newScheduleData, newSchedule, error_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -111,7 +111,6 @@ var createSchedule = function (req, res) { return __awaiter(void 0, void 0, void
                 _a = req.body, dates = _a.dates, type = _a.type, recurrence = _a.recurrence;
                 contractorId = req.contractor.id;
                 schedules = [];
-                updatedSchedules = [];
                 _i = 0, dates_1 = dates;
                 _b.label = 1;
             case 1:
@@ -127,7 +126,7 @@ var createSchedule = function (req, res) { return __awaiter(void 0, void 0, void
                 return [4 /*yield*/, existingSchedule.save()];
             case 3:
                 updatedSchedule = _b.sent();
-                updatedSchedules.push(updatedSchedule);
+                schedules.push(updatedSchedule);
                 return [3 /*break*/, 6];
             case 4:
                 newScheduleData = {
@@ -147,8 +146,8 @@ var createSchedule = function (req, res) { return __awaiter(void 0, void 0, void
             case 7:
                 res.json({
                     success: true,
-                    message: 'Schedules created/updated successfully',
-                    data: { schedules: schedules, updatedSchedules: updatedSchedules },
+                    message: 'Schedules created successfully',
+                    data: schedules,
                 });
                 return [3 /*break*/, 9];
             case 8:

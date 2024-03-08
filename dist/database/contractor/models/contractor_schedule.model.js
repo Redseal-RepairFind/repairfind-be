@@ -92,28 +92,23 @@ var ContractorScheduleSchema = new mongoose_1.Schema({
         ref: 'contractor_schedules',
     },
 });
-ContractorScheduleSchema.statics.handleRecurringEvents = function (originalScheduleId) {
+ContractorScheduleSchema.statics.handleRecurringEvents = function (scheduleId) {
     return __awaiter(this, void 0, void 0, function () {
-        var originalSchedule, frequency, i, newDate, newSchedule;
+        var originalSchedule, frequency, i, newDate;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, this.findById({ _id: originalScheduleId })];
+                case 0: return [4 /*yield*/, this.findById({ _id: scheduleId })];
                 case 1:
                     originalSchedule = _a.sent();
                     if (!originalSchedule) {
-                        console.log('Original schedule not found', originalScheduleId);
+                        console.log('Original schedule not found', scheduleId);
                         return [2 /*return*/, []];
                     }
-                    // Delete existing recurrent schedules with the same originalScheduleId
-                    return [4 /*yield*/, this.deleteMany({ originalSchedule: originalScheduleId })];
-                case 2:
-                    // Delete existing recurrent schedules with the same originalScheduleId
-                    _a.sent();
                     frequency = originalSchedule.recurrence.frequency;
                     i = 1;
-                    _a.label = 3;
-                case 3:
-                    if (!(i <= 400)) return [3 /*break*/, 6];
+                    _a.label = 2;
+                case 2:
+                    if (!(i <= 400)) return [3 /*break*/, 5];
                     newDate = new Date(originalSchedule.date);
                     // Adjust the date based on the recurrence frequency
                     switch (frequency) {
@@ -128,29 +123,23 @@ ContractorScheduleSchema.statics.handleRecurringEvents = function (originalSched
                             break;
                         // Add more cases for other recurrence frequencies as needed
                     }
-                    if (!(newDate.getFullYear() == originalSchedule.date.getFullYear())) return [3 /*break*/, 5];
-                    return [4 /*yield*/, this.create({
+                    if (!(newDate.getFullYear() == originalSchedule.date.getFullYear())) return [3 /*break*/, 4];
+                    return [4 /*yield*/, this.findOneAndUpdate({ contractor: originalSchedule.contractor, date: newDate }, {
                             contractor: originalSchedule.contractor,
                             date: newDate,
                             type: originalSchedule.type,
-                            // recurrence: originalSchedule.recurrence,
-                            originalSchedule: originalScheduleId, // Set reference to the original schedule
-                        })];
+                            originalSchedule: scheduleId, // Set reference to the original schedule
+                        }, { upsert: true, new: true, setDefaultsOnInsert: true })];
+                case 3:
+                    _a.sent();
+                    _a.label = 4;
                 case 4:
-                    newSchedule = _a.sent();
-                    _a.label = 5;
-                case 5:
                     i++;
-                    return [3 /*break*/, 3];
-                case 6: return [2 /*return*/];
+                    return [3 /*break*/, 2];
+                case 5: return [2 /*return*/];
             }
         });
     });
-};
-ContractorScheduleSchema.statics.activeCampaignsToRedis = function () {
-    this
-        .find()
-        .where('active').equals(true);
 };
 // Post hook for save method
 ContractorScheduleSchema.post('save', function (doc) {
@@ -158,7 +147,7 @@ ContractorScheduleSchema.post('save', function (doc) {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    if (!!doc.originalSchedule) return [3 /*break*/, 2];
+                    if (!doc.recurrence) return [3 /*break*/, 2];
                     // @ts-ignore
                     return [4 /*yield*/, doc.constructor.handleRecurringEvents(doc._id)];
                 case 1:
