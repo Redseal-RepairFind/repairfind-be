@@ -160,7 +160,7 @@ var getTeam = function (req, res) { return __awaiter(void 0, void 0, void 0, fun
                     })
                         .populate({
                         path: "members.contractor",
-                        select: "id firstName lastName email",
+                        // select: "id firstName lastName email name profilePhoto ",
                     })
                         .exec()];
             case 2:
@@ -182,8 +182,10 @@ var getTeam = function (req, res) { return __awaiter(void 0, void 0, void 0, fun
                         name: companyTeam.name,
                         members: companyTeam.members.map(function (member) { return ({
                             id: member.contractor.id,
-                            firstName: member.contractor.firstName,
+                            firstName: member.contractor.firstName, // deprecate
                             lastName: member.contractor.lastName,
+                            name: member.contractor.name,
+                            profilePhoto: member.contractor.profilePhoto,
                             email: member.contractor.email,
                             role: member.role,
                             status: member.status,

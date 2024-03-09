@@ -209,8 +209,7 @@ class ProfileHandler extends Base {
             if (!errors.isEmpty()) {
               return res.status(400).json({ errors: errors.array() });
             }
-
-
+            
             const profile = await ContractorProfileModel.findOneAndUpdate(
                 { contractor: contractorId },
                 {

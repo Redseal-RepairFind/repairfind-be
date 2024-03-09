@@ -145,21 +145,15 @@ ContractorScheduleSchema.statics.handleRecurringEvents = function (scheduleId) {
 ContractorScheduleSchema.post('save', function (doc) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    if (!doc.recurrence) return [3 /*break*/, 2];
-                    // @ts-ignore
-                    return [4 /*yield*/, doc.constructor.handleRecurringEvents(doc._id)];
-                case 1:
-                    // @ts-ignore
-                    _a.sent();
-                    _a.label = 2;
-                case 2: 
-                // doc.
+            // @ts-ignore
+            if (doc.recurrence) {
                 // @ts-ignore
-                // console.log(doc.constructor.activeCampaignsToRedis)
-                return [2 /*return*/];
+                // await doc.constructor.handleRecurringEvents(doc._id);
             }
+            // doc.
+            // @ts-ignore
+            // console.log(doc.constructor.activeCampaignsToRedis)
+            return [2 /*return*/];
         });
     });
 });
