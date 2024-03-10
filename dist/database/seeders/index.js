@@ -35,49 +35,15 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkAdminRole = void 0;
-var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-var admin_model_1 = __importDefault(require("../../../database/admin/models/admin.model"));
-var checkAdminRole = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var secret, authHeader, token, payload, admin, err_1;
+exports.RunSeeders = void 0;
+var contractor_seeder_1 = require("./contractor.seeder");
+var customer_seeder_1 = require("./customer.seeder");
+var RunSeeders = function () { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                secret = process.env.JWT_ADMIN_SECRET_KEY;
-                authHeader = req.headers.authorization;
-                token = authHeader && authHeader.split(" ")[1];
-                if (!token) {
-                    return [2 /*return*/, res.status(401).json({ message: "Authorization token missing" })];
-                }
-                _a.label = 1;
-            case 1:
-                _a.trys.push([1, 3, , 4]);
-                payload = jsonwebtoken_1.default.verify(token, secret);
-                return [4 /*yield*/, admin_model_1.default.findOne({
-                        email: payload.email
-                    })];
-            case 2:
-                admin = _a.sent();
-                if (!admin) {
-                    return [2 /*return*/, res
-                            .status(403)
-                            .json({ message: "Access denied. admin role required." })];
-                }
-                // Add the payload to the request object for later use
-                req.admin = payload;
-                // Call the next middleware function
-                next();
-                return [3 /*break*/, 4];
-            case 3:
-                err_1 = _a.sent();
-                console.error(err_1);
-                return [2 /*return*/, res.status(401).json({ message: "Invalid authorization token" })];
-            case 4: return [2 /*return*/];
-        }
+        (0, customer_seeder_1.CustomerSeeder)({ ordered: true });
+        (0, contractor_seeder_1.ContractorSeeder)({ ordered: false });
+        return [2 /*return*/];
     });
 }); };
-exports.checkAdminRole = checkAdminRole;
+exports.RunSeeders = RunSeeders;

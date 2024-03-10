@@ -55,7 +55,7 @@ var customer_model_1 = __importDefault(require("../../../database/customer/model
 var job_model_1 = __importDefault(require("../../../database/contractor/models/job.model"));
 var send_email_utility_1 = require("../../../utils/send_email_utility");
 var jobQoutationTemplate_1 = require("../../../templates/customerEmail/jobQoutationTemplate");
-var adminNotification_model_1 = __importDefault(require("../../../database/admin/models/adminNotification.model"));
+var admin_notification_model_1 = __importDefault(require("../../../database/admin/models/admin_notification.model"));
 //contractor get job requet sent to him /////////////
 var contractorGetJobRequestContractorController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, errors, contractor, contractorId, contractorExist, jobRequests, jobRequested, i, jobRequest, customer, obj, err_1;
@@ -935,7 +935,7 @@ var contractorCompleteJobController = function (req, res) { return __awaiter(voi
                 ];
             case 4:
                 _a.sent();
-                adminNotic = new adminNotification_model_1.default({
+                adminNotic = new admin_notification_model_1.default({
                     title: "Contractor Job Completed",
                     message: "".concat(job._id, " - ").concat(contractorExist.firstName, " has updated this job to completed."),
                     status: "unseen"

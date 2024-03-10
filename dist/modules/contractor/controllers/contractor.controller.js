@@ -85,8 +85,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProfileController = void 0;
 var express_validator_1 = require("express-validator");
+var bcrypt_1 = __importDefault(require("bcrypt"));
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
-var adminReg_model_1 = __importDefault(require("../../../database/admin/models/adminReg.model"));
+var admin_model_1 = __importDefault(require("../../../database/admin/models/admin.model"));
 var adminContractorDocumentTemplate_1 = require("../../../templates/adminEmail/adminContractorDocumentTemplate");
 var contractorDocumentTemplate_1 = require("../../../templates/contractorEmail/contractorDocumentTemplate");
 var base_abstract_1 = require("../../../abstracts/base.abstract");
@@ -182,7 +183,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                             .then(function () { return console.log('Email sent successfully'); })
                             .catch(function (error) { return console.error('Error sending email:', error); });
                         html = (0, adminContractorDocumentTemplate_1.htmlContractorDocumentValidatinToAdminTemplate)(contractor.firstName);
-                        return [4 /*yield*/, adminReg_model_1.default.find().select('email')];
+                        return [4 /*yield*/, admin_model_1.default.find().select('email')];
                     case 5:
                         adminsWithEmails = _b.sent();
                         adminEmails = adminsWithEmails.map(function (admin) { return admin.email; });
@@ -441,6 +442,54 @@ var ProfileHandler = /** @class */ (function (_super) {
             });
         });
     };
+    ProfileHandler.prototype.changePassword = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var req, res, errors, _a, currentPassword, newPassword, contractorId, contractor, isPasswordValid, hashedPassword, error_1;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        req = this.req;
+                        res = this.res;
+                        _b.label = 1;
+                    case 1:
+                        _b.trys.push([1, 6, , 7]);
+                        errors = (0, express_validator_1.validationResult)(req);
+                        if (!errors.isEmpty()) {
+                            return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                        }
+                        _a = req.body, currentPassword = _a.currentPassword, newPassword = _a.newPassword;
+                        contractorId = req.contractor.id;
+                        return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
+                    case 2:
+                        contractor = _b.sent();
+                        // Check if the user exists
+                        if (!contractor) {
+                            return [2 /*return*/, res.status(404).json({ success: false, message: 'User not found' })];
+                        }
+                        return [4 /*yield*/, bcrypt_1.default.compare(currentPassword, contractor.password)];
+                    case 3:
+                        isPasswordValid = _b.sent();
+                        if (!isPasswordValid) {
+                            return [2 /*return*/, res.status(401).json({ success: false, message: 'Current password is incorrect' })];
+                        }
+                        return [4 /*yield*/, bcrypt_1.default.hash(newPassword, 10)];
+                    case 4:
+                        hashedPassword = _b.sent();
+                        // Update the user's password
+                        contractor.password = hashedPassword;
+                        return [4 /*yield*/, contractor.save()];
+                    case 5:
+                        _b.sent();
+                        return [2 /*return*/, res.json({ success: true, message: 'Password changed successfully' })];
+                    case 6:
+                        error_1 = _b.sent();
+                        console.error('Error changing password:', error_1);
+                        return [2 /*return*/, res.status(500).json({ success: false, message: 'Internal Server Error' })];
+                    case 7: return [2 /*return*/];
+                }
+            });
+        });
+    };
     __decorate([
         (0, decorators_abstract_1.handleAsyncError)(),
         __metadata("design:type", Function),
@@ -477,6 +526,12 @@ var ProfileHandler = /** @class */ (function (_super) {
         __metadata("design:paramtypes", []),
         __metadata("design:returntype", Promise)
     ], ProfileHandler.prototype, "updateBankDetails", null);
+    __decorate([
+        (0, decorators_abstract_1.handleAsyncError)(),
+        __metadata("design:type", Function),
+        __metadata("design:paramtypes", []),
+        __metadata("design:returntype", Promise)
+    ], ProfileHandler.prototype, "changePassword", null);
     return ProfileHandler;
 }(base_abstract_1.Base));
 var ProfileController = function () {

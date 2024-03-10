@@ -1,7 +1,7 @@
 import { validationResult } from "express-validator";
 import { Request, Response } from "express";
-import AdminRegModel from "../../../database/admin/models/adminReg.model";
-import AdminNotificationModel from "../../../database/admin/models/adminNotification.model";
+import AdminRegModel from "../../../database/admin/models/admin.model";
+import AdminNotificationModel from "../../../database/admin/models/admin_notification.model";
 
 
 //admin get all notification/////////////

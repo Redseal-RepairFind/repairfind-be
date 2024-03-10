@@ -5,7 +5,7 @@ import CustomerRegModel from "../../../database/customer/models/customer.model";
 import JobModel from "../../../database/contractor/models/job.model";
 import { sendEmail } from "../../../utils/send_email_utility";
 import { htmlJobQoutationTemplate } from "../../../templates/customerEmail/jobQoutationTemplate";
-import AdminNoficationModel from "../../../database/admin/models/adminNotification.model";
+import AdminNoficationModel from "../../../database/admin/models/admin_notification.model";
 
 
 //contractor get job requet sent to him /////////////

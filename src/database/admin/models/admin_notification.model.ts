@@ -31,6 +31,6 @@ const AdminNotificationSchema = new Schema(
     }
   );
   
-  const AdminNotificationModel = model<IAdminNotificationDocument>("AdminNotification", AdminNotificationSchema);
+  const AdminNotificationModel = model<IAdminNotificationDocument>("admin_notifications", AdminNotificationSchema);
   
   export default AdminNotificationModel;

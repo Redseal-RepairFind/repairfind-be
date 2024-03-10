@@ -22,16 +22,19 @@ var CustomerSchema = new mongoose_1.Schema({
         required: true,
     },
     phoneNumber: {
-        type: String,
-        required: true,
+        code: {
+            type: String
+        },
+        number: {
+            type: String
+        },
     },
     location: {
         type: String,
         default: "",
     },
-    profileImg: {
-        type: String,
-        default: "",
+    profilePhoto: {
+        type: Object,
     },
     createdAt: {
         type: Date,

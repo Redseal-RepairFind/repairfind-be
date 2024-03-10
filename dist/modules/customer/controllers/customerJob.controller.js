@@ -50,13 +50,13 @@ var customer_model_1 = __importDefault(require("../../../database/customer/model
 var stripe_1 = __importDefault(require("stripe"));
 var customerAcceptQuoteTem_1 = require("../../../templates/email/customerAcceptQuoteTem");
 var customerPaymoneyForQuateTem_1 = require("../../../templates/email/customerPaymoneyForQuateTem");
-var adminReg_model_1 = __importDefault(require("../../../database/admin/models/adminReg.model"));
+var admin_model_1 = __importDefault(require("../../../database/admin/models/admin.model"));
 var transaction_model_1 = __importDefault(require("../../../database/admin/models/transaction.model"));
 var jobRequestTemplate_1 = require("../../../templates/contractorEmail/jobRequestTemplate");
 var adminPaymentTemplate_1 = require("../../../templates/adminEmail/adminPaymentTemplate");
 var contractorNotification_model_1 = __importDefault(require("../../../database/contractor/models/contractorNotification.model"));
 var customerNotification_model_1 = __importDefault(require("../../../database/customer/models/customerNotification.model"));
-var adminNotification_model_1 = __importDefault(require("../../../database/admin/models/adminNotification.model"));
+var admin_notification_model_1 = __importDefault(require("../../../database/admin/models/admin_notification.model"));
 var payout_model_1 = __importDefault(require("../../../database/admin/models/payout.model"));
 var contractorBankDetail_model_1 = __importDefault(require("../../../database/contractor/models/contractorBankDetail.model"));
 //customer send job request to contractor /////////////
@@ -555,7 +555,7 @@ var customerVerififyPaymentForJobController = function (req, res) { return __awa
                 return [4 /*yield*/, (0, send_email_utility_1.sendEmail)(emailData)];
             case 6:
                 _c.sent();
-                return [4 /*yield*/, adminReg_model_1.default.find()];
+                return [4 /*yield*/, admin_model_1.default.find()];
             case 7:
                 admins = _c.sent();
                 i = 0;
@@ -814,7 +814,7 @@ var customerVerififyPaymentWebhook = function (jobId, customerId, transactionId)
                 return [4 /*yield*/, (0, send_email_utility_1.sendEmail)(emailData)];
             case 7:
                 _a.sent();
-                return [4 /*yield*/, adminReg_model_1.default.find()];
+                return [4 /*yield*/, admin_model_1.default.find()];
             case 8:
                 admins = _a.sent();
                 adminPaymentHtml = (0, adminPaymentTemplate_1.htmlAdminPaymentTemplate)(jobId, checkCustomer._id, "".concat(job.totalAmountCustomerToPaid, " for job qoutation"));
@@ -831,7 +831,7 @@ var customerVerififyPaymentWebhook = function (jobId, customerId, transactionId)
                 return [4 /*yield*/, (0, send_email_utility_1.sendEmail)(adminEmailData)];
             case 10:
                 _a.sent();
-                adminNotic = new adminNotification_model_1.default({
+                adminNotic = new admin_notification_model_1.default({
                     title: "Job Booked",
                     message: "".concat(job._id, " - ").concat(checkCustomer.firstName, " booked a job for $").concat(job.totalAmountCustomerToPaid, "."),
                     status: "unseen"
@@ -1001,7 +1001,7 @@ var customerComfirmedJobJobController = function (req, res) { return __awaiter(v
                 ];
             case 6:
                 _a.sent();
-                adminNotic = new adminNotification_model_1.default({
+                adminNotic = new admin_notification_model_1.default({
                     title: "Customer Confirmed Job Completed",
                     message: "".concat(jobId, " - ").concat(checkCustomer.firstName, " has updated this job to completed and comfirm"),
                     status: "unseen"
@@ -1121,7 +1121,7 @@ var customerComplaintedJobJobController = function (req, res) { return __awaiter
                 ];
             case 4:
                 _a.sent();
-                adminNotic = new adminNotification_model_1.default({
+                adminNotic = new admin_notification_model_1.default({
                     title: "Customer Disagreed on Job Completion",
                     message: "".concat(job, " - ").concat(checkCustomer.firstName, " disagreed that this job has been completed by this contractor ").concat(contractor === null || contractor === void 0 ? void 0 : contractor.firstName, "."),
                     status: "unseen"

@@ -57,10 +57,6 @@ const ContractorSchema = new Schema <IContractor>(
         default: contractorStatus.REVIEWING,
       },
 
-      phoneNumber: {
-        type: String
-      },
-
       acceptTerms: {
         type: Boolean
       },
@@ -72,6 +68,15 @@ const ContractorSchema = new Schema <IContractor>(
 
       profilePhoto: {
         type: Object,
+      },
+
+      phoneNumber: {
+        code: {
+          type: String
+        },
+        number: {
+          type: String
+        },
       },
 
       passwordOtp: {

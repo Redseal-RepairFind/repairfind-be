@@ -85,9 +85,6 @@ var ContractorSchema = new mongoose_1.Schema({
         enum: Object.values(contractorStatus_1.contractorStatus),
         default: contractorStatus_1.contractorStatus.REVIEWING,
     },
-    phoneNumber: {
-        type: String
-    },
     acceptTerms: {
         type: Boolean
     },
@@ -97,6 +94,14 @@ var ContractorSchema = new mongoose_1.Schema({
     },
     profilePhoto: {
         type: Object,
+    },
+    phoneNumber: {
+        code: {
+            type: String
+        },
+        number: {
+            type: String
+        },
     },
     passwordOtp: {
         otp: String,

@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import { IAdminReg } from "../interface/adminReg.interface";
+import { IAdmin } from "../interface/adminReg.interface";
 
 const AdminRegSchema = new Schema(
     {
@@ -60,6 +60,6 @@ const AdminRegSchema = new Schema(
     }
   );
   
-  const AdminRegrModel = model<IAdminReg>("AdminReg", AdminRegSchema);
+  const AdminModel = model<IAdmin>("admins", AdminRegSchema);
   
-  export default AdminRegrModel;
+  export default AdminModel;

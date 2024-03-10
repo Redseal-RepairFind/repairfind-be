@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import AdminRegModel from "../../../database/admin/models/adminReg.model";
+import AdminRegModel from "../../../database/admin/models/admin.model";
 
 interface JwtPayload {
     email: string;

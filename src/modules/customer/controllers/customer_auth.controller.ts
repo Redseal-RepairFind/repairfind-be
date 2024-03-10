@@ -9,7 +9,7 @@ import { htmlMailTemplate } from "../../../templates/sendEmailTemplate";
 import { uploadToS3 } from "../../../utils/upload.utility";
 import { v4 as uuidv4 } from "uuid";
 import { htmlcustomerWelcomTemplate } from "../../../templates/customerEmail/customerWelcomTemplate";
-import AdminNoficationModel from "../../../database/admin/models/adminNotification.model";
+import AdminNoficationModel from "../../../database/admin/models/admin_notification.model";
 import { GoogleServiceProvider } from "../../../services/google";
 import { CustomerAuthProviders } from "../../../database/customer/interface/customer.interface";
 import { FacebookServiceProvider } from "../../../services/facebook";
@@ -334,72 +334,6 @@ export const resendEmail = async (
   }
 }
 
-
-
-//customer customer update profile /////////////
-export const updateProfile = async (
-  req: any,
-  res: Response,
-) => {
-
-  try {
-    const {
-      fullName,
-      location,
-      phoneNumber
-    } = req.body;
-    // Check for validation errors
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
-    const customer = req.customer;
-    const customerId = customer.id
-
-    const file = req.file;
-
-    // try find customer with the same email
-    const customerDb = await CustomerModel.findOne({ _id: customerId });
-
-    // check if customer exists
-    if (!customerDb) {
-      return res
-        .status(401)
-        .json({ message: "incorrect Id" });
-    }
-
-    let profileImage;
-
-    if (!file) {
-      profileImage = customerDb.profileImg;
-    } else {
-      const filename = uuidv4();
-      const result = await uploadToS3(req.file.buffer, `${filename}.jpg`);
-      profileImage = result?.Location!;
-
-    }
-
-    const updateBioData = await CustomerModel.findOneAndUpdate(
-      { _id: customerId },
-      {
-        fullName: fullName,
-        phoneNumber: phoneNumber,
-        location: location,
-        profileImg: profileImage
-      },
-      { new: true }
-    )
-
-
-    return res.status(200).json({ message: "data successfully updated" });
-
-  } catch (err: any) {
-    // signup error
-    res.status(500).json({ message: err.message });
-  }
-}
 
 
 export const forgotPassword = async (
@@ -802,7 +736,6 @@ export const CustomerAuthController = {
   resetPassword,
   signIn,
   resendEmail,
-  updateProfile,
   verifyResetPasswordOtp,
   googleSignon,
   facebookSignon

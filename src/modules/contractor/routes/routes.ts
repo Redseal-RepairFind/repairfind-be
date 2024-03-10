@@ -1,13 +1,13 @@
 import { diskUpload, memoryUpload } from "../../../utils/upload.utility";
 
 import { checkContractorRole } from "../middleware/contractorRoleCheck.middleware";
-import { AuthController } from "../controllers/auth.controller";
+import { AuthController } from "../controllers/contractor_auth.controller";
 import { NextFunction, Request, Response } from "express";
 import { ContractorHttpRequest } from "../requests";
-import { ProfileController } from "../controllers/profile.controller";
-import { QuizController } from "../controllers/quiz.controller";
-import { TeamController } from "../controllers/team.controller";
-import { ScheduleContractor } from "../controllers/schedule.controller";
+import { ProfileController } from "../controllers/contractor.controller";
+import { QuizController } from "../controllers/contractor_quiz.controller";
+import { TeamController } from "../controllers/contractor_team.controller";
+import { ScheduleContractor } from "../controllers/contractor_schedule.controller";
 
 const express = require("express");
 const router = express.Router();
@@ -40,6 +40,7 @@ router.post("/reset-password", ContractorHttpRequest.PasswordResetRequest, (req:
     AuthController(req, res, next).resetPassword();
 });
 
+
 // PROFILE
 //   const cpUpload = diskUpload.fields([{ name: 'profilePhoto', maxCount: 1 }, { name: 'previousJobPhotos', maxCount: 10 }, { name: 'previousJobVideos', maxCount: 10 }])
 router.post("/profiles", checkContractorRole, ContractorHttpRequest.CreateProfileRequest, (req: Request, res: Response, next: NextFunction) => {
@@ -52,7 +53,6 @@ router.put("/profiles/me", checkContractorRole,  ContractorHttpRequest.UpdatePro
     ProfileController(req, res, next).updateProfile();
 });
 
-
 router.post("/profiles/bank-details", checkContractorRole, ContractorHttpRequest.UpdateBankDetailRequest, (req: Request, res: Response, next: NextFunction) => {
     ProfileController(req, res, next).updateBankDetails();
 });
@@ -63,6 +63,10 @@ router.get("/me", checkContractorRole, (req: Request, res: Response, next: NextF
 });
 router.patch("/me", checkContractorRole,  ContractorHttpRequest.CreateProfileRequest, (req: Request, res: Response, next: NextFunction) => {
     ProfileController(req, res, next).updateAccount();
+});
+
+router.post("/me/change-password", checkContractorRole, ContractorHttpRequest.PasswordChangeRequest, (req: Request, res: Response, next: NextFunction) => {
+    ProfileController(req, res, next).changePassword();
 });
 
 

@@ -11,13 +11,13 @@ import CustomerRegModel from "../../../database/customer/models/customer.model";
 import stripe from 'stripe';
 import { customerAcceptQouteAndPaySendEmailHtmlMailTemplate } from "../../../templates/email/customerAcceptQuoteTem";
 import { customerToAdminAfterPaymentSendEmailHtmlMailTemplate } from "../../../templates/email/customerPaymoneyForQuateTem";
-import AdminRegModel from "../../../database/admin/models/adminReg.model";
+import AdminRegModel from "../../../database/admin/models/admin.model";
 import TransactionModel from "../../../database/admin/models/transaction.model";
 import { htmlJobRequestTemplate } from "../../../templates/contractorEmail/jobRequestTemplate";
 import { htmlAdminPaymentTemplate } from "../../../templates/adminEmail/adminPaymentTemplate";
 import ContractorNotificationModel from "../../../database/contractor/models/contractorNotification.model";
 import CustomerNotificationModel from "../../../database/customer/models/customerNotification.model";
-import AdminNoficationModel from "../../../database/admin/models/adminNotification.model";
+import AdminNoficationModel from "../../../database/admin/models/admin_notification.model";
 import PayoutModel from "../../../database/admin/models/payout.model";
 import ContractorBankModel from "../../../database/contractor/models/contractorBankDetail.model";
 

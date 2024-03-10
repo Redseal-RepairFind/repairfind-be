@@ -41,7 +41,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.adminUnseenNotificationrController = exports.adminViewNotificationrController = exports.adminGetNotificationrController = void 0;
 var express_validator_1 = require("express-validator");
-var adminNotification_model_1 = __importDefault(require("../../../database/admin/models/adminNotification.model"));
+var admin_notification_model_1 = __importDefault(require("../../../database/admin/models/admin_notification.model"));
 //admin get all notification/////////////
 var adminGetNotificationrController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, page, limit, errors, admin, adminId, skip, notifications, totalNotification, err_1;
@@ -59,13 +59,13 @@ var adminGetNotificationrController = function (req, res) { return __awaiter(voi
                 page = page || 1;
                 limit = limit || 50;
                 skip = (page - 1) * limit;
-                return [4 /*yield*/, adminNotification_model_1.default.find()
+                return [4 /*yield*/, admin_notification_model_1.default.find()
                         .sort({ createdAt: -1 })
                         .skip(skip)
                         .limit(limit)];
             case 1:
                 notifications = _b.sent();
-                return [4 /*yield*/, adminNotification_model_1.default.countDocuments()];
+                return [4 /*yield*/, admin_notification_model_1.default.countDocuments()];
             case 2:
                 totalNotification = _b.sent();
                 res.json({
@@ -97,7 +97,7 @@ var adminViewNotificationrController = function (req, res) { return __awaiter(vo
                 }
                 admin = req.admin;
                 adminId = admin.id;
-                return [4 /*yield*/, adminNotification_model_1.default.updateMany({ status: "unseen" }, {
+                return [4 /*yield*/, admin_notification_model_1.default.updateMany({ status: "unseen" }, {
                         status: "seen"
                     }, { new: true })];
             case 1:
@@ -130,7 +130,7 @@ var adminUnseenNotificationrController = function (req, res) { return __awaiter(
                 }
                 admin = req.admin;
                 adminId = admin.id;
-                return [4 /*yield*/, adminNotification_model_1.default.countDocuments({ status: "unseen" })];
+                return [4 /*yield*/, admin_notification_model_1.default.countDocuments({ status: "unseen" })];
             case 1:
                 totalUnseenNotification = _b.sent();
                 res.json({

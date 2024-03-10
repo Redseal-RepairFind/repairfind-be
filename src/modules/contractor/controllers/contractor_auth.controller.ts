@@ -12,7 +12,7 @@ import { htmlMailTemplate } from "../../../templates/sendEmailTemplate";
 import { htmlContractorWelcomeTemplate } from "../../../templates/contractorEmail/contractorWelcomeTemplate";
 import ContractorAvailabilityModel from "../../../database/contractor/models/contractorAvaliability.model";
 import JobModel from "../../../database/contractor/models/job.model";
-import AdminNoficationModel from "../../../database/admin/models/adminNotification.model";
+import AdminNoficationModel from "../../../database/admin/models/admin_notification.model";
 import { handleAsyncError } from "../../../abstracts/decorators.abstract";
 import { Base } from "../../../abstracts/base.abstract";
 
@@ -415,6 +415,7 @@ class AuthHandler extends Base {
             return res.status(500).json({success: false,  message: err.message });
         }
     }
+
 
     @handleAsyncError()
     public async verifyResetPasswordOtp(): Promise<Response> {

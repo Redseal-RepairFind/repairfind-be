@@ -60,6 +60,7 @@ var routes_1 = __importDefault(require("./modules/contractor/routes/routes")); /
 var routes_2 = __importDefault(require("./modules/admin/routes/routes")); // //admin routes
 var routes_3 = __importDefault(require("./modules/customer/routes/routes")); //customer route
 var routes_4 = __importDefault(require("./modules/common/routes/routes"));
+var seeders_1 = require("./database/seeders");
 var router = express_1.default.Router();
 var app = (0, express_1.default)();
 var csrfProtection = (0, csurf_1.default)({ cookie: true });
@@ -83,9 +84,7 @@ app.use(express_1.default.json({ limit: '50mb' }));
 app.use(express_1.default.urlencoded({ extended: true, limit: '50mb' }));
 app.use("/uploads", express_1.default.static("../public"));
 app.use(express_1.default.json());
-app.use((0, cors_1.default)({
-    origin: "*",
-}));
+app.use((0, cors_1.default)({ origin: "*" }));
 app.use((0, helmet_1.default)());
 //app.use(logger);
 dotenv_1.default.config();
@@ -98,6 +97,8 @@ var MONGODB_URI = process.env.MONGODB_URI;
                 useNewUrlParser: true,
                 useUnifiedTopology: true,
             });
+            // run seeders
+            (0, seeders_1.RunSeeders)();
             console.log("Connected To Database - Initial Connection");
         }
         catch (err) {

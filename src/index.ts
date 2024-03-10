@@ -21,6 +21,7 @@ import contractorRoute from "./modules/contractor/routes/routes"; //contractor r
 import adminRoute from "./modules/admin/routes/routes"; // //admin routes
 import customerRoute from "./modules/customer/routes/routes"; //customer route
 import commonRoute from "./modules/common/routes/routes";
+import { RunSeeders } from "./database/seeders";
 const router = express.Router();
 
 const app = express();
@@ -53,11 +54,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 app.use("/uploads", express.static("../public"));
 app.use(express.json());
-app.use(
-  cors({
-    origin: "*",
-  })
-);
+app.use(cors({ origin: "*"}));
 app.use(helmet());
 //app.use(logger);
 dotenv.config();
@@ -71,6 +68,9 @@ const MONGODB_URI = process.env.MONGODB_URI as string;
       useNewUrlParser: true,
       useUnifiedTopology: true,
     } as ConnectOptions);
+    
+    // run seeders
+    RunSeeders()
     console.log("Connected To Database - Initial Connection");
   } catch (err) {
     console.log(

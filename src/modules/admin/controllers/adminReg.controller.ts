@@ -2,7 +2,7 @@ import { validationResult } from "express-validator";
 import bcrypt from "bcrypt";
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import AdminRegModel from "../../../database/admin/models/adminReg.model";
+import AdminRegModel from "../../../database/admin/models/admin.model";
 import { OTP_EXPIRY_TIME, generateOTP } from "../../../utils/otpGenerator";
 import { sendEmail } from "../../../utils/send_email_utility";
 import { htmlMailTemplate } from "../../../templates/sendEmailTemplate";

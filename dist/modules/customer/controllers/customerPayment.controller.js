@@ -53,8 +53,8 @@ var customerJob_controller_1 = require("./customerJob.controller");
 var transaction_model_1 = __importDefault(require("../../../database/admin/models/transaction.model"));
 var jobRequestTemplate_1 = require("../../../templates/contractorEmail/jobRequestTemplate");
 var adminPaymentTemplate_1 = require("../../../templates/adminEmail/adminPaymentTemplate");
-var adminReg_model_1 = __importDefault(require("../../../database/admin/models/adminReg.model"));
-var adminNotification_model_1 = __importDefault(require("../../../database/admin/models/adminNotification.model"));
+var admin_model_1 = __importDefault(require("../../../database/admin/models/admin.model"));
+var admin_notification_model_1 = __importDefault(require("../../../database/admin/models/admin_notification.model"));
 // pay 50 doller for inspectopn /////////////
 var customerInpectionMonneyCheckoutContractorController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, time, description, address, inspection, postalCode, contractorId, jobTitle, files, errors, customer, customerId, checkCustomer, checkContractor, inspectionVal, images, i, file, fileId, uploadFile, secret, stripeInstance, inpection, job, saveeJob, jobId, generateInvoce, invoiceId, newTransaction, saveTransaction, transactionId, paymentIntent, err_1;
@@ -467,7 +467,7 @@ var customerComfirmInpection = function (jobId, customerId, transactionId) { ret
                 return [4 /*yield*/, (0, send_email_utility_1.sendEmail)(emailData)];
             case 7:
                 _a.sent();
-                return [4 /*yield*/, adminReg_model_1.default.find()];
+                return [4 /*yield*/, admin_model_1.default.find()];
             case 8:
                 admins = _a.sent();
                 adminPaymentHtml = (0, adminPaymentTemplate_1.htmlAdminPaymentTemplate)(jobId, checkCustomer._id, '50 for inspection');
@@ -489,7 +489,7 @@ var customerComfirmInpection = function (jobId, customerId, transactionId) { ret
                 i++;
                 return [3 /*break*/, 9];
             case 12:
-                adminNoti = new adminNotification_model_1.default({
+                adminNoti = new admin_notification_model_1.default({
                     title: "Job Site Visit Payment",
                     message: "".concat(checkCustomer.firstName, " just paid $50 for site inspection."),
                     status: "unseen"

@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerAuthController = exports.appleSignon = exports.facebookSignon = exports.googleSignon = exports.verifyResetPasswordOtp = exports.resetPassword = exports.forgotPassword = exports.updateProfile = exports.resendEmail = exports.signIn = exports.verifyEmail = exports.signUp = void 0;
+exports.CustomerAuthController = exports.appleSignon = exports.facebookSignon = exports.googleSignon = exports.verifyResetPasswordOtp = exports.resetPassword = exports.forgotPassword = exports.resendEmail = exports.signIn = exports.verifyEmail = exports.signUp = void 0;
 var express_validator_1 = require("express-validator");
 var bcrypt_1 = __importDefault(require("bcrypt"));
 var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
@@ -47,10 +47,8 @@ var customer_model_1 = __importDefault(require("../../../database/customer/model
 var otpGenerator_1 = require("../../../utils/otpGenerator");
 var send_email_utility_1 = require("../../../utils/send_email_utility");
 var sendEmailTemplate_1 = require("../../../templates/sendEmailTemplate");
-var upload_utility_1 = require("../../../utils/upload.utility");
-var uuid_1 = require("uuid");
 var customerWelcomTemplate_1 = require("../../../templates/customerEmail/customerWelcomTemplate");
-var adminNotification_model_1 = __importDefault(require("../../../database/admin/models/adminNotification.model"));
+var admin_notification_model_1 = __importDefault(require("../../../database/admin/models/admin_notification.model"));
 var google_1 = require("../../../services/google");
 var customer_interface_1 = require("../../../database/customer/interface/customer.interface");
 var facebook_1 = require("../../../services/facebook");
@@ -111,7 +109,7 @@ var signUp = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                 return [4 /*yield*/, customer.save()];
             case 3:
                 customerSaved = _b.sent();
-                adminNoti = new adminNotification_model_1.default({
+                adminNoti = new admin_notification_model_1.default({
                     title: "New Account Created",
                     message: "A customer - ".concat(lastName, "  just created an account."),
                     status: "unseen"
@@ -311,62 +309,8 @@ var resendEmail = function (req, res) { return __awaiter(void 0, void 0, void 0,
     });
 }); };
 exports.resendEmail = resendEmail;
-//customer customer update profile /////////////
-var updateProfile = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, fullName, location_1, phoneNumber, errors, customer, customerId, file, customerDb, profileImage, filename, result, updateBioData, err_5;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0:
-                _b.trys.push([0, 6, , 7]);
-                _a = req.body, fullName = _a.fullName, location_1 = _a.location, phoneNumber = _a.phoneNumber;
-                errors = (0, express_validator_1.validationResult)(req);
-                if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
-                }
-                customer = req.customer;
-                customerId = customer.id;
-                file = req.file;
-                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
-            case 1:
-                customerDb = _b.sent();
-                // check if customer exists
-                if (!customerDb) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ message: "incorrect Id" })];
-                }
-                profileImage = void 0;
-                if (!!file) return [3 /*break*/, 2];
-                profileImage = customerDb.profileImg;
-                return [3 /*break*/, 4];
-            case 2:
-                filename = (0, uuid_1.v4)();
-                return [4 /*yield*/, (0, upload_utility_1.uploadToS3)(req.file.buffer, "".concat(filename, ".jpg"))];
-            case 3:
-                result = _b.sent();
-                profileImage = result === null || result === void 0 ? void 0 : result.Location;
-                _b.label = 4;
-            case 4: return [4 /*yield*/, customer_model_1.default.findOneAndUpdate({ _id: customerId }, {
-                    fullName: fullName,
-                    phoneNumber: phoneNumber,
-                    location: location_1,
-                    profileImg: profileImage
-                }, { new: true })];
-            case 5:
-                updateBioData = _b.sent();
-                return [2 /*return*/, res.status(200).json({ message: "data successfully updated" })];
-            case 6:
-                err_5 = _b.sent();
-                // signup error
-                res.status(500).json({ message: err_5.message });
-                return [3 /*break*/, 7];
-            case 7: return [2 /*return*/];
-        }
-    });
-}); };
-exports.updateProfile = updateProfile;
 var forgotPassword = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var email, errors, customer, otp, createdTime, html, emailData, err_6;
+    var email, errors, customer, otp, createdTime, html, emailData, err_5;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -403,8 +347,8 @@ var forgotPassword = function (req, res) { return __awaiter(void 0, void 0, void
                 (0, send_email_utility_1.sendEmail)(emailData);
                 return [2 /*return*/, res.status(200).json({ success: true, message: "OTP sent successfully to your email." })];
             case 3:
-                err_6 = _a.sent();
-                res.status(500).json({ success: false, message: err_6.message });
+                err_5 = _a.sent();
+                res.status(500).json({ success: false, message: err_5.message });
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
         }
@@ -412,7 +356,7 @@ var forgotPassword = function (req, res) { return __awaiter(void 0, void 0, void
 }); };
 exports.forgotPassword = forgotPassword;
 var resetPassword = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, email, otp, password, errors, customer, _b, createdTime, verified, timeDiff, hashedPassword, err_7;
+    var _a, email, otp, password, errors, customer, _b, createdTime, verified, timeDiff, hashedPassword, err_6;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
@@ -448,8 +392,8 @@ var resetPassword = function (req, res) { return __awaiter(void 0, void 0, void 
                 _c.sent();
                 return [2 /*return*/, res.status(200).json({ success: true, message: "password successfully change" })];
             case 4:
-                err_7 = _c.sent();
-                res.status(500).json({ success: false, message: err_7.message });
+                err_6 = _c.sent();
+                res.status(500).json({ success: false, message: err_6.message });
                 return [3 /*break*/, 5];
             case 5: return [2 /*return*/];
         }
@@ -457,7 +401,7 @@ var resetPassword = function (req, res) { return __awaiter(void 0, void 0, void 
 }); };
 exports.resetPassword = resetPassword;
 var verifyResetPasswordOtp = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, email, otp, errors, customer, _b, createdTime, verified, timeDiff, err_8;
+    var _a, email, otp, errors, customer, _b, createdTime, verified, timeDiff, err_7;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
@@ -486,8 +430,8 @@ var verifyResetPasswordOtp = function (req, res) { return __awaiter(void 0, void
                 _c.sent();
                 return [2 /*return*/, res.status(200).json({ success: true, message: "OTP verified successfully" })];
             case 3:
-                err_8 = _c.sent();
-                res.status(500).json({ success: false, message: err_8.message });
+                err_7 = _c.sent();
+                res.status(500).json({ success: false, message: err_7.message });
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
         }
@@ -496,7 +440,7 @@ var verifyResetPasswordOtp = function (req, res) { return __awaiter(void 0, void
 exports.verifyResetPasswordOtp = verifyResetPasswordOtp;
 //customer signup /////////////
 var googleSignon = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var accessToken, errors, providerUser, email, name_1, picture, sub, firstName, lastName, createdTime, emailOtp, user, token, err_9;
+    var accessToken, errors, providerUser, email, name_1, picture, sub, firstName, lastName, createdTime, emailOtp, user, token, err_8;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -555,9 +499,9 @@ var googleSignon = function (req, res) { return __awaiter(void 0, void 0, void 0
                 });
                 return [3 /*break*/, 4];
             case 3:
-                err_9 = _a.sent();
+                err_8 = _a.sent();
                 // signup error
-                res.status(500).json({ success: false, message: err_9.message });
+                res.status(500).json({ success: false, message: err_8.message });
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
         }
@@ -565,7 +509,7 @@ var googleSignon = function (req, res) { return __awaiter(void 0, void 0, void 0
 }); };
 exports.googleSignon = googleSignon;
 var facebookSignon = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var accessToken, errors, providerUser, id, name_2, email, picture, firstName, lastName, createdTime, emailOtp, user, token, err_10;
+    var accessToken, errors, providerUser, id, name_2, email, picture, firstName, lastName, createdTime, emailOtp, user, token, err_9;
     var _a;
     return __generator(this, function (_b) {
         switch (_b.label) {
@@ -625,9 +569,9 @@ var facebookSignon = function (req, res) { return __awaiter(void 0, void 0, void
                 });
                 return [3 /*break*/, 4];
             case 3:
-                err_10 = _b.sent();
+                err_9 = _b.sent();
                 // signup error
-                res.status(500).json({ success: false, message: err_10.message });
+                res.status(500).json({ success: false, message: err_9.message });
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
         }
@@ -635,7 +579,7 @@ var facebookSignon = function (req, res) { return __awaiter(void 0, void 0, void
 }); };
 exports.facebookSignon = facebookSignon;
 var appleSignon = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, id_token, email, first_name, last_name, errors, decodedToken, appleUserId, appleEmail, firstName, lastName, createdTime, emailOtp, user, token, err_11;
+    var _a, id_token, email, first_name, last_name, errors, decodedToken, appleUserId, appleEmail, firstName, lastName, createdTime, emailOtp, user, token, err_10;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -692,9 +636,9 @@ var appleSignon = function (req, res) { return __awaiter(void 0, void 0, void 0,
                 });
                 return [3 /*break*/, 3];
             case 2:
-                err_11 = _b.sent();
+                err_10 = _b.sent();
                 // Handle errors appropriately
-                res.status(500).json({ success: false, message: err_11.message });
+                res.status(500).json({ success: false, message: err_10.message });
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
         }
@@ -708,7 +652,6 @@ exports.CustomerAuthController = {
     resetPassword: exports.resetPassword,
     signIn: exports.signIn,
     resendEmail: exports.resendEmail,
-    updateProfile: exports.updateProfile,
     verifyResetPasswordOtp: exports.verifyResetPasswordOtp,
     googleSignon: exports.googleSignon,
     facebookSignon: exports.facebookSignon

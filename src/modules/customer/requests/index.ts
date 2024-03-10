@@ -39,6 +39,15 @@ export const resetPasswordParams = [
     body("otp").notEmpty(),
     body("password").notEmpty(),
 ];
+
+export const changePasswordParams = [
+  body("currentPassword").notEmpty(),
+  body("newPassword").notEmpty(),
+  body('newPasswordConfirmation')
+  .exists({ checkFalsy: true }).withMessage('You must type a confirmation password')
+  .custom((value, { req }) => value === req.body.newPassword).withMessage('The passwords do not match'),
+];
+
 export const verifyPasswordOtpParams = [
     body("email").isEmail(),
     body("otp").notEmpty(),
@@ -106,6 +115,7 @@ export const CustomerHttpRequest = {
   loginParams,
   forgotPasswordParams,
   resetPasswordParams,
+  changePasswordParams,
   searchParams,
   getContractorParams,
   updateProfileParams,

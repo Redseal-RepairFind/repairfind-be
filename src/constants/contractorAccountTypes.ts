@@ -1,5 +1,5 @@
 export enum contractorAccountTypes {
   Individual = "Individual",
   Company = "Company",
-  JourneyMan = "Employee",
+  Employee = "Employee",
 }

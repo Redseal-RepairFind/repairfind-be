@@ -5,5 +5,5 @@ var contractorAccountTypes;
 (function (contractorAccountTypes) {
     contractorAccountTypes["Individual"] = "Individual";
     contractorAccountTypes["Company"] = "Company";
-    contractorAccountTypes["JourneyMan"] = "Employee";
+    contractorAccountTypes["Employee"] = "Employee";
 })(contractorAccountTypes || (exports.contractorAccountTypes = contractorAccountTypes = {}));

@@ -123,6 +123,14 @@ export const EmailVerificationRequest = [
     body("password").notEmpty(),
   ];
 
+  export const PasswordChangeRequest = [
+    body("currentPassword").notEmpty(),
+    body("newPassword").notEmpty(),
+    body('newPasswordConfirmation')
+    .exists({ checkFalsy: true }).withMessage('You must type a confirmation password')
+    .custom((value, { req }) => value === req.body.newPassword).withMessage('The passwords do not match'),
+  ];
+
   export const UpdateBankDetailRequest = [
     body("institutionName").notEmpty(),
     body("transitNumber").notEmpty(),
@@ -165,6 +173,7 @@ export const ContractorHttpRequest = {
     UpdateBankDetailRequest,
     InviteToTeam,
     CreateScheduleRequest,
-    UpdateProfileRequest
+    UpdateProfileRequest,
+    PasswordChangeRequest
     
 }

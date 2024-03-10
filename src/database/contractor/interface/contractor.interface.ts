@@ -12,7 +12,10 @@ export interface IContractor extends Document {
   password: string;
   dateOfBirth?: string;
   status: string;
-  phoneNumber: string;
+  phoneNumber: {
+    code: string,
+    number: string
+  };  
   accountType: string;
   profilePhoto: {
     type: object

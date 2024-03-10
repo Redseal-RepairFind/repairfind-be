@@ -1,6 +1,6 @@
 import { validationResult } from "express-validator";
 import { Request, Response } from "express";
-import AdminRegModel from "../../../database/admin/models/adminReg.model";
+import AdminRegModel from "../../../database/admin/models/admin.model";
 import ContractorDocumentValidateModel from "../../../database/contractor/models/contractorDocumentValidate.model";
 import ContractorAvailabilityModel from "../../../database/contractor/models/contractorAvaliability.model";
 import {ContractorModel} from "../../../database/contractor/models/contractor.model";

@@ -43,7 +43,7 @@ exports.adminUpdateBioController = exports.adminResendEmailController = exports.
 var express_validator_1 = require("express-validator");
 var bcrypt_1 = __importDefault(require("bcrypt"));
 var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-var adminReg_model_1 = __importDefault(require("../../../database/admin/models/adminReg.model"));
+var admin_model_1 = __importDefault(require("../../../database/admin/models/admin.model"));
 var otpGenerator_1 = require("../../../utils/otpGenerator");
 var send_email_utility_1 = require("../../../utils/send_email_utility");
 var sendEmailTemplate_1 = require("../../../templates/sendEmailTemplate");
@@ -61,12 +61,12 @@ var adminSignUpController = function (req, res) { return __awaiter(void 0, void 
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
-                return [4 /*yield*/, adminReg_model_1.default.findOne({ email: email })];
+                return [4 /*yield*/, admin_model_1.default.findOne({ email: email })];
             case 1:
                 adminEmailExists = _b.sent();
                 superAdmin = false;
                 validation = false;
-                return [4 /*yield*/, adminReg_model_1.default.find()];
+                return [4 /*yield*/, admin_model_1.default.find()];
             case 2:
                 checkFirstAdmin = _b.sent();
                 // we need a better way validate and manage admins, probably from cli or something
@@ -100,7 +100,7 @@ var adminSignUpController = function (req, res) { return __awaiter(void 0, void 
                 return [4 /*yield*/, bcrypt_1.default.hash(password, 10)];
             case 3:
                 hashedPassword = _b.sent();
-                admin = new adminReg_model_1.default({
+                admin = new admin_model_1.default({
                     email: email,
                     firstName: firstName,
                     lastName: lastName,
@@ -144,7 +144,7 @@ var adminVerifiedEmailController = function (req, res) { return __awaiter(void 0
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
-                return [4 /*yield*/, adminReg_model_1.default.findOne({ email: email })];
+                return [4 /*yield*/, admin_model_1.default.findOne({ email: email })];
             case 1:
                 admin = _b.sent();
                 // check if contractor exists
@@ -194,7 +194,7 @@ var AdminSignInController = function (req, res) { return __awaiter(void 0, void 
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
-                return [4 /*yield*/, adminReg_model_1.default.findOne({ email: email })];
+                return [4 /*yield*/, admin_model_1.default.findOne({ email: email })];
             case 1:
                 admin = _b.sent();
                 // check if user exists
@@ -215,7 +215,7 @@ var AdminSignInController = function (req, res) { return __awaiter(void 0, void 
                 if (!admin.validation) {
                     return [2 /*return*/, res.status(401).json({ message: "unvalidated admin." })];
                 }
-                return [4 /*yield*/, adminReg_model_1.default.findOne({ email: email }).select('-password')];
+                return [4 /*yield*/, admin_model_1.default.findOne({ email: email }).select('-password')];
             case 3:
                 profile = _b.sent();
                 accessToken = jsonwebtoken_1.default.sign({
@@ -253,7 +253,7 @@ var SuperAdminGetAllAdminController = function (req, res) { return __awaiter(voi
                 }
                 admin = req.admin;
                 adminId = admin.id;
-                return [4 /*yield*/, adminReg_model_1.default.findOne({ _id: adminId })];
+                return [4 /*yield*/, admin_model_1.default.findOne({ _id: adminId })];
             case 1:
                 checkAdmin = _b.sent();
                 if (!(checkAdmin === null || checkAdmin === void 0 ? void 0 : checkAdmin.superAdmin)) {
@@ -261,7 +261,7 @@ var SuperAdminGetAllAdminController = function (req, res) { return __awaiter(voi
                             .status(401)
                             .json({ message: "super admin role" })];
                 }
-                return [4 /*yield*/, adminReg_model_1.default.find().select('-password')];
+                return [4 /*yield*/, admin_model_1.default.find().select('-password')];
             case 2:
                 admins = _b.sent();
                 res.json({
@@ -292,7 +292,7 @@ var SuperAdminValidateOtherAdminController = function (req, res) { return __awai
                 }
                 admin = req.admin;
                 adminId = admin.id;
-                return [4 /*yield*/, adminReg_model_1.default.findOne({ _id: adminId })];
+                return [4 /*yield*/, admin_model_1.default.findOne({ _id: adminId })];
             case 1:
                 checkAdmin = _a.sent();
                 if (!(checkAdmin === null || checkAdmin === void 0 ? void 0 : checkAdmin.superAdmin)) {
@@ -300,7 +300,7 @@ var SuperAdminValidateOtherAdminController = function (req, res) { return __awai
                             .status(401)
                             .json({ message: "super admin role" })];
                 }
-                return [4 /*yield*/, adminReg_model_1.default.findOne({ _id: subAdminId })];
+                return [4 /*yield*/, admin_model_1.default.findOne({ _id: subAdminId })];
             case 2:
                 subAdmin = _a.sent();
                 if (!subAdmin) {
@@ -348,7 +348,7 @@ var adminResendEmailController = function (req, res) { return __awaiter(void 0, 
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
-                return [4 /*yield*/, adminReg_model_1.default.findOne({ email: email })];
+                return [4 /*yield*/, admin_model_1.default.findOne({ email: email })];
             case 1:
                 admin = _a.sent();
                 // check if contractor exists
@@ -405,7 +405,7 @@ var adminUpdateBioController = function (req, res) { return __awaiter(void 0, vo
                 }
                 admin = req.admin;
                 adminId = admin.id;
-                return [4 /*yield*/, adminReg_model_1.default.findOne({ _id: adminId })];
+                return [4 /*yield*/, admin_model_1.default.findOne({ _id: adminId })];
             case 1:
                 adminExists = _b.sent();
                 // check if user exists

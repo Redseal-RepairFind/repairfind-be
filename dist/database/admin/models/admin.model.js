@@ -55,5 +55,5 @@ var AdminRegSchema = new mongoose_1.Schema({
 }, {
     timestamps: true,
 });
-var AdminRegrModel = (0, mongoose_1.model)("AdminReg", AdminRegSchema);
-exports.default = AdminRegrModel;
+var AdminModel = (0, mongoose_1.model)("admins", AdminRegSchema);
+exports.default = AdminModel;

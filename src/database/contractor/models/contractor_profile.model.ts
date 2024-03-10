@@ -84,10 +84,6 @@ const CompanyProfileSchema = new Schema<IContractorProfile>(
         type: String,
       },
       
-      phoneNumber: {
-        code: String,
-        number: String,
-      },
       email: {
         type: String,
       },

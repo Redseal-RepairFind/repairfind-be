@@ -46,10 +46,10 @@ var uuid_1 = require("uuid");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var contractorDocumentValidate_model_1 = __importDefault(require("../../../database/contractor/models/contractorDocumentValidate.model"));
 var send_email_utility_1 = require("../../../utils/send_email_utility");
-var adminReg_model_1 = __importDefault(require("../../../database/admin/models/adminReg.model"));
+var admin_model_1 = __importDefault(require("../../../database/admin/models/admin.model"));
 var skill_model_1 = __importDefault(require("../../../database/admin/models/skill.model"));
 var node_fetch_1 = __importDefault(require("node-fetch"));
-var adminNotification_model_1 = __importDefault(require("../../../database/admin/models/adminNotification.model"));
+var admin_notification_model_1 = __importDefault(require("../../../database/admin/models/admin_notification.model"));
 var adminContractorDocumentTemplate_1 = require("../../../templates/adminEmail/adminContractorDocumentTemplate");
 var contractorDocumentTemplate_1 = require("../../../templates/contractorEmail/contractorDocumentTemplate");
 //contractor add or validate document /////////////
@@ -168,7 +168,7 @@ var contractorAddDocumentController = function (req, res) { return __awaiter(voi
                 };
                 (0, send_email_utility_1.sendEmail)(emailData);
                 html = (0, adminContractorDocumentTemplate_1.htmlContractorDocumentValidatinToAdminTemplate)(contractorExist.firstName);
-                return [4 /*yield*/, adminReg_model_1.default.find()];
+                return [4 /*yield*/, admin_model_1.default.find()];
             case 7:
                 admins = _b.sent();
                 for (i = 0; i < admins.length; i++) {
@@ -291,7 +291,7 @@ var contractorComfirmCertnValidationController = function (req, res) { return __
                 ];
             case 6:
                 _b.sent();
-                adminNoti = new adminNotification_model_1.default({
+                adminNoti = new admin_notification_model_1.default({
                     title: "Contractor’s Personal Information Submitted",
                     message: "".concat(contractorExist.firstName, " has successfully submitted his background check and has been verified"),
                     status: "unseen"

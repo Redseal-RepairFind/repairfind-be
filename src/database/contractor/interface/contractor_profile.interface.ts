@@ -49,12 +49,6 @@ export interface IContractorProfile extends Document {
   about: string;
   website: string;
   email: string;
-  phoneNumber: {
-    type:{
-      code: String,
-      number: String
-    }
-  };
   emergencyJobs: boolean;
   availableDays: {
     type: Array<String>,

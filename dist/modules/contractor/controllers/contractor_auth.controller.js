@@ -92,7 +92,7 @@ var otpGenerator_1 = require("../../../utils/otpGenerator");
 var send_email_utility_1 = require("../../../utils/send_email_utility");
 var sendEmailTemplate_1 = require("../../../templates/sendEmailTemplate");
 var contractorWelcomeTemplate_1 = require("../../../templates/contractorEmail/contractorWelcomeTemplate");
-var adminNotification_model_1 = __importDefault(require("../../../database/admin/models/adminNotification.model"));
+var admin_notification_model_1 = __importDefault(require("../../../database/admin/models/admin_notification.model"));
 var decorators_abstract_1 = require("../../../abstracts/decorators.abstract");
 var base_abstract_1 = require("../../../abstracts/base.abstract");
 var AuthHandler = /** @class */ (function (_super) {
@@ -165,7 +165,7 @@ var AuthHandler = /** @class */ (function (_super) {
                         return [4 /*yield*/, contractor.save()];
                     case 6:
                         contractorSaved = _b.sent();
-                        adminNoti = new adminNotification_model_1.default({
+                        adminNoti = new admin_notification_model_1.default({
                             title: "New Account Created",
                             message: "A contractor - ".concat(firstName, " just created an account."),
                             status: "unseen"

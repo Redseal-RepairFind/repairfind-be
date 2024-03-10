@@ -26,5 +26,5 @@ var AdminNotificationSchema = new mongoose_1.Schema({
 }, {
     timestamps: true,
 });
-var AdminNotificationModel = (0, mongoose_1.model)("AdminNotification", AdminNotificationSchema);
+var AdminNotificationModel = (0, mongoose_1.model)("admin_notifications", AdminNotificationSchema);
 exports.default = AdminNotificationModel;

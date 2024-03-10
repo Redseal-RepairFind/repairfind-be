@@ -42,7 +42,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AdminEmailResetPasswordController = exports.AdminEmailForgotPasswordController = void 0;
 var express_validator_1 = require("express-validator");
 var bcrypt_1 = __importDefault(require("bcrypt"));
-var adminReg_model_1 = __importDefault(require("../../../database/admin/models/adminReg.model"));
+var admin_model_1 = __importDefault(require("../../../database/admin/models/admin.model"));
 var otpGenerator_1 = require("../../../utils/otpGenerator");
 var send_email_utility_1 = require("../../../utils/send_email_utility");
 var sendEmailTemplate_1 = require("../../../templates/sendEmailTemplate");
@@ -58,7 +58,7 @@ var AdminEmailForgotPasswordController = function (req, res) { return __awaiter(
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
-                return [4 /*yield*/, adminReg_model_1.default.findOne({ email: email })];
+                return [4 /*yield*/, admin_model_1.default.findOne({ email: email })];
             case 1:
                 admin = _a.sent();
                 // check if user exists
@@ -107,7 +107,7 @@ var AdminEmailResetPasswordController = function (req, res) { return __awaiter(v
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
-                return [4 /*yield*/, adminReg_model_1.default.findOne({ email: email })];
+                return [4 /*yield*/, admin_model_1.default.findOne({ email: email })];
             case 1:
                 admin = _c.sent();
                 // check if contractor exists

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerHttpRequest = exports.rateContractorParams = exports.confirmInspectionPaymentParams = exports.confirmPaymentParams = exports.acceptAndPayParams = exports.updateProfileParams = exports.getContractorParams = exports.searchParams = exports.verifyPasswordOtpParams = exports.resetPasswordParams = exports.forgotPasswordParams = exports.loginParams = exports.verifySocialSignon = exports.emailVerificationParams = exports.signupParams = void 0;
+exports.CustomerHttpRequest = exports.rateContractorParams = exports.confirmInspectionPaymentParams = exports.confirmPaymentParams = exports.acceptAndPayParams = exports.updateProfileParams = exports.getContractorParams = exports.searchParams = exports.verifyPasswordOtpParams = exports.changePasswordParams = exports.resetPasswordParams = exports.forgotPasswordParams = exports.loginParams = exports.verifySocialSignon = exports.emailVerificationParams = exports.signupParams = void 0;
 var express_validator_1 = require("express-validator");
 exports.signupParams = [
     (0, express_validator_1.body)("email").isEmail(),
@@ -39,6 +39,16 @@ exports.resetPasswordParams = [
     (0, express_validator_1.body)("email").isEmail(),
     (0, express_validator_1.body)("otp").notEmpty(),
     (0, express_validator_1.body)("password").notEmpty(),
+];
+exports.changePasswordParams = [
+    (0, express_validator_1.body)("currentPassword").notEmpty(),
+    (0, express_validator_1.body)("newPassword").notEmpty(),
+    (0, express_validator_1.body)('newPasswordConfirmation')
+        .exists({ checkFalsy: true }).withMessage('You must type a confirmation password')
+        .custom(function (value, _a) {
+        var req = _a.req;
+        return value === req.body.newPassword;
+    }).withMessage('The passwords do not match'),
 ];
 exports.verifyPasswordOtpParams = [
     (0, express_validator_1.body)("email").isEmail(),
@@ -96,6 +106,7 @@ exports.CustomerHttpRequest = {
     loginParams: exports.loginParams,
     forgotPasswordParams: exports.forgotPasswordParams,
     resetPasswordParams: exports.resetPasswordParams,
+    changePasswordParams: exports.changePasswordParams,
     searchParams: exports.searchParams,
     getContractorParams: exports.getContractorParams,
     updateProfileParams: exports.updateProfileParams,

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorHttpRequest = exports.CreateScheduleRequest = exports.InviteToTeam = exports.UpdateBankDetailRequest = exports.PasswordResetRequest = exports.ResendEmailRequest = exports.LoginRequest = exports.EmailVerificationRequest = exports.UpdateProfileRequest = exports.CreateProfileRequest = exports.CreateContractorRequest = void 0;
+exports.ContractorHttpRequest = exports.CreateScheduleRequest = exports.InviteToTeam = exports.UpdateBankDetailRequest = exports.PasswordChangeRequest = exports.PasswordResetRequest = exports.ResendEmailRequest = exports.LoginRequest = exports.EmailVerificationRequest = exports.UpdateProfileRequest = exports.CreateProfileRequest = exports.CreateContractorRequest = void 0;
 var express_validator_1 = require("express-validator");
 exports.CreateContractorRequest = [
     (0, express_validator_1.body)('email').isEmail(),
@@ -203,6 +203,16 @@ exports.PasswordResetRequest = [
     (0, express_validator_1.body)("otp").notEmpty(),
     (0, express_validator_1.body)("password").notEmpty(),
 ];
+exports.PasswordChangeRequest = [
+    (0, express_validator_1.body)("currentPassword").notEmpty(),
+    (0, express_validator_1.body)("newPassword").notEmpty(),
+    (0, express_validator_1.body)('newPasswordConfirmation')
+        .exists({ checkFalsy: true }).withMessage('You must type a confirmation password')
+        .custom(function (value, _a) {
+        var req = _a.req;
+        return value === req.body.newPassword;
+    }).withMessage('The passwords do not match'),
+];
 exports.UpdateBankDetailRequest = [
     (0, express_validator_1.body)("institutionName").notEmpty(),
     (0, express_validator_1.body)("transitNumber").notEmpty(),
@@ -236,5 +246,6 @@ exports.ContractorHttpRequest = {
     UpdateBankDetailRequest: exports.UpdateBankDetailRequest,
     InviteToTeam: exports.InviteToTeam,
     CreateScheduleRequest: exports.CreateScheduleRequest,
-    UpdateProfileRequest: exports.UpdateProfileRequest
+    UpdateProfileRequest: exports.UpdateProfileRequest,
+    PasswordChangeRequest: exports.PasswordChangeRequest
 };

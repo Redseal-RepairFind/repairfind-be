@@ -14,9 +14,27 @@ export interface ICustomer extends Document {
   password: string;
   firstName: string;
   lastName: string;
-  phoneNumber: string;
+  phoneNumber: {
+    code: string,
+    number: string
+  };    
   location: string;
-  profileImg: string;
+  profilePhoto: {
+    type: object
+    properties: {
+      url: {
+        type: String,
+        required: true,
+      },
+      label?: {
+        type: String,
+        unique: true,
+      },
+      descriptions?: {
+        type: Array<string>,
+      },
+    }
+  };
   passwordOtp: {
     otp: string;
     createdTime: Date;

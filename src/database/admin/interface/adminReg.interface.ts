@@ -1,6 +1,6 @@
 import { Document, Types, ObjectId } from "mongoose";
 
-export interface IAdminReg extends Document {
+export interface IAdmin extends Document {
   _id: ObjectId;
   
   email: string;

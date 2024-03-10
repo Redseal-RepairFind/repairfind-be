@@ -39,45 +39,54 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkAdminRole = void 0;
-var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-var admin_model_1 = __importDefault(require("../../../database/admin/models/admin.model"));
-var checkAdminRole = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var secret, authHeader, token, payload, admin, err_1;
+exports.CustomerSeeder = void 0;
+var customer_interface_1 = require("../customer/interface/customer.interface");
+var customer_model_1 = __importDefault(require("../customer/models/customer.model"));
+var customers = [
+    {
+        email: 'customer@repairfind.com',
+        password: '$2b$10$34E1yhh/3Z/O1cBn/5seAuyHOBuy/U6uZUH10rhFfAjdJKXehpN2y', // password
+        firstName: 'Customer',
+        lastName: 'User',
+        phoneNumber: {
+            "code": "+123",
+            "number": "3242342324"
+        },
+        location: 'Some Location',
+        passwordOtp: {
+            verified: true,
+        },
+        emailOtp: {
+            verified: true,
+        },
+        phoneNumberOtp: {
+            verified: true
+        },
+        profilePhoto: {
+            url: "https://dsfds"
+        },
+        acceptTerms: true,
+        provider: customer_interface_1.CustomerAuthProviders.PASSWORD
+    },
+];
+var CustomerSeeder = function (options) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                secret = process.env.JWT_ADMIN_SECRET_KEY;
-                authHeader = req.headers.authorization;
-                token = authHeader && authHeader.split(" ")[1];
-                if (!token) {
-                    return [2 /*return*/, res.status(401).json({ message: "Authorization token missing" })];
-                }
-                _a.label = 1;
-            case 1:
-                _a.trys.push([1, 3, , 4]);
-                payload = jsonwebtoken_1.default.verify(token, secret);
-                return [4 /*yield*/, admin_model_1.default.findOne({
-                        email: payload.email
-                    })];
-            case 2:
-                admin = _a.sent();
-                if (!admin) {
-                    return [2 /*return*/, res
-                            .status(403)
-                            .json({ message: "Access denied. admin role required." })];
-                }
-                // Add the payload to the request object for later use
-                req.admin = payload;
-                // Call the next middleware function
-                next();
-                return [3 /*break*/, 4];
-            case 3:
-                err_1 = _a.sent();
-                console.error(err_1);
-                return [2 /*return*/, res.status(401).json({ message: "Invalid authorization token" })];
-            case 4: return [2 /*return*/];
+        try {
+            customers.forEach(function (customer) { return __awaiter(void 0, void 0, void 0, function () {
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0: return [4 /*yield*/, customer_model_1.default.findOneAndUpdate({ email: customer.email }, customer, { upsert: true })];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
         }
+        catch (error) {
+            console.log("Error seeding challenge tags", error);
+        }
+        return [2 /*return*/];
     });
 }); };
-exports.checkAdminRole = checkAdminRole;
+exports.CustomerSeeder = CustomerSeeder;

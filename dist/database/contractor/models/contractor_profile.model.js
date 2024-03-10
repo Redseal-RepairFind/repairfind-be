@@ -65,10 +65,6 @@ var CompanyProfileSchema = new mongoose_1.Schema({
     website: {
         type: String,
     },
-    phoneNumber: {
-        code: String,
-        number: String,
-    },
     email: {
         type: String,
     },

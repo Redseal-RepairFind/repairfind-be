@@ -5,10 +5,10 @@ import { Request, Response } from "express";
 import {ContractorModel} from "../../../database/contractor/models/contractor.model";
 import ContractorDocumentValidateModel from "../../../database/contractor/models/contractorDocumentValidate.model";
 import { sendEmail } from "../../../utils/send_email_utility";
-import AdminRegModel from "../../../database/admin/models/adminReg.model";
+import AdminRegModel from "../../../database/admin/models/admin.model";
 import SkillRegrModel from "../../../database/admin/models/skill.model";
 import fetch from "node-fetch";
-import AdminNoficationModel from "../../../database/admin/models/adminNotification.model";
+import AdminNoficationModel from "../../../database/admin/models/admin_notification.model";
 import { htmlContractorDocumentValidatinToAdminTemplate } from "../../../templates/adminEmail/adminContractorDocumentTemplate";
 import { htmlContractorDocumentValidatinTemplate } from "../../../templates/contractorEmail/contractorDocumentTemplate";
 
