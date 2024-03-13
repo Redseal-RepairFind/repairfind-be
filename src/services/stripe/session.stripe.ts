@@ -13,8 +13,8 @@ export const createSession = async (payload: any) => {
         mode: payload.mode, // 'setup
         currency: payload.currency, // usd
         customer: payload.customer,
-        success_url: 'https://example.com/success?session_id={CHECKOUT_SESSION_ID}',
-        cancel_url: 'https://example.com/cancel',
+        success_url: 'https://repairfind.ca/payment-successful',
+        cancel_url: 'https://repairfind.ca/payment-cancelled/',
       });
     
       return session;

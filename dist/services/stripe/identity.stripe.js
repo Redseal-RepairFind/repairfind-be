@@ -39,33 +39,59 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createSession = void 0;
+exports.retrieveVerificationSession = exports.createVerificationSession = void 0;
 var stripe_1 = __importDefault(require("stripe"));
 var custom_errors_1 = require("../../utils/custom.errors");
 var STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 var stripeClient = new stripe_1.default(STRIPE_SECRET_KEY);
-var createSession = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var session, error_1;
+var createVerificationSession = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
+    var verificationSession, error_1;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 3, , 4]);
+                return [4 /*yield*/, stripeClient.identity.verificationSessions.create({
+                        type: 'document',
+                        options: {
+                            document: {
+                                require_matching_selfie: true,
+                            },
+                        },
+                        metadata: {
+                            user_id: '{{USER_ID}}',
+                        },
+                    })];
+            case 1:
+                verificationSession = _a.sent();
+                _a.label = 2;
+            case 2: return [2 /*return*/, verificationSession];
+            case 3:
+                error_1 = _a.sent();
+                // console.log(error)
+                throw new custom_errors_1.BadRequestError(error_1.message || "Something went wrong");
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.createVerificationSession = createVerificationSession;
+var retrieveVerificationSession = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
+    var verificationSession, error_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, stripeClient.checkout.sessions.create({
-                        mode: payload.mode, // 'setup
-                        currency: payload.currency, // usd
-                        customer: payload.customer,
-                        success_url: 'https://repairfind.ca/payment-successful',
-                        cancel_url: 'https://repairfind.ca/payment-cancelled/',
+                return [4 /*yield*/, stripeClient.identity.verificationSessions.retrieve('{{SESSION_ID}}', {
+                        expand: ['last_verification_report'],
                     })];
             case 1:
-                session = _a.sent();
-                return [2 /*return*/, session];
+                verificationSession = _a.sent();
+                return [2 /*return*/, verificationSession];
             case 2:
-                error_1 = _a.sent();
+                error_2 = _a.sent();
                 // console.log(error)
-                throw new custom_errors_1.BadRequestError(error_1.message || "Something went wrong");
+                throw new custom_errors_1.BadRequestError(error_2.message || "Something went wrong");
             case 3: return [2 /*return*/];
         }
     });
 }); };
-exports.createSession = createSession;
+exports.retrieveVerificationSession = retrieveVerificationSession;
