@@ -31,7 +31,7 @@ router.post("/me/change-password", checkCustomerRole, CustomerHttpRequest.change
 
 
 router.post("/stripe-account",  checkCustomerRole,  CustomerStripeController.createAccount ); 
-router.post("/stripe-session",  checkCustomerRole, CustomerStripeController.createSession ); 
+router.post("/stripe-session",  checkCustomerRole, CustomerHttpRequest.createStripeSessionParams, CustomerStripeController.createSession ); 
 
 // router.get("/get_popular_contractor", checkCustomerRole, customerGetPopularContractorController ); // customer get popular contractor
 // router.get("/search_contractor", checkCustomerRole, customerSearchForContractorController ); // customer search contractor

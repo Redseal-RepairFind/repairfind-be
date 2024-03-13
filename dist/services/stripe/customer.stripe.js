@@ -41,6 +41,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createCustomerAndAttachPaymentMethod = exports.createPaymentMethod = exports.getCustomer = exports.createCustomer = void 0;
 var stripe_1 = __importDefault(require("stripe"));
+var custom_errors_1 = require("../../utils/custom.errors");
 var STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 var stripe = new stripe_1.default(STRIPE_SECRET_KEY);
 var createCustomer = function (params) { return __awaiter(void 0, void 0, void 0, function () {
@@ -56,7 +57,7 @@ var createCustomer = function (params) { return __awaiter(void 0, void 0, void 0
 }); };
 exports.createCustomer = createCustomer;
 var getCustomer = function (query) { return __awaiter(void 0, void 0, void 0, function () {
-    var customer, e_1;
+    var customer, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -69,9 +70,8 @@ var getCustomer = function (query) { return __awaiter(void 0, void 0, void 0, fu
                 }
                 return [3 /*break*/, 3];
             case 2:
-                e_1 = _a.sent();
-                console.log(e_1);
-                return [3 /*break*/, 3];
+                error_1 = _a.sent();
+                throw new custom_errors_1.BadRequestError(error_1.message || "Something went wrong");
             case 3: return [2 /*return*/];
         }
     });

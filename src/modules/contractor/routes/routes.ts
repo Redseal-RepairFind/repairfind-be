@@ -97,7 +97,7 @@ router.get("/schedules/events", checkContractorRole, ScheduleContractor.getEvent
 
 
 router.post("/stripe-account", checkContractorRole,  ContractorStripeController.createAccount ); 
-router.post("/stripe-session",  checkContractorRole, ContractorStripeController.createSession ); 
+router.post("/stripe-session",  checkContractorRole, ContractorHttpRequest.CreateStripeSessionRequest,  ContractorStripeController.createSession ); 
 
 
 

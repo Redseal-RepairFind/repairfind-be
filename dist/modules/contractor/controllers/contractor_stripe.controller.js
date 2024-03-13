@@ -41,12 +41,12 @@ var express_validator_1 = require("express-validator");
 var stripe_1 = require("../../../services/stripe");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var createSession = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, memberId, role, contractorId, errors, contractor, stripeCustomer, stripeSession, error_1;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+    var mode, contractorId, errors, contractor, stripeCustomer, stripeSession, error_1;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
             case 0:
-                _b.trys.push([0, 6, , 7]);
-                _a = req.body, memberId = _a.memberId, role = _a.role;
+                _a.trys.push([0, 7, , 8]);
+                mode = req.body.mode;
                 contractorId = req.contractor.id;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
@@ -54,7 +54,7 @@ var createSession = function (req, res) { return __awaiter(void 0, void 0, void 
                 }
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
             case 1:
-                contractor = _b.sent();
+                contractor = _a.sent();
                 if (!contractor) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Contractor not found' })];
                 }
@@ -63,7 +63,7 @@ var createSession = function (req, res) { return __awaiter(void 0, void 0, void 
                         limit: 1
                     })];
             case 2:
-                stripeCustomer = _b.sent();
+                stripeCustomer = _a.sent();
                 if (!!stripeCustomer) return [3 /*break*/, 4];
                 return [4 /*yield*/, stripe_1.StripeService.customer.createCustomer({
                         email: contractor.email,
@@ -72,30 +72,32 @@ var createSession = function (req, res) { return __awaiter(void 0, void 0, void 
                         phone: "".concat(contractor.phoneNumber.code).concat(contractor.phoneNumber.number, " "),
                     })];
             case 3:
-                stripeCustomer = _b.sent();
-                _b.label = 4;
-            case 4: return [4 /*yield*/, stripe_1.StripeService.session.createSession({
-                    mode: 'setup',
-                    currency: 'usd',
-                    customer: '{{CUSTOMER_ID}}',
-                    setup_intent_data: {
-                        metadata: {
-                            userType: 'customer',
-                            userId: memberId,
+                stripeCustomer = _a.sent();
+                _a.label = 4;
+            case 4:
+                if (!stripeCustomer) return [3 /*break*/, 6];
+                return [4 /*yield*/, stripe_1.StripeService.session.createSession({
+                        mode: mode,
+                        currency: 'usd',
+                        customer: stripeCustomer.id,
+                        setup_intent_data: {
+                            metadata: {
+                                userType: 'contractor',
+                                userId: contractorId,
+                            }
                         }
-                    }
-                })];
+                    })];
             case 5:
-                stripeSession = _b.sent();
+                stripeSession = _a.sent();
                 contractor.stripeCustomer = stripeCustomer;
                 contractor.save();
                 return [2 /*return*/, res.status(200).json({ success: true, message: 'Stripe Session created', data: stripeSession })];
-            case 6:
-                error_1 = _b.sent();
-                console.error('Error inviting to team:', error_1);
-                res.status(500).json({ success: false, message: 'Internal Server Error' });
-                return [3 /*break*/, 7];
-            case 7: return [2 /*return*/];
+            case 6: return [3 /*break*/, 8];
+            case 7:
+                error_1 = _a.sent();
+                console.error('Error Creating Session', error_1);
+                return [2 /*return*/, res.status(error_1.code || 500).json({ success: false, message: error_1.message || 'Internal Server Error' })];
+            case 8: return [2 /*return*/];
         }
     });
 }); };
@@ -132,8 +134,7 @@ var createAccount = function (req, res) { return __awaiter(void 0, void 0, void 
             case 3:
                 error_2 = _b.sent();
                 console.error('Error creating stripe customer:', error_2);
-                res.status(500).json({ success: false, message: 'Internal Server Error' });
-                return [3 /*break*/, 4];
+                return [2 /*return*/, res.status(error_2.code || 500).json({ success: false, message: error_2.message || 'Internal Server Error' })];
             case 4: return [2 /*return*/];
         }
     });

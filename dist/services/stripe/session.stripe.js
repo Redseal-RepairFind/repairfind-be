@@ -41,6 +41,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createSession = void 0;
 var stripe_1 = __importDefault(require("stripe"));
+var custom_errors_1 = require("../../utils/custom.errors");
 var STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 var stripeClient = new stripe_1.default(STRIPE_SECRET_KEY);
 var createSession = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
@@ -52,7 +53,7 @@ var createSession = function (payload) { return __awaiter(void 0, void 0, void 0
                 return [4 /*yield*/, stripeClient.checkout.sessions.create({
                         mode: payload.mode, // 'setup
                         currency: payload.currency, // usd
-                        customer: payload.customerId,
+                        customer: payload.customer,
                         success_url: 'https://example.com/success?session_id={CHECKOUT_SESSION_ID}',
                         cancel_url: 'https://example.com/cancel',
                     })];
@@ -61,8 +62,8 @@ var createSession = function (payload) { return __awaiter(void 0, void 0, void 0
                 return [2 /*return*/, session];
             case 2:
                 error_1 = _a.sent();
-                console.log(error_1);
-                return [3 /*break*/, 3];
+                // console.log(error)
+                throw new custom_errors_1.BadRequestError(error_1.message || "Something went wrong");
             case 3: return [2 /*return*/];
         }
     });

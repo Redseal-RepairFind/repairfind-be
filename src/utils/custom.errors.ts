@@ -1,3 +1,5 @@
+import { Logger } from "./logger";
+
 export default class CustomError extends Error {
     code: number;
     message: string;
@@ -11,6 +13,8 @@ export default class CustomError extends Error {
        this.isOperational = true;
        this.message = message;
        this.name = name || 'error';
+
+
     }
  }
  

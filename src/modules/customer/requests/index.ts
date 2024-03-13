@@ -107,6 +107,10 @@ export const rateContractorParams = [
 ];
 
 
+export const createStripeSessionParams = [
+  body("mode").notEmpty(),
+];
+
 
 
 export const CustomerHttpRequest = {
@@ -124,5 +128,6 @@ export const CustomerHttpRequest = {
   confirmInspectionPaymentParams,
   rateContractorParams,
   verifyPasswordOtpParams,
-  verifySocialSignon
+  verifySocialSignon,
+  createStripeSessionParams
 }

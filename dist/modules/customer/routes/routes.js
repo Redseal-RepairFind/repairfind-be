@@ -22,7 +22,7 @@ router.patch("/me", customerRoleChecker_middleware_1.checkCustomerRole, customer
 router.get("/me", customerRoleChecker_middleware_1.checkCustomerRole, customer_controller_1.CustomerController.getAccount); // 
 router.post("/me/change-password", customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.changePasswordParams, customer_controller_1.CustomerController.changePassword); // customer update is profile
 router.post("/stripe-account", customerRoleChecker_middleware_1.checkCustomerRole, customer_stripe_controller_1.CustomerStripeController.createAccount);
-router.post("/stripe-session", customerRoleChecker_middleware_1.checkCustomerRole, customer_stripe_controller_1.CustomerStripeController.createSession);
+router.post("/stripe-session", customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.createStripeSessionParams, customer_stripe_controller_1.CustomerStripeController.createSession);
 // router.get("/get_popular_contractor", checkCustomerRole, customerGetPopularContractorController ); // customer get popular contractor
 // router.get("/search_contractor", checkCustomerRole, customerSearchForContractorController ); // customer search contractor
 // router.get("/get_all_contractor_on_skill", validateContractorSearckParams, checkCustomerRole, customerGetAllContractorOnSkillController ); // customer get all contractor on a skill

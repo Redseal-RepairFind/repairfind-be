@@ -143,6 +143,10 @@ export const EmailVerificationRequest = [
     body("role").notEmpty(),
   ];
 
+  export const CreateStripeSessionRequest = [
+    body("mode").notEmpty(),
+  ];
+
 
 
   export const CreateScheduleRequest = [
@@ -174,6 +178,7 @@ export const ContractorHttpRequest = {
     InviteToTeam,
     CreateScheduleRequest,
     UpdateProfileRequest,
-    PasswordChangeRequest
+    PasswordChangeRequest,
+    CreateStripeSessionRequest
     
 }

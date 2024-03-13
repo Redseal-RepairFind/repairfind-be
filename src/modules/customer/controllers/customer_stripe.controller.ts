@@ -9,7 +9,7 @@ import { IStripeCustomer } from '../../../database/customer/interface/customer.i
 
 export const createSession = async (req: any, res: Response) => {
     try {
-        const { memberId, role } = req.body;
+        const { mode } = req.body;
         const customerId = req.customer.id;
 
 
@@ -23,7 +23,6 @@ export const createSession = async (req: any, res: Response) => {
             return res.status(400).json({ success: false, message: 'Customer not found' });
         }
 
-        // check if user account exist
         let stripeCustomer = await StripeService.customer.getCustomer({
             email: customer.email,
             limit: 1
@@ -38,26 +37,26 @@ export const createSession = async (req: any, res: Response) => {
             })
         }
         
-        const stripeSession = await StripeService.session.createSession({
-            mode: 'setup',
-            currency: 'usd',
-            customer: '{{CUSTOMER_ID}}',
-            setup_intent_data: {
-                metadata: {
-                    userType: 'customer',
-                    userId: memberId,
+        if(stripeCustomer){
+            const stripeSession = await StripeService.session.createSession({
+                mode: mode,
+                currency: 'usd',
+                customer: stripeCustomer.id,
+                setup_intent_data: {
+                    metadata: {
+                        userType: 'customer',
+                        userId: customer.id,
+                    }
                 }
-            }
-        })
+            })
+            customer.stripeCustomer = <IStripeCustomer>stripeCustomer 
+            customer.save()
+            return res.status(200).json({ success: true, message: 'Stripe Session created', data: stripeSession });
+        }
 
-        customer.stripeCustomer = <IStripeCustomer>stripeCustomer 
-        customer.save()
-
-        return res.status(200).json({ success: true, message: 'Stripe Session created', data: stripeSession });
-
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error creating stripe session:', error);
-        res.status(500).json({ success: false, message: 'Internal Server Error' });
+        return res.status(error.code || 500).json({ success: false, message:  error.message || 'Internal Server Error' });
     }
 };
 
@@ -93,9 +92,9 @@ export const createAccount = async (req: any, res: Response) => {
 
         return res.status(200).json({ success: true, message: 'Stripe Customer created', data: stripeCustomer });
 
-    } catch (error) {
+    } catch (error:any) {
         console.error('Error creating stripe customer:', error);
-        res.status(500).json({ success: false, message: 'Internal Server Error' });
+        return res.status(error.code || 500).json({ success: false, message:  error.message || 'Internal Server Error' });
     }
 };
 

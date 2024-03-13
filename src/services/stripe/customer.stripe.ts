@@ -1,5 +1,6 @@
 
 import Stripe from 'stripe';
+import { BadRequestError } from '../../utils/custom.errors';
 
 const STRIPE_SECRET_KEY = <string>process.env.STRIPE_SECRET_KEY;
 const stripe = new Stripe(STRIPE_SECRET_KEY);
@@ -16,8 +17,8 @@ export const getCustomer = async (query: any) => {
    if(customer.data.length !== 0){
     return customer.data[0];
    }
-  } catch (e) {
-   console.log(e)
+  } catch (error: any) {
+   throw new BadRequestError(error.message || "Something went wrong");
  }
 
 
