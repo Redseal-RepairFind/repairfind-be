@@ -39,77 +39,32 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createCustomerAndAttachPaymentMethod = exports.createPaymentMethod = exports.getCustomer = exports.createCustomer = void 0;
+exports.createSession = void 0;
 var stripe_1 = __importDefault(require("stripe"));
 var STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
-var stripe = new stripe_1.default(STRIPE_SECRET_KEY);
-var createCustomer = function (params) { return __awaiter(void 0, void 0, void 0, function () {
-    var customer;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0: return [4 /*yield*/, stripe.customers.create(params)];
-            case 1:
-                customer = _a.sent();
-                return [2 /*return*/, customer];
-        }
-    });
-}); };
-exports.createCustomer = createCustomer;
-var getCustomer = function (query) { return __awaiter(void 0, void 0, void 0, function () {
-    var customer, e_1;
+var stripeClient = new stripe_1.default(STRIPE_SECRET_KEY);
+var createSession = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
+    var session, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, stripe.customers.list(query)];
+                return [4 /*yield*/, stripeClient.checkout.sessions.create({
+                        mode: payload.mode, // 'setup
+                        currency: payload.currency, // usd
+                        customer: payload.customerId,
+                        success_url: 'https://example.com/success?session_id={CHECKOUT_SESSION_ID}',
+                        cancel_url: 'https://example.com/cancel',
+                    })];
             case 1:
-                customer = _a.sent();
-                if (customer.data.length !== 0) {
-                    return [2 /*return*/, customer.data[0]];
-                }
-                return [3 /*break*/, 3];
+                session = _a.sent();
+                return [2 /*return*/, session];
             case 2:
-                e_1 = _a.sent();
-                console.log(e_1);
+                error_1 = _a.sent();
+                console.log(error_1);
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
         }
     });
 }); };
-exports.getCustomer = getCustomer;
-// Step 1: Create PaymentMethod
-var createPaymentMethod = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var paymentMethod;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0: return [4 /*yield*/, stripe.paymentMethods.create({
-                    type: 'card',
-                    card: {
-                        number: '4242424242424242',
-                        exp_month: 12,
-                        exp_year: 2022,
-                        cvc: '123',
-                    },
-                })];
-            case 1:
-                paymentMethod = _a.sent();
-                return [2 /*return*/, paymentMethod];
-        }
-    });
-}); };
-exports.createPaymentMethod = createPaymentMethod;
-// Step 2: Create Customer and Attach PaymentMethod
-var createCustomerAndAttachPaymentMethod = function (paymentMethodId) { return __awaiter(void 0, void 0, void 0, function () {
-    var customer;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0: return [4 /*yield*/, stripe.customers.create({
-                    payment_method: paymentMethodId,
-                })];
-            case 1:
-                customer = _a.sent();
-                return [2 /*return*/, customer];
-        }
-    });
-}); };
-exports.createCustomerAndAttachPaymentMethod = createCustomerAndAttachPaymentMethod;
+exports.createSession = createSession;

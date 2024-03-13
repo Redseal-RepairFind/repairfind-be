@@ -1,5 +1,8 @@
 import { Schema, model } from "mongoose";
 import { CustomerAuthProviders, ICustomer } from "../interface/customer.interface";
+import { StripeCustomerSchema } from "../../common/stripe_customer.schema";
+
+
 
 const CustomerSchema = new  Schema <ICustomer>(
     {
@@ -68,13 +71,20 @@ const CustomerSchema = new  Schema <ICustomer>(
         type: String,
         enum: Object.values(CustomerAuthProviders),
         default:  CustomerAuthProviders.PASSWORD
-      }
+      },
+
+      stripeCustomer: StripeCustomerSchema
     
     },
     {
       timestamps: true,
     }
   );
+
+  CustomerSchema.virtual('name').get(function () {
+    return `${this.firstName} ${this.lastName}`;
+  });
+  
   
   CustomerSchema.set('toJSON', {
     transform: function (doc, ret, options) {
@@ -82,9 +92,13 @@ const CustomerSchema = new  Schema <ICustomer>(
         delete ret.emailOtp;
         delete ret.passwordOtp;
         delete ret.phoneNumberOtp;
+        //  @ts-ignore
+        ret.name = doc.name;
         return ret;
     }
 });
+
+
 
 
   const CustomerModel = model<ICustomer>("customers", CustomerSchema);

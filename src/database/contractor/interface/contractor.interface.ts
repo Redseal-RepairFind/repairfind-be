@@ -1,4 +1,5 @@
 import { Document, Types, ObjectId } from "mongoose";
+import { IStripeCustomer } from "../../common/stripe_customer.interface";
 
 
 
@@ -49,6 +50,7 @@ export interface IContractor extends Document {
     createdTime: Date;
     verified: boolean;
   };
+  stripeCustomer: IStripeCustomer
   createdAt: Date;
   updatedAt: Date;
   quiz: any;

@@ -4,6 +4,7 @@ var customer_auth_controller_1 = require("../controllers/customer_auth.controlle
 var customerRoleChecker_middleware_1 = require("../middleware/customerRoleChecker.middleware");
 var requests_1 = require("../requests");
 var customer_controller_1 = require("../controllers/customer.controller");
+var customer_stripe_controller_1 = require("../controllers/customer_stripe.controller");
 var express = require("express");
 var router = express.Router();
 // Auth
@@ -20,6 +21,8 @@ router.post("/facebook-signon", requests_1.CustomerHttpRequest.verifySocialSigno
 router.patch("/me", customerRoleChecker_middleware_1.checkCustomerRole, customer_controller_1.CustomerController.updateAccount); // customer update account
 router.get("/me", customerRoleChecker_middleware_1.checkCustomerRole, customer_controller_1.CustomerController.getAccount); // 
 router.post("/me/change-password", customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.changePasswordParams, customer_controller_1.CustomerController.changePassword); // customer update is profile
+router.post("/stripe-account", customerRoleChecker_middleware_1.checkCustomerRole, customer_stripe_controller_1.CustomerStripeController.createAccount);
+router.post("/stripe-session", customerRoleChecker_middleware_1.checkCustomerRole, customer_stripe_controller_1.CustomerStripeController.createSession);
 // router.get("/get_popular_contractor", checkCustomerRole, customerGetPopularContractorController ); // customer get popular contractor
 // router.get("/search_contractor", checkCustomerRole, customerSearchForContractorController ); // customer search contractor
 // router.get("/get_all_contractor_on_skill", validateContractorSearckParams, checkCustomerRole, customerGetAllContractorOnSkillController ); // customer get all contractor on a skill

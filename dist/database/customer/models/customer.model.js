@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var mongoose_1 = require("mongoose");
 var customer_interface_1 = require("../interface/customer.interface");
+var stripe_customer_schema_1 = require("../../common/stripe_customer.schema");
 var CustomerSchema = new mongoose_1.Schema({
     email: {
         type: String,
@@ -68,9 +69,13 @@ var CustomerSchema = new mongoose_1.Schema({
         type: String,
         enum: Object.values(customer_interface_1.CustomerAuthProviders),
         default: customer_interface_1.CustomerAuthProviders.PASSWORD
-    }
+    },
+    stripeCustomer: stripe_customer_schema_1.StripeCustomerSchema
 }, {
     timestamps: true,
+});
+CustomerSchema.virtual('name').get(function () {
+    return "".concat(this.firstName, " ").concat(this.lastName);
 });
 CustomerSchema.set('toJSON', {
     transform: function (doc, ret, options) {
@@ -78,6 +83,8 @@ CustomerSchema.set('toJSON', {
         delete ret.emailOtp;
         delete ret.passwordOtp;
         delete ret.phoneNumberOtp;
+        //  @ts-ignore
+        ret.name = doc.name;
         return ret;
     }
 });

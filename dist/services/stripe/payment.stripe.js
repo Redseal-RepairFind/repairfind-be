@@ -39,77 +39,68 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createCustomerAndAttachPaymentMethod = exports.createPaymentMethod = exports.getCustomer = exports.createCustomer = void 0;
+exports.chargeCustomer = exports.chargeUserOnDemand = exports.createSetupIntent = void 0;
 var stripe_1 = __importDefault(require("stripe"));
-var STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
-var stripe = new stripe_1.default(STRIPE_SECRET_KEY);
-var createCustomer = function (params) { return __awaiter(void 0, void 0, void 0, function () {
-    var customer;
+var YOUR_SECRET_KEY = 'YOUR_SECRET_KEY';
+var stripeClient = new stripe_1.default(YOUR_SECRET_KEY);
+var createSetupIntent = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var setupIntent, setupIntentId;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, stripe.customers.create(params)];
+            case 0: return [4 /*yield*/, stripeClient.setupIntents.create({
+                    payment_method: 'pm_card_visa', // Use the Payment Method ID obtained during authorization
+                    customer: 'CUSTOMER_ID', // ID of the customer associated with the Setup Intent
+                })];
             case 1:
-                customer = _a.sent();
-                return [2 /*return*/, customer];
+                setupIntent = _a.sent();
+                setupIntentId = setupIntent.id;
+                // Store setupIntentId in your database...
+                return [2 /*return*/, setupIntentId];
         }
     });
 }); };
-exports.createCustomer = createCustomer;
-var getCustomer = function (query) { return __awaiter(void 0, void 0, void 0, function () {
-    var customer, e_1;
+exports.createSetupIntent = createSetupIntent;
+var chargeUserOnDemand = function (setupIntentId) { return __awaiter(void 0, void 0, void 0, function () {
+    var paymentIntent, confirmedPaymentIntent;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0:
-                _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, stripe.customers.list(query)];
+            case 0: return [4 /*yield*/, stripeClient.paymentIntents.create({
+                    amount: 1000, // Amount in cents
+                    currency: 'usd',
+                    payment_method: 'pm_card_visa', // Use the Payment Method ID obtained during authorization
+                    confirmation_method: 'manual',
+                    confirm: true,
+                    setup_future_usage: 'off_session', // Indicates that this PaymentIntent may be used for future off-session payments
+                    customer: 'CUSTOMER_ID', // ID of the customer associated with the Payment Intent
+                    // setup_intent: setupIntentId, // Pass the Setup Intent ID
+                })];
             case 1:
-                customer = _a.sent();
-                if (customer.data.length !== 0) {
-                    return [2 /*return*/, customer.data[0]];
-                }
-                return [3 /*break*/, 3];
+                paymentIntent = _a.sent();
+                return [4 /*yield*/, stripeClient.paymentIntents.confirm(paymentIntent.id)];
             case 2:
-                e_1 = _a.sent();
-                console.log(e_1);
-                return [3 /*break*/, 3];
-            case 3: return [2 /*return*/];
+                confirmedPaymentIntent = _a.sent();
+                // Handle the confirmedPaymentIntent result...
+                return [2 /*return*/, confirmedPaymentIntent];
         }
     });
 }); };
-exports.getCustomer = getCustomer;
-// Step 1: Create PaymentMethod
-var createPaymentMethod = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var paymentMethod;
+exports.chargeUserOnDemand = chargeUserOnDemand;
+var chargeCustomer = function (customerId, paymentMethodId) { return __awaiter(void 0, void 0, void 0, function () {
+    var paymentIntent;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, stripe.paymentMethods.create({
-                    type: 'card',
-                    card: {
-                        number: '4242424242424242',
-                        exp_month: 12,
-                        exp_year: 2022,
-                        cvc: '123',
-                    },
-                })];
-            case 1:
-                paymentMethod = _a.sent();
-                return [2 /*return*/, paymentMethod];
-        }
-    });
-}); };
-exports.createPaymentMethod = createPaymentMethod;
-// Step 2: Create Customer and Attach PaymentMethod
-var createCustomerAndAttachPaymentMethod = function (paymentMethodId) { return __awaiter(void 0, void 0, void 0, function () {
-    var customer;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0: return [4 /*yield*/, stripe.customers.create({
+            case 0: return [4 /*yield*/, stripeClient.paymentIntents.create({
+                    amount: 1000,
+                    currency: 'usd',
+                    customer: customerId,
                     payment_method: paymentMethodId,
+                    off_session: true, // Indicates that this PaymentIntent may be used for future off-session payments
+                    confirm: true,
                 })];
             case 1:
-                customer = _a.sent();
-                return [2 /*return*/, customer];
+                paymentIntent = _a.sent();
+                return [2 /*return*/, paymentIntent];
         }
     });
 }); };
-exports.createCustomerAndAttachPaymentMethod = createCustomerAndAttachPaymentMethod;
+exports.chargeCustomer = chargeCustomer;

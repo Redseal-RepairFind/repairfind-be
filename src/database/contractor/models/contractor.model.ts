@@ -5,6 +5,7 @@ import { contractorAccountTypes } from "../../../constants";
 import { contractorStatus } from "../../../constants/contractorStatus";
 import { config } from "../../../config";
 import ContractorQuizModel from "./contractor_quiz.model";
+import { StripeCustomerSchema } from "../../common/stripe_customer.schema";
 
 
 export enum CONTRACTOR_TYPES  {
@@ -103,6 +104,8 @@ const ContractorSchema = new Schema <IContractor>(
         type: Date,
         default: Date.now,
       }, 
+
+      stripeCustomer: StripeCustomerSchema
     
     },
     {

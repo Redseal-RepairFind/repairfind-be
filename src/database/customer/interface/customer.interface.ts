@@ -1,4 +1,5 @@
 import { Document, Types, ObjectId } from "mongoose";
+import { IStripeCustomer } from "../../common/stripe_customer.interface";
 
 export enum CustomerAuthProviders  {
   PASSWORD = "PASSWORD",
@@ -50,8 +51,14 @@ export interface ICustomer extends Document {
     createdTime: Date;
     verified: boolean;
   };
+
+  stripeCustomer: IStripeCustomer
   acceptTerms: Boolean;
   provider: CustomerAuthProviders
   createdAt: Date;
   updatedAt: Date;
 }
+
+
+export { IStripeCustomer };
+

@@ -7,6 +7,7 @@ var contractor_controller_1 = require("../controllers/contractor.controller");
 var contractor_quiz_controller_1 = require("../controllers/contractor_quiz.controller");
 var contractor_team_controller_1 = require("../controllers/contractor_team.controller");
 var contractor_schedule_controller_1 = require("../controllers/contractor_schedule.controller");
+var contractor_stripe_controller_1 = require("../controllers/contractor_stripe.controller");
 var express = require("express");
 var router = express.Router();
 //  AUTH
@@ -72,6 +73,8 @@ router.post("/schedules", contractorRoleCheck_middleware_1.checkContractorRole, 
 router.get("/schedules", contractorRoleCheck_middleware_1.checkContractorRole, contractor_schedule_controller_1.ScheduleContractor.getSchedulesByDate);
 router.post("/schedules/events", contractorRoleCheck_middleware_1.checkContractorRole, contractor_schedule_controller_1.ScheduleContractor.addOrUpdateSchedule);
 router.get("/schedules/events", contractorRoleCheck_middleware_1.checkContractorRole, contractor_schedule_controller_1.ScheduleContractor.getEventsByMonth);
+router.post("/stripe-account", contractorRoleCheck_middleware_1.checkContractorRole, contractor_stripe_controller_1.ContractorStripeController.createAccount);
+router.post("/stripe-session", contractorRoleCheck_middleware_1.checkContractorRole, contractor_stripe_controller_1.ContractorStripeController.createSession);
 // router.post("/start_quiz", checkContractorRole, contractorStartQuizController); // contractor start quiz
 // router.get("/load_quiz_question", checkContractorRole, contractionLoadtQuestionController); // contractor load question
 // router.post("/answer_question", checkContractorRole, validateContractorAwnserQuestionParams, contractionAnwerQuestionController); // contractor anser question 

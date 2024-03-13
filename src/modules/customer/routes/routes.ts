@@ -5,6 +5,7 @@ import { checkCustomerRole } from "../middleware/customerRoleChecker.middleware"
 import { validateSignupParams, validatecustomeLoginParams, validatecustomerEmailverificationParams, validatecustomerForgotPasswordParams, validatecustomerResetPasswprdParams } from "../middleware/requestValidate.middleware";
 import { CustomerHttpRequest } from "../requests";
 import { CustomerController } from "../controllers/customer.controller";
+import { CustomerStripeController } from "../controllers/customer_stripe.controller";
 
 const express = require("express");
 const router = express.Router();
@@ -27,6 +28,10 @@ router.patch("/me", checkCustomerRole, CustomerController.updateAccount ); // cu
 router.get("/me", checkCustomerRole, CustomerController.getAccount ); // 
 router.post("/me/change-password", checkCustomerRole, CustomerHttpRequest.changePasswordParams,  CustomerController.changePassword ); // customer update is profile
 
+
+
+router.post("/stripe-account",  checkCustomerRole,  CustomerStripeController.createAccount ); 
+router.post("/stripe-session",  checkCustomerRole, CustomerStripeController.createSession ); 
 
 // router.get("/get_popular_contractor", checkCustomerRole, customerGetPopularContractorController ); // customer get popular contractor
 // router.get("/search_contractor", checkCustomerRole, customerSearchForContractorController ); // customer search contractor

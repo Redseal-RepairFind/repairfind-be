@@ -45,6 +45,7 @@ var mongoose_1 = require("mongoose");
 var constants_1 = require("../../../constants");
 var contractorStatus_1 = require("../../../constants/contractorStatus");
 var contractor_quiz_model_1 = __importDefault(require("./contractor_quiz.model"));
+var stripe_customer_schema_1 = require("../../common/stripe_customer.schema");
 var CONTRACTOR_TYPES;
 (function (CONTRACTOR_TYPES) {
     CONTRACTOR_TYPES["INDIVIDUAL"] = "Individual";
@@ -126,6 +127,7 @@ var ContractorSchema = new mongoose_1.Schema({
         type: Date,
         default: Date.now,
     },
+    stripeCustomer: stripe_customer_schema_1.StripeCustomerSchema
 }, {
     timestamps: true,
 });

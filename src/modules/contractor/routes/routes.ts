@@ -8,6 +8,7 @@ import { ProfileController } from "../controllers/contractor.controller";
 import { QuizController } from "../controllers/contractor_quiz.controller";
 import { TeamController } from "../controllers/contractor_team.controller";
 import { ScheduleContractor } from "../controllers/contractor_schedule.controller";
+import { ContractorStripeController } from "../controllers/contractor_stripe.controller";
 
 const express = require("express");
 const router = express.Router();
@@ -91,6 +92,12 @@ router.post("/schedules", checkContractorRole, ContractorHttpRequest.CreateSched
 router.get("/schedules", checkContractorRole, ScheduleContractor.getSchedulesByDate);
 router.post("/schedules/events", checkContractorRole, ScheduleContractor.addOrUpdateSchedule);
 router.get("/schedules/events", checkContractorRole, ScheduleContractor.getEventsByMonth);
+
+
+
+
+router.post("/stripe-account", checkContractorRole,  ContractorStripeController.createAccount ); 
+router.post("/stripe-session",  checkContractorRole, ContractorStripeController.createSession ); 
 
 
 
