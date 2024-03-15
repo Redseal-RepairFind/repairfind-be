@@ -77,10 +77,10 @@ var limiter = (0, express_rate_limit_1.default)({
 });
 //app.use('/theraswift-api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 // Middleware
-app.use(limiter);
+// app.use(limiter);
 //app.use('/api-docs', swaggerUi.serve, swaggerUi.setup());
 app.use(body_parser_1.default.json({
-    limit: '50mb',
+    // limit: '50mb',
     verify: function (req, res, buf, encoding) {
         // @ts-ignore     
         req.rawBody = buf.toString();

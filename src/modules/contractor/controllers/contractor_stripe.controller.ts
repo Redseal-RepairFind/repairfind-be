@@ -106,8 +106,6 @@ export const createAccount = async (req: any, res: Response) => {
 };
 
 
-
-
 export const ContractorStripeController = {
     createSession,
     createAccount

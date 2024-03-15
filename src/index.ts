@@ -46,12 +46,12 @@ const limiter = rateLimit({
 //app.use('/theraswift-api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Middleware
-app.use(limiter);
+// app.use(limiter);
 //app.use('/api-docs', swaggerUi.serve, swaggerUi.setup());
 
 
 app.use(bodyParser.json({ 
-  limit: '50mb',
+  // limit: '50mb',
   verify: function(req, res, buf, encoding) {
     // @ts-ignore     
     req.rawBody = buf.toString();
