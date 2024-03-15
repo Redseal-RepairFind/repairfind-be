@@ -95,6 +95,7 @@ var decorators_abstract_1 = require("../../../abstracts/decorators.abstract");
 var contractor_profile_model_1 = require("../../../database/contractor/models/contractor_profile.model");
 var certn_1 = require("../../../services/certn");
 var services_1 = require("../../../services");
+var stripe_1 = require("../../../services/stripe");
 var ProfileHandler = /** @class */ (function (_super) {
     __extends(ProfileHandler, _super);
     function ProfileHandler() {
@@ -490,6 +491,58 @@ var ProfileHandler = /** @class */ (function (_super) {
             });
         });
     };
+    ProfileHandler.prototype.createIdentitySession = function () {
+        var _a, _b;
+        return __awaiter(this, void 0, void 0, function () {
+            var req, res, errors, _c, currentPassword, newPassword, contractorId, contractor, verificationSession, error_2;
+            return __generator(this, function (_d) {
+                switch (_d.label) {
+                    case 0:
+                        req = this.req;
+                        res = this.res;
+                        _d.label = 1;
+                    case 1:
+                        _d.trys.push([1, 5, , 6]);
+                        errors = (0, express_validator_1.validationResult)(req);
+                        if (!errors.isEmpty()) {
+                            return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                        }
+                        _c = req.body, currentPassword = _c.currentPassword, newPassword = _c.newPassword;
+                        contractorId = req.contractor.id;
+                        return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
+                    case 2:
+                        contractor = _d.sent();
+                        // Check if the user exists
+                        if (!contractor) {
+                            return [2 /*return*/, res.status(404).json({ success: false, message: 'User not found' })];
+                        }
+                        return [4 /*yield*/, stripe_1.StripeService.identity.createVerificationSession({
+                                userType: 'contractor',
+                                userId: contractorId,
+                                email: contractor.email
+                            })
+                            // Update the user's password
+                            // contractor.password = 'hashedPassword';
+                        ];
+                    case 3:
+                        verificationSession = _d.sent();
+                        // Update the user's password
+                        // contractor.password = 'hashedPassword';
+                        return [4 /*yield*/, contractor.save()];
+                    case 4:
+                        // Update the user's password
+                        // contractor.password = 'hashedPassword';
+                        _d.sent();
+                        return [2 /*return*/, res.json({ success: true, message: 'Verification session created', data: verificationSession })];
+                    case 5:
+                        error_2 = _d.sent();
+                        console.error('Error creating stripe verification session:', error_2);
+                        return [2 /*return*/, res.status((_a = error_2.code) !== null && _a !== void 0 ? _a : 500).json({ success: false, message: (_b = error_2.message) !== null && _b !== void 0 ? _b : 'Internal Server Error' })];
+                    case 6: return [2 /*return*/];
+                }
+            });
+        });
+    };
     __decorate([
         (0, decorators_abstract_1.handleAsyncError)(),
         __metadata("design:type", Function),
@@ -532,6 +585,12 @@ var ProfileHandler = /** @class */ (function (_super) {
         __metadata("design:paramtypes", []),
         __metadata("design:returntype", Promise)
     ], ProfileHandler.prototype, "changePassword", null);
+    __decorate([
+        (0, decorators_abstract_1.handleAsyncError)(),
+        __metadata("design:type", Function),
+        __metadata("design:paramtypes", []),
+        __metadata("design:returntype", Promise)
+    ], ProfileHandler.prototype, "createIdentitySession", null);
     return ProfileHandler;
 }(base_abstract_1.Base));
 var ProfileController = function () {

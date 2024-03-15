@@ -70,7 +70,8 @@ var CustomerSchema = new mongoose_1.Schema({
         enum: Object.values(customer_interface_1.CustomerAuthProviders),
         default: customer_interface_1.CustomerAuthProviders.PASSWORD
     },
-    stripeCustomer: stripe_customer_schema_1.StripeCustomerSchema
+    stripeCustomer: stripe_customer_schema_1.StripeCustomerSchema,
+    stripePaymentMethod: Object
 }, {
     timestamps: true,
 });

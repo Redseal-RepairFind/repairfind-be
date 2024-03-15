@@ -39,10 +39,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.chargeCustomer = exports.chargeUserOnDemand = exports.createSetupIntent = void 0;
+exports.getPaymentMethod = exports.chargeCustomer = exports.chargeUserOnDemand = exports.createSetupIntent = void 0;
 var stripe_1 = __importDefault(require("stripe"));
-var YOUR_SECRET_KEY = 'YOUR_SECRET_KEY';
-var stripeClient = new stripe_1.default(YOUR_SECRET_KEY);
+var STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
+var stripeClient = new stripe_1.default(STRIPE_SECRET_KEY);
 var createSetupIntent = function () { return __awaiter(void 0, void 0, void 0, function () {
     var setupIntent, setupIntentId;
     return __generator(this, function (_a) {
@@ -104,3 +104,15 @@ var chargeCustomer = function (customerId, paymentMethodId) { return __awaiter(v
     });
 }); };
 exports.chargeCustomer = chargeCustomer;
+var getPaymentMethod = function (paymentMethodId) { return __awaiter(void 0, void 0, void 0, function () {
+    var paymentMethod;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, stripeClient.paymentMethods.retrieve(paymentMethodId)];
+            case 1:
+                paymentMethod = _a.sent();
+                return [2 /*return*/, paymentMethod];
+        }
+    });
+}); };
+exports.getPaymentMethod = getPaymentMethod;

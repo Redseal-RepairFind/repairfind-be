@@ -14,6 +14,9 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.eventEmitter = void 0;
+var events_1 = require("events");
+exports.eventEmitter = new events_1.EventEmitter();
 __exportStar(require("./auth.events"), exports);
 __exportStar(require("./booking.events"), exports);
 __exportStar(require("./conversation.events"), exports);

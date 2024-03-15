@@ -26,7 +26,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.StripeService = void 0;
 var session = __importStar(require("./session.stripe"));
 var customer = __importStar(require("./customer.stripe"));
+var identity = __importStar(require("./identity.stripe"));
+var webhook = __importStar(require("./webhook.stripe"));
+var payment = __importStar(require("./payment.stripe"));
 exports.StripeService = {
     session: session,
-    customer: customer
+    customer: customer,
+    identity: identity,
+    webhook: webhook,
+    payment: payment,
 };

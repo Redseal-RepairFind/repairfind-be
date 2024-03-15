@@ -127,7 +127,9 @@ var ContractorSchema = new mongoose_1.Schema({
         type: Date,
         default: Date.now,
     },
-    stripeCustomer: stripe_customer_schema_1.StripeCustomerSchema
+    stripeCustomer: stripe_customer_schema_1.StripeCustomerSchema,
+    stripeIdentity: Object,
+    stripePaymentMethod: Object
 }, {
     timestamps: true,
 });

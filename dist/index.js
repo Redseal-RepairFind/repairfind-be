@@ -79,7 +79,13 @@ var limiter = (0, express_rate_limit_1.default)({
 // Middleware
 app.use(limiter);
 //app.use('/api-docs', swaggerUi.serve, swaggerUi.setup());
-app.use(body_parser_1.default.json({ limit: '50mb' }));
+app.use(body_parser_1.default.json({
+    limit: '50mb',
+    verify: function (req, res, buf, encoding) {
+        // @ts-ignore     
+        req.rawBody = buf.toString();
+    }
+}));
 app.use(express_1.default.json({ limit: '50mb' }));
 app.use(express_1.default.urlencoded({ extended: true, limit: '50mb' }));
 app.use("/uploads", express_1.default.static("../public"));
