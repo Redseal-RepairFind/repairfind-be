@@ -150,26 +150,61 @@ var inviteToTeam = function (req, res) { return __awaiter(void 0, void 0, void 0
 exports.inviteToTeam = inviteToTeam;
 // Controller method to get all invitations for a contractor
 var getInvitations = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var contractor, invitations, error_2;
+    var contractor, invitations, formattedInvitations, error_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 2, , 3]);
+                _a.trys.push([0, 3, , 4]);
                 contractor = req.contractor.id;
                 return [4 /*yield*/, contractor_team_invitation_model_1.default.find({ contractor: contractor }).populate([
-                        { path: 'contractor', select: 'companyName firstName lastName profilePhoto' },
-                        { path: 'team', select: 'name contractor.name contractor.companyName' },
+                        { path: 'contractor' },
+                        { path: 'team' },
                     ]).exec()];
             case 1:
                 invitations = _a.sent();
-                res.json({ success: true, message: 'Invitations retrieved successfully', data: invitations });
-                return [3 /*break*/, 3];
+                return [4 /*yield*/, Promise.all(invitations.map(function (invitation) { return __awaiter(void 0, void 0, void 0, function () {
+                        var team, contractor, company, formattedCompany;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0: return [4 /*yield*/, contractor_team_model_1.default.findById(invitation.team)];
+                                case 1:
+                                    team = _a.sent();
+                                    return [4 /*yield*/, contractor_model_1.ContractorModel.findById(invitation.contractor)];
+                                case 2:
+                                    contractor = _a.sent();
+                                    return [4 /*yield*/, contractor_model_1.ContractorModel.findById(team === null || team === void 0 ? void 0 : team.contractor)];
+                                case 3:
+                                    company = _a.sent();
+                                    formattedCompany = {
+                                        id: company._id,
+                                        // @ts-ignore
+                                        name: company.name,
+                                        email: company.email,
+                                        profilePhoto: company.profilePhoto,
+                                    };
+                                    return [2 /*return*/, {
+                                            id: contractor._id,
+                                            // @ts-ignore
+                                            name: contractor === null || contractor === void 0 ? void 0 : contractor.name,
+                                            email: contractor.email,
+                                            profilePhoto: contractor.profilePhoto,
+                                            team: formattedCompany,
+                                            role: (invitation === null || invitation === void 0 ? void 0 : invitation.role) || 'Member',
+                                            status: (invitation === null || invitation === void 0 ? void 0 : invitation.status) || 'ACTIVE', // Assuming default status is ACTIVE
+                                        }];
+                            }
+                        });
+                    }); }))];
             case 2:
+                formattedInvitations = _a.sent();
+                res.json({ success: true, message: 'Invitations retrieved successfully', data: formattedInvitations });
+                return [3 /*break*/, 4];
+            case 3:
                 error_2 = _a.sent();
                 console.error('Error retrieving invitations:', error_2);
                 res.status(500).json({ success: false, message: 'Internal Server Error' });
-                return [3 /*break*/, 3];
-            case 3: return [2 /*return*/];
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
         }
     });
 }); };
