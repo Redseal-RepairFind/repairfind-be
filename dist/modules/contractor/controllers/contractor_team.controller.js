@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TeamController = exports.getInvitations = exports.acceptTeamInvitation = exports.searchContractorsNotInTeam = exports.getTeam = exports.inviteToTeam = void 0;
+exports.TeamController = exports.getTeamMemberships = exports.getInvitations = exports.acceptTeamInvitation = exports.searchContractorsNotInTeam = exports.getTeam = exports.inviteToTeam = void 0;
 var contractor_team_model_1 = __importDefault(require("../../../database/contractor/models/contractor_team.model"));
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var express_validator_1 = require("express-validator");
@@ -335,9 +335,59 @@ var getInvitations = function (req, res) { return __awaiter(void 0, void 0, void
     });
 }); };
 exports.getInvitations = getInvitations;
+var getTeamMemberships = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var userId_1, teams, formattedTeams, error_6;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 3, , 4]);
+                userId_1 = req.contractor.id;
+                return [4 /*yield*/, contractor_team_model_1.default.find({ 'members.contractor': userId_1 })];
+            case 1:
+                teams = _a.sent();
+                return [4 /*yield*/, Promise.all(teams.map(function (team) { return __awaiter(void 0, void 0, void 0, function () {
+                        var userMembership, contractor, formattedContractor;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0:
+                                    userMembership = team.members.find(function (member) { return String(member.contractor) === userId_1; });
+                                    return [4 /*yield*/, contractor_model_1.ContractorModel.findById(team.contractor)];
+                                case 1:
+                                    contractor = _a.sent();
+                                    formattedContractor = {
+                                        id: contractor._id,
+                                        name: contractor.firstName,
+                                        email: contractor.email,
+                                        profilePhoto: contractor.profilePhoto,
+                                    };
+                                    return [2 /*return*/, {
+                                            id: team._id,
+                                            team: team.name,
+                                            contractor: formattedContractor,
+                                            role: (userMembership === null || userMembership === void 0 ? void 0 : userMembership.role) || 'Member',
+                                            status: (userMembership === null || userMembership === void 0 ? void 0 : userMembership.status) || 'ACTIVE', // Assuming default status is ACTIVE
+                                        }];
+                            }
+                        });
+                    }); }))];
+            case 2:
+                formattedTeams = _a.sent();
+                res.json({ success: true, message: 'Team memberships retrieved successfully', data: formattedTeams });
+                return [3 /*break*/, 4];
+            case 3:
+                error_6 = _a.sent();
+                console.error('Error retrieving team memberships:', error_6);
+                res.status(500).json({ success: false, message: 'Internal Server Error' });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getTeamMemberships = getTeamMemberships;
 exports.TeamController = {
     inviteToTeam: exports.inviteToTeam,
     getTeam: exports.getTeam,
     searchContractorsNotInTeam: exports.searchContractorsNotInTeam,
-    acceptTeamInvitation: exports.acceptTeamInvitation
+    acceptTeamInvitation: exports.acceptTeamInvitation,
+    getTeamMemberships: exports.getTeamMemberships
 };

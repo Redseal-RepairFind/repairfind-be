@@ -2,7 +2,7 @@ import { Schema, model, Document, Types } from 'mongoose';
 
 export enum TeamInvitationStatus {
     PENDING = 'PENDING',
-    ACTIVE = 'ACTIVE',
+    ACCEPTED = 'ACCEPTED',
     REJECTED = 'REJECTED',
 }
 
@@ -22,7 +22,7 @@ const TeamInvitationSchema = new Schema<ITeamInvitation>(
         },
         team: {
             type: Schema.Types.ObjectId,
-            ref: 'contractors',
+            ref: 'contractor_teams',
             required: true,
         },
         role: {
@@ -40,6 +40,6 @@ const TeamInvitationSchema = new Schema<ITeamInvitation>(
     }
 );
 
-const TeamInvitationModel = model<ITeamInvitation>('team_invitations', TeamInvitationSchema);
+const TeamInvitationModel = model<ITeamInvitation>('contractor_team_invitations', TeamInvitationSchema);
 
 export default TeamInvitationModel;

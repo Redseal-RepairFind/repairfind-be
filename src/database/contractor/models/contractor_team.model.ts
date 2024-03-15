@@ -13,7 +13,7 @@ export interface IContractorTeam extends Document {
   contractor: Types.ObjectId; // Reference to the contractor who owns the team
 }
 
-enum TeamMemberStatus {
+export enum TeamMemberStatus {
   PENDING = 'PENDING',
   ACTIVE = 'ACTIVE',
   SUSPENDED = 'SUSPENDED',

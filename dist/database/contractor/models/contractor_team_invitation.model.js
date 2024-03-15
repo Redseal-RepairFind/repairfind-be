@@ -1,22 +1,22 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TeamMemberStatus = void 0;
+exports.TeamInvitationStatus = void 0;
 var mongoose_1 = require("mongoose");
-var TeamMemberStatus;
-(function (TeamMemberStatus) {
-    TeamMemberStatus["PENDING"] = "PENDING";
-    TeamMemberStatus["ACTIVE"] = "ACTIVE";
-    TeamMemberStatus["SUSPENDED"] = "SUSPENDED";
-})(TeamMemberStatus || (exports.TeamMemberStatus = TeamMemberStatus = {}));
+var TeamInvitationStatus;
+(function (TeamInvitationStatus) {
+    TeamInvitationStatus["PENDING"] = "PENDING";
+    TeamInvitationStatus["ACCEPTED"] = "ACCEPTED";
+    TeamInvitationStatus["REJECTED"] = "REJECTED";
+})(TeamInvitationStatus || (exports.TeamInvitationStatus = TeamInvitationStatus = {}));
 var TeamInvitationSchema = new mongoose_1.Schema({
     contractor: {
         type: mongoose_1.Schema.Types.ObjectId,
         ref: 'contractors',
         required: true,
     },
-    company: {
+    team: {
         type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'contractors',
+        ref: 'contractor_teams',
         required: true,
     },
     role: {
@@ -25,11 +25,11 @@ var TeamInvitationSchema = new mongoose_1.Schema({
     },
     status: {
         type: String,
-        enum: Object.values(TeamMemberStatus),
-        default: TeamMemberStatus.PENDING,
+        enum: Object.values(TeamInvitationStatus),
+        default: TeamInvitationStatus.PENDING,
     },
 }, {
     timestamps: true,
 });
-var TeamInvitationModel = (0, mongoose_1.model)('team_invitations', TeamInvitationSchema);
+var TeamInvitationModel = (0, mongoose_1.model)('contractor_team_invitations', TeamInvitationSchema);
 exports.default = TeamInvitationModel;

@@ -1,12 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.TeamMemberStatus = void 0;
 var mongoose_1 = require("mongoose");
 var TeamMemberStatus;
 (function (TeamMemberStatus) {
     TeamMemberStatus["PENDING"] = "PENDING";
     TeamMemberStatus["ACTIVE"] = "ACTIVE";
     TeamMemberStatus["SUSPENDED"] = "SUSPENDED";
-})(TeamMemberStatus || (TeamMemberStatus = {}));
+})(TeamMemberStatus || (exports.TeamMemberStatus = TeamMemberStatus = {}));
 var TeamSchema = new mongoose_1.Schema({
     name: {
         type: String,

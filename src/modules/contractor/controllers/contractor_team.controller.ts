@@ -6,6 +6,7 @@ import { ContractorModel } from '../../../database/contractor/models/contractor.
 import { validationResult } from 'express-validator';
 import { EmailService } from '../../../services';
 import { NewTeamInvitationEmail } from '../../../templates/contractorEmail/team_invitation_email.template';
+import { IContractor } from '../../../database/contractor/interface/contractor.interface';
 
 
 export const inviteToTeam = async (req: any, res: Response) => {
@@ -288,11 +289,47 @@ export const getInvitations = async (req: any, res: Response) => {
 
 
 
+export const getTeamMemberships = async (req: any, res: Response) => {
+    try {
+      const userId = req.contractor.id;
+  
+      // Find all teams where the user is a member
+      const teams = await ContractorTeamModel.find({ 'members.contractor': userId });
+  
+      const formattedTeams = await Promise.all(teams.map(async (team: IContractorTeam) => {
+        const userMembership = team.members.find(member => String(member.contractor) === userId);
+          const contractor = <IContractor> await ContractorModel.findById(team.contractor);
+
+        // Extract contractor details
+        const formattedContractor = {
+          id: contractor._id,
+          name: contractor.firstName,
+          email: contractor.email,
+          profilePhoto: contractor.profilePhoto,
+        };
+  
+        return {
+          id: team._id,
+          team: team.name,
+          contractor: formattedContractor,
+          role: userMembership?.role || 'Member',
+          status: userMembership?.status || 'ACTIVE', // Assuming default status is ACTIVE
+        };
+      }));
+  
+      res.json({ success: true, message: 'Team memberships retrieved successfully', data: formattedTeams });
+    } catch (error) {
+      console.error('Error retrieving team memberships:', error);
+      res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+  };
+
 
 export const TeamController = {
     inviteToTeam,
     getTeam,
     searchContractorsNotInTeam,
-    acceptTeamInvitation
+    acceptTeamInvitation,
+    getTeamMemberships
 }
 

@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import { ContractorModel } from '../../../database/contractor/models/contractor.model';
-import TeamInvitationModel, { ITeamInvitation, TeamInvitationStatus } from '../../../database/contractor/models/contractor_invitation.model';
-import ContractorTeamModel, { IContractorTeam } from '../../../database/contractor/models/contractor_team.model';
+import TeamInvitationModel, { ITeamInvitation, TeamInvitationStatus } from '../../../database/contractor/models/contractor_team_invitation.model';
+import ContractorTeamModel, { IContractorTeam, TeamMemberStatus } from '../../../database/contractor/models/contractor_team.model';
 import { NewTeamInvitationEmail } from '../../../templates/contractorEmail/team_invitation_email.template';
 import { EmailService } from '../../../services';
 
@@ -41,7 +41,7 @@ export const inviteToTeam = async (req: any, res: Response) => {
         const existingInvitation = await TeamInvitationModel.findOne({
             contractor: contractor.id,
             team: team.id,
-            status: { $in: [TeamInvitationStatus.PENDING, TeamInvitationStatus.ACTIVE, TeamInvitationStatus.REJECTED] }
+            status: { $in: [TeamInvitationStatus.PENDING, TeamInvitationStatus.ACCEPTED, TeamInvitationStatus.REJECTED] }
         });
         if (existingInvitation) {
 
@@ -95,7 +95,11 @@ export const getInvitations = async (req: any, res: Response) => {
         const contractor = req.contractor.id;
 
         // Get all invitations for the invitee
-        const invitations = await TeamInvitationModel.find({ contractor }).populate('contractor').exec();
+        const invitations = await TeamInvitationModel.find({ contractor }).populate([
+            {path: 'contractor', select: 'companyName firstName lastName profilePhoto'},
+            {path: 'team',  select: 'name contractor.name contractor.companyName'},
+        ]).exec();
+        
 
         res.json({ success: true, message: 'Invitations retrieved successfully', data: invitations });
     } catch (error) {
@@ -115,25 +119,27 @@ export const acceptInvitation = async (req: Request, res: Response) => {
             return res.status(404).json({ success: false, message: 'Invitation not found' });
         }
 
-        if (invitation.status !== TeamInvitationStatus.PENDING) {
+        if (invitation.status == TeamInvitationStatus.ACCEPTED) {
             return res.status(404).json({ success: false, message: 'Invitation is  is already accepted' });
         }
 
-        // Update the invitation status to ACTIVE
-        invitation.status = TeamInvitationStatus.ACTIVE;
+        if (invitation.status == TeamInvitationStatus.REJECTED) {
+            return res.status(404).json({ success: false, message: 'Invitation is  is already rejected' });
+        }
 
-        // TODO: push to Team members array
-        await invitation.save();
+        invitation.status = TeamInvitationStatus.ACCEPTED;
 
          // Find the team
-         const team = await ContractorTeamModel.findOne({ contractor: invitation.team });
+         const team = await ContractorTeamModel.findById(invitation.team );
          if (!team) {
              return res.status(404).json({ success: false, message: 'Team not found' });
          }
 
         // Add contractor to team members
-        team.members.push({ contractor: invitation.contractor, role: invitation.role, status: TeamInvitationStatus.ACTIVE });
+        team.members.push({ contractor: invitation.contractor, role: invitation.role, status: TeamMemberStatus.ACTIVE });
         await team.save();
+
+        await invitation.save();
 
         res.json({ success: true, message: 'Invitation accepted successfully', data: invitation });
     } catch (error) {
