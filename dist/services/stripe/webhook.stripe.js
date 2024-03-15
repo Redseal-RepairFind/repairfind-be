@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.setupIntentSucceeded = exports.setupIntentCreated = exports.StripeWebhookHandler = void 0;
+exports.setupIntentSucceeded = exports.identityVerificationCreated = exports.setupIntentCreated = exports.StripeWebhookHandler = void 0;
 var stripe_1 = __importDefault(require("stripe"));
 var custom_errors_1 = require("../../utils/custom.errors");
 var logger_1 = require("../../utils/logger");
@@ -69,6 +69,9 @@ var StripeWebhookHandler = function (req) { return __awaiter(void 0, void 0, voi
                 case 'setup_intent.succeeded':
                     (0, exports.setupIntentSucceeded)(eventData.object);
                     break;
+                case 'identity.verification_session.created':
+                    (0, exports.identityVerificationCreated)(eventData.object);
+                    break;
                 default:
                     console.log("Unhandled event type: ".concat(eventType));
                     break;
@@ -82,24 +85,51 @@ var StripeWebhookHandler = function (req) { return __awaiter(void 0, void 0, voi
 }); };
 exports.StripeWebhookHandler = StripeWebhookHandler;
 var setupIntentCreated = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var customer, error_1;
     return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, _1.StripeService.customer.getCustomerById(payload.customer)];
-            case 1:
-                customer = _a.sent();
-                console.log('Customer from setupIntentCreated', customer);
-                return [3 /*break*/, 3];
-            case 2:
-                error_1 = _a.sent();
-                throw new custom_errors_1.BadRequestError(error_1.message || "Something went wrong");
-            case 3: return [2 /*return*/];
+        try {
+            //  const customer = await StripeService.customer.getCustomerById(payload.customer)
+            //  console.log('Customer from setupIntentCreated', customer)
         }
+        catch (error) {
+            throw new custom_errors_1.BadRequestError(error.message || "Something went wrong");
+        }
+        return [2 /*return*/];
     });
 }); };
 exports.setupIntentCreated = setupIntentCreated;
+var identityVerificationCreated = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
+    var userType, userId, user, error_1;
+    var _a, _b;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
+            case 0:
+                _c.trys.push([0, 5, , 6]);
+                userType = (_a = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _a === void 0 ? void 0 : _a.userType;
+                userId = (_b = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _b === void 0 ? void 0 : _b.userId;
+                user = null;
+                if (!(userType == 'contractor')) return [3 /*break*/, 2];
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(userId)];
+            case 1:
+                user = _c.sent();
+                return [3 /*break*/, 4];
+            case 2: return [4 /*yield*/, customer_model_1.default.findById(userId)];
+            case 3:
+                user = _c.sent();
+                _c.label = 4;
+            case 4:
+                if (user) {
+                    user.stripeIdentity = payload;
+                    user.save();
+                }
+                return [3 /*break*/, 6];
+            case 5:
+                error_1 = _c.sent();
+                throw new custom_errors_1.BadRequestError(error_1.message || "Something went wrong");
+            case 6: return [2 /*return*/];
+        }
+    });
+}); };
+exports.identityVerificationCreated = identityVerificationCreated;
 var setupIntentSucceeded = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
     var customer, paymentMethod, userType, userId, user, error_2;
     var _a, _b;

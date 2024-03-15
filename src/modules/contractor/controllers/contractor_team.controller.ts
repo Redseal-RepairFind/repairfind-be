@@ -171,12 +171,15 @@ export const searchContractorsNotInTeam = async (req: any, res: Response) => {
         }
 
         // Get the company's team
-        const companyTeam = await ContractorTeamModel.findOne({
+        let companyTeam = await ContractorTeamModel.findOne({
             'contractor': contractorId
         });
 
         if (!companyTeam) {
-            return res.json({ success: true, message: 'Company does not have a team', data: [] });
+            companyTeam = await ContractorTeamModel.create({
+                contractor: contractorId,
+                name: contractor.firstName
+            });
         }
 
         // Get the search parameters (name and email)
@@ -213,6 +216,75 @@ export const searchContractorsNotInTeam = async (req: any, res: Response) => {
 
 
 
+export const acceptTeamInvitation = async (req: any, res: Response) => {
+    try {
+        const memberId = req.contractor.id;
+
+        // Find the team that the member is invited to
+        const team = await ContractorTeamModel.findOne({
+            'members.contractor': memberId,
+            'members.status': 'PENDING'
+        });
+
+        if (!team) {
+            return res.status(404).json({ success: false, message: 'Invitation not found' });
+        }
+
+        // Update the status of the member to 'ACTIVE'
+        const updatedTeam = await ContractorTeamModel.findOneAndUpdate(
+            {
+                'members.contractor': memberId,
+                'members.status': 'PENDING'
+            },
+            {
+                $set: { 'members.$.status': 'ACTIVE' }
+            },
+            { new: true }
+        );
+
+        if (!updatedTeam) {
+            return res.status(500).json({ success: false, message: 'Failed to accept invitation' });
+        }
+
+        res.json({ success: true, message: 'Invitation accepted successfully' });
+    } catch (error) {
+        console.error('Error accepting team invitation:', error);
+        res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+};
+
+
+export const getInvitations = async (req: any, res: Response) => {
+    try {
+        const memberId = req.contractor.id;
+        const { status } = req.query;
+
+        // Find invitations for the member across all teams
+        let invitations = await ContractorTeamModel.find({
+            'members.contractor': memberId,
+        });
+
+        if (!invitations || invitations.length === 0) {
+            return res.json({ success: true, message: 'No invitations found', data: [] });
+        }
+
+        // Flatten the invitations array and filter by status if provided
+        let allInvitations: any[] = [];
+        invitations.forEach((team: any) => {
+            allInvitations = allInvitations.concat(team.members);
+        });
+
+        if (status) {
+            allInvitations = allInvitations.filter((invitation: any) => invitation.status === status);
+        }
+
+        res.json({ success: true, message: 'Invitations retrieved successfully', data: allInvitations });
+    } catch (error) {
+        console.error('Error retrieving invitations:', error);
+        res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+};
+
 
 
 
@@ -220,6 +292,7 @@ export const searchContractorsNotInTeam = async (req: any, res: Response) => {
 export const TeamController = {
     inviteToTeam,
     getTeam,
-    searchContractorsNotInTeam
+    searchContractorsNotInTeam,
+    acceptTeamInvitation
 }
 

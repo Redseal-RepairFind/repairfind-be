@@ -42,6 +42,9 @@ export const StripeWebhookHandler = async (req: Request) => {
             case 'setup_intent.succeeded':
                 setupIntentSucceeded(eventData.object);
                 break;
+            case 'identity.verification_session.created':
+                identityVerificationCreated(eventData.object);
+                break;
             default:
                 console.log(`Unhandled event type: ${eventType}`);
                 break;
@@ -54,8 +57,31 @@ export const StripeWebhookHandler = async (req: Request) => {
 
 export const setupIntentCreated = async (payload: any) => {
     try {
-         const customer = await StripeService.customer.getCustomerById(payload.customer)
-         console.log('Customer from setupIntentCreated', customer)
+        //  const customer = await StripeService.customer.getCustomerById(payload.customer)
+        //  console.log('Customer from setupIntentCreated', customer)
+         
+    } catch (error: any) {
+        throw new BadRequestError(error.message || "Something went wrong");
+    }
+};
+
+export const identityVerificationCreated = async (payload: any) => {
+    try {
+        
+        const userType = payload?.metadata?.userType
+        const userId = payload?.metadata?.userId
+        
+        let user= null
+        if(userType == 'contractor'){
+            user  = await ContractorModel.findById(userId)
+        }else{
+            user  = await CustomerModel.findById(userId)
+        }
+
+        if(user){
+            user.stripeIdentity = payload
+            user.save()
+        }
          
     } catch (error: any) {
         throw new BadRequestError(error.message || "Something went wrong");

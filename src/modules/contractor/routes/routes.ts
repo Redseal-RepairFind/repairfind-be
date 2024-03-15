@@ -9,6 +9,7 @@ import { QuizController } from "../controllers/contractor_quiz.controller";
 import { TeamController } from "../controllers/contractor_team.controller";
 import { ScheduleContractor } from "../controllers/contractor_schedule.controller";
 import { ContractorStripeController } from "../controllers/contractor_stripe.controller";
+import { TeamInvitationController } from "../controllers/contractor_team_invitation.controller";
 
 const express = require("express");
 const router = express.Router();
@@ -89,6 +90,13 @@ router.get("/teams/members", checkContractorRole, QuizController.GetQuizResult);
 router.delete("/teams/members/12367886", checkContractorRole, QuizController.SubmitQuiz); // contractor anser question 
 router.patch("/teams/members/12367886", checkContractorRole, QuizController.SubmitQuiz); // contractor anser question 
 router.get("/teams/members/12367886", checkContractorRole, QuizController.SubmitQuiz); // contractor anser question 
+
+// Define routes for managing team invitations
+router.post("/teams/invitations", checkContractorRole, TeamInvitationController.inviteToTeam);
+router.get("/teams/invitations", checkContractorRole, TeamInvitationController.getInvitations);
+router.patch("/teams/invitations/:invitationId/accept", checkContractorRole, TeamInvitationController.acceptInvitation);
+router.delete("/teams/invitations/:invitationId/reject", checkContractorRole, TeamInvitationController.rejectInvitation);
+
 
 
 //  Contractor Schedule

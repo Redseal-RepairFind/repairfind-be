@@ -74,7 +74,8 @@ const CustomerSchema = new  Schema <ICustomer>(
       },
 
       stripeCustomer: StripeCustomerSchema,
-      stripePaymentMethod: Object
+      stripePaymentMethod: Object,
+      stripeIdentity: Object,
     
     },
     {

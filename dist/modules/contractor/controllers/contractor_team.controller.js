@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TeamController = exports.searchContractorsNotInTeam = exports.getTeam = exports.inviteToTeam = void 0;
+exports.TeamController = exports.getInvitations = exports.acceptTeamInvitation = exports.searchContractorsNotInTeam = exports.getTeam = exports.inviteToTeam = void 0;
 var contractor_team_model_1 = __importDefault(require("../../../database/contractor/models/contractor_team.model"));
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var express_validator_1 = require("express-validator");
@@ -208,7 +208,7 @@ var searchContractorsNotInTeam = function (req, res) { return __awaiter(void 0, 
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 4, , 5]);
+                _b.trys.push([0, 6, , 7]);
                 contractorId = req.contractor.id;
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
             case 1:
@@ -221,9 +221,15 @@ var searchContractorsNotInTeam = function (req, res) { return __awaiter(void 0, 
                     })];
             case 2:
                 companyTeam = _b.sent();
-                if (!companyTeam) {
-                    return [2 /*return*/, res.json({ success: true, message: 'Company does not have a team', data: [] })];
-                }
+                if (!!companyTeam) return [3 /*break*/, 4];
+                return [4 /*yield*/, contractor_team_model_1.default.create({
+                        contractor: contractorId,
+                        name: contractor.firstName
+                    })];
+            case 3:
+                companyTeam = _b.sent();
+                _b.label = 4;
+            case 4:
                 _a = req.query, name_1 = _a.name, email = _a.email;
                 searchCriteria = {
                     accountType: { $in: ['Individual', 'Employee'] },
@@ -241,22 +247,97 @@ var searchContractorsNotInTeam = function (req, res) { return __awaiter(void 0, 
                     searchCriteria.email = { $regex: new RegExp(email, 'i') };
                 }
                 return [4 /*yield*/, contractor_model_1.ContractorModel.find(searchCriteria)];
-            case 3:
+            case 5:
                 contractorsNotInTeam = _b.sent();
                 res.json({ success: true, message: 'Contractors not in any team retrieved successfully', data: contractorsNotInTeam });
-                return [3 /*break*/, 5];
-            case 4:
+                return [3 /*break*/, 7];
+            case 6:
                 error_3 = _b.sent();
                 console.error('Error searching for contractors not in any team:', error_3);
                 res.status(500).json({ success: false, message: 'Internal Server Error' });
-                return [3 /*break*/, 5];
-            case 5: return [2 /*return*/];
+                return [3 /*break*/, 7];
+            case 7: return [2 /*return*/];
         }
     });
 }); };
 exports.searchContractorsNotInTeam = searchContractorsNotInTeam;
+var acceptTeamInvitation = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var memberId, team, updatedTeam, error_4;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 3, , 4]);
+                memberId = req.contractor.id;
+                return [4 /*yield*/, contractor_team_model_1.default.findOne({
+                        'members.contractor': memberId,
+                        'members.status': 'PENDING'
+                    })];
+            case 1:
+                team = _a.sent();
+                if (!team) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Invitation not found' })];
+                }
+                return [4 /*yield*/, contractor_team_model_1.default.findOneAndUpdate({
+                        'members.contractor': memberId,
+                        'members.status': 'PENDING'
+                    }, {
+                        $set: { 'members.$.status': 'ACTIVE' }
+                    }, { new: true })];
+            case 2:
+                updatedTeam = _a.sent();
+                if (!updatedTeam) {
+                    return [2 /*return*/, res.status(500).json({ success: false, message: 'Failed to accept invitation' })];
+                }
+                res.json({ success: true, message: 'Invitation accepted successfully' });
+                return [3 /*break*/, 4];
+            case 3:
+                error_4 = _a.sent();
+                console.error('Error accepting team invitation:', error_4);
+                res.status(500).json({ success: false, message: 'Internal Server Error' });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.acceptTeamInvitation = acceptTeamInvitation;
+var getInvitations = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var memberId, status_1, invitations, allInvitations_1, error_5;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                memberId = req.contractor.id;
+                status_1 = req.query.status;
+                return [4 /*yield*/, contractor_team_model_1.default.find({
+                        'members.contractor': memberId,
+                    })];
+            case 1:
+                invitations = _a.sent();
+                if (!invitations || invitations.length === 0) {
+                    return [2 /*return*/, res.json({ success: true, message: 'No invitations found', data: [] })];
+                }
+                allInvitations_1 = [];
+                invitations.forEach(function (team) {
+                    allInvitations_1 = allInvitations_1.concat(team.members);
+                });
+                if (status_1) {
+                    allInvitations_1 = allInvitations_1.filter(function (invitation) { return invitation.status === status_1; });
+                }
+                res.json({ success: true, message: 'Invitations retrieved successfully', data: allInvitations_1 });
+                return [3 /*break*/, 3];
+            case 2:
+                error_5 = _a.sent();
+                console.error('Error retrieving invitations:', error_5);
+                res.status(500).json({ success: false, message: 'Internal Server Error' });
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getInvitations = getInvitations;
 exports.TeamController = {
     inviteToTeam: exports.inviteToTeam,
     getTeam: exports.getTeam,
-    searchContractorsNotInTeam: exports.searchContractorsNotInTeam
+    searchContractorsNotInTeam: exports.searchContractorsNotInTeam,
+    acceptTeamInvitation: exports.acceptTeamInvitation
 };

@@ -8,6 +8,7 @@ var contractor_quiz_controller_1 = require("../controllers/contractor_quiz.contr
 var contractor_team_controller_1 = require("../controllers/contractor_team.controller");
 var contractor_schedule_controller_1 = require("../controllers/contractor_schedule.controller");
 var contractor_stripe_controller_1 = require("../controllers/contractor_stripe.controller");
+var contractor_team_invitation_controller_1 = require("../controllers/contractor_team_invitation.controller");
 var express = require("express");
 var router = express.Router();
 //  AUTH
@@ -71,6 +72,11 @@ router.get("/teams/members", contractorRoleCheck_middleware_1.checkContractorRol
 router.delete("/teams/members/12367886", contractorRoleCheck_middleware_1.checkContractorRole, contractor_quiz_controller_1.QuizController.SubmitQuiz); // contractor anser question 
 router.patch("/teams/members/12367886", contractorRoleCheck_middleware_1.checkContractorRole, contractor_quiz_controller_1.QuizController.SubmitQuiz); // contractor anser question 
 router.get("/teams/members/12367886", contractorRoleCheck_middleware_1.checkContractorRole, contractor_quiz_controller_1.QuizController.SubmitQuiz); // contractor anser question 
+// Define routes for managing team invitations
+router.post("/teams/invitations", contractorRoleCheck_middleware_1.checkContractorRole, contractor_team_invitation_controller_1.TeamInvitationController.inviteToTeam);
+router.get("/teams/invitations", contractorRoleCheck_middleware_1.checkContractorRole, contractor_team_invitation_controller_1.TeamInvitationController.getInvitations);
+router.patch("/teams/invitations/:invitationId/accept", contractorRoleCheck_middleware_1.checkContractorRole, contractor_team_invitation_controller_1.TeamInvitationController.acceptInvitation);
+router.delete("/teams/invitations/:invitationId/reject", contractorRoleCheck_middleware_1.checkContractorRole, contractor_team_invitation_controller_1.TeamInvitationController.rejectInvitation);
 //  Contractor Schedule
 router.post("/schedules", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateScheduleRequest, contractor_schedule_controller_1.ScheduleContractor.createSchedule);
 router.get("/schedules", contractorRoleCheck_middleware_1.checkContractorRole, contractor_schedule_controller_1.ScheduleContractor.getSchedulesByDate);

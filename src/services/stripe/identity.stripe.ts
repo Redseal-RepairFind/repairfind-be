@@ -24,7 +24,7 @@ export const createVerificationSession = async (payload: any) => {
                 require_matching_selfie: true,
             },
         },
-        metadata: payload.metadata,
+        metadata: payload,
       });
     
       return verificationSession;

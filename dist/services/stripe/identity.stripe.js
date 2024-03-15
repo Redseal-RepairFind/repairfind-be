@@ -57,7 +57,7 @@ var createVerificationSession = function (payload) { return __awaiter(void 0, vo
                                 require_matching_selfie: true,
                             },
                         },
-                        metadata: payload.metadata,
+                        metadata: payload,
                     })];
             case 1:
                 verificationSession = _a.sent();
