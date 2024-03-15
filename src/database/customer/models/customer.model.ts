@@ -73,7 +73,8 @@ const CustomerSchema = new  Schema <ICustomer>(
         default:  CustomerAuthProviders.PASSWORD
       },
 
-      stripeCustomer: StripeCustomerSchema
+      stripeCustomer: StripeCustomerSchema,
+      stripePaymentMethod: Object
     
     },
     {

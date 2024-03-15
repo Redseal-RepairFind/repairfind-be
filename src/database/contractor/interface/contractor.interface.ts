@@ -51,6 +51,8 @@ export interface IContractor extends Document {
     verified: boolean;
   };
   stripeCustomer: IStripeCustomer
+  stripeIdentity: object,
+  stripePaymentMethod: object,
   createdAt: Date;
   updatedAt: Date;
   quiz: any;

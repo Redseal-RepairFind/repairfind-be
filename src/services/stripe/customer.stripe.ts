@@ -21,6 +21,16 @@ export const getCustomer = async (query: any) => {
    throw new BadRequestError(error.message || "Something went wrong");
  }
 
+};
+
+export const getCustomerById = async (customerId: any) => {
+  try {
+    const customer = await stripe.customers.retrieve(customerId);
+    return customer
+  } catch (error: any) {
+   throw new BadRequestError(error.message || "Something went wrong");
+ }
+
 
 };
 

@@ -12,12 +12,10 @@ export const createVerificationSession = async (payload: any) => {
   try {
     // https://docs.stripe.com/identity/verification-checks
 
-    https://docs.stripe.com/identity/verify-identity-documents
-
+    //https://docs.stripe.com/identity/verify-identity-documents
 
     // To access the captured selfie and document images, you’ll need to retrieve the associated VerificationReport, 
     //you can do this by expanding the last_verification_report field in the session:
-
 
       const verificationSession = await stripeClient.identity.verificationSessions.create({
         type: 'document',
@@ -26,9 +24,7 @@ export const createVerificationSession = async (payload: any) => {
                 require_matching_selfie: true,
             },
         },
-        metadata: {
-            user_id: '{{USER_ID}}',
-        },
+        metadata: payload.metadata,
       });
     
       return verificationSession;

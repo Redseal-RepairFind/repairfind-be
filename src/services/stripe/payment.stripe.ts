@@ -1,7 +1,7 @@
 import Stripe from 'stripe';
 
-const YOUR_SECRET_KEY = 'YOUR_SECRET_KEY';
-const stripeClient = new Stripe(YOUR_SECRET_KEY);
+const STRIPE_SECRET_KEY = <string>process.env.STRIPE_SECRET_KEY;
+const stripeClient = new Stripe(STRIPE_SECRET_KEY);
 
 
 export const createSetupIntent = async () => {
@@ -46,7 +46,12 @@ export const chargeCustomer = async (customerId: any, paymentMethodId: any) => {
       confirm: true,
     });
     return paymentIntent;
-  };
+};
+
+export const getPaymentMethod = async (paymentMethodId: any) => {
+    const paymentMethod = await stripeClient.paymentMethods.retrieve(paymentMethodId);
+    return paymentMethod;
+};
 
 
   

@@ -58,6 +58,10 @@ router.post("/profiles/bank-details", checkContractorRole, ContractorHttpRequest
     ProfileController(req, res, next).updateBankDetails();
 });
 
+router.post("/profiles/stripe-identity", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
+    ProfileController(req, res, next).createIdentitySession();
+});
+
 //  Account
 router.get("/me", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
     ProfileController(req, res, next).getUser();

@@ -28,14 +28,17 @@ export const createSession = async (req: any, res: Response) => {
             limit: 1
         })
 
-        if(!stripeCustomer){
+        // if(!stripeCustomer){
              stripeCustomer  = await StripeService.customer.createCustomer({
                 email: customer.email,
-                metadata:{},
+                metadata: {
+                    userType: 'customer',
+                    userId: customer.id,
+                },
                 name: `${customer.firstName} ${customer.lastName} `,
                 phone:  `${customer.phoneNumber.code}${customer.phoneNumber.number} `, 
             })
-        }
+        // }
         
         if(stripeCustomer){
             const stripeSession = await StripeService.session.createSession({

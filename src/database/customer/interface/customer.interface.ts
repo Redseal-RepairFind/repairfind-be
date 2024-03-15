@@ -53,6 +53,7 @@ export interface ICustomer extends Document {
   };
 
   stripeCustomer: IStripeCustomer
+  stripePaymentMethod: object
   acceptTerms: Boolean;
   provider: CustomerAuthProviders
   createdAt: Date;

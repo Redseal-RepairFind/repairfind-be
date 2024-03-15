@@ -11,6 +11,7 @@ import { ContractorProfileModel } from "../../../database/contractor/models/cont
 import { IContractorBankDetails, IContractorProfile } from "../../../database/contractor/interface/contractor_profile.interface";
 import { initiateCertnInvite } from "../../../services/certn";
 import { EmailService } from "../../../services";
+import { StripeService } from "../../../services/stripe";
 
 
 class ProfileHandler extends Base {
@@ -427,6 +428,46 @@ class ProfileHandler extends Base {
     } catch (error) {
       console.error('Error changing password:', error);
       return res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+  }
+
+  @handleAsyncError()
+  public async createIdentitySession(): Promise<Response> {
+    let req = <any>this.req
+    let res = this.res
+    try {
+
+      // Check for validation errors
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+      const { currentPassword, newPassword } = req.body;
+
+      const contractorId = req.contractor.id;
+
+      // Retrieve the user from the database
+      const contractor = await ContractorModel.findById(contractorId);
+
+      // Check if the user exists
+      if (!contractor) {
+        return res.status(404).json({ success: false, message: 'User not found' });
+      }
+
+      const verificationSession = await StripeService.identity.createVerificationSession({
+        userType: 'contractor',
+        userId: contractorId,
+        email: contractor.email
+      })
+
+      // Update the user's password
+      // contractor.password = 'hashedPassword';
+      await contractor.save();
+
+      return res.json({ success: true, message: 'Verification session created', data: verificationSession });
+    } catch (error: any) {
+      console.error('Error creating stripe verification session:', error);
+      return res.status(error.code ?? 500).json({ success: false, message: error.message ?? 'Internal Server Error' });
     }
   }
 
