@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import { ContractorModel } from '../../../database/contractor/models/contractor.model';
-import TeamInvitationModel, { ITeamInvitation, TeamMemberStatus } from '../../../database/contractor/models/contractor_invitation.model';
+import TeamInvitationModel, { ITeamInvitation, TeamInvitationStatus } from '../../../database/contractor/models/contractor_invitation.model';
 import ContractorTeamModel, { IContractorTeam } from '../../../database/contractor/models/contractor_team.model';
 import { NewTeamInvitationEmail } from '../../../templates/contractorEmail/team_invitation_email.template';
 import { EmailService } from '../../../services';
@@ -23,6 +23,14 @@ export const inviteToTeam = async (req: any, res: Response) => {
             return res.status(404).json({ success: false, message: 'Company not found' });
         }
 
+          // Check if the team exists
+          let team: IContractorTeam | null = await ContractorTeamModel.findOne({ contractor: company.id });
+          if (!team) {
+              team = await ContractorTeamModel.create({ name: 'Default Team', contractor: company.id, members: [] });
+          }
+
+          
+
         // Check if the invitee is a valid contractor
         const contractor = await ContractorModel.findById(contractorId);
         if (!contractor) {
@@ -32,37 +40,47 @@ export const inviteToTeam = async (req: any, res: Response) => {
         // Check if the invitee is already part of any team
         const existingInvitation = await TeamInvitationModel.findOne({
             contractor: contractor.id,
-            company: company.id,
-            status: { $in: [TeamMemberStatus.PENDING, TeamMemberStatus.ACTIVE] }
+            team: team.id,
+            status: { $in: [TeamInvitationStatus.PENDING, TeamInvitationStatus.ACTIVE, TeamInvitationStatus.REJECTED] }
         });
         if (existingInvitation) {
 
            
-            if(existingInvitation.status == TeamMemberStatus.PENDING){
+            if(existingInvitation.status == TeamInvitationStatus.PENDING){
                 //resend invitation
-                const htmlContent = NewTeamInvitationEmail(contractor.firstName, company.companyName);
+                //@ts-ignore
+                const htmlContent = NewTeamInvitationEmail(contractor.name, company.companyName);
                 await EmailService.send(contractor.email, 'Team Invitation Reminder', htmlContent);
+            }
+
+            if(existingInvitation.status == TeamInvitationStatus.REJECTED){
+
+                existingInvitation.status = TeamInvitationStatus.PENDING
+                existingInvitation.role = role
+                existingInvitation.save()
+
+                //resend rejected invitation
+                //@ts-ignore
+                const htmlContent = NewTeamInvitationEmail(contractor.name, company.companyName);
+                await EmailService.send(contractor.email, 'New Team Invitation', htmlContent);
             }
 
             return res.status(400).json({ success: false, message: 'Invitee is already invited' });
         }
-
-         // Check if the team exists
-         let team: IContractorTeam | null = await ContractorTeamModel.findOne({ contractor: company.id });
-         if (!team) {
-             // Create a new team if it doesn't exist
-             team = await ContractorTeamModel.create({ name: 'Default Team', contractor: company.id, members: [] });
-         }
-
-         
+  
 
         // Create a new team invitation
         const newInvitation: ITeamInvitation = await TeamInvitationModel.create({
             contractor: contractor.id,
-            company: company.id,
+            team: team.id,
             role,
-            status: TeamMemberStatus.PENDING,
+            status: TeamInvitationStatus.PENDING,
         });
+
+        const htmlContent = NewTeamInvitationEmail(contractor.firstName, company.companyName);
+        EmailService.send(contractor.email, 'New Team Invitation', htmlContent)
+        .then(() => console.log('Email sent successfully'))
+        .catch(error => console.error('Error sending email:', error));
 
         res.status(201).json({ success: true, message: 'Invitation sent successfully', data: newInvitation });
     } catch (error) {
@@ -97,20 +115,24 @@ export const acceptInvitation = async (req: Request, res: Response) => {
             return res.status(404).json({ success: false, message: 'Invitation not found' });
         }
 
+        if (invitation.status !== TeamInvitationStatus.PENDING) {
+            return res.status(404).json({ success: false, message: 'Invitation is  is already accepted' });
+        }
+
         // Update the invitation status to ACTIVE
-        invitation.status = TeamMemberStatus.ACTIVE;
+        invitation.status = TeamInvitationStatus.ACTIVE;
 
         // TODO: push to Team members array
         await invitation.save();
 
          // Find the team
-         const team = await ContractorTeamModel.findOne({ contractor: invitation.company });
+         const team = await ContractorTeamModel.findOne({ contractor: invitation.team });
          if (!team) {
              return res.status(404).json({ success: false, message: 'Team not found' });
          }
 
         // Add contractor to team members
-        team.members.push({ contractor: invitation.contractor, role: invitation.role, status: TeamMemberStatus.ACTIVE });
+        team.members.push({ contractor: invitation.contractor, role: invitation.role, status: TeamInvitationStatus.ACTIVE });
         await team.save();
 
         res.json({ success: true, message: 'Invitation accepted successfully', data: invitation });
@@ -126,15 +148,16 @@ export const rejectInvitation = async (req: Request, res: Response) => {
         const invitationId = req.params.invitationId;
 
         // Find the invitation by ID and remove it
-        const deletedInvitation = await TeamInvitationModel.findByIdAndDelete(invitationId);
+        const rejectedInvitation = await TeamInvitationModel.findById(invitationId)
         
-        if (!deletedInvitation) {
+        if (!rejectedInvitation) {
             return res.status(404).json({ success: false, message: 'Invitation not found' });
         }
 
-          // TODO: remove to Team members array
+        rejectedInvitation.status =TeamInvitationStatus.REJECTED
+        rejectedInvitation.save()
 
-        res.json({ success: true, message: 'Invitation rejected successfully', data: deletedInvitation });
+        res.json({ success: true, message: 'Invitation rejected successfully', data: rejectedInvitation });
     } catch (error) {
         console.error('Error rejecting invitation:', error);
         res.status(500).json({ success: false, message: 'Internal Server Error' });

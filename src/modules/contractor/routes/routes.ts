@@ -95,7 +95,7 @@ router.get("/teams/members/12367886", checkContractorRole, QuizController.Submit
 router.post("/teams/invitations", checkContractorRole, TeamInvitationController.inviteToTeam);
 router.get("/teams/invitations", checkContractorRole, TeamInvitationController.getInvitations);
 router.patch("/teams/invitations/:invitationId/accept", checkContractorRole, TeamInvitationController.acceptInvitation);
-router.delete("/teams/invitations/:invitationId/reject", checkContractorRole, TeamInvitationController.rejectInvitation);
+router.patch("/teams/invitations/:invitationId/reject", checkContractorRole, TeamInvitationController.rejectInvitation);
 
 
 

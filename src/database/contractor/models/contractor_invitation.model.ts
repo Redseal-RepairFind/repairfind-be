@@ -1,16 +1,16 @@
 import { Schema, model, Document, Types } from 'mongoose';
 
-export enum TeamMemberStatus {
+export enum TeamInvitationStatus {
     PENDING = 'PENDING',
     ACTIVE = 'ACTIVE',
-    SUSPENDED = 'SUSPENDED',
+    REJECTED = 'REJECTED',
 }
 
 export interface ITeamInvitation extends Document {
     contractor: Types.ObjectId;
-    company: Types.ObjectId;
+    team: Types.ObjectId;
     role: string;
-    status: TeamMemberStatus;
+    status: TeamInvitationStatus;
 }
 
 const TeamInvitationSchema = new Schema<ITeamInvitation>(
@@ -20,7 +20,7 @@ const TeamInvitationSchema = new Schema<ITeamInvitation>(
             ref: 'contractors',
             required: true,
         },
-        company: {
+        team: {
             type: Schema.Types.ObjectId,
             ref: 'contractors',
             required: true,
@@ -31,8 +31,8 @@ const TeamInvitationSchema = new Schema<ITeamInvitation>(
         },
         status: {
             type: String,
-            enum: Object.values(TeamMemberStatus),
-            default: TeamMemberStatus.PENDING,
+            enum: Object.values(TeamInvitationStatus),
+            default: TeamInvitationStatus.PENDING,
         },
     },
     {
