@@ -5,6 +5,7 @@ import TeamInvitationModel, { ITeamInvitation, TeamInvitationStatus } from '../.
 import ContractorTeamModel, { IContractorTeam, TeamMemberStatus } from '../../../database/contractor/models/contractor_team.model';
 import { NewTeamInvitationEmail } from '../../../templates/contractorEmail/team_invitation_email.template';
 import { EmailService } from '../../../services';
+import { IContractor } from '../../../database/contractor/interface/contractor.interface';
 
 // Controller method to invite a user to join a team
 export const inviteToTeam = async (req: any, res: Response) => {
@@ -96,12 +97,44 @@ export const getInvitations = async (req: any, res: Response) => {
 
         // Get all invitations for the invitee
         const invitations = await TeamInvitationModel.find({ contractor }).populate([
-            {path: 'contractor', select: 'companyName firstName lastName profilePhoto'},
-            {path: 'team',  select: 'name contractor.name contractor.companyName'},
+            {path: 'contractor'},
+            {path: 'team'},
         ]).exec();
-        
 
-        res.json({ success: true, message: 'Invitations retrieved successfully', data: invitations });
+        // const format = invitations.mao
+        
+        const formattedInvitations = await Promise.all(invitations.map(async (invitation: ITeamInvitation) => {
+            // const userMembership = team.members.find(member => String(member.contractor) === userId);
+
+            let team = await ContractorTeamModel.findById(invitation.team)
+            const contractor = <IContractor> await ContractorModel.findById(invitation.contractor);
+            const company = <IContractor> await ContractorModel.findById(team?.contractor);
+    
+            // Extract contractor details
+            const formattedCompany = {
+              id: company._id,
+              // @ts-ignore
+              name: company.name,
+              email: company.email,
+              profilePhoto: company.profilePhoto,
+            };
+      
+            return {
+              id: contractor._id,
+              // @ts-ignore
+              name: contractor?.name,
+              email: contractor.email,
+              profilePhoto: contractor.profilePhoto,
+              team: formattedCompany,
+              role: invitation?.role || 'Member',
+              status: invitation?.status || 'ACTIVE', // Assuming default status is ACTIVE
+            };
+          }));
+  
+          
+
+
+        res.json({ success: true, message: 'Invitations retrieved successfully', data: formattedInvitations });
     } catch (error) {
         console.error('Error retrieving invitations:', error);
         res.status(500).json({ success: false, message: 'Internal Server Error' });
