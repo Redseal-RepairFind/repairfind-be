@@ -143,7 +143,7 @@ ContractorScheduleSchema.post<IContractorSchedule>('save', async function (doc) 
   // @ts-ignore
   if (doc.recurrence) {
     // @ts-ignore
-    // await doc.constructor.handleRecurringEvents(doc._id);
+    await doc.constructor.handleRecurringEvents(doc._id);
   }
 
   // doc.

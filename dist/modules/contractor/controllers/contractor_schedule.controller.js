@@ -46,6 +46,15 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ScheduleController = exports.isDateInExpandedSchedule = exports.expandWeeklyAvailability = exports.getEventsByMonth = exports.addOrUpdateAvailability = exports.addOrUpdateSchedule = exports.getSchedulesByDate = exports.getSchedules = exports.setAvailability = exports.createSchedule = void 0;
 var contractor_schedule_model_1 = require("../../../database/contractor/models/contractor_schedule.model");
@@ -237,7 +246,7 @@ var getSchedules = function (req, res) { return __awaiter(void 0, void 0, void 0
 }); };
 exports.getSchedules = getSchedules;
 var getSchedulesByDate = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, year, month, contractorId_2, contractorProfile, startDate_2, endDate_2, expandedSchedules, existingSchedules_2, updatedSchedules, groupedSchedules, error_4;
+    var _a, year, month, contractorId_2, contractorProfile, startDate_2, endDate_2, expandedSchedules, existingSchedules, mergedSchedules_1, uniqueSchedules, groupedSchedules, error_4;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -274,17 +283,16 @@ var getSchedulesByDate = function (req, res) { return __awaiter(void 0, void 0, 
                         date: { $gte: startDate_2, $lte: endDate_2 },
                     })];
             case 2:
-                existingSchedules_2 = _b.sent();
-                updatedSchedules = expandedSchedules.map(function (expandedSchedule) {
-                    var existingSchedule = existingSchedules_2.find(function (storedSchedule) {
-                        return storedSchedule.date.toDateString() === expandedSchedule.date.toDateString();
-                    });
-                    if (existingSchedule) {
-                        return existingSchedule;
-                    }
-                    return __assign(__assign({}, expandedSchedule), { contractor: contractorId_2 });
+                existingSchedules = _b.sent();
+                mergedSchedules_1 = __spreadArray(__spreadArray([], expandedSchedules, true), existingSchedules, true);
+                uniqueSchedules = mergedSchedules_1.filter(function (schedule, index) {
+                    var date = schedule.date.toDateString();
+                    // Check if the current schedule's date is unique within the mergedSchedules array
+                    var isFirstOccurrence = mergedSchedules_1.findIndex(function (s) { return s.date.toDateString() === date; }) === index;
+                    // Retain the existing schedule and the first occurrence of other dates
+                    return schedule.events ? schedule : isFirstOccurrence;
                 });
-                groupedSchedules = updatedSchedules.reduce(function (acc, schedule) {
+                groupedSchedules = uniqueSchedules.reduce(function (acc, schedule) {
                     var key = (0, date_fns_1.format)(new Date(schedule.date), 'yyyy-M');
                     if (!acc[key]) {
                         acc[key] = { schedules: [], summary: {}, events: [] };
@@ -296,6 +304,7 @@ var getSchedulesByDate = function (req, res) { return __awaiter(void 0, void 0, 
                         acc[key].summary[schedule.type] = [];
                     }
                     acc[key].summary[schedule.type].push((0, date_fns_1.getDate)(new Date(schedule.date)));
+                    console.log((new Date(schedule.date + 'GMT+800').getDate()), schedule.date);
                     // Include events summary if events are defined
                     if (schedule.events) {
                         var eventsSummary = schedule.events.map(function (event) { return ({
@@ -503,7 +512,7 @@ var getEventsByMonth = function (req, res) { return __awaiter(void 0, void 0, vo
 }); };
 exports.getEventsByMonth = getEventsByMonth;
 var expandWeeklyAvailability = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, startDate, availabilityDays, contractorId, expandedSchedules, existingSchedules_3, updatedSchedule, error_8;
+    var _a, startDate, availabilityDays, contractorId, expandedSchedules, existingSchedules_2, updatedSchedule, error_8;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -516,9 +525,9 @@ var expandWeeklyAvailability = function (req, res) { return __awaiter(void 0, vo
                         date: { $gte: startDate },
                     })];
             case 1:
-                existingSchedules_3 = _b.sent();
+                existingSchedules_2 = _b.sent();
                 updatedSchedule = expandedSchedules.filter(function (expandedSchedule) {
-                    return !existingSchedules_3.some(function (storedSchedule) {
+                    return !existingSchedules_2.some(function (storedSchedule) {
                         return storedSchedule.date.toDateString() === expandedSchedule.date.toDateString();
                     });
                 });

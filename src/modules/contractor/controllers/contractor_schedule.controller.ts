@@ -241,28 +241,39 @@ export const getSchedulesByDate = async (req: any, res: Response) => {
     });
 
 
-     // Filter out dates that match existing schedules
-    //  const updatedSchedules: IContractorSchedule[] = expandedSchedules.filter(expandedSchedule => {
-    //   return !existingSchedules.some((storedSchedule: { date: { toDateString: () => string; }; }) => {
-    //     return storedSchedule.date.toDateString() === expandedSchedule.date.toDateString();
-    //   });
-    // });
 
-    const updatedSchedules: IContractorSchedule[] = expandedSchedules.map((expandedSchedule) => {
-      const existingSchedule = existingSchedules.find(
-        (storedSchedule: { date: Date }) => {
-          return storedSchedule.date.toDateString() === expandedSchedule.date.toDateString();
-        }
-      );
+  
+
+    // const updatedSchedules: IContractorSchedule[] = expandedSchedules.map((expandedSchedule) => {
+    //   const existingSchedule = existingSchedules.find(
+    //     (storedSchedule: { date: Date }) => {
+    //       return storedSchedule.date.toDateString() === expandedSchedule.date.toDateString();
+    //     }
+    //   );
     
-      if (existingSchedule) {
-        return existingSchedule;
-      }
-      return { ...expandedSchedule, contractor: contractorId };
+    //   if (existingSchedule) {
+    //     return existingSchedule;
+    //   }
+    
+    //   expandedSchedule.contractor = contractorId;
+    
+    //   return expandedSchedule;
+    // }).filter(schedule => !!schedule.contractor);
+
+    // Concatenate expandedSchedules and existingSchedules
+    const mergedSchedules = [...expandedSchedules, ...existingSchedules];
+
+    // Remove duplicates based on the date, retaining existing schedules
+    const uniqueSchedules = mergedSchedules.filter((schedule, index) => {
+        const date = schedule.date.toDateString();
+        // Check if the current schedule's date is unique within the mergedSchedules array
+        const isFirstOccurrence = mergedSchedules.findIndex((s) => s.date.toDateString() === date) === index;
+        // Retain the existing schedule and the first occurrence of other dates
+        return schedule.events ? schedule : isFirstOccurrence;
     });
 
 
-    const groupedSchedules = updatedSchedules.reduce((acc: any, schedule) => {
+    const groupedSchedules = uniqueSchedules.reduce((acc: any, schedule) => {
       const key = format(new Date(schedule.date), 'yyyy-M');
       if (!acc[key]) {
         acc[key] = { schedules: [], summary: {}, events: [] };
@@ -275,6 +286,8 @@ export const getSchedulesByDate = async (req: any, res: Response) => {
         acc[key].summary[schedule.type] = [];
       }
       acc[key].summary[schedule.type].push(getDate(new Date(schedule.date)));
+
+      console.log((new Date(schedule.date + 'GMT+800').getDate()), schedule.date)
 
       // Include events summary if events are defined
       if (schedule.events) {
