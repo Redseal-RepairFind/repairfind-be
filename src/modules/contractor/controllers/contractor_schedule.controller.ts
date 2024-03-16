@@ -242,10 +242,23 @@ export const getSchedulesByDate = async (req: any, res: Response) => {
 
 
      // Filter out dates that match existing schedules
-     const updatedSchedules: IContractorSchedule[] = expandedSchedules.filter(expandedSchedule => {
-      return !existingSchedules.some((storedSchedule: { date: { toDateString: () => string; }; }) => {
-        return storedSchedule.date.toDateString() === expandedSchedule.date.toDateString();
-      });
+    //  const updatedSchedules: IContractorSchedule[] = expandedSchedules.filter(expandedSchedule => {
+    //   return !existingSchedules.some((storedSchedule: { date: { toDateString: () => string; }; }) => {
+    //     return storedSchedule.date.toDateString() === expandedSchedule.date.toDateString();
+    //   });
+    // });
+
+    const updatedSchedules: IContractorSchedule[] = expandedSchedules.map((expandedSchedule) => {
+      const existingSchedule = existingSchedules.find(
+        (storedSchedule: { date: Date }) => {
+          return storedSchedule.date.toDateString() === expandedSchedule.date.toDateString();
+        }
+      );
+    
+      if (existingSchedule) {
+        return existingSchedule;
+      }
+      return { ...expandedSchedule, contractor: contractorId };
     });
 
 

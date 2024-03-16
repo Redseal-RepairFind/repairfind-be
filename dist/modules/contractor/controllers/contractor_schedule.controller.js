@@ -275,10 +275,14 @@ var getSchedulesByDate = function (req, res) { return __awaiter(void 0, void 0, 
                     })];
             case 2:
                 existingSchedules_2 = _b.sent();
-                updatedSchedules = expandedSchedules.filter(function (expandedSchedule) {
-                    return !existingSchedules_2.some(function (storedSchedule) {
+                updatedSchedules = expandedSchedules.map(function (expandedSchedule) {
+                    var existingSchedule = existingSchedules_2.find(function (storedSchedule) {
                         return storedSchedule.date.toDateString() === expandedSchedule.date.toDateString();
                     });
+                    if (existingSchedule) {
+                        return existingSchedule;
+                    }
+                    return __assign(__assign({}, expandedSchedule), { contractor: contractorId_2 });
                 });
                 groupedSchedules = updatedSchedules.reduce(function (acc, schedule) {
                     var key = (0, date_fns_1.format)(new Date(schedule.date), 'yyyy-M');
