@@ -89,8 +89,9 @@ var inviteToTeam = function (req, res) { return __awaiter(void 0, void 0, void 0
             case 2:
                 team = _b.sent();
                 if (!!team) return [3 /*break*/, 4];
-                return [4 /*yield*/, contractor_team_model_1.default.create({ name: 'Default Team', contractor: company.id, members: [] })];
+                return [4 /*yield*/, contractor_team_model_1.default.create({ name: company.name, contractor: company.id, members: [] })];
             case 3:
+                //@ts-ignore
                 team = _b.sent();
                 _b.label = 4;
             case 4: return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];

@@ -27,7 +27,8 @@ export const inviteToTeam = async (req: any, res: Response) => {
           // Check if the team exists
           let team: IContractorTeam | null = await ContractorTeamModel.findOne({ contractor: company.id });
           if (!team) {
-              team = await ContractorTeamModel.create({ name: 'Default Team', contractor: company.id, members: [] });
+            //@ts-ignore
+              team = await ContractorTeamModel.create({ name: company.name, contractor: company.id, members: [] });
           }
 
           
