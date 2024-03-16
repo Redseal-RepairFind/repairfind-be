@@ -7,7 +7,7 @@ import { ContractorHttpRequest } from "../requests";
 import { ProfileController } from "../controllers/contractor.controller";
 import { QuizController } from "../controllers/contractor_quiz.controller";
 import { TeamController } from "../controllers/contractor_team.controller";
-import { ScheduleContractor } from "../controllers/contractor_schedule.controller";
+import { ScheduleController } from "../controllers/contractor_schedule.controller";
 import { ContractorStripeController } from "../controllers/contractor_stripe.controller";
 import { TeamInvitationController } from "../controllers/contractor_team_invitation.controller";
 
@@ -99,11 +99,12 @@ router.patch("/teams/invitations/:invitationId/reject", checkContractorRole, Tea
 
 
 //  Contractor Schedule
-router.post("/schedules", checkContractorRole, ContractorHttpRequest.CreateScheduleRequest, ScheduleContractor.createSchedule );
-// router.get("/schedules", checkContractorRole, ScheduleContractor.getSchedulesByDate);
-router.get("/schedules", checkContractorRole, ScheduleContractor.expandWeeklyAvailability);
-router.post("/schedules/events", checkContractorRole, ScheduleContractor.addOrUpdateSchedule);
-router.get("/schedules/events", checkContractorRole, ScheduleContractor.getEventsByMonth);
+router.post("/schedules", checkContractorRole, ContractorHttpRequest.CreateScheduleRequest, ScheduleController.createSchedule );
+router.get("/schedules", checkContractorRole, ScheduleController.getSchedulesByDate);
+// router.get("/schedules", checkContractorRole, ScheduleController.expandWeeklyAvailability);
+router.post("/schedules/events", checkContractorRole, ScheduleController.addOrUpdateSchedule);
+router.post("/schedules/availability", checkContractorRole, ScheduleController.setAvailability);
+router.get("/schedules/events", checkContractorRole, ScheduleController.getEventsByMonth);
 
 
 

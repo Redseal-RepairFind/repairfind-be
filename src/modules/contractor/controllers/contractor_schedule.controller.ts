@@ -6,6 +6,7 @@ import { validationResult } from 'express-validator';
 import { isValid, startOfMonth, endOfMonth, startOfYear, endOfYear, format, getDate } from 'date-fns';
 import { ContractorModel } from '../../../database/contractor/models/contractor.model';
 import { ContractorProfileModel } from '../../../database/contractor/models/contractor_profile.model';
+import { scheduler } from 'timers/promises';
 
 
 export const createSchedule = async (req: any, res: Response) => {
@@ -45,7 +46,7 @@ export const createSchedule = async (req: any, res: Response) => {
 
         const newSchedule = await ContractorScheduleModel.create(newScheduleData);
 
-        
+
         schedules.push(newSchedule);
       }
     }
@@ -66,7 +67,94 @@ export const createSchedule = async (req: any, res: Response) => {
 };
 
 
+export const setAvailability = async (req: any, res: Response) => {
+  try {
+    const {days, unavailability } = req.body;
+    const contractorId = req.contractor.id;
 
+    const year = new Date().getFullYear()
+    const contractorProfile = await ContractorProfileModel.findOne({contractor: contractorId})
+
+    
+    if(!contractorProfile){
+      return res.status(400).json({ success: false, message: 'Contractor not found' });
+    }
+
+    contractorProfile.availableDays = days
+    if(unavailability){
+      contractorProfile.isOffDuty = unavailability
+    }
+    contractorProfile.save()
+
+    if (year && !isValid(new Date(`${year}-01-01`))) {
+      return res.status(400).json({ success: false, message: 'Invalid year format' });
+    }
+
+    let startDate: number | Date, endDate: number | Date;
+
+    startDate = startOfYear(new Date(`${year}-01-01`));
+    endDate = endOfYear(new Date(`${year}-12-31`));
+    
+
+
+    // Group schedules by year and month
+    const expandedSchedules = generateExpandedSchedule(contractorProfile.availableDays).filter(schedule => {
+      return schedule.date >= startDate && schedule.date <= endDate;
+    });
+
+
+    // Fetch existing schedules within the specified timeframe
+    const existingSchedules = await ContractorScheduleModel.find({
+      contractor: contractorId,
+      date: { $gte: startDate, $lte: endDate },
+    });
+
+    
+
+     // Filter out dates that match existing schedules
+     const updatedSchedules: IContractorSchedule[] = expandedSchedules.filter(expandedSchedule => {
+      return !existingSchedules.some((storedSchedule: { date: { toDateString: () => string; }; }) => {
+        return storedSchedule.date.toDateString() === expandedSchedule.date.toDateString();
+      });
+    });
+
+    const groupedSchedules = updatedSchedules.reduce((acc: any, schedule) => {
+      const key = format(new Date(schedule.date), 'yyyy-M');
+      if (!acc[key]) {
+        acc[key] = { schedules: [], summary: {}, events: [] };
+      }
+      schedule.contractor = contractorId
+      acc[key].schedules.push(schedule);
+
+      // Use the event type as the key for the summary object
+      if (!acc[key].summary[schedule.type]) {
+        acc[key].summary[schedule.type] = [];
+      }
+      acc[key].summary[schedule.type].push(getDate(new Date(schedule.date)));
+
+      // Include events summary if events are defined
+      if (schedule.events) {
+        const eventsSummary = schedule.events.map((event: any) => ({
+          title: event.title,
+          booking: event.booking,
+          date: event.date,
+          startTime: event.startTime,
+          endTime: event.endTime,
+        }));
+
+        acc[key].events = acc[key].events.concat(eventsSummary);
+      }
+
+      return acc;
+    }, {});
+
+
+    res.json({ success: true, message: 'Schedules retrieved successfully', data: groupedSchedules });
+  } catch (error) {
+    console.error('Error retrieving schedules:', error);
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+};
 
 
 export const getSchedules = async (req: any, res: Response) => {
@@ -113,11 +201,16 @@ export const getSchedulesByDate = async (req: any, res: Response) => {
     const { year, month } = req.query;
     const contractorId = req.contractor.id;
 
-    if (!year || !isValid(new Date(`${year}-01-01`))) {
+    const contractorProfile = await ContractorProfileModel.findOne({contractor: contractorId})
+
+    if(!contractorProfile){
+      return res.status(400).json({ success: false, message: 'Contractor not found' });
+    }
+    if (year && !isValid(new Date(`${year}-01-01`))) {
       return res.status(400).json({ success: false, message: 'Invalid year format' });
     }
 
-    let startDate, endDate;
+    let startDate: number | Date, endDate: number | Date;
 
     if (month) {
       // If month is specified, retrieve schedules for that month
@@ -133,19 +226,35 @@ export const getSchedulesByDate = async (req: any, res: Response) => {
       endDate = endOfYear(new Date(`${year}-12-31`));
     }
 
-    const schedules = await ContractorScheduleModel.find({
+    
+    // Group schedules by year and month
+
+    const expandedSchedules = generateExpandedSchedule(contractorProfile.availableDays).filter(schedule => {
+      return schedule.date >= startDate && schedule.date <= endDate;
+    });
+
+
+    // Fetch existing schedules within the specified timeframe
+    const existingSchedules = await ContractorScheduleModel.find({
       contractor: contractorId,
       date: { $gte: startDate, $lte: endDate },
     });
 
 
+     // Filter out dates that match existing schedules
+     const updatedSchedules: IContractorSchedule[] = expandedSchedules.filter(expandedSchedule => {
+      return !existingSchedules.some((storedSchedule: { date: { toDateString: () => string; }; }) => {
+        return storedSchedule.date.toDateString() === expandedSchedule.date.toDateString();
+      });
+    });
 
-    // Group schedules by year and month
-    const groupedSchedules = schedules.reduce((acc: any, schedule) => {
+
+    const groupedSchedules = updatedSchedules.reduce((acc: any, schedule) => {
       const key = format(new Date(schedule.date), 'yyyy-M');
       if (!acc[key]) {
-        acc[key] = { schedules: [], summary: {}, events: []  };
+        acc[key] = { schedules: [], summary: {}, events: [] };
       }
+      schedule.contractor = contractorId
       acc[key].schedules.push(schedule);
 
       // Use the event type as the key for the summary object
@@ -166,7 +275,7 @@ export const getSchedulesByDate = async (req: any, res: Response) => {
 
         acc[key].events = acc[key].events.concat(eventsSummary);
       }
-      
+
       return acc;
     }, {});
 
@@ -181,6 +290,8 @@ export const getSchedulesByDate = async (req: any, res: Response) => {
 
 
 
+
+
 export const addOrUpdateSchedule = async (req: any, res: Response) => {
   try {
     // Check for validation errors
@@ -190,17 +301,17 @@ export const addOrUpdateSchedule = async (req: any, res: Response) => {
     }
 
     // Extract data from the request
-    const { date, note, startTime, endTime, booking, title, type} = req.body;
+    const { date, note, startTime, endTime, booking, title, type } = req.body;
     const contractorId = req.contractor.id;
 
     // Check if a schedule already exists for the given date
     const existingSchedule = await ContractorScheduleModel.findOne({ contractor: contractorId, date });
 
     if (existingSchedule) {
-      
-      
+
+
       // Update the existing schedule with the new event
-      let events  =  existingSchedule.events || []
+      let events = existingSchedule.events || []
 
       let isOverlapping = events.some((event: any) => {
         const eventStartTime = new Date(event.startTime).getTime();
@@ -213,7 +324,7 @@ export const addOrUpdateSchedule = async (req: any, res: Response) => {
           (newEventStartTime <= eventStartTime && newEventEndTime >= eventEndTime)
         );
       });
-      
+
       if (isOverlapping) {
         // Update the existing event with the new event
         const index = events.findIndex((event: any) => {
@@ -227,7 +338,7 @@ export const addOrUpdateSchedule = async (req: any, res: Response) => {
             (newEventStartTime <= eventStartTime && newEventEndTime >= eventEndTime)
           );
         });
-      
+
         if (index !== -1) {
           events[index] = {
             ...events[index],
@@ -289,15 +400,15 @@ export const addOrUpdateAvailability = async (req: any, res: Response) => {
     const { days } = req.body;
     const contractorId = req.contractor.id;
 
-    let contractorProfile = await ContractorProfileModel.findById({contractor: contractorId})
-    
-    if(!contractorProfile){
+    let contractorProfile = await ContractorProfileModel.findById({ contractor: contractorId })
+
+    if (!contractorProfile) {
       return res.status(400).json({ success: false, message: 'Contractor profile not found' });
     }
 
     contractorProfile.availableDays = days;
     contractorProfile.save()
-    
+
     res.json({ success: true, message: 'Availability Schedule updated  successfully', data: contractorProfile });
 
   } catch (error) {
@@ -377,27 +488,25 @@ export const expandWeeklyAvailability = async (req: any, res: Response) => {
     const { startDate, availabilityDays } = req.body;
     const contractorId = req.contractor.id;
 
-    const expandedSchedule = generateExpandedSchedule(startDate, ["Monday", "Tuesday"]);
 
-     // Fetch existing schedules within the specified timeframe
+    const expandedSchedules = generateExpandedSchedule(['Saturday', 'Monday']);
+
+    // Fetch existing schedules within the specified timeframe
     const existingSchedules = await ContractorScheduleModel.find({
       contractor: contractorId,
       date: { $gte: startDate },
-      recurrence: { frequency: 'Weekly' }, // Assuming only weekly schedules are relevant
     });
 
     // Filter out dates that match existing schedules
-    const updatedSchedule = expandedSchedule.filter(date => {
-      return !existingSchedules.some((schedule: { date: { toDateString: () => string; }; }) => {
-        return schedule.date.toDateString() === date.toDateString();
+    const updatedSchedule = expandedSchedules.filter(expandedSchedule => {
+      return !existingSchedules.some((storedSchedule: { date: { toDateString: () => string; }; }) => {
+        return storedSchedule.date.toDateString() === expandedSchedule.date.toDateString();
       });
     });
 
-  // return updatedSchedule;
 
 
-   
-   return  res.json({ success: true, message: 'Events retrieved successfully', data: updatedSchedule });
+    return res.json({ success: true, message: 'Events retrieved successfully', data: updatedSchedule });
   } catch (error) {
     console.error('Error retrieving events:', error);
     res.status(500).json({ success: false, message: 'Internal Server Error' });
@@ -407,14 +516,16 @@ export const expandWeeklyAvailability = async (req: any, res: Response) => {
 
 export const isDateInExpandedSchedule = async (req: any, res: Response) => {
   try {
-    const { dateToCheck, startDate, availabilityDays } = req.body;
+    const {startDate, availabilityDays } = req.body;
     const contractorId = req.contractor.id;
+ 
+    const dateToCheck =  new Date('2024-12-08T23:00:00.000Z')
 
     // Check if the date falls within the expanded schedule
-    const expandedSchedule = generateExpandedSchedule(startDate, availabilityDays);
-    const isDateInExpandedSchedule =   expandedSchedule.some( (date: Date) => dateToCheck.toDateString() === date.toDateString());
-   
-    res.json({ success: true, message: 'Events retrieved successfully', data: '' });
+    const expandedSchedule = generateExpandedSchedule(availabilityDays);
+    const isDateInExpandedSchedule = expandedSchedule.some((schedule: any) => dateToCheck.toDateString() === schedule.date.toDateString());
+
+    res.json({ success: true, message: 'Events retrieved successfully', data: isDateInExpandedSchedule });
   } catch (error) {
     console.error('Error retrieving events:', error);
     res.status(500).json({ success: false, message: 'Internal Server Error' });
@@ -425,40 +536,73 @@ export const isDateInExpandedSchedule = async (req: any, res: Response) => {
 
 
 // Helper function to generate the expanded schedule based on availability days
-const generateExpandedSchedule = function (startDate: Date, availabilityDays: any) {
+const generateExpandedSchedule = function (availabilityDays: Array<string>) {
 
-  startDate = new  Date()
-  const expandedSchedule = [];
-  const year = startDate.getFullYear();
+  const expandedSchedule: IContractorSchedule[] = [];
+  const year = new Date().getFullYear();
 
   // Iterate over each weekday in the availability days array
-  for (const day of availabilityDays) {
-    // let currentDate = new Date(startDate); // Start from the provided date
-    let currentDate = startDate; // Start from the provided date
+  availabilityDays.forEach(day => {
 
-    // Find all occurrences of the current weekday in the year
+    let currentDate = firstWeekdayDate(day)
+ 
+    if(!currentDate){
+      return
+    }
+       // Find all occurrences of the current weekday in the year
     while (currentDate.getFullYear() === year) {
       if (currentDate.toLocaleString('en-us', { weekday: 'long' }) === day) {
-        expandedSchedule.push(new Date(currentDate)); // Add the date to the expanded schedule
+        expandedSchedule.push({
+          date: new Date(currentDate),
+          type: 'availability',
+        }); 
       }
 
       // Move to the next week
       currentDate.setDate(currentDate.getDate() + 7);
-    }
-  }
 
+    
+   }
+
+   
+  })
+
+  // console.log(expandedSchedule)
   return expandedSchedule;
 };
 
 
-export const ScheduleContractor = {
+function firstWeekdayDate(day: string): Date | null {
+  const today = new Date();
+  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const weekdayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+  // Get the index of the specified day
+  const dayIndex = weekdayNames.indexOf(day);
+  if (dayIndex === -1) {
+    console.error('Invalid day specified');
+    return null;
+  }
+
+  // Start from the first day of the month and iterate until we find the first occurrence of the specified weekday
+  let currentDate = new Date(firstDayOfMonth);
+  while (currentDate.getDay() !== dayIndex) {
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+
+  return currentDate;
+}
+
+
+export const ScheduleController = {
   createSchedule,
   getSchedules,
   getSchedulesByDate,
   addOrUpdateSchedule,
   getEventsByMonth,
   expandWeeklyAvailability,
-  isDateInExpandedSchedule
+  isDateInExpandedSchedule,
+  setAvailability
 }
 
 

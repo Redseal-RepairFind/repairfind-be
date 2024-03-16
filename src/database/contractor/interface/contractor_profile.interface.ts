@@ -50,12 +50,8 @@ export interface IContractorProfile extends Document {
   website: string;
   email: string;
   emergencyJobs: boolean;
-  availableDays: {
-    type: Array<String>,
-    items: {
-      type: String,
-    },
-  },
+  availableDays: string[],
+  isOffDuty?: boolean,
   profileType: string,
   previousJobPhotos:  Array<IContractorJobPhoto>;
   previousJobVideos: Array<IContractorJobVideo>

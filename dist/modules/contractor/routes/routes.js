@@ -76,11 +76,12 @@ router.get("/teams/invitations", contractorRoleCheck_middleware_1.checkContracto
 router.patch("/teams/invitations/:invitationId/accept", contractorRoleCheck_middleware_1.checkContractorRole, contractor_team_invitation_controller_1.TeamInvitationController.acceptInvitation);
 router.patch("/teams/invitations/:invitationId/reject", contractorRoleCheck_middleware_1.checkContractorRole, contractor_team_invitation_controller_1.TeamInvitationController.rejectInvitation);
 //  Contractor Schedule
-router.post("/schedules", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateScheduleRequest, contractor_schedule_controller_1.ScheduleContractor.createSchedule);
-// router.get("/schedules", checkContractorRole, ScheduleContractor.getSchedulesByDate);
-router.get("/schedules", contractorRoleCheck_middleware_1.checkContractorRole, contractor_schedule_controller_1.ScheduleContractor.expandWeeklyAvailability);
-router.post("/schedules/events", contractorRoleCheck_middleware_1.checkContractorRole, contractor_schedule_controller_1.ScheduleContractor.addOrUpdateSchedule);
-router.get("/schedules/events", contractorRoleCheck_middleware_1.checkContractorRole, contractor_schedule_controller_1.ScheduleContractor.getEventsByMonth);
+router.post("/schedules", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateScheduleRequest, contractor_schedule_controller_1.ScheduleController.createSchedule);
+router.get("/schedules", contractorRoleCheck_middleware_1.checkContractorRole, contractor_schedule_controller_1.ScheduleController.getSchedulesByDate);
+// router.get("/schedules", checkContractorRole, ScheduleController.expandWeeklyAvailability);
+router.post("/schedules/events", contractorRoleCheck_middleware_1.checkContractorRole, contractor_schedule_controller_1.ScheduleController.addOrUpdateSchedule);
+router.post("/schedules/availability", contractorRoleCheck_middleware_1.checkContractorRole, contractor_schedule_controller_1.ScheduleController.setAvailability);
+router.get("/schedules/events", contractorRoleCheck_middleware_1.checkContractorRole, contractor_schedule_controller_1.ScheduleController.getEventsByMonth);
 router.post("/stripe-account", contractorRoleCheck_middleware_1.checkContractorRole, contractor_stripe_controller_1.ContractorStripeController.createAccount);
 router.post("/stripe-session", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateStripeSessionRequest, contractor_stripe_controller_1.ContractorStripeController.createSession);
 // router.post("/start_quiz", checkContractorRole, contractorStartQuizController); // contractor start quiz

@@ -93,14 +93,10 @@ const CompanyProfileSchema = new Schema<IContractorProfile>(
       },
 
       availableDays: {
-        type: Array,
-        items: {
-          type: Array,
-          items: {
-            type: String,
-            enum: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-          },
-        },
+        type: [String],
+      },
+      isOffDuty: {
+        type: Boolean,
       },
 
       about: {

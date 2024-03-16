@@ -20,7 +20,7 @@ export interface IEvent {
 
 // Interface for the ContractorSchedule document
 export interface IContractorSchedule {
-  contractor: Types.ObjectId;
+  contractor?: Types.ObjectId;
   date: Date;
   type: string;
   recurrence?: IRecurrence;
