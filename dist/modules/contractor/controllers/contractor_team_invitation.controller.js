@@ -183,7 +183,7 @@ var getInvitations = function (req, res) { return __awaiter(void 0, void 0, void
                                         profilePhoto: company.profilePhoto,
                                     };
                                     return [2 /*return*/, {
-                                            id: contractor._id,
+                                            id: invitation._id,
                                             // @ts-ignore
                                             name: contractor === null || contractor === void 0 ? void 0 : contractor.name,
                                             email: contractor.email,

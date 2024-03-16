@@ -4,6 +4,8 @@ import { Request, Response } from 'express';
 import { ContractorScheduleModel, IContractorSchedule, IEvent } from '../../../database/contractor/models/contractor_schedule.model';
 import { validationResult } from 'express-validator';
 import { isValid, startOfMonth, endOfMonth, startOfYear, endOfYear, format, getDate } from 'date-fns';
+import { ContractorModel } from '../../../database/contractor/models/contractor.model';
+import { ContractorProfileModel } from '../../../database/contractor/models/contractor_profile.model';
 
 
 export const createSchedule = async (req: any, res: Response) => {
@@ -42,6 +44,8 @@ export const createSchedule = async (req: any, res: Response) => {
         };
 
         const newSchedule = await ContractorScheduleModel.create(newScheduleData);
+
+        
         schedules.push(newSchedule);
       }
     }
@@ -279,6 +283,30 @@ export const addOrUpdateSchedule = async (req: any, res: Response) => {
   }
 };
 
+export const addOrUpdateAvailability = async (req: any, res: Response) => {
+  try {
+
+    const { days } = req.body;
+    const contractorId = req.contractor.id;
+
+    let contractorProfile = await ContractorProfileModel.findById({contractor: contractorId})
+    
+    if(!contractorProfile){
+      return res.status(400).json({ success: false, message: 'Contractor profile not found' });
+    }
+
+    contractorProfile.availableDays = days;
+    contractorProfile.save()
+    
+    res.json({ success: true, message: 'Availability Schedule updated  successfully', data: contractorProfile });
+
+  } catch (error) {
+    console.error('Error adding or updating schedule:', error);
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+
+};
+
 
 export const getEventsByMonth = async (req: any, res: Response) => {
   try {
@@ -344,6 +372,83 @@ export const getEventsByMonth = async (req: any, res: Response) => {
 };
 
 
+export const expandWeeklyAvailability = async (req: any, res: Response) => {
+  try {
+    const { startDate, availabilityDays } = req.body;
+    const contractorId = req.contractor.id;
+
+    const expandedSchedule = generateExpandedSchedule(startDate, ["Monday", "Tuesday"]);
+
+     // Fetch existing schedules within the specified timeframe
+    const existingSchedules = await ContractorScheduleModel.find({
+      contractor: contractorId,
+      date: { $gte: startDate },
+      recurrence: { frequency: 'Weekly' }, // Assuming only weekly schedules are relevant
+    });
+
+    // Filter out dates that match existing schedules
+    const updatedSchedule = expandedSchedule.filter(date => {
+      return !existingSchedules.some((schedule: { date: { toDateString: () => string; }; }) => {
+        return schedule.date.toDateString() === date.toDateString();
+      });
+    });
+
+  // return updatedSchedule;
+
+
+   
+   return  res.json({ success: true, message: 'Events retrieved successfully', data: updatedSchedule });
+  } catch (error) {
+    console.error('Error retrieving events:', error);
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+};
+
+
+export const isDateInExpandedSchedule = async (req: any, res: Response) => {
+  try {
+    const { dateToCheck, startDate, availabilityDays } = req.body;
+    const contractorId = req.contractor.id;
+
+    // Check if the date falls within the expanded schedule
+    const expandedSchedule = generateExpandedSchedule(startDate, availabilityDays);
+    const isDateInExpandedSchedule =   expandedSchedule.some( (date: Date) => dateToCheck.toDateString() === date.toDateString());
+   
+    res.json({ success: true, message: 'Events retrieved successfully', data: '' });
+  } catch (error) {
+    console.error('Error retrieving events:', error);
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+};
+
+
+
+
+// Helper function to generate the expanded schedule based on availability days
+const generateExpandedSchedule = function (startDate: Date, availabilityDays: any) {
+
+  startDate = new  Date()
+  const expandedSchedule = [];
+  const year = startDate.getFullYear();
+
+  // Iterate over each weekday in the availability days array
+  for (const day of availabilityDays) {
+    // let currentDate = new Date(startDate); // Start from the provided date
+    let currentDate = startDate; // Start from the provided date
+
+    // Find all occurrences of the current weekday in the year
+    while (currentDate.getFullYear() === year) {
+      if (currentDate.toLocaleString('en-us', { weekday: 'long' }) === day) {
+        expandedSchedule.push(new Date(currentDate)); // Add the date to the expanded schedule
+      }
+
+      // Move to the next week
+      currentDate.setDate(currentDate.getDate() + 7);
+    }
+  }
+
+  return expandedSchedule;
+};
 
 
 export const ScheduleContractor = {
@@ -351,7 +456,9 @@ export const ScheduleContractor = {
   getSchedules,
   getSchedulesByDate,
   addOrUpdateSchedule,
-  getEventsByMonth
+  getEventsByMonth,
+  expandWeeklyAvailability,
+  isDateInExpandedSchedule
 }
 
 

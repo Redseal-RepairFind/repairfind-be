@@ -100,7 +100,8 @@ router.patch("/teams/invitations/:invitationId/reject", checkContractorRole, Tea
 
 //  Contractor Schedule
 router.post("/schedules", checkContractorRole, ContractorHttpRequest.CreateScheduleRequest, ScheduleContractor.createSchedule );
-router.get("/schedules", checkContractorRole, ScheduleContractor.getSchedulesByDate);
+// router.get("/schedules", checkContractorRole, ScheduleContractor.getSchedulesByDate);
+router.get("/schedules", checkContractorRole, ScheduleContractor.expandWeeklyAvailability);
 router.post("/schedules/events", checkContractorRole, ScheduleContractor.addOrUpdateSchedule);
 router.get("/schedules/events", checkContractorRole, ScheduleContractor.getEventsByMonth);
 

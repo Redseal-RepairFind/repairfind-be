@@ -158,3 +158,51 @@ ContractorScheduleSchema.post('save', function (doc) {
     });
 });
 exports.ContractorScheduleModel = (0, mongoose_1.model)('contractor_schedules', ContractorScheduleSchema);
+// Helper function to generate the expanded schedule based on availability days
+var generateExpandedSchedule = function (startDate, availabilityDays) {
+    var expandedSchedule = [];
+    var year = startDate.getFullYear();
+    // Iterate over each weekday in the availability days array
+    for (var _i = 0, availabilityDays_1 = availabilityDays; _i < availabilityDays_1.length; _i++) {
+        var day = availabilityDays_1[_i];
+        var currentDate = new Date(startDate); // Start from the provided date
+        // Find all occurrences of the current weekday in the year
+        while (currentDate.getFullYear() === year) {
+            if (currentDate.toLocaleString('en-us', { weekday: 'long' }) === day) {
+                expandedSchedule.push(new Date(currentDate)); // Add the date to the expanded schedule
+            }
+            // Move to the next week
+            currentDate.setDate(currentDate.getDate() + 7);
+        }
+    }
+    return expandedSchedule;
+};
+// Method to expand weekly availability for a whole year based on an array of week days
+ContractorScheduleSchema.statics.expandWeeklyAvailability = function (startDate, availabilityDays) {
+    return __awaiter(this, void 0, void 0, function () {
+        var expandedSchedule, existingSchedules, updatedSchedule;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    expandedSchedule = generateExpandedSchedule(startDate, availabilityDays);
+                    return [4 /*yield*/, this.find({
+                            date: { $gte: startDate },
+                            recurrence: { frequency: 'Weekly' }, // Assuming only weekly schedules are relevant
+                        })];
+                case 1:
+                    existingSchedules = _a.sent();
+                    updatedSchedule = expandedSchedule.filter(function (date) {
+                        return !existingSchedules.some(function (schedule) {
+                            return schedule.date.toDateString() === date.toDateString();
+                        });
+                    });
+                    return [2 /*return*/, updatedSchedule];
+            }
+        });
+    });
+};
+// Method to check if a given date falls within the expanded schedule
+ContractorScheduleSchema.statics.isDateInExpandedSchedule = function (dateToCheck, expandedSchedule) {
+    // Check if the date falls within the expanded schedule
+    return expandedSchedule.some(function (date) { return dateToCheck.toDateString() === date.toDateString(); });
+};

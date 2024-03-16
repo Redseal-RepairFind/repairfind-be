@@ -153,3 +153,56 @@ ContractorScheduleSchema.post<IContractorSchedule>('save', async function (doc) 
 });
 
 export const ContractorScheduleModel = model<IContractorSchedule>('contractor_schedules', ContractorScheduleSchema);
+
+
+
+
+
+// Helper function to generate the expanded schedule based on availability days
+const generateExpandedSchedule = function (startDate: Date, availabilityDays: any) {
+  const expandedSchedule = [];
+  const year = startDate.getFullYear();
+
+  // Iterate over each weekday in the availability days array
+  for (const day of availabilityDays) {
+    let currentDate = new Date(startDate); // Start from the provided date
+
+    // Find all occurrences of the current weekday in the year
+    while (currentDate.getFullYear() === year) {
+      if (currentDate.toLocaleString('en-us', { weekday: 'long' }) === day) {
+        expandedSchedule.push(new Date(currentDate)); // Add the date to the expanded schedule
+      }
+
+      // Move to the next week
+      currentDate.setDate(currentDate.getDate() + 7);
+    }
+  }
+
+  return expandedSchedule;
+};
+
+// Method to expand weekly availability for a whole year based on an array of week days
+ContractorScheduleSchema.statics.expandWeeklyAvailability = async function (startDate: Date, availabilityDays: string[]) {
+  const expandedSchedule = generateExpandedSchedule(startDate, availabilityDays);
+  
+  // Fetch existing schedules within the specified timeframe
+  const existingSchedules = await this.find({
+    date: { $gte: startDate },
+    recurrence: { frequency: 'Weekly' }, // Assuming only weekly schedules are relevant
+  });
+
+  // Filter out dates that match existing schedules
+  const updatedSchedule = expandedSchedule.filter(date => {
+    return !existingSchedules.some((schedule: { date: { toDateString: () => string; }; }) => {
+      return schedule.date.toDateString() === date.toDateString();
+    });
+  });
+
+  return updatedSchedule;
+};
+
+// Method to check if a given date falls within the expanded schedule
+ContractorScheduleSchema.statics.isDateInExpandedSchedule = function (dateToCheck, expandedSchedule) {
+  // Check if the date falls within the expanded schedule
+  return expandedSchedule.some( (date: Date) => dateToCheck.toDateString() === date.toDateString());
+};

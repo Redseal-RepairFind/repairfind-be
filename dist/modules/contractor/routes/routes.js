@@ -77,7 +77,8 @@ router.patch("/teams/invitations/:invitationId/accept", contractorRoleCheck_midd
 router.patch("/teams/invitations/:invitationId/reject", contractorRoleCheck_middleware_1.checkContractorRole, contractor_team_invitation_controller_1.TeamInvitationController.rejectInvitation);
 //  Contractor Schedule
 router.post("/schedules", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateScheduleRequest, contractor_schedule_controller_1.ScheduleContractor.createSchedule);
-router.get("/schedules", contractorRoleCheck_middleware_1.checkContractorRole, contractor_schedule_controller_1.ScheduleContractor.getSchedulesByDate);
+// router.get("/schedules", checkContractorRole, ScheduleContractor.getSchedulesByDate);
+router.get("/schedules", contractorRoleCheck_middleware_1.checkContractorRole, contractor_schedule_controller_1.ScheduleContractor.expandWeeklyAvailability);
 router.post("/schedules/events", contractorRoleCheck_middleware_1.checkContractorRole, contractor_schedule_controller_1.ScheduleContractor.addOrUpdateSchedule);
 router.get("/schedules/events", contractorRoleCheck_middleware_1.checkContractorRole, contractor_schedule_controller_1.ScheduleContractor.getEventsByMonth);
 router.post("/stripe-account", contractorRoleCheck_middleware_1.checkContractorRole, contractor_stripe_controller_1.ContractorStripeController.createAccount);

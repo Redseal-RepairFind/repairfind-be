@@ -120,7 +120,7 @@ export const getInvitations = async (req: any, res: Response) => {
             };
       
             return {
-              id: contractor._id,
+              id: invitation._id,
               // @ts-ignore
               name: contractor?.name,
               email: contractor.email,
