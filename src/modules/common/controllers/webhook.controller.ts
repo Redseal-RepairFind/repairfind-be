@@ -13,7 +13,7 @@ export const stripeWebook = async (
     const payload = req.body;
     // Log.info([sig, payload])
     
-    StripeService.webhook.StripeWebhookHandler(req)
+    // StripeService.webhook.StripeWebhookHandler(req)
     res.status(200).end() 
 
   } catch (err: any) {

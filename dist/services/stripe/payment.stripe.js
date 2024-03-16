@@ -44,18 +44,19 @@ var stripe_1 = __importDefault(require("stripe"));
 var STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 var stripeClient = new stripe_1.default(STRIPE_SECRET_KEY);
 var createSetupIntent = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var setupIntent, setupIntentId;
+    var setupIntent;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0: return [4 /*yield*/, stripeClient.setupIntents.create({
                     payment_method: 'pm_card_visa', // Use the Payment Method ID obtained during authorization
                     customer: 'CUSTOMER_ID', // ID of the customer associated with the Setup Intent
+                    automatic_payment_methods: {
+                        enabled: true
+                    }
                 })];
             case 1:
                 setupIntent = _a.sent();
-                setupIntentId = setupIntent.id;
-                // Store setupIntentId in your database...
-                return [2 /*return*/, setupIntentId];
+                return [2 /*return*/, setupIntent];
         }
     });
 }); };
