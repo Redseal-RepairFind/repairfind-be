@@ -580,7 +580,7 @@ const generateExpandedSchedule = function (availabilityDays: Array<string>) {
       if (currentDate.toLocaleString('en-us', { weekday: 'long' }) === day) {
         expandedSchedule.push({
           date: new Date(currentDate),
-          type: 'availability',
+          type: 'available',
         }); 
       }
 

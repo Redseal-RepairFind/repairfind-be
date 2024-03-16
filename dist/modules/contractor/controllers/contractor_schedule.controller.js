@@ -576,7 +576,7 @@ var generateExpandedSchedule = function (availabilityDays) {
             if (currentDate.toLocaleString('en-us', { weekday: 'long' }) === day) {
                 expandedSchedule.push({
                     date: new Date(currentDate),
-                    type: 'availability',
+                    type: 'available',
                 });
             }
             // Move to the next week
