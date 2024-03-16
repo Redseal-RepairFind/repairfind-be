@@ -32,8 +32,8 @@ export const StripeWebhookHandler = async (req: Request) => {
         const eventType = event.type;
         const eventData = event.data;
 
-        console.log(event)
-        Log.info(event)
+        // console.log(event)
+        // Log.info(event)
         
         switch (eventType) {
             case 'setup_intent.created':

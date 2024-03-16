@@ -42,7 +42,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.setupIntentSucceeded = exports.identityVerificationCreated = exports.setupIntentCreated = exports.StripeWebhookHandler = void 0;
 var stripe_1 = __importDefault(require("stripe"));
 var custom_errors_1 = require("../../utils/custom.errors");
-var logger_1 = require("../../utils/logger");
 var _1 = require(".");
 var contractor_model_1 = require("../../database/contractor/models/contractor.model");
 var customer_model_1 = __importDefault(require("../../database/customer/models/customer.model"));
@@ -60,8 +59,8 @@ var StripeWebhookHandler = function (req) { return __awaiter(void 0, void 0, voi
             req.rawBody, sig, STRIPE_WEBHOOK_SECRET);
             eventType = event_1.type;
             eventData = event_1.data;
-            console.log(event_1);
-            logger_1.Log.info(event_1);
+            // console.log(event)
+            // Log.info(event)
             switch (eventType) {
                 case 'setup_intent.created':
                     (0, exports.setupIntentCreated)(eventData.object);
