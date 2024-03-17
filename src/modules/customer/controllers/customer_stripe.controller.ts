@@ -130,7 +130,7 @@ export const createSetupIntent = async (req: any, res: Response) => {
                 email: customer.email,
                 metadata: {
                     userId: customer.id,
-                    userType: 'contractor'
+                    userType: 'customer'
                 },
                 name: `${customer.firstName} ${customer.lastName} `,
                 phone: `${customer.phoneNumber.code}${customer.phoneNumber.number} `,
@@ -150,7 +150,7 @@ export const createSetupIntent = async (req: any, res: Response) => {
                 'card'
             ],
             metadata: {
-                userType: 'contractor',
+                userType: 'customer',
                 userId: customerId,
             }
 

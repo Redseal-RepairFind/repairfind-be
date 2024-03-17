@@ -76,7 +76,7 @@ var createEphemeralKey = function (payload) { return __awaiter(void 0, void 0, v
                 _a.trys.push([0, 2, , 3]);
                 return [4 /*yield*/, stripeClient.ephemeralKeys.create({
                         customer: payload.customer,
-                    }, { apiVersion: '2020-08-27' })];
+                    }, { apiVersion: '2023-10-16' })];
             case 1:
                 ephemeralKey = _a.sent();
                 return [2 /*return*/, ephemeralKey];

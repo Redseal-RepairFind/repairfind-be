@@ -6,7 +6,7 @@ const stripeClient = new Stripe(STRIPE_SECRET_KEY);
  
 export const createSetupIntent = async (payload: any) => {
   const setupIntent = await stripeClient.setupIntents.create({
-    ...payload
+    ...payload,
   });
 
   return setupIntent;

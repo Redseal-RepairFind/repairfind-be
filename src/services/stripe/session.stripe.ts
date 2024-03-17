@@ -27,7 +27,7 @@ export const createEphemeralKey = async (payload: any) => {
   try {
     const ephemeralKey = await stripeClient.ephemeralKeys.create({
         customer: payload.customer,
-      }, {apiVersion: '2020-08-27'});
+      }, {apiVersion: '2023-10-16'}); //
     
       return ephemeralKey;
   } catch (error:any) {

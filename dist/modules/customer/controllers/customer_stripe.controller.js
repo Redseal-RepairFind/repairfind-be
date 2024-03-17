@@ -177,7 +177,7 @@ var createSetupIntent = function (req, res) { return __awaiter(void 0, void 0, v
                         email: customer.email,
                         metadata: {
                             userId: customer.id,
-                            userType: 'contractor'
+                            userType: 'customer'
                         },
                         name: "".concat(customer.firstName, " ").concat(customer.lastName, " "),
                         phone: "".concat(customer.phoneNumber.code).concat(customer.phoneNumber.number, " "),
@@ -196,7 +196,7 @@ var createSetupIntent = function (req, res) { return __awaiter(void 0, void 0, v
                             'card'
                         ],
                         metadata: {
-                            userType: 'contractor',
+                            userType: 'customer',
                             userId: customerId,
                         }
                     })];
