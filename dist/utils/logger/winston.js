@@ -9,7 +9,7 @@ var winston_daily_rotate_file_1 = __importDefault(require("winston-daily-rotate-
 var infoTransport = new winston_daily_rotate_file_1.default({
     level: 'info',
     filename: 'logs/access-%DATE%.log',
-    datePattern: 'YYYY-MM-DD-HH',
+    datePattern: 'YYYY-MM-DD',
     zippedArchive: true,
     maxSize: '20m',
     maxFiles: '14d'
@@ -17,7 +17,7 @@ var infoTransport = new winston_daily_rotate_file_1.default({
 var errorTransport = new winston_daily_rotate_file_1.default({
     level: 'error',
     filename: 'logs/error-error-%DATE%.log',
-    datePattern: 'YYYY-MM-DD-HH',
+    datePattern: 'YYYY-MM-DD',
     zippedArchive: true,
     maxSize: '20m',
     maxFiles: '14d',
