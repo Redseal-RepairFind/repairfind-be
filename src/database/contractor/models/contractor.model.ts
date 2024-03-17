@@ -107,7 +107,7 @@ const ContractorSchema = new Schema <IContractor>(
 
       stripeCustomer: StripeCustomerSchema,
       stripeIdentity: Object,
-      stripePaymentMethod: Object
+      stripePaymentMethods: Array
     
     },
     {
