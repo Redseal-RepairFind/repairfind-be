@@ -38,14 +38,13 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WebhookController = exports.stripeWebook = void 0;
 var stripe_1 = require("../../../services/stripe");
-var logger_1 = require("../../../utils/logger");
 var stripeWebook = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var sig, payload;
     return __generator(this, function (_a) {
         try {
             sig = req.headers['stripe-signature'];
             payload = req.body;
-            logger_1.Log.info([sig, payload]);
+            // Log.info([sig, payload])
             stripe_1.StripeService.webhook.StripeWebhookHandler(req);
             res.status(200).end();
         }

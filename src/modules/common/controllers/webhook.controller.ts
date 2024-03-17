@@ -11,7 +11,7 @@ export const stripeWebook = async (
   try {
     const sig = <string>req.headers['stripe-signature'];
     const payload = req.body;
-    Log.info([sig, payload])
+    // Log.info([sig, payload])
     
     StripeService.webhook.StripeWebhookHandler(req)
     res.status(200).end() 
