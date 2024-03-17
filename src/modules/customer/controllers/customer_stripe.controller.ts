@@ -104,6 +104,74 @@ export const createAccount = async (req: any, res: Response) => {
 
 
 
+export const createSetupIntent = async (req: any, res: Response) => {
+    try {
+        const { mode } = req.body;
+        const customerId = req.customer.id;
+
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ success: false, message: "Validation errors", errors: errors.array() });
+        }
+
+        let customer = await CustomerModel.findById(customerId)
+        if (!customer) {
+            return res.status(400).json({ success: false, message: 'Contractor not found' });
+        }
+
+        let stripeCustomer = await StripeService.customer.getCustomer({
+            email: customer.email,
+            limit: 1
+        })
+
+      
+        if(!stripeCustomer){
+            stripeCustomer = await StripeService.customer.createCustomer({
+                email: customer.email,
+                metadata: {
+                    userId: customer.id,
+                    userType: 'contractor'
+                },
+                name: `${customer.firstName} ${customer.lastName} `,
+                phone: `${customer.phoneNumber.code}${customer.phoneNumber.number} `,
+            })
+        }
+        
+
+        // create ephemeral key
+        let ephemeralKey = await StripeService.session.createEphemeralKey({
+            customer: stripeCustomer.id
+        })
+
+        
+        const stripeSetupIntent = await StripeService.payment.createSetupIntent({
+            customer: stripeCustomer.id,
+            payment_method_types: [
+                'card'
+            ],
+            metadata: {
+                userType: 'contractor',
+                userId: customerId,
+            }
+
+        })
+
+        customer.stripeCustomer = <IStripeCustomer>stripeCustomer
+        customer.save()
+
+        return res.status(200).json({ success: true, message: 'Stripe setup intent created', data: {
+            stripeSetupIntent,
+            ephemeralKey,
+            stripeCustomer
+        } });
+
+
+    } catch (error: any) {
+        console.error('Error Creating Session', error);
+        return res.status(error.code || 500).json({ success: false, message: error.message || 'Internal Server Error' });
+    }
+};
+
 
 
 
@@ -111,7 +179,8 @@ export const createAccount = async (req: any, res: Response) => {
 
 export const CustomerStripeController = {
     createSession,
-    createAccount
+    createAccount,
+    createSetupIntent
 
 }
 

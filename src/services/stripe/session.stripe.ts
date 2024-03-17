@@ -19,8 +19,19 @@ export const createSession = async (payload: any) => {
     
       return session;
   } catch (error:any) {
-        // console.log(error)
         throw new BadRequestError(error.message || "Something went wrong");
+  }
+};
+
+export const createEphemeralKey = async (payload: any) => {
+  try {
+    const ephemeralKey = await stripeClient.ephemeralKeys.create({
+        customer: payload.customer,
+      }, {apiVersion: '2020-08-27'});
+    
+      return ephemeralKey;
+  } catch (error:any) {
+      throw new BadRequestError(error.message || "Something went wrong");
   }
 };
 

@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerStripeController = exports.createAccount = exports.createSession = void 0;
+exports.CustomerStripeController = exports.createSetupIntent = exports.createAccount = exports.createSession = void 0;
 var express_validator_1 = require("express-validator");
 var stripe_1 = require("../../../services/stripe");
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
@@ -148,7 +148,78 @@ var createAccount = function (req, res) { return __awaiter(void 0, void 0, void 
     });
 }); };
 exports.createAccount = createAccount;
+var createSetupIntent = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var mode, customerId, errors, customer, stripeCustomer, ephemeralKey, stripeSetupIntent, error_3;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 7, , 8]);
+                mode = req.body.mode;
+                customerId = req.customer.id;
+                errors = (0, express_validator_1.validationResult)(req);
+                if (!errors.isEmpty()) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "Validation errors", errors: errors.array() })];
+                }
+                return [4 /*yield*/, customer_model_1.default.findById(customerId)];
+            case 1:
+                customer = _a.sent();
+                if (!customer) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Contractor not found' })];
+                }
+                return [4 /*yield*/, stripe_1.StripeService.customer.getCustomer({
+                        email: customer.email,
+                        limit: 1
+                    })];
+            case 2:
+                stripeCustomer = _a.sent();
+                if (!!stripeCustomer) return [3 /*break*/, 4];
+                return [4 /*yield*/, stripe_1.StripeService.customer.createCustomer({
+                        email: customer.email,
+                        metadata: {
+                            userId: customer.id,
+                            userType: 'contractor'
+                        },
+                        name: "".concat(customer.firstName, " ").concat(customer.lastName, " "),
+                        phone: "".concat(customer.phoneNumber.code).concat(customer.phoneNumber.number, " "),
+                    })];
+            case 3:
+                stripeCustomer = _a.sent();
+                _a.label = 4;
+            case 4: return [4 /*yield*/, stripe_1.StripeService.session.createEphemeralKey({
+                    customer: stripeCustomer.id
+                })];
+            case 5:
+                ephemeralKey = _a.sent();
+                return [4 /*yield*/, stripe_1.StripeService.payment.createSetupIntent({
+                        customer: stripeCustomer.id,
+                        payment_method_types: [
+                            'card'
+                        ],
+                        metadata: {
+                            userType: 'contractor',
+                            userId: customerId,
+                        }
+                    })];
+            case 6:
+                stripeSetupIntent = _a.sent();
+                customer.stripeCustomer = stripeCustomer;
+                customer.save();
+                return [2 /*return*/, res.status(200).json({ success: true, message: 'Stripe setup intent created', data: {
+                            stripeSetupIntent: stripeSetupIntent,
+                            ephemeralKey: ephemeralKey,
+                            stripeCustomer: stripeCustomer
+                        } })];
+            case 7:
+                error_3 = _a.sent();
+                console.error('Error Creating Session', error_3);
+                return [2 /*return*/, res.status(error_3.code || 500).json({ success: false, message: error_3.message || 'Internal Server Error' })];
+            case 8: return [2 /*return*/];
+        }
+    });
+}); };
+exports.createSetupIntent = createSetupIntent;
 exports.CustomerStripeController = {
     createSession: exports.createSession,
-    createAccount: exports.createAccount
+    createAccount: exports.createAccount,
+    createSetupIntent: exports.createSetupIntent
 };

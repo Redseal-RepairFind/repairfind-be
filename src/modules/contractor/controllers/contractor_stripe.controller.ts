@@ -29,15 +29,15 @@ export const createSession = async (req: any, res: Response) => {
         })
 
         // if (!stripeCustomer) {
-            stripeCustomer = await StripeService.customer.createCustomer({
-                email: contractor.email,
-                metadata: {
-                    userId: contractor.id,
-                    userType: 'contractor'
-                },
-                name: `${contractor.firstName} ${contractor.lastName} `,
-                phone: `${contractor.phoneNumber.code}${contractor.phoneNumber.number} `,
-            })
+        stripeCustomer = await StripeService.customer.createCustomer({
+            email: contractor.email,
+            metadata: {
+                userId: contractor.id,
+                userType: 'contractor'
+            },
+            name: `${contractor.firstName} ${contractor.lastName} `,
+            phone: `${contractor.phoneNumber.code}${contractor.phoneNumber.number} `,
+        })
         // }
 
         if (stripeCustomer) {
@@ -63,7 +63,78 @@ export const createSession = async (req: any, res: Response) => {
 
     } catch (error: any) {
         console.error('Error Creating Session', error);
-        return res.status(error.code || 500).json({ success: false, message:  error.message || 'Internal Server Error' });
+        return res.status(error.code || 500).json({ success: false, message: error.message || 'Internal Server Error' });
+    }
+};
+
+
+export const createSetupIntent = async (req: any, res: Response) => {
+    try {
+        const { mode } = req.body;
+        const contractorId = req.contractor.id;
+
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ success: false, message: "Validation errors", errors: errors.array() });
+        }
+
+        let contractor = await ContractorModel.findById(contractorId)
+        if (!contractor) {
+            return res.status(400).json({ success: false, message: 'Contractor not found' });
+        }
+
+        let stripeCustomer = await StripeService.customer.getCustomer({
+            email: contractor.email,
+            limit: 1
+        })
+
+       
+
+        if(!stripeCustomer){
+            stripeCustomer = await StripeService.customer.createCustomer({
+                email: contractor.email,
+                metadata: {
+                    userId: contractor.id,
+                    userType: 'contractor'
+                },
+                name: `${contractor.firstName} ${contractor.lastName} `,
+                phone: `${contractor.phoneNumber.code}${contractor.phoneNumber.number} `,
+            })
+        }
+        
+
+
+        // create ephemeral key
+        let ephemeralKey = await StripeService.session.createEphemeralKey({
+            customer: stripeCustomer.id
+        })
+
+        
+        const stripeSetupIntent = await StripeService.payment.createSetupIntent({
+            customer: stripeCustomer.id,
+            payment_method_types: [
+                'card'
+            ],
+            metadata: {
+                userType: 'contractor',
+                userId: contractorId,
+            }
+
+        })
+
+        contractor.stripeCustomer = <IStripeCustomer>stripeCustomer
+        contractor.save()
+
+        return res.status(200).json({ success: true, message: 'Stripe setup intent created', data: {
+            stripeSetupIntent,
+            ephemeralKey,
+            stripeCustomer
+        } });
+
+
+    } catch (error: any) {
+        console.error('Error Creating Session', error);
+        return res.status(error.code || 500).json({ success: false, message: error.message || 'Internal Server Error' });
     }
 };
 
@@ -99,16 +170,17 @@ export const createAccount = async (req: any, res: Response) => {
 
         return res.status(200).json({ success: true, message: 'Stripe Customer created', data: stripeCustomer });
 
-    } catch (error:any) {
+    } catch (error: any) {
         console.error('Error creating stripe customer:', error);
-        return res.status(error.code || 500).json({ success: false, message:  error.message || 'Internal Server Error' });
+        return res.status(error.code || 500).json({ success: false, message: error.message || 'Internal Server Error' });
     }
 };
 
 
 export const ContractorStripeController = {
     createSession,
-    createAccount
+    createAccount,
+    createSetupIntent,
 
 }
 

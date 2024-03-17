@@ -4,13 +4,9 @@ const STRIPE_SECRET_KEY = <string>process.env.STRIPE_SECRET_KEY;
 const stripeClient = new Stripe(STRIPE_SECRET_KEY);
 
  
-export const createSetupIntent = async () => {
+export const createSetupIntent = async (payload: any) => {
   const setupIntent = await stripeClient.setupIntents.create({
-    payment_method: 'pm_card_visa', // Use the Payment Method ID obtained during authorization
-    customer: 'CUSTOMER_ID', // ID of the customer associated with the Setup Intent
-    automatic_payment_methods:{
-      enabled:true
-    }
+    ...payload
   });
 
   return setupIntent;

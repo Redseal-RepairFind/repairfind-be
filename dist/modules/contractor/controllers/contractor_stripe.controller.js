@@ -36,7 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorStripeController = exports.createAccount = exports.createSession = void 0;
+exports.ContractorStripeController = exports.createAccount = exports.createSetupIntent = exports.createSession = void 0;
 var express_validator_1 = require("express-validator");
 var stripe_1 = require("../../../services/stripe");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
@@ -107,8 +107,78 @@ var createSession = function (req, res) { return __awaiter(void 0, void 0, void 
     });
 }); };
 exports.createSession = createSession;
+var createSetupIntent = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var mode, contractorId, errors, contractor, stripeCustomer, ephemeralKey, stripeSetupIntent, error_2;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 7, , 8]);
+                mode = req.body.mode;
+                contractorId = req.contractor.id;
+                errors = (0, express_validator_1.validationResult)(req);
+                if (!errors.isEmpty()) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "Validation errors", errors: errors.array() })];
+                }
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
+            case 1:
+                contractor = _a.sent();
+                if (!contractor) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Contractor not found' })];
+                }
+                return [4 /*yield*/, stripe_1.StripeService.customer.getCustomer({
+                        email: contractor.email,
+                        limit: 1
+                    })];
+            case 2:
+                stripeCustomer = _a.sent();
+                if (!!stripeCustomer) return [3 /*break*/, 4];
+                return [4 /*yield*/, stripe_1.StripeService.customer.createCustomer({
+                        email: contractor.email,
+                        metadata: {
+                            userId: contractor.id,
+                            userType: 'contractor'
+                        },
+                        name: "".concat(contractor.firstName, " ").concat(contractor.lastName, " "),
+                        phone: "".concat(contractor.phoneNumber.code).concat(contractor.phoneNumber.number, " "),
+                    })];
+            case 3:
+                stripeCustomer = _a.sent();
+                _a.label = 4;
+            case 4: return [4 /*yield*/, stripe_1.StripeService.session.createEphemeralKey({
+                    customer: stripeCustomer.id
+                })];
+            case 5:
+                ephemeralKey = _a.sent();
+                return [4 /*yield*/, stripe_1.StripeService.payment.createSetupIntent({
+                        customer: stripeCustomer.id,
+                        payment_method_types: [
+                            'card'
+                        ],
+                        metadata: {
+                            userType: 'contractor',
+                            userId: contractorId,
+                        }
+                    })];
+            case 6:
+                stripeSetupIntent = _a.sent();
+                contractor.stripeCustomer = stripeCustomer;
+                contractor.save();
+                return [2 /*return*/, res.status(200).json({ success: true, message: 'Stripe setup intent created', data: {
+                            stripeSetupIntent: stripeSetupIntent,
+                            ephemeralKey: ephemeralKey,
+                            stripeCustomer: stripeCustomer
+                        } })];
+            case 7:
+                error_2 = _a.sent();
+                console.error('Error Creating Session', error_2);
+                return [2 /*return*/, res.status(error_2.code || 500).json({ success: false, message: error_2.message || 'Internal Server Error' })];
+            case 8: return [2 /*return*/];
+        }
+    });
+}); };
+exports.createSetupIntent = createSetupIntent;
 var createAccount = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, memberId, role, contractorId, errors, contractor, stripeCustomer, error_2;
+    var _a, memberId, role, contractorId, errors, contractor, stripeCustomer, error_3;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -137,9 +207,9 @@ var createAccount = function (req, res) { return __awaiter(void 0, void 0, void 
                 contractor.save();
                 return [2 /*return*/, res.status(200).json({ success: true, message: 'Stripe Customer created', data: stripeCustomer })];
             case 3:
-                error_2 = _b.sent();
-                console.error('Error creating stripe customer:', error_2);
-                return [2 /*return*/, res.status(error_2.code || 500).json({ success: false, message: error_2.message || 'Internal Server Error' })];
+                error_3 = _b.sent();
+                console.error('Error creating stripe customer:', error_3);
+                return [2 /*return*/, res.status(error_3.code || 500).json({ success: false, message: error_3.message || 'Internal Server Error' })];
             case 4: return [2 /*return*/];
         }
     });
@@ -147,5 +217,6 @@ var createAccount = function (req, res) { return __awaiter(void 0, void 0, void 
 exports.createAccount = createAccount;
 exports.ContractorStripeController = {
     createSession: exports.createSession,
-    createAccount: exports.createAccount
+    createAccount: exports.createAccount,
+    createSetupIntent: exports.createSetupIntent,
 };

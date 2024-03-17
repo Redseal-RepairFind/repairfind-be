@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createSession = void 0;
+exports.createEphemeralKey = exports.createSession = void 0;
 var stripe_1 = __importDefault(require("stripe"));
 var custom_errors_1 = require("../../utils/custom.errors");
 var STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
@@ -62,10 +62,29 @@ var createSession = function (payload) { return __awaiter(void 0, void 0, void 0
                 return [2 /*return*/, session];
             case 2:
                 error_1 = _a.sent();
-                // console.log(error)
                 throw new custom_errors_1.BadRequestError(error_1.message || "Something went wrong");
             case 3: return [2 /*return*/];
         }
     });
 }); };
 exports.createSession = createSession;
+var createEphemeralKey = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
+    var ephemeralKey, error_2;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                return [4 /*yield*/, stripeClient.ephemeralKeys.create({
+                        customer: payload.customer,
+                    }, { apiVersion: '2020-08-27' })];
+            case 1:
+                ephemeralKey = _a.sent();
+                return [2 /*return*/, ephemeralKey];
+            case 2:
+                error_2 = _a.sent();
+                throw new custom_errors_1.BadRequestError(error_2.message || "Something went wrong");
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.createEphemeralKey = createEphemeralKey;
