@@ -21,19 +21,16 @@ export interface ICustomer extends Document {
   };    
   location: string;
   profilePhoto: {
-    type: object
-    properties: {
-      url: {
-        type: String,
-        required: true,
-      },
-      label?: {
-        type: String,
-        unique: true,
-      },
-      descriptions?: {
-        type: Array<string>,
-      },
+    url: {
+      type: String,
+      required: true,
+    },
+    label?: {
+      type: String,
+      unique: true,
+    },
+    descriptions?: {
+      type: Array<string>,
     }
   };
   passwordOtp: {
