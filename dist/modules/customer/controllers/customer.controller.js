@@ -43,6 +43,7 @@ exports.CustomerController = exports.changePassword = exports.getAccount = expor
 var express_validator_1 = require("express-validator");
 var bcrypt_1 = __importDefault(require("bcrypt"));
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
+var expo_1 = require("../../../services/expo");
 var updateAccount = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, firstName, lastName, location_1, phoneNumber, profilePhoto, errors, customerId, customer, updatedCustomer, err_1;
     return __generator(this, function (_b) {
@@ -94,6 +95,16 @@ var getAccount = function (req, res) { return __awaiter(void 0, void 0, void 0, 
                 if (!customer) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Customer account not found' })];
                 }
+                (0, expo_1.sendPushNotifications)(['ExponentPushToken[AfiebhEPOC7rxSKoXPa6Yt]'], {
+                    title: 'Identity verification successful',
+                    icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
+                    body: 'This is a test notification',
+                    data: {
+                        type: 'identity_verification',
+                        profilePhoto: customer.profilePhoto,
+                        icon: "https://cdn-icons-png.flaticon.com/512/1077/1077114.png"
+                    },
+                });
                 return [2 /*return*/, res.status(200).json({ success: true, message: 'Customer account retrieved successfully', data: customer })];
             case 2:
                 err_2 = _a.sent();
