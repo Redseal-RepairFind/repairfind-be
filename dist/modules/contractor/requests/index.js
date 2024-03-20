@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorHttpRequest = exports.CreateScheduleRequest = exports.CreateStripeSessionRequest = exports.InviteToTeam = exports.UpdateBankDetailRequest = exports.PasswordChangeRequest = exports.PasswordResetRequest = exports.ResendEmailRequest = exports.LoginRequest = exports.EmailVerificationRequest = exports.UpdateProfileRequest = exports.CreateProfileRequest = exports.CreateContractorRequest = void 0;
+exports.ContractorHttpRequest = exports.CreateScheduleRequest = exports.UpdateOrDevice = exports.CreateStripeSessionRequest = exports.InviteToTeam = exports.UpdateBankDetailRequest = exports.PasswordChangeRequest = exports.PasswordResetRequest = exports.ResendEmailRequest = exports.LoginRequest = exports.EmailVerificationRequest = exports.UpdateProfileRequest = exports.CreateProfileRequest = exports.CreateContractorRequest = void 0;
 var express_validator_1 = require("express-validator");
 exports.CreateContractorRequest = [
     (0, express_validator_1.body)('email').isEmail(),
@@ -226,6 +226,10 @@ exports.InviteToTeam = [
 exports.CreateStripeSessionRequest = [
     (0, express_validator_1.body)("mode").notEmpty(),
 ];
+exports.UpdateOrDevice = [
+    (0, express_validator_1.body)("deviceId").notEmpty(),
+    (0, express_validator_1.body)("deviceToken").notEmpty(),
+];
 exports.CreateScheduleRequest = [
     (0, express_validator_1.body)('dates').optional().isArray().withMessage('Dates should be an array').notEmpty().withMessage('Dates array should not be empty'),
     (0, express_validator_1.body)('type').optional().isString().withMessage('Event type should be a string').notEmpty().withMessage('Schedule type cannot be empty'),
@@ -251,5 +255,6 @@ exports.ContractorHttpRequest = {
     CreateScheduleRequest: exports.CreateScheduleRequest,
     UpdateProfileRequest: exports.UpdateProfileRequest,
     PasswordChangeRequest: exports.PasswordChangeRequest,
-    CreateStripeSessionRequest: exports.CreateStripeSessionRequest
+    CreateStripeSessionRequest: exports.CreateStripeSessionRequest,
+    UpdateOrDevice: exports.UpdateOrDevice
 };

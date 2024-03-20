@@ -5,6 +5,7 @@ export interface IContractorDevice extends Document {
     contractor: Types.ObjectId;
     deviceType: string;
     deviceToken: string;
+    deviceId: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -18,9 +19,14 @@ const ContractorDeviceSchema = new Schema<IContractorDevice>({
     },
     deviceType: {
         type: String,
-        required: true
+        required: false
     },
     deviceToken: {
+        type: String,
+        required: true,
+        unique: false
+    },
+    deviceId: {
         type: String,
         required: true,
         unique: true

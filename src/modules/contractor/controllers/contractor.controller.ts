@@ -12,6 +12,7 @@ import { IContractorBankDetails, IContractorProfile } from "../../../database/co
 import { initiateCertnInvite } from "../../../services/certn";
 import { EmailService } from "../../../services";
 import { StripeService } from "../../../services/stripe";
+import ContractorDeviceModel from "../../../database/contractor/models/contractor_devices.model";
 
 
 class ProfileHandler extends Base {
@@ -467,6 +468,69 @@ class ProfileHandler extends Base {
       return res.json({ success: true, message: 'Verification session created', data: verificationSession });
     } catch (error: any) {
       console.error('Error creating stripe verification session:', error);
+      return res.status(error.code ?? 500).json({ success: false, message: error.message ?? 'Internal Server Error' });
+    }
+  }
+
+  // @handleAsyncError()
+  public async createOrUpdateDevice(): Promise<Response> {
+    let req = <any>this.req
+    let res = this.res
+    try {
+
+      // Check for validation errors
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+      const { deviceId, deviceType, deviceToken } = req.body;
+
+      const contractorId = req.contractor.id;
+
+      // Retrieve the user from the database
+      const contractor = await ContractorModel.findById(contractorId);
+
+      // Check if the user exists
+      if (!contractor) {
+        return res.status(404).json({ success: false, message: 'User not found' });
+      }
+
+
+      // Find the contractor device with the provided device ID and type
+      let contractorDevice = await ContractorDeviceModel.findOneAndUpdate(
+        { contractor: contractorId, deviceId: deviceId },
+        { $set: { deviceToken, deviceId, deviceType, } },
+        { new: true, upsert:true }
+    );
+
+
+      return res.json({ success: true, message: 'Contractor device updated', data: contractorDevice });
+    } catch (error: any) {
+      console.error('Error creating stripe verification session:', error);
+      return res.status(error.code ?? 500).json({ success: false, message: error.message ?? 'Internal Server Error' });
+    }
+  }
+  
+  @handleAsyncError()
+  public async myDevices(): Promise<Response> {
+    let req = <any>this.req
+    let res = this.res
+    try {
+
+      const contractorId = req.contractor.id;
+
+      // Retrieve the user from the database
+      const contractor = await ContractorModel.findById(contractorId);
+
+      // Check if the user exists
+      if (!contractor) {
+        return res.status(404).json({ success: false, message: 'Contractor not found' });
+      }
+
+      const devices = await ContractorDeviceModel.find({contractor: contractorId})
+      return res.json({ success: true, message: 'Contractor deviced retrieved', data: devices });
+    } catch (error: any) {
+      console.error('Error retrieving contractor devices:', error);
       return res.status(error.code ?? 500).json({ success: false, message: error.message ?? 'Internal Server Error' });
     }
   }

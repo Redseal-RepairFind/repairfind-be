@@ -10,9 +10,14 @@ var ContractorDeviceSchema = new mongoose_1.Schema({
     },
     deviceType: {
         type: String,
-        required: true
+        required: false
     },
     deviceToken: {
+        type: String,
+        required: true,
+        unique: false
+    },
+    deviceId: {
         type: String,
         required: true,
         unique: true

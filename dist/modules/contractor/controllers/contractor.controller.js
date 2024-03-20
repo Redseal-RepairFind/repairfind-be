@@ -96,6 +96,7 @@ var contractor_profile_model_1 = require("../../../database/contractor/models/co
 var certn_1 = require("../../../services/certn");
 var services_1 = require("../../../services");
 var stripe_1 = require("../../../services/stripe");
+var contractor_devices_model_1 = __importDefault(require("../../../database/contractor/models/contractor_devices.model"));
 var ProfileHandler = /** @class */ (function (_super) {
     __extends(ProfileHandler, _super);
     function ProfileHandler() {
@@ -543,6 +544,78 @@ var ProfileHandler = /** @class */ (function (_super) {
             });
         });
     };
+    // @handleAsyncError()
+    ProfileHandler.prototype.createOrUpdateDevice = function () {
+        var _a, _b;
+        return __awaiter(this, void 0, void 0, function () {
+            var req, res, errors, _c, deviceId, deviceType, deviceToken, contractorId, contractor, contractorDevice, error_3;
+            return __generator(this, function (_d) {
+                switch (_d.label) {
+                    case 0:
+                        req = this.req;
+                        res = this.res;
+                        _d.label = 1;
+                    case 1:
+                        _d.trys.push([1, 4, , 5]);
+                        errors = (0, express_validator_1.validationResult)(req);
+                        if (!errors.isEmpty()) {
+                            return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                        }
+                        _c = req.body, deviceId = _c.deviceId, deviceType = _c.deviceType, deviceToken = _c.deviceToken;
+                        contractorId = req.contractor.id;
+                        return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
+                    case 2:
+                        contractor = _d.sent();
+                        // Check if the user exists
+                        if (!contractor) {
+                            return [2 /*return*/, res.status(404).json({ success: false, message: 'User not found' })];
+                        }
+                        return [4 /*yield*/, contractor_devices_model_1.default.findOneAndUpdate({ contractor: contractorId, deviceId: deviceId }, { $set: { deviceToken: deviceToken, deviceId: deviceId, deviceType: deviceType, } }, { new: true, upsert: true })];
+                    case 3:
+                        contractorDevice = _d.sent();
+                        return [2 /*return*/, res.json({ success: true, message: 'Contractor device updated', data: contractorDevice })];
+                    case 4:
+                        error_3 = _d.sent();
+                        console.error('Error creating stripe verification session:', error_3);
+                        return [2 /*return*/, res.status((_a = error_3.code) !== null && _a !== void 0 ? _a : 500).json({ success: false, message: (_b = error_3.message) !== null && _b !== void 0 ? _b : 'Internal Server Error' })];
+                    case 5: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    ProfileHandler.prototype.myDevices = function () {
+        var _a, _b;
+        return __awaiter(this, void 0, void 0, function () {
+            var req, res, contractorId, contractor, devices, error_4;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
+                    case 0:
+                        req = this.req;
+                        res = this.res;
+                        _c.label = 1;
+                    case 1:
+                        _c.trys.push([1, 4, , 5]);
+                        contractorId = req.contractor.id;
+                        return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
+                    case 2:
+                        contractor = _c.sent();
+                        // Check if the user exists
+                        if (!contractor) {
+                            return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor not found' })];
+                        }
+                        return [4 /*yield*/, contractor_devices_model_1.default.find({ contractor: contractorId })];
+                    case 3:
+                        devices = _c.sent();
+                        return [2 /*return*/, res.json({ success: true, message: 'Contractor deviced retrieved', data: devices })];
+                    case 4:
+                        error_4 = _c.sent();
+                        console.error('Error retrieving contractor devices:', error_4);
+                        return [2 /*return*/, res.status((_a = error_4.code) !== null && _a !== void 0 ? _a : 500).json({ success: false, message: (_b = error_4.message) !== null && _b !== void 0 ? _b : 'Internal Server Error' })];
+                    case 5: return [2 /*return*/];
+                }
+            });
+        });
+    };
     __decorate([
         (0, decorators_abstract_1.handleAsyncError)(),
         __metadata("design:type", Function),
@@ -591,6 +664,12 @@ var ProfileHandler = /** @class */ (function (_super) {
         __metadata("design:paramtypes", []),
         __metadata("design:returntype", Promise)
     ], ProfileHandler.prototype, "createIdentitySession", null);
+    __decorate([
+        (0, decorators_abstract_1.handleAsyncError)(),
+        __metadata("design:type", Function),
+        __metadata("design:paramtypes", []),
+        __metadata("design:returntype", Promise)
+    ], ProfileHandler.prototype, "myDevices", null);
     return ProfileHandler;
 }(base_abstract_1.Base));
 var ProfileController = function () {

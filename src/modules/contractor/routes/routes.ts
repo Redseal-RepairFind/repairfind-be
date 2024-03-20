@@ -75,6 +75,13 @@ router.post("/me/change-password", checkContractorRole, ContractorHttpRequest.Pa
     ProfileController(req, res, next).changePassword();
 });
 
+router.post("/me/devices", checkContractorRole, ContractorHttpRequest.UpdateOrDevice, (req: Request, res: Response, next: NextFunction) => {
+    ProfileController(req, res, next).createOrUpdateDevice();
+});
+router.get("/me/devices", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
+    ProfileController(req, res, next).myDevices();
+});
+
 
 //  QUiz
 router.get("/quiz-start", checkContractorRole, QuizController.StartQuiz );

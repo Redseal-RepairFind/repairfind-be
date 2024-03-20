@@ -147,6 +147,11 @@ export const EmailVerificationRequest = [
     body("mode").notEmpty(),
   ];
 
+  export const UpdateOrDevice = [
+    body("deviceId").notEmpty(),
+    body("deviceToken").notEmpty(),
+  ];
+
 
 
   export const CreateScheduleRequest = [
@@ -179,6 +184,7 @@ export const ContractorHttpRequest = {
     CreateScheduleRequest,
     UpdateProfileRequest,
     PasswordChangeRequest,
-    CreateStripeSessionRequest
+    CreateStripeSessionRequest,
+    UpdateOrDevice
     
 }
