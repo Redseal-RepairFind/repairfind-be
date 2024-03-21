@@ -39,12 +39,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.paymentMethodDetached = exports.paymentMethodAttached = exports.setupIntentSucceeded = exports.identityVerificationCreated = exports.setupIntentCreated = exports.StripeWebhookHandler = void 0;
+exports.identityVerificationVerified = exports.identityVerificationRequiresInput = exports.identityVerificationCreated = exports.paymentMethodDetached = exports.paymentMethodAttached = exports.setupIntentSucceeded = exports.setupIntentCreated = exports.StripeWebhookHandler = void 0;
 var stripe_1 = __importDefault(require("stripe"));
 var custom_errors_1 = require("../../utils/custom.errors");
 var _1 = require(".");
 var contractor_model_1 = require("../../database/contractor/models/contractor.model");
 var customer_model_1 = __importDefault(require("../../database/customer/models/customer.model"));
+var expo_1 = require("../expo");
+var contractor_devices_model_1 = __importDefault(require("../../database/contractor/models/contractor_devices.model"));
 var STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 var STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
 var stripeClient = new stripe_1.default(STRIPE_SECRET_KEY);
@@ -71,6 +73,15 @@ var StripeWebhookHandler = function (req) { return __awaiter(void 0, void 0, voi
                 case 'identity.verification_session.created':
                     (0, exports.identityVerificationCreated)(eventData.object);
                     break;
+                case 'identity.verification_session.processing':
+                    break;
+                case 'identity.verification_session.requires_input':
+                    (0, exports.identityVerificationRequiresInput)(eventData.object);
+                    break;
+                case 'identity.verification_session.verified':
+                    // All the verification checks passed
+                    (0, exports.identityVerificationVerified)(eventData.object);
+                    break;
                 case 'payment_method.attached':
                     (0, exports.paymentMethodAttached)(eventData.object);
                     break;
@@ -78,7 +89,7 @@ var StripeWebhookHandler = function (req) { return __awaiter(void 0, void 0, voi
                     (0, exports.paymentMethodDetached)(eventData.object);
                     break;
                 default:
-                    console.log("Unhandled event type: ".concat(eventType));
+                    console.log("Unhandled event type: ".concat(eventType), event_1.object);
                     break;
             }
         }
@@ -102,41 +113,8 @@ var setupIntentCreated = function (payload) { return __awaiter(void 0, void 0, v
     });
 }); };
 exports.setupIntentCreated = setupIntentCreated;
-var identityVerificationCreated = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var userType, userId, user, error_1;
-    var _a, _b;
-    return __generator(this, function (_c) {
-        switch (_c.label) {
-            case 0:
-                _c.trys.push([0, 5, , 6]);
-                userType = (_a = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _a === void 0 ? void 0 : _a.userType;
-                userId = (_b = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _b === void 0 ? void 0 : _b.userId;
-                user = null;
-                if (!(userType == 'contractor')) return [3 /*break*/, 2];
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(userId)];
-            case 1:
-                user = _c.sent();
-                return [3 /*break*/, 4];
-            case 2: return [4 /*yield*/, customer_model_1.default.findById(userId)];
-            case 3:
-                user = _c.sent();
-                _c.label = 4;
-            case 4:
-                if (user) {
-                    user.stripeIdentity = payload;
-                    user.save();
-                }
-                return [3 /*break*/, 6];
-            case 5:
-                error_1 = _c.sent();
-                throw new custom_errors_1.BadRequestError(error_1.message || "Something went wrong");
-            case 6: return [2 /*return*/];
-        }
-    });
-}); };
-exports.identityVerificationCreated = identityVerificationCreated;
 var setupIntentSucceeded = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var customer, paymentMethod_1, userType, userId, user, _a, existingPaymentMethodIndex, error_2;
+    var customer, paymentMethod_1, userType, userId, user, _a, existingPaymentMethodIndex, error_1;
     var _b, _c;
     return __generator(this, function (_d) {
         switch (_d.label) {
@@ -179,15 +157,15 @@ var setupIntentSucceeded = function (payload) { return __awaiter(void 0, void 0,
                 _d.sent();
                 return [3 /*break*/, 9];
             case 8:
-                error_2 = _d.sent();
-                throw new custom_errors_1.BadRequestError(error_2.message || "Something went wrong");
+                error_1 = _d.sent();
+                throw new custom_errors_1.BadRequestError(error_1.message || "Something went wrong");
             case 9: return [2 /*return*/];
         }
     });
 }); };
 exports.setupIntentSucceeded = setupIntentSucceeded;
 var paymentMethodAttached = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var customer, paymentMethod_2, userType, userId, user, _a, existingPaymentMethodIndex, error_3;
+    var customer, paymentMethod_2, userType, userId, user, _a, existingPaymentMethodIndex, error_2;
     var _b, _c;
     return __generator(this, function (_d) {
         switch (_d.label) {
@@ -232,15 +210,15 @@ var paymentMethodAttached = function (payload) { return __awaiter(void 0, void 0
                 _d.sent();
                 return [3 /*break*/, 9];
             case 8:
-                error_3 = _d.sent();
-                throw new custom_errors_1.BadRequestError(error_3.message || "Something went wrong");
+                error_2 = _d.sent();
+                throw new custom_errors_1.BadRequestError(error_2.message || "Something went wrong");
             case 9: return [2 /*return*/];
         }
     });
 }); };
 exports.paymentMethodAttached = paymentMethodAttached;
 var paymentMethodDetached = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var paymentMethodId_1, user, error_4;
+    var paymentMethodId_1, user, error_3;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -260,10 +238,214 @@ var paymentMethodDetached = function (payload) { return __awaiter(void 0, void 0
                 _a.sent();
                 return [3 /*break*/, 4];
             case 3:
-                error_4 = _a.sent();
-                throw new custom_errors_1.BadRequestError(error_4.message || "Something went wrong");
+                error_3 = _a.sent();
+                throw new custom_errors_1.BadRequestError(error_3.message || "Something went wrong");
             case 4: return [2 /*return*/];
         }
     });
 }); };
 exports.paymentMethodDetached = paymentMethodDetached;
+var identityVerificationCreated = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
+    var userType, userId, user, deviceTokens, devices, error_4;
+    var _a, _b;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
+            case 0:
+                _c.trys.push([0, 6, , 7]);
+                userType = (_a = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _a === void 0 ? void 0 : _a.userType;
+                userId = (_b = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _b === void 0 ? void 0 : _b.userId;
+                user = null;
+                deviceTokens = [];
+                devices = [];
+                if (!(userType == 'contractor')) return [3 /*break*/, 3];
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(userId)];
+            case 1:
+                user = _c.sent();
+                return [4 /*yield*/, contractor_devices_model_1.default.find({ contractor: user === null || user === void 0 ? void 0 : user.id }).select('deviceToken')];
+            case 2:
+                devices = _c.sent();
+                deviceTokens = devices.map(function (device) { return device.deviceToken; });
+                return [3 /*break*/, 5];
+            case 3: return [4 /*yield*/, customer_model_1.default.findById(userId)];
+            case 4:
+                user = _c.sent();
+                _c.label = 5;
+            case 5:
+                if (user) {
+                    user.stripeIdentity = payload;
+                    user.save();
+                    (0, expo_1.sendPushNotifications)(deviceTokens, {
+                        title: 'Identity Verification',
+                        icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
+                        body: 'Identity verification session verified',
+                        data: {
+                            event: 'identity.verification_session.created',
+                            user: {
+                                email: user.email,
+                                profilePhoto: user.profilePhoto,
+                            },
+                            payload: {
+                                status: payload.status,
+                                type: payload.type,
+                                options: payload.options
+                            }
+                        },
+                    });
+                }
+                return [3 /*break*/, 7];
+            case 6:
+                error_4 = _c.sent();
+                throw new custom_errors_1.BadRequestError(error_4.message || "Something went wrong");
+            case 7: return [2 /*return*/];
+        }
+    });
+}); };
+exports.identityVerificationCreated = identityVerificationCreated;
+var identityVerificationRequiresInput = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
+    var userType, userId, user, deviceTokens, devices, message, error_5;
+    var _a, _b;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
+            case 0:
+                _c.trys.push([0, 7, , 8]);
+                console.log('Verification check failed: ' + payload.last_error.reason);
+                userType = (_a = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _a === void 0 ? void 0 : _a.userType;
+                userId = (_b = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _b === void 0 ? void 0 : _b.userId;
+                user = null;
+                deviceTokens = [];
+                devices = [];
+                if (!(userType == 'contractor')) return [3 /*break*/, 3];
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(userId)];
+            case 1:
+                user = _c.sent();
+                return [4 /*yield*/, contractor_devices_model_1.default.find({ contractor: user === null || user === void 0 ? void 0 : user.id }).select('deviceToken')];
+            case 2:
+                devices = _c.sent();
+                deviceTokens = devices.map(function (device) { return device.deviceToken; });
+                return [3 /*break*/, 6];
+            case 3: return [4 /*yield*/, customer_model_1.default.findById(userId)];
+            case 4:
+                user = _c.sent();
+                return [4 /*yield*/, contractor_devices_model_1.default.find({ contractor: user === null || user === void 0 ? void 0 : user.id }).select('deviceToken')];
+            case 5:
+                devices = _c.sent();
+                deviceTokens = devices.map(function (device) { return device.deviceToken; });
+                _c.label = 6;
+            case 6:
+                if (!user)
+                    return [2 /*return*/];
+                message = 'Verification check failed: ' + payload.last_error.reason;
+                // Handle specific failure reasons
+                switch (payload.last_error.code) {
+                    case 'document_unverified_other': {
+                        // The document was invalid
+                        break;
+                    }
+                    case 'document_expired': {
+                        // The document was expired
+                        break;
+                    }
+                    case 'document_type_not_supported': {
+                        // document type not supported
+                        break;
+                    }
+                    default: {
+                        // ...
+                    }
+                }
+                if (!user)
+                    return [2 /*return*/];
+                user.stripeIdentity = payload;
+                user.save();
+                (0, expo_1.sendPushNotifications)(deviceTokens, {
+                    title: 'Identity Verification',
+                    icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
+                    body: message,
+                    data: {
+                        event: 'identity.verification_session.requires_input',
+                        user: {
+                            email: user.email,
+                            profilePhoto: user.profilePhoto,
+                        },
+                        payload: {
+                            status: payload.status,
+                            type: payload.type,
+                            reason: payload.last_error.reason,
+                            code: payload.last_error.code,
+                            options: payload.options
+                        }
+                    },
+                });
+                return [3 /*break*/, 8];
+            case 7:
+                error_5 = _c.sent();
+                throw new custom_errors_1.BadRequestError(error_5.message || "Something went wrong");
+            case 8: return [2 /*return*/];
+        }
+    });
+}); };
+exports.identityVerificationRequiresInput = identityVerificationRequiresInput;
+var identityVerificationVerified = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
+    var userType, userId, user, deviceTokens, devices, error_6;
+    var _a, _b;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
+            case 0:
+                _c.trys.push([0, 7, , 8]);
+                console.log('Verification session verified: ' + payload.status);
+                console.log(payload);
+                if (payload.object != 'identity.verification_session')
+                    return [2 /*return*/];
+                userType = (_a = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _a === void 0 ? void 0 : _a.userType;
+                userId = (_b = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _b === void 0 ? void 0 : _b.userId;
+                user = null;
+                deviceTokens = [];
+                devices = [];
+                if (!(userType == 'contractor')) return [3 /*break*/, 3];
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(userId)];
+            case 1:
+                user = _c.sent();
+                return [4 /*yield*/, contractor_devices_model_1.default.find({ contractor: user === null || user === void 0 ? void 0 : user.id }).select('deviceToken')];
+            case 2:
+                devices = _c.sent();
+                deviceTokens = devices.map(function (device) { return device.deviceToken; });
+                return [3 /*break*/, 6];
+            case 3: return [4 /*yield*/, customer_model_1.default.findById(userId)];
+            case 4:
+                user = _c.sent();
+                return [4 /*yield*/, contractor_devices_model_1.default.find({ contractor: user === null || user === void 0 ? void 0 : user.id }).select('deviceToken')];
+            case 5:
+                devices = _c.sent();
+                deviceTokens = devices.map(function (device) { return device.deviceToken; });
+                _c.label = 6;
+            case 6:
+                if (!user)
+                    return [2 /*return*/];
+                user.stripeIdentity = payload;
+                user.save();
+                (0, expo_1.sendPushNotifications)(deviceTokens, {
+                    title: 'Identity Verification',
+                    icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
+                    body: 'Identity verification session verified',
+                    data: {
+                        event: 'identity.verification_session.verified',
+                        user: {
+                            email: user.email,
+                            profilePhoto: user.profilePhoto,
+                        },
+                        payload: {
+                            status: payload.status,
+                            type: payload.type,
+                            options: payload.options
+                        }
+                    },
+                });
+                return [3 /*break*/, 8];
+            case 7:
+                error_6 = _c.sent();
+                throw new custom_errors_1.BadRequestError(error_6.message || "Something went wrong");
+            case 8: return [2 /*return*/];
+        }
+    });
+}); };
+exports.identityVerificationVerified = identityVerificationVerified;

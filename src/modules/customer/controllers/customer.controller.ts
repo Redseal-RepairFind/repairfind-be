@@ -62,16 +62,16 @@ export const getAccount = async (req: any, res: Response) => {
     }
     
 
-    sendPushNotifications(['ExponentPushToken[AfiebhEPOC7rxSKoXPa6Yt]'], {
-      title: 'Identity verification successful',
-      icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
-      body: 'This is a test notification',
-      data: { 
-        type: 'identity_verification',
-        profilePhoto: customer.profilePhoto,
-        icon:"https://cdn-icons-png.flaticon.com/512/1077/1077114.png"
-      },
-    })
+    // sendPushNotifications(['ExponentPushToken[AfiebhEPOC7rxSKoXPa6Yt]'], {
+    //   title: 'Identity verification successful',
+    //   icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
+    //   body: 'This is a test notification',
+    //   data: { 
+    //     type: 'identity_verification',
+    //     profilePhoto: customer.profilePhoto,
+    //     icon:"https://cdn-icons-png.flaticon.com/512/1077/1077114.png"
+    //   },
+    // })
     
     return res.status(200).json({ success: true, message: 'Customer account retrieved successfully', data: customer });
   } catch (err: any) {

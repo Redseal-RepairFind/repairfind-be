@@ -14,13 +14,13 @@ var ContractorDeviceSchema = new mongoose_1.Schema({
     },
     deviceToken: {
         type: String,
-        required: true,
+        required: false,
         unique: false
     },
     deviceId: {
         type: String,
-        required: true,
-        unique: true
+        required: false,
+        unique: false
     }
 }, {
     timestamps: true // Automatically add createdAt and updatedAt fields

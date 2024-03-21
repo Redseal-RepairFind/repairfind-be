@@ -148,7 +148,7 @@ export const EmailVerificationRequest = [
   ];
 
   export const UpdateOrDevice = [
-    body("deviceId").notEmpty(),
+    body("deviceId").optional(),
     body("deviceToken").notEmpty(),
   ];
 
