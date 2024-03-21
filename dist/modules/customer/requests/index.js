@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerHttpRequest = exports.createStripeSessionParams = exports.rateContractorParams = exports.confirmInspectionPaymentParams = exports.confirmPaymentParams = exports.acceptAndPayParams = exports.updateProfileParams = exports.getContractorParams = exports.searchParams = exports.verifyPasswordOtpParams = exports.changePasswordParams = exports.resetPasswordParams = exports.forgotPasswordParams = exports.loginParams = exports.verifySocialSignon = exports.emailVerificationParams = exports.signupParams = void 0;
+exports.CustomerHttpRequest = exports.UpdateOrDeviceParams = exports.createStripeSessionParams = exports.rateContractorParams = exports.confirmInspectionPaymentParams = exports.confirmPaymentParams = exports.acceptAndPayParams = exports.updateProfileParams = exports.getContractorParams = exports.searchParams = exports.verifyPasswordOtpParams = exports.changePasswordParams = exports.resetPasswordParams = exports.forgotPasswordParams = exports.loginParams = exports.verifySocialSignon = exports.emailVerificationParams = exports.signupParams = void 0;
 var express_validator_1 = require("express-validator");
 exports.signupParams = [
     (0, express_validator_1.body)("email").isEmail(),
@@ -103,6 +103,10 @@ exports.rateContractorParams = [
 exports.createStripeSessionParams = [
     (0, express_validator_1.body)("mode").notEmpty(),
 ];
+exports.UpdateOrDeviceParams = [
+    (0, express_validator_1.body)("deviceId").optional(),
+    (0, express_validator_1.body)("deviceToken").notEmpty(),
+];
 exports.CustomerHttpRequest = {
     signupParams: exports.signupParams,
     emailVerificationParams: exports.emailVerificationParams,
@@ -119,5 +123,6 @@ exports.CustomerHttpRequest = {
     rateContractorParams: exports.rateContractorParams,
     verifyPasswordOtpParams: exports.verifyPasswordOtpParams,
     verifySocialSignon: exports.verifySocialSignon,
-    createStripeSessionParams: exports.createStripeSessionParams
+    createStripeSessionParams: exports.createStripeSessionParams,
+    UpdateOrDeviceParams: exports.UpdateOrDeviceParams
 };

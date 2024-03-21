@@ -111,6 +111,11 @@ export const createStripeSessionParams = [
   body("mode").notEmpty(),
 ];
 
+export const UpdateOrDeviceParams = [
+  body("deviceId").optional(),
+  body("deviceToken").notEmpty(),
+];
+
 
 
 export const CustomerHttpRequest = {
@@ -129,5 +134,6 @@ export const CustomerHttpRequest = {
   rateContractorParams,
   verifyPasswordOtpParams,
   verifySocialSignon,
-  createStripeSessionParams
+  createStripeSessionParams,
+  UpdateOrDeviceParams
 }

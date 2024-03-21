@@ -81,7 +81,7 @@ export const setAvailability = async (req: any, res: Response) => {
     }
 
     contractorProfile.availableDays = days
-    if(unavailability){
+    if(unavailability){ 
       contractorProfile.isOffDuty = unavailability
     }
     contractorProfile.save()
@@ -242,23 +242,6 @@ export const getSchedulesByDate = async (req: any, res: Response) => {
 
 
 
-  
-
-    // const updatedSchedules: IContractorSchedule[] = expandedSchedules.map((expandedSchedule) => {
-    //   const existingSchedule = existingSchedules.find(
-    //     (storedSchedule: { date: Date }) => {
-    //       return storedSchedule.date.toDateString() === expandedSchedule.date.toDateString();
-    //     }
-    //   );
-    
-    //   if (existingSchedule) {
-    //     return existingSchedule;
-    //   }
-    
-    //   expandedSchedule.contractor = contractorId;
-    
-    //   return expandedSchedule;
-    // }).filter(schedule => !!schedule.contractor);
 
     // Concatenate expandedSchedules and existingSchedules
     const mergedSchedules = [...expandedSchedules, ...existingSchedules];
@@ -287,7 +270,7 @@ export const getSchedulesByDate = async (req: any, res: Response) => {
       }
       acc[key].summary[schedule.type].push(getDate(new Date(schedule.date)));
 
-      console.log((new Date(schedule.date + 'GMT+800').getDate()), schedule.date)
+      // console.log((new Date(schedule.date + 'GMT+800').getDate()), schedule.date)
 
       // Include events summary if events are defined
       if (schedule.events) {
@@ -313,9 +296,6 @@ export const getSchedulesByDate = async (req: any, res: Response) => {
     res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 };
-
-
-
 
 
 export const addOrUpdateSchedule = async (req: any, res: Response) => {
@@ -509,36 +489,6 @@ export const getEventsByMonth = async (req: any, res: Response) => {
 };
 
 
-export const expandWeeklyAvailability = async (req: any, res: Response) => {
-  try {
-    const { startDate, availabilityDays } = req.body;
-    const contractorId = req.contractor.id;
-
-
-    const expandedSchedules = generateExpandedSchedule(['Saturday', 'Monday']);
-
-    // Fetch existing schedules within the specified timeframe
-    const existingSchedules = await ContractorScheduleModel.find({
-      contractor: contractorId,
-      date: { $gte: startDate },
-    });
-
-    // Filter out dates that match existing schedules
-    const updatedSchedule = expandedSchedules.filter(expandedSchedule => {
-      return !existingSchedules.some((storedSchedule: { date: { toDateString: () => string; }; }) => {
-        return storedSchedule.date.toDateString() === expandedSchedule.date.toDateString();
-      });
-    });
-
-
-
-    return res.json({ success: true, message: 'Events retrieved successfully', data: updatedSchedule });
-  } catch (error) {
-    console.error('Error retrieving events:', error);
-    res.status(500).json({ success: false, message: 'Internal Server Error' });
-  }
-};
-
 
 export const isDateInExpandedSchedule = async (req: any, res: Response) => {
   try {
@@ -626,7 +576,6 @@ export const ScheduleController = {
   getSchedulesByDate,
   addOrUpdateSchedule,
   getEventsByMonth,
-  expandWeeklyAvailability,
   isDateInExpandedSchedule,
   setAvailability
 }

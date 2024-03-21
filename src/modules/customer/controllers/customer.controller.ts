@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import { Request, Response } from "express";
 import CustomerModel from "../../../database/customer/models/customer.model";
 import { sendPushNotifications } from "../../../services/expo";
+import CustomerDeviceModel from "../../../database/customer/models/customer_devices.model";
 
 
 export const updateAccount = async (
@@ -61,18 +62,6 @@ export const getAccount = async (req: any, res: Response) => {
       return res.status(404).json({ success: false, message: 'Customer account not found' });
     }
     
-
-    // sendPushNotifications(['ExponentPushToken[AfiebhEPOC7rxSKoXPa6Yt]'], {
-    //   title: 'Identity verification successful',
-    //   icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
-    //   body: 'This is a test notification',
-    //   data: { 
-    //     type: 'identity_verification',
-    //     profilePhoto: customer.profilePhoto,
-    //     icon:"https://cdn-icons-png.flaticon.com/512/1077/1077114.png"
-    //   },
-    // })
-    
     return res.status(200).json({ success: true, message: 'Customer account retrieved successfully', data: customer });
   } catch (err: any) {
     // Handle errors
@@ -127,11 +116,84 @@ export const changePassword = async (
 
 }
 
+export const myDevices = async (
+  req: any,
+  res: Response,
+) => {
+
+  try {
+
+    const customerId = req.customer.id;
+
+    // Retrieve the user from the database
+    const customer = await CustomerModel.findById(customerId);
+
+    // Check if the user exists
+    if (!customer) {
+      return res.status(404).json({ success: false, message: 'Customer not found' });
+    }
+
+    const devices = await CustomerDeviceModel.find({customer: customerId})
+    return res.json({ success: true, message: 'Customer devices retrieved', data: devices });
+  } catch (error: any) {
+    console.error('Error retrieving contractor devices:', error);
+    return res.status(error.code ?? 500).json({ success: false, message: error.message ?? 'Internal Server Error' });
+  }
+
+}
+
+export const updateOrCreateDevice = async (
+  req: any,
+  res: Response,
+) => {
+
+  try {
+
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    const { deviceId, deviceType, deviceToken } = req.body;
+
+    const customerId = req.customer.id;
+
+    // Retrieve the user from the database
+    const customer = await CustomerModel.findById(customerId);
+
+    // Check if the user exists
+    if (!customer) {
+      return res.status(404).json({ success: false, message: 'Customer not found' });
+    }
+
+    const device = await CustomerDeviceModel.find({deviceId, deviceToken});
+    if (device) {
+      //return res.status(404).json({ success: false, message: 'Device already exits' });
+    }
+
+
+    // Find the contractor device with the provided device ID and type
+    let customerDevice = await CustomerDeviceModel.findOneAndUpdate(
+      { customer: customerId, deviceId: deviceId },
+      { $set: { deviceToken, deviceId, deviceType, } },
+      { new: true, upsert:true }
+  );
+
+    return res.json({ success: true, message: 'Customer device updated', data: customerDevice });
+  } catch (error: any) {
+    console.error('Error creating or updating customer device:', error);
+    return res.status(error.code ?? 500).json({ success: false, message: error.message ?? 'Internal Server Error' });
+  }
+
+}
+
 
 
 export const CustomerController = {
     changePassword,  
     updateAccount,
-    getAccount
+    getAccount,
+    updateOrCreateDevice,
+    myDevices,
 
 }
