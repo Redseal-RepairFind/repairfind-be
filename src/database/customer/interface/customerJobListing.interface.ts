@@ -8,8 +8,8 @@ export interface ICustomerJobListingDocument extends Document {
   jobDescription: string;
   voiceDescription: string;
   jobLocation: string;
-  date: Date;
-  jobExpiry: Date;
+  date: string;
+  jobExpiry: string;
   contractorType: string;
   emergency: string;
   jobImg: string;
