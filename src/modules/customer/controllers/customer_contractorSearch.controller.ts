@@ -191,7 +191,7 @@ export const customerFilterContractoController = async (
 
         const searchContractors = await ContractorProfileModel.find({
             $and: [
-                { emergencyJobs: { $regex: new RegExp(emergency, 'i') } },
+                { emergencyJobs: emergency },
                 { 
                     $or: [
                         { "location.address" : { $regex: new RegExp(location, 'i') } },
@@ -203,15 +203,36 @@ export const customerFilterContractoController = async (
                     ]
                 },
                 { availableDays: { $regex: new RegExp(date, 'i') } },
+                { skill: { $regex: new RegExp(category, 'i') } },
             ]
             
-        });
+        }).limit(50);
 
+        const output = []
 
+        for (let i = 0; i < searchContractors.length; i++) {
+            const searchContractor = searchContractors[i];
+
+            const contractorProfile = await ContractorModel.findOne({
+                $and: [
+                    { _id: searchContractor.contractor },
+                    
+                    { accountType: { $regex: new RegExp(accountType, 'i') } },
+                ]
+            }).select('-password')
+
+            const obj = {
+                searchContractor,
+                contractorProfile
+            }
+
+            output.push(obj)
         
+        }
+
         res.json({  
             success: true,
-            data: ''
+            data: output
         });
       
     } catch (err: any) {
@@ -228,5 +249,6 @@ export const customerFilterContractoController = async (
 export const ContractorSearch = {
     customerSearchForContractorByLocatinController,
     customerSearchForContractorByCategoryAndDateController,
-    customerSearchForCategoryController
+    customerSearchForCategoryController,
+    customerFilterContractoController
 }

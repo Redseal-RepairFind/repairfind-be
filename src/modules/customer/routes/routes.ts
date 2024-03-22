@@ -6,6 +6,7 @@ import { CustomerStripeController } from "../controllers/customer_stripe.control
 import { JobListing } from "../controllers/customerJobListing.controller";
 import { ContractorSearch } from "../controllers/customer_contractorSearch.controller";
 import { memoryUpload } from "../.../../../../utils/upload.utility";
+import { JobRequest } from "../controllers/job_request.controller";
 
 const express = require("express");
 const router = express.Router();
@@ -44,7 +45,11 @@ router.post("/job-listing", checkCustomerRole, memoryUpload.any(), CustomerHttpR
 router.get("/search-contractor-location", checkCustomerRole, CustomerHttpRequest.searchContractorByLocationParams, CustomerHttpRequest.validateFormData, ContractorSearch.customerSearchForContractorByLocatinController ); 
 router.get("/search-contractor-category-date", checkCustomerRole, CustomerHttpRequest.searchContractorByCategoryDateParams, CustomerHttpRequest.validateFormData, ContractorSearch.customerSearchForContractorByCategoryAndDateController ); 
 router.get("/search-category", checkCustomerRole, CustomerHttpRequest.searchCategoryDateParams, CustomerHttpRequest.validateFormData, ContractorSearch.customerSearchForCategoryController ); 
+router.get("/filter-contractor", checkCustomerRole, CustomerHttpRequest.filterContractorParams, CustomerHttpRequest.validateFormData, ContractorSearch.customerFilterContractoController ); 
 
+
+//job request
+router.post("/send-job-request", checkCustomerRole, memoryUpload.any(), CustomerHttpRequest.sendJobRequestParams, CustomerHttpRequest.validateFormData, JobRequest.customerSendJobRequestController ); 
 
 
 // router.get("/get_popular_contractor", checkCustomerRole, customerGetPopularContractorController ); // customer get popular contractor
