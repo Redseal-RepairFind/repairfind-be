@@ -1,25 +1,22 @@
 import { validationResult } from "express-validator";
 import { Request, Response } from "express";
-import CustomerModel from "../../../database/customer/models/customer.model";
-import CustomerJobListingModel from "../../../database/customer/models/customerJobListing.interface";
+import { ContractorModel } from "../../../database/contractor/models/contractor.model";
+import JobModel from "../../../database/customer/models/job.model";
 import { uploadDifferentTypeToS3, uploadToS3 } from "../../../utils/upload.utility";
 import { v4 as uuidv4 } from "uuid";
 
-//customer list new job controller /////////////
-export const customerListNewJobController = async (
+//customer sent job request controller /////////////
+export const customerSendJobRequestController = async (
     req: any,
     res: Response,
   ) => {
   
     try {
       const {  
-        jobCategory,
+        contractorId,
         jobDescription,
         jobLocation,
-        date,
-        jobExpiry,
-        contractorType,
-        emergency,
+        date,  
       } = req.body;
   
         const { skill } = req.query;
@@ -35,13 +32,19 @@ export const customerListNewJobController = async (
         const customer =  req.customer;
         const customerId = customer.id
 
+        const contractor = await ContractorModel.findOne({_id: contractorId})
+
+        if (!contractor) {
+            return res
+            .status(401)
+            .json({ success: false, message: "invlid contractorID" });
+        }
+
         let voiceDescription = ''
-        let jobImg = ''
+        let jobImg = []
 
         if (!files) {
             voiceDescription = ''
-            jobImg = ''
-
         }
 
         for (let i = 0; i < files.length; i++) {
@@ -51,46 +54,39 @@ export const customerListNewJobController = async (
                 const filename = uuidv4();
                 const result = await uploadDifferentTypeToS3(file.buffer, `${filename}.mp3`, 'audio/mp3');
                 voiceDescription = result?.Location!;         
-            }
-
-            if (file.fieldname == 'jobImg') {
+            }else{
                 const filename = uuidv4();
                 const result = await uploadDifferentTypeToS3(file.buffer, `${filename}.jpg`, 'image/jpeg');
-                jobImg = result?.Location!;
+                jobImg.push(result?.Location!);
             }
 
         }
 
-        const newJobListing = new CustomerJobListingModel({
+        const newJob= new JobModel({
             customerId,
-            jobCategory,
+            contractorId,
             jobDescription,
             voiceDescription,
             jobLocation,
             date,
-            jobExpiry,
-            contractorType,
-            emergency,
             jobImg,
         })
 
-        const saveDJobListing = await newJobListing.save()
+        const saveDJob = await newJob.save()
     
         res.json({  
             success: true,
             message: "Job listed successful",
-            data: saveDJobListing
+            data: saveDJob
         });
       
     } catch (err: any) {
-      // signup error
       console.log("error", err)
       res.status(500).json({ message: err.message });
     }
   
 }
 
-
-export const JobListing = {
-    customerListNewJobController,
+export const JobRequest = {
+    customerSendJobRequestController,
 }

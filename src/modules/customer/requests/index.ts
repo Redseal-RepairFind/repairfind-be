@@ -123,6 +123,7 @@ export const jobListingParams = [
   body("emergency").isIn(['yes', 'no'])
   .withMessage("emergency must be yes or no"), 
 ];
+
 export const UpdateOrDeviceParams = [
   body("deviceId").optional(),
   body("deviceToken").notEmpty(),
@@ -140,6 +141,22 @@ export const searchContractorByCategoryDateParams = [
 
 export const searchCategoryDateParams = [
   query("category").notEmpty(),
+];
+
+export const filterContractorParams = [
+  query("distance").notEmpty(),
+  query("emergency").notEmpty(),
+  query("category").notEmpty(),
+  query("location").notEmpty(),
+  query("accountType").notEmpty(),
+  query("date").notEmpty(),
+];
+
+export const sendJobRequestParams = [
+  body("contractorId").notEmpty(),
+  body("jobDescription").notEmpty(),
+  body("jobLocation").notEmpty(),
+  body("date").notEmpty(),
 ];
 
 export const validateFormData = (req: Request, res: Response, next: NextFunction) => {
@@ -171,6 +188,8 @@ export const CustomerHttpRequest = {
   searchContractorByLocationParams,
   searchContractorByCategoryDateParams,
   searchCategoryDateParams,
+  filterContractorParams,
+  sendJobRequestParams,
   validateFormData,
   UpdateOrDeviceParams
 }
