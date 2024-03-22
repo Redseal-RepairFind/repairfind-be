@@ -62,6 +62,46 @@ export const uploadToS3 = async (buffer: Buffer, originalFilename: string): Prom
   }
 };
 
+export const uploadDifferentTypeToS3 = async (buffer: Buffer, originalFilename: string, contentType: string): Promise<null | {Location:string,response:any}> => {
+
+  // if(!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY || !process.env.AWS_BUCKET_NAME){
+  //   return null
+  // }
+  // const awsAccessKey: string = process.env.AWS_ACCESS_KEY_ID;
+  // const awsAccessSecretKey: string = process.env.AWS_SECRET_ACCESS_KEY?.toString();
+  // const awsBucketName: string = process.env.AWS_BUCKET_NAME?.toString();
+
+  const s3 = new S3Client({
+    region: 'us-east-1',
+    credentials: {
+      accessKeyId: 'AKIAT4MDTHO7SHD5CHJD',
+      secretAccessKey: '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',
+    },
+  });
+
+  const timestamp = Date.now().toString();
+  const key = `${timestamp}-${originalFilename}`;
+
+  const params = {
+    Bucket: 'saheedwale',
+    Key: key,
+    Body: buffer,
+    ContentType: contentType,
+    ACL: 'public-read',
+  };
+
+  const command = new PutObjectCommand(params);
+
+  try {
+   const response = await s3.send(command);
+    const fileLocation = `https://${params.Bucket}.s3.amazonaws.com/${params.Key}`;
+    return { response,Location:fileLocation };
+  } catch (error) {
+    console.error('Error uploading to S3:', error);
+    throw error;
+  }
+};
+
 
 const readFileAsync = promisify(fs.readFile);
 const s3UploadAsync = promisify(s3.upload.bind(s3));
