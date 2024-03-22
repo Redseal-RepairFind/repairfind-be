@@ -6,6 +6,8 @@ import { validateSignupParams, validatecustomeLoginParams, validatecustomerEmail
 import { CustomerHttpRequest } from "../requests";
 import { CustomerController } from "../controllers/customer.controller";
 import { CustomerStripeController } from "../controllers/customer_stripe.controller";
+import { JobListing } from "../controllers/customerJobListing.controller";
+import { ContractorSearch } from "../controllers/customer_contractorSearch.controller";
 
 const express = require("express");
 const router = express.Router();
@@ -33,6 +35,16 @@ router.post("/me/change-password", checkCustomerRole, CustomerHttpRequest.change
 router.post("/stripe-account",  checkCustomerRole,  CustomerStripeController.createAccount ); 
 router.post("/stripe-session",  checkCustomerRole, CustomerHttpRequest.createStripeSessionParams, CustomerStripeController.createSession ); 
 router.post("/stripe-setupintent",  checkCustomerRole, CustomerStripeController.createSetupIntent ); 
+
+
+// Job Listing
+router.post("/job-listing", checkCustomerRole, memoryUpload.any(), CustomerHttpRequest.jobListingParams, CustomerHttpRequest.validateFormData, JobListing.customerListNewJobController ); 
+
+// search for contractor
+router.get("/search-contractor-location", checkCustomerRole, CustomerHttpRequest.searchContractorByLocationParams, CustomerHttpRequest.validateFormData, ContractorSearch.customerSearchForContractorByLocatinController ); 
+router.get("/search-contractor-category-date", checkCustomerRole, CustomerHttpRequest.searchContractorByCategoryDateParams, CustomerHttpRequest.validateFormData, ContractorSearch.customerSearchForContractorByCategoryAndDateController ); 
+router.get("/search-category", checkCustomerRole, CustomerHttpRequest.searchCategoryDateParams, CustomerHttpRequest.validateFormData, ContractorSearch.customerSearchForCategoryController ); 
+
 
 
 // router.get("/get_popular_contractor", checkCustomerRole, customerGetPopularContractorController ); // customer get popular contractor
