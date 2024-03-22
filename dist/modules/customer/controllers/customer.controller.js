@@ -39,11 +39,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerController = exports.changePassword = exports.getAccount = exports.updateAccount = void 0;
+exports.CustomerController = exports.updateOrCreateDevice = exports.myDevices = exports.changePassword = exports.getAccount = exports.updateAccount = void 0;
 var express_validator_1 = require("express-validator");
 var bcrypt_1 = __importDefault(require("bcrypt"));
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
-var expo_1 = require("../../../services/expo");
+var customer_devices_model_1 = __importDefault(require("../../../database/customer/models/customer_devices.model"));
 var updateAccount = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, firstName, lastName, location_1, phoneNumber, profilePhoto, errors, customerId, customer, updatedCustomer, err_1;
     return __generator(this, function (_b) {
@@ -95,16 +95,6 @@ var getAccount = function (req, res) { return __awaiter(void 0, void 0, void 0, 
                 if (!customer) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Customer account not found' })];
                 }
-                (0, expo_1.sendPushNotifications)(['ExponentPushToken[AfiebhEPOC7rxSKoXPa6Yt]'], {
-                    title: 'Identity verification successful',
-                    icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
-                    body: 'This is a test notification',
-                    data: {
-                        type: 'identity_verification',
-                        profilePhoto: customer.profilePhoto,
-                        icon: "https://cdn-icons-png.flaticon.com/512/1077/1077114.png"
-                    },
-                });
                 return [2 /*return*/, res.status(200).json({ success: true, message: 'Customer account retrieved successfully', data: customer })];
             case 2:
                 err_2 = _a.sent();
@@ -159,8 +149,77 @@ var changePassword = function (req, res) { return __awaiter(void 0, void 0, void
     });
 }); };
 exports.changePassword = changePassword;
+var myDevices = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var customerId, customer, devices, error_2;
+    var _a, _b;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
+            case 0:
+                _c.trys.push([0, 3, , 4]);
+                customerId = req.customer.id;
+                return [4 /*yield*/, customer_model_1.default.findById(customerId)];
+            case 1:
+                customer = _c.sent();
+                // Check if the user exists
+                if (!customer) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Customer not found' })];
+                }
+                return [4 /*yield*/, customer_devices_model_1.default.find({ customer: customerId })];
+            case 2:
+                devices = _c.sent();
+                return [2 /*return*/, res.json({ success: true, message: 'Customer devices retrieved', data: devices })];
+            case 3:
+                error_2 = _c.sent();
+                console.error('Error retrieving contractor devices:', error_2);
+                return [2 /*return*/, res.status((_a = error_2.code) !== null && _a !== void 0 ? _a : 500).json({ success: false, message: (_b = error_2.message) !== null && _b !== void 0 ? _b : 'Internal Server Error' })];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.myDevices = myDevices;
+var updateOrCreateDevice = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var errors, _a, deviceId, deviceType, deviceToken, customerId, customer, device, customerDevice, error_3;
+    var _b, _c;
+    return __generator(this, function (_d) {
+        switch (_d.label) {
+            case 0:
+                _d.trys.push([0, 4, , 5]);
+                errors = (0, express_validator_1.validationResult)(req);
+                if (!errors.isEmpty()) {
+                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                }
+                _a = req.body, deviceId = _a.deviceId, deviceType = _a.deviceType, deviceToken = _a.deviceToken;
+                customerId = req.customer.id;
+                return [4 /*yield*/, customer_model_1.default.findById(customerId)];
+            case 1:
+                customer = _d.sent();
+                // Check if the user exists
+                if (!customer) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Customer not found' })];
+                }
+                return [4 /*yield*/, customer_devices_model_1.default.find({ deviceId: deviceId, deviceToken: deviceToken })];
+            case 2:
+                device = _d.sent();
+                if (device) {
+                    //return res.status(404).json({ success: false, message: 'Device already exits' });
+                }
+                return [4 /*yield*/, customer_devices_model_1.default.findOneAndUpdate({ customer: customerId, deviceId: deviceId }, { $set: { deviceToken: deviceToken, deviceId: deviceId, deviceType: deviceType, } }, { new: true, upsert: true })];
+            case 3:
+                customerDevice = _d.sent();
+                return [2 /*return*/, res.json({ success: true, message: 'Customer device updated', data: customerDevice })];
+            case 4:
+                error_3 = _d.sent();
+                console.error('Error creating or updating customer device:', error_3);
+                return [2 /*return*/, res.status((_b = error_3.code) !== null && _b !== void 0 ? _b : 500).json({ success: false, message: (_c = error_3.message) !== null && _c !== void 0 ? _c : 'Internal Server Error' })];
+            case 5: return [2 /*return*/];
+        }
+    });
+}); };
+exports.updateOrCreateDevice = updateOrCreateDevice;
 exports.CustomerController = {
     changePassword: exports.changePassword,
     updateAccount: exports.updateAccount,
-    getAccount: exports.getAccount
+    getAccount: exports.getAccount,
+    updateOrCreateDevice: exports.updateOrCreateDevice,
+    myDevices: exports.myDevices,
 };

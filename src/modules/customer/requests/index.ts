@@ -123,6 +123,11 @@ export const jobListingParams = [
   body("emergency").isIn(['yes', 'no'])
   .withMessage("emergency must be yes or no"), 
 ];
+export const UpdateOrDeviceParams = [
+  body("deviceId").optional(),
+  body("deviceToken").notEmpty(),
+];
+
 
 export const searchContractorByLocationParams = [
   query("location").notEmpty(),
@@ -167,4 +172,5 @@ export const CustomerHttpRequest = {
   searchContractorByCategoryDateParams,
   searchCategoryDateParams,
   validateFormData,
+  UpdateOrDeviceParams
 }

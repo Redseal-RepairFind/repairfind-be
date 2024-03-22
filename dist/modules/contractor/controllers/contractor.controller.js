@@ -548,7 +548,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     ProfileHandler.prototype.createOrUpdateDevice = function () {
         var _a, _b;
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, errors, _c, deviceId, deviceType, deviceToken, contractorId, contractor, contractorDevice, error_3;
+            var req, res, errors, _c, deviceId, deviceType, deviceToken, contractorId, contractor, device, contractorDevice, error_3;
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
@@ -556,7 +556,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         res = this.res;
                         _d.label = 1;
                     case 1:
-                        _d.trys.push([1, 4, , 5]);
+                        _d.trys.push([1, 5, , 6]);
                         errors = (0, express_validator_1.validationResult)(req);
                         if (!errors.isEmpty()) {
                             return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -570,15 +570,21 @@ var ProfileHandler = /** @class */ (function (_super) {
                         if (!contractor) {
                             return [2 /*return*/, res.status(404).json({ success: false, message: 'User not found' })];
                         }
-                        return [4 /*yield*/, contractor_devices_model_1.default.findOneAndUpdate({ contractor: contractorId, deviceId: deviceId }, { $set: { deviceToken: deviceToken, deviceId: deviceId, deviceType: deviceType, } }, { new: true, upsert: true })];
+                        return [4 /*yield*/, contractor_devices_model_1.default.find({ deviceId: deviceId, deviceToken: deviceToken })];
                     case 3:
+                        device = _d.sent();
+                        if (device) {
+                            //return res.status(404).json({ success: false, message: 'Device already exits' });
+                        }
+                        return [4 /*yield*/, contractor_devices_model_1.default.findOneAndUpdate({ contractor: contractorId, deviceId: deviceId }, { $set: { deviceToken: deviceToken, deviceId: deviceId, deviceType: deviceType, } }, { new: true, upsert: true })];
+                    case 4:
                         contractorDevice = _d.sent();
                         return [2 /*return*/, res.json({ success: true, message: 'Contractor device updated', data: contractorDevice })];
-                    case 4:
+                    case 5:
                         error_3 = _d.sent();
                         console.error('Error creating stripe verification session:', error_3);
                         return [2 /*return*/, res.status((_a = error_3.code) !== null && _a !== void 0 ? _a : 500).json({ success: false, message: (_b = error_3.message) !== null && _b !== void 0 ? _b : 'Internal Server Error' })];
-                    case 5: return [2 /*return*/];
+                    case 6: return [2 /*return*/];
                 }
             });
         });

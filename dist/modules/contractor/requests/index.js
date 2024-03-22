@@ -227,7 +227,7 @@ exports.CreateStripeSessionRequest = [
     (0, express_validator_1.body)("mode").notEmpty(),
 ];
 exports.UpdateOrDevice = [
-    (0, express_validator_1.body)("deviceId").notEmpty(),
+    (0, express_validator_1.body)("deviceId").optional(),
     (0, express_validator_1.body)("deviceToken").notEmpty(),
 ];
 exports.CreateScheduleRequest = [

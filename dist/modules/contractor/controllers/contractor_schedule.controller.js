@@ -56,7 +56,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ScheduleController = exports.isDateInExpandedSchedule = exports.expandWeeklyAvailability = exports.getEventsByMonth = exports.addOrUpdateAvailability = exports.addOrUpdateSchedule = exports.getSchedulesByDate = exports.getSchedules = exports.setAvailability = exports.createSchedule = void 0;
+exports.ScheduleController = exports.isDateInExpandedSchedule = exports.getEventsByMonth = exports.addOrUpdateAvailability = exports.addOrUpdateSchedule = exports.getSchedulesByDate = exports.getSchedules = exports.setAvailability = exports.createSchedule = void 0;
 var contractor_schedule_model_1 = require("../../../database/contractor/models/contractor_schedule.model");
 var express_validator_1 = require("express-validator");
 var date_fns_1 = require("date-fns");
@@ -304,7 +304,7 @@ var getSchedulesByDate = function (req, res) { return __awaiter(void 0, void 0, 
                         acc[key].summary[schedule.type] = [];
                     }
                     acc[key].summary[schedule.type].push((0, date_fns_1.getDate)(new Date(schedule.date)));
-                    console.log((new Date(schedule.date + 'GMT+800').getDate()), schedule.date);
+                    // console.log((new Date(schedule.date + 'GMT+800').getDate()), schedule.date)
                     // Include events summary if events are defined
                     if (schedule.events) {
                         var eventsSummary = schedule.events.map(function (event) { return ({
@@ -511,37 +511,6 @@ var getEventsByMonth = function (req, res) { return __awaiter(void 0, void 0, vo
     });
 }); };
 exports.getEventsByMonth = getEventsByMonth;
-var expandWeeklyAvailability = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, startDate, availabilityDays, contractorId, expandedSchedules, existingSchedules_2, updatedSchedule, error_8;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0:
-                _b.trys.push([0, 2, , 3]);
-                _a = req.body, startDate = _a.startDate, availabilityDays = _a.availabilityDays;
-                contractorId = req.contractor.id;
-                expandedSchedules = generateExpandedSchedule(['Saturday', 'Monday']);
-                return [4 /*yield*/, contractor_schedule_model_1.ContractorScheduleModel.find({
-                        contractor: contractorId,
-                        date: { $gte: startDate },
-                    })];
-            case 1:
-                existingSchedules_2 = _b.sent();
-                updatedSchedule = expandedSchedules.filter(function (expandedSchedule) {
-                    return !existingSchedules_2.some(function (storedSchedule) {
-                        return storedSchedule.date.toDateString() === expandedSchedule.date.toDateString();
-                    });
-                });
-                return [2 /*return*/, res.json({ success: true, message: 'Events retrieved successfully', data: updatedSchedule })];
-            case 2:
-                error_8 = _b.sent();
-                console.error('Error retrieving events:', error_8);
-                res.status(500).json({ success: false, message: 'Internal Server Error' });
-                return [3 /*break*/, 3];
-            case 3: return [2 /*return*/];
-        }
-    });
-}); };
-exports.expandWeeklyAvailability = expandWeeklyAvailability;
 var isDateInExpandedSchedule = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, startDate, availabilityDays, contractorId, dateToCheck_1, expandedSchedule, isDateInExpandedSchedule_1;
     return __generator(this, function (_b) {
@@ -609,7 +578,6 @@ exports.ScheduleController = {
     getSchedulesByDate: exports.getSchedulesByDate,
     addOrUpdateSchedule: exports.addOrUpdateSchedule,
     getEventsByMonth: exports.getEventsByMonth,
-    expandWeeklyAvailability: exports.expandWeeklyAvailability,
     isDateInExpandedSchedule: exports.isDateInExpandedSchedule,
     setAvailability: exports.setAvailability
 };

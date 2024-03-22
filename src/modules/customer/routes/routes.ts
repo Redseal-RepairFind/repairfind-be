@@ -1,13 +1,11 @@
-import { contractorViewNotificationrController } from "../../contractor/controllers/contractorNotification.controller";
-import { memoryUpload } from "../../../utils/upload.utility";
 import { CustomerAuthController } from "../controllers/customer_auth.controller";
 import { checkCustomerRole } from "../middleware/customerRoleChecker.middleware";
-import { validateSignupParams, validatecustomeLoginParams, validatecustomerEmailverificationParams, validatecustomerForgotPasswordParams, validatecustomerResetPasswprdParams } from "../middleware/requestValidate.middleware";
 import { CustomerHttpRequest } from "../requests";
 import { CustomerController } from "../controllers/customer.controller";
 import { CustomerStripeController } from "../controllers/customer_stripe.controller";
 import { JobListing } from "../controllers/customerJobListing.controller";
 import { ContractorSearch } from "../controllers/customer_contractorSearch.controller";
+import { memoryUpload } from "../.../../../../utils/upload.utility";
 
 const express = require("express");
 const router = express.Router();
@@ -28,7 +26,9 @@ router.post("/facebook-signon", CustomerHttpRequest.verifySocialSignon,  Custome
 //  Account
 router.patch("/me", checkCustomerRole, CustomerController.updateAccount ); // customer update account
 router.get("/me", checkCustomerRole, CustomerController.getAccount ); // 
-router.post("/me/change-password", checkCustomerRole, CustomerHttpRequest.changePasswordParams,  CustomerController.changePassword ); // customer update is profile
+router.post("/me/change-password", checkCustomerRole, CustomerHttpRequest.changePasswordParams,  CustomerController.changePassword ); 
+router.post("/me/devices", checkCustomerRole, CustomerHttpRequest.UpdateOrDeviceParams,  CustomerController.updateOrCreateDevice ); 
+router.get("/me/devices", checkCustomerRole,  CustomerController.myDevices ); 
 
 
 

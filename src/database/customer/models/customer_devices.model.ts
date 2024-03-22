@@ -1,10 +1,19 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-var mongoose_1 = require("mongoose");
+import { Schema, model, Document, Types } from 'mongoose';
+
+// Interface for ContractorDevice
+export interface ICustomerDevice extends Document {
+    customer: Types.ObjectId;
+    deviceType: string;
+    deviceToken: string;
+    deviceId: string;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
 // Mongoose schema for ContractorDevice
-var ContractorDeviceSchema = new mongoose_1.Schema({
-    contractor: {
-        type: mongoose_1.Schema.Types.ObjectId,
+const CustomerDeviceSchema = new Schema<ICustomerDevice>({
+    customer: {
+        type: Schema.Types.ObjectId,
         ref: 'contractors', // Reference to the contractor who owns the device
         required: true
     },
@@ -25,6 +34,8 @@ var ContractorDeviceSchema = new mongoose_1.Schema({
 }, {
     timestamps: true // Automatically add createdAt and updatedAt fields
 });
+
 // Create and export the ContractorDevice model
-var ContractorDeviceModel = (0, mongoose_1.model)('contractor_devices', ContractorDeviceSchema);
-exports.default = ContractorDeviceModel;
+const CustomerDeviceModel = model<ICustomerDevice>('customer_devices', CustomerDeviceSchema);
+
+export default CustomerDeviceModel;
