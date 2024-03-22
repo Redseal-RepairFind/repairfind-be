@@ -106,8 +106,14 @@ const ContractorSchema = new Schema <IContractor>(
       }, 
 
       stripeCustomer: StripeCustomerSchema,
-      stripeIdentity: Object,
-      stripePaymentMethods: Array
+      stripeIdentity: {
+        type: Object,
+        default: null
+      },
+      stripePaymentMethods: {
+        type: Array,
+        default: false
+      }
     
     },
     {
