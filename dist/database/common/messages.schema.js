@@ -39,6 +39,11 @@ var MessageSchema = new mongoose_1.Schema({
     senderType: {
         type: String,
         enum: ['contractors', 'customers'],
+        required: false, // false becos we of alert kind of messages
+    },
+    messageType: {
+        type: String,
+        enum: ['text', 'alert', 'media'],
         required: true,
     },
     message: {

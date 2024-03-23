@@ -63,7 +63,7 @@ var customerSearchForContractorByLocatinController = function (req, res) { retur
                             { "location.region": { $regex: new RegExp(location_1, 'i') } },
                             { "location.country": { $regex: new RegExp(location_1, 'i') } },
                         ]
-                    })];
+                    }).populate('contractor')];
             case 1:
                 searchContractors = _a.sent();
                 res.json({

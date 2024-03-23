@@ -6,6 +6,7 @@ interface IMessage extends Document {
     conversation: string;
     sender: Types.ObjectId; // Reference to the sender (contractor or customer)
     senderType: 'contractor' | 'customer'; // Type of the sender
+    messageType: 'text' | 'alert' | 'media'; //
     message: string;
     media: { type: string; url: string; blurHash: string }[];
     readBy: Types.ObjectId[]; // References to contractors who have read the message
@@ -25,6 +26,11 @@ const MessageSchema = new Schema<IMessage>({
     senderType: {
         type: String,
         enum: ['contractors', 'customers'],
+        required: false, // false becos we of alert kind of messages
+    },
+    messageType: {
+        type: String,
+        enum: ['text', 'alert', 'media'],
         required: true,
     },
     message: {

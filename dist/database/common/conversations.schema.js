@@ -28,15 +28,22 @@ var mongoose_1 = __importStar(require("mongoose"));
 var ENTITY_TYPE;
 (function (ENTITY_TYPE) {
     ENTITY_TYPE["BOOKING"] = "bookings";
-    ENTITY_TYPE["USER"] = "user";
     ENTITY_TYPE["JOB"] = "jobs";
 })(ENTITY_TYPE || (exports.ENTITY_TYPE = ENTITY_TYPE = {}));
 var ConversationSchema = new mongoose_1.default.Schema({
     members: [
         {
-            type: String,
-            ref: 'contractors'
-        }
+            memberType: {
+                type: String,
+                enum: ['contractors', 'customers'],
+                required: true,
+            },
+            member: {
+                type: mongoose_1.Schema.Types.ObjectId,
+                refPath: 'members.memberType',
+                required: true,
+            },
+        },
     ],
     entity: {
         type: String,
@@ -48,8 +55,8 @@ var ConversationSchema = new mongoose_1.default.Schema({
         required: true,
         enum: Object.values(ENTITY_TYPE)
     },
-    groupName: {
-        type: String
+    heading: {
+        type: Object
     },
     lastMessage: {
         type: String

@@ -1,9 +1,8 @@
-import mongoose, {Document, model} from 'mongoose';
+import mongoose, {Document, Schema, model} from 'mongoose';
 import {v4 as uuidv4} from 'uuid';
 
 export enum ENTITY_TYPE {
     BOOKING = 'bookings',
-    USER = 'user',
     JOB = 'jobs',
 }
 
@@ -15,16 +14,24 @@ export interface IConversationDocument extends Document {
     lastMessage: string;
     entity: string
     entityType: ENTITY_TYPE
-    groupName: string;
+    heading: Object;
 }
 
 const ConversationSchema = new mongoose.Schema<IConversationDocument>({
 
         members: [
             {
-                type: String,
-                ref: 'contractors'
-            }
+                memberType: {
+                    type: String,
+                    enum: ['contractors', 'customers'],
+                    required: true,
+                },
+                member: {
+                    type: Schema.Types.ObjectId,
+                    refPath: 'members.memberType',
+                    required: true,
+                },
+            },
         ],
 
         entity: {
@@ -39,8 +46,8 @@ const ConversationSchema = new mongoose.Schema<IConversationDocument>({
             enum: Object.values(ENTITY_TYPE)
         },
 
-        groupName: {
-            type: String
+        heading: {
+            type: Object
         },
         lastMessage: {
             type: String
@@ -72,3 +79,7 @@ const ConversationSchema = new mongoose.Schema<IConversationDocument>({
 );
 
 export const ConversationDb = model<IConversationDocument>('conversations', ConversationSchema);
+
+
+
+

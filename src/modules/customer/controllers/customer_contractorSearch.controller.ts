@@ -34,7 +34,7 @@ export const customerSearchForContractorByLocatinController = async (
                 { "location.region" : { $regex: new RegExp(location, 'i') } },
                 { "location.country" : { $regex: new RegExp(location, 'i') } },
             ]
-          });
+          }).populate('contractor');
 
         
     
