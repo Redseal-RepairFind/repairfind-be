@@ -39,6 +39,7 @@ router.get("/search-category", customerRoleChecker_middleware_1.checkCustomerRol
 router.get("/filter-contractor", customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.filterContractorParams, requests_1.CustomerHttpRequest.validateFormData, customer_contractorSearch_controller_1.ContractorSearch.customerFilterContractoController);
 //job request
 router.post("/send-job-request", customerRoleChecker_middleware_1.checkCustomerRole, upload_utility_1.memoryUpload.any(), requests_1.CustomerHttpRequest.sendJobRequestParams, requests_1.CustomerHttpRequest.validateFormData, job_request_controller_1.JobRequest.customerSendJobRequestController);
+router.post("/jobs", customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.sendJobRequestParams, requests_1.CustomerHttpRequest.validateFormData, job_request_controller_1.JobRequest.customerSendJobRequestController);
 // router.get("/get_popular_contractor", checkCustomerRole, customerGetPopularContractorController ); // customer get popular contractor
 // router.get("/search_contractor", checkCustomerRole, customerSearchForContractorController ); // customer search contractor
 // router.get("/get_all_contractor_on_skill", validateContractorSearckParams, checkCustomerRole, customerGetAllContractorOnSkillController ); // customer get all contractor on a skill

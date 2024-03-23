@@ -52,6 +52,10 @@ router.get("/filter-contractor", checkCustomerRole, CustomerHttpRequest.filterCo
 router.post("/send-job-request", checkCustomerRole, memoryUpload.any(), CustomerHttpRequest.sendJobRequestParams, CustomerHttpRequest.validateFormData, JobRequest.customerSendJobRequestController ); 
 
 
+
+router.post("/jobs", checkCustomerRole, CustomerHttpRequest.sendJobRequestParams, CustomerHttpRequest.validateFormData, JobRequest.customerSendJobRequestController ); 
+
+
 // router.get("/get_popular_contractor", checkCustomerRole, customerGetPopularContractorController ); // customer get popular contractor
 // router.get("/search_contractor", checkCustomerRole, customerSearchForContractorController ); // customer search contractor
 // router.get("/get_all_contractor_on_skill", validateContractorSearckParams, checkCustomerRole, customerGetAllContractorOnSkillController ); // customer get all contractor on a skill

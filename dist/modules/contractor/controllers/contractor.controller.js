@@ -576,7 +576,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         if (device) {
                             //return res.status(404).json({ success: false, message: 'Device already exits' });
                         }
-                        return [4 /*yield*/, contractor_devices_model_1.default.findOneAndUpdate({ contractor: contractorId, deviceId: deviceId }, { $set: { deviceToken: deviceToken, deviceId: deviceId, deviceType: deviceType, } }, { new: true, upsert: true })];
+                        return [4 /*yield*/, contractor_devices_model_1.default.findOneAndUpdate({ contractor: contractorId, deviceToken: deviceToken }, { deviceToken: deviceToken, deviceId: deviceId, deviceType: deviceType, }, { new: true, insert: true })];
                     case 4:
                         contractorDevice = _d.sent();
                         return [2 /*return*/, res.json({ success: true, message: 'Contractor device updated', data: contractorDevice })];

@@ -24,11 +24,11 @@ var CustomerJobListingchema = new mongoose_1.Schema({
         required: true,
     },
     date: {
-        type: Date,
+        type: String,
         required: true,
     },
     jobExpiry: {
-        type: Date,
+        type: String,
         required: true,
     },
     contractorType: {

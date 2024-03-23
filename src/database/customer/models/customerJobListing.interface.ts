@@ -65,3 +65,6 @@ const CustomerJobListingchema = new Schema(
   const CustomerJobListingModel = model<ICustomerJobListingDocument>("CustomerJobListing", CustomerJobListingchema);
   
   export default CustomerJobListingModel;
+
+
+  
