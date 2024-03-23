@@ -141,7 +141,10 @@ var ProfileHandler = /** @class */ (function (_super) {
                         };
                         profileType = contractor.accountType;
                         if (profileType == 'Employee' || profileType == 'Individual') {
-                            name_1 = "".concat(firstName, " ").concat(lastName);
+                            name_1 = "".concat(contractor.firstName, " ").concat(contractor.lastName);
+                        }
+                        else {
+                            name_1 = "".concat(contractor.companyName);
                         }
                         return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOneAndUpdate({ contractor: contractorId }, {
                                 contractor: contractorId,
@@ -250,7 +253,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     };
     ProfileHandler.prototype.updateProfile = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, contractor, contractorId, _a, name_2, website, accountType, experienceYear, about, email, phoneNumber, emergencyJobs, profilePhoto, availableDays, previousJobPhotos, previousJobVideos, errors, profile, contractorResponse, err_3;
+            var req, res, contractor, contractorId, _a, name_2, website, accountType, experienceYear, about, email, location_2, phoneNumber, emergencyJobs, profilePhoto, availableDays, previousJobPhotos, previousJobVideos, errors, profile, profileType, contractorResponse, err_3;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -261,7 +264,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         _b.trys.push([1, 4, , 5]);
                         contractor = req.contractor;
                         contractorId = contractor.id;
-                        _a = req.body, name_2 = _a.name, website = _a.website, accountType = _a.accountType, experienceYear = _a.experienceYear, about = _a.about, email = _a.email, phoneNumber = _a.phoneNumber, emergencyJobs = _a.emergencyJobs, profilePhoto = _a.profilePhoto, availableDays = _a.availableDays, previousJobPhotos = _a.previousJobPhotos, previousJobVideos = _a.previousJobVideos;
+                        _a = req.body, name_2 = _a.name, website = _a.website, accountType = _a.accountType, experienceYear = _a.experienceYear, about = _a.about, email = _a.email, location_2 = _a.location, phoneNumber = _a.phoneNumber, emergencyJobs = _a.emergencyJobs, profilePhoto = _a.profilePhoto, availableDays = _a.availableDays, previousJobPhotos = _a.previousJobPhotos, previousJobVideos = _a.previousJobVideos;
                         errors = (0, express_validator_1.validationResult)(req);
                         if (!errors.isEmpty()) {
                             return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -271,6 +274,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                                 website: website,
                                 experienceYear: experienceYear,
                                 about: about,
+                                location: location_2,
                                 email: email,
                                 phoneNumber: phoneNumber,
                                 emergencyJobs: emergencyJobs,
@@ -287,6 +291,15 @@ var ProfileHandler = /** @class */ (function (_super) {
                             contractor.accountType = accountType;
                         }
                         contractor.profilePhoto = profilePhoto;
+                        if (!profile.name) {
+                            profileType = contractor.accountType;
+                            if (profileType == 'Employee' || profileType == 'Individual') {
+                                profile.name = "".concat(contractor.firstName, " ").concat(contractor.lastName);
+                            }
+                            else {
+                                profile.name = "".concat(contractor.companyName);
+                            }
+                        }
                         return [4 /*yield*/, contractor.save()];
                     case 3:
                         _b.sent();

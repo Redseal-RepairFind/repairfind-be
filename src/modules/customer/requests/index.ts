@@ -152,6 +152,35 @@ export const filterContractorParams = [
   query("date").notEmpty(),
 ];
 
+
+export const queryContractorParams = [
+  query("distance").if(query("distance").exists()).notEmpty().withMessage("Distance is required"),
+  query("emergencyJobs").if(query("emergencyJobs").exists()).notEmpty().withMessage("EmergencyJobs is required"),
+  query("category").if(query("category").exists()).notEmpty().withMessage("Category is required"),
+  query("accountType").if(query("accountType").exists()).notEmpty().withMessage("AccountType is required"),
+  query("date").if(query("date").exists()).notEmpty().notEmpty().withMessage("Date is required"),
+  query("isOffDuty").if(query("isOffDuty").exists()).notEmpty().notEmpty().withMessage("isOffDuty is required"),
+  query("availableDays").if(query("availableDays").exists()).notEmpty().withMessage("AvailableDays is required"),
+  query("experienceYear").if(query("experienceYear").exists()).notEmpty().withMessage("ExperienceYear is required"),
+  
+  query("latitude").custom((value, { req }) => {
+      if (req?.query?.distance && !value) {
+          throw new Error("Latitude is required when Distance is specified");
+      }
+      return true;
+  }),
+  query("longitude").custom((value, { req }) => {
+      if (req?.query?.distance && !value) {
+          throw new Error("Longitude is required when Distance is specified");
+      }
+      return true;
+  }),
+
+  query("address").if(query("address").exists()).notEmpty().withMessage("Address is required"),
+  query("city").if(query("city").exists()).notEmpty().withMessage("City is required"),
+  query("country").if(query("country").exists()).notEmpty().withMessage("Country is required"),
+];
+
 export const sendJobRequestParams = [
   body("contractorId").notEmpty(),
   body("jobDescription").notEmpty(),
@@ -191,5 +220,6 @@ export const CustomerHttpRequest = {
   filterContractorParams,
   sendJobRequestParams,
   validateFormData,
-  UpdateOrDeviceParams
+  UpdateOrDeviceParams,
+  queryContractorParams
 }

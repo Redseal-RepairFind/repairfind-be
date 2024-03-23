@@ -105,14 +105,20 @@ const ContractorSchema = new Schema <IContractor>(
         default: Date.now,
       }, 
 
-      stripeCustomer: StripeCustomerSchema,
+      stripeCustomer: {
+        type: StripeCustomerSchema,
+        default: null,
+        select: false
+      },
       stripeIdentity: {
         type: Object,
-        default: null
+        default: null,
+        select: false
       },
       stripePaymentMethods: {
         type: Array,
-        default: false
+        default: [],
+        select: false
       }
     
     },

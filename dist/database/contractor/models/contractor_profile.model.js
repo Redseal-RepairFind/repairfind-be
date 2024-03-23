@@ -76,6 +76,7 @@ var CompanyProfileSchema = new mongoose_1.Schema({
     },
     isOffDuty: {
         type: Boolean,
+        default: false,
     },
     about: {
         type: String,

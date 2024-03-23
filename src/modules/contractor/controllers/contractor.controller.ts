@@ -78,9 +78,10 @@ class ProfileHandler extends Base {
       };
 
       const profileType = contractor.accountType
-
       if (profileType == 'Employee' || profileType == 'Individual') {
-        name = `${firstName} ${lastName}`
+        name = `${contractor.firstName} ${contractor.lastName}`
+      }else{
+        name = `${contractor.companyName}`
       }
 
       const profile = await ContractorProfileModel.findOneAndUpdate({ contractor: contractorId }, {
@@ -199,6 +200,7 @@ class ProfileHandler extends Base {
         experienceYear,
         about,
         email,
+        location,
         phoneNumber,
         emergencyJobs,
         profilePhoto,
@@ -220,6 +222,7 @@ class ProfileHandler extends Base {
           website,
           experienceYear,
           about,
+          location,
           email,
           phoneNumber,
           emergencyJobs,
@@ -238,6 +241,19 @@ class ProfileHandler extends Base {
         contractor.accountType = accountType;
       }
       contractor.profilePhoto = profilePhoto;
+
+
+      if(!profile.name){
+        const profileType = contractor.accountType
+        if (profileType == 'Employee' || profileType == 'Individual') {
+          profile.name = `${contractor.firstName} ${contractor.lastName}`
+        }else{
+          profile.name = `${contractor.companyName}`
+        }
+      }
+      
+
+
       await contractor.save();
 
       const contractorResponse = {

@@ -1,97 +1,31 @@
 import { validationResult } from "express-validator";
 import { Request, Response } from "express";
-import { ContractorProfileModel } from "../../../database/contractor/models/contractor_profile.model";
-import { latitudeLongitudeCal } from "../../../utils/latitudeLogitudeCal";
-import { ContractorModel } from "../../../database/contractor/models/contractor.model";
+import { CONTRACTOR_TYPES, ContractorModel } from "../../../database/contractor/models/contractor.model";
+import { Document, PipelineStage as MongoosePipelineStage } from 'mongoose'; // Import Document type from mongoose
+import { getContractorIdsWithDateInSchedule } from "../../../utils/schedule.util";
 
 
-export const customerFilterContractoController = async (
+type PipelineStage =
+    | MongoosePipelineStage
+    | { $lookup: { from: string; localField: string; foreignField: string; as: string, pipeline?: any } }
+    | { $unwind: string | { path: string; includeArrayIndex?: string; preserveNullAndEmptyArrays?: boolean } }
+    | { $match: any }
+    | { $addFields: any }
+    | { $project: any }
+    | { $sort: { [key: string]: 1 | -1 } } // Adjusted $sort type to match Mongoose's Sort type
+    | { $group: any }; // Adding $sort type to PipelineStage
+
+export const exploreContractors = async (
     req: any,
     res: Response,
 ) => {
 
-    try {
-        const {
-            distance,
-            emergency,
-            category,
-            location,
-            accountType,
-            date
-        } = req.query;
 
-        const files = req.files;
-
-        // Check for validation errors
-        const errors = validationResult(req);
-
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        }
-
-        const customer = req.customer;
-        const customerId = customer.id
-
-        const lanLong = latitudeLongitudeCal(parseFloat(distance), 180)
-
-        const searchContractors = await ContractorProfileModel.find({
-            $and: [
-                { emergencyJobs: emergency },
-                {
-                    $or: [
-                        { "location.address": { $regex: new RegExp(location, 'i') } },
-                        { "location.city": { $regex: new RegExp(location, 'i') } },
-                        { "location.region": { $regex: new RegExp(location, 'i') } },
-                        { "location.country": { $regex: new RegExp(location, 'i') } },
-                        { "location.latitude": { $regex: new RegExp(lanLong.latitude.toString(), 'i') } },
-                        { "location.longitude": { $regex: new RegExp(lanLong.longitude.toString(), 'i') } },
-                    ]
-                },
-                { availableDays: { $regex: new RegExp(date, 'i') } },
-                { skill: { $regex: new RegExp(category, 'i') } },
-            ]
-
-        }).limit(50);
-
-        const output = []
-
-        for (let i = 0; i < searchContractors.length; i++) {
-            const searchContractor = searchContractors[i];
-
-            const contractorProfile = await ContractorModel.findOne({
-                $and: [
-                    { _id: searchContractor.contractor },
-
-                    { accountType: { $regex: new RegExp(accountType, 'i') } },
-                ]
-            }).select('-password')
-
-            const obj = {
-                searchContractor,
-                contractorProfile
-            }
-
-            output.push(obj)
-
-        }
-
-        res.json({
-            success: true,
-            data: output
-        });
-
-    } catch (err: any) {
-        // signup error
-        console.log("error", err)
-        res.status(500).json({ message: err.message });
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
     }
 
-}
-
-export const ExploreContractors = async (
-    req: any,
-    res: Response,
-) => {
 
     try {
         const {
@@ -101,18 +35,21 @@ export const ExploreContractors = async (
             emergencyJobs,
             category,
             location,
+            city,
+            country,
+            address,
             accountType,
             date,
             isOffDuty,
             availableDays,
             experienceYear,
             gstNumber
-        } = req.query
+        } = req.query; // Ensure correct type for query parameters if available
 
-        const availableDaysArray = availableDays.split(',');
+        const availableDaysArray = availableDays ? availableDays.split(',') : [];
 
         // Construct the pipeline stages based on the parameters
-        const pipeline = [
+        const pipeline: PipelineStage[] = [
             {
                 $lookup: {
                     from: "contractor_profiles",
@@ -122,70 +59,112 @@ export const ExploreContractors = async (
                 }
             },
             { $unwind: "$profile" },
-            // Add a new field "distance" with the calculated distance
+
             {
                 $addFields: {
-                    distance: {
-                        $sqrt: {
-                            $sum: [
-                                { $pow: [{ $subtract: ["$profile.location.latitude", latitude] }, 2] },
-                                { $pow: [{ $subtract: ["$profile.location.longitude", longitude] }, 2] }
-                            ]
+                    name: {
+                        $cond: {
+                            if: {
+                                $or: [
+                                    { $eq: ['$accountType', CONTRACTOR_TYPES.INDIVIDUAL] },
+                                    { $eq: ['$accountType', CONTRACTOR_TYPES.EMPLOYEE] }
+                                ]
+                            },
+                            then: { $concat: ['$firstName', ' ', '$lastName'] },
+                            else: '$companyName'
                         }
                     }
                 }
             },
+
+
+
             {
-                $match: {
-                    "skill": { $regex: new RegExp(category, 'i') },
-                    "profile.location.country": location,
-                    "accountType": accountType,
-                    "experienceYear": experienceYear,
-                    "profile.emergencyJobs": emergencyJobs,
-                    "profile.isOffDuty": isOffDuty,
-                    // "profile.availableDays": { $in: availableDaysArray },
-                    "profile.availableDays": { $regex: new RegExp(date, 'i') },
-                    "distance": { $lte: distance } // Filter by distance
+                $project: {
+                    stripeIdentity: 0, // Exclude stripeIdentity field from query results
+                    stripeCustomer: 0, // 
+                    stripePaymentMethods: 0,
+                    stripePaymentMethod: 0,
+                    passwordOtp: 0,
+                    password: 0,
+                    emailOtp: 0,
+                    dateOfBirth: 0,
+                    "profile.previousJobPhotos": 0,
+                    "profile.previousJobVideos": 0,
                 }
             }
         ];
 
+        // Add stages conditionally based on query parameters
+        if (category) {
+            pipeline.push({ $match: { "profile.skill": { $regex: new RegExp(category, 'i') } } });
+        }
+        if (country) {
+            pipeline.push({ $match: { "profile.location.country": { $regex: new RegExp(country, 'i') } } });
+        }
+        if (city) {
+            pipeline.push({ $match: { "profile.location.city": { $regex: new RegExp(city, 'i') } } });
+        }
+        if (address) {
+            pipeline.push({ $match: { "profile.location.address": { $regex: new RegExp(address, 'i') } } });
+        }
+        if (accountType) {
+            pipeline.push({ $match: { "accountType": accountType } });
+        }
+        if (experienceYear) {
+            pipeline.push({ $match: { "profile.experienceYear": parseInt(experienceYear) } });
+        }
+        if (emergencyJobs !== undefined) {
+            pipeline.push({ $match: { "profile.emergencyJobs": emergencyJobs === "true" } });
 
-        const customer = req.customer;
-        const customerId = customer.id
+        }
+        if (isOffDuty !== undefined) {
+            pipeline.push({ $match: { "profile.isOffDuty": isOffDuty  === "true" || null} });
+        }
+        if (gstNumber) {
+            pipeline.push({ $match: { "profile.gstNumber": gstNumber } });
+        }
 
-        const contractors = await ContractorModel.aggregate(pipeline);
-        console.log("Contractors found:", contractors);
+        // if (date) {
+        //     pipeline.push({ $match: { "profile.availableDays": { $regex: new RegExp(date, 'i') } } });
+        // }
 
-
-        const lanLong = latitudeLongitudeCal(parseFloat(distance), 180)
-
-        const searchContractors = await ContractorProfileModel.find({
-            $and: [
-                // { emergencyJobs: emergency },
-                {
-                    $or: [
-                        { "location.address": { $regex: new RegExp(location, 'i') } },
-                        { "location.city": { $regex: new RegExp(location, 'i') } },
-                        { "location.region": { $regex: new RegExp(location, 'i') } },
-                        { "location.country": { $regex: new RegExp(location, 'i') } },
-                        { "location.latitude": { $regex: new RegExp(lanLong.latitude.toString(), 'i') } },
-                        { "location.longitude": { $regex: new RegExp(lanLong.longitude.toString(), 'i') } },
-                    ]
-                },
-                { availableDays: { $regex: new RegExp(date, 'i') } },
-                { skill: { $regex: new RegExp(category, 'i') } },
-            ]
-
-        }).limit(50);
-
-        const output = []
+        if (date) {
+            const contractorIdsWithDateInSchedule = await getContractorIdsWithDateInSchedule(new Date(date));
+            // console.log(contractorIdsWithDateInSchedule)
+            pipeline.push({ $match: { "profile.contractor": { $in: contractorIdsWithDateInSchedule } } });
+        }
 
 
+        if (availableDays) {
+            pipeline.push({ $match: { "profile.availableDays": { $in: availableDaysArray } } });
+        }
+        if (distance && latitude && longitude) {
+            pipeline.push({
+                $addFields: {
+                    distance: {
+                        $sqrt: {
+                            $sum: [
+                                { $pow: [{ $subtract: [{$toDouble: "$profile.location.latitude"}, parseFloat(latitude)] }, 2] },
+                                { $pow: [{ $subtract: [{$toDouble: "$profile.location.longitude"}, parseFloat(longitude)] }, 2] }
+                            ]
+                        }
+                    }
+                }
+            });
+            pipeline.push({ $match: { "distance": { $lte: parseInt(distance) } } });
+        }
 
+        const contractors = await ContractorModel.aggregate<Document>(pipeline);
+
+        return res.status(200).json({
+            success: true,
+            message: "Contractors retrieved successfully",
+            data: contractors
+        });
     } catch (err: any) {
-        // signup error
-        console.log("error", err)
+        // Handle error
+        console.error("Error fetching contractors:", err);
         res.status(500).json({ message: err.message });
     }
 
@@ -194,6 +173,6 @@ export const ExploreContractors = async (
 
 
 
-export const CustomerExplore = {
-    customerFilterContractoController
+export const CustomerExploreController = {
+    exploreContractors
 }

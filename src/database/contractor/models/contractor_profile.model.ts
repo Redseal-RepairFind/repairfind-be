@@ -97,6 +97,7 @@ const CompanyProfileSchema = new Schema<IContractorProfile>(
       },
       isOffDuty: {
         type: Boolean,
+        default: false,
       },
 
       about: {

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerHttpRequest = exports.validateFormData = exports.sendJobRequestParams = exports.filterContractorParams = exports.searchCategoryDateParams = exports.searchContractorByCategoryDateParams = exports.searchContractorByLocationParams = exports.UpdateOrDeviceParams = exports.jobListingParams = exports.createStripeSessionParams = exports.rateContractorParams = exports.confirmInspectionPaymentParams = exports.confirmPaymentParams = exports.acceptAndPayParams = exports.updateProfileParams = exports.getContractorParams = exports.searchParams = exports.verifyPasswordOtpParams = exports.changePasswordParams = exports.resetPasswordParams = exports.forgotPasswordParams = exports.loginParams = exports.verifySocialSignon = exports.emailVerificationParams = exports.signupParams = void 0;
+exports.CustomerHttpRequest = exports.validateFormData = exports.sendJobRequestParams = exports.queryContractorParams = exports.filterContractorParams = exports.searchCategoryDateParams = exports.searchContractorByCategoryDateParams = exports.searchContractorByLocationParams = exports.UpdateOrDeviceParams = exports.jobListingParams = exports.createStripeSessionParams = exports.rateContractorParams = exports.confirmInspectionPaymentParams = exports.confirmPaymentParams = exports.acceptAndPayParams = exports.updateProfileParams = exports.getContractorParams = exports.searchParams = exports.verifyPasswordOtpParams = exports.changePasswordParams = exports.resetPasswordParams = exports.forgotPasswordParams = exports.loginParams = exports.verifySocialSignon = exports.emailVerificationParams = exports.signupParams = void 0;
 var express_validator_1 = require("express-validator");
 var contractorAccountTypes_1 = require("../../../constants/contractorAccountTypes");
 exports.signupParams = [
@@ -137,6 +137,35 @@ exports.filterContractorParams = [
     (0, express_validator_1.query)("accountType").notEmpty(),
     (0, express_validator_1.query)("date").notEmpty(),
 ];
+exports.queryContractorParams = [
+    (0, express_validator_1.query)("distance").if((0, express_validator_1.query)("distance").exists()).notEmpty().withMessage("Distance is required"),
+    (0, express_validator_1.query)("emergencyJobs").if((0, express_validator_1.query)("emergencyJobs").exists()).notEmpty().withMessage("EmergencyJobs is required"),
+    (0, express_validator_1.query)("category").if((0, express_validator_1.query)("category").exists()).notEmpty().withMessage("Category is required"),
+    (0, express_validator_1.query)("accountType").if((0, express_validator_1.query)("accountType").exists()).notEmpty().withMessage("AccountType is required"),
+    (0, express_validator_1.query)("date").if((0, express_validator_1.query)("date").exists()).notEmpty().notEmpty().withMessage("Date is required"),
+    (0, express_validator_1.query)("isOffDuty").if((0, express_validator_1.query)("isOffDuty").exists()).notEmpty().notEmpty().withMessage("isOffDuty is required"),
+    (0, express_validator_1.query)("availableDays").if((0, express_validator_1.query)("availableDays").exists()).notEmpty().withMessage("AvailableDays is required"),
+    (0, express_validator_1.query)("experienceYear").if((0, express_validator_1.query)("experienceYear").exists()).notEmpty().withMessage("ExperienceYear is required"),
+    (0, express_validator_1.query)("latitude").custom(function (value, _a) {
+        var _b;
+        var req = _a.req;
+        if (((_b = req === null || req === void 0 ? void 0 : req.query) === null || _b === void 0 ? void 0 : _b.distance) && !value) {
+            throw new Error("Latitude is required when Distance is specified");
+        }
+        return true;
+    }),
+    (0, express_validator_1.query)("longitude").custom(function (value, _a) {
+        var _b;
+        var req = _a.req;
+        if (((_b = req === null || req === void 0 ? void 0 : req.query) === null || _b === void 0 ? void 0 : _b.distance) && !value) {
+            throw new Error("Longitude is required when Distance is specified");
+        }
+        return true;
+    }),
+    (0, express_validator_1.query)("address").if((0, express_validator_1.query)("address").exists()).notEmpty().withMessage("Address is required"),
+    (0, express_validator_1.query)("city").if((0, express_validator_1.query)("city").exists()).notEmpty().withMessage("City is required"),
+    (0, express_validator_1.query)("country").if((0, express_validator_1.query)("country").exists()).notEmpty().withMessage("Country is required"),
+];
 exports.sendJobRequestParams = [
     (0, express_validator_1.body)("contractorId").notEmpty(),
     (0, express_validator_1.body)("jobDescription").notEmpty(),
@@ -175,5 +204,6 @@ exports.CustomerHttpRequest = {
     filterContractorParams: exports.filterContractorParams,
     sendJobRequestParams: exports.sendJobRequestParams,
     validateFormData: exports.validateFormData,
-    UpdateOrDeviceParams: exports.UpdateOrDeviceParams
+    UpdateOrDeviceParams: exports.UpdateOrDeviceParams,
+    queryContractorParams: exports.queryContractorParams
 };

@@ -7,6 +7,7 @@ import { JobListing } from "../controllers/customerJobListing.controller";
 import { ContractorSearch } from "../controllers/customer_contractorSearch.controller";
 import { memoryUpload } from "../.../../../../utils/upload.utility";
 import { JobRequest } from "../controllers/job_request.controller";
+import { CustomerExploreController } from "../controllers/customer_explore.controller";
 
 const express = require("express");
 const router = express.Router();
@@ -46,6 +47,7 @@ router.get("/search-contractor-location", checkCustomerRole, CustomerHttpRequest
 router.get("/search-contractor-category-date", checkCustomerRole, CustomerHttpRequest.searchContractorByCategoryDateParams, CustomerHttpRequest.validateFormData, ContractorSearch.customerSearchForContractorByCategoryAndDateController ); 
 router.get("/search-category", checkCustomerRole, CustomerHttpRequest.searchCategoryDateParams, CustomerHttpRequest.validateFormData, ContractorSearch.customerSearchForCategoryController ); 
 router.get("/filter-contractor", checkCustomerRole, CustomerHttpRequest.filterContractorParams, CustomerHttpRequest.validateFormData, ContractorSearch.customerFilterContractoController ); 
+router.get("/explore/contractors", checkCustomerRole, CustomerHttpRequest.queryContractorParams, CustomerExploreController.exploreContractors ); 
 
 
 //job request

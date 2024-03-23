@@ -36,93 +36,24 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerExplore = exports.ExploreContractors = exports.customerFilterContractoController = void 0;
+exports.CustomerExploreController = exports.exploreContractors = void 0;
 var express_validator_1 = require("express-validator");
-var contractor_profile_model_1 = require("../../../database/contractor/models/contractor_profile.model");
-var latitudeLogitudeCal_1 = require("../../../utils/latitudeLogitudeCal");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
-var customerFilterContractoController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, distance, emergency, category, location_1, accountType, date, files, errors, customer, customerId, lanLong, searchContractors, output, i, searchContractor, contractorProfile, obj, err_1;
+var schedule_util_1 = require("../../../utils/schedule.util");
+var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var errors, _a, distance, latitude, longitude, emergencyJobs, category, location_1, city, country, address, accountType, date, isOffDuty, availableDays, experienceYear, gstNumber, availableDaysArray, pipeline, contractorIdsWithDateInSchedule, contractors, err_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 6, , 7]);
-                _a = req.query, distance = _a.distance, emergency = _a.emergency, category = _a.category, location_1 = _a.location, accountType = _a.accountType, date = _a.date;
-                files = req.files;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
-                customer = req.customer;
-                customerId = customer.id;
-                lanLong = (0, latitudeLogitudeCal_1.latitudeLongitudeCal)(parseFloat(distance), 180);
-                return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.find({
-                        $and: [
-                            { emergencyJobs: emergency },
-                            {
-                                $or: [
-                                    { "location.address": { $regex: new RegExp(location_1, 'i') } },
-                                    { "location.city": { $regex: new RegExp(location_1, 'i') } },
-                                    { "location.region": { $regex: new RegExp(location_1, 'i') } },
-                                    { "location.country": { $regex: new RegExp(location_1, 'i') } },
-                                    { "location.latitude": { $regex: new RegExp(lanLong.latitude.toString(), 'i') } },
-                                    { "location.longitude": { $regex: new RegExp(lanLong.longitude.toString(), 'i') } },
-                                ]
-                            },
-                            { availableDays: { $regex: new RegExp(date, 'i') } },
-                            { skill: { $regex: new RegExp(category, 'i') } },
-                        ]
-                    }).limit(50)];
+                _b.label = 1;
             case 1:
-                searchContractors = _b.sent();
-                output = [];
-                i = 0;
-                _b.label = 2;
-            case 2:
-                if (!(i < searchContractors.length)) return [3 /*break*/, 5];
-                searchContractor = searchContractors[i];
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({
-                        $and: [
-                            { _id: searchContractor.contractor },
-                            { accountType: { $regex: new RegExp(accountType, 'i') } },
-                        ]
-                    }).select('-password')];
-            case 3:
-                contractorProfile = _b.sent();
-                obj = {
-                    searchContractor: searchContractor,
-                    contractorProfile: contractorProfile
-                };
-                output.push(obj);
-                _b.label = 4;
-            case 4:
-                i++;
-                return [3 /*break*/, 2];
-            case 5:
-                res.json({
-                    success: true,
-                    data: output
-                });
-                return [3 /*break*/, 7];
-            case 6:
-                err_1 = _b.sent();
-                // signup error
-                console.log("error", err_1);
-                res.status(500).json({ message: err_1.message });
-                return [3 /*break*/, 7];
-            case 7: return [2 /*return*/];
-        }
-    });
-}); };
-exports.customerFilterContractoController = customerFilterContractoController;
-var ExploreContractors = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, distance, latitude, longitude, emergencyJobs, category, location_2, accountType, date, isOffDuty, availableDays, experienceYear, gstNumber, availableDaysArray, pipeline, customer, customerId, contractors, lanLong, searchContractors, output, err_2;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0:
-                _b.trys.push([0, 3, , 4]);
-                _a = req.query, distance = _a.distance, latitude = _a.latitude, longitude = _a.longitude, emergencyJobs = _a.emergencyJobs, category = _a.category, location_2 = _a.location, accountType = _a.accountType, date = _a.date, isOffDuty = _a.isOffDuty, availableDays = _a.availableDays, experienceYear = _a.experienceYear, gstNumber = _a.gstNumber;
-                availableDaysArray = availableDays.split(',');
+                _b.trys.push([1, 5, , 6]);
+                _a = req.query, distance = _a.distance, latitude = _a.latitude, longitude = _a.longitude, emergencyJobs = _a.emergencyJobs, category = _a.category, location_1 = _a.location, city = _a.city, country = _a.country, address = _a.address, accountType = _a.accountType, date = _a.date, isOffDuty = _a.isOffDuty, availableDays = _a.availableDays, experienceYear = _a.experienceYear, gstNumber = _a.gstNumber;
+                availableDaysArray = availableDays ? availableDays.split(',') : [];
                 pipeline = [
                     {
                         $lookup: {
@@ -133,72 +64,110 @@ var ExploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
                         }
                     },
                     { $unwind: "$profile" },
-                    // Add a new field "distance" with the calculated distance
                     {
                         $addFields: {
-                            distance: {
-                                $sqrt: {
-                                    $sum: [
-                                        { $pow: [{ $subtract: ["$profile.location.latitude", latitude] }, 2] },
-                                        { $pow: [{ $subtract: ["$profile.location.longitude", longitude] }, 2] }
-                                    ]
+                            name: {
+                                $cond: {
+                                    if: {
+                                        $or: [
+                                            { $eq: ['$accountType', contractor_model_1.CONTRACTOR_TYPES.INDIVIDUAL] },
+                                            { $eq: ['$accountType', contractor_model_1.CONTRACTOR_TYPES.EMPLOYEE] }
+                                        ]
+                                    },
+                                    then: { $concat: ['$firstName', ' ', '$lastName'] },
+                                    else: '$companyName'
                                 }
                             }
                         }
                     },
                     {
-                        $match: {
-                            "skill": { $regex: new RegExp(category, 'i') },
-                            "profile.location.country": location_2,
-                            "accountType": accountType,
-                            "experienceYear": experienceYear,
-                            "profile.emergencyJobs": emergencyJobs,
-                            "profile.isOffDuty": isOffDuty,
-                            // "profile.availableDays": { $in: availableDaysArray },
-                            "profile.availableDays": { $regex: new RegExp(date, 'i') },
-                            "distance": { $lte: distance } // Filter by distance
+                        $project: {
+                            stripeIdentity: 0, // Exclude stripeIdentity field from query results
+                            stripeCustomer: 0, // 
+                            stripePaymentMethods: 0,
+                            stripePaymentMethod: 0,
+                            passwordOtp: 0,
+                            password: 0,
+                            emailOtp: 0,
+                            dateOfBirth: 0,
+                            "profile.previousJobPhotos": 0,
+                            "profile.previousJobVideos": 0,
                         }
                     }
                 ];
-                customer = req.customer;
-                customerId = customer.id;
-                return [4 /*yield*/, contractor_model_1.ContractorModel.aggregate(pipeline)];
-            case 1:
-                contractors = _b.sent();
-                console.log("Contractors found:", contractors);
-                lanLong = (0, latitudeLogitudeCal_1.latitudeLongitudeCal)(parseFloat(distance), 180);
-                return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.find({
-                        $and: [
-                            // { emergencyJobs: emergency },
-                            {
-                                $or: [
-                                    { "location.address": { $regex: new RegExp(location_2, 'i') } },
-                                    { "location.city": { $regex: new RegExp(location_2, 'i') } },
-                                    { "location.region": { $regex: new RegExp(location_2, 'i') } },
-                                    { "location.country": { $regex: new RegExp(location_2, 'i') } },
-                                    { "location.latitude": { $regex: new RegExp(lanLong.latitude.toString(), 'i') } },
-                                    { "location.longitude": { $regex: new RegExp(lanLong.longitude.toString(), 'i') } },
-                                ]
-                            },
-                            { availableDays: { $regex: new RegExp(date, 'i') } },
-                            { skill: { $regex: new RegExp(category, 'i') } },
-                        ]
-                    }).limit(50)];
+                // Add stages conditionally based on query parameters
+                if (category) {
+                    pipeline.push({ $match: { "profile.skill": { $regex: new RegExp(category, 'i') } } });
+                }
+                if (country) {
+                    pipeline.push({ $match: { "profile.location.country": { $regex: new RegExp(country, 'i') } } });
+                }
+                if (city) {
+                    pipeline.push({ $match: { "profile.location.city": { $regex: new RegExp(city, 'i') } } });
+                }
+                if (address) {
+                    pipeline.push({ $match: { "profile.location.address": { $regex: new RegExp(address, 'i') } } });
+                }
+                if (accountType) {
+                    pipeline.push({ $match: { "accountType": accountType } });
+                }
+                if (experienceYear) {
+                    pipeline.push({ $match: { "profile.experienceYear": parseInt(experienceYear) } });
+                }
+                if (emergencyJobs !== undefined) {
+                    pipeline.push({ $match: { "profile.emergencyJobs": emergencyJobs === "true" } });
+                }
+                if (isOffDuty !== undefined) {
+                    pipeline.push({ $match: { "profile.isOffDuty": isOffDuty === "true" || null } });
+                }
+                if (gstNumber) {
+                    pipeline.push({ $match: { "profile.gstNumber": gstNumber } });
+                }
+                if (!date) return [3 /*break*/, 3];
+                return [4 /*yield*/, (0, schedule_util_1.getContractorIdsWithDateInSchedule)(new Date(date))];
             case 2:
-                searchContractors = _b.sent();
-                output = [];
-                return [3 /*break*/, 4];
+                contractorIdsWithDateInSchedule = _b.sent();
+                // console.log(contractorIdsWithDateInSchedule)
+                pipeline.push({ $match: { "profile.contractor": { $in: contractorIdsWithDateInSchedule } } });
+                _b.label = 3;
             case 3:
-                err_2 = _b.sent();
-                // signup error
-                console.log("error", err_2);
-                res.status(500).json({ message: err_2.message });
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/];
+                if (availableDays) {
+                    pipeline.push({ $match: { "profile.availableDays": { $in: availableDaysArray } } });
+                }
+                if (distance && latitude && longitude) {
+                    pipeline.push({
+                        $addFields: {
+                            distance: {
+                                $sqrt: {
+                                    $sum: [
+                                        { $pow: [{ $subtract: [{ $toDouble: "$profile.location.latitude" }, parseFloat(latitude)] }, 2] },
+                                        { $pow: [{ $subtract: [{ $toDouble: "$profile.location.longitude" }, parseFloat(longitude)] }, 2] }
+                                    ]
+                                }
+                            }
+                        }
+                    });
+                    pipeline.push({ $match: { "distance": { $lte: parseInt(distance) } } });
+                }
+                return [4 /*yield*/, contractor_model_1.ContractorModel.aggregate(pipeline)];
+            case 4:
+                contractors = _b.sent();
+                return [2 /*return*/, res.status(200).json({
+                        success: true,
+                        message: "Contractors retrieved successfully",
+                        data: contractors
+                    })];
+            case 5:
+                err_1 = _b.sent();
+                // Handle error
+                console.error("Error fetching contractors:", err_1);
+                res.status(500).json({ message: err_1.message });
+                return [3 /*break*/, 6];
+            case 6: return [2 /*return*/];
         }
     });
 }); };
-exports.ExploreContractors = ExploreContractors;
-exports.CustomerExplore = {
-    customerFilterContractoController: exports.customerFilterContractoController
+exports.exploreContractors = exploreContractors;
+exports.CustomerExploreController = {
+    exploreContractors: exports.exploreContractors
 };

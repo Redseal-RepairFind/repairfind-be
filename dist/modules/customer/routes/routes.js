@@ -9,6 +9,7 @@ var customerJobListing_controller_1 = require("../controllers/customerJobListing
 var customer_contractorSearch_controller_1 = require("../controllers/customer_contractorSearch.controller");
 var upload_utility_1 = require("../.../../../../utils/upload.utility");
 var job_request_controller_1 = require("../controllers/job_request.controller");
+var customer_explore_controller_1 = require("../controllers/customer_explore.controller");
 var express = require("express");
 var router = express.Router();
 // Auth
@@ -37,6 +38,7 @@ router.get("/search-contractor-location", customerRoleChecker_middleware_1.check
 router.get("/search-contractor-category-date", customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.searchContractorByCategoryDateParams, requests_1.CustomerHttpRequest.validateFormData, customer_contractorSearch_controller_1.ContractorSearch.customerSearchForContractorByCategoryAndDateController);
 router.get("/search-category", customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.searchCategoryDateParams, requests_1.CustomerHttpRequest.validateFormData, customer_contractorSearch_controller_1.ContractorSearch.customerSearchForCategoryController);
 router.get("/filter-contractor", customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.filterContractorParams, requests_1.CustomerHttpRequest.validateFormData, customer_contractorSearch_controller_1.ContractorSearch.customerFilterContractoController);
+router.get("/explore/contractors", customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.queryContractorParams, customer_explore_controller_1.CustomerExploreController.exploreContractors);
 //job request
 router.post("/send-job-request", customerRoleChecker_middleware_1.checkCustomerRole, upload_utility_1.memoryUpload.any(), requests_1.CustomerHttpRequest.sendJobRequestParams, requests_1.CustomerHttpRequest.validateFormData, job_request_controller_1.JobRequest.customerSendJobRequestController);
 router.post("/jobs", customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.sendJobRequestParams, requests_1.CustomerHttpRequest.validateFormData, job_request_controller_1.JobRequest.customerSendJobRequestController);
