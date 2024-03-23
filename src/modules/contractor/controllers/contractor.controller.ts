@@ -472,7 +472,7 @@ class ProfileHandler extends Base {
     }
   }
 
-  // @handleAsyncError()
+  @handleAsyncError()
   public async createOrUpdateDevice(): Promise<Response> {
     let req = <any>this.req
     let res = this.res
@@ -504,15 +504,15 @@ class ProfileHandler extends Base {
       // Find the contractor device with the provided device ID and type
       let contractorDevice = await ContractorDeviceModel.findOneAndUpdate(
         { contractor: contractorId, deviceToken: deviceToken },
-        { deviceToken, deviceType },
-        { new: true}
+        { deviceToken, deviceType},
+        { new: true, upsert: true}
     );
 
 
       return res.json({ success: true, message: 'Contractor device updated', data: contractorDevice });
     } catch (error: any) {
       console.error('Error creating stripe verification session:', error);
-      return res.status(error.code ?? 500).json({ success: false, message: error.message ?? 'Internal Server Error' });
+      return res.status(500).json({ success: false, message: error.message ?? 'Internal Server Error' });
     }
   }
   

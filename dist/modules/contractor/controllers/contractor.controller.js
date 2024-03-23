@@ -544,46 +544,45 @@ var ProfileHandler = /** @class */ (function (_super) {
             });
         });
     };
-    // @handleAsyncError()
     ProfileHandler.prototype.createOrUpdateDevice = function () {
-        var _a, _b;
+        var _a;
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, errors, _c, deviceId, deviceType, deviceToken, contractorId, contractor, device, contractorDevice, error_3;
-            return __generator(this, function (_d) {
-                switch (_d.label) {
+            var req, res, errors, _b, deviceId, deviceType, deviceToken, contractorId, contractor, device, contractorDevice, error_3;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
                         req = this.req;
                         res = this.res;
-                        _d.label = 1;
+                        _c.label = 1;
                     case 1:
-                        _d.trys.push([1, 5, , 6]);
+                        _c.trys.push([1, 5, , 6]);
                         errors = (0, express_validator_1.validationResult)(req);
                         if (!errors.isEmpty()) {
                             return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                         }
-                        _c = req.body, deviceId = _c.deviceId, deviceType = _c.deviceType, deviceToken = _c.deviceToken;
+                        _b = req.body, deviceId = _b.deviceId, deviceType = _b.deviceType, deviceToken = _b.deviceToken;
                         contractorId = req.contractor.id;
                         return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
                     case 2:
-                        contractor = _d.sent();
+                        contractor = _c.sent();
                         // Check if the user exists
                         if (!contractor) {
                             return [2 /*return*/, res.status(404).json({ success: false, message: 'User not found' })];
                         }
                         return [4 /*yield*/, contractor_devices_model_1.default.find({ deviceId: deviceId, deviceToken: deviceToken })];
                     case 3:
-                        device = _d.sent();
+                        device = _c.sent();
                         if (device) {
                             //return res.status(404).json({ success: false, message: 'Device already exits' });
                         }
-                        return [4 /*yield*/, contractor_devices_model_1.default.findOneAndUpdate({ contractor: contractorId, deviceToken: deviceToken }, { deviceToken: deviceToken, deviceType: deviceType }, { new: true })];
+                        return [4 /*yield*/, contractor_devices_model_1.default.findOneAndUpdate({ contractor: contractorId, deviceToken: deviceToken }, { deviceToken: deviceToken, deviceType: deviceType }, { new: true, upsert: true })];
                     case 4:
-                        contractorDevice = _d.sent();
+                        contractorDevice = _c.sent();
                         return [2 /*return*/, res.json({ success: true, message: 'Contractor device updated', data: contractorDevice })];
                     case 5:
-                        error_3 = _d.sent();
+                        error_3 = _c.sent();
                         console.error('Error creating stripe verification session:', error_3);
-                        return [2 /*return*/, res.status((_a = error_3.code) !== null && _a !== void 0 ? _a : 500).json({ success: false, message: (_b = error_3.message) !== null && _b !== void 0 ? _b : 'Internal Server Error' })];
+                        return [2 /*return*/, res.status(500).json({ success: false, message: (_a = error_3.message) !== null && _a !== void 0 ? _a : 'Internal Server Error' })];
                     case 6: return [2 /*return*/];
                 }
             });
@@ -670,6 +669,12 @@ var ProfileHandler = /** @class */ (function (_super) {
         __metadata("design:paramtypes", []),
         __metadata("design:returntype", Promise)
     ], ProfileHandler.prototype, "createIdentitySession", null);
+    __decorate([
+        (0, decorators_abstract_1.handleAsyncError)(),
+        __metadata("design:type", Function),
+        __metadata("design:paramtypes", []),
+        __metadata("design:returntype", Promise)
+    ], ProfileHandler.prototype, "createOrUpdateDevice", null);
     __decorate([
         (0, decorators_abstract_1.handleAsyncError)(),
         __metadata("design:type", Function),
