@@ -274,23 +274,23 @@ var identityVerificationCreated = function (payload) { return __awaiter(void 0, 
                 if (user) {
                     user.stripeIdentity = payload;
                     user.save();
-                    (0, expo_1.sendPushNotifications)(deviceTokens, {
-                        title: 'Identity Verification',
-                        icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
-                        body: 'Identity verification session verified',
-                        data: {
-                            event: 'identity.verification_session.created',
-                            user: {
-                                email: user.email,
-                                profilePhoto: user.profilePhoto,
-                            },
-                            payload: {
-                                status: payload.status,
-                                type: payload.type,
-                                options: payload.options
-                            }
-                        },
-                    });
+                    // sendPushNotifications( deviceTokens , {
+                    //     title: 'Identity Verification',
+                    //     icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
+                    //     body: 'Identity verification session created',
+                    //     data: { 
+                    //         event: 'identity.verification_session.created',
+                    //         user:{
+                    //             email: user.email,
+                    //             profilePhoto: user.profilePhoto,
+                    //         },
+                    //         payload: {
+                    //             status: payload.status,
+                    //             type: payload.type,
+                    //             options: payload.options
+                    //         }
+                    //     },
+                    // })
                 }
                 return [3 /*break*/, 7];
             case 6:
