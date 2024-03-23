@@ -504,8 +504,8 @@ class ProfileHandler extends Base {
       // Find the contractor device with the provided device ID and type
       let contractorDevice = await ContractorDeviceModel.findOneAndUpdate(
         { contractor: contractorId, deviceToken: deviceToken },
-        { deviceToken, deviceId, deviceType, },
-        { new: true, insert: true}
+        { deviceToken, deviceType },
+        { new: true}
     );
 
 
