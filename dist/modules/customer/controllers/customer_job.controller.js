@@ -39,1075 +39,964 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.customerGetComplainJobController = exports.customerComplaintedJobJobController = exports.customerGetComfirmJobController = exports.customerComfirmedJobJobController = exports.customerGetComletedByContractorController = exports.customerVerififyPaymentWebhook = exports.customerGetAllSetJobController = exports.customerGetJobRejectedontroller = exports.customerGetJobQoutationPaymentConfirmAndJobInProgressController = exports.customerVerififyPaymentForJobController = exports.customerGetJobQoutationPaymentOpenController = exports.customerAcceptAndPayForJobController = exports.customerGetJobQoutationController = exports.customerJobRequestSentToContractorController = exports.customerSendJobToContractorController = void 0;
+exports.CustomerJobController = exports.getSingleJob = exports.getJobs = exports.createJobListing = exports.createJobRequest = void 0;
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
-var job_model_1 = __importDefault(require("../../../database/contractor/models/job.model"));
-var send_email_utility_1 = require("../../../utils/send_email_utility");
-var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
-var stripe_1 = __importDefault(require("stripe"));
-var customerAcceptQuoteTem_1 = require("../../../templates/email/customerAcceptQuoteTem");
-var customerPaymoneyForQuateTem_1 = require("../../../templates/email/customerPaymoneyForQuateTem");
-var admin_model_1 = __importDefault(require("../../../database/admin/models/admin.model"));
-var transaction_model_1 = __importDefault(require("../../../database/admin/models/transaction.model"));
-var adminPaymentTemplate_1 = require("../../../templates/adminEmail/adminPaymentTemplate");
+var jobRequestTemplate_1 = require("../../../templates/contractorEmail/jobRequestTemplate");
 var contractorNotification_model_1 = __importDefault(require("../../../database/contractor/models/contractorNotification.model"));
 var customerNotification_model_1 = __importDefault(require("../../../database/customer/models/customerNotification.model"));
-var admin_notification_model_1 = __importDefault(require("../../../database/admin/models/admin_notification.model"));
-var payout_model_1 = __importDefault(require("../../../database/admin/models/payout.model"));
-var contractorBankDetail_model_1 = __importDefault(require("../../../database/contractor/models/contractorBankDetail.model"));
-var customerSendJobToContractorController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var inpection;
-    return __generator(this, function (_a) {
-        try {
-            inpection = {
-                status: false,
-                confirmPayment: false
-            };
-            //   await job.save();
-            //contractor notification
-            //   const contractorNotic = new ContractorNotificationModel({
-            //     contractorId: checkContractor._id,
-            //     message: `You've been sent a job request from ${checkCustomer.firstName}`,
-            //     status: "unseen"
-            //   });
-            //   await contractorNotic.save();
-            //customer notification
-            //   const customerNotic = new CustomerNotificationModel({
-            //     customerId: checkCustomer._id,
-            //     message: `You've sent a job request to ${checkContractor.firstName}`,
-            //     status: "unseen"
-            //   })
-            //   await customerNotic.save();
-            //   const html = htmlJobRequestTemplate(checkContractor.firstName, checkCustomer.firstName, time, description)
-            //   let emailData = {
-            //     emailTo: checkContractor.email,
-            //     subject: "Job request from customer",
-            //     html
-            //   };
-            //   await sendEmail(emailData);
-            //   res.json({  
-            //     message: "job request successfully sent",
-            //  });
-        }
-        catch (err) {
-            // signup error
-            res.status(500).json({ message: err.message });
-        }
-        return [2 /*return*/];
-    });
-}); };
-exports.customerSendJobToContractorController = customerSendJobToContractorController;
-//customer get job that he sent request /////////////
-var customerJobRequestSentToContractorController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, errors, customer, customerId, checkCustomer, jobRequests, jobRequested, i, jobRequest, contractor, obj, err_1;
+var customer_jobrequest_model_1 = require("../../../database/customer/models/customer_jobrequest.model");
+var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
+var services_1 = require("../../../services");
+var date_fns_1 = require("date-fns");
+var job_model_1 = require("../../../database/common/job.model");
+var createJobRequest = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var errors, _a, contractorId, category, description, location_1, date, expiresIn, emergency, media, voiceDescription, time, customerId, customer, contractor, existingJobRequest, dateTimeString, jobTime, newJob, contractorNotification, customerNotification, html, error_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
                 _b.trys.push([0, 7, , 8]);
-                _a = req.body;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                    return [2 /*return*/, res.status(400).json({ message: 'validatior error occured', errors: errors.array() })];
                 }
-                customer = req.customer;
-                customerId = customer.id;
-                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
+                _a = req.body, contractorId = _a.contractorId, category = _a.category, description = _a.description, location_1 = _a.location, date = _a.date, expiresIn = _a.expiresIn, emergency = _a.emergency, media = _a.media, voiceDescription = _a.voiceDescription, time = _a.time;
+                customerId = req.customer.id;
+                return [4 /*yield*/, customer_model_1.default.findById(customerId)];
             case 1:
-                checkCustomer = _b.sent();
-                if (!checkCustomer) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ message: "incorrect Customer ID" })];
+                customer = _b.sent();
+                if (!customer) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "Customer not found" })];
                 }
-                return [4 /*yield*/, job_model_1.default.find({ customerId: customerId, status: 'sent request' }).sort({ createdAt: -1 })];
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId).populate('profile')];
             case 2:
-                jobRequests = _b.sent();
-                jobRequested = [];
-                i = 0;
-                _b.label = 3;
-            case 3:
-                if (!(i < jobRequests.length)) return [3 /*break*/, 6];
-                jobRequest = jobRequests[i];
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: jobRequest.contractorId }).select('-password')];
-            case 4:
                 contractor = _b.sent();
-                obj = {
-                    job: jobRequest,
-                    contractor: contractor
-                };
-                jobRequested.push(obj);
-                _b.label = 5;
-            case 5:
-                i++;
-                return [3 /*break*/, 3];
-            case 6:
-                res.json({
-                    jobRequested: jobRequested
+                if (!contractor) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "Contractor not found" })];
+                }
+                // Check if the specified date is valid
+                if (!(0, date_fns_1.isFuture)(new Date(date))) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid date formate or date is not in the future' })];
+                }
+                return [4 /*yield*/, job_model_1.JobModel.findOne({
+                        customer: customerId,
+                        contractor: contractorId,
+                        status: customer_jobrequest_model_1.JobRequestStatus.PENDING,
+                        date: { $eq: new Date(date) }, // consider all past jobs
+                        createdAt: { $gte: (0, date_fns_1.addHours)(new Date(), -72) }, // Check for job requests within the last 72 hours
+                    })];
+            case 3:
+                existingJobRequest = _b.sent();
+                if (existingJobRequest) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'A similar job request has already been sent to this contractor within the last 72 hours' })];
+                }
+                dateTimeString = "".concat(new Date(date).toISOString().split('T')[0], "T").concat(time);
+                jobTime = new Date(dateTimeString);
+                console.log('HWat happened here', jobTime);
+                newJob = new job_model_1.JobModel({
+                    customer: customer.id,
+                    contractor: contractorId,
+                    description: description,
+                    location: location_1,
+                    date: date,
+                    time: jobTime,
+                    expiresIn: expiresIn,
+                    emergency: emergency || false,
+                    voiceDescription: voiceDescription,
+                    media: media || [],
+                    type: job_model_1.JobType.REQUEST
                 });
+                // Save the job document to the database
+                return [4 /*yield*/, newJob.save()];
+            case 4:
+                // Save the job document to the database
+                _b.sent();
+                contractorNotification = new contractorNotification_model_1.default({
+                    contractorId: contractor.id,
+                    message: "You've been sent a job request from ".concat(customer.firstName),
+                    status: "unseen"
+                });
+                return [4 /*yield*/, contractorNotification.save()];
+            case 5:
+                _b.sent();
+                customerNotification = new customerNotification_model_1.default({
+                    customerId: customer.id,
+                    message: "You've sent a job request to ".concat(customer.firstName),
+                    status: "unseen"
+                });
+                return [4 /*yield*/, customerNotification.save()];
+            case 6:
+                _b.sent();
+                html = (0, jobRequestTemplate_1.htmlJobRequestTemplate)(customer.firstName, customer.firstName, "".concat(date, " ").concat(time), description);
+                services_1.EmailService.send(contractor.email, 'Job request from customer', html);
+                res.status(201).json({ success: true, message: 'Job request submitted successfully', data: newJob });
                 return [3 /*break*/, 8];
             case 7:
-                err_1 = _b.sent();
-                // signup error
-                res.status(500).json({ message: err_1.message });
+                error_1 = _b.sent();
+                console.error('Error submitting job request:', error_1);
+                res.status(500).json({ success: false, message: 'Internal Server Error' });
                 return [3 /*break*/, 8];
             case 8: return [2 /*return*/];
         }
     });
 }); };
-exports.customerJobRequestSentToContractorController = customerJobRequestSentToContractorController;
-//customer get job with sent qoutation /////////////
-var customerGetJobQoutationController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, errors, customer, customerId, checkCustomer, jobRequests, jobRequested, i, jobRequest, contractor, obj, err_2;
+exports.createJobRequest = createJobRequest;
+var createJobListing = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var errors, _a, category, description, location_2, date, expiresIn, emergency, media, voiceDescription, time, contractorType, customerId, customer, existingJobRequest, dateTimeString, jobTime, newJob, error_2;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 7, , 8]);
-                _a = req.body;
+                _b.trys.push([0, 4, , 5]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                    return [2 /*return*/, res.status(400).json({ message: 'validatior error occured', errors: errors.array() })];
                 }
-                customer = req.customer;
-                customerId = customer.id;
-                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
+                _a = req.body, category = _a.category, description = _a.description, location_2 = _a.location, date = _a.date, expiresIn = _a.expiresIn, emergency = _a.emergency, media = _a.media, voiceDescription = _a.voiceDescription, time = _a.time, contractorType = _a.contractorType;
+                customerId = req.customer.id;
+                return [4 /*yield*/, customer_model_1.default.findById(customerId)];
             case 1:
-                checkCustomer = _b.sent();
-                if (!checkCustomer) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ message: "incorrect Customer ID" })];
+                customer = _b.sent();
+                if (!customer) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "Customer not found" })];
                 }
-                return [4 /*yield*/, job_model_1.default.find({ customerId: customerId, status: 'sent qoutation' }).sort({ createdAt: -1 })];
-            case 2:
-                jobRequests = _b.sent();
-                jobRequested = [];
-                i = 0;
-                _b.label = 3;
-            case 3:
-                if (!(i < jobRequests.length)) return [3 /*break*/, 6];
-                jobRequest = jobRequests[i];
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: jobRequest.contractorId }).select('-password')];
-            case 4:
-                contractor = _b.sent();
-                obj = {
-                    job: jobRequest,
-                    contractor: contractor
-                };
-                jobRequested.push(obj);
-                _b.label = 5;
-            case 5:
-                i++;
-                return [3 /*break*/, 3];
-            case 6:
-                res.json({
-                    jobRequested: jobRequested
-                });
-                return [3 /*break*/, 8];
-            case 7:
-                err_2 = _b.sent();
-                // signup error
-                res.status(500).json({ message: err_2.message });
-                return [3 /*break*/, 8];
-            case 8: return [2 /*return*/];
-        }
-    });
-}); };
-exports.customerGetJobQoutationController = customerGetJobQoutationController;
-//customer accept and pay for the work /////////////
-var customerAcceptAndPayForJobController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var jobId, errors, customer, customerId, checkCustomer, job, contractor, secret, stripeInstance, generateInvoce, invoiceId, newTransaction, saveTransaction, transactionId, paymentIntent, err_3;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                _a.trys.push([0, 7, , 8]);
-                jobId = req.body.jobId;
-                errors = (0, express_validator_1.validationResult)(req);
-                if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                // Check if the specified date is valid
+                if (!(0, date_fns_1.isFuture)(new Date(date))) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid date formate or date is not in the future' })];
                 }
-                customer = req.customer;
-                customerId = customer.id;
-                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
-            case 1:
-                checkCustomer = _a.sent();
-                if (!checkCustomer) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ message: "incorrect Customer ID" })];
-                }
-                return [4 /*yield*/, job_model_1.default.findOne({
-                        $and: [
-                            { _id: jobId },
-                            { customerId: customerId },
-                            {
-                                $or: [
-                                    { status: 'sent qoutation' },
-                                    { status: 'qoutation payment open' }
-                                ]
-                            }
-                        ]
+                return [4 /*yield*/, job_model_1.JobModel.findOne({
+                        customer: customerId,
+                        status: customer_jobrequest_model_1.JobRequestStatus.PENDING,
+                        category: category,
+                        date: { $eq: new Date(date) }, // consider all past jobs
+                        createdAt: { $gte: (0, date_fns_1.addHours)(new Date(), -24) }, // Check for job requests within the last 72 hours
                     })];
             case 2:
-                job = _a.sent();
-                if (!job) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ message: "job do not exist or qoutation have not be sent" })];
+                existingJobRequest = _b.sent();
+                if (existingJobRequest) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'A similar job has already been created within the last 24 hours' })];
                 }
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: job.contractorId }).select('-password')];
+                dateTimeString = "".concat(new Date(date).toISOString().split('T')[0], "T").concat(time);
+                jobTime = new Date(dateTimeString);
+                console.log('HWat happened here', jobTime);
+                newJob = new job_model_1.JobModel({
+                    customer: customer.id,
+                    contractorType: contractorType,
+                    description: description,
+                    category: category,
+                    location: location_2,
+                    date: date,
+                    time: jobTime,
+                    expiresIn: expiresIn,
+                    emergency: emergency || false,
+                    voiceDescription: voiceDescription,
+                    media: media || [],
+                    type: job_model_1.JobType.LISTING
+                });
+                // Save the job document to the database
+                return [4 /*yield*/, newJob.save()];
             case 3:
-                contractor = _a.sent();
-                secret = process.env.STRIPE_KEY || "sk_test_51OTMkGIj2KYudFaR1rNIBOPTaBESYoJco6lTCBZw5a0inyttRJOotcds1rXpXCJDSJrpNmIt2FBAaSxdmuma3ZTF00h48RxVny";
-                stripeInstance = void 0;
-                if (!secret) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ message: "Sripe API Key is missing" })];
-                }
-                stripeInstance = new stripe_1.default(secret);
-                generateInvoce = new Date().getTime().toString();
-                invoiceId = generateInvoce.substring(generateInvoce.length - 5);
-                newTransaction = new transaction_model_1.default({
-                    type: 'credit',
-                    amount: parseFloat(job.totalAmountCustomerToPaid.toFixed(2)),
-                    initiator: customerId,
-                    from: 'customer',
-                    to: 'admin',
-                    fromId: customerId,
-                    toId: 'admin',
-                    description: "qoutation from ".concat(contractor === null || contractor === void 0 ? void 0 : contractor.firstName, " payment"),
-                    status: 'pending',
-                    form: 'qoutation',
-                    invoiceId: invoiceId,
-                    jobId: jobId
-                });
-                return [4 /*yield*/, newTransaction.save()];
+                // Save the job document to the database
+                _b.sent();
+                res.status(201).json({ success: true, message: 'Job request submitted successfully', data: newJob });
+                return [3 /*break*/, 5];
             case 4:
-                saveTransaction = _a.sent();
-                transactionId = JSON.stringify(saveTransaction._id);
-                return [4 /*yield*/, stripeInstance.checkout.sessions.create({
-                        mode: 'payment',
-                        payment_method_types: ['card'],
-                        line_items: [
-                            {
-                                price_data: {
-                                    currency: 'usd',
-                                    product_data: {
-                                        name: "qoutation payment from ".concat(contractor === null || contractor === void 0 ? void 0 : contractor.firstName)
-                                    },
-                                    unit_amount: parseFloat(job.totalAmountCustomerToPaid.toFixed(2)) * 100,
-                                },
-                                quantity: 1,
-                            },
-                        ],
-                        metadata: {
-                            customerId: customerId,
-                            type: "payment",
-                            jobId: jobId,
-                            transactionId: transactionId
-                        },
-                        success_url: "https://repairfind.ca/payment-success/",
-                        cancel_url: "https://cancel.com",
-                        customer_email: checkCustomer.email
-                    })];
-            case 5:
-                paymentIntent = _a.sent();
-                job.status = "qoutation payment open";
-                return [4 /*yield*/, job.save()];
-            case 6:
-                _a.sent();
-                res.json({
-                    jobId: jobId,
-                    url: paymentIntent.url,
-                    paymentId: paymentIntent.id
-                });
-                return [3 /*break*/, 8];
-            case 7:
-                err_3 = _a.sent();
-                // signup error
-                res.status(500).json({ message: err_3.message });
-                return [3 /*break*/, 8];
-            case 8: return [2 /*return*/];
+                error_2 = _b.sent();
+                console.error('Error submitting job request:', error_2);
+                res.status(500).json({ success: false, message: 'Internal Server Error' });
+                return [3 /*break*/, 5];
+            case 5: return [2 /*return*/];
         }
     });
 }); };
-exports.customerAcceptAndPayForJobController = customerAcceptAndPayForJobController;
-//customer get job qoutation payment and open /////////////
-var customerGetJobQoutationPaymentOpenController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, errors, customer, customerId, checkCustomer, jobRequests, jobRequested, i, jobRequest, contractor, obj, err_4;
+exports.createJobListing = createJobListing;
+var getJobs = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var errors, _a, contractorId, status_1, startDate, endDate, date, type, customerId, filter, start, end, selectedDate, startOfDay, endOfDay, jobRequests, error_3;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 7, , 8]);
-                _a = req.body;
+                _b.trys.push([0, 2, , 3]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
-                customer = req.customer;
-                customerId = customer.id;
-                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
-            case 1:
-                checkCustomer = _b.sent();
-                if (!checkCustomer) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ message: "incorrect Customer ID" })];
+                _a = req.query, contractorId = _a.contractorId, status_1 = _a.status, startDate = _a.startDate, endDate = _a.endDate, date = _a.date, type = _a.type;
+                customerId = req.customer.id;
+                filter = {};
+                if (customerId) {
+                    filter.customer = customerId;
                 }
-                return [4 /*yield*/, job_model_1.default.find({ customerId: customerId, status: 'qoutation payment open' }).sort({ createdAt: -1 })];
-            case 2:
+                if (contractorId) {
+                    filter.contractor = contractorId;
+                }
+                if (type) {
+                    filter.type = type.toUpperCase();
+                }
+                if (status_1) {
+                    filter.status = status_1.toUpperCase();
+                }
+                if (startDate && endDate) {
+                    start = new Date(startDate);
+                    end = new Date(endDate);
+                    // Ensure that end date is adjusted to include the entire day
+                    end.setDate(end.getDate() + 1);
+                    filter.createdAt = { $gte: start, $lt: end };
+                }
+                if (date) {
+                    selectedDate = new Date(date);
+                    startOfDay = new Date(selectedDate.setUTCHours(0, 0, 0, 0));
+                    endOfDay = new Date(startOfDay);
+                    endOfDay.setDate(startOfDay.getUTCDate() + 1);
+                    filter.date = { $gte: startOfDay, $lt: endOfDay };
+                }
+                return [4 /*yield*/, job_model_1.JobModel.find(filter).exec()];
+            case 1:
                 jobRequests = _b.sent();
-                jobRequested = [];
-                i = 0;
-                _b.label = 3;
-            case 3:
-                if (!(i < jobRequests.length)) return [3 /*break*/, 6];
-                jobRequest = jobRequests[i];
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: jobRequest.contractorId }).select('-password')];
-            case 4:
-                contractor = _b.sent();
-                obj = {
-                    job: jobRequest,
-                    contractor: contractor
-                };
-                jobRequested.push(obj);
-                _b.label = 5;
-            case 5:
-                i++;
+                res.json({ success: true, message: 'Jobs retrieved', data: jobRequests });
                 return [3 /*break*/, 3];
-            case 6:
-                res.json({
-                    jobRequested: jobRequested
-                });
-                return [3 /*break*/, 8];
-            case 7:
-                err_4 = _b.sent();
-                // signup error
-                res.status(500).json({ message: err_4.message });
-                return [3 /*break*/, 8];
-            case 8: return [2 /*return*/];
-        }
-    });
-}); };
-exports.customerGetJobQoutationPaymentOpenController = customerGetJobQoutationPaymentOpenController;
-//customer confirm or verified payment /////////////
-var customerVerififyPaymentForJobController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, jobId, paymentId, errors, customer, customerId, checkCustomer, job, contractor, secret, stripeInstance, paymentConfirmation, html, emailData, admins, i, admin, html_1, emailData_1, err_5;
-    var _b;
-    return __generator(this, function (_c) {
-        switch (_c.label) {
-            case 0:
-                _c.trys.push([0, 12, , 13]);
-                _a = req.body, jobId = _a.jobId, paymentId = _a.paymentId;
-                errors = (0, express_validator_1.validationResult)(req);
-                if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
-                }
-                customer = req.customer;
-                customerId = customer.id;
-                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
-            case 1:
-                checkCustomer = _c.sent();
-                if (!checkCustomer) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ message: "incorrect Customer ID" })];
-                }
-                return [4 /*yield*/, job_model_1.default.findOne({ _id: jobId, customerId: customerId, status: 'qoutation payment open' })];
             case 2:
-                job = _c.sent();
-                if (!job) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ message: "job do not exist or payment has not be initialize" })];
-                }
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: job.contractorId }).select('-password')];
-            case 3:
-                contractor = _c.sent();
-                if (!contractor) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ message: "incorrect contractor Id" })];
-                }
-                secret = process.env.STRIPE_KEY || "sk_test_51OTMkGIj2KYudFaR1rNIBOPTaBESYoJco6lTCBZw5a0inyttRJOotcds1rXpXCJDSJrpNmIt2FBAaSxdmuma3ZTF00h48RxVny";
-                stripeInstance = void 0;
-                console.log(secret);
-                if (!secret) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ message: "Sripe API Key is missing" })];
-                }
-                stripeInstance = new stripe_1.default(secret);
-                return [4 /*yield*/, stripeInstance.checkout.sessions.retrieve(paymentId)];
-            case 4:
-                paymentConfirmation = _c.sent();
-                if (paymentConfirmation.status !== "complete") {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ message: "no payment or payment url expired" })];
-                }
-                if (((_b = paymentConfirmation.metadata) === null || _b === void 0 ? void 0 : _b.customerId) != customerId) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ message: "payment ID in not for this customer" })];
-                }
-                job.status = "qoutation payment confirm and job in progress";
-                return [4 /*yield*/, job.save()];
-            case 5:
-                _c.sent();
-                html = (0, customerAcceptQuoteTem_1.customerAcceptQouteAndPaySendEmailHtmlMailTemplate)(contractor === null || contractor === void 0 ? void 0 : contractor.firstName, checkCustomer.firstName);
-                emailData = {
-                    emailTo: contractor.email,
-                    subject: "Artisan payment for the job",
-                    html: html
-                };
-                return [4 /*yield*/, (0, send_email_utility_1.sendEmail)(emailData)];
-            case 6:
-                _c.sent();
-                return [4 /*yield*/, admin_model_1.default.find()];
-            case 7:
-                admins = _c.sent();
-                i = 0;
-                _c.label = 8;
-            case 8:
-                if (!(i < admins.length)) return [3 /*break*/, 11];
-                admin = admins[i];
-                html_1 = (0, customerPaymoneyForQuateTem_1.customerToAdminAfterPaymentSendEmailHtmlMailTemplate)(contractor.firstName, checkCustomer.firstName);
-                emailData_1 = {
-                    emailTo: admin.email,
-                    subject: "Artisan payment for the job",
-                    html: html_1
-                };
-                return [4 /*yield*/, (0, send_email_utility_1.sendEmail)(emailData_1)];
-            case 9:
-                _c.sent();
-                _c.label = 10;
-            case 10:
-                i++;
-                return [3 /*break*/, 8];
-            case 11:
-                res.json({
-                    message: "payment successfully comfirm",
-                });
-                return [3 /*break*/, 13];
-            case 12:
-                err_5 = _c.sent();
-                // signup error
-                res.status(500).json({ message: err_5.message });
-                return [3 /*break*/, 13];
-            case 13: return [2 /*return*/];
-        }
-    });
-}); };
-exports.customerVerififyPaymentForJobController = customerVerififyPaymentForJobController;
-//customer get job qoutation payment confirm and job in progres /////////////
-var customerGetJobQoutationPaymentConfirmAndJobInProgressController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, errors, customer, customerId, checkCustomer, jobRequests, jobRequested, i, jobRequest, contractor, obj, err_6;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0:
-                _b.trys.push([0, 7, , 8]);
-                _a = req.body;
-                errors = (0, express_validator_1.validationResult)(req);
-                if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
-                }
-                customer = req.customer;
-                customerId = customer.id;
-                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
-            case 1:
-                checkCustomer = _b.sent();
-                if (!checkCustomer) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ message: "incorrect Customer ID" })];
-                }
-                return [4 /*yield*/, job_model_1.default.find({ customerId: customerId, status: 'qoutation payment confirm and job in progress' }).sort({ createdAt: -1 })];
-            case 2:
-                jobRequests = _b.sent();
-                jobRequested = [];
-                i = 0;
-                _b.label = 3;
-            case 3:
-                if (!(i < jobRequests.length)) return [3 /*break*/, 6];
-                jobRequest = jobRequests[i];
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: jobRequest.contractorId }).select('-password')];
-            case 4:
-                contractor = _b.sent();
-                obj = {
-                    job: jobRequest,
-                    contractor: contractor
-                };
-                jobRequested.push(obj);
-                _b.label = 5;
-            case 5:
-                i++;
+                error_3 = _b.sent();
+                console.error('Error retrieving jobs:', error_3);
+                res.status(500).json({ success: false, message: 'Internal Server Error' });
                 return [3 /*break*/, 3];
-            case 6:
-                res.json({
-                    jobRequested: jobRequested
-                });
-                return [3 /*break*/, 8];
-            case 7:
-                err_6 = _b.sent();
-                // signup error
-                res.status(500).json({ message: err_6.message });
-                return [3 /*break*/, 8];
-            case 8: return [2 /*return*/];
+            case 3: return [2 /*return*/];
         }
     });
 }); };
-exports.customerGetJobQoutationPaymentConfirmAndJobInProgressController = customerGetJobQoutationPaymentConfirmAndJobInProgressController;
-//customer get job request rejected /////////////
-var customerGetJobRejectedontroller = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, errors, customer, customerId, checkCustomer, jobRequests, jobRequested, i, jobRequest, contractor, obj, err_7;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0:
-                _b.trys.push([0, 7, , 8]);
-                _a = req.body;
-                errors = (0, express_validator_1.validationResult)(req);
-                if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
-                }
-                customer = req.customer;
-                customerId = customer.id;
-                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
-            case 1:
-                checkCustomer = _b.sent();
-                if (!checkCustomer) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ message: "incorrect Customer ID" })];
-                }
-                return [4 /*yield*/, job_model_1.default.find({ customerId: customerId, status: 'job reject' }).sort({ createdAt: -1 })];
-            case 2:
-                jobRequests = _b.sent();
-                jobRequested = [];
-                i = 0;
-                _b.label = 3;
-            case 3:
-                if (!(i < jobRequests.length)) return [3 /*break*/, 6];
-                jobRequest = jobRequests[i];
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: jobRequest.contractorId }).select('-password')];
-            case 4:
-                contractor = _b.sent();
-                obj = {
-                    job: jobRequest,
-                    contractor: contractor
-                };
-                jobRequested.push(obj);
-                _b.label = 5;
-            case 5:
-                i++;
-                return [3 /*break*/, 3];
-            case 6:
-                res.json({
-                    jobRequested: jobRequested
-                });
-                return [3 /*break*/, 8];
-            case 7:
-                err_7 = _b.sent();
-                // signup error
-                res.status(500).json({ message: err_7.message });
-                return [3 /*break*/, 8];
-            case 8: return [2 /*return*/];
-        }
-    });
-}); };
-exports.customerGetJobRejectedontroller = customerGetJobRejectedontroller;
-//get all job history/////////////
-var customerGetAllSetJobController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, page, limit, errors, customer, customerId, skip, jobs, jobHistory, i, job, contractorProfile, obj, err_8;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0:
-                _b.trys.push([0, 6, , 7]);
-                _a = req.query, page = _a.page, limit = _a.limit;
-                errors = (0, express_validator_1.validationResult)(req);
-                if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
-                }
-                customer = req.customer;
-                customerId = customer.id;
-                page = page || 1;
-                limit = limit || 50;
-                skip = (page - 1) * limit;
-                return [4 /*yield*/, job_model_1.default.find({ customerId: customerId })
-                        .sort({ createdAt: -1 })
-                        .skip(skip)
-                        .limit(limit)];
-            case 1:
-                jobs = _b.sent();
-                jobHistory = [];
-                i = 0;
-                _b.label = 2;
-            case 2:
-                if (!(i < jobs.length)) return [3 /*break*/, 5];
-                job = jobs[i];
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: job.contractorId }).select('-password')
-                    //const contractorDocument = await ContractorDocumentValidateModel.findOne({contractorId: job.contractorId});
-                ];
-            case 3:
-                contractorProfile = _b.sent();
-                obj = {
-                    job: job,
-                    contractorProfile: contractorProfile,
-                    //contractorDocument
-                };
-                jobHistory.push(obj);
-                _b.label = 4;
-            case 4:
-                i++;
-                return [3 /*break*/, 2];
-            case 5:
-                res.json({
-                    jobHistory: jobHistory
-                });
-                return [3 /*break*/, 7];
-            case 6:
-                err_8 = _b.sent();
-                // signup error
-                res.status(500).json({ message: err_8.message });
-                return [3 /*break*/, 7];
-            case 7: return [2 /*return*/];
-        }
-    });
-}); };
-exports.customerGetAllSetJobController = customerGetAllSetJobController;
-//customer confirm or verified payment web hook/////////////
-var customerVerififyPaymentWebhook = function (jobId, customerId, transactionId) { return __awaiter(void 0, void 0, void 0, function () {
-    var checkCustomer, job, contractor, transaction, html, emailData, admins, adminPaymentHtml, i, admin, adminEmailData, adminNotic, contractorNotic, customerNotic, customerNoticTwo, err_9;
+exports.getJobs = getJobs;
+var getSingleJob = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var customerId, jobId, job, error_4;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 17, , 18]);
-                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
+                _a.trys.push([0, 2, , 3]);
+                customerId = req.customer.id;
+                jobId = req.params.jobId;
+                return [4 /*yield*/, job_model_1.JobModel.findOne({ customer: customerId, _id: jobId }).exec()];
             case 1:
-                checkCustomer = _a.sent();
-                if (!checkCustomer) {
-                    return [2 /*return*/];
-                }
-                return [4 /*yield*/, job_model_1.default.findOne({ _id: jobId, customerId: customerId, status: 'qoutation payment open' })];
-            case 2:
                 job = _a.sent();
+                // Check if the job exists
                 if (!job) {
-                    return [2 /*return*/];
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found' })];
                 }
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: job.contractorId }).select('-password')];
-            case 3:
-                contractor = _a.sent();
-                if (!contractor) {
-                    return [2 /*return*/];
-                }
-                return [4 /*yield*/, transaction_model_1.default.findOne({ _id: transactionId.substring(1, transactionId.length - 1) })];
-            case 4:
-                transaction = _a.sent();
-                if (!transaction) {
-                    return [2 /*return*/];
-                }
-                job.status = "qoutation payment confirm and job in progress";
-                return [4 /*yield*/, job.save()];
-            case 5:
-                _a.sent();
-                transaction.status = 'successful';
-                return [4 /*yield*/, transaction.save()];
-            case 6:
-                _a.sent();
-                html = (0, customerAcceptQuoteTem_1.customerAcceptQouteAndPaySendEmailHtmlMailTemplate)(contractor === null || contractor === void 0 ? void 0 : contractor.firstName, checkCustomer.firstName);
-                emailData = {
-                    emailTo: contractor.email,
-                    subject: "Artisan payment for the job",
-                    html: html
-                };
-                return [4 /*yield*/, (0, send_email_utility_1.sendEmail)(emailData)];
-            case 7:
-                _a.sent();
-                return [4 /*yield*/, admin_model_1.default.find()];
-            case 8:
-                admins = _a.sent();
-                adminPaymentHtml = (0, adminPaymentTemplate_1.htmlAdminPaymentTemplate)(jobId, checkCustomer._id, "".concat(job.totalAmountCustomerToPaid, " for job qoutation"));
-                i = 0;
-                _a.label = 9;
-            case 9:
-                if (!(i < admins.length)) return [3 /*break*/, 13];
-                admin = admins[i];
-                adminEmailData = {
-                    emailTo: admin.email,
-                    subject: "qoutation payment",
-                    html: adminPaymentHtml
-                };
-                return [4 /*yield*/, (0, send_email_utility_1.sendEmail)(adminEmailData)];
-            case 10:
-                _a.sent();
-                adminNotic = new admin_notification_model_1.default({
-                    title: "Job Booked",
-                    message: "".concat(job._id, " - ").concat(checkCustomer.firstName, " booked a job for $").concat(job.totalAmountCustomerToPaid, "."),
-                    status: "unseen"
-                });
-                return [4 /*yield*/, adminNotic.save()];
-            case 11:
-                _a.sent();
-                _a.label = 12;
-            case 12:
-                i++;
-                return [3 /*break*/, 9];
-            case 13:
-                contractorNotic = new contractorNotification_model_1.default({
-                    contractorId: contractor._id,
-                    message: "You've been booked for a job from ".concat(checkCustomer.firstName, " for ").concat(job.time),
-                    status: "unseen"
-                });
-                return [4 /*yield*/, contractorNotic.save()];
-            case 14:
-                _a.sent();
-                customerNotic = new customerNotification_model_1.default({
-                    customerId: checkCustomer._id,
-                    message: "You've booked a job with ".concat(contractor.firstName, " for ").concat(job.jobTitle),
-                    status: "unseen"
-                });
-                return [4 /*yield*/, customerNotic.save()];
-            case 15:
-                _a.sent();
-                customerNoticTwo = new customerNotification_model_1.default({
-                    customerId: checkCustomer._id,
-                    message: "You've just sent a payment for this job - ".concat(job.jobTitle, ", Thank you."),
-                    status: "unseen"
-                });
-                return [4 /*yield*/, customerNoticTwo.save()];
-            case 16:
-                _a.sent();
-                return [3 /*break*/, 18];
-            case 17:
-                err_9 = _a.sent();
-                // signup error
-                console.log("payment Error", "err");
-                return [3 /*break*/, 18];
-            case 18: return [2 /*return*/];
-        }
-    });
-}); };
-exports.customerVerififyPaymentWebhook = customerVerififyPaymentWebhook;
-//customer get job completed by contractor /////////////
-var customerGetComletedByContractorController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, errors, customer, customerId, checkCustomer, jobRequests, jobRequested, i, jobRequest, contractor, obj, err_10;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0:
-                _b.trys.push([0, 7, , 8]);
-                _a = req.body;
-                errors = (0, express_validator_1.validationResult)(req);
-                if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
-                }
-                customer = req.customer;
-                customerId = customer.id;
-                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
-            case 1:
-                checkCustomer = _b.sent();
-                if (!checkCustomer) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ message: "incorrect Customer ID" })];
-                }
-                return [4 /*yield*/, job_model_1.default.find({ customerId: customerId, status: 'completed' }).sort({ createdAt: -1 })];
-            case 2:
-                jobRequests = _b.sent();
-                jobRequested = [];
-                i = 0;
-                _b.label = 3;
-            case 3:
-                if (!(i < jobRequests.length)) return [3 /*break*/, 6];
-                jobRequest = jobRequests[i];
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: jobRequest.contractorId }).select('-password')];
-            case 4:
-                contractor = _b.sent();
-                obj = {
-                    job: jobRequest,
-                    contractor: contractor
-                };
-                jobRequested.push(obj);
-                _b.label = 5;
-            case 5:
-                i++;
+                // If the job exists, return it as a response
+                res.json({ success: true, message: 'Job retrieved', data: job });
                 return [3 /*break*/, 3];
-            case 6:
-                res.json({
-                    jobRequested: jobRequested
-                });
-                return [3 /*break*/, 8];
-            case 7:
-                err_10 = _b.sent();
-                // signup error
-                res.status(500).json({ message: err_10.message });
-                return [3 /*break*/, 8];
-            case 8: return [2 /*return*/];
-        }
-    });
-}); };
-exports.customerGetComletedByContractorController = customerGetComletedByContractorController;
-//customer comfirm job completed by Contractor /////////////
-var customerComfirmedJobJobController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var jobId, errors, customer, customerId, checkCustomer, job, contractor, contractorBank, newPayout, adminNotic, err_11;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                _a.trys.push([0, 8, , 9]);
-                jobId = req.body.jobId;
-                errors = (0, express_validator_1.validationResult)(req);
-                if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
-                }
-                customer = req.customer;
-                customerId = customer.id;
-                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
-            case 1:
-                checkCustomer = _a.sent();
-                if (!checkCustomer) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ message: "incorrect Customer ID" })];
-                }
-                return [4 /*yield*/, job_model_1.default.findOne({ _id: jobId, customerId: customerId, status: 'completed' })];
             case 2:
-                job = _a.sent();
-                if (!job) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ message: "job do not exist or has not been completed by artisan" })];
-                }
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: job.contractorId }).select('-password')];
-            case 3:
-                contractor = _a.sent();
-                if (!contractor) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ message: "incorrect contractor id" })];
-                }
-                return [4 /*yield*/, contractorBankDetail_model_1.default.findOne({ contractorId: contractor._id })];
-            case 4:
-                contractorBank = _a.sent();
-                if (!contractorBank) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ message: "contractor has not enter his bank detail" })];
-                }
-                newPayout = new payout_model_1.default({
-                    amount: job.totalAmountContractorWithdraw,
-                    accountName: "".concat(contractor.firstName, " ").concat(contractor.lastName),
-                    accountNumber: contractorBank.accountNumber,
-                    bankName: contractorBank.financialInstitution,
-                    recieverId: contractor._id,
-                    jobId: jobId,
-                    status: "pending"
-                });
-                return [4 /*yield*/, newPayout.save()];
-            case 5:
-                _a.sent();
-                job.status = "comfirmed";
-                return [4 /*yield*/, job.save()
-                    //admin notification 
-                ];
-            case 6:
-                _a.sent();
-                adminNotic = new admin_notification_model_1.default({
-                    title: "Customer Confirmed Job Completed",
-                    message: "".concat(jobId, " - ").concat(checkCustomer.firstName, " has updated this job to completed and comfirm"),
-                    status: "unseen"
-                });
-                return [4 /*yield*/, adminNotic.save()];
-            case 7:
-                _a.sent();
-                res.json({
-                    message: "you successfully comfirm this job completed by artisan"
-                });
-                return [3 /*break*/, 9];
-            case 8:
-                err_11 = _a.sent();
-                console.log("error", err_11);
-                // signup error
-                res.status(500).json({ message: err_11.message });
-                return [3 /*break*/, 9];
-            case 9: return [2 /*return*/];
-        }
-    });
-}); };
-exports.customerComfirmedJobJobController = customerComfirmedJobJobController;
-//customer get you comfirm  job/////////////
-var customerGetComfirmJobController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, errors, customer, customerId, checkCustomer, jobRequests, jobRequested, i, jobRequest, contractor, obj, err_12;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0:
-                _b.trys.push([0, 7, , 8]);
-                _a = req.body;
-                errors = (0, express_validator_1.validationResult)(req);
-                if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
-                }
-                customer = req.customer;
-                customerId = customer.id;
-                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
-            case 1:
-                checkCustomer = _b.sent();
-                if (!checkCustomer) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ message: "incorrect Customer ID" })];
-                }
-                return [4 /*yield*/, job_model_1.default.find({ customerId: customerId, status: 'comfirmed' }).sort({ createdAt: -1 })];
-            case 2:
-                jobRequests = _b.sent();
-                jobRequested = [];
-                i = 0;
-                _b.label = 3;
-            case 3:
-                if (!(i < jobRequests.length)) return [3 /*break*/, 6];
-                jobRequest = jobRequests[i];
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: jobRequest.contractorId }).select('-password')];
-            case 4:
-                contractor = _b.sent();
-                obj = {
-                    job: jobRequest,
-                    contractor: contractor
-                };
-                jobRequested.push(obj);
-                _b.label = 5;
-            case 5:
-                i++;
+                error_4 = _a.sent();
+                console.error('Error retrieving job:', error_4);
+                res.status(500).json({ success: false, message: 'Internal Server Error' });
                 return [3 /*break*/, 3];
-            case 6:
-                res.json({
-                    jobRequested: jobRequested
-                });
-                return [3 /*break*/, 8];
-            case 7:
-                err_12 = _b.sent();
-                // signup error
-                res.status(500).json({ message: err_12.message });
-                return [3 /*break*/, 8];
-            case 8: return [2 /*return*/];
+            case 3: return [2 /*return*/];
         }
     });
 }); };
-exports.customerGetComfirmJobController = customerGetComfirmJobController;
-//customer complaint job completed by Contractor /////////////
-var customerComplaintedJobJobController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var jobId, errors, customer, customerId, checkCustomer, job, contractor, adminNotic, err_13;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                _a.trys.push([0, 6, , 7]);
-                jobId = req.body.jobId;
-                errors = (0, express_validator_1.validationResult)(req);
-                if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
-                }
-                customer = req.customer;
-                customerId = customer.id;
-                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
-            case 1:
-                checkCustomer = _a.sent();
-                if (!checkCustomer) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ message: "incorrect Customer ID" })];
-                }
-                return [4 /*yield*/, job_model_1.default.findOne({ _id: jobId, customerId: customerId, status: 'completed' })];
-            case 2:
-                job = _a.sent();
-                if (!job) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ message: "job do not exist or has not been completed by artisan" })];
-                }
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: job.contractorId }).select('-password')];
-            case 3:
-                contractor = _a.sent();
-                job.status = "complain";
-                return [4 /*yield*/, job.save()
-                    //admin notification 
-                ];
-            case 4:
-                _a.sent();
-                adminNotic = new admin_notification_model_1.default({
-                    title: "Customer Disagreed on Job Completion",
-                    message: "".concat(job, " - ").concat(checkCustomer.firstName, " disagreed that this job has been completed by this contractor ").concat(contractor === null || contractor === void 0 ? void 0 : contractor.firstName, "."),
-                    status: "unseen"
-                });
-                return [4 /*yield*/, adminNotic.save()];
-            case 5:
-                _a.sent();
-                res.json({
-                    message: "you successfully complained about this job completed by artisan"
-                });
-                return [3 /*break*/, 7];
-            case 6:
-                err_13 = _a.sent();
-                // signup error
-                res.status(500).json({ message: err_13.message });
-                return [3 /*break*/, 7];
-            case 7: return [2 /*return*/];
-        }
-    });
-}); };
-exports.customerComplaintedJobJobController = customerComplaintedJobJobController;
-//customer get job he  complain about /////////////
-var customerGetComplainJobController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, errors, customer, customerId, checkCustomer, jobRequests, jobRequested, i, jobRequest, contractor, obj, err_14;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0:
-                _b.trys.push([0, 7, , 8]);
-                _a = req.body;
-                errors = (0, express_validator_1.validationResult)(req);
-                if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
-                }
-                customer = req.customer;
-                customerId = customer.id;
-                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
-            case 1:
-                checkCustomer = _b.sent();
-                if (!checkCustomer) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ message: "incorrect Customer ID" })];
-                }
-                return [4 /*yield*/, job_model_1.default.find({ customerId: customerId, status: 'complain' }).sort({ createdAt: -1 })];
-            case 2:
-                jobRequests = _b.sent();
-                jobRequested = [];
-                i = 0;
-                _b.label = 3;
-            case 3:
-                if (!(i < jobRequests.length)) return [3 /*break*/, 6];
-                jobRequest = jobRequests[i];
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: jobRequest.contractorId }).select('-password')];
-            case 4:
-                contractor = _b.sent();
-                obj = {
-                    job: jobRequest,
-                    contractor: contractor
-                };
-                jobRequested.push(obj);
-                _b.label = 5;
-            case 5:
-                i++;
-                return [3 /*break*/, 3];
-            case 6:
-                res.json({
-                    jobRequested: jobRequested
-                });
-                return [3 /*break*/, 8];
-            case 7:
-                err_14 = _b.sent();
-                // signup error
-                res.status(500).json({ message: err_14.message });
-                return [3 /*break*/, 8];
-            case 8: return [2 /*return*/];
-        }
-    });
-}); };
-exports.customerGetComplainJobController = customerGetComplainJobController;
+exports.getSingleJob = getSingleJob;
+// //customer get job with sent qoutation /////////////
+// export const customerGetJobQoutationController = async (
+//     req: any,
+//     res: Response,
+// ) => {
+//     try {
+//         const {
+//         } = req.body;
+//         // Check for validation errors
+//         const errors = validationResult(req);
+//         if (!errors.isEmpty()) {
+//             return res.status(400).json({ errors: errors.array() });
+//         }
+//         const customer = req.customer;
+//         const customerId = customer.id
+//         const checkCustomer = await CustomerRegModel.findOne({ _id: customerId })
+//         if (!checkCustomer) {
+//             return res
+//                 .status(401)
+//                 .json({ message: "incorrect Customer ID" });
+//         }
+//         const jobRequests = await JobModel.find({ customerId, status: 'sent qoutation' }).sort({ createdAt: -1 })
+//         let jobRequested = []
+//         for (let i = 0; i < jobRequests.length; i++) {
+//             const jobRequest = jobRequests[i];
+//             const contractor = await ContractorModel.findOne({ _id: jobRequest.contractorId }).select('-password');
+//             const obj = {
+//                 job: jobRequest,
+//                 contractor
+//             }
+//             jobRequested.push(obj)
+//         }
+//         res.json({
+//             jobRequested
+//         });
+//     } catch (err: any) {
+//         // signup error
+//         res.status(500).json({ message: err.message });
+//     }
+// }
+// //customer accept and pay for the work /////////////
+// export const customerAcceptAndPayForJobController = async (
+//     req: any,
+//     res: Response,
+// ) => {
+//     try {
+//         const {
+//             jobId
+//         } = req.body;
+//         // Check for validation errors
+//         const errors = validationResult(req);
+//         if (!errors.isEmpty()) {
+//             return res.status(400).json({ errors: errors.array() });
+//         }
+//         const customer = req.customer;
+//         const customerId = customer.id
+//         const checkCustomer = await CustomerRegModel.findOne({ _id: customerId })
+//         if (!checkCustomer) {
+//             return res
+//                 .status(401)
+//                 .json({ message: "incorrect Customer ID" });
+//         }
+//         //const job = await JobModel.findOne({_id: jobId, customerId, status: 'sent qoutation'})
+//         const job = await JobModel.findOne({
+//             $and: [
+//                 { _id: jobId },
+//                 { customerId },
+//                 {
+//                     $or: [
+//                         { status: 'sent qoutation' },
+//                         { status: 'qoutation payment open' }
+//                     ]
+//                 }
+//             ]
+//         });
+//         if (!job) {
+//             return res
+//                 .status(401)
+//                 .json({ message: "job do not exist or qoutation have not be sent" });
+//         }
+//         const contractor = await ContractorModel.findOne({ _id: job.contractorId }).select('-password');
+//         let secret = process.env.STRIPE_KEY || "sk_test_51OTMkGIj2KYudFaR1rNIBOPTaBESYoJco6lTCBZw5a0inyttRJOotcds1rXpXCJDSJrpNmIt2FBAaSxdmuma3ZTF00h48RxVny";
+//         let stripeInstance;
+//         if (!secret) {
+//             return res
+//                 .status(401)
+//                 .json({ message: "Sripe API Key is missing" });
+//         }
+//         stripeInstance = new stripe(secret);
+//         const generateInvoce = new Date().getTime().toString()
+//         const invoiceId = generateInvoce.substring(generateInvoce.length - 5)
+//         const newTransaction = new TransactionModel({
+//             type: 'credit',
+//             amount: parseFloat(job.totalAmountCustomerToPaid.toFixed(2)),
+//             initiator: customerId,
+//             from: 'customer',
+//             to: 'admin',
+//             fromId: customerId,
+//             toId: 'admin',
+//             description: `qoutation from ${contractor?.firstName} payment`,
+//             status: 'pending',
+//             form: 'qoutation',
+//             invoiceId: invoiceId,
+//             jobId: jobId
+//         })
+//         const saveTransaction = await newTransaction.save();
+//         const transactionId = JSON.stringify(saveTransaction._id)
+//         const paymentIntent = await stripeInstance.checkout.sessions.create({
+//             mode: 'payment',
+//             payment_method_types: ['card'],
+//             line_items: [
+//                 {
+//                     price_data: {
+//                         currency: 'usd',
+//                         product_data: {
+//                             name: `qoutation payment from ${contractor?.firstName}`
+//                         },
+//                         unit_amount: parseFloat(job.totalAmountCustomerToPaid.toFixed(2)) * 100,
+//                     },
+//                     quantity: 1,
+//                 },
+//             ],
+//             metadata: {
+//                 customerId,
+//                 type: "payment",
+//                 jobId,
+//                 transactionId
+//             },
+//             success_url: "https://repairfind.ca/payment-success/",
+//             cancel_url: "https://cancel.com",
+//             customer_email: checkCustomer.email
+//         })
+//         job.status = "qoutation payment open";
+//         await job.save()
+//         res.json({
+//             jobId,
+//             url: paymentIntent.url,
+//             paymentId: paymentIntent.id
+//         });
+//     } catch (err: any) {
+//         // signup error
+//         res.status(500).json({ message: err.message });
+//     }
+// }
+// //customer get job qoutation payment and open /////////////
+// export const customerGetJobQoutationPaymentOpenController = async (
+//     req: any,
+//     res: Response,
+// ) => {
+//     try {
+//         const {
+//         } = req.body;
+//         // Check for validation errors
+//         const errors = validationResult(req);
+//         if (!errors.isEmpty()) {
+//             return res.status(400).json({ errors: errors.array() });
+//         }
+//         const customer = req.customer;
+//         const customerId = customer.id
+//         const checkCustomer = await CustomerRegModel.findOne({ _id: customerId })
+//         if (!checkCustomer) {
+//             return res
+//                 .status(401)
+//                 .json({ message: "incorrect Customer ID" });
+//         }
+//         const jobRequests = await JobModel.find({ customerId, status: 'qoutation payment open' }).sort({ createdAt: -1 })
+//         let jobRequested = []
+//         for (let i = 0; i < jobRequests.length; i++) {
+//             const jobRequest = jobRequests[i];
+//             const contractor = await ContractorModel.findOne({ _id: jobRequest.contractorId }).select('-password');
+//             const obj = {
+//                 job: jobRequest,
+//                 contractor
+//             }
+//             jobRequested.push(obj)
+//         }
+//         res.json({
+//             jobRequested
+//         });
+//     } catch (err: any) {
+//         // signup error
+//         res.status(500).json({ message: err.message });
+//     }
+// }
+// //customer confirm or verified payment /////////////
+// export const customerVerififyPaymentForJobController = async (
+//     req: any,
+//     res: Response,
+// ) => {
+//     try {
+//         const {
+//             jobId,
+//             paymentId,
+//         } = req.body;
+//         // Check for validation errors
+//         const errors = validationResult(req);
+//         if (!errors.isEmpty()) {
+//             return res.status(400).json({ errors: errors.array() });
+//         }
+//         const customer = req.customer;
+//         const customerId = customer.id
+//         const checkCustomer = await CustomerRegModel.findOne({ _id: customerId })
+//         if (!checkCustomer) {
+//             return res
+//                 .status(401)
+//                 .json({ message: "incorrect Customer ID" });
+//         }
+//         const job = await JobModel.findOne({ _id: jobId, customerId, status: 'qoutation payment open' })
+//         if (!job) {
+//             return res
+//                 .status(401)
+//                 .json({ message: "job do not exist or payment has not be initialize" });
+//         }
+//         const contractor = await ContractorModel.findOne({ _id: job.contractorId }).select('-password');
+//         if (!contractor) {
+//             return res
+//                 .status(401)
+//                 .json({ message: "incorrect contractor Id" });
+//         }
+//         let secret = process.env.STRIPE_KEY || "sk_test_51OTMkGIj2KYudFaR1rNIBOPTaBESYoJco6lTCBZw5a0inyttRJOotcds1rXpXCJDSJrpNmIt2FBAaSxdmuma3ZTF00h48RxVny";
+//         let stripeInstance;
+//         console.log(secret)
+//         if (!secret) {
+//             return res
+//                 .status(401)
+//                 .json({ message: "Sripe API Key is missing" });
+//         }
+//         stripeInstance = new stripe(secret);
+//         const paymentConfirmation = await stripeInstance.checkout.sessions.retrieve(paymentId)
+//         if (paymentConfirmation.status !== "complete") {
+//             return res
+//                 .status(401)
+//                 .json({ message: "no payment or payment url expired" });
+//         }
+//         if (paymentConfirmation.metadata?.customerId != customerId) {
+//             return res
+//                 .status(401)
+//                 .json({ message: "payment ID in not for this customer" });
+//         }
+//         job.status = "qoutation payment confirm and job in progress";
+//         await job.save()
+//         const html = customerAcceptQouteAndPaySendEmailHtmlMailTemplate(contractor?.firstName, checkCustomer.firstName);
+//         let emailData = {
+//             emailTo: contractor.email,
+//             subject: "Artisan payment for the job",
+//             html
+//         };
+//         await sendEmail(emailData);
+//         const admins = await AdminRegModel.find();
+//         for (let i = 0; i < admins.length; i++) {
+//             const admin = admins[i];
+//             const html = customerToAdminAfterPaymentSendEmailHtmlMailTemplate(contractor.firstName, checkCustomer.firstName);
+//             let emailData = {
+//                 emailTo: admin.email,
+//                 subject: "Artisan payment for the job",
+//                 html
+//             };
+//             await sendEmail(emailData);
+//         }
+//         res.json({
+//             message: "payment successfully comfirm",
+//         });
+//     } catch (err: any) {
+//         // signup error
+//         res.status(500).json({ message: err.message });
+//     }
+// }
+// //customer get job qoutation payment confirm and job in progres /////////////
+// export const customerGetJobQoutationPaymentConfirmAndJobInProgressController = async (
+//     req: any,
+//     res: Response,
+// ) => {
+//     try {
+//         const {
+//         } = req.body;
+//         // Check for validation errors
+//         const errors = validationResult(req);
+//         if (!errors.isEmpty()) {
+//             return res.status(400).json({ errors: errors.array() });
+//         }
+//         const customer = req.customer;
+//         const customerId = customer.id
+//         const checkCustomer = await CustomerRegModel.findOne({ _id: customerId })
+//         if (!checkCustomer) {
+//             return res
+//                 .status(401)
+//                 .json({ message: "incorrect Customer ID" });
+//         }
+//         const jobRequests = await JobModel.find({ customerId, status: 'qoutation payment confirm and job in progress' }).sort({ createdAt: -1 })
+//         let jobRequested = []
+//         for (let i = 0; i < jobRequests.length; i++) {
+//             const jobRequest = jobRequests[i];
+//             const contractor = await ContractorModel.findOne({ _id: jobRequest.contractorId }).select('-password');
+//             const obj = {
+//                 job: jobRequest,
+//                 contractor
+//             }
+//             jobRequested.push(obj)
+//         }
+//         res.json({
+//             jobRequested
+//         });
+//     } catch (err: any) {
+//         // signup error
+//         res.status(500).json({ message: err.message });
+//     }
+// }
+// //customer get job request rejected /////////////
+// export const customerGetJobRejectedontroller = async (
+//     req: any,
+//     res: Response,
+// ) => {
+//     try {
+//         const {
+//         } = req.body;
+//         // Check for validation errors
+//         const errors = validationResult(req);
+//         if (!errors.isEmpty()) {
+//             return res.status(400).json({ errors: errors.array() });
+//         }
+//         const customer = req.customer;
+//         const customerId = customer.id
+//         const checkCustomer = await CustomerRegModel.findOne({ _id: customerId })
+//         if (!checkCustomer) {
+//             return res
+//                 .status(401)
+//                 .json({ message: "incorrect Customer ID" });
+//         }
+//         const jobRequests = await JobModel.find({ customerId, status: 'job reject' }).sort({ createdAt: -1 })
+//         let jobRequested = []
+//         for (let i = 0; i < jobRequests.length; i++) {
+//             const jobRequest = jobRequests[i];
+//             const contractor = await ContractorModel.findOne({ _id: jobRequest.contractorId }).select('-password');
+//             const obj = {
+//                 job: jobRequest,
+//                 contractor
+//             }
+//             jobRequested.push(obj)
+//         }
+//         res.json({
+//             jobRequested
+//         });
+//     } catch (err: any) {
+//         // signup error
+//         res.status(500).json({ message: err.message });
+//     }
+// }
+// //get all job history/////////////
+// export const customerGetAllSetJobController = async (
+//     req: any,
+//     res: Response,
+// ) => {
+//     try {
+//         let {
+//             page,
+//             limit
+//         } = req.query;
+//         // Check for validation errors
+//         const errors = validationResult(req);
+//         if (!errors.isEmpty()) {
+//             return res.status(400).json({ errors: errors.array() });
+//         }
+//         const customer = req.customer;
+//         const customerId = customer.id
+//         page = page || 1;
+//         limit = limit || 50;
+//         const skip = (page - 1) * limit;
+//         const jobs = await JobModel.find({ customerId })
+//             .sort({ createdAt: -1 })
+//             .skip(skip)
+//             .limit(limit);
+//         const jobHistory = [];
+//         for (let i = 0; i < jobs.length; i++) {
+//             const job = jobs[i];
+//             const contractorProfile = await ContractorModel.findOne({ _id: job.contractorId }).select('-password')
+//             //const contractorDocument = await ContractorDocumentValidateModel.findOne({contractorId: job.contractorId});
+//             const obj = {
+//                 job,
+//                 contractorProfile,
+//                 //contractorDocument
+//             }
+//             jobHistory.push(obj);
+//         }
+//         res.json({
+//             jobHistory
+//         });
+//     } catch (err: any) {
+//         // signup error
+//         res.status(500).json({ message: err.message });
+//     }
+// }
+// //customer confirm or verified payment web hook/////////////
+// export const customerVerififyPaymentWebhook = async (
+//     jobId: any,
+//     customerId: any,
+//     transactionId: any
+// ) => {
+//     try {
+//         const checkCustomer = await CustomerRegModel.findOne({ _id: customerId })
+//         if (!checkCustomer) {
+//             return
+//         }
+//         const job = await JobModel.findOne({ _id: jobId, customerId, status: 'qoutation payment open' })
+//         if (!job) {
+//             return
+//         }
+//         const contractor = await ContractorModel.findOne({ _id: job.contractorId }).select('-password');
+//         if (!contractor) {
+//             return
+//         }
+//         const transaction = await TransactionModel.findOne({ _id: transactionId.substring(1, transactionId.length - 1) });
+//         if (!transaction) {
+//             return
+//         }
+//         job.status = "qoutation payment confirm and job in progress";
+//         await job.save()
+//         transaction.status = 'successful',
+//             await transaction.save();
+//         const html = customerAcceptQouteAndPaySendEmailHtmlMailTemplate(contractor?.firstName, checkCustomer.firstName);
+//         let emailData = {
+//             emailTo: contractor.email,
+//             subject: "Artisan payment for the job",
+//             html
+//         };
+//         await sendEmail(emailData);
+//         const admins = await AdminRegModel.find();
+//         const adminPaymentHtml = htmlAdminPaymentTemplate(jobId, checkCustomer._id, `${job.totalAmountCustomerToPaid} for job qoutation`)
+//         for (let i = 0; i < admins.length; i++) {
+//             const admin = admins[i];
+//             let adminEmailData = {
+//                 emailTo: admin.email,
+//                 subject: "qoutation payment",
+//                 html: adminPaymentHtml
+//             };
+//             await sendEmail(adminEmailData);
+//             //admin notification
+//             const adminNotic = new AdminNoficationModel({
+//                 title: "Job Booked",
+//                 message: `${job._id} - ${checkCustomer.firstName} booked a job for $${job.totalAmountCustomerToPaid}.`,
+//                 status: "unseen"
+//             })
+//             await adminNotic.save();
+//         }
+//         //contractor notification
+//         const contractorNotic = new ContractorNotificationModel({
+//             contractorId: contractor._id,
+//             message: `You've been booked for a job from ${checkCustomer.firstName} for ${job.time}`,
+//             status: "unseen"
+//         });
+//         await contractorNotic.save();
+//         //customer notification
+//         const customerNotic = new CustomerNotificationModel({
+//             customerId: checkCustomer._id,
+//             message: `You've booked a job with ${contractor.firstName} for ${job.jobTitle}`,
+//             status: "unseen"
+//         })
+//         await customerNotic.save();
+//         //customer notification two
+//         const customerNoticTwo = new CustomerNotificationModel({
+//             customerId: checkCustomer._id,
+//             message: `You've just sent a payment for this job - ${job.jobTitle}, Thank you.`,
+//             status: "unseen"
+//         })
+//         await customerNoticTwo.save();
+//     } catch (err: any) {
+//         // signup error
+//         console.log("payment Error", "err")
+//     }
+// }
+// //customer get job completed by contractor /////////////
+// export const customerGetComletedByContractorController = async (
+//     req: any,
+//     res: Response,
+// ) => {
+//     try {
+//         const {
+//         } = req.body;
+//         // Check for validation errors
+//         const errors = validationResult(req);
+//         if (!errors.isEmpty()) {
+//             return res.status(400).json({ errors: errors.array() });
+//         }
+//         const customer = req.customer;
+//         const customerId = customer.id
+//         const checkCustomer = await CustomerRegModel.findOne({ _id: customerId })
+//         if (!checkCustomer) {
+//             return res
+//                 .status(401)
+//                 .json({ message: "incorrect Customer ID" });
+//         }
+//         const jobRequests = await JobModel.find({ customerId, status: 'completed' }).sort({ createdAt: -1 })
+//         let jobRequested = []
+//         for (let i = 0; i < jobRequests.length; i++) {
+//             const jobRequest = jobRequests[i];
+//             const contractor = await ContractorModel.findOne({ _id: jobRequest.contractorId }).select('-password');
+//             const obj = {
+//                 job: jobRequest,
+//                 contractor
+//             }
+//             jobRequested.push(obj)
+//         }
+//         res.json({
+//             jobRequested
+//         });
+//     } catch (err: any) {
+//         // signup error
+//         res.status(500).json({ message: err.message });
+//     }
+// }
+// //customer comfirm job completed by Contractor /////////////
+// export const customerComfirmedJobJobController = async (
+//     req: any,
+//     res: Response,
+// ) => {
+//     try {
+//         const {
+//             jobId
+//         } = req.body;
+//         // Check for validation errors
+//         const errors = validationResult(req);
+//         if (!errors.isEmpty()) {
+//             return res.status(400).json({ errors: errors.array() });
+//         }
+//         const customer = req.customer;
+//         const customerId = customer.id
+//         const checkCustomer = await CustomerRegModel.findOne({ _id: customerId })
+//         if (!checkCustomer) {
+//             return res
+//                 .status(401)
+//                 .json({ message: "incorrect Customer ID" });
+//         }
+//         const job = await JobModel.findOne({ _id: jobId, customerId, status: 'completed' })
+//         if (!job) {
+//             return res
+//                 .status(401)
+//                 .json({ message: "job do not exist or has not been completed by artisan" });
+//         }
+//         const contractor = await ContractorModel.findOne({ _id: job.contractorId }).select('-password');
+//         if (!contractor) {
+//             return res
+//                 .status(401)
+//                 .json({ message: "incorrect contractor id" });
+//         }
+//         const contractorBank = await ContractorBankModel.findOne({ contractorId: contractor._id })
+//         if (!contractorBank) {
+//             return res
+//                 .status(401)
+//                 .json({ message: "contractor has not enter his bank detail" });
+//         }
+//         const newPayout = new PayoutModel({
+//             amount: job.totalAmountContractorWithdraw,
+//             accountName: `${contractor.firstName} ${contractor.lastName}`,
+//             accountNumber: contractorBank.accountNumber,
+//             bankName: contractorBank.financialInstitution,
+//             recieverId: contractor._id,
+//             jobId,
+//             status: "pending"
+//         })
+//         await newPayout.save()
+//         job.status = "comfirmed";
+//         await job.save()
+//         //admin notification 
+//         const adminNotic = new AdminNoficationModel({
+//             title: "Customer Confirmed Job Completed",
+//             message: `${jobId} - ${checkCustomer.firstName} has updated this job to completed and comfirm`,
+//             status: "unseen"
+//         })
+//         await adminNotic.save();
+//         res.json({
+//             message: "you successfully comfirm this job completed by artisan"
+//         });
+//     } catch (err: any) {
+//         console.log("error", err)
+//         // signup error
+//         res.status(500).json({ message: err.message });
+//     }
+// }
+// //customer get you comfirm  job/////////////
+// export const customerGetComfirmJobController = async (
+//     req: any,
+//     res: Response,
+// ) => {
+//     try {
+//         const {
+//         } = req.body;
+//         // Check for validation errors
+//         const errors = validationResult(req);
+//         if (!errors.isEmpty()) {
+//             return res.status(400).json({ errors: errors.array() });
+//         }
+//         const customer = req.customer;
+//         const customerId = customer.id
+//         const checkCustomer = await CustomerRegModel.findOne({ _id: customerId })
+//         if (!checkCustomer) {
+//             return res
+//                 .status(401)
+//                 .json({ message: "incorrect Customer ID" });
+//         }
+//         const jobRequests = await JobModel.find({ customerId, status: 'comfirmed' }).sort({ createdAt: -1 })
+//         let jobRequested = []
+//         for (let i = 0; i < jobRequests.length; i++) {
+//             const jobRequest = jobRequests[i];
+//             const contractor = await ContractorModel.findOne({ _id: jobRequest.contractorId }).select('-password');
+//             const obj = {
+//                 job: jobRequest,
+//                 contractor
+//             }
+//             jobRequested.push(obj)
+//         }
+//         res.json({
+//             jobRequested
+//         });
+//     } catch (err: any) {
+//         // signup error
+//         res.status(500).json({ message: err.message });
+//     }
+// }
+// //customer complaint job completed by Contractor /////////////
+// export const customerComplaintedJobJobController = async (
+//     req: any,
+//     res: Response,
+// ) => {
+//     try {
+//         const {
+//             jobId
+//         } = req.body;
+//         // Check for validation errors
+//         const errors = validationResult(req);
+//         if (!errors.isEmpty()) {
+//             return res.status(400).json({ errors: errors.array() });
+//         }
+//         const customer = req.customer;
+//         const customerId = customer.id
+//         const checkCustomer = await CustomerRegModel.findOne({ _id: customerId })
+//         if (!checkCustomer) {
+//             return res
+//                 .status(401)
+//                 .json({ message: "incorrect Customer ID" });
+//         }
+//         const job = await JobModel.findOne({ _id: jobId, customerId, status: 'completed' })
+//         if (!job) {
+//             return res
+//                 .status(401)
+//                 .json({ message: "job do not exist or has not been completed by artisan" });
+//         }
+//         const contractor = await ContractorModel.findOne({ _id: job.contractorId }).select('-password');
+//         job.status = "complain";
+//         await job.save()
+//         //admin notification 
+//         const adminNotic = new AdminNoficationModel({
+//             title: "Customer Disagreed on Job Completion",
+//             message: `${job} - ${checkCustomer.firstName} disagreed that this job has been completed by this contractor ${contractor?.firstName}.`,
+//             status: "unseen"
+//         })
+//         await adminNotic.save();
+//         res.json({
+//             message: "you successfully complained about this job completed by artisan"
+//         });
+//     } catch (err: any) {
+//         // signup error
+//         res.status(500).json({ message: err.message });
+//     }
+// }
+// //customer get job he  complain about /////////////
+// export const customerGetComplainJobController = async (
+//     req: any,
+//     res: Response,
+// ) => {
+//     try {
+//         const {
+//         } = req.body;
+//         // Check for validation errors
+//         const errors = validationResult(req);
+//         if (!errors.isEmpty()) {
+//             return res.status(400).json({ errors: errors.array() });
+//         }
+//         const customer = req.customer;
+//         const customerId = customer.id
+//         const checkCustomer = await CustomerRegModel.findOne({ _id: customerId })
+//         if (!checkCustomer) {
+//             return res
+//                 .status(401)
+//                 .json({ message: "incorrect Customer ID" });
+//         }
+//         const jobRequests = await JobModel.find({ customerId, status: 'complain' }).sort({ createdAt: -1 })
+//         let jobRequested = []
+//         for (let i = 0; i < jobRequests.length; i++) {
+//             const jobRequest = jobRequests[i];
+//             const contractor = await ContractorModel.findOne({ _id: jobRequest.contractorId }).select('-password');
+//             const obj = {
+//                 job: jobRequest,
+//                 contractor
+//             }
+//             jobRequested.push(obj)
+//         }
+//         res.json({
+//             jobRequested
+//         });
+//     } catch (err: any) {
+//         // signup error
+//         res.status(500).json({ message: err.message });
+//     }
+// }
+exports.CustomerJobController = {
+    createJobRequest: exports.createJobRequest,
+    getJobs: exports.getJobs,
+    createJobListing: exports.createJobListing,
+    getSingleJob: exports.getSingleJob
+};

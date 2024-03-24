@@ -9,6 +9,7 @@ var contractor_team_controller_1 = require("../controllers/contractor_team.contr
 var contractor_schedule_controller_1 = require("../controllers/contractor_schedule.controller");
 var contractor_stripe_controller_1 = require("../controllers/contractor_stripe.controller");
 var contractor_team_invitation_controller_1 = require("../controllers/contractor_team_invitation.controller");
+var contractor_job_controller_1 = require("../controllers/contractor_job.controller");
 var express = require("express");
 var router = express.Router();
 //  AUTH
@@ -91,4 +92,8 @@ router.get("/schedules/events", contractorRoleCheck_middleware_1.checkContractor
 router.post("/stripe-account", contractorRoleCheck_middleware_1.checkContractorRole, contractor_stripe_controller_1.ContractorStripeController.createAccount);
 router.post("/stripe-session", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateStripeSessionRequest, contractor_stripe_controller_1.ContractorStripeController.createSession);
 router.post("/stripe-setupintent", contractorRoleCheck_middleware_1.checkContractorRole, contractor_stripe_controller_1.ContractorStripeController.createSetupIntent);
+// Contractor Jobs
+router.get('/jobs', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.getJobRequests);
+router.get('/jobs/listings', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.getJobRequests);
+router.get('/jobs/requests', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.getJobRequests);
 exports.default = router;

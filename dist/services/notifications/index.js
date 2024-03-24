@@ -40,93 +40,24 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NotificationService = void 0;
-var firebase_admin_1 = __importDefault(require("firebase-admin"));
-// const serviceAccount = require('../../config/repairfind-firebase-adminsdk-b6t29-6c7fb4e01a.json');
-firebase_admin_1.default.initializeApp({
-// credential: Admin.credential.cert(serviceAccount)
-});
+var socket_1 = __importDefault(require("../socket"));
 var NotificationService = /** @class */ (function () {
     function NotificationService() {
     }
     NotificationService.sendNotification = function (params, options) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
-                // if (options?.writeToDatabase) {
-                //     await NotificationDb.create({
-                //         user: params.user,
-                //         message: params.message,
-                //         title: params.title
-                //     });
-                // }
-                // const user = await UserTokenDb.findById<IUserAuthToken>(params.user);
-                // if (!user) {
-                //     return;
-                // }
-                // const fcmToken = user.fcmToken;
-                // if (!fcmToken) {
-                //     return;
-                // }
-                // const payload = {
-                //     notification: {
-                //         title: params.title,
-                //         message: params.message
-                //     }
-                // };
-                // await Admin.messaging().sendToDevice(fcmToken, payload, {
-                //     priority: 'high',
-                //     timeToLive: 60 * 60 * 24
-                // });
-                return [2 /*return*/];
-            });
-        });
-    };
-    NotificationService.fetchNotifications = function (params) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                return [2 /*return*/];
-            });
-        });
-    };
-    NotificationService.sendMultiCastNotification = function (params) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                return [2 /*return*/];
-            });
-        });
-    };
-    NotificationService.getFcmTokensForUsersWithEnabledNotifications = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                return [2 /*return*/];
-            });
-        });
-    };
-    NotificationService.getFcmTokensForCustomUsersWithEnabledNotifications = function (userIds) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                // try {
-                //     const usersWithEnabledNotifications = await UserDb.find({
-                //         'notificationPreference.enableNotification': true,
-                //         _id: {$in: userIds},
-                //     }).select('user');
-                //     const existingUserIds = usersWithEnabledNotifications.map((user: any) => user.id);
-                //     // Ensure the retrieved user IDs match the provided user IDs
-                //     const missingUserIds = userIds.filter(userId => !existingUserIds.includes(userId));
-                //     if (missingUserIds.length > 0) {
-                //         console.warn(`User IDs not found, notification will not be sent: ${missingUserIds}`);
-                //     }
-                //     const fcmTokens = await UserTokenDb.find<IUserAuthToken>({user: {$in: existingUserIds}}).select('fcmToken');
-                //     console.log(fcmTokens);
-                //     return fcmTokens.map((fcmToken: { fcmToken: string }) => fcmToken.fcmToken);
-                // } catch (error: unknown) {
-                //     Logger.Error('Error getting users FCM Tokens', error);
-                return [2 /*return*/, []];
-            });
-        });
-    };
-    NotificationService.deleteNotification = function (req) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
+                if (options === null || options === void 0 ? void 0 : options.firebase) {
+                }
+                if (options === null || options === void 0 ? void 0 : options.socket) {
+                    socket_1.default.sendNotification(params.channels, params.type, {
+                        type: params.type,
+                        message: params.message,
+                        data: params.payload
+                    });
+                }
+                if (options === null || options === void 0 ? void 0 : options.expo) {
+                }
                 return [2 /*return*/];
             });
         });

@@ -200,6 +200,19 @@ export const createJobRequestParams = [
   body("time").optional(),
 ];
 
+export const createJoListingParams = [
+  body("contractorType").notEmpty(),
+  body("description").notEmpty(),
+  body("expiresIn").notEmpty(),
+  body("category").notEmpty(),
+  body("voiceDescription").optional(),
+  body("location").notEmpty(),
+  body("media").optional().isArray(),
+  body("emergency").optional(),
+  body("date").notEmpty(),
+  body("time").optional(),
+];
+
 export const validateFormData = (req: Request, res: Response, next: NextFunction) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -234,5 +247,6 @@ export const CustomerHttpRequest = {
   validateFormData,
   UpdateOrDeviceParams,
   queryContractorParams,
-  createJobRequestParams
+  createJobRequestParams,
+  createJoListingParams
 }

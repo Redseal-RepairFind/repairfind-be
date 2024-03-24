@@ -43,90 +43,78 @@ var express_1 = __importDefault(require("express"));
 var body_parser_1 = __importDefault(require("body-parser"));
 var cors_1 = __importDefault(require("cors"));
 var helmet_1 = __importDefault(require("helmet"));
-//import { logger } from "./middleware/logger";
-//import routes from "./routes/routes";
 var mongoose_1 = __importDefault(require("mongoose"));
 var dotenv_1 = __importDefault(require("dotenv"));
 var csurf_1 = __importDefault(require("csurf"));
 var express_rate_limit_1 = __importDefault(require("express-rate-limit"));
-var socket_io_1 = require("socket.io");
 var http_1 = __importDefault(require("http"));
-//import path from path
-//import chatSocketConfig from './sockets/chatMessageSocketsConfig'
-// import chatSocketConfigUser from "./user/socket/socket";
-// import * as swaggerDocument from './swagger/swagger.json';
-// import swaggerUi from 'swagger-ui-express';
-var routes_1 = __importDefault(require("./modules/contractor/routes/routes")); //contractor routes
-var routes_2 = __importDefault(require("./modules/admin/routes/routes")); // //admin routes
-var routes_3 = __importDefault(require("./modules/customer/routes/routes")); //customer route
+var routes_1 = __importDefault(require("./modules/contractor/routes/routes"));
+var routes_2 = __importDefault(require("./modules/admin/routes/routes"));
+var routes_3 = __importDefault(require("./modules/customer/routes/routes"));
 var routes_4 = __importDefault(require("./modules/common/routes/routes"));
 var seeders_1 = require("./database/seeders");
-var router = express_1.default.Router();
+var socket_1 = __importDefault(require("./services/socket"));
+dotenv_1.default.config();
 var app = (0, express_1.default)();
-var csrfProtection = (0, csurf_1.default)({ cookie: true });
 var server = http_1.default.createServer(app);
-// const io = new Server(server, {
-//   cors: {
-//     origin: "*",
-//   },
-// });
-var io = new socket_io_1.Server(server);
+var csrfProtection = (0, csurf_1.default)({ cookie: true });
+var io = require("socket.io")(server, {
+    cors: {
+        origin: "*",
+    },
+});
 var limiter = (0, express_rate_limit_1.default)({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 1000, // limit each IP to 100 requests per windowMs
 });
-//app.use('/theraswift-api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 // Middleware
-// app.use(limiter);
-//app.use('/api-docs', swaggerUi.serve, swaggerUi.setup());
-app.use(body_parser_1.default.json({
-    // limit: '50mb',
-    verify: function (req, res, buf, encoding) {
+app.use(body_parser_1.default.json({ verify: function (req, res, buf, encoding) {
         // @ts-ignore     
         req.rawBody = buf.toString();
-    }
-}));
-app.use(express_1.default.json({ limit: '50mb' }));
+    } }));
 app.use(express_1.default.urlencoded({ extended: true, limit: '50mb' }));
-app.use("/uploads", express_1.default.static("../public"));
-app.use(express_1.default.json());
+app.use(express_1.default.static("../public"));
 app.use((0, cors_1.default)({ origin: "*" }));
 app.use((0, helmet_1.default)());
-//app.use(logger);
-dotenv_1.default.config();
-// database connection
+// Database connection
 var MONGODB_URI = process.env.MONGODB_URI;
 (function () { return __awaiter(void 0, void 0, void 0, function () {
+    var err_1;
     return __generator(this, function (_a) {
-        try {
-            mongoose_1.default.connect(MONGODB_URI, {
-                useNewUrlParser: true,
-                useUnifiedTopology: true,
-            });
-            // run seeders
-            (0, seeders_1.RunSeeders)();
-            console.log("Connected To Database - Initial Connection");
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 3, , 4]);
+                return [4 /*yield*/, mongoose_1.default.connect(MONGODB_URI, {
+                        useNewUrlParser: true,
+                        useUnifiedTopology: true
+                    })];
+            case 1:
+                _a.sent();
+                return [4 /*yield*/, (0, seeders_1.RunSeeders)()];
+            case 2:
+                _a.sent();
+                console.log("Connected to Database");
+                return [3 /*break*/, 4];
+            case 3:
+                err_1 = _a.sent();
+                console.error("Database connection error:", err_1);
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
         }
-        catch (err) {
-            console.log("Initial Distribution API Database connection error occurred -", err);
-        }
-        return [2 /*return*/];
     });
 }); })();
-app.use("/", router.get("/", function (req, res) {
+// Routes
+app.use("/", function (req, res) {
     res.json("Hello");
-}));
+});
 app.use("/api/v1/contractor", routes_1.default);
 app.use("/api/v1/admin", routes_2.default);
 app.use("/api/v1/customer", routes_3.default);
 app.use("/api/v1/common", routes_4.default);
-// // Handle socket connections
-// chatSocketConfigUser(io);
-// app initialized port
+// Socket connections
+var socketService = new socket_1.default(io);
+// Initialize server
 var port = process.env.PORT || 3000;
-// app.listen(port, () => {
-//   console.log(`Server listening on port ${port}`);
-// });
 server.listen(port, function () {
     console.log("Server listening on port ".concat(port));
 });

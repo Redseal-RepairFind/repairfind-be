@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerHttpRequest = exports.validateFormData = exports.sendJobRequestParams = exports.queryContractorParams = exports.filterContractorParams = exports.searchCategoryDateParams = exports.searchContractorByCategoryDateParams = exports.searchContractorByLocationParams = exports.UpdateOrDeviceParams = exports.jobListingParams = exports.createStripeSessionParams = exports.rateContractorParams = exports.confirmInspectionPaymentParams = exports.confirmPaymentParams = exports.acceptAndPayParams = exports.updateProfileParams = exports.getContractorParams = exports.searchParams = exports.verifyPasswordOtpParams = exports.changePasswordParams = exports.resetPasswordParams = exports.forgotPasswordParams = exports.loginParams = exports.verifySocialSignon = exports.emailVerificationParams = exports.signupParams = void 0;
+exports.CustomerHttpRequest = exports.validateFormData = exports.createJoListingParams = exports.createJobRequestParams = exports.sendJobRequestParams = exports.queryContractorParams = exports.filterContractorParams = exports.searchCategoryDateParams = exports.searchContractorByCategoryDateParams = exports.searchContractorByLocationParams = exports.UpdateOrDeviceParams = exports.jobListingParams = exports.createStripeSessionParams = exports.rateContractorParams = exports.confirmInspectionPaymentParams = exports.confirmPaymentParams = exports.acceptAndPayParams = exports.updateProfileParams = exports.getContractorParams = exports.searchParams = exports.verifyPasswordOtpParams = exports.changePasswordParams = exports.resetPasswordParams = exports.forgotPasswordParams = exports.loginParams = exports.verifySocialSignon = exports.emailVerificationParams = exports.signupParams = void 0;
 var express_validator_1 = require("express-validator");
 var contractorAccountTypes_1 = require("../../../constants/contractorAccountTypes");
 exports.signupParams = [
@@ -172,6 +172,28 @@ exports.sendJobRequestParams = [
     (0, express_validator_1.body)("jobLocation").notEmpty(),
     (0, express_validator_1.body)("date").notEmpty(),
 ];
+exports.createJobRequestParams = [
+    (0, express_validator_1.body)("contractorId").isMongoId(),
+    (0, express_validator_1.body)("description").notEmpty(),
+    (0, express_validator_1.body)("voiceDescription").optional(),
+    (0, express_validator_1.body)("location").notEmpty(),
+    (0, express_validator_1.body)("media").optional(),
+    (0, express_validator_1.body)("emergency").optional(),
+    (0, express_validator_1.body)("date").notEmpty(),
+    (0, express_validator_1.body)("time").optional(),
+];
+exports.createJoListingParams = [
+    (0, express_validator_1.body)("contractorType").notEmpty(),
+    (0, express_validator_1.body)("description").notEmpty(),
+    (0, express_validator_1.body)("expiresIn").notEmpty(),
+    (0, express_validator_1.body)("category").notEmpty(),
+    (0, express_validator_1.body)("voiceDescription").optional(),
+    (0, express_validator_1.body)("location").notEmpty(),
+    (0, express_validator_1.body)("media").optional().isArray(),
+    (0, express_validator_1.body)("emergency").optional(),
+    (0, express_validator_1.body)("date").notEmpty(),
+    (0, express_validator_1.body)("time").optional(),
+];
 var validateFormData = function (req, res, next) {
     var errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty()) {
@@ -205,5 +227,7 @@ exports.CustomerHttpRequest = {
     sendJobRequestParams: exports.sendJobRequestParams,
     validateFormData: exports.validateFormData,
     UpdateOrDeviceParams: exports.UpdateOrDeviceParams,
-    queryContractorParams: exports.queryContractorParams
+    queryContractorParams: exports.queryContractorParams,
+    createJobRequestParams: exports.createJobRequestParams,
+    createJoListingParams: exports.createJoListingParams
 };

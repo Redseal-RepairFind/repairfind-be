@@ -18,7 +18,7 @@ export enum  JobRequestStatus {
   EXPIRED = 'EXPIRED',
 }
 
-export interface ICustomerJobReques extends Document {
+export interface ICustomerJobRequest extends Document {
   _id: ObjectId;
   customer: ObjectId
   contractor: ObjectId
@@ -39,7 +39,7 @@ export interface ICustomerJobReques extends Document {
   updatedAt: Date;
 }
 
-const JobSchema = new Schema<ICustomerJobReques>(
+const CustomerJobRequestSchema = new Schema<ICustomerJobRequest>(
     {
       customer: {
         type: Schema.Types.ObjectId, ref: 'customers',
@@ -107,7 +107,7 @@ const JobSchema = new Schema<ICustomerJobReques>(
     }
   );
   
-  const CustomerJobRequestModel = model<ICustomerJobReques>("customer_jobrequests", JobSchema);
+  const CustomerJobRequestModel = model<ICustomerJobRequest>("customer_jobrequests", CustomerJobRequestSchema);
   
   export default CustomerJobRequestModel;
 

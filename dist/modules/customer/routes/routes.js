@@ -10,6 +10,7 @@ var customer_contractorSearch_controller_1 = require("../controllers/customer_co
 var upload_utility_1 = require("../.../../../../utils/upload.utility");
 var job_request_controller_1 = require("../controllers/job_request.controller");
 var customer_explore_controller_1 = require("../controllers/customer_explore.controller");
+var customer_job_controller_1 = require("../controllers/customer_job.controller");
 var express = require("express");
 var router = express.Router();
 // Auth
@@ -41,6 +42,10 @@ router.get("/filter-contractor", customerRoleChecker_middleware_1.checkCustomerR
 router.get("/explore/contractors", customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.queryContractorParams, customer_explore_controller_1.CustomerExploreController.exploreContractors);
 //job request
 router.post("/send-job-request", customerRoleChecker_middleware_1.checkCustomerRole, upload_utility_1.memoryUpload.any(), requests_1.CustomerHttpRequest.sendJobRequestParams, requests_1.CustomerHttpRequest.validateFormData, job_request_controller_1.JobRequest.customerSendJobRequestController);
+router.post("/jobs/requests", customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.createJobRequestParams, customer_job_controller_1.CustomerJobController.createJobRequest);
+router.post("/jobs/listings", customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.createJoListingParams, customer_job_controller_1.CustomerJobController.createJobListing);
+router.get("/jobs", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.getJobs);
+router.get("/jobs/:jobId", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.getSingleJob);
 router.post("/jobs", customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.sendJobRequestParams, requests_1.CustomerHttpRequest.validateFormData, job_request_controller_1.JobRequest.customerSendJobRequestController);
 // router.get("/get_popular_contractor", checkCustomerRole, customerGetPopularContractorController ); // customer get popular contractor
 // router.get("/search_contractor", checkCustomerRole, customerSearchForContractorController ); // customer search contractor

@@ -53,8 +53,11 @@ router.get("/explore/contractors", checkCustomerRole, CustomerHttpRequest.queryC
 
 //job request
 router.post("/send-job-request", checkCustomerRole, memoryUpload.any(), CustomerHttpRequest.sendJobRequestParams, CustomerHttpRequest.validateFormData, JobRequest.customerSendJobRequestController ); 
-router.post("/job-requests", checkCustomerRole, CustomerHttpRequest.createJobRequestParams, CustomerJobController.createJobRequest ); 
-router.get("/job-requests", checkCustomerRole, CustomerJobController.getJobRequests ); 
+
+router.post("/jobs/requests", checkCustomerRole, CustomerHttpRequest.createJobRequestParams, CustomerJobController.createJobRequest ); 
+router.post("/jobs/listings", checkCustomerRole, CustomerHttpRequest.createJoListingParams, CustomerJobController.createJobListing ); 
+router.get("/jobs", checkCustomerRole, CustomerJobController.getJobs ); 
+router.get("/jobs/:jobId", checkCustomerRole, CustomerJobController.getSingleJob ); 
 
 
 

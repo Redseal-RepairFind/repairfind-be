@@ -22,6 +22,7 @@ export interface ICustomerJobListing extends Document {
   _id: ObjectId;
   customer: ObjectId
   contractor: ObjectId
+  contractorType: string
   category: string;
 
   location: IJobLocation;
@@ -39,7 +40,7 @@ export interface ICustomerJobListing extends Document {
   updatedAt: Date;
 }
 
-const JobSchema = new Schema<ICustomerJobListing>(
+const CustomerJobListingSchema = new Schema<ICustomerJobListing>(
     {
       customer: {
         type: Schema.Types.ObjectId, ref: 'customers',
@@ -47,6 +48,11 @@ const JobSchema = new Schema<ICustomerJobListing>(
       },
       contractor: {
         type: Schema.Types.ObjectId, ref: 'contractors',
+        required: false,
+      },
+      contractorType: {
+        type: String,
+        enum: [contractorAccountTypes.Company, contractorAccountTypes.Employee, contractorAccountTypes.Individual],
         required: true,
       },
       category: {
@@ -107,7 +113,7 @@ const JobSchema = new Schema<ICustomerJobListing>(
     }
   );
   
-  const CustomerJobListingModel = model<ICustomerJobListing>("customer_joblistings", JobSchema);
+  const CustomerJobListingModel = model<ICustomerJobListing>("customer_joblistings", CustomerJobListingSchema);
   
   export default CustomerJobListingModel;
 
