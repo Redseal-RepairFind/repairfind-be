@@ -8,6 +8,7 @@ import { ContractorSearch } from "../controllers/customer_contractorSearch.contr
 import { memoryUpload } from "../.../../../../utils/upload.utility";
 import { JobRequest } from "../controllers/job_request.controller";
 import { CustomerExploreController } from "../controllers/customer_explore.controller";
+import { CustomerJobController } from "../controllers/customer_job.controller";
 
 const express = require("express");
 const router = express.Router();
@@ -52,6 +53,8 @@ router.get("/explore/contractors", checkCustomerRole, CustomerHttpRequest.queryC
 
 //job request
 router.post("/send-job-request", checkCustomerRole, memoryUpload.any(), CustomerHttpRequest.sendJobRequestParams, CustomerHttpRequest.validateFormData, JobRequest.customerSendJobRequestController ); 
+router.post("/job-requests", checkCustomerRole, CustomerHttpRequest.createJobRequestParams, CustomerJobController.createJobRequest ); 
+router.get("/job-requests", checkCustomerRole, CustomerJobController.getJobRequests ); 
 
 
 

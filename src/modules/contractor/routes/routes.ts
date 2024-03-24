@@ -9,6 +9,7 @@ import { TeamController } from "../controllers/contractor_team.controller";
 import { ScheduleController } from "../controllers/contractor_schedule.controller";
 import { ContractorStripeController } from "../controllers/contractor_stripe.controller";
 import { TeamInvitationController } from "../controllers/contractor_team_invitation.controller";
+import { ContractorJobController } from "../controllers/contractor_job.controller";
 
 const express = require("express");
 const router = express.Router();
@@ -114,12 +115,15 @@ router.get("/schedules/events", checkContractorRole, ScheduleController.getEvent
 
 
 
-
 router.post("/stripe-account", checkContractorRole,  ContractorStripeController.createAccount ); 
 router.post("/stripe-session",  checkContractorRole, ContractorHttpRequest.CreateStripeSessionRequest,  ContractorStripeController.createSession ); 
 router.post("/stripe-setupintent",  checkContractorRole, ContractorStripeController.createSetupIntent ); 
 
 
+// Contractor Jobs
+router.get('/jobs', checkContractorRole, ContractorJobController.getJobRequests)
+router.get('/jobs/listings', checkContractorRole, ContractorJobController.getJobRequests)
+router.get('/jobs/requests', checkContractorRole, ContractorJobController.getJobRequests)
 
 
 export default router;

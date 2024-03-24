@@ -188,6 +188,18 @@ export const sendJobRequestParams = [
   body("date").notEmpty(),
 ];
 
+
+export const createJobRequestParams = [
+  body("contractorId").isMongoId(),
+  body("description").notEmpty(),
+  body("voiceDescription").optional(),
+  body("location").notEmpty(),
+  body("media").optional(),
+  body("emergency").optional(),
+  body("date").notEmpty(),
+  body("time").optional(),
+];
+
 export const validateFormData = (req: Request, res: Response, next: NextFunction) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -221,5 +233,6 @@ export const CustomerHttpRequest = {
   sendJobRequestParams,
   validateFormData,
   UpdateOrDeviceParams,
-  queryContractorParams
+  queryContractorParams,
+  createJobRequestParams
 }

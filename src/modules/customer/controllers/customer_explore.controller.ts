@@ -125,10 +125,6 @@ export const exploreContractors = async (
             pipeline.push({ $match: { "profile.gstNumber": gstNumber } });
         }
 
-        // if (date) {
-        //     pipeline.push({ $match: { "profile.availableDays": { $regex: new RegExp(date, 'i') } } });
-        // }
-
         if (date) {
             const contractorIdsWithDateInSchedule = await getContractorIdsWithDateInSchedule(new Date(date));
             // console.log(contractorIdsWithDateInSchedule)
