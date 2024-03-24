@@ -104,13 +104,13 @@ var MONGODB_URI = process.env.MONGODB_URI;
     });
 }); })();
 // Routes
-app.use("/", function (req, res) {
-    res.json("Hello");
-});
 app.use("/api/v1/contractor", routes_1.default);
 app.use("/api/v1/admin", routes_2.default);
 app.use("/api/v1/customer", routes_3.default);
 app.use("/api/v1/common", routes_4.default);
+app.use("/", function (req, res) {
+    res.json("Hello");
+});
 // Socket connections
 var socketService = new socket_1.default(io);
 // Initialize server

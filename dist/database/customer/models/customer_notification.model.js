@@ -2,8 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var mongoose_1 = require("mongoose");
 var ContractorNotificationSchema = new mongoose_1.Schema({
-    contractor: {
-        type: mongoose_1.Schema.Types.ObjectId, ref: 'contractors',
+    customer: {
+        type: mongoose_1.Schema.Types.ObjectId, ref: 'customers',
         required: true,
     },
     message: {
@@ -35,5 +35,5 @@ var ContractorNotificationSchema = new mongoose_1.Schema({
 }, {
     timestamps: true,
 });
-var ContractorNotificationModel = (0, mongoose_1.model)("contractor_notifications", ContractorNotificationSchema);
-exports.default = ContractorNotificationModel;
+var CustomerNotificationModel = (0, mongoose_1.model)("customer_notifications", ContractorNotificationSchema);
+exports.default = CustomerNotificationModel;

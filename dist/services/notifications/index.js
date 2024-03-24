@@ -40,25 +40,89 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NotificationService = void 0;
+var contractor_model_1 = require("../../database/contractor/models/contractor.model");
+var contractor_devices_model_1 = __importDefault(require("../../database/contractor/models/contractor_devices.model"));
+var contractor_notification_model_1 = __importDefault(require("../../database/contractor/models/contractor_notification.model"));
+var customer_model_1 = __importDefault(require("../../database/customer/models/customer.model"));
+var customer_devices_model_1 = __importDefault(require("../../database/customer/models/customer_devices.model"));
+var customer_notification_model_1 = __importDefault(require("../../database/customer/models/customer_notification.model"));
+var expo_1 = require("../expo");
 var socket_1 = __importDefault(require("../socket"));
 var NotificationService = /** @class */ (function () {
     function NotificationService() {
     }
     NotificationService.sendNotification = function (params, options) {
+        if (options === void 0) { options = {
+            push: false, // false by default
+            socket: true,
+            database: true
+        }; }
         return __awaiter(this, void 0, void 0, function () {
+            var user, deviceTokens, devices, customerNotification, customerNotification;
             return __generator(this, function (_a) {
-                if (options === null || options === void 0 ? void 0 : options.firebase) {
+                switch (_a.label) {
+                    case 0:
+                        user = null;
+                        deviceTokens = [];
+                        devices = [];
+                        if (!(params.userType == 'contractor')) return [3 /*break*/, 3];
+                        return [4 /*yield*/, contractor_model_1.ContractorModel.findById(params.userId)];
+                    case 1:
+                        user = _a.sent();
+                        return [4 /*yield*/, contractor_devices_model_1.default.find({ contractor: user === null || user === void 0 ? void 0 : user.id }).select('deviceToken')];
+                    case 2:
+                        devices = _a.sent();
+                        deviceTokens = devices.map(function (device) { return device.deviceToken; });
+                        _a.label = 3;
+                    case 3:
+                        if (!(params.userType == 'customer')) return [3 /*break*/, 6];
+                        return [4 /*yield*/, customer_model_1.default.findById(params.userId)];
+                    case 4:
+                        user = _a.sent();
+                        return [4 /*yield*/, customer_devices_model_1.default.find({ contractor: user === null || user === void 0 ? void 0 : user.id }).select('deviceToken')];
+                    case 5:
+                        devices = _a.sent();
+                        deviceTokens = devices.map(function (device) { return device.deviceToken; });
+                        _a.label = 6;
+                    case 6:
+                        if (!user)
+                            return [2 /*return*/];
+                        if ('firebase' in options) {
+                        }
+                        if ('socket' in options) {
+                            socket_1.default.sendNotification(user.email, params.type, {
+                                type: params.type,
+                                message: params.message,
+                                data: params.payload
+                            });
+                        }
+                        if ('push' in options) {
+                            (0, expo_1.sendPushNotifications)(deviceTokens, {
+                                title: 'Identity Verification',
+                                icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
+                                body: 'Identity verification session created',
+                                data: {
+                                    event: 'identity.verification_session.created',
+                                    payload: params.payload
+                                },
+                            });
+                        }
+                        if (!options.hasOwnProperty('database')) return [3 /*break*/, 10];
+                        if (!(params && params.payload.customer)) return [3 /*break*/, 8];
+                        customerNotification = new customer_notification_model_1.default(params.payload);
+                        return [4 /*yield*/, customerNotification.save()];
+                    case 7:
+                        _a.sent();
+                        _a.label = 8;
+                    case 8:
+                        if (!(params && params.payload.contractor)) return [3 /*break*/, 10];
+                        customerNotification = new contractor_notification_model_1.default(params.payload);
+                        return [4 /*yield*/, customerNotification.save()];
+                    case 9:
+                        _a.sent();
+                        _a.label = 10;
+                    case 10: return [2 /*return*/];
                 }
-                if (options === null || options === void 0 ? void 0 : options.socket) {
-                    socket_1.default.sendNotification(params.channels, params.type, {
-                        type: params.type,
-                        message: params.message,
-                        data: params.payload
-                    });
-                }
-                if (options === null || options === void 0 ? void 0 : options.expo) {
-                }
-                return [2 /*return*/];
             });
         });
     };

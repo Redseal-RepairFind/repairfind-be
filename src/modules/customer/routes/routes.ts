@@ -9,6 +9,7 @@ import { memoryUpload } from "../.../../../../utils/upload.utility";
 import { JobRequest } from "../controllers/job_request.controller";
 import { CustomerExploreController } from "../controllers/customer_explore.controller";
 import { CustomerJobController } from "../controllers/customer_job.controller";
+import { CustomerNotificationController } from "../controllers/customer_notification.controller";
 
 const express = require("express");
 const router = express.Router();
@@ -63,6 +64,11 @@ router.get("/jobs/:jobId", checkCustomerRole, CustomerJobController.getSingleJob
 
 router.post("/jobs", checkCustomerRole, CustomerHttpRequest.sendJobRequestParams, CustomerHttpRequest.validateFormData, JobRequest.customerSendJobRequestController ); 
 
+
+// Notifications
+router.get('/notifications', checkCustomerRole, CustomerNotificationController.getNotifications)
+router.get('/notifications/:notificationId', checkCustomerRole, CustomerNotificationController.getSingleNotification)
+router.post('/notifications/:notificationId', checkCustomerRole, CustomerNotificationController.markNotificationAsRead)
 
 // router.get("/get_popular_contractor", checkCustomerRole, customerGetPopularContractorController ); // customer get popular contractor
 // router.get("/search_contractor", checkCustomerRole, customerSearchForContractorController ); // customer search contractor

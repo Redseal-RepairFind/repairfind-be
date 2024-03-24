@@ -14,14 +14,12 @@ import AdminRegModel from "../../../database/admin/models/admin.model";
 import TransactionModel from "../../../database/admin/models/transaction.model";
 import { htmlJobRequestTemplate } from "../../../templates/contractorEmail/jobRequestTemplate";
 import { htmlAdminPaymentTemplate } from "../../../templates/adminEmail/adminPaymentTemplate";
-import ContractorNotificationModel from "../../../database/contractor/models/contractorNotification.model";
-import CustomerNotificationModel from "../../../database/customer/models/customerNotification.model";
 import AdminNoficationModel from "../../../database/admin/models/admin_notification.model";
 import PayoutModel from "../../../database/admin/models/payout.model";
 import ContractorBankModel from "../../../database/contractor/models/contractorBankDetail.model";
 import CustomerJobRequestModel, { ICustomerJobRequest, JobRequestStatus } from "../../../database/customer/models/customer_jobrequest.model";
 import CustomerModel from "../../../database/customer/models/customer.model";
-import { EmailService } from "../../../services";
+import { EmailService, NotificationService } from "../../../services";
 import { addHours, isFuture, isValid } from "date-fns";
 import { IJob, JobModel, JobType } from "../../../database/common/job.model";
 
@@ -75,7 +73,6 @@ export const createJobRequest = async (
         const dateTimeString = `${new Date(date).toISOString().split('T')[0]}T${time}`; // Combine date and time
         const jobTime = new Date(dateTimeString);
 
-        console.log('HWat happened here', jobTime)
         // Create a new job document
         const newJob: IJob = new JobModel({
             customer: customer.id,
@@ -95,25 +92,44 @@ export const createJobRequest = async (
         // Save the job document to the database
         await newJob.save();
 
+
+        //  IT WILL BE WISE TO MOVE ALL THIS TO EVENT LISTENER TO KEEP THE CONTROLLER LEAN
         //   contractor notification
-        const contractorNotification = new ContractorNotificationModel({
-            contractorId: contractor.id,
-            message: `You've been sent a job request from ${customer.firstName}`,
-            status: "unseen"
-        });
-        await contractorNotification.save();
+        NotificationService.sendNotification({
+            userId: contractor.id,
+            userType: 'contractor',
+            title: 'New Job Request',
+            type: 'NEW_JOB_REQUEST',
+            message:  `You've been sent a job request from ${customer.firstName}`,
+            payload: {
+                entity: newJob.id,
+                entityType: 'jobs',
+                message: `You've sent a job request to ${customer.firstName}`,
+                contractor: contractor.id,
+            }
+        }, {database: true, push:true})
 
 
-        //   customer notification
-        const customerNotification = new CustomerNotificationModel({
-            customerId: customer.id,
-            message: `You've sent a job request to ${customer.firstName}`,
-            status: "unseen"
-        })
-        await customerNotification.save();
+        NotificationService.sendNotification({
+            userId: customer.id,
+            userType: 'customer',
+            title: 'New Job Request',
+            type: 'NEW_JOB_REQUEST',
+            message:  `You've been sent a job request from ${customer.firstName}`,
+            payload: {
+                entity: newJob.id,
+                entityType: 'jobs',
+                message: `You've sent a job request to ${customer.firstName}`,
+                customer: customer.id,
+            }
+        }, {database: true, push:true})
+
 
         const html = htmlJobRequestTemplate(customer.firstName, customer.firstName, `${date} ${time}`, description)
         EmailService.send(contractor.email, 'Job request from customer', html)
+
+
+
 
         res.status(201).json({ success: true, message: 'Job request submitted successfully', data: newJob });
     } catch (error) {

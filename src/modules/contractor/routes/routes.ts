@@ -10,6 +10,7 @@ import { ScheduleController } from "../controllers/contractor_schedule.controlle
 import { ContractorStripeController } from "../controllers/contractor_stripe.controller";
 import { TeamInvitationController } from "../controllers/contractor_team_invitation.controller";
 import { ContractorJobController } from "../controllers/contractor_job.controller";
+import { ContractorNotificationController } from "../controllers/contractor_notification.controller";
 
 const express = require("express");
 const router = express.Router();
@@ -124,6 +125,11 @@ router.post("/stripe-setupintent",  checkContractorRole, ContractorStripeControl
 router.get('/jobs', checkContractorRole, ContractorJobController.getJobRequests)
 router.get('/jobs/listings', checkContractorRole, ContractorJobController.getJobRequests)
 router.get('/jobs/requests', checkContractorRole, ContractorJobController.getJobRequests)
+
+
+// Notifications
+router.get('/notifications', checkContractorRole, ContractorNotificationController.getNotifications)
+router.get('/notifications/:notificationId', checkContractorRole, ContractorNotificationController.getSingleNotification)
 
 
 export default router;

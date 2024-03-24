@@ -10,6 +10,7 @@ var contractor_schedule_controller_1 = require("../controllers/contractor_schedu
 var contractor_stripe_controller_1 = require("../controllers/contractor_stripe.controller");
 var contractor_team_invitation_controller_1 = require("../controllers/contractor_team_invitation.controller");
 var contractor_job_controller_1 = require("../controllers/contractor_job.controller");
+var contractor_notification_controller_1 = require("../controllers/contractor_notification.controller");
 var express = require("express");
 var router = express.Router();
 //  AUTH
@@ -96,4 +97,7 @@ router.post("/stripe-setupintent", contractorRoleCheck_middleware_1.checkContrac
 router.get('/jobs', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.getJobRequests);
 router.get('/jobs/listings', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.getJobRequests);
 router.get('/jobs/requests', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.getJobRequests);
+// Notifications
+router.get('/notifications', contractorRoleCheck_middleware_1.checkContractorRole, contractor_notification_controller_1.ContractorNotificationController.getNotifications);
+router.get('/notifications/:notificationId', contractorRoleCheck_middleware_1.checkContractorRole, contractor_notification_controller_1.ContractorNotificationController.getSingleNotification);
 exports.default = router;

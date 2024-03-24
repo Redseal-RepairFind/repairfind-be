@@ -60,14 +60,14 @@ const MONGODB_URI = process.env.MONGODB_URI as string;
 })();
 
 // Routes
-app.use("/", (req, res) => {
-  res.json("Hello");
-});
-
 app.use("/api/v1/contractor", contractorRoute);
 app.use("/api/v1/admin", adminRoute);
 app.use("/api/v1/customer", customerRoute);
 app.use("/api/v1/common", commonRoute);
+
+app.use("/", (req, res) => {
+  res.json("Hello");
+});
 
 // Socket connections
 const socketService = new SocketService(io);

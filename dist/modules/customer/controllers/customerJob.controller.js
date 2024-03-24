@@ -54,11 +54,11 @@ var admin_model_1 = __importDefault(require("../../../database/admin/models/admi
 var transaction_model_1 = __importDefault(require("../../../database/admin/models/transaction.model"));
 var jobRequestTemplate_1 = require("../../../templates/contractorEmail/jobRequestTemplate");
 var adminPaymentTemplate_1 = require("../../../templates/adminEmail/adminPaymentTemplate");
-var contractorNotification_model_1 = __importDefault(require("../../../database/contractor/models/contractorNotification.model"));
-var customerNotification_model_1 = __importDefault(require("../../../database/customer/models/customerNotification.model"));
 var admin_notification_model_1 = __importDefault(require("../../../database/admin/models/admin_notification.model"));
 var payout_model_1 = __importDefault(require("../../../database/admin/models/payout.model"));
 var contractorBankDetail_model_1 = __importDefault(require("../../../database/contractor/models/contractorBankDetail.model"));
+var contractor_notification_model_1 = __importDefault(require("../../../database/contractor/models/contractor_notification.model"));
+var customer_notification_model_1 = __importDefault(require("../../../database/customer/models/customer_notification.model"));
 //customer send job request to contractor /////////////
 var customerSendJobToContractorController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, time, description, address, inspection, postalCode, contractorId, jobTitle, files, errors, customer, customerId, checkCustomer, checkContractor, inspectionVal, images, i, file, fileId, uploadFile, inpection, job, contractorNotic, customerNotic, html, emailData, err_1;
@@ -149,7 +149,7 @@ var customerSendJobToContractorController = function (req, res) { return __await
                 return [4 /*yield*/, job.save()];
             case 7:
                 _b.sent();
-                contractorNotic = new contractorNotification_model_1.default({
+                contractorNotic = new contractor_notification_model_1.default({
                     contractorId: checkContractor._id,
                     message: "You've been sent a job request from ".concat(checkCustomer.firstName),
                     status: "unseen"
@@ -157,7 +157,7 @@ var customerSendJobToContractorController = function (req, res) { return __await
                 return [4 /*yield*/, contractorNotic.save()];
             case 8:
                 _b.sent();
-                customerNotic = new customerNotification_model_1.default({
+                customerNotic = new customer_notification_model_1.default({
                     customerId: checkCustomer._id,
                     message: "You've sent a job request to ".concat(checkContractor.firstName),
                     status: "unseen"
@@ -844,7 +844,7 @@ var customerVerififyPaymentWebhook = function (jobId, customerId, transactionId)
                 i++;
                 return [3 /*break*/, 9];
             case 13:
-                contractorNotic = new contractorNotification_model_1.default({
+                contractorNotic = new contractor_notification_model_1.default({
                     contractorId: contractor._id,
                     message: "You've been booked for a job from ".concat(checkCustomer.firstName, " for ").concat(job.time),
                     status: "unseen"
@@ -852,7 +852,7 @@ var customerVerififyPaymentWebhook = function (jobId, customerId, transactionId)
                 return [4 /*yield*/, contractorNotic.save()];
             case 14:
                 _a.sent();
-                customerNotic = new customerNotification_model_1.default({
+                customerNotic = new customer_notification_model_1.default({
                     customerId: checkCustomer._id,
                     message: "You've booked a job with ".concat(contractor.firstName, " for ").concat(job.jobTitle),
                     status: "unseen"
@@ -860,7 +860,7 @@ var customerVerififyPaymentWebhook = function (jobId, customerId, transactionId)
                 return [4 /*yield*/, customerNotic.save()];
             case 15:
                 _a.sent();
-                customerNoticTwo = new customerNotification_model_1.default({
+                customerNoticTwo = new customer_notification_model_1.default({
                     customerId: checkCustomer._id,
                     message: "You've just sent a payment for this job - ".concat(job.jobTitle, ", Thank you."),
                     status: "unseen"

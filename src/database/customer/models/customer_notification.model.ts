@@ -3,7 +3,7 @@ import { ObjectId, Schema, model } from "mongoose";
 
 export interface IContractorNotificationDocument extends Document {
     _id: ObjectId;
-    contractor: ObjectId
+    customer: ObjectId
     message: string;
     entity: ObjectId;
     entityType: string; // bookings, jobs, customers, 
@@ -15,8 +15,8 @@ export interface IContractorNotificationDocument extends Document {
 
 const ContractorNotificationSchema = new Schema(
     {
-      contractor: {
-        type: Schema.Types.ObjectId, ref: 'contractors',
+      customer: {
+        type: Schema.Types.ObjectId, ref: 'customers',
         required: true,
       },
       message: {
@@ -52,6 +52,6 @@ const ContractorNotificationSchema = new Schema(
     }
   );
   
-  const ContractorNotificationModel = model<IContractorNotificationDocument>("contractor_notifications", ContractorNotificationSchema);
+  const CustomerNotificationModel = model<IContractorNotificationDocument>("customer_notifications", ContractorNotificationSchema);
   
-  export default ContractorNotificationModel;
+  export default CustomerNotificationModel;

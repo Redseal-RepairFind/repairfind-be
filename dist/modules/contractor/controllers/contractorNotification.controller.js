@@ -42,7 +42,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.contractorUnseenNotificationrController = exports.contractorViewNotificationrController = exports.contractorGetNotificationrController = void 0;
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
-var contractorNotification_model_1 = __importDefault(require("../../../database/contractor/models/contractorNotification.model"));
+var contractor_notification_model_1 = __importDefault(require("../../../database/contractor/models/contractor_notification.model"));
 //contractor get all notification/////////////
 var contractorGetNotificationrController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, page, limit, errors, contractor, contractorId, skip, contractorExist, notifications, err_1;
@@ -68,7 +68,7 @@ var contractorGetNotificationrController = function (req, res) { return __awaite
                             .status(401)
                             .json({ message: "invalid credential" })];
                 }
-                return [4 /*yield*/, contractorNotification_model_1.default.find({ contractorId: contractorId })
+                return [4 /*yield*/, contractor_notification_model_1.default.find({ contractorId: contractorId })
                         .sort({ createdAt: -1 })
                         .skip(skip)
                         .limit(limit)];
@@ -110,7 +110,7 @@ var contractorViewNotificationrController = function (req, res) { return __await
                             .status(401)
                             .json({ message: "invalid credential" })];
                 }
-                return [4 /*yield*/, contractorNotification_model_1.default.updateMany({ contractorId: contractorId, status: "unseen" }, {
+                return [4 /*yield*/, contractor_notification_model_1.default.updateMany({ contractorId: contractorId, status: "unseen" }, {
                         status: "seen"
                     }, { new: true })];
             case 2:
@@ -151,7 +151,7 @@ var contractorUnseenNotificationrController = function (req, res) { return __awa
                             .status(401)
                             .json({ message: "invalid credential" })];
                 }
-                return [4 /*yield*/, contractorNotification_model_1.default.countDocuments({ contractorId: contractorId, status: "unseen" })];
+                return [4 /*yield*/, contractor_notification_model_1.default.countDocuments({ contractorId: contractorId, status: "unseen" })];
             case 2:
                 totalUnseenNotification = _b.sent();
                 res.json({

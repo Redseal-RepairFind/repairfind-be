@@ -1,7 +1,7 @@
 import { validationResult } from "express-validator";
 import { Request, Response } from "express";
 import {ContractorModel} from "../../../database/contractor/models/contractor.model";
-import ContractorNotificationModel from "../../../database/contractor/models/contractorNotification.model";
+import ContractorNotificationModel from "../../../database/contractor/models/contractor_notification.model";
 
 
 //contractor get all notification/////////////

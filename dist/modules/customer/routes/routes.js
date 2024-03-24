@@ -11,6 +11,7 @@ var upload_utility_1 = require("../.../../../../utils/upload.utility");
 var job_request_controller_1 = require("../controllers/job_request.controller");
 var customer_explore_controller_1 = require("../controllers/customer_explore.controller");
 var customer_job_controller_1 = require("../controllers/customer_job.controller");
+var customer_notification_controller_1 = require("../controllers/customer_notification.controller");
 var express = require("express");
 var router = express.Router();
 // Auth
@@ -47,6 +48,10 @@ router.post("/jobs/listings", customerRoleChecker_middleware_1.checkCustomerRole
 router.get("/jobs", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.getJobs);
 router.get("/jobs/:jobId", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.getSingleJob);
 router.post("/jobs", customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.sendJobRequestParams, requests_1.CustomerHttpRequest.validateFormData, job_request_controller_1.JobRequest.customerSendJobRequestController);
+// Notifications
+router.get('/notifications', customerRoleChecker_middleware_1.checkCustomerRole, customer_notification_controller_1.CustomerNotificationController.getNotifications);
+router.get('/notifications/:notificationId', customerRoleChecker_middleware_1.checkCustomerRole, customer_notification_controller_1.CustomerNotificationController.getSingleNotification);
+router.post('/notifications/:notificationId', customerRoleChecker_middleware_1.checkCustomerRole, customer_notification_controller_1.CustomerNotificationController.markNotificationAsRead);
 // router.get("/get_popular_contractor", checkCustomerRole, customerGetPopularContractorController ); // customer get popular contractor
 // router.get("/search_contractor", checkCustomerRole, customerSearchForContractorController ); // customer search contractor
 // router.get("/get_all_contractor_on_skill", validateContractorSearckParams, checkCustomerRole, customerGetAllContractorOnSkillController ); // customer get all contractor on a skill
