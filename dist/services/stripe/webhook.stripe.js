@@ -285,35 +285,35 @@ var identityVerificationCreated = function (payload) { return __awaiter(void 0, 
 }); };
 exports.identityVerificationCreated = identityVerificationCreated;
 var identityVerificationRequiresInput = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var userType, userId, user, deviceTokens, devices, message, error_5;
-    var _a, _b;
-    return __generator(this, function (_c) {
-        switch (_c.label) {
+    var userType, userId, user, deviceTokens, devices, message, verification, _a, fileLink, s3fileUrl, error_5;
+    var _b, _c, _d, _e;
+    return __generator(this, function (_f) {
+        switch (_f.label) {
             case 0:
-                _c.trys.push([0, 7, , 8]);
+                _f.trys.push([0, 9, , 10]);
                 console.log('Verification check failed: ' + payload.last_error.reason);
-                userType = (_a = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _a === void 0 ? void 0 : _a.userType;
-                userId = (_b = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _b === void 0 ? void 0 : _b.userId;
+                userType = (_b = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _b === void 0 ? void 0 : _b.userType;
+                userId = (_c = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _c === void 0 ? void 0 : _c.userId;
                 user = null;
                 deviceTokens = [];
                 devices = [];
                 if (!(userType == 'contractor')) return [3 /*break*/, 3];
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(userId)];
             case 1:
-                user = _c.sent();
+                user = _f.sent();
                 return [4 /*yield*/, contractor_devices_model_1.default.find({ contractor: user === null || user === void 0 ? void 0 : user.id }).select('deviceToken')];
             case 2:
-                devices = _c.sent();
+                devices = _f.sent();
                 deviceTokens = devices.map(function (device) { return device.deviceToken; });
                 return [3 /*break*/, 6];
             case 3: return [4 /*yield*/, customer_model_1.default.findById(userId)];
             case 4:
-                user = _c.sent();
+                user = _f.sent();
                 return [4 /*yield*/, contractor_devices_model_1.default.find({ contractor: user === null || user === void 0 ? void 0 : user.id }).select('deviceToken')];
             case 5:
-                devices = _c.sent();
+                devices = _f.sent();
                 deviceTokens = devices.map(function (device) { return device.deviceToken; });
-                _c.label = 6;
+                _f.label = 6;
             case 6:
                 if (!user)
                     return [2 /*return*/];
@@ -338,7 +338,22 @@ var identityVerificationRequiresInput = function (payload) { return __awaiter(vo
                 }
                 if (!user)
                     return [2 /*return*/];
-                user.stripeIdentity = payload;
+                return [4 /*yield*/, _1.StripeService.identity.retrieveVerificationSession(payload.id)];
+            case 7:
+                verification = _f.sent();
+                console.log(verification);
+                return [4 /*yield*/, _1.StripeService.file.createFileLink({
+                        //@ts-ignore
+                        file: (_e = (_d = verification === null || verification === void 0 ? void 0 : verification.last_verification_report) === null || _d === void 0 ? void 0 : _d.selfie) === null || _e === void 0 ? void 0 : _e.document,
+                        expires_at: Math.floor(Date.now() / 1000) + 30, // link expires in 30 seconds
+                    }, true)];
+            case 8:
+                _a = _f.sent(), fileLink = _a.fileLink, s3fileUrl = _a.s3fileUrl;
+                console.log('fileLink from stripe', fileLink);
+                console.log('s3fileUrl of file uploaded to s3', s3fileUrl);
+                user.stripeIdentity = verification;
+                //@ts-ignore
+                user.profilePhoto = { url: s3fileUrl };
                 user.save();
                 (0, expo_1.sendPushNotifications)(deviceTokens, {
                     title: 'Identity Verification',
@@ -359,11 +374,11 @@ var identityVerificationRequiresInput = function (payload) { return __awaiter(vo
                         }
                     },
                 });
-                return [3 /*break*/, 8];
-            case 7:
-                error_5 = _c.sent();
+                return [3 /*break*/, 10];
+            case 9:
+                error_5 = _f.sent();
                 throw new custom_errors_1.BadRequestError(error_5.message || "Something went wrong");
-            case 8: return [2 /*return*/];
+            case 10: return [2 /*return*/];
         }
     });
 }); };
