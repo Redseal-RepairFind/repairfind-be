@@ -345,7 +345,7 @@ var identityVerificationRequiresInput = function (payload) { return __awaiter(vo
                 console.log(verification);
                 return [4 /*yield*/, _1.StripeService.file.createFileLink({
                         //@ts-ignore
-                        file: (_e = (_d = verification === null || verification === void 0 ? void 0 : verification.last_verification_report) === null || _d === void 0 ? void 0 : _d.selfie) === null || _e === void 0 ? void 0 : _e.document,
+                        file: (_e = (_d = verification === null || verification === void 0 ? void 0 : verification.last_verification_report) === null || _d === void 0 ? void 0 : _d.selfie) === null || _e === void 0 ? void 0 : _e.selfie,
                         expires_at: Math.floor(Date.now() / 1000) + 30, // link expires in 30 seconds
                     }, true)];
             case 8:

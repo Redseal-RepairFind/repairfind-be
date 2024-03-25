@@ -59,7 +59,7 @@ var createFileLink = function (payload, uploadtoS3) {
                     if (!(fileLink && fileLink.url && uploadtoS3)) return [3 /*break*/, 3];
                     url = fileLink.url //'https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTA5L3Jhd3BpeGVsX29mZmljZV8yOF9mZW1hbGVfbWluaW1hbF9yb2JvdF9mYWNlX29uX2RhcmtfYmFja2dyb3VuZF81ZDM3YjhlNy04MjRkLTQ0NWUtYjZjYy1hZmJkMDI3ZTE1NmYucG5n.png' //fileLink.url
                     ;
-                    return [4 /*yield*/, (0, storage_1.transferFileToS3Sync)(url, fileLink.url)
+                    return [4 /*yield*/, (0, storage_1.transferFileToS3Sync)(url, fileLink.id + '.jpg')
                         // console.log('createFileLink transfered to s3. ', s3fileUrl)
                     ];
                 case 2:
