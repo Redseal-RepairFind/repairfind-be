@@ -68,6 +68,7 @@ var createFileLink = function (payload, uploadtoS3) {
                 case 3: return [2 /*return*/, { fileLink: fileLink, s3fileUrl: s3fileUrl }];
                 case 4:
                     error_1 = _a.sent();
+                    console.log(error_1.message || "Something went wrong", error_1);
                     return [3 /*break*/, 5];
                 case 5: return [2 /*return*/];
             }
