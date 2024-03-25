@@ -186,23 +186,7 @@ export const identityVerificationCreated = async (payload: any) => {
             user.stripeIdentity = payload
             user.save()
 
-            // sendPushNotifications( deviceTokens , {
-            //     title: 'Identity Verification',
-            //     icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
-            //     body: 'Identity verification session created',
-            //     data: { 
-            //         event: 'identity.verification_session.created',
-            //         user:{
-            //             email: user.email,
-            //             profilePhoto: user.profilePhoto,
-            //         },
-            //         payload: {
-            //             status: payload.status,
-            //             type: payload.type,
-            //             options: payload.options
-            //         }
-            //     },
-            // })
+          
 
         }
 
@@ -319,7 +303,26 @@ export const identityVerificationVerified = async (payload: any) => {
 
         if(!user) return
 
-        user.stripeIdentity = payload
+       
+        //fetch and expand
+        let verification  = await StripeService.identity.retrieveVerificationSession(payload.id)
+        console.log(verification)
+       
+
+        // update user profile picture here
+        //@ts-ignore
+        const {fileLink, s3fileUrl} = await StripeService.file.createFileLink({
+             //@ts-ignore
+            file: verification?.last_verification_report?.selfie?.document,
+            expires_at: Math.floor(Date.now() / 1000) + 30,  // link expires in 30 seconds
+        }, true)
+        console.log('fileLink from stripe', fileLink)
+        console.log('s3fileUrl of file uploaded to s3', s3fileUrl)
+
+        
+        user.stripeIdentity = verification
+         //@ts-ignore
+        user.profilePhoto = {url: s3fileUrl}
         user.save()
         
         sendPushNotifications( deviceTokens , {

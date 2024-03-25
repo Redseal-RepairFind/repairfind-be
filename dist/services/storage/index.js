@@ -62,12 +62,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.s3FileUpload = exports.uploadToS3 = exports.diskUpload = exports.memoryUpload = void 0;
+exports.transferFileToS3Sync = exports.transferFileToS3 = exports.s3FileUpload = exports.uploadToS3 = exports.diskUpload = exports.memoryUpload = void 0;
 var multer_1 = __importDefault(require("multer"));
 var client_s3_1 = require("@aws-sdk/client-s3");
 var config_1 = require("../../config");
 var util_1 = require("util");
 var fs = __importStar(require("fs"));
+var axios_1 = __importDefault(require("axios"));
+var crypto = __importStar(require("crypto"));
+var path = __importStar(require("path"));
 exports.memoryUpload = (0, multer_1.default)({
     storage: multer_1.default.memoryStorage(), // Store images in memory before uploading to S3
 });
@@ -115,6 +118,7 @@ var uploadToS3 = function (buffer, originalFilename) { return __awaiter(void 0, 
                 return [4 /*yield*/, s3.send(command)];
             case 2:
                 response = _c.sent();
+                console.log('uploadToS3', response);
                 fileLocation = "https://".concat(params.Bucket, ".s3.amazonaws.com/").concat(params.Key);
                 return [2 /*return*/, { response: response, Location: fileLocation }];
             case 3:
@@ -126,28 +130,30 @@ var uploadToS3 = function (buffer, originalFilename) { return __awaiter(void 0, 
     });
 }); };
 exports.uploadToS3 = uploadToS3;
-var readFileAsync = (0, util_1.promisify)(fs.readFile);
-var s3UploadAsync = (0, util_1.promisify)(config_1.s3.upload.bind(config_1.s3));
 var s3FileUpload = function (files) { return __awaiter(void 0, void 0, void 0, function () {
-    var uploadedUrls, _i, files_1, file, originalname, buffer, mimetype, path, fileName, objectName, fileExtension, parameters, data, error_2;
+    var readFileAsync, s3UploadAsync, uploadedUrls, _i, files_1, file, originalname, buffer, mimetype, path_1, fileName, objectName, fileExtension, parameters, data, error_2;
     var _a, _b, _c;
     return __generator(this, function (_d) {
         switch (_d.label) {
             case 0:
-                _d.trys.push([0, 7, , 8]);
-                uploadedUrls = [];
-                _i = 0, files_1 = files;
+                readFileAsync = (0, util_1.promisify)(fs.readFile);
+                s3UploadAsync = (0, util_1.promisify)(config_1.s3.upload.bind(config_1.s3));
                 _d.label = 1;
             case 1:
-                if (!(_i < files_1.length)) return [3 /*break*/, 6];
-                file = files_1[_i];
-                originalname = file.originalname, buffer = file.buffer, mimetype = file.mimetype, path = file.path;
-                if (!(path && !buffer)) return [3 /*break*/, 3];
-                return [4 /*yield*/, readFileAsync(path)];
+                _d.trys.push([1, 8, , 9]);
+                uploadedUrls = [];
+                _i = 0, files_1 = files;
+                _d.label = 2;
             case 2:
-                buffer = _d.sent();
-                _d.label = 3;
+                if (!(_i < files_1.length)) return [3 /*break*/, 7];
+                file = files_1[_i];
+                originalname = file.originalname, buffer = file.buffer, mimetype = file.mimetype, path_1 = file.path;
+                if (!(path_1 && !buffer)) return [3 /*break*/, 4];
+                return [4 /*yield*/, readFileAsync(path_1)];
             case 3:
+                buffer = _d.sent();
+                _d.label = 4;
+            case 4:
                 fileName = (_c = (_b = (_a = originalname === null || originalname === void 0 ? void 0 : originalname.split('\\')) === null || _a === void 0 ? void 0 : _a.pop()) === null || _b === void 0 ? void 0 : _b.split('/').pop()) !== null && _c !== void 0 ? _c : '';
                 objectName = "".concat(new Date().getTime() + fileName);
                 fileExtension = originalname.slice((originalname.lastIndexOf(".") - 1 >>> 0) + 2);
@@ -158,21 +164,170 @@ var s3FileUpload = function (files) { return __awaiter(void 0, void 0, void 0, f
                     ContentType: mimetype !== null && mimetype !== void 0 ? mimetype : "image/".concat(fileExtension),
                 };
                 return [4 /*yield*/, s3UploadAsync(parameters)];
-            case 4:
+            case 5:
                 data = _d.sent();
                 console.log("File uploaded successfully. ".concat(data.Location));
                 uploadedUrls.push(data.Location);
-                _d.label = 5;
-            case 5:
+                _d.label = 6;
+            case 6:
                 _i++;
-                return [3 /*break*/, 1];
-            case 6: return [2 /*return*/, uploadedUrls];
-            case 7:
+                return [3 /*break*/, 2];
+            case 7: return [2 /*return*/, uploadedUrls];
+            case 8:
                 error_2 = _d.sent();
                 console.error('Error uploading files to s3:', error_2);
                 return [2 /*return*/, undefined];
-            case 8: return [2 /*return*/];
+            case 9: return [2 /*return*/];
         }
     });
 }); };
 exports.s3FileUpload = s3FileUpload;
+function transferFileToS3(url, key) {
+    return __awaiter(this, void 0, void 0, function () {
+        var response, contentLength_1, response_1, chunks_1, error_3, error_4;
+        var _this = this;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 7, , 8]);
+                    return [4 /*yield*/, (0, axios_1.default)({
+                            url: url,
+                            method: 'GET',
+                            responseType: 'stream'
+                        })];
+                case 1:
+                    response = _a.sent();
+                    contentLength_1 = 0;
+                    response.data.on('data', function (chunk) {
+                        contentLength_1 += chunk.length;
+                    });
+                    _a.label = 2;
+                case 2:
+                    _a.trys.push([2, 5, , 6]);
+                    return [4 /*yield*/, (0, axios_1.default)({
+                            url: url,
+                            method: 'GET',
+                            responseType: 'stream' // Set responseType to stream to handle binary data
+                        })];
+                case 3:
+                    response_1 = _a.sent();
+                    chunks_1 = [];
+                    response_1.data.on('data', function (chunk) {
+                        chunks_1.push(chunk);
+                    });
+                    return [4 /*yield*/, response_1.data.on('end', function () { return __awaiter(_this, void 0, void 0, function () {
+                            var dataBuffer, contentMD5, urlPath, filename, extension, uploadParams, s3Response;
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0:
+                                        dataBuffer = Buffer.concat(chunks_1);
+                                        contentMD5 = crypto.createHash('md5').update(dataBuffer).digest('base64');
+                                        urlPath = new URL(url).pathname;
+                                        filename = path.basename(urlPath);
+                                        extension = path.extname(filename);
+                                        uploadParams = {
+                                            Bucket: config_1.config.aws.s3BucketName,
+                                            Key: key + extension, // Append the extension to the key
+                                            Body: dataBuffer,
+                                            ContentLength: dataBuffer.length, // Provide the content length
+                                            ContentMD5: contentMD5 // Provide the calculated MD5 hash
+                                        };
+                                        return [4 /*yield*/, config_1.s3.upload(uploadParams).promise()];
+                                    case 1:
+                                        s3Response = _a.sent();
+                                        console.log('File uploaded successfully. URL:', s3Response);
+                                        return [2 /*return*/, s3Response];
+                                }
+                            });
+                        }); })];
+                case 4:
+                    _a.sent();
+                    return [3 /*break*/, 6];
+                case 5:
+                    error_3 = _a.sent();
+                    console.error('Error transferring file to S3:', error_3);
+                    return [3 /*break*/, 6];
+                case 6: return [3 /*break*/, 8];
+                case 7:
+                    error_4 = _a.sent();
+                    console.error('Error transferring file to S3:', error_4);
+                    return [3 /*break*/, 8];
+                case 8: return [2 /*return*/];
+            }
+        });
+    });
+}
+exports.transferFileToS3 = transferFileToS3;
+function transferFileToS3Sync(url, key) {
+    return __awaiter(this, void 0, void 0, function () {
+        var _this = this;
+        return __generator(this, function (_a) {
+            return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
+                    var response, contentLength_2, chunks_2, error_5;
+                    var _this = this;
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0:
+                                _a.trys.push([0, 2, , 3]);
+                                return [4 /*yield*/, (0, axios_1.default)({
+                                        url: url,
+                                        method: 'GET',
+                                        responseType: 'stream'
+                                    })];
+                            case 1:
+                                response = _a.sent();
+                                contentLength_2 = 0;
+                                response.data.on('data', function (chunk) {
+                                    contentLength_2 += chunk.length;
+                                });
+                                chunks_2 = [];
+                                response.data.on('data', function (chunk) {
+                                    chunks_2.push(chunk);
+                                });
+                                // When the download is complete, concatenate the chunks into a single Buffer
+                                response.data.on('end', function () { return __awaiter(_this, void 0, void 0, function () {
+                                    var dataBuffer, contentMD5, filename, extension, uploadParams, s3Response, error_6;
+                                    return __generator(this, function (_a) {
+                                        switch (_a.label) {
+                                            case 0:
+                                                _a.trys.push([0, 2, , 3]);
+                                                dataBuffer = Buffer.concat(chunks_2);
+                                                contentMD5 = crypto.createHash('md5').update(dataBuffer).digest('base64');
+                                                filename = path.basename(url);
+                                                extension = path.extname(filename);
+                                                uploadParams = {
+                                                    Bucket: config_1.config.aws.s3BucketName,
+                                                    Key: key + extension, // Append the extension to the key
+                                                    Body: dataBuffer,
+                                                    ContentLength: dataBuffer.length, // Provide the content length
+                                                    ContentMD5: contentMD5 // Provide the calculated MD5 hash
+                                                };
+                                                return [4 /*yield*/, config_1.s3.upload(uploadParams).promise()];
+                                            case 1:
+                                                s3Response = _a.sent();
+                                                // console.log('File uploaded successfully. URL:', s3Response.Location);
+                                                resolve(s3Response.Location); // Resolve with the S3 file URL
+                                                return [3 /*break*/, 3];
+                                            case 2:
+                                                error_6 = _a.sent();
+                                                console.error('Error uploading file to S3:', error_6);
+                                                reject(error_6); // Reject with the error if uploading fails
+                                                return [3 /*break*/, 3];
+                                            case 3: return [2 /*return*/];
+                                        }
+                                    });
+                                }); });
+                                return [3 /*break*/, 3];
+                            case 2:
+                                error_5 = _a.sent();
+                                console.error('Error downloading file:', error_5);
+                                reject(error_5); // Reject with the error if downloading fails
+                                return [3 /*break*/, 3];
+                            case 3: return [2 /*return*/];
+                        }
+                    });
+                }); })];
+        });
+    });
+}
+exports.transferFileToS3Sync = transferFileToS3Sync;

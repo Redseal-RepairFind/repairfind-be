@@ -39,56 +39,40 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.retrieveVerificationSession = exports.createVerificationSession = void 0;
+exports.createFileLink = void 0;
 var stripe_1 = __importDefault(require("stripe"));
 var custom_errors_1 = require("../../utils/custom.errors");
-var STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
+var storage_1 = require("../storage");
+var STRIPE_SECRET_KEY = process.env.STRIPE_IDENTITY_API_RK;
 var stripeClient = new stripe_1.default(STRIPE_SECRET_KEY);
-var createVerificationSession = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var verificationSession, error_1;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, stripeClient.identity.verificationSessions.create({
-                        type: 'document',
-                        options: {
-                            document: {
-                                require_matching_selfie: true,
-                            },
-                        },
-                        metadata: payload,
-                    })];
-            case 1:
-                verificationSession = _a.sent();
-                return [2 /*return*/, verificationSession];
-            case 2:
-                error_1 = _a.sent();
-                // console.log(error)
-                throw new custom_errors_1.BadRequestError(error_1.message || "Something went wrong");
-            case 3: return [2 /*return*/];
-        }
+var createFileLink = function (payload, uploadtoS3) {
+    if (uploadtoS3 === void 0) { uploadtoS3 = false; }
+    return __awaiter(void 0, void 0, void 0, function () {
+        var fileLink, s3fileUrl, url, error_1;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 4, , 5]);
+                    return [4 /*yield*/, stripeClient.fileLinks.create(payload)];
+                case 1:
+                    fileLink = _a.sent();
+                    s3fileUrl = '';
+                    if (!(fileLink && fileLink.url && uploadtoS3)) return [3 /*break*/, 3];
+                    url = fileLink.url //'https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTA5L3Jhd3BpeGVsX29mZmljZV8yOF9mZW1hbGVfbWluaW1hbF9yb2JvdF9mYWNlX29uX2RhcmtfYmFja2dyb3VuZF81ZDM3YjhlNy04MjRkLTQ0NWUtYjZjYy1hZmJkMDI3ZTE1NmYucG5n.png' //fileLink.url
+                    ;
+                    return [4 /*yield*/, (0, storage_1.transferFileToS3Sync)(url, fileLink.url)
+                        // console.log('createFileLink transfered to s3. ', s3fileUrl)
+                    ];
+                case 2:
+                    s3fileUrl = _a.sent();
+                    _a.label = 3;
+                case 3: return [2 /*return*/, { fileLink: fileLink, s3fileUrl: s3fileUrl }];
+                case 4:
+                    error_1 = _a.sent();
+                    throw new custom_errors_1.BadRequestError(error_1.message || "Something went wrong");
+                case 5: return [2 /*return*/];
+            }
+        });
     });
-}); };
-exports.createVerificationSession = createVerificationSession;
-var retrieveVerificationSession = function (sessionId) { return __awaiter(void 0, void 0, void 0, function () {
-    var verificationSession, error_2;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, stripeClient.identity.verificationSessions.retrieve(sessionId, {
-                        expand: ['last_verification_report'],
-                    })];
-            case 1:
-                verificationSession = _a.sent();
-                return [2 /*return*/, verificationSession];
-            case 2:
-                error_2 = _a.sent();
-                // console.log(error)
-                throw new custom_errors_1.BadRequestError(error_2.message || "Something went wrong");
-            case 3: return [2 /*return*/];
-        }
-    });
-}); };
-exports.retrieveVerificationSession = retrieveVerificationSession;
+};
+exports.createFileLink = createFileLink;

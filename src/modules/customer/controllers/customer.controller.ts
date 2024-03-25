@@ -4,6 +4,7 @@ import { Request, Response } from "express";
 import CustomerModel from "../../../database/customer/models/customer.model";
 import { sendPushNotifications } from "../../../services/expo";
 import CustomerDeviceModel from "../../../database/customer/models/customer_devices.model";
+import { transferFileToS3 } from "../../../services/storage";
 
 
 export const updateAccount = async (
@@ -61,6 +62,7 @@ export const getAccount = async (req: any, res: Response) => {
     if (!customer) {
       return res.status(404).json({ success: false, message: 'Customer account not found' });
     }
+
     
     return res.status(200).json({ success: true, message: 'Customer account retrieved successfully', data: customer });
   } catch (err: any) {

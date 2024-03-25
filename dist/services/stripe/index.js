@@ -29,10 +29,12 @@ var customer = __importStar(require("./customer.stripe"));
 var identity = __importStar(require("./identity.stripe"));
 var webhook = __importStar(require("./webhook.stripe"));
 var payment = __importStar(require("./payment.stripe"));
+var file = __importStar(require("./file.stripe"));
 exports.StripeService = {
     session: session,
     customer: customer,
     identity: identity,
     webhook: webhook,
     payment: payment,
+    file: file,
 };
