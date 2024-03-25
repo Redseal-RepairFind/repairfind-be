@@ -33,6 +33,12 @@ const limiter = rateLimit({
   max: 1000, // limit each IP to 100 requests per windowMs
 });
 
+//@ts-ignore
+app.use(function (err, req, res, next) {
+  console.error(err.stack)
+  res.status(500).send('Something broke!')
+})
+
 // Middleware
 app.use(bodyParser.json({ verify: (req, res, buf, encoding) => {
     // @ts-ignore     
@@ -71,6 +77,7 @@ app.use("/", (req, res) => {
 
 // Socket connections
 const socketService = new SocketService(io);
+
 
 
 // Initialize server

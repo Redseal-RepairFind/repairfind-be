@@ -24,7 +24,7 @@ export const createFileLink = async (payload: any, uploadtoS3: bool = false) => 
     }
     return {fileLink, s3fileUrl}
   } catch (error:any) {
-        throw new BadRequestError(error.message || "Something went wrong");
+        // throw new BadRequestError(error.message || "Something went wrong");
   }
 };
 

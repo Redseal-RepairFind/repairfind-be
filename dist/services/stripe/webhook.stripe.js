@@ -94,7 +94,8 @@ var StripeWebhookHandler = function (req) { return __awaiter(void 0, void 0, voi
             }
         }
         catch (error) {
-            throw new custom_errors_1.BadRequestError(error.message || "Something went wrong");
+            // throw new BadRequestError(error.message || "Something went wrong");
+            console.log(error.message || "Something went wrong inside stripe webhook");
         }
         return [2 /*return*/];
     });
@@ -107,7 +108,7 @@ var setupIntentCreated = function (payload) { return __awaiter(void 0, void 0, v
             //  console.log('Customer from setupIntentCreated', customer)
         }
         catch (error) {
-            throw new custom_errors_1.BadRequestError(error.message || "Something went wrong");
+            // throw new BadRequestError(error.message || "Something went wrong");
         }
         return [2 /*return*/];
     });
@@ -158,7 +159,7 @@ var setupIntentSucceeded = function (payload) { return __awaiter(void 0, void 0,
                 return [3 /*break*/, 9];
             case 8:
                 error_1 = _d.sent();
-                throw new custom_errors_1.BadRequestError(error_1.message || "Something went wrong");
+                return [3 /*break*/, 9];
             case 9: return [2 /*return*/];
         }
     });
@@ -211,7 +212,7 @@ var paymentMethodAttached = function (payload) { return __awaiter(void 0, void 0
                 return [3 /*break*/, 9];
             case 8:
                 error_2 = _d.sent();
-                throw new custom_errors_1.BadRequestError(error_2.message || "Something went wrong");
+                return [3 /*break*/, 9];
             case 9: return [2 /*return*/];
         }
     });
@@ -239,7 +240,7 @@ var paymentMethodDetached = function (payload) { return __awaiter(void 0, void 0
                 return [3 /*break*/, 4];
             case 3:
                 error_3 = _a.sent();
-                throw new custom_errors_1.BadRequestError(error_3.message || "Something went wrong");
+                return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
         }
     });
@@ -278,7 +279,7 @@ var identityVerificationCreated = function (payload) { return __awaiter(void 0, 
                 return [3 /*break*/, 7];
             case 6:
                 error_4 = _c.sent();
-                throw new custom_errors_1.BadRequestError(error_4.message || "Something went wrong");
+                return [3 /*break*/, 7];
             case 7: return [2 /*return*/];
         }
     });
@@ -377,7 +378,8 @@ var identityVerificationRequiresInput = function (payload) { return __awaiter(vo
                 return [3 /*break*/, 10];
             case 9:
                 error_5 = _f.sent();
-                throw new custom_errors_1.BadRequestError(error_5.message || "Something went wrong");
+                new custom_errors_1.BadRequestError(error_5.message || "Something went wrong");
+                return [3 /*break*/, 10];
             case 10: return [2 /*return*/];
         }
     });
@@ -456,7 +458,7 @@ var identityVerificationVerified = function (payload) { return __awaiter(void 0,
                 return [3 /*break*/, 10];
             case 9:
                 error_6 = _f.sent();
-                throw new custom_errors_1.BadRequestError(error_6.message || "Something went wrong");
+                return [3 /*break*/, 10];
             case 10: return [2 /*return*/];
         }
     });

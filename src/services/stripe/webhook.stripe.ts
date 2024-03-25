@@ -67,7 +67,8 @@ export const StripeWebhookHandler = async (req: Request) => {
                 break;
         }
     } catch (error: any) {
-        throw new BadRequestError(error.message || "Something went wrong");
+        // throw new BadRequestError(error.message || "Something went wrong");
+        console.log(error.message || "Something went wrong inside stripe webhook")
     }
 };
 
@@ -78,7 +79,7 @@ export const setupIntentCreated = async (payload: any) => {
         //  console.log('Customer from setupIntentCreated', customer)
          
     } catch (error: any) {
-        throw new BadRequestError(error.message || "Something went wrong");
+        // throw new BadRequestError(error.message || "Something went wrong");
     }
 };
 
@@ -107,7 +108,7 @@ export const setupIntentSucceeded = async (payload: any) => {
 
         await user.save()
     } catch (error: any) {
-        throw new BadRequestError(error.message || "Something went wrong");
+        // throw new BadRequestError(error.message || "Something went wrong");
     }
 };
 
@@ -138,7 +139,7 @@ export const paymentMethodAttached = async (payload: any) => {
 
         await user.save()
     } catch (error: any) {
-        throw new BadRequestError(error.message || "Something went wrong");
+        // throw new BadRequestError(error.message || "Something went wrong");
     }
 
 };
@@ -158,7 +159,7 @@ export const paymentMethodDetached = async (payload: any) => {
 
         await user.save();
     } catch (error: any) {
-        throw new BadRequestError(error.message || "Something went wrong");
+        // throw new BadRequestError(error.message || "Something went wrong");
     }
 };
 
@@ -194,7 +195,7 @@ export const identityVerificationCreated = async (payload: any) => {
         
          
     } catch (error: any) {
-        throw new BadRequestError(error.message || "Something went wrong");
+        // throw new BadRequestError(error.message || "Something went wrong");
     }
 };
 
@@ -262,7 +263,7 @@ export const identityVerificationRequiresInput = async (payload: any) => {
          console.log('fileLink from stripe', fileLink)
          console.log('s3fileUrl of file uploaded to s3', s3fileUrl)
  
-         
+          
          user.stripeIdentity = verification
           //@ts-ignore
          user.profilePhoto = {url: s3fileUrl}
@@ -293,7 +294,7 @@ export const identityVerificationRequiresInput = async (payload: any) => {
 
        
     } catch (error: any) {
-        throw new BadRequestError(error.message || "Something went wrong");
+         new BadRequestError(error.message || "Something went wrong");
     }
 };
 
@@ -365,7 +366,7 @@ export const identityVerificationVerified = async (payload: any) => {
 
        
     } catch (error: any) {
-        throw new BadRequestError(error.message || "Something went wrong");
+        // throw new BadRequestError(error.message || "Something went wrong");
     }
 };
 

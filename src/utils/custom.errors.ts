@@ -1,5 +1,10 @@
 import { Logger } from "./logger";
 
+
+import { Request, Response, NextFunction } from 'express';
+// import { Logger } from './logger';
+
+
 export default class CustomError extends Error {
     code: number;
     message: string;
@@ -52,3 +57,12 @@ export default class CustomError extends Error {
        this.name = 'NotFoundError';
     }
  }
+
+
+export function errorHandler(err: Error, req: Request, res: Response, next: NextFunction) {
+  // Log the error using your logger
+//   Logger.error(err.message);
+
+  // Send a generic error response to the client
+  return res.status(500).json({ error: 'Internal Server Error' });
+}

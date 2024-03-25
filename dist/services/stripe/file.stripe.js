@@ -41,7 +41,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createFileLink = void 0;
 var stripe_1 = __importDefault(require("stripe"));
-var custom_errors_1 = require("../../utils/custom.errors");
 var storage_1 = require("../storage");
 var STRIPE_SECRET_KEY = process.env.STRIPE_IDENTITY_API_RK;
 var stripeClient = new stripe_1.default(STRIPE_SECRET_KEY);
@@ -69,7 +68,7 @@ var createFileLink = function (payload, uploadtoS3) {
                 case 3: return [2 /*return*/, { fileLink: fileLink, s3fileUrl: s3fileUrl }];
                 case 4:
                     error_1 = _a.sent();
-                    throw new custom_errors_1.BadRequestError(error_1.message || "Something went wrong");
+                    return [3 /*break*/, 5];
                 case 5: return [2 /*return*/];
             }
         });

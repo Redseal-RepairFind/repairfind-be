@@ -67,6 +67,11 @@ var limiter = (0, express_rate_limit_1.default)({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 1000, // limit each IP to 100 requests per windowMs
 });
+//@ts-ignore
+app.use(function (err, req, res, next) {
+    console.error(err.stack);
+    res.status(500).send('Something broke!');
+});
 // Middleware
 app.use(body_parser_1.default.json({ verify: function (req, res, buf, encoding) {
         // @ts-ignore     

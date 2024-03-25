@@ -15,7 +15,8 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NotFoundError = exports.ServiceUnavailableError = exports.ForbiddenError = exports.UnAuthorizedError = exports.BadRequestError = void 0;
+exports.errorHandler = exports.NotFoundError = exports.ServiceUnavailableError = exports.ForbiddenError = exports.UnAuthorizedError = exports.BadRequestError = void 0;
+// import { Logger } from './logger';
 var CustomError = /** @class */ (function (_super) {
     __extends(CustomError, _super);
     function CustomError(message, code, name) {
@@ -80,3 +81,10 @@ var NotFoundError = /** @class */ (function (_super) {
     return NotFoundError;
 }(CustomError));
 exports.NotFoundError = NotFoundError;
+function errorHandler(err, req, res, next) {
+    // Log the error using your logger
+    //   Logger.error(err.message);
+    // Send a generic error response to the client
+    return res.status(500).json({ error: 'Internal Server Error' });
+}
+exports.errorHandler = errorHandler;
