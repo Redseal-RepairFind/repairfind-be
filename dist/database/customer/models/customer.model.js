@@ -70,11 +70,30 @@ var CustomerSchema = new mongoose_1.Schema({
         enum: Object.values(customer_interface_1.CustomerAuthProviders),
         default: customer_interface_1.CustomerAuthProviders.PASSWORD
     },
-    stripeCustomer: stripe_customer_schema_1.StripeCustomerSchema,
-    stripePaymentMethods: Array,
-    stripeIdentity: Object,
+    stripeCustomer: {
+        type: stripe_customer_schema_1.StripeCustomerSchema,
+        select: false
+    },
+    stripePaymentMethods: {
+        type: [Object],
+        select: false
+    },
+    stripeIdentity: {
+        type: Object,
+        select: false
+    },
 }, {
     timestamps: true,
+});
+// Virtual fields
+CustomerSchema.virtual('hasStripeIdentity').get(function () {
+    return !!this.stripeIdentity; // Returns true if stripeIdentity exists, false otherwise
+});
+CustomerSchema.virtual('hasStripeCustomer').get(function () {
+    return !!this.stripeCustomer; // Returns true if stripeCustomer exists, false otherwise
+});
+CustomerSchema.virtual('hasStripePaymentMethods').get(function () {
+    return Array.isArray(this.stripePaymentMethods) && this.stripePaymentMethods.length > 0; // Returns true if stripePaymentMethods is an array with at least one element
 });
 CustomerSchema.virtual('name').get(function () {
     return "".concat(this.firstName, " ").concat(this.lastName);

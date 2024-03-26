@@ -1,5 +1,5 @@
 import { validationResult } from "express-validator";
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import {ContractorModel} from "../../../database/contractor/models/contractor.model";
 import CustomerRegModel from "../../../database/customer/models/customer.model";
 import { sendEmail } from "../../../utils/send_email_utility";
@@ -7,6 +7,8 @@ import { htmlJobQoutationTemplate } from "../../../templates/customerEmail/jobQo
 import AdminNoficationModel from "../../../database/admin/models/admin_notification.model";
 import CustomerJobRequestModel from "../../../database/customer/models/customer_jobrequest.model";
 import { JobModel, JobStatus, JobType } from "../../../database/common/job.model";
+import { applyAPIFeature } from "../../../utils/api.feature";
+import { BadRequestError, InternalServerError, NotFoundError } from "../../../utils/custom.errors";
 
 
 export const getJobRequests = async (req: any, res: Response) => {
@@ -51,9 +53,16 @@ export const getJobRequests = async (req: any, res: Response) => {
         }
 
         // Execute query
-        const jobRequests = await CustomerJobRequestModel.find(filter).exec();
+        const jobRequests =  JobModel.find(filter);
 
-        res.json({ success: true, message: 'Job requests retrieved', data: jobRequests });
+        const {data, error} = await applyAPIFeature(jobRequests, req.query)
+        res.status(200).json({
+            success: true, message: "Job requests retrieved", 
+            data: data
+        });
+        
+
+        // res.json({ success: true, message: 'Job requests retrieved', data: jobRequests });
     } catch (error) {
         console.error('Error retrieving job requests:', error);
         res.status(500).json({ success: false, message: 'Internal Server Error' });
@@ -139,14 +148,14 @@ export const rejectJobRequest = async (req: any, res: Response) => {
       jobRequest.status = JobStatus.DECLINED;
       
       // Define the rejection event to be stored in the job history
-      const rejectionEvent = {
-        eventType: 'REJECTION',
+      const jobEvent = {
+        eventType: JobStatus.DECLINED,
         timestamp: new Date(),
         details: { reason: rejectionReason }, // Store the rejection reason
       };
 
       // Push the rejection event to the job history array
-      jobRequest.jobHistory.push(rejectionEvent);
+      jobRequest.jobHistory.push(jobEvent);
 
       await jobRequest.save();
 
@@ -155,6 +164,33 @@ export const rejectJobRequest = async (req: any, res: Response) => {
   } catch (error) {
       console.error('Error rejecting job request:', error);
       res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+};
+
+
+export const getJobRequestById = async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    const { jobId } = req.params;
+    const contractorId = req.contractor.id;
+
+    const jobRequest = await JobModel.findOne({ _id: jobId, contractor: contractorId, type: JobType.REQUEST }).populate(['contractor', 'customer']).exec();
+
+    
+
+    if (!jobRequest) {
+      return next(new NotFoundError('Job request not found'));
+    }
+  
+
+    // Return the job request details
+    res.json({ success: true, data: jobRequest });
+  } catch (error) {
+    console.error('Error retrieving job request:', error);
+    return next(new BadRequestError('Bad Request'));
   }
 };
 
@@ -1336,7 +1372,10 @@ export const rejectJobRequest = async (req: any, res: Response) => {
 
 
 export const ContractorJobController = {
-    getJobRequests
+    getJobRequests,
+    getJobRequestById,
+    rejectJobRequest,
+    acceptJobRequest
 }
 
 

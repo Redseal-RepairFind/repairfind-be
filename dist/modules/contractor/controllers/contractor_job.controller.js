@@ -35,20 +35,18 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorJobController = exports.rejectJobRequest = exports.acceptJobRequest = exports.getJobRequests = void 0;
+exports.ContractorJobController = exports.getJobRequestById = exports.rejectJobRequest = exports.acceptJobRequest = exports.getJobRequests = void 0;
 var express_validator_1 = require("express-validator");
-var customer_jobrequest_model_1 = __importDefault(require("../../../database/customer/models/customer_jobrequest.model"));
 var job_model_1 = require("../../../database/common/job.model");
+var api_feature_1 = require("../../../utils/api.feature");
+var custom_errors_1 = require("../../../utils/custom.errors");
 var getJobRequests = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, customerId, status_1, startDate, endDate, date, contractorId, filter, start, end, selectedDate, startOfDay, endOfDay, jobRequests, error_1;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+    var errors, _a, customerId, status_1, startDate, endDate, date, contractorId, filter, start, end, selectedDate, startOfDay, endOfDay, jobRequests, _b, data, error, error_1;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
             case 0:
-                _b.trys.push([0, 2, , 3]);
+                _c.trys.push([0, 2, , 3]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -79,13 +77,17 @@ var getJobRequests = function (req, res) { return __awaiter(void 0, void 0, void
                     endOfDay.setDate(startOfDay.getUTCDate() + 1);
                     filter.date = { $gte: startOfDay, $lt: endOfDay };
                 }
-                return [4 /*yield*/, customer_jobrequest_model_1.default.find(filter).exec()];
+                jobRequests = job_model_1.JobModel.find(filter);
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(jobRequests, req.query)];
             case 1:
-                jobRequests = _b.sent();
-                res.json({ success: true, message: 'Job requests retrieved', data: jobRequests });
+                _b = _c.sent(), data = _b.data, error = _b.error;
+                res.status(200).json({
+                    success: true, message: "Job requests retrieved",
+                    data: data
+                });
                 return [3 /*break*/, 3];
             case 2:
-                error_1 = _b.sent();
+                error_1 = _c.sent();
                 console.error('Error retrieving job requests:', error_1);
                 res.status(500).json({ success: false, message: 'Internal Server Error' });
                 return [3 /*break*/, 3];
@@ -140,7 +142,7 @@ var acceptJobRequest = function (req, res) { return __awaiter(void 0, void 0, vo
 }); };
 exports.acceptJobRequest = acceptJobRequest;
 var rejectJobRequest = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, jobId, rejectionReason, contractorId, jobRequest, rejectionEvent, error_3;
+    var errors, jobId, rejectionReason, contractorId, jobRequest, jobEvent, error_3;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -169,13 +171,13 @@ var rejectJobRequest = function (req, res) { return __awaiter(void 0, void 0, vo
                 }
                 // Update the status of the job request to "Rejected" and set the rejection reason
                 jobRequest.status = job_model_1.JobStatus.DECLINED;
-                rejectionEvent = {
-                    eventType: 'REJECTION',
+                jobEvent = {
+                    eventType: job_model_1.JobStatus.DECLINED,
                     timestamp: new Date(),
                     details: { reason: rejectionReason }, // Store the rejection reason
                 };
                 // Push the rejection event to the job history array
-                jobRequest.jobHistory.push(rejectionEvent);
+                jobRequest.jobHistory.push(jobEvent);
                 return [4 /*yield*/, jobRequest.save()];
             case 2:
                 _a.sent();
@@ -192,6 +194,36 @@ var rejectJobRequest = function (req, res) { return __awaiter(void 0, void 0, vo
     });
 }); };
 exports.rejectJobRequest = rejectJobRequest;
+var getJobRequestById = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var errors, jobId, contractorId, jobRequest, error_4;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                errors = (0, express_validator_1.validationResult)(req);
+                if (!errors.isEmpty()) {
+                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                }
+                jobId = req.params.jobId;
+                contractorId = req.contractor.id;
+                return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobId, contractor: contractorId, type: job_model_1.JobType.REQUEST }).populate(['contractor', 'customer']).exec()];
+            case 1:
+                jobRequest = _a.sent();
+                if (!jobRequest) {
+                    return [2 /*return*/, next(new custom_errors_1.NotFoundError('Job request not found'))];
+                }
+                // Return the job request details
+                res.json({ success: true, data: jobRequest });
+                return [3 /*break*/, 3];
+            case 2:
+                error_4 = _a.sent();
+                console.error('Error retrieving job request:', error_4);
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('Bad Request'))];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getJobRequestById = getJobRequestById;
 // //contractor send job quatation /////////////
 // export const contractorSendJobQuatationController = async (
 //     req: any,
@@ -1002,5 +1034,8 @@ exports.rejectJobRequest = rejectJobRequest;
 //   return true;
 // }
 exports.ContractorJobController = {
-    getJobRequests: exports.getJobRequests
+    getJobRequests: exports.getJobRequests,
+    getJobRequestById: exports.getJobRequestById,
+    rejectJobRequest: exports.rejectJobRequest,
+    acceptJobRequest: exports.acceptJobRequest
 };

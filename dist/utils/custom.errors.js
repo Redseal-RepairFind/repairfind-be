@@ -101,6 +101,10 @@ function errorHandler(err, req, res, next) {
         statusCode = 500;
         errorMessage = 'Internal Server Error';
     }
+    if (err.name == 'BadRequestError') {
+        statusCode = 400;
+        errorMessage = 'BadRequest  Error';
+    }
     // Send JSON response with error details
     return res.status(statusCode).json({ success: false, message: errorMessage });
 }

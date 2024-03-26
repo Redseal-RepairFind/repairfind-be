@@ -124,7 +124,11 @@ router.post("/stripe-setupintent",  checkContractorRole, ContractorStripeControl
 // Contractor Jobs
 router.get('/jobs', checkContractorRole, ContractorJobController.getJobRequests)
 router.get('/jobs/listings', checkContractorRole, ContractorJobController.getJobRequests)
+
 router.get('/jobs/requests', checkContractorRole, ContractorJobController.getJobRequests)
+router.get('/jobs/requests/:jobId', checkContractorRole, ContractorJobController.getJobRequestById)
+router.post('/jobs/requests/:jobId/accept', checkContractorRole, ContractorJobController.acceptJobRequest)
+router.post('/jobs/requests/:jobId/reject', checkContractorRole, ContractorJobController.rejectJobRequest)
 
 
 // Notifications

@@ -1,5 +1,5 @@
 import { validationResult } from "express-validator";
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { ContractorModel } from "../../../database/contractor/models/contractor.model";
 import { uploadToS3 } from "../../../utils/upload.utility";
 import { v4 as uuidv4 } from "uuid";
@@ -22,6 +22,7 @@ import CustomerModel from "../../../database/customer/models/customer.model";
 import { EmailService, NotificationService } from "../../../services";
 import { addHours, isFuture, isValid } from "date-fns";
 import { IJob, JobModel, JobType } from "../../../database/common/job.model";
+import { BadRequestError } from "../../../utils/custom.errors";
 
 
 
@@ -30,6 +31,7 @@ import { IJob, JobModel, JobType } from "../../../database/common/job.model";
 export const createJobRequest = async (
     req: any,
     res: Response,
+    next: NextFunction
 ) => {
 
     try {
@@ -134,7 +136,7 @@ export const createJobRequest = async (
         res.status(201).json({ success: true, message: 'Job request submitted successfully', data: newJob });
     } catch (error) {
         console.error('Error submitting job request:', error);
-        res.status(500).json({ success: false, message: 'Internal Server Error' });
+        return next(new BadRequestError('Bad Request'));
     }
 
 }

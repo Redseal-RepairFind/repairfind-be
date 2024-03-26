@@ -2,7 +2,7 @@ import { validationResult } from "express-validator";
 import { Request, Response } from "express";
 import ContractorNotificationModel, { IContractorNotificationDocument } from "../../../database/contractor/models/contractor_notification.model";
 import CustomerNotificationModel from "../../../database/customer/models/customer_notification.model";
-import { APIFeatures } from "../../../utils/api.feature";
+import { APIFeatures, applyAPIFeature } from "../../../utils/api.feature";
 
 
 export const getNotifications = async (req: any, res: Response): Promise<void> => {
@@ -23,22 +23,11 @@ export const getNotifications = async (req: any, res: Response): Promise<void> =
             filter.readAt = null; // Filter for unread notifications
         }
 
-        const features = new APIFeatures(CustomerNotificationModel.find(filter), req.query);
-        features.filter().sort().limitFields().paginate();
-        const notifications = await features.query;
-        const limit = features.queryString.limit;
-        const page = features.queryString.page;
-        const count = await  CustomerNotificationModel.find(filter).countDocuments();
 
+        const {data, error} = await applyAPIFeature(CustomerNotificationModel.find(filter), req.query)
         res.status(200).json({
             success: true, message: "Notifications retrieved", 
-            data: {
-                totalCount: count,
-                limit,
-                page,
-                lastPage: Math.ceil(count / limit),
-                notifications: notifications,
-            }
+            data: data
         });
 
     } catch (error) {

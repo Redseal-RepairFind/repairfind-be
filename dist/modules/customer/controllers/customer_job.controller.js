@@ -48,7 +48,8 @@ var customer_model_1 = __importDefault(require("../../../database/customer/model
 var services_1 = require("../../../services");
 var date_fns_1 = require("date-fns");
 var job_model_1 = require("../../../database/common/job.model");
-var createJobRequest = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+var custom_errors_1 = require("../../../utils/custom.errors");
+var createJobRequest = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, contractorId, category, description, location_1, date, expiresIn, emergency, media, voiceDescription, time, customerId, customer, contractor, existingJobRequest, dateTimeString, jobTime, newJob, html, error_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
@@ -143,8 +144,7 @@ var createJobRequest = function (req, res) { return __awaiter(void 0, void 0, vo
             case 5:
                 error_1 = _b.sent();
                 console.error('Error submitting job request:', error_1);
-                res.status(500).json({ success: false, message: 'Internal Server Error' });
-                return [3 /*break*/, 6];
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('Bad Request'))];
             case 6: return [2 /*return*/];
         }
     });

@@ -44,11 +44,11 @@ var contractor_notification_model_1 = __importDefault(require("../../../database
 var api_feature_1 = require("../../../utils/api.feature");
 var custom_errors_1 = require("../../../utils/custom.errors");
 var getNotifications = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, startDate, endDate, read, unread, contractorId, filter, features, notifications, limit, page, count, error_1;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+    var _a, startDate, endDate, read, unread, contractorId, filter, _b, data, error, error_1;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
             case 0:
-                _b.trys.push([0, 3, , 4]);
+                _c.trys.push([0, 2, , 3]);
                 _a = req.query, startDate = _a.startDate, endDate = _a.endDate, read = _a.read, unread = _a.unread;
                 contractorId = req.contractor.id;
                 filter = { contractor: contractorId };
@@ -63,33 +63,20 @@ var getNotifications = function (req, res, next) { return __awaiter(void 0, void
                 else if (unread === 'true') {
                     filter.readAt = null; // Filter for unread notifications
                 }
-                features = new api_feature_1.APIFeatures(contractor_notification_model_1.default.find(filter), req.query);
-                features.filter().sort().limitFields().paginate();
-                return [4 /*yield*/, features.query];
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(contractor_notification_model_1.default.find(filter), req.query)];
             case 1:
-                notifications = _b.sent();
-                limit = features.queryString.limit;
-                page = features.queryString.page;
-                return [4 /*yield*/, contractor_notification_model_1.default.find(filter).countDocuments()];
-            case 2:
-                count = _b.sent();
+                _b = _c.sent(), data = _b.data, error = _b.error;
                 res.status(200).json({
                     success: true, message: "Notifications retrieved",
-                    data: {
-                        totalCount: count,
-                        limit: limit,
-                        page: page,
-                        lastPage: Math.ceil(count / limit),
-                        notifications: notifications,
-                    }
+                    data: data
                 });
-                return [3 /*break*/, 4];
-            case 3:
-                error_1 = _b.sent();
+                return [3 /*break*/, 3];
+            case 2:
+                error_1 = _c.sent();
                 console.error("Error fetching notifications:", error_1);
                 res.status(500).json({ success: false, message: "Server error" });
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/];
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
         }
     });
 }); };

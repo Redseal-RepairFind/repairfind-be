@@ -1,7 +1,7 @@
 import { validationResult } from "express-validator";
 import { NextFunction, Request, Response } from "express";
 import ContractorNotificationModel, { IContractorNotificationDocument } from "../../../database/contractor/models/contractor_notification.model";
-import { APIFeatures } from "../../../utils/api.feature";
+import { APIFeatures, applyAPIFeature } from "../../../utils/api.feature";
 import CustomError, { InternalServerError, NotFoundError } from "../../../utils/custom.errors";
 
 
@@ -23,25 +23,11 @@ export const getNotifications = async (req: any, res: Response, next: NextFuncti
             filter.readAt = null; // Filter for unread notifications
         }
 
-        // Fetch notifications based on the query
-        const features = new APIFeatures(ContractorNotificationModel.find(filter), req.query);
-        features.filter().sort().limitFields().paginate();
-        const notifications = await features.query;
-        const limit = features.queryString.limit;
-        const page = features.queryString.page;
-        const count = await  ContractorNotificationModel.find(filter).countDocuments();
-
+        const {data, error} = await applyAPIFeature(ContractorNotificationModel.find(filter), req.query)
         res.status(200).json({
             success: true, message: "Notifications retrieved", 
-            data: {
-                totalCount: count,
-                limit,
-                page,
-                lastPage: Math.ceil(count / limit),
-                notifications: notifications,
-            }
+            data: data
         });
-        
     } catch (error) {
         console.error("Error fetching notifications:", error);
         res.status(500).json({ success: false, message: "Server error" });
