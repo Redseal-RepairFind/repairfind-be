@@ -10,6 +10,13 @@ export interface IJobLocation extends Document {
     longitude: string;
 }
 
+
+export interface IJobHistory {
+    eventType: string; // Custom event type identifier
+    timestamp: Date;
+    details?: any; // Additional details specific to each event
+}
+
 export enum JobStatus {
     PENDING = 'PENDING',
     DECLINED = 'DECLINED',
@@ -35,19 +42,20 @@ export interface IJob extends Document {
     category: string;
     description: string;
     title: string;
-    voiceDescription: object;
+    voiceDescription: string;
     location: IJobLocation;
     date: Date;
     startDate: Date;
     endDate: Date;
     time: Date;
     expiresIn: number;
-    media: object[];
+    media: string[];
     tags?: string[];
     experience?: string;
     createdAt: Date;
     updatedAt: Date;
     applications: IJobApplication[];
+    jobHistory: IJobHistory[];
 }
 
 const JobLocationSchema = new Schema<IJobLocation>({
@@ -59,6 +67,14 @@ const JobLocationSchema = new Schema<IJobLocation>({
     longitude: { type: String },
 });
 
+
+
+const JobHistorySchema = new Schema<IJobHistory>({
+    eventType: { type: String, required: false }, // Identify the type of event - JOB_REJECTED, JOB_ACCEPTED, JOB_CLOSED, JOB_EXPIRED
+    timestamp: { type: Date, default: Date.now }, // Timestamp of the event
+    details: { type: Schema.Types.Mixed }, // Additional details specific to the event
+});
+
 const JobSchema = new Schema<IJob>({
     customer: { type: Schema.Types.ObjectId, ref: 'customers', required: true },
     contractor: { type: Schema.Types.ObjectId, ref: 'contractors' },
@@ -68,16 +84,17 @@ const JobSchema = new Schema<IJob>({
     category: { type: String, required: false },
     description: { type: String, required: true },
     title: { type: String },
-    voiceDescription: { type: Object, default: null },
+    voiceDescription: { type: String, default: null },
     location: { type: JobLocationSchema, required: true },
     date: { type: Date, required: true },
     time: { type: Date, required: false },
     expiresIn: { type: Number, default: 0 },
     startDate: { type: Date },
     endDate: { type: Date },
-    media: { type: [Object], default: [] },
+    media: { type: [String], default: [] },
     tags: { type: [String] },
     experience: { type: String },
+    jobHistory: [JobHistorySchema], // Array of job history entries
 }, { timestamps: true });
 
 const JobModel = model<IJob>("jobs", JobSchema);

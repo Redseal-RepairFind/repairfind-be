@@ -25,6 +25,11 @@ var JobLocationSchema = new mongoose_1.Schema({
     latitude: { type: String },
     longitude: { type: String },
 });
+var JobHistorySchema = new mongoose_1.Schema({
+    eventType: { type: String, required: false }, // Identify the type of event - JOB_REJECTED, JOB_ACCEPTED, JOB_CLOSED, JOB_EXPIRED
+    timestamp: { type: Date, default: Date.now }, // Timestamp of the event
+    details: { type: mongoose_1.Schema.Types.Mixed }, // Additional details specific to the event
+});
 var JobSchema = new mongoose_1.Schema({
     customer: { type: mongoose_1.Schema.Types.ObjectId, ref: 'customers', required: true },
     contractor: { type: mongoose_1.Schema.Types.ObjectId, ref: 'contractors' },
@@ -34,16 +39,17 @@ var JobSchema = new mongoose_1.Schema({
     category: { type: String, required: false },
     description: { type: String, required: true },
     title: { type: String },
-    voiceDescription: { type: Object, default: null },
+    voiceDescription: { type: String, default: null },
     location: { type: JobLocationSchema, required: true },
     date: { type: Date, required: true },
     time: { type: Date, required: false },
     expiresIn: { type: Number, default: 0 },
     startDate: { type: Date },
     endDate: { type: Date },
-    media: { type: [Object], default: [] },
+    media: { type: [String], default: [] },
     tags: { type: [String] },
     experience: { type: String },
+    jobHistory: [JobHistorySchema], // Array of job history entries
 }, { timestamps: true });
 var JobModel = (0, mongoose_1.model)("jobs", JobSchema);
 exports.JobModel = JobModel;
