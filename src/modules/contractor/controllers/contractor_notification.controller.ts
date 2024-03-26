@@ -1,10 +1,11 @@
 import { validationResult } from "express-validator";
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import ContractorNotificationModel, { IContractorNotificationDocument } from "../../../database/contractor/models/contractor_notification.model";
 import { APIFeatures } from "../../../utils/api.feature";
+import CustomError, { InternalServerError, NotFoundError } from "../../../utils/custom.errors";
 
 
-export const getNotifications = async (req: any, res: Response): Promise<void> => {
+export const getNotifications = async (req: any, res: Response, next: NextFunction): Promise<void> => {
     try {
         const { startDate, endDate, read, unread } = req.query;
         const contractorId  = req.contractor.id
@@ -48,16 +49,27 @@ export const getNotifications = async (req: any, res: Response): Promise<void> =
 };
 
 
-export const getSingleNotification = async (req: any, res: Response): Promise<void> => {
+export const getSingleNotification = async (req: any, res: Response,  next: NextFunction): Promise<void> => {
     try {
         const { notificationId} = req.params;
         const contractorId  = req.contractor.id
         const query: any = {contractor: contractorId, _id: notificationId};
+
+        //@ts-ignore
         const notification = await ContractorNotificationModel.findOne(query).populate('entity');
+        
+        // If notification does not exist, throw a NotFoundError
+        if (!notification) {
+            return next(new NotFoundError('Notification not found'));
+        }
+
         res.status(200).json({ success: true,  message: "Notification retrieved", data: notification });
-    } catch (error) {
-        console.error("Error fetching notification:", error);
-        res.status(500).json({ success: false, message: "Server error" });
+    } catch (error: any) {
+        // use this to show error file and line
+        const stackLines = error?.stack?.split('\n') ?? [];
+        const originatingLine = stackLines[1].trim(); // Assuming the originating line is the second line in the stack trace
+        let message = (`${error.message} - ${originatingLine}`);
+        return next(new InternalServerError(message));
     }
 };
 export const ContractorNotificationController = {

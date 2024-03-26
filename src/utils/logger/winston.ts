@@ -37,7 +37,7 @@ export const Log = winston.createLogger({
         winston.format.json()
     ),
     transports: [
-        // new winston.transports.Console(),
+        new winston.transports.Console(),
         errorTransport,
         infoTransport
     ]

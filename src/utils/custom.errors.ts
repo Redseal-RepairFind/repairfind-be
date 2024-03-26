@@ -1,4 +1,4 @@
-import { Logger } from "./logger";
+import { Log, Logger } from "./logger";
 
 
 import { Request, Response, NextFunction } from 'express';
@@ -58,11 +58,29 @@ export default class CustomError extends Error {
     }
  }
 
+ export class InternalServerError extends CustomError {
+    constructor(msg?: string) {
+       super(msg || 'InternalServerError', 500);
+       this.name = 'InternalServerError';
+    }
+ }
 
-export function errorHandler(err: Error, req: Request, res: Response, next: NextFunction) {
-  // Log the error using your logger
-//   Logger.error(err.message);
 
-  // Send a generic error response to the client
-  return res.status(500).json({ error: 'Internal Server Error' });
-}
+ export function errorHandler(err: CustomError, req: Request, res: Response, next: NextFunction) {
+
+
+   Logger.error(err.message);
+ 
+   // Default status code and error message
+   let statusCode = err.code || 500;
+   let errorMessage = err.message || 'Internal Server Error';
+ 
+
+   if(err.name == 'InternalServerError'){
+      statusCode = 500
+      errorMessage = 'Internal Server Error';
+   }
+ 
+   // Send JSON response with error details
+   return res.status(statusCode).json({success:false, message: errorMessage });
+ }

@@ -52,7 +52,7 @@ export class EmailService {
         } catch (error: unknown) {
             console.error(error);
             // add logger to slack channel here
-            Logger.Error('Send Email API couldn\'t send email to user', error);
+            Logger.error('Send Email API couldn\'t send email to user', error);
             throw error; // Rethrow the error to propagate it up the call stack
         }
     }

@@ -14,8 +14,18 @@ import customerRoute from "./modules/customer/routes/routes";
 import commonRoute from "./modules/common/routes/routes";
 import { RunSeeders } from "./database/seeders";
 import SocketService from "./services/socket";
+import { errorHandler } from "./utils/custom.errors";
+import { Logger } from "./utils/logger";
 
 dotenv.config();
+
+
+// console.debug = Logger.debug.bind(Logger);
+// console.log = Logger.info.bind(Logger);
+console.warn = Logger.warn.bind(Logger);
+console.error = Logger.error.bind(Logger);
+console.trace = Logger.trace.bind(Logger);
+
 
 const app = express();
 const server = http.createServer(app);
@@ -32,6 +42,8 @@ const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 1000, // limit each IP to 100 requests per windowMs
 });
+
+
 
 //@ts-ignore
 app.use(function (err, req, res, next) {
@@ -66,14 +78,26 @@ const MONGODB_URI = process.env.MONGODB_URI as string;
 })();
 
 // Routes
+
+app.use("/health", (req, res) => {
+  res.json("App is up and running");
+});
+
 app.use("/api/v1/contractor", contractorRoute);
 app.use("/api/v1/admin", adminRoute);
 app.use("/api/v1/customer", customerRoute);
 app.use("/api/v1/common", commonRoute);
 
-app.use("/", (req, res) => {
-  res.json("Hello");
+
+
+// Middleware to handle non-existing pages (404)
+app.use((req, res, next) => {
+  res.status(404).json({success:false, message: `Not found:  ${req.hostname}${req.originalUrl}` });
 });
+
+
+app.use(errorHandler)
+
 
 // Socket connections
 const socketService = new SocketService(io);

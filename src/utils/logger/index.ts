@@ -1,10 +1,5 @@
-import { APP_NAME } from '../../constants';
-import { LoggerFactory } from './LoggerFactory';
+import { Logger } from './Log4js';
 import { Log } from './winston';
 
-const Logger = LoggerFactory.configure({
-   id: APP_NAME,
-   level: 'all'
-});
 
 export { Logger, Log };

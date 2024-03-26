@@ -31,7 +31,7 @@ errorTransport.on('error', function (error) {
 exports.Log = winston_1.default.createLogger({
     format: winston_1.default.format.combine(winston_1.default.format.timestamp(), winston_1.default.format.json()),
     transports: [
-        // new winston.transports.Console(),
+        new winston_1.default.transports.Console(),
         errorTransport,
         infoTransport
     ]

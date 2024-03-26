@@ -101,7 +101,7 @@ var EmailService = /** @class */ (function () {
                         error_1 = _a.sent();
                         console.error(error_1);
                         // add logger to slack channel here
-                        logger_1.Logger.Error('Send Email API couldn\'t send email to user', error_1);
+                        logger_1.Logger.error('Send Email API couldn\'t send email to user', error_1);
                         throw error_1; // Rethrow the error to propagate it up the call stack
                     case 6: return [2 /*return*/];
                 }

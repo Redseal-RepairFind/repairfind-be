@@ -15,7 +15,8 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.errorHandler = exports.NotFoundError = exports.ServiceUnavailableError = exports.ForbiddenError = exports.UnAuthorizedError = exports.BadRequestError = void 0;
+exports.errorHandler = exports.InternalServerError = exports.NotFoundError = exports.ServiceUnavailableError = exports.ForbiddenError = exports.UnAuthorizedError = exports.BadRequestError = void 0;
+var logger_1 = require("./logger");
 // import { Logger } from './logger';
 var CustomError = /** @class */ (function (_super) {
     __extends(CustomError, _super);
@@ -81,10 +82,26 @@ var NotFoundError = /** @class */ (function (_super) {
     return NotFoundError;
 }(CustomError));
 exports.NotFoundError = NotFoundError;
+var InternalServerError = /** @class */ (function (_super) {
+    __extends(InternalServerError, _super);
+    function InternalServerError(msg) {
+        var _this = _super.call(this, msg || 'InternalServerError', 500) || this;
+        _this.name = 'InternalServerError';
+        return _this;
+    }
+    return InternalServerError;
+}(CustomError));
+exports.InternalServerError = InternalServerError;
 function errorHandler(err, req, res, next) {
-    // Log the error using your logger
-    //   Logger.error(err.message);
-    // Send a generic error response to the client
-    return res.status(500).json({ error: 'Internal Server Error' });
+    logger_1.Logger.error(err.message);
+    // Default status code and error message
+    var statusCode = err.code || 500;
+    var errorMessage = err.message || 'Internal Server Error';
+    if (err.name == 'InternalServerError') {
+        statusCode = 500;
+        errorMessage = 'Internal Server Error';
+    }
+    // Send JSON response with error details
+    return res.status(statusCode).json({ success: false, message: errorMessage });
 }
 exports.errorHandler = errorHandler;

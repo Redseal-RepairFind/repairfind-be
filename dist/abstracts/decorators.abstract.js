@@ -57,7 +57,7 @@ function handleAsyncError() {
                         case 2:
                             error_1 = _a.sent();
                             console.error(error_1);
-                            logger_1.Logger.Info('Handle Async caught an exception', error_1);
+                            logger_1.Logger.info('Handle Async caught an exception', error_1);
                             //@ts-ignore
                             this.next(error_1);
                             return [3 /*break*/, 3];

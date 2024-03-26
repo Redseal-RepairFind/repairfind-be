@@ -1,31 +1,40 @@
 import log4js from 'log4js';
-import { ILogger, ILoggerOptions } from '../../abstracts/interfaces';
+import { APP_NAME } from '../../constants';
 
-export class Log4js implements ILogger {
-   logger: log4js.Logger;
+// Configure Log4js with the configuration file
+// Define your logging configuration
+const config = {
+   appenders: {
+      coloredConsole: {
+         type: 'console',
+         layout: {
+            type: 'pattern',
+            pattern: '%[[%d{yyyy-MM-dd hh:mm:ss.SSS}]%] %[[%p]%] %[[%f{1}:%l]%] - %m' // Include filename and line number
+         }
+      },
+      dailyFile: {
+         type: 'dateFile',
+         filename: 'logs/app.log',
+         pattern: 'yyyy-MM-dd.log', // Include date in the file name
+         daysToKeep: 7, // Number of days to keep old log files
+         compress: true,
+         layout: {
+            type: 'pattern',
+            pattern: '%d{yyyy-MM-dd hh:mm:ss.SSS} [%p] %f{1}:%l - %m' // Include filename and line number
+         }
+      }
+   },
+   categories: {
+      default: { appenders: ['coloredConsole', 'dailyFile'], level: 'all', enableCallStack: true }
+   },
+   enableCallStack: true
 
-   constructor(options: ILoggerOptions) {
-      log4js.configure({
-         appenders: { [options.id]: { type: 'console', layout: { type: 'basic' } } },
-         categories: { default: { appenders: [options.id], level: options.level || 'error' } }
-      });
+};
 
-      this.logger = log4js.getLogger(options.id);
-   }
+log4js.configure(config);
 
-   Info(...info: any): void {
-      this.logger.info(this.SerializeMessage(info));
-   }
+// Create a logger instance
+export const Logger = log4js.getLogger(APP_NAME);
 
-   Error(...error: any): void {
-      this.logger.error(this.SerializeMessage(error));
-   }
-
-   Warn(...message: any): void {
-      this.logger.warn(this.SerializeMessage(message));
-   }
-
-   private SerializeMessage(message: any[]): string {
-      return message.map((m) => typeof m === 'object' ? JSON.stringify(m) : m).join(' ');
-   }
-}
+// Optionally, export Log4js for use in other parts of your application
+export default log4js;

@@ -54,7 +54,14 @@ var routes_3 = __importDefault(require("./modules/customer/routes/routes"));
 var routes_4 = __importDefault(require("./modules/common/routes/routes"));
 var seeders_1 = require("./database/seeders");
 var socket_1 = __importDefault(require("./services/socket"));
+var custom_errors_1 = require("./utils/custom.errors");
+var logger_1 = require("./utils/logger");
 dotenv_1.default.config();
+// console.debug = Logger.debug.bind(Logger);
+// console.log = Logger.info.bind(Logger);
+console.warn = logger_1.Logger.warn.bind(logger_1.Logger);
+console.error = logger_1.Logger.error.bind(logger_1.Logger);
+console.trace = logger_1.Logger.trace.bind(logger_1.Logger);
 var app = (0, express_1.default)();
 var server = http_1.default.createServer(app);
 var csrfProtection = (0, csurf_1.default)({ cookie: true });
@@ -109,13 +116,18 @@ var MONGODB_URI = process.env.MONGODB_URI;
     });
 }); })();
 // Routes
+app.use("/health", function (req, res) {
+    res.json("App is up and running");
+});
 app.use("/api/v1/contractor", routes_1.default);
 app.use("/api/v1/admin", routes_2.default);
 app.use("/api/v1/customer", routes_3.default);
 app.use("/api/v1/common", routes_4.default);
-app.use("/", function (req, res) {
-    res.json("Hello");
+// Middleware to handle non-existing pages (404)
+app.use(function (req, res, next) {
+    res.status(404).json({ success: false, message: "Not found:  ".concat(req.hostname).concat(req.originalUrl) });
 });
+app.use(custom_errors_1.errorHandler);
 // Socket connections
 var socketService = new socket_1.default(io);
 // Initialize server
