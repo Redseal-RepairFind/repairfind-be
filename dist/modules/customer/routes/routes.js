@@ -12,6 +12,7 @@ var job_request_controller_1 = require("../controllers/job_request.controller");
 var customer_explore_controller_1 = require("../controllers/customer_explore.controller");
 var customer_job_controller_1 = require("../controllers/customer_job.controller");
 var customer_notification_controller_1 = require("../controllers/customer_notification.controller");
+var customer_conversation_controller_1 = require("../controllers/customer_conversation.controller");
 var express = require("express");
 var router = express.Router();
 // Auth
@@ -52,6 +53,10 @@ router.post("/jobs", customerRoleChecker_middleware_1.checkCustomerRole, request
 router.get('/notifications', customerRoleChecker_middleware_1.checkCustomerRole, customer_notification_controller_1.CustomerNotificationController.getNotifications);
 router.get('/notifications/:notificationId', customerRoleChecker_middleware_1.checkCustomerRole, customer_notification_controller_1.CustomerNotificationController.getSingleNotification);
 router.post('/notifications/:notificationId', customerRoleChecker_middleware_1.checkCustomerRole, customer_notification_controller_1.CustomerNotificationController.markNotificationAsRead);
+// Conversations
+router.get('/conversations', customerRoleChecker_middleware_1.checkCustomerRole, customer_conversation_controller_1.CustomerConversationController.getConversations);
+router.get('/conversations/:conversationId', customerRoleChecker_middleware_1.checkCustomerRole, customer_conversation_controller_1.CustomerConversationController.getSingleConversation);
+router.get('/conversations/:conversationId/messages', customerRoleChecker_middleware_1.checkCustomerRole, customer_conversation_controller_1.CustomerConversationController.getConversationMessages);
 // router.get("/get_popular_contractor", checkCustomerRole, customerGetPopularContractorController ); // customer get popular contractor
 // router.get("/search_contractor", checkCustomerRole, customerSearchForContractorController ); // customer search contractor
 // router.get("/get_all_contractor_on_skill", validateContractorSearckParams, checkCustomerRole, customerGetAllContractorOnSkillController ); // customer get all contractor on a skill

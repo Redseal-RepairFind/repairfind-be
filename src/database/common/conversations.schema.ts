@@ -1,7 +1,7 @@
 import mongoose, {Document, Schema, model} from 'mongoose';
 import {v4 as uuidv4} from 'uuid';
 
-export enum ENTITY_TYPE {
+export enum ConversationEntityType {
     BOOKING = 'bookings',
     JOB = 'jobs',
 }
@@ -13,7 +13,7 @@ export interface IConversationDocument extends Document {
     lastMessageAt: Date;
     lastMessage: string;
     entity: string
-    entityType: ENTITY_TYPE
+    entityType: ConversationEntityType
     heading: Object;
 }
 
@@ -36,14 +36,14 @@ const ConversationSchema = new mongoose.Schema<IConversationDocument>({
 
         entity: {
             type: String,
-            ref: '',
+            refPath: 'entityType',
             index: true,
         },
 
         entityType: {
             type: String,
             required: true,
-            enum: Object.values(ENTITY_TYPE)
+            enum: Object.values(ConversationEntityType)
         },
 
         heading: {
@@ -78,7 +78,7 @@ const ConversationSchema = new mongoose.Schema<IConversationDocument>({
     }
 );
 
-export const ConversationDb = model<IConversationDocument>('conversations', ConversationSchema);
+export const ConversationModel = model<IConversationDocument>('conversations', ConversationSchema);
 
 
 

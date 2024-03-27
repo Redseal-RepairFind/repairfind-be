@@ -11,6 +11,7 @@ import { ContractorStripeController } from "../controllers/contractor_stripe.con
 import { TeamInvitationController } from "../controllers/contractor_team_invitation.controller";
 import { ContractorJobController } from "../controllers/contractor_job.controller";
 import { ContractorNotificationController } from "../controllers/contractor_notification.controller";
+import { ContractorConversationController } from "../controllers/contractor_conversation.controller";
 
 const express = require("express");
 const router = express.Router();
@@ -135,5 +136,10 @@ router.post('/jobs/requests/:jobId/reject', checkContractorRole, ContractorJobCo
 router.get('/notifications', checkContractorRole, ContractorNotificationController.getNotifications)
 router.get('/notifications/:notificationId', checkContractorRole, ContractorNotificationController.getSingleNotification)
 
+
+// Conversations
+router.get('/conversations', checkContractorRole, ContractorConversationController.getConversations)
+router.get('/conversations/:conversationId', checkContractorRole, ContractorConversationController.getSingleConversation)
+router.get('/conversations/:conversationId/messages', checkContractorRole, ContractorConversationController.getConversationMessages)
 
 export default router;

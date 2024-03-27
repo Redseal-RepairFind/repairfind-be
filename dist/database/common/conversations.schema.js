@@ -23,13 +23,13 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ConversationDb = exports.ENTITY_TYPE = void 0;
+exports.ConversationModel = exports.ConversationEntityType = void 0;
 var mongoose_1 = __importStar(require("mongoose"));
-var ENTITY_TYPE;
-(function (ENTITY_TYPE) {
-    ENTITY_TYPE["BOOKING"] = "bookings";
-    ENTITY_TYPE["JOB"] = "jobs";
-})(ENTITY_TYPE || (exports.ENTITY_TYPE = ENTITY_TYPE = {}));
+var ConversationEntityType;
+(function (ConversationEntityType) {
+    ConversationEntityType["BOOKING"] = "bookings";
+    ConversationEntityType["JOB"] = "jobs";
+})(ConversationEntityType || (exports.ConversationEntityType = ConversationEntityType = {}));
 var ConversationSchema = new mongoose_1.default.Schema({
     members: [
         {
@@ -47,13 +47,13 @@ var ConversationSchema = new mongoose_1.default.Schema({
     ],
     entity: {
         type: String,
-        ref: '',
+        refPath: 'entityType',
         index: true,
     },
     entityType: {
         type: String,
         required: true,
-        enum: Object.values(ENTITY_TYPE)
+        enum: Object.values(ConversationEntityType)
     },
     heading: {
         type: Object
@@ -84,4 +84,4 @@ var ConversationSchema = new mongoose_1.default.Schema({
     timestamps: true,
     versionKey: false
 });
-exports.ConversationDb = (0, mongoose_1.model)('conversations', ConversationSchema);
+exports.ConversationModel = (0, mongoose_1.model)('conversations', ConversationSchema);

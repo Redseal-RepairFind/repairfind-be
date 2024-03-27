@@ -11,6 +11,7 @@ var contractor_stripe_controller_1 = require("../controllers/contractor_stripe.c
 var contractor_team_invitation_controller_1 = require("../controllers/contractor_team_invitation.controller");
 var contractor_job_controller_1 = require("../controllers/contractor_job.controller");
 var contractor_notification_controller_1 = require("../controllers/contractor_notification.controller");
+var contractor_conversation_controller_1 = require("../controllers/contractor_conversation.controller");
 var express = require("express");
 var router = express.Router();
 //  AUTH
@@ -103,4 +104,8 @@ router.post('/jobs/requests/:jobId/reject', contractorRoleCheck_middleware_1.che
 // Notifications
 router.get('/notifications', contractorRoleCheck_middleware_1.checkContractorRole, contractor_notification_controller_1.ContractorNotificationController.getNotifications);
 router.get('/notifications/:notificationId', contractorRoleCheck_middleware_1.checkContractorRole, contractor_notification_controller_1.ContractorNotificationController.getSingleNotification);
+// Conversations
+router.get('/conversations', contractorRoleCheck_middleware_1.checkContractorRole, contractor_conversation_controller_1.ContractorConversationController.getConversations);
+router.get('/conversations/:conversationId', contractorRoleCheck_middleware_1.checkContractorRole, contractor_conversation_controller_1.ContractorConversationController.getSingleConversation);
+router.get('/conversations/:conversationId/messages', contractorRoleCheck_middleware_1.checkContractorRole, contractor_conversation_controller_1.ContractorConversationController.getConversationMessages);
 exports.default = router;

@@ -50,12 +50,13 @@ var date_fns_1 = require("date-fns");
 var job_model_1 = require("../../../database/common/job.model");
 var custom_errors_1 = require("../../../utils/custom.errors");
 var api_feature_1 = require("../../../utils/api.feature");
+var conversations_schema_1 = require("../../../database/common/conversations.schema");
 var createJobRequest = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, contractorId, category, description, location_1, date, expiresIn, emergency, media, voiceDescription, time, customerId, customer, contractor, existingJobRequest, dateTimeString, jobTime, newJob, html, error_1;
+    var errors, _a, contractorId, category, description, location_1, date, expiresIn, emergency, media, voiceDescription, time, customerId, customer, contractor, existingJobRequest, dateTimeString, jobTime, newJob, conversationMembers, newConversation, html, error_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 5, , 6]);
+                _b.trys.push([0, 6, , 7]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ message: 'validatior error occured', errors: errors.array() })];
@@ -110,6 +111,19 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
             case 4:
                 // Save the job document to the database
                 _b.sent();
+                conversationMembers = [
+                    { memberType: 'customers', member: customerId },
+                    { memberType: 'contractors', member: contractorId }
+                ];
+                return [4 /*yield*/, conversations_schema_1.ConversationModel.create({
+                        members: conversationMembers,
+                        entity: newJob._id,
+                        entityType: conversations_schema_1.ConversationEntityType.JOB,
+                        lastMessage: description, // Set the last message to the job description
+                        lastMessageAt: new Date() // Set the last message timestamp to now
+                    })];
+            case 5:
+                newConversation = _b.sent();
                 //  IT WILL BE WISE TO MOVE ALL THIS TO EVENT LISTENER TO KEEP THE CONTROLLER LEAN
                 //   contractor notification
                 services_1.NotificationService.sendNotification({
@@ -141,12 +155,12 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 html = (0, jobRequestTemplate_1.htmlJobRequestTemplate)(customer.firstName, customer.firstName, "".concat(date, " ").concat(time), description);
                 services_1.EmailService.send(contractor.email, 'Job request from customer', html);
                 res.status(201).json({ success: true, message: 'Job request submitted successfully', data: newJob });
-                return [3 /*break*/, 6];
-            case 5:
+                return [3 /*break*/, 7];
+            case 6:
                 error_1 = _b.sent();
                 console.error('Error submitting job request:', error_1);
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('Bad Request'))];
-            case 6: return [2 /*return*/];
+            case 7: return [2 /*return*/];
         }
     });
 }); };

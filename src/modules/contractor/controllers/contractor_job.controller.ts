@@ -102,6 +102,21 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
 
       // Update the status of the job request to "Accepted"
       jobRequest.status = JobStatus.ACCEPTED;
+
+      // Define the rejection event to be stored in the job history
+      const jobEvent = {
+        eventType: JobStatus.ACCEPTED,
+        timestamp: new Date(),
+        details: { 
+            message: 'Contactor accepted this job'
+         },
+      };
+
+      // Push the rejection event to the job history array
+      jobRequest.jobHistory.push(jobEvent);
+
+      await jobRequest.save();
+
       await jobRequest.save();
 
       // Return success response
@@ -134,7 +149,7 @@ export const rejectJobRequest = async (req: any, res: Response) => {
       }
 
       // Check if the job request belongs to the contractor
-      if (jobRequest.contractor !== contractorId) {
+      if (jobRequest.contractor.toString() !== contractorId) {
           return res.status(403).json({ success: false, message: 'Unauthorized: You do not have permission to reject this job request' });
       }
 

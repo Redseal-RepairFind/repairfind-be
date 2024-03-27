@@ -10,6 +10,7 @@ import { JobRequest } from "../controllers/job_request.controller";
 import { CustomerExploreController } from "../controllers/customer_explore.controller";
 import { CustomerJobController } from "../controllers/customer_job.controller";
 import { CustomerNotificationController } from "../controllers/customer_notification.controller";
+import { CustomerConversationController } from "../controllers/customer_conversation.controller";
 
 const express = require("express");
 const router = express.Router();
@@ -69,6 +70,12 @@ router.post("/jobs", checkCustomerRole, CustomerHttpRequest.sendJobRequestParams
 router.get('/notifications', checkCustomerRole, CustomerNotificationController.getNotifications)
 router.get('/notifications/:notificationId', checkCustomerRole, CustomerNotificationController.getSingleNotification)
 router.post('/notifications/:notificationId', checkCustomerRole, CustomerNotificationController.markNotificationAsRead)
+
+
+// Conversations
+router.get('/conversations', checkCustomerRole, CustomerConversationController.getConversations)
+router.get('/conversations/:conversationId', checkCustomerRole, CustomerConversationController.getSingleConversation)
+router.get('/conversations/:conversationId/messages', checkCustomerRole, CustomerConversationController.getConversationMessages)
 
 // router.get("/get_popular_contractor", checkCustomerRole, customerGetPopularContractorController ); // customer get popular contractor
 // router.get("/search_contractor", checkCustomerRole, customerSearchForContractorController ); // customer search contractor

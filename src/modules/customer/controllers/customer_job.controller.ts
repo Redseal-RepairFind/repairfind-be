@@ -24,6 +24,7 @@ import { addHours, isFuture, isValid } from "date-fns";
 import { IJob, JobModel, JobType } from "../../../database/common/job.model";
 import { BadRequestError } from "../../../utils/custom.errors";
 import { applyAPIFeature } from "../../../utils/api.feature";
+import { ConversationEntityType, ConversationModel, IConversationDocument } from "../../../database/common/conversations.schema";
 
 
 
@@ -95,6 +96,22 @@ export const createJobRequest = async (
         // Save the job document to the database
         await newJob.save();
 
+        // Create a new conversation between the customer and the contractor
+        const conversationMembers = [
+            { memberType: 'customers', member: customerId },
+            { memberType: 'contractors', member: contractorId }
+        ];
+
+        const newConversation: IConversationDocument = await ConversationModel.create({
+            members: conversationMembers,
+            entity: newJob._id,
+            entityType: ConversationEntityType.JOB,
+            lastMessage: description, // Set the last message to the job description
+            lastMessageAt: new Date() // Set the last message timestamp to now
+        });
+
+        
+
 
         //  IT WILL BE WISE TO MOVE ALL THIS TO EVENT LISTENER TO KEEP THE CONTROLLER LEAN
         //   contractor notification
@@ -141,7 +158,7 @@ export const createJobRequest = async (
     }
 
 }
-
+ 
 
 export const createJobListing = async (
     req: any,

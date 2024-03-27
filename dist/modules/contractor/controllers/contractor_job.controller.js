@@ -97,11 +97,11 @@ var getJobRequests = function (req, res) { return __awaiter(void 0, void 0, void
 }); };
 exports.getJobRequests = getJobRequests;
 var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, jobId, contractorId, jobRequest, error_2;
+    var errors, jobId, contractorId, jobRequest, jobEvent, error_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 3, , 4]);
+                _a.trys.push([0, 4, , 5]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -125,16 +125,28 @@ var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 }
                 // Update the status of the job request to "Accepted"
                 jobRequest.status = job_model_1.JobStatus.ACCEPTED;
+                jobEvent = {
+                    eventType: job_model_1.JobStatus.ACCEPTED,
+                    timestamp: new Date(),
+                    details: {
+                        message: 'Contactor accepted this job'
+                    },
+                };
+                // Push the rejection event to the job history array
+                jobRequest.jobHistory.push(jobEvent);
                 return [4 /*yield*/, jobRequest.save()];
             case 2:
                 _a.sent();
+                return [4 /*yield*/, jobRequest.save()];
+            case 3:
+                _a.sent();
                 // Return success response
                 res.json({ success: true, message: 'Job request accepted successfully' });
-                return [3 /*break*/, 4];
-            case 3:
+                return [3 /*break*/, 5];
+            case 4:
                 error_2 = _a.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('Something went wrong', error_2))];
-            case 4: return [2 /*return*/];
+            case 5: return [2 /*return*/];
         }
     });
 }); };
@@ -160,7 +172,7 @@ var rejectJobRequest = function (req, res) { return __awaiter(void 0, void 0, vo
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Job request not found' })];
                 }
                 // Check if the job request belongs to the contractor
-                if (jobRequest.contractor !== contractorId) {
+                if (jobRequest.contractor.toString() !== contractorId) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'Unauthorized: You do not have permission to reject this job request' })];
                 }
                 // Check if the job request is pending

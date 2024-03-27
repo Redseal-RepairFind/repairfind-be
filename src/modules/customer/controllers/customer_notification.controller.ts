@@ -1,8 +1,7 @@
 import { validationResult } from "express-validator";
 import { Request, Response } from "express";
-import ContractorNotificationModel, { IContractorNotificationDocument } from "../../../database/contractor/models/contractor_notification.model";
 import CustomerNotificationModel from "../../../database/customer/models/customer_notification.model";
-import { APIFeatures, applyAPIFeature } from "../../../utils/api.feature";
+import { applyAPIFeature } from "../../../utils/api.feature";
 
 
 export const getNotifications = async (req: any, res: Response): Promise<void> => {
