@@ -129,23 +129,32 @@ var ContractorSchema = new mongoose_1.Schema({
     },
     stripeCustomer: {
         type: stripe_customer_schema_1.StripeCustomerSchema,
-        default: null,
-        select: false
+        default: null
     },
     stripeIdentity: {
         type: Object,
         default: null,
-        select: false
     },
     stripePaymentMethods: {
         type: Array,
-        default: [],
-        select: false
+        default: []
     }
 }, {
     timestamps: true,
 });
 // Rest of your schema
+ContractorSchema.virtual('hasStripeIdentity').get(function () {
+    return !!this.stripeIdentity; // Returns true if stripeIdentity exists, false otherwise
+});
+ContractorSchema.virtual('hasStripeCustomer').get(function () {
+    return !!this.stripeCustomer; // Returns true if stripeCustomer exists, false otherwise
+});
+ContractorSchema.virtual('hasStripePaymentMethods').get(function () {
+    return Array.isArray(this.stripePaymentMethods) && this.stripePaymentMethods.length > 0; // Returns true if stripePaymentMethods is an array with at least one element
+});
+ContractorSchema.virtual('stripeIdentityStatus').get(function () {
+    return this.stripeIdentity ? this.stripeIdentity.status : 'unverified';
+});
 ContractorSchema.virtual('quiz').get(function () {
     return __awaiter(this, void 0, void 0, function () {
         var latestQuiz;
@@ -173,8 +182,21 @@ ContractorSchema.set('toJSON', {
         delete ret.password;
         delete ret.emailOtp;
         delete ret.passwordOtp;
+        // Check if the options include virtuals, if not, delete the fields
+        // Check if the options include virtuals, if not, delete the stripeIdentity field
+        if (!options.includeStripeIdentity) {
+            delete ret.stripeIdentity;
+        }
+        if (!options.includeStripePaymentMethods) {
+            delete ret.stripePaymentMethods;
+        }
+        if (!options.includeStripeCustomer) {
+            delete ret.stripeCustomer;
+        }
         ret.name = doc.name;
         return ret;
-    }
+    },
+    virtuals: true
 });
+ContractorSchema.set('toObject', { virtuals: true });
 exports.ContractorModel = (0, mongoose_1.model)("contractors", ContractorSchema);

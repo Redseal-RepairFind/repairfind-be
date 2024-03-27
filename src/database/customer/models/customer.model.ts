@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { Schema, model } from "mongoose";
 import { CustomerAuthProviders, ICustomer } from "../interface/customer.interface";
 import { StripeCustomerSchema } from "../../common/stripe_customer.schema";
@@ -75,15 +77,14 @@ const CustomerSchema = new Schema<ICustomer>(
 
     stripeCustomer: {
       type: StripeCustomerSchema,
-      select: false
     },
     stripePaymentMethods: {
       type: [Object],
-      select: false
+     
     },
     stripeIdentity: {
       type: Object,
-      select: false
+     
     },
 
   },
@@ -117,11 +118,26 @@ CustomerSchema.set('toJSON', {
     delete ret.emailOtp;
     delete ret.passwordOtp;
     delete ret.phoneNumberOtp;
-    //  @ts-ignore
+
+    if (!options.includeStripeIdentity) {
+      delete ret.stripeIdentity;
+    }
+    if (!options.includeStripePaymentMethods) {
+      delete ret.stripePaymentMethods;
+    }
+
+    if (!options.includeStripeCustomer) {
+      delete ret.stripeCustomer;
+    }
+    
     ret.name = doc.name;
     return ret;
-  }
+  },
+  virtuals: true
 });
+
+CustomerSchema.set('toObject', { virtuals: true });
+
 
 
 

@@ -366,7 +366,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     ProfileHandler.prototype.getUser = function () {
         var _a;
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, contractorId, contractor, quiz, contractorResponse, err_5;
+            var req, res, contractorId, includeStripeIdentity, includeStripeCustomer, includeStripePaymentMethods, includedFields, contractor, quiz, contractorResponse, err_5;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -374,32 +374,39 @@ var ProfileHandler = /** @class */ (function (_super) {
                         res = this.res;
                         _b.label = 1;
                     case 1:
-                        _b.trys.push([1, 4, , 5]);
+                        _b.trys.push([1, 3, , 4]);
                         contractorId = req.contractor.id;
-                        return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId).populate('profile').exec()];
+                        includeStripeIdentity = false;
+                        includeStripeCustomer = false;
+                        includeStripePaymentMethods = false;
+                        // Parse the query parameter "include" to determine which fields to include
+                        if (req.query.include) {
+                            includedFields = req.query.include.split(',');
+                            includeStripeIdentity = includedFields.includes('stripeIdentity');
+                            includeStripeCustomer = includedFields.includes('stripeCustomer');
+                            includeStripePaymentMethods = includedFields.includes('stripePaymentMethods');
+                        }
+                        return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
                     case 2:
                         contractor = _b.sent();
-                        return [4 /*yield*/, (contractor === null || contractor === void 0 ? void 0 : contractor.quiz)];
-                    case 3:
-                        quiz = (_a = _b.sent()) !== null && _a !== void 0 ? _a : null;
-                        contractorResponse = __assign(__assign({}, contractor.toJSON()), { // Convert to plain JSON object
-                            //@ts-ignore
+                        quiz = (_a = contractor === null || contractor === void 0 ? void 0 : contractor.quiz) !== null && _a !== void 0 ? _a : null;
+                        contractorResponse = __assign(__assign({}, contractor === null || contractor === void 0 ? void 0 : contractor.toJSON({ includeStripeIdentity: true, includeStripeCustomer: true, includeStripePaymentMethods: true })), { // Convert to plain JSON object
                             quiz: quiz });
                         if (!contractor) {
                             return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor not found' })];
                         }
                         res.json({
                             success: true,
-                            message: 'Account fetchedd successfully',
+                            message: 'Account fetched successfully',
                             data: contractorResponse,
                         });
-                        return [3 /*break*/, 5];
-                    case 4:
+                        return [3 /*break*/, 4];
+                    case 3:
                         err_5 = _b.sent();
                         console.log('error', err_5);
                         res.status(500).json({ success: false, message: err_5.message });
-                        return [3 /*break*/, 5];
-                    case 5: return [2 /*return*/];
+                        return [3 /*break*/, 4];
+                    case 4: return [2 /*return*/];
                 }
             });
         });

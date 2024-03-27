@@ -82,12 +82,22 @@ var updateAccount = function (req, res) { return __awaiter(void 0, void 0, void 
 }); };
 exports.updateAccount = updateAccount;
 var getAccount = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, customer, err_2;
+    var customerId, includeStripeIdentity, includeStripeCustomer, includeStripePaymentMethods, includedFields, customer, customerResponse, err_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
                 customerId = req.customer.id;
+                includeStripeIdentity = false;
+                includeStripeCustomer = false;
+                includeStripePaymentMethods = false;
+                // Parse the query parameter "include" to determine which fields to include
+                if (req.query.include) {
+                    includedFields = req.query.include.split(',');
+                    includeStripeIdentity = includedFields.includes('stripeIdentity');
+                    includeStripeCustomer = includedFields.includes('stripeCustomer');
+                    includeStripePaymentMethods = includedFields.includes('stripePaymentMethods');
+                }
                 return [4 /*yield*/, customer_model_1.default.findById(customerId)];
             case 1:
                 customer = _a.sent();
@@ -95,7 +105,8 @@ var getAccount = function (req, res) { return __awaiter(void 0, void 0, void 0, 
                 if (!customer) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Customer account not found' })];
                 }
-                return [2 /*return*/, res.status(200).json({ success: true, message: 'Customer account retrieved successfully', data: customer })];
+                customerResponse = customer.toJSON({ includeStripeIdentity: true, includeStripeCustomer: true, includeStripePaymentMethods: true });
+                return [2 /*return*/, res.status(200).json({ success: true, message: 'Customer account retrieved successfully', data: customerResponse })];
             case 2:
                 err_2 = _a.sent();
                 // Handle errors

@@ -23,6 +23,7 @@ import { EmailService, NotificationService } from "../../../services";
 import { addHours, isFuture, isValid } from "date-fns";
 import { IJob, JobModel, JobType } from "../../../database/common/job.model";
 import { BadRequestError } from "../../../utils/custom.errors";
+import { applyAPIFeature } from "../../../utils/api.feature";
 
 
 
@@ -206,10 +207,10 @@ export const createJobListing = async (
         // Save the job document to the database
         await newJob.save();
          
-        res.status(201).json({ success: true, message: 'Job request submitted successfully', data: newJob });
+        res.status(201).json({ success: true, message: 'Job listing submitted successfully', data: newJob });
     } catch (error) {
-        console.error('Error submitting job request:', error);
-        res.status(500).json({ success: false, message: 'Internal Server Error' });
+        console.error('Error submitting job listing:', error);
+        res.status(400).json({ success: false, message: 'Bad Request' });
     }
 
 }
@@ -260,12 +261,12 @@ export const getJobs = async (req: any, res: Response) => {
         }
 
         // Execute query
-        const jobRequests = await JobModel.find(filter).exec();
+        const {data, error} = await applyAPIFeature(JobModel.find(filter), req.query)
 
-        res.json({ success: true, message: 'Jobs retrieved', data: jobRequests });
+        res.json({ success: true, message: 'Jobs retrieved', data: data });
     } catch (error) {
         console.error('Error retrieving jobs:', error);
-        res.status(500).json({ success: false, message: 'Internal Server Error' });
+        res.status(400).json({ success: false, message: 'Something went wrong' });
     }
 };
 

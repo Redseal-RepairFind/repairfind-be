@@ -70,7 +70,7 @@ export const getJobRequests = async (req: any, res: Response) => {
 };
 
 
-export const acceptJobRequest = async (req: any, res: Response) => {
+export const acceptJobRequest = async (req: any, res: Response, next: NextFunction) => {
   try {
       // Validate incoming request
       const errors = validationResult(req);
@@ -91,7 +91,7 @@ export const acceptJobRequest = async (req: any, res: Response) => {
       }
 
       // Check if the job request belongs to the contractor
-      if (jobRequest.contractor !== contractorId) {
+      if (jobRequest.contractor.toString() !== contractorId) {
           return res.status(403).json({ success: false, message: 'Unauthorized: You do not have permission to accept this job request' });
       }
 
@@ -106,9 +106,8 @@ export const acceptJobRequest = async (req: any, res: Response) => {
 
       // Return success response
       res.json({ success: true, message: 'Job request accepted successfully' });
-  } catch (error) {
-      console.error('Error accepting job request:', error);
-      res.status(500).json({ success: false, message: 'Internal Server Error' });
+  } catch (error: any) {
+      return next(new BadRequestError('Something went wrong', error));
   }
 };
 

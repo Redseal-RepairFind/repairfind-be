@@ -80,7 +80,7 @@ class ProfileHandler extends Base {
       const profileType = contractor.accountType
       if (profileType == 'Employee' || profileType == 'Individual') {
         name = `${contractor.firstName} ${contractor.lastName}`
-      }else{
+      } else {
         name = `${contractor.companyName}`
       }
 
@@ -243,15 +243,15 @@ class ProfileHandler extends Base {
       contractor.profilePhoto = profilePhoto;
 
 
-      if(!profile.name){
+      if (!profile.name) {
         const profileType = contractor.accountType
         if (profileType == 'Employee' || profileType == 'Individual') {
           profile.name = `${contractor.firstName} ${contractor.lastName}`
-        }else{
+        } else {
           profile.name = `${contractor.companyName}`
         }
       }
-      
+
 
 
       await contractor.save();
@@ -324,13 +324,26 @@ class ProfileHandler extends Base {
     let res = this.res
     try {
       const contractorId = req.contractor.id;
-      const contractor = await ContractorModel.findById(contractorId).populate('profile').exec();
-      const quiz = await contractor?.quiz ?? null
+
+      let includeStripeIdentity = false;
+      let includeStripeCustomer = false;
+      let includeStripePaymentMethods = false;
+  
+      // Parse the query parameter "include" to determine which fields to include
+      if (req.query.include) {
+          const includedFields = req.query.include.split(',');
+          includeStripeIdentity = includedFields.includes('stripeIdentity');
+          includeStripeCustomer = includedFields.includes('stripeCustomer');
+          includeStripePaymentMethods = includedFields.includes('stripePaymentMethods');
+      }
+      
+    
+      const contractor = await ContractorModel.findById(contractorId);
+      const quiz = contractor?.quiz ?? null;
 
       const contractorResponse = {
         //@ts-ignore
-        ...contractor.toJSON(), // Convert to plain JSON object
-        //@ts-ignore
+        ...contractor?.toJSON({includeStripeIdentity: true, includeStripeCustomer: true, includeStripePaymentMethods: true }), // Convert to plain JSON object
         quiz,
       };
 
@@ -340,7 +353,7 @@ class ProfileHandler extends Base {
 
       res.json({
         success: true,
-        message: 'Account fetchedd successfully',
+        message: 'Account fetched successfully',
         data: contractorResponse,
       });
     } catch (err: any) {
@@ -511,7 +524,7 @@ class ProfileHandler extends Base {
         return res.status(404).json({ success: false, message: 'User not found' });
       }
 
-      const device = await ContractorDeviceModel.find({deviceId, deviceToken});
+      const device = await ContractorDeviceModel.find({ deviceId, deviceToken });
       if (device) {
         //return res.status(404).json({ success: false, message: 'Device already exits' });
       }
@@ -520,9 +533,9 @@ class ProfileHandler extends Base {
       // Find the contractor device with the provided device ID and type
       let contractorDevice = await ContractorDeviceModel.findOneAndUpdate(
         { contractor: contractorId, deviceToken: deviceToken },
-        { deviceToken, deviceType},
-        { new: true, upsert: true}
-    );
+        { deviceToken, deviceType },
+        { new: true, upsert: true }
+      );
 
 
       return res.json({ success: true, message: 'Contractor device updated', data: contractorDevice });
@@ -531,7 +544,7 @@ class ProfileHandler extends Base {
       return res.status(500).json({ success: false, message: error.message ?? 'Internal Server Error' });
     }
   }
-  
+
   @handleAsyncError()
   public async myDevices(): Promise<Response> {
     let req = <any>this.req
@@ -548,7 +561,7 @@ class ProfileHandler extends Base {
         return res.status(404).json({ success: false, message: 'Contractor not found' });
       }
 
-      const devices = await ContractorDeviceModel.find({contractor: contractorId})
+      const devices = await ContractorDeviceModel.find({ contractor: contractorId })
       return res.json({ success: true, message: 'Contractor deviced retrieved', data: devices });
     } catch (error: any) {
       console.error('Error retrieving contractor devices:', error);

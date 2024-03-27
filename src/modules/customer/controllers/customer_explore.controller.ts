@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import { CONTRACTOR_TYPES, ContractorModel } from "../../../database/contractor/models/contractor.model";
 import { Document, PipelineStage as MongoosePipelineStage } from 'mongoose'; // Import Document type from mongoose
 import { getContractorIdsWithDateInSchedule } from "../../../utils/schedule.util";
+import { applyAPIFeature } from "../../../utils/api.feature";
 
 
 type PipelineStage =
@@ -12,20 +13,17 @@ type PipelineStage =
     | { $match: any }
     | { $addFields: any }
     | { $project: any }
-    | { $sort: { [key: string]: 1 | -1 } } // Adjusted $sort type to match Mongoose's Sort type
-    | { $group: any }; // Adding $sort type to PipelineStage
+    | { $sort: { [key: string]: 1 | -1 } }
+    | { $group: any };
 
 export const exploreContractors = async (
     req: any,
     res: Response,
 ) => {
-
-
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+        return res.status(400).json({ errors: errors.array() });
     }
-
 
     try {
         const {
@@ -43,12 +41,15 @@ export const exploreContractors = async (
             isOffDuty,
             availableDays,
             experienceYear,
-            gstNumber
-        } = req.query; // Ensure correct type for query parameters if available
+            gstNumber,
+            page = 1, // Default to page 1
+            limit = 10, // Default to 10 items per page
+            sort // Sort field and order (-fieldName or fieldName)
+        } = req.query;
 
         const availableDaysArray = availableDays ? availableDays.split(',') : [];
+        const skip = (parseInt(page) - 1) * parseInt(limit);
 
-        // Construct the pipeline stages based on the parameters
         const pipeline: PipelineStage[] = [
             {
                 $lookup: {
@@ -59,7 +60,6 @@ export const exploreContractors = async (
                 }
             },
             { $unwind: "$profile" },
-
             {
                 $addFields: {
                     name: {
@@ -76,13 +76,10 @@ export const exploreContractors = async (
                     }
                 }
             },
-
-
-
             {
                 $project: {
-                    stripeIdentity: 0, // Exclude stripeIdentity field from query results
-                    stripeCustomer: 0, // 
+                    stripeIdentity: 0,
+                    stripeCustomer: 0,
                     stripePaymentMethods: 0,
                     stripePaymentMethod: 0,
                     passwordOtp: 0,
@@ -116,22 +113,17 @@ export const exploreContractors = async (
         }
         if (emergencyJobs !== undefined) {
             pipeline.push({ $match: { "profile.emergencyJobs": emergencyJobs === "true" } });
-
         }
         if (isOffDuty !== undefined) {
-            pipeline.push({ $match: { "profile.isOffDuty": isOffDuty  === "true" || null} });
+            pipeline.push({ $match: { "profile.isOffDuty": isOffDuty === "true" || null } });
         }
         if (gstNumber) {
             pipeline.push({ $match: { "profile.gstNumber": gstNumber } });
         }
-
         if (date) {
             const contractorIdsWithDateInSchedule = await getContractorIdsWithDateInSchedule(new Date(date));
-            // console.log(contractorIdsWithDateInSchedule)
             pipeline.push({ $match: { "profile.contractor": { $in: contractorIdsWithDateInSchedule } } });
         }
-
-
         if (availableDays) {
             pipeline.push({ $match: { "profile.availableDays": { $in: availableDaysArray } } });
         }
@@ -141,8 +133,8 @@ export const exploreContractors = async (
                     distance: {
                         $sqrt: {
                             $sum: [
-                                { $pow: [{ $subtract: [{$toDouble: "$profile.location.latitude"}, parseFloat(latitude)] }, 2] },
-                                { $pow: [{ $subtract: [{$toDouble: "$profile.location.longitude"}, parseFloat(longitude)] }, 2] }
+                                { $pow: [{ $subtract: [{ $toDouble: "$profile.location.latitude" }, parseFloat(latitude)] }, 2] },
+                                { $pow: [{ $subtract: [{ $toDouble: "$profile.location.longitude" }, parseFloat(longitude)] }, 2] }
                             ]
                         }
                     }
@@ -151,20 +143,40 @@ export const exploreContractors = async (
             pipeline.push({ $match: { "distance": { $lte: parseInt(distance) } } });
         }
 
-        const contractors = await ContractorModel.aggregate<Document>(pipeline);
+        if (sort) {
+            const [sortField, sortOrder] = sort.startsWith('-') ? [sort.slice(1), -1] : [sort, 1];
+            const sortStage: PipelineStage = {
+                //@ts-ignore
+                $sort: { [sortField]: sortOrder }
+            };
+            pipeline.push(sortStage);
+        }
 
-        return res.status(200).json({
-            success: true,
-            message: "Contractors retrieved successfully",
-            data: contractors
+        // Add $facet stage for pagination
+        pipeline.push({
+            $facet: {
+                metadata: [
+                    { $count: "totalItems" },
+                    { $addFields: { page, limit, currentPage: parseInt(page), lastPage: { $ceil: { $divide: ["$totalItems", parseInt(limit)] } } } }
+                ],
+                data: [{ $skip: skip }, { $limit: parseInt(limit) }]
+            }
         });
-    } catch (err: any) {
-        // Handle error
-        console.error("Error fetching contractors:", err);
-        res.status(500).json({ message: err.message });
-    }
 
+        // Execute pipeline
+        const result = await ContractorModel.aggregate(pipeline); // Assuming Contractor is your Mongoose model
+        const contractors = result[0].data;
+        const metadata = result[0].metadata[0];
+
+        // Send response
+        res.status(200).json({success: true, data: {...metadata, data: contractors } });
+        
+    } catch (err: any) {
+        console.error("Error fetching contractors:", err);
+        res.status(400).json({ message: 'Something went wrong' });
+    }
 }
+
 
 
 

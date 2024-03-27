@@ -96,7 +96,7 @@ var getJobRequests = function (req, res) { return __awaiter(void 0, void 0, void
     });
 }); };
 exports.getJobRequests = getJobRequests;
-var acceptJobRequest = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, jobId, contractorId, jobRequest, error_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -116,7 +116,7 @@ var acceptJobRequest = function (req, res) { return __awaiter(void 0, void 0, vo
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Job request not found' })];
                 }
                 // Check if the job request belongs to the contractor
-                if (jobRequest.contractor !== contractorId) {
+                if (jobRequest.contractor.toString() !== contractorId) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'Unauthorized: You do not have permission to accept this job request' })];
                 }
                 // Check if the job request is pending
@@ -133,9 +133,7 @@ var acceptJobRequest = function (req, res) { return __awaiter(void 0, void 0, vo
                 return [3 /*break*/, 4];
             case 3:
                 error_2 = _a.sent();
-                console.error('Error accepting job request:', error_2);
-                res.status(500).json({ success: false, message: 'Internal Server Error' });
-                return [3 /*break*/, 4];
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('Something went wrong', error_2))];
             case 4: return [2 /*return*/];
         }
     });

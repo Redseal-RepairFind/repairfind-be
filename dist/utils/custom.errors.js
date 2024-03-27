@@ -17,16 +17,18 @@ var __extends = (this && this.__extends) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.errorHandler = exports.InternalServerError = exports.NotFoundError = exports.ServiceUnavailableError = exports.ForbiddenError = exports.UnAuthorizedError = exports.BadRequestError = void 0;
 var logger_1 = require("./logger");
-// import { Logger } from './logger';
 var CustomError = /** @class */ (function (_super) {
     __extends(CustomError, _super);
-    function CustomError(message, code, name) {
+    function CustomError(message, code, name, error) {
         var _this = _super.call(this, message) || this;
         Object.setPrototypeOf(_this, CustomError.prototype);
         _this.code = code;
         _this.isOperational = true;
         _this.message = message;
         _this.name = name || 'error';
+        if (error) {
+            logger_1.Logger.error(error);
+        }
         return _this;
     }
     return CustomError;
@@ -34,60 +36,48 @@ var CustomError = /** @class */ (function (_super) {
 exports.default = CustomError;
 var BadRequestError = /** @class */ (function (_super) {
     __extends(BadRequestError, _super);
-    function BadRequestError(msg) {
-        var _this = _super.call(this, msg || 'BadRequestError', 400) || this;
-        _this.name = 'BadRequestError';
-        return _this;
+    function BadRequestError(message, error) {
+        return _super.call(this, message || 'Bad Request', 400, 'BadRequestError', error) || this;
     }
     return BadRequestError;
 }(CustomError));
 exports.BadRequestError = BadRequestError;
 var UnAuthorizedError = /** @class */ (function (_super) {
     __extends(UnAuthorizedError, _super);
-    function UnAuthorizedError(msg) {
-        var _this = _super.call(this, msg || 'UnAuthorized', 401) || this;
-        _this.name = 'UnAuthorizedError';
-        return _this;
+    function UnAuthorizedError(message, error) {
+        return _super.call(this, message || 'Unauthorized', 401, 'UnAuthorizedError', error) || this;
     }
     return UnAuthorizedError;
 }(CustomError));
 exports.UnAuthorizedError = UnAuthorizedError;
 var ForbiddenError = /** @class */ (function (_super) {
     __extends(ForbiddenError, _super);
-    function ForbiddenError(msg) {
-        var _this = _super.call(this, msg || 'Forbidden', 403) || this;
-        _this.name = 'ForbiddenError';
-        return _this;
+    function ForbiddenError(message, error) {
+        return _super.call(this, message || 'Forbidden', 403, 'ForbiddenError', error) || this;
     }
     return ForbiddenError;
 }(CustomError));
 exports.ForbiddenError = ForbiddenError;
 var ServiceUnavailableError = /** @class */ (function (_super) {
     __extends(ServiceUnavailableError, _super);
-    function ServiceUnavailableError(msg) {
-        var _this = _super.call(this, msg || 'Service Unavailable', 503) || this;
-        _this.name = 'ServiceUnavailableError';
-        return _this;
+    function ServiceUnavailableError(message, error) {
+        return _super.call(this, message || 'Service Unavailable', 503, 'ServiceUnavailableError', error) || this;
     }
     return ServiceUnavailableError;
 }(CustomError));
 exports.ServiceUnavailableError = ServiceUnavailableError;
 var NotFoundError = /** @class */ (function (_super) {
     __extends(NotFoundError, _super);
-    function NotFoundError(msg) {
-        var _this = _super.call(this, msg || 'NotFoundError', 404) || this;
-        _this.name = 'NotFoundError';
-        return _this;
+    function NotFoundError(message, error) {
+        return _super.call(this, message || 'Not Found', 404, 'NotFoundError', error) || this;
     }
     return NotFoundError;
 }(CustomError));
 exports.NotFoundError = NotFoundError;
 var InternalServerError = /** @class */ (function (_super) {
     __extends(InternalServerError, _super);
-    function InternalServerError(msg) {
-        var _this = _super.call(this, msg || 'InternalServerError', 500) || this;
-        _this.name = 'InternalServerError';
-        return _this;
+    function InternalServerError(message, error) {
+        return _super.call(this, message || 'Internal Server Error', 500, 'InternalServerError', error) || this;
     }
     return InternalServerError;
 }(CustomError));
@@ -97,13 +87,9 @@ function errorHandler(err, req, res, next) {
     // Default status code and error message
     var statusCode = err.code || 500;
     var errorMessage = err.message || 'Internal Server Error';
-    if (err.name == 'InternalServerError') {
+    if (err.name === 'InternalServerError') {
         statusCode = 500;
         errorMessage = 'Internal Server Error';
-    }
-    if (err.name == 'BadRequestError') {
-        statusCode = 400;
-        errorMessage = 'BadRequest  Error';
     }
     // Send JSON response with error details
     return res.status(statusCode).json({ success: false, message: errorMessage });

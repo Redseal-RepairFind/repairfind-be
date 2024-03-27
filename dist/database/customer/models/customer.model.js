@@ -1,4 +1,5 @@
 "use strict";
+// @ts-nocheck
 Object.defineProperty(exports, "__esModule", { value: true });
 var mongoose_1 = require("mongoose");
 var customer_interface_1 = require("../interface/customer.interface");
@@ -72,15 +73,12 @@ var CustomerSchema = new mongoose_1.Schema({
     },
     stripeCustomer: {
         type: stripe_customer_schema_1.StripeCustomerSchema,
-        select: false
     },
     stripePaymentMethods: {
         type: [Object],
-        select: false
     },
     stripeIdentity: {
         type: Object,
-        select: false
     },
 }, {
     timestamps: true,
@@ -104,10 +102,20 @@ CustomerSchema.set('toJSON', {
         delete ret.emailOtp;
         delete ret.passwordOtp;
         delete ret.phoneNumberOtp;
-        //  @ts-ignore
+        if (!options.includeStripeIdentity) {
+            delete ret.stripeIdentity;
+        }
+        if (!options.includeStripePaymentMethods) {
+            delete ret.stripePaymentMethods;
+        }
+        if (!options.includeStripeCustomer) {
+            delete ret.stripeCustomer;
+        }
         ret.name = doc.name;
         return ret;
-    }
+    },
+    virtuals: true
 });
+CustomerSchema.set('toObject', { virtuals: true });
 var CustomerModel = (0, mongoose_1.model)("customers", CustomerSchema);
 exports.default = CustomerModel;
