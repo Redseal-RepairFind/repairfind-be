@@ -90,7 +90,10 @@ export const createJobRequest = async (
             emergency: emergency || false,
             voiceDescription,
             media: media || [],
-            type: JobType.REQUEST
+            //@ts-ignore
+            title: `${contractor.profile.skill} Service`,
+             //@ts-ignore
+            category: `${contractor.profile.skill}`
 
         });
 
@@ -227,7 +230,8 @@ export const createJobListing = async (
             emergency: emergency || false,
             voiceDescription,
             media: media || [],
-            type: JobType.LISTING
+            type: JobType.LISTING,
+            title: `${category} Service`,
 
         });
 

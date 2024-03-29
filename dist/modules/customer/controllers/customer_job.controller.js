@@ -105,7 +105,10 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                     emergency: emergency || false,
                     voiceDescription: voiceDescription,
                     media: media || [],
-                    type: job_model_1.JobType.REQUEST
+                    //@ts-ignore
+                    title: "".concat(contractor.profile.skill, " Service"),
+                    //@ts-ignore
+                    category: "".concat(contractor.profile.skill)
                 });
                 // Save the job document to the database
                 return [4 /*yield*/, newJob.save()];
@@ -224,7 +227,8 @@ var createJobListing = function (req, res) { return __awaiter(void 0, void 0, vo
                     emergency: emergency || false,
                     voiceDescription: voiceDescription,
                     media: media || [],
-                    type: job_model_1.JobType.LISTING
+                    type: job_model_1.JobType.LISTING,
+                    title: "".concat(category, " Service"),
                 });
                 // Save the job document to the database
                 return [4 /*yield*/, newJob.save()];
