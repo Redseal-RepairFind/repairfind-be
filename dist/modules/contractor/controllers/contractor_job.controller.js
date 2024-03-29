@@ -74,7 +74,9 @@ var getJobRequests = function (req, res) { return __awaiter(void 0, void 0, void
                 }
                 _a = req.query, customerId = _a.customerId, status_1 = _a.status, startDate = _a.startDate, endDate = _a.endDate, date = _a.date;
                 contractorId = req.contractor.id;
-                filter = {};
+                filter = {
+                    type: job_model_1.JobType.REQUEST
+                };
                 if (customerId) {
                     filter.customer = customerId;
                 }

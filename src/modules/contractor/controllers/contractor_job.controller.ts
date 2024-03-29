@@ -29,7 +29,9 @@ export const getJobRequests = async (req: any, res: Response) => {
     const contractorId = req.contractor.id;
 
     // Construct filter object based on query parameters
-    const filter: any = {};
+    const filter: any = {
+      type: JobType.REQUEST
+    };
 
     if (customerId) {
       filter.customer = customerId;

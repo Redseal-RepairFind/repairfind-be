@@ -145,11 +145,11 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                     userType: 'contractor',
                     title: 'New Job Request',
                     type: 'NEW_JOB_REQUEST',
-                    message: "You've been sent a job request from ".concat(customer.firstName),
+                    message: "You've received a job request from ".concat(customer.firstName),
                     payload: {
                         entity: newJob.id,
                         entityType: 'jobs',
-                        message: "You've sent a job request to ".concat(customer.firstName),
+                        message: "You've received a job request from ".concat(customer.firstName),
                         contractor: contractor.id,
                     }
                 }, { database: true, push: true });
@@ -158,7 +158,7 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                     userType: 'customer',
                     title: 'New Job Request',
                     type: 'NEW_JOB_REQUEST',
-                    message: "You've been sent a job request from ".concat(customer.firstName),
+                    message: "You've been sent a job request to ".concat(customer.firstName),
                     payload: {
                         entity: newJob.id,
                         entityType: 'jobs',
