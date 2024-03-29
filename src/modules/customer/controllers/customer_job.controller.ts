@@ -85,6 +85,7 @@ export const createJobRequest = async (
             description,
             location,
             date,
+            type: JobType.REQUEST,
             time: jobTime,
             expiresIn,
             emergency: emergency || false,
