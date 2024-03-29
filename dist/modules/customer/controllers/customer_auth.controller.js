@@ -610,9 +610,9 @@ var appleSignon = function (req, res) { return __awaiter(void 0, void 0, void 0,
                     createdTime: createdTime,
                     verified: true,
                 };
-                return [4 /*yield*/, customer_model_1.default.findOneAndUpdate({ email: appleEmail }, {
+                return [4 /*yield*/, customer_model_1.default.findOneAndUpdate({ email: email }, {
                         $setOnInsert: {
-                            email: appleEmail,
+                            email: email,
                             firstName: firstName,
                             lastName: lastName,
                             provider: customer_interface_1.CustomerAuthProviders.APPLE,

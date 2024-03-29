@@ -690,10 +690,10 @@ export const appleSignon = async (req: Request, res: Response) => {
     };
 
     const user = await CustomerModel.findOneAndUpdate(
-      { email: appleEmail },
+      { email: email },
       {
         $setOnInsert: { // Set fields only during insert (when the user doesn't exist)
-          email: appleEmail,
+          email: email,
           firstName,
           lastName,
           provider: CustomerAuthProviders.APPLE,

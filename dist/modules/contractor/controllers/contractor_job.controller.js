@@ -156,7 +156,8 @@ var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 // Push the rejection event to the job history array
                 jobRequest.jobHistory.push(jobEvent);
                 initialApplication = new job_application_model_1.JobApplicationModel({
-                    contractorId: contractorId,
+                    contractor: contractorId,
+                    job: jobId,
                     status: job_application_model_1.JobApplicationStatus.PENDING, // Assuming initial status is pending
                     estimate: [], // You may need to adjust this based on your application schema
                     startDate: jobRequest.startDate,
@@ -342,7 +343,7 @@ var sendJobApplication = function (req, res) { return __awaiter(void 0, void 0, 
                             .status(401)
                             .json({ message: "invalid customer Id" })];
                 }
-                return [4 /*yield*/, job_application_model_1.JobApplicationModel.findOneAndUpdate({ jobId: jobId, contractorId: contractorId }, {
+                return [4 /*yield*/, job_application_model_1.JobApplicationModel.findOneAndUpdate({ job: jobId, contractor: contractorId }, {
                         startDate: startDate,
                         endDate: endDate,
                         siteVisit: siteVisit,

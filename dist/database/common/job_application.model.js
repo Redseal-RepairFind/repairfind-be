@@ -46,8 +46,8 @@ var JobApplicationStatus;
     JobApplicationStatus["COMPLETED"] = "COMPLETED";
 })(JobApplicationStatus || (exports.JobApplicationStatus = JobApplicationStatus = {}));
 var JobApplicationSchema = new mongoose_1.Schema({
-    contractorId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'contractors', required: true },
-    jobId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'jobs', required: true },
+    contractor: { type: mongoose_1.Schema.Types.ObjectId, ref: 'contractors', required: true },
+    job: { type: mongoose_1.Schema.Types.ObjectId, ref: 'jobs', required: true },
     status: { type: String, enum: Object.values(JobApplicationStatus), default: JobApplicationStatus.PENDING },
     estimates: { type: [Object], required: false },
     startDate: { type: Date, required: false },

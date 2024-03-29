@@ -124,7 +124,8 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
 
     // Create the initial job application
     const initialApplication = new JobApplicationModel({
-      contractorId: contractorId,
+      contractor: contractorId,
+      job: jobId,
       status: JobApplicationStatus.PENDING, // Assuming initial status is pending
       estimate: [], // You may need to adjust this based on your application schema
       startDate: jobRequest.startDate,
@@ -325,7 +326,7 @@ export const sendJobApplication = async (
     }
 
 
-    let jobApplication = await JobApplicationModel.findOneAndUpdate({ jobId, contractorId }, {
+    let jobApplication = await JobApplicationModel.findOneAndUpdate({ job: jobId, contractor: contractorId }, {
       startDate,
       endDate,
       siteVisit,

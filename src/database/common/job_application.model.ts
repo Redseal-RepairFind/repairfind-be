@@ -8,8 +8,8 @@ export enum JobApplicationStatus {
 }
 
 export interface IJobApplication extends Document {
-    contractorId: ObjectId;
-    jobId: ObjectId;
+    contractor: ObjectId;
+    job: ObjectId;
     status: JobApplicationStatus;
     estimates: IJobApplicationEstimate[];
     startDate: Date;
@@ -33,8 +33,8 @@ export interface IJobApplicationEstimate {
 }
 
 const JobApplicationSchema = new Schema<IJobApplication>({
-    contractorId: { type: Schema.Types.ObjectId, ref: 'contractors', required: true },
-    jobId: { type: Schema.Types.ObjectId, ref: 'jobs', required: true },
+    contractor: { type: Schema.Types.ObjectId, ref: 'contractors', required: true },
+    job: { type: Schema.Types.ObjectId, ref: 'jobs', required: true },
     status: { type: String, enum: Object.values(JobApplicationStatus), default: JobApplicationStatus.PENDING },
     estimates: { type: [Object], required: false },
     startDate: { type: Date, required: false },
