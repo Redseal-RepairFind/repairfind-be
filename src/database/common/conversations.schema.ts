@@ -15,6 +15,14 @@ export interface IConversationDocument extends Document {
     entity: string
     entityType: ConversationEntityType
     heading: Object;
+    
+    getHeading: (loggedInUserId:any) => {
+        subtotal: number;
+        processingFee: number;
+        gst: number;
+        totalAmount: number;
+        contractorAmount: number;
+    };
 }
 
 const ConversationSchema = new mongoose.Schema<IConversationDocument>({

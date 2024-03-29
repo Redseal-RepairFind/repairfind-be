@@ -13,6 +13,7 @@ import AdminNoficationModel from "../../../database/admin/models/admin_notificat
 import { GoogleServiceProvider } from "../../../services/google";
 import { CustomerAuthProviders } from "../../../database/customer/interface/customer.interface";
 import { FacebookServiceProvider } from "../../../services/facebook";
+import { AppleIdServiceProvider } from "../../../services";
 
 //customer signup /////////////
 export const signUp = async (
@@ -651,7 +652,7 @@ export const facebookSignon = async (req: Request, res: Response) => {
 
 export const appleSignon = async (req: Request, res: Response) => {
   try {
-    const { id_token, email, first_name, last_name } = req.body;
+    const { accessToken, email, firstName, lastName } = req.body;
 
     // Check for validation errors
     const errors = validationResult(req);
@@ -664,16 +665,22 @@ export const appleSignon = async (req: Request, res: Response) => {
     // Install it using: npm install apple-authentication-jwt
 
     const decodedToken = {
-      sub: 'ds',
-      email: 'sd'
-    }// await verifyAppleIdToken(id_token);
+      sub: 'customerrepairfind.com',
+      email: 'customer@repairfind.com'
+    }
+    
+    // const decodedTokend = await AppleIdServiceProvider.getUserInfo(accessToken); // accessToken = idToken
+    const decodedIdToken = await AppleIdServiceProvider.verifyIdToken(accessToken); // accessToken = idToken
+    
+    const decodedAccessToken = await AppleIdServiceProvider.decodeAccessToken(accessToken); // accessToken = idToken
+
+    console.log('decodedIdToken', decodedIdToken)
+    console.log('decodedAccessToken', decodedAccessToken)
 
     // Extract necessary information from the decoded token
     const appleUserId = decodedToken.sub;
     const appleEmail = decodedToken.email;
 
-    const firstName = first_name;
-    const lastName = last_name;
 
     const createdTime = new Date();
     const emailOtp = {
@@ -713,16 +720,11 @@ export const appleSignon = async (req: Request, res: Response) => {
       status: true,
       message: 'Login successful',
       accessToken: token,
-      data: {
-        id: user._id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-      },
+      data: user,
     });
   } catch (err: any) {
     // Handle errors appropriately
-    res.status(500).json({ success: false, message: err.message });
+    res.status(400).json({ success: false, message: err.message });
   }
 };
 
@@ -738,5 +740,6 @@ export const CustomerAuthController = {
   resendEmail,
   verifyResetPasswordOtp,
   googleSignon,
-  facebookSignon
+  facebookSignon,
+  appleSignon
 }

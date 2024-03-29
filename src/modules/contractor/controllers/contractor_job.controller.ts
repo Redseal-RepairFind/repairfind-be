@@ -12,6 +12,8 @@ import { BadRequestError, InternalServerError, NotFoundError } from "../../../ut
 import { JobApplicationModel, JobApplicationStatus } from "../../../database/common/job_application.model";
 import CustomerModel from "../../../database/customer/models/customer.model";
 import { Document, PipelineStage as MongoosePipelineStage } from 'mongoose'; // Import Document type from mongoose
+import { ConversationEntityType, ConversationModel } from "../../../database/common/conversations.schema";
+import { MessageModel, MessageType } from "../../../database/common/messages.schema";
 
 
 export const getJobRequests = async (req: any, res: Response) => {
@@ -140,6 +142,24 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
     await jobRequest.save();
 
 
+    // Create a conversation
+    const conversation =  await ConversationModel.findByIdAndUpdate({entity: jobId, entityType: ConversationEntityType.JOB, contractor: contractorId, customer: jobRequest.customer  },{
+      entity: jobId, 
+      entityType: ConversationEntityType.JOB, 
+      participants: [contractorId, jobRequest.customer] 
+    }, {new: true, upsert: true});
+
+    // Send a message to the customer
+    const message = new MessageModel({
+      conversation: conversation?._id,
+      sender: contractorId,
+      receiver: jobRequest.customer,
+      message: "Contractor has accepted this jos request",
+      messageType: MessageType.ALERT,
+    });
+    await message.save();
+
+
     // Return success response
     res.json({ success: true, message: 'Job request accepted successfully' });
   } catch (error: any) {
@@ -193,6 +213,23 @@ export const rejectJobRequest = async (req: any, res: Response) => {
     jobRequest.jobHistory.push(jobEvent);
 
     await jobRequest.save();
+
+
+    // Create a conversation
+    const conversation =  await ConversationModel.findByIdAndUpdate({entity: jobId, entityType: ConversationEntityType.JOB, contractor: contractorId, customer: jobRequest.customer  },{
+      entity: jobId, 
+      entityType: ConversationEntityType.JOB, 
+      participants: [contractorId, jobRequest.customer] 
+    }, {new: true, upsert: true});
+
+    // Send a message to the customer
+    const message = new MessageModel({
+      conversation: conversation?._id,
+      sender: contractorId,
+      receiver: jobRequest.customer,
+      message: "Contractor has rejected this jos request",
+      messageType: MessageType.ALERT,
+    });
 
     // Return success response
     res.json({ success: true, message: 'Job request rejected successfully' });
@@ -302,14 +339,29 @@ export const sendJobApplication = async (
 
     // @ts-ignore
     const html = htmlJobQoutationTemplate(customer.firstName, contractor.name)
-
     let emailData = {
       emailTo: customer.email,
       subject: "Job application from contractor",
       html
     };
-
     await sendEmail(emailData);
+
+    // Create a conversation
+    const conversation =  await ConversationModel.findByIdAndUpdate({entity: jobId, entityType: ConversationEntityType.JOB, contractor: contractorId, customer: customer._id  },{
+      entity: jobId, 
+      entityType: ConversationEntityType.JOB, 
+      participants: [contractorId, customer._id] 
+    }, {new: true, upsert: true});
+
+    // Send a message to the customer
+    const message = new MessageModel({
+      conversation: conversation?._id,
+      sender: contractorId,
+      receiver: customer._id,
+      message: "I am available for this Job",
+      messageType: MessageType.TEXT,
+    });
+    await message.save();
 
     res.json({
       success: true,
@@ -371,6 +423,15 @@ export const updateJobApplication = async (req: any, res: Response) => {
     }
 
     // Find the job application for the specified job and contractor
+    let job = await JobModel.findOne({ jobId });
+
+    // If the job application does not exist, create a new one
+    if (!job) {
+      return res.status(400).json({status: false, message: 'Job not found' });
+    }
+
+
+    // Find the job application for the specified job and contractor
     let jobApplication = await JobApplicationModel.findOne({ jobId, contractorId });
 
     // If the job application does not exist, create a new one
@@ -389,6 +450,24 @@ export const updateJobApplication = async (req: any, res: Response) => {
     await jobApplication.save();
 
     jobApplication.charges = await jobApplication.calculateCharges(jobApplication.estimates)
+
+
+    // Create a conversation
+    const conversation =  await ConversationModel.findByIdAndUpdate({entity: jobId, entityType: ConversationEntityType.JOB, contractor: contractorId, customer: job.customer  },{
+      entity: jobId, 
+      entityType: ConversationEntityType.JOB, 
+      participants: [contractorId, job.customer] 
+    }, {new: true, upsert: true});
+
+    // Send a message to the customer
+    const message = new MessageModel({
+      conversation: conversation?._id,
+      sender: contractorId,
+      receiver: job.customer,
+      message: "Contractor has edited job estimate",
+      messageType: MessageType.ALERT,
+    });
+
 
     res.status(200).json({ success: true, message: 'Job application updated successfully', data: jobApplication });
   } catch (error) {
@@ -435,7 +514,21 @@ export const getJobListings = async (req: any, res: Response) => {
     limit = limit > 0 ? parseInt(limit) : 10; // Handle null limit
 
     // Construct aggregation pipeline
-    const pipeline: PipelineStage[] = [];
+    const pipeline: PipelineStage[] = [
+      {
+        $lookup: {
+            from: "job_applications",
+            localField: "_id",
+            foreignField: "job",
+            as: "totalApplications"
+        }
+    },
+    {
+        $addFields: {
+            totalApplications: { $size: "$totalApplications" }
+        }
+    }
+    ];
 
     // Match job listings based on query parameters
 

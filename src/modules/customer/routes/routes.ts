@@ -26,6 +26,7 @@ router.post("/reset-password", CustomerHttpRequest.resetPasswordParams, Customer
 router.post("/reset-password-verification", CustomerHttpRequest.verifyPasswordOtpParams,  CustomerAuthController.verifyResetPasswordOtp ); // verify password reset opt
 router.post("/google-signon", CustomerHttpRequest.verifySocialSignon,  CustomerAuthController.googleSignon ); // verify password reset opt
 router.post("/facebook-signon", CustomerHttpRequest.verifySocialSignon,  CustomerAuthController.facebookSignon ); // verify password reset opt
+router.post("/apple-signon", CustomerHttpRequest.verifySocialSignon,  CustomerAuthController.appleSignon ); // verify password reset opt
 
 
 //  Account

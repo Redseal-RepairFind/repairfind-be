@@ -56,5 +56,11 @@ var JobSchema = new mongoose_1.Schema({
     },
     emergency: { type: Boolean, default: false }
 }, { timestamps: true });
+JobSchema.virtual('totalApplications').get(function () {
+    return this.applications.length;
+});
+JobSchema.set('toJSON', {
+    virtuals: true
+});
 var JobModel = (0, mongoose_1.model)("jobs", JobSchema);
 exports.JobModel = JobModel;

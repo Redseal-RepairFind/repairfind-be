@@ -23,10 +23,11 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.StorageService = exports.CertnService = exports.NotificationService = exports.EmailService = void 0;
+exports.AppleIdServiceProvider = exports.StorageService = exports.CertnService = exports.NotificationService = exports.EmailService = void 0;
 var email_1 = require("./email");
 Object.defineProperty(exports, "EmailService", { enumerable: true, get: function () { return email_1.EmailService; } });
 var notifications_1 = require("./notifications");
 Object.defineProperty(exports, "NotificationService", { enumerable: true, get: function () { return notifications_1.NotificationService; } });
 exports.CertnService = __importStar(require("./certn"));
 exports.StorageService = __importStar(require("./storage"));
+exports.AppleIdServiceProvider = __importStar(require("./apple"));

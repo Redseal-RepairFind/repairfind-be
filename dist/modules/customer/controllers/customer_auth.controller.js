@@ -52,6 +52,7 @@ var admin_notification_model_1 = __importDefault(require("../../../database/admi
 var google_1 = require("../../../services/google");
 var customer_interface_1 = require("../../../database/customer/interface/customer.interface");
 var facebook_1 = require("../../../services/facebook");
+var services_1 = require("../../../services");
 //customer signup /////////////
 var signUp = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, email, password, firstName, lastName, acceptTerms, phoneNumber, errors, userEmailExists, otp, createdTime, emailOtp, html, welcomeHtml, welcomeEmailData, emailData, hashedPassword, customer, customerSaved, adminNoti, err_1;
@@ -579,25 +580,30 @@ var facebookSignon = function (req, res) { return __awaiter(void 0, void 0, void
 }); };
 exports.facebookSignon = facebookSignon;
 var appleSignon = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, id_token, email, first_name, last_name, errors, decodedToken, appleUserId, appleEmail, firstName, lastName, createdTime, emailOtp, user, token, err_10;
+    var _a, accessToken, email, firstName, lastName, errors, decodedToken, decodedIdToken, decodedAccessToken, appleUserId, appleEmail, createdTime, emailOtp, user, token, err_10;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 2, , 3]);
-                _a = req.body, id_token = _a.id_token, email = _a.email, first_name = _a.first_name, last_name = _a.last_name;
+                _b.trys.push([0, 4, , 5]);
+                _a = req.body, accessToken = _a.accessToken, email = _a.email, firstName = _a.firstName, lastName = _a.lastName;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation errors', errors: errors.array() })];
                 }
                 decodedToken = {
-                    sub: 'ds',
-                    email: 'sd'
-                } // await verifyAppleIdToken(id_token);
-                ;
+                    sub: 'customerrepairfind.com',
+                    email: 'customer@repairfind.com'
+                };
+                return [4 /*yield*/, services_1.AppleIdServiceProvider.verifyIdToken(accessToken)];
+            case 1:
+                decodedIdToken = _b.sent();
+                return [4 /*yield*/, services_1.AppleIdServiceProvider.decodeAccessToken(accessToken)];
+            case 2:
+                decodedAccessToken = _b.sent();
+                console.log('decodedIdToken', decodedIdToken);
+                console.log('decodedAccessToken', decodedAccessToken);
                 appleUserId = decodedToken.sub;
                 appleEmail = decodedToken.email;
-                firstName = first_name;
-                lastName = last_name;
                 createdTime = new Date();
                 emailOtp = {
                     otp: appleUserId,
@@ -617,7 +623,7 @@ var appleSignon = function (req, res) { return __awaiter(void 0, void 0, void 0,
                         upsert: true, // Create a new document if it doesn't exist
                         setDefaultsOnInsert: true, // Set default values for fields during insert
                     })];
-            case 1:
+            case 3:
                 user = _b.sent();
                 token = jsonwebtoken_1.default.sign({
                     id: user._id,
@@ -627,20 +633,15 @@ var appleSignon = function (req, res) { return __awaiter(void 0, void 0, void 0,
                     status: true,
                     message: 'Login successful',
                     accessToken: token,
-                    data: {
-                        id: user._id,
-                        email: user.email,
-                        firstName: user.firstName,
-                        lastName: user.lastName,
-                    },
+                    data: user,
                 });
-                return [3 /*break*/, 3];
-            case 2:
+                return [3 /*break*/, 5];
+            case 4:
                 err_10 = _b.sent();
                 // Handle errors appropriately
-                res.status(500).json({ success: false, message: err_10.message });
-                return [3 /*break*/, 3];
-            case 3: return [2 /*return*/];
+                res.status(400).json({ success: false, message: err_10.message });
+                return [3 /*break*/, 5];
+            case 5: return [2 /*return*/];
         }
     });
 }); };
@@ -654,5 +655,6 @@ exports.CustomerAuthController = {
     resendEmail: exports.resendEmail,
     verifyResetPasswordOtp: exports.verifyResetPasswordOtp,
     googleSignon: exports.googleSignon,
-    facebookSignon: exports.facebookSignon
+    facebookSignon: exports.facebookSignon,
+    appleSignon: exports.appleSignon
 };

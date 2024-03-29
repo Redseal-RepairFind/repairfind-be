@@ -103,6 +103,19 @@ const JobSchema = new Schema<IJob>({
     emergency: {type: Boolean, default:false}
 }, { timestamps: true });
 
+
+
+
+JobSchema.virtual('totalApplications').get(function () {
+    return this.applications.length
+});
+
+
+JobSchema.set('toJSON', {
+    virtuals: true
+});
+
+
 const JobModel = model<IJob>("jobs", JobSchema);
 
 export { JobModel };

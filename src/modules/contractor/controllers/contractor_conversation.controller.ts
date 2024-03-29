@@ -38,6 +38,9 @@ export const getSingleConversation = async (req: any, res: Response)=> {
         const contractorId = req.contractor.id;
         const query: any = { 'members.member': contractorId, _id: conversationId };
         const conversation = await ConversationModel.findOne(query).populate(['entity', 'members']);
+        if(conversation){
+            conversation.heading = await conversation.getHeading(contractorId);
+        }
         res.status(200).json({ success: true, message: "Conversation retrieved", data: conversation });
     } catch (error) {
         console.error("Error fetching conversation:", error);
