@@ -149,11 +149,13 @@ export const createJobRequest = async (
             userType: 'customer',
             title: 'New Job Request',
             type: 'NEW_JOB_REQUEST',
-            message: `You've been sent a job request to ${customer.firstName}`,
+            //@ts-ignore
+            message: `You've been sent a job request to ${contractor.name}`,
             payload: {
                 entity: newJob.id,
                 entityType: 'jobs',
-                message: `You've sent a job request to ${customer.firstName}`,
+                 //@ts-ignore
+                message: `You've sent a job request to ${contractor.name}`,
                 customer: customer.id,
             }
         }, { database: true, push: true })
