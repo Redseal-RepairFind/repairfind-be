@@ -50,6 +50,10 @@ var JobSchema = new mongoose_1.Schema({
     tags: { type: [String] },
     experience: { type: String },
     jobHistory: [JobHistorySchema], // Array of job history entries
+    applications: {
+        type: [String],
+        ref: 'job_applications'
+    },
 }, { timestamps: true });
 var JobModel = (0, mongoose_1.model)("jobs", JobSchema);
 exports.JobModel = JobModel;

@@ -1,5 +1,5 @@
 import { Document, ObjectId, Schema, model } from "mongoose";
-import { IJobApplication } from "./job_application.model";
+import { IJobApplication, JobApplicationModel } from "./job_application.model";
 
 export interface IJobLocation extends Document {
     address?: string;
@@ -54,7 +54,7 @@ export interface IJob extends Document {
     experience?: string;
     createdAt: Date;
     updatedAt: Date;
-    applications: IJobApplication[];
+    applications: string[];
     jobHistory: IJobHistory[];
 }
 
@@ -95,6 +95,10 @@ const JobSchema = new Schema<IJob>({
     tags: { type: [String] },
     experience: { type: String },
     jobHistory: [JobHistorySchema], // Array of job history entries
+    applications: {
+        type: [String],
+        ref: 'job_applications'
+    },
 }, { timestamps: true });
 
 const JobModel = model<IJob>("jobs", JobSchema);

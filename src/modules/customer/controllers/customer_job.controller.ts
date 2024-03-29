@@ -25,6 +25,7 @@ import { IJob, JobModel, JobType } from "../../../database/common/job.model";
 import { BadRequestError } from "../../../utils/custom.errors";
 import { applyAPIFeature } from "../../../utils/api.feature";
 import { ConversationEntityType, ConversationModel, IConversationDocument } from "../../../database/common/conversations.schema";
+import { IMessage, MessageModel, MessageType } from "../../../database/common/messages.schema";
 
 
 
@@ -37,17 +38,17 @@ export const createJobRequest = async (
 ) => {
 
     try {
-        
+
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            return res.status(400).json({message: 'validatior error occured', errors: errors.array() });
+            return res.status(400).json({ message: 'validatior error occured', errors: errors.array() });
         }
 
         const { contractorId, category, description, location, date, expiresIn, emergency, media, voiceDescription, time } = req.body;
         const customerId = req.customer.id
 
         const customer = await CustomerModel.findById(customerId)
-        
+
         if (!customer) {
             return res.status(400).json({ success: false, message: "Customer not found" })
         }
@@ -60,7 +61,7 @@ export const createJobRequest = async (
         if (!isFuture(new Date(date))) {
             return res.status(400).json({ success: false, message: 'Invalid date formate or date is not in the future' });
         }
-        
+
         // Check if there is a similar job request sent to the same contractor within the last 72 hours
         const existingJobRequest = await JobModel.findOne({
             customer: customerId,
@@ -110,7 +111,16 @@ export const createJobRequest = async (
             lastMessageAt: new Date() // Set the last message timestamp to now
         });
 
-        
+
+        // Create a message in the conversation
+        const newMessage: IMessage = await MessageModel.create({
+            conversation: newConversation._id,
+            sender: customerId, // Assuming the customer sends the initial message
+            message: `New job request: ${description}`, // You can customize the message content as needed
+            messageType: MessageType.TEXT, // You can customize the message content as needed
+            createdAt: new Date()
+        });
+
 
 
         //  IT WILL BE WISE TO MOVE ALL THIS TO EVENT LISTENER TO KEEP THE CONTROLLER LEAN
@@ -120,14 +130,14 @@ export const createJobRequest = async (
             userType: 'contractor',
             title: 'New Job Request',
             type: 'NEW_JOB_REQUEST',
-            message:  `You've been sent a job request from ${customer.firstName}`,
+            message: `You've been sent a job request from ${customer.firstName}`,
             payload: {
                 entity: newJob.id,
                 entityType: 'jobs',
                 message: `You've sent a job request to ${customer.firstName}`,
                 contractor: contractor.id,
             }
-        }, {database: true, push:true})
+        }, { database: true, push: true })
 
 
         NotificationService.sendNotification({
@@ -135,14 +145,14 @@ export const createJobRequest = async (
             userType: 'customer',
             title: 'New Job Request',
             type: 'NEW_JOB_REQUEST',
-            message:  `You've been sent a job request from ${customer.firstName}`,
+            message: `You've been sent a job request from ${customer.firstName}`,
             payload: {
                 entity: newJob.id,
                 entityType: 'jobs',
                 message: `You've sent a job request to ${customer.firstName}`,
                 customer: customer.id,
             }
-        }, {database: true, push:true})
+        }, { database: true, push: true })
 
 
         const html = htmlJobRequestTemplate(customer.firstName, customer.firstName, `${date} ${time}`, description)
@@ -158,7 +168,7 @@ export const createJobRequest = async (
     }
 
 }
- 
+
 
 export const createJobListing = async (
     req: any,
@@ -166,27 +176,27 @@ export const createJobListing = async (
 ) => {
 
     try {
-        
+
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            return res.status(400).json({message: 'validatior error occured', errors: errors.array() });
+            return res.status(400).json({ message: 'validatior error occured', errors: errors.array() });
         }
 
-        const {category, description, location, date, expiresIn, emergency, media, voiceDescription, time, contractorType } = req.body;
+        const { category, description, location, date, expiresIn, emergency, media, voiceDescription, time, contractorType } = req.body;
         const customerId = req.customer.id
 
         const customer = await CustomerModel.findById(customerId)
-        
+
         if (!customer) {
             return res.status(400).json({ success: false, message: "Customer not found" })
         }
 
-       
+
         // Check if the specified date is valid
         if (!isFuture(new Date(date))) {
             return res.status(400).json({ success: false, message: 'Invalid date formate or date is not in the future' });
         }
-        
+
         // Check if there is a similar job request sent to the same contractor within the last 72 hours
         const existingJobRequest = await JobModel.findOne({
             customer: customerId,
@@ -223,7 +233,7 @@ export const createJobListing = async (
 
         // Save the job document to the database
         await newJob.save();
-         
+
         res.status(201).json({ success: true, message: 'Job listing submitted successfully', data: newJob });
     } catch (error) {
         console.error('Error submitting job listing:', error);
@@ -242,7 +252,7 @@ export const getJobs = async (req: any, res: Response) => {
         }
 
         // Extract query parameters
-        const { contractorId, status, startDate, endDate, date , type} = req.query;
+        const { contractorId, status, startDate, endDate, date, type } = req.query;
         const customerId = req.customer.id;
 
         // Construct filter object based on query parameters
@@ -268,7 +278,7 @@ export const getJobs = async (req: any, res: Response) => {
             end.setDate(end.getDate() + 1);
             filter.createdAt = { $gte: start, $lt: end };
         }
-        
+
         if (date) {
             const selectedDate = new Date(date);
             const startOfDay = new Date(selectedDate.setUTCHours(0, 0, 0, 0));
@@ -278,7 +288,7 @@ export const getJobs = async (req: any, res: Response) => {
         }
 
         // Execute query
-        const {data, error} = await applyAPIFeature(JobModel.find(filter), req.query)
+        const { data, error } = await applyAPIFeature(JobModel.find(filter), req.query)
 
         res.json({ success: true, message: 'Jobs retrieved', data: data });
     } catch (error) {
@@ -293,7 +303,7 @@ export const getSingleJob = async (req: any, res: Response) => {
         const customerId = req.customer.id
         const jobId = req.params.jobId;
 
-        const job = await JobModel.findOne({customer: customerId, _id: jobId}).exec();
+        const job = await JobModel.findOne({ customer: customerId, _id: jobId }).exec();
 
         // Check if the job exists
         if (!job) {

@@ -51,12 +51,13 @@ var job_model_1 = require("../../../database/common/job.model");
 var custom_errors_1 = require("../../../utils/custom.errors");
 var api_feature_1 = require("../../../utils/api.feature");
 var conversations_schema_1 = require("../../../database/common/conversations.schema");
+var messages_schema_1 = require("../../../database/common/messages.schema");
 var createJobRequest = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, contractorId, category, description, location_1, date, expiresIn, emergency, media, voiceDescription, time, customerId, customer, contractor, existingJobRequest, dateTimeString, jobTime, newJob, conversationMembers, newConversation, html, error_1;
+    var errors, _a, contractorId, category, description, location_1, date, expiresIn, emergency, media, voiceDescription, time, customerId, customer, contractor, existingJobRequest, dateTimeString, jobTime, newJob, conversationMembers, newConversation, newMessage, html, error_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 6, , 7]);
+                _b.trys.push([0, 7, , 8]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ message: 'validatior error occured', errors: errors.array() })];
@@ -124,6 +125,15 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                     })];
             case 5:
                 newConversation = _b.sent();
+                return [4 /*yield*/, messages_schema_1.MessageModel.create({
+                        conversation: newConversation._id,
+                        sender: customerId, // Assuming the customer sends the initial message
+                        message: "New job request: ".concat(description), // You can customize the message content as needed
+                        messageType: messages_schema_1.MessageType.TEXT, // You can customize the message content as needed
+                        createdAt: new Date()
+                    })];
+            case 6:
+                newMessage = _b.sent();
                 //  IT WILL BE WISE TO MOVE ALL THIS TO EVENT LISTENER TO KEEP THE CONTROLLER LEAN
                 //   contractor notification
                 services_1.NotificationService.sendNotification({
@@ -155,12 +165,12 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 html = (0, jobRequestTemplate_1.htmlJobRequestTemplate)(customer.firstName, customer.firstName, "".concat(date, " ").concat(time), description);
                 services_1.EmailService.send(contractor.email, 'Job request from customer', html);
                 res.status(201).json({ success: true, message: 'Job request submitted successfully', data: newJob });
-                return [3 /*break*/, 7];
-            case 6:
+                return [3 /*break*/, 8];
+            case 7:
                 error_1 = _b.sent();
                 console.error('Error submitting job request:', error_1);
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('Bad Request'))];
-            case 7: return [2 /*return*/];
+            case 8: return [2 /*return*/];
         }
     });
 }); };

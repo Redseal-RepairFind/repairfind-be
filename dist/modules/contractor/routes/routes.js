@@ -96,6 +96,9 @@ router.post("/stripe-session", contractorRoleCheck_middleware_1.checkContractorR
 router.post("/stripe-setupintent", contractorRoleCheck_middleware_1.checkContractorRole, contractor_stripe_controller_1.ContractorStripeController.createSetupIntent);
 // Contractor Jobs
 router.get('/jobs', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.getJobRequests);
+router.post('/jobs/:jobId/applications', contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateJobApplicationRequest, contractor_job_controller_1.ContractorJobController.sendJobApplication); // send application and estimate
+router.get('/jobs/:jobId/applications', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.getApplicationForJob); // send application and estimate
+router.patch('/jobs/:jobId/applications', contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateJobApplicationRequest, contractor_job_controller_1.ContractorJobController.updateJobApplication); // send application and estimate
 router.get('/jobs/listings', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.getJobRequests);
 router.get('/jobs/requests', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.getJobRequests);
 router.get('/jobs/requests/:jobId', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.getJobRequestById);

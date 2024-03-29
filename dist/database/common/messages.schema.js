@@ -23,8 +23,14 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MessageModel = void 0;
+exports.MessageModel = exports.MessageType = void 0;
 var mongoose_1 = __importStar(require("mongoose"));
+var MessageType;
+(function (MessageType) {
+    MessageType["TEXT"] = "TEXT";
+    MessageType["ALERT"] = "ALERT";
+    MessageType["MEDIA"] = "MEDIA";
+})(MessageType || (exports.MessageType = MessageType = {}));
 // Define schema for messages
 var MessageSchema = new mongoose_1.Schema({
     conversation: {
@@ -43,7 +49,7 @@ var MessageSchema = new mongoose_1.Schema({
     },
     messageType: {
         type: String,
-        enum: ['text', 'alert', 'media'],
+        enum: Object.values(MessageType),
         required: true,
     },
     message: {

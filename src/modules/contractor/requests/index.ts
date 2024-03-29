@@ -169,6 +169,20 @@ export const EmailVerificationRequest = [
     body('events.*.description').optional().isString().withMessage('Description should be a string'),
   ];
   
+
+  // JOB
+  export const CreateJobApplicationRequest = [
+    body("startDate").optional().isISO8601(),
+    body("endDate").optional().isISO8601(),
+    body("siteVisit").optional().isObject(),
+    body("siteVisit.date").if(body("siteVisit").exists()).notEmpty().isISO8601(),
+    body("estimates").optional().isArray(), // Making estimates optional
+    body("estimates.*.rate").if(body("estimates").exists()).notEmpty().isNumeric(), // Checking rate only if estimates is provided
+    body("estimates.*.quantity").if(body("estimates").exists()).notEmpty().isNumeric(), // Checking quantity only if estimates is provided
+    body("estimates.*.description").if(body("estimates").exists()).notEmpty().isString(), // Checking description only if estimates is provided
+];
+
+
   
 
 
@@ -185,6 +199,7 @@ export const ContractorHttpRequest = {
     UpdateProfileRequest,
     PasswordChangeRequest,
     CreateStripeSessionRequest,
-    UpdateOrDevice
+    UpdateOrDevice,
+    CreateJobApplicationRequest
     
 }

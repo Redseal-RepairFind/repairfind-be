@@ -1,12 +1,17 @@
 import mongoose, { Document, Schema, Types } from 'mongoose';
 
+export enum MessageType  {
+    TEXT = "TEXT",
+    ALERT = "ALERT",
+    MEDIA = "MEDIA",
+}
 // Define base interface for messages
-interface IMessage extends Document {
+export interface IMessage extends Document {
     _id: string;
     conversation: string;
     sender: Types.ObjectId; // Reference to the sender (contractor or customer)
     senderType: 'contractor' | 'customer'; // Type of the sender
-    messageType: 'text' | 'alert' | 'media'; //
+    messageType: 'TEXT' | 'ALERT' | 'MEDIA'; //
     message: string;
     media: { type: string; url: string; blurHash: string }[];
     readBy: Types.ObjectId[]; // References to contractors who have read the message
@@ -30,7 +35,7 @@ const MessageSchema = new Schema<IMessage>({
     },
     messageType: {
         type: String,
-        enum: ['text', 'alert', 'media'],
+        enum: Object.values(MessageType),
         required: true,
     },
     message: {

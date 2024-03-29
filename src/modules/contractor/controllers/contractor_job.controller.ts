@@ -9,6 +9,8 @@ import CustomerJobRequestModel from "../../../database/customer/models/customer_
 import { JobModel, JobStatus, JobType } from "../../../database/common/job.model";
 import { applyAPIFeature } from "../../../utils/api.feature";
 import { BadRequestError, InternalServerError, NotFoundError } from "../../../utils/custom.errors";
+import { JobApplicationModel, JobApplicationStatus } from "../../../database/common/job_application.model";
+import CustomerModel from "../../../database/customer/models/customer.model";
 
 
 export const getJobRequests = async (req: any, res: Response) => {
@@ -115,9 +117,27 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
       // Push the rejection event to the job history array
       jobRequest.jobHistory.push(jobEvent);
 
-      await jobRequest.save();
+    
 
-      await jobRequest.save();
+      // Create the initial job application
+      const initialApplication = new JobApplicationModel({
+        contractorId: contractorId,
+        status: JobApplicationStatus.PENDING, // Assuming initial status is pending
+        estimate: [], // You may need to adjust this based on your application schema
+        startDate: jobRequest.startDate,
+        endDate: jobRequest.endDate,
+        siteVerification: false, // Example value, adjust as needed
+        processingFee: 0 // Example value, adjust as needed
+    });
+
+    // Save the initial job application
+    await initialApplication.save();
+
+    // Associate the job application with the job request
+    jobRequest.applications.push(initialApplication._id);
+
+    await jobRequest.save();
+
 
       // Return success response
       res.json({ success: true, message: 'Job request accepted successfully' });
@@ -209,121 +229,172 @@ export const getJobRequestById = async (req: any, res: Response, next: NextFunct
 };
 
 
-// //contractor send job quatation /////////////
-// export const contractorSendJobQuatationController = async (
-//     req: any,
-//     res: Response,
-//   ) => {
+//contractor send job quatation /////////////
+export const sendJobApplication = async (
+    req: any,
+    res: Response,
+  ) => {
     
-//     try {
-//       const {  
-//         jobId,
-//         quatations,
-//         workmanShip
-//       } = req.body;
+    try {
+      const {  
+        startDate,
+        endDate,
+        siteVisit,
+        estimates,
+      } = req.body;
   
-//       // Check for validation errors
-//       const errors = validationResult(req);
+      const  { jobId }  = req.params
+
+
+      // Check for validation errors
+      const errors = validationResult(req);
   
-//       if (!errors.isEmpty()) {
-//         return res.status(400).json({ errors: errors.array() });
-//       }
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
   
-      
-//       const contractor =  req.contractor;
-//       const contractorId = contractor.id
+    const contractorId = req.contractor.id
   
-//       //get user info from databas
-//       const contractorExist = await ContractorModel.findOne({_id: contractorId});
+      //get user info from databas
+      const contractor = await ContractorModel.findOne({_id: contractorId});
   
-//       if (!contractorExist) {
-//         return res
-//           .status(401)
-//           .json({ message: "invalid credential" });
-//       }
+      if (!contractor) {
+        return res
+          .status(401)
+          .json({ message: "invalid credential" });
+      }
   
-//       const job = await JobModel.findOne({_id: jobId, contractorId, status: 'sent request'}).sort({ createdAt: -1 })
+      const job = await JobModel.findOne({_id: jobId}).sort({ createdAt: -1 })
 
-//       if (!job) {
-//         return res
-//           .status(401)
-//           .json({ message: "job request do not exist" });
-//       }
+      if (!job) {
+        return res
+          .status(401)
+          .json({ message: "job does not exist" });
+      }
 
-//       if (quatations.length < 1) {
-//         return res
-//           .status(401)
-//           .json({ message: "invalid quatation format" });
-//       }
+      if (estimates.length < 1) {
+        return res
+          .status(401)
+          .json({ message: "invalid estimate format" });
+      }
 
-//       const customer = await CustomerRegModel.findOne({_id: job.customerId})
+      const customer = await CustomerModel.findOne({_id: job.customer})
 
-//       if (!customer) {
-        
-//         return res
-//         .status(401)
-//         .json({ message: "invalid customer Id" });
-//       }
+      if (!customer) {
+        return res
+        .status(401)
+        .json({ message: "invalid customer Id" });
+      }
 
-//       let totalQuatation = 0
-//       for (let i = 0; i < quatations.length; i++) {
-//         const quatation = quatations[i];
-        
-//         totalQuatation = totalQuatation + quatation.amount
-//       }
 
-//       totalQuatation = totalQuatation + workmanShip;
+     let jobApplication = await JobApplicationModel.findOneAndUpdate({jobId, contractorId}, {
+        startDate,
+        endDate,
+        siteVisit,
+        estimates,
+        jobId,
+        contractorId
+     }, {new: true, upsert: true})
 
-//       let companyCharge = 0
+     jobApplication.charges = await jobApplication.calculateCharges(estimates);
 
-//       if (totalQuatation <= 1000) {
-//         companyCharge = parseFloat(((20 / 100) * totalQuatation).toFixed(2));
-//       }else if (totalQuatation <=  5000){
-//         companyCharge = parseFloat(((15 / 100) * totalQuatation).toFixed(2));
-//       }else{
-//         companyCharge = parseFloat(((10 / 100) * totalQuatation).toFixed(2));
-//       }
 
-//       const gst = parseFloat(((5 / 100) * totalQuatation).toFixed(2));
+      // @ts-ignore
+      const html = htmlJobQoutationTemplate(customer.firstName, contractor.name)
 
-//       const totalAmountCustomerToPaid = companyCharge + totalQuatation + gst;
-//       const totalAmountContractorWithdraw = totalQuatation + gst;
+      let emailData = {
+        emailTo: customer.email,
+        subject: "Job application from contractor",
+        html
+      };
 
-//       job.quate = quatations
-//       job.workmanShip = workmanShip
-      
-//       job.gst = gst
-//       job.totalQuatation = totalQuatation
-//       job.companyCharge = companyCharge
-//       job.totalAmountCustomerToPaid =  parseFloat(totalAmountCustomerToPaid.toFixed(2));
-
-//       job.totalAmountContractorWithdraw = parseFloat(totalAmountContractorWithdraw.toFixed(2))
-
-//       job.status = "sent qoutation";
-
-//       await job.save()
-
-//       const html = htmlJobQoutationTemplate(customer.firstName, contractorExist.firstName)
-
-//       let emailData = {
-//         emailTo: customer.email,
-//         subject: "Job qoutetation from artisan",
-//         html
-//       };
-
-//       await sendEmail(emailData);
+      await sendEmail(emailData);
     
-//       res.json({  
-//         message: "job qoutation sucessfully sent"
-//      });
+      res.json({  
+        success: true,
+        message: "job application sucessfully sent",
+        data: jobApplication
+     });
       
-//     } catch (err: any) {
-//       // signup error
-//       res.status(500).json({ message: err.message });
-//     }
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
   
-// }
+}
 
+
+export const getApplicationForJob = async (req: any, res: Response) => {
+    try {
+        const { jobId } = req.params;
+        const contractorId = req.contractor.id
+
+        // Check if the jobId and contractorId are provided
+        if (!jobId) {
+            return res.status(400).json({ success: false, message: 'Job ID  are required' });
+        }
+
+        // Find the job application for the specified job and contractor
+        const jobApplication = await JobApplicationModel.findOne({ jobId, contractorId });
+
+        // Check if the job application exists
+        if (!jobApplication) {
+            return res.status(404).json({ success: false, message: 'Job application not found' });
+        }
+
+        jobApplication.charges = await jobApplication.calculateCharges(jobApplication.estimates)
+
+        res.status(200).json({ success: true, message: 'Job application retrieved successfully', data: jobApplication });
+    } catch (error) {
+        console.error('Error fetching job application:', error);
+        res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+};
+
+
+export const updateJobApplication = async (req: any, res: Response) => {
+    try {
+        const { jobId } = req.params;
+        const contractorId = req.contractor.id
+
+        // Check if the jobId and contractorId are provided
+        if (!jobId || !contractorId) {
+            return res.status(400).json({ success: false, message: 'Job ID is missing from params' });
+        }
+
+        const { startDate, endDate, siteVisit, estimates } = req.body;
+
+        // Check for validation errors
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        // Find the job application for the specified job and contractor
+        let jobApplication = await JobApplicationModel.findOne({ jobId, contractorId });
+
+        // If the job application does not exist, create a new one
+        if (!jobApplication) {
+            jobApplication = new JobApplicationModel({ jobId, contractorId });
+        }
+
+        // Update the job application fields
+        jobApplication.startDate = startDate;
+        jobApplication.endDate = endDate;
+        jobApplication.siteVisit = siteVisit;
+        jobApplication.estimates = estimates;
+
+        // Save the updated job application
+        
+        await jobApplication.save();
+
+        jobApplication.charges = await jobApplication.calculateCharges(jobApplication.estimates)
+
+        res.status(200).json({ success: true, message: 'Job application updated successfully', data: jobApplication });
+    } catch (error) {
+        console.error('Error updating job application:', error);
+        res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+};
 
 
 // //contractor send job quatation two /////////////
@@ -1389,7 +1460,10 @@ export const ContractorJobController = {
     getJobRequests,
     getJobRequestById,
     rejectJobRequest,
-    acceptJobRequest
+    acceptJobRequest,
+    sendJobApplication,
+    getApplicationForJob,
+    updateJobApplication
 }
 
 

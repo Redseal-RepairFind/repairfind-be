@@ -35,12 +35,20 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorJobController = exports.getJobRequestById = exports.rejectJobRequest = exports.acceptJobRequest = exports.getJobRequests = void 0;
+exports.ContractorJobController = exports.updateJobApplication = exports.getApplicationForJob = exports.sendJobApplication = exports.getJobRequestById = exports.rejectJobRequest = exports.acceptJobRequest = exports.getJobRequests = void 0;
 var express_validator_1 = require("express-validator");
+var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
+var send_email_utility_1 = require("../../../utils/send_email_utility");
+var jobQoutationTemplate_1 = require("../../../templates/customerEmail/jobQoutationTemplate");
 var job_model_1 = require("../../../database/common/job.model");
 var api_feature_1 = require("../../../utils/api.feature");
 var custom_errors_1 = require("../../../utils/custom.errors");
+var job_application_model_1 = require("../../../database/common/job_application.model");
+var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var getJobRequests = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, customerId, status_1, startDate, endDate, date, contractorId, filter, start, end, selectedDate, startOfDay, endOfDay, jobRequests, _b, data, error, error_1;
     return __generator(this, function (_c) {
@@ -97,7 +105,7 @@ var getJobRequests = function (req, res) { return __awaiter(void 0, void 0, void
 }); };
 exports.getJobRequests = getJobRequests;
 var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, jobId, contractorId, jobRequest, jobEvent, error_2;
+    var errors, jobId, contractorId, jobRequest, jobEvent, initialApplication, error_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -134,9 +142,22 @@ var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 };
                 // Push the rejection event to the job history array
                 jobRequest.jobHistory.push(jobEvent);
-                return [4 /*yield*/, jobRequest.save()];
+                initialApplication = new job_application_model_1.JobApplicationModel({
+                    contractorId: contractorId,
+                    status: job_application_model_1.JobApplicationStatus.PENDING, // Assuming initial status is pending
+                    estimate: [], // You may need to adjust this based on your application schema
+                    startDate: jobRequest.startDate,
+                    endDate: jobRequest.endDate,
+                    siteVerification: false, // Example value, adjust as needed
+                    processingFee: 0 // Example value, adjust as needed
+                });
+                // Save the initial job application
+                return [4 /*yield*/, initialApplication.save()];
             case 2:
+                // Save the initial job application
                 _a.sent();
+                // Associate the job application with the job request
+                jobRequest.applications.push(initialApplication._id);
                 return [4 /*yield*/, jobRequest.save()];
             case 3:
                 _a.sent();
@@ -234,89 +255,172 @@ var getJobRequestById = function (req, res, next) { return __awaiter(void 0, voi
     });
 }); };
 exports.getJobRequestById = getJobRequestById;
-// //contractor send job quatation /////////////
-// export const contractorSendJobQuatationController = async (
-//     req: any,
-//     res: Response,
-//   ) => {
-//     try {
-//       const {  
-//         jobId,
-//         quatations,
-//         workmanShip
-//       } = req.body;
-//       // Check for validation errors
-//       const errors = validationResult(req);
-//       if (!errors.isEmpty()) {
-//         return res.status(400).json({ errors: errors.array() });
-//       }
-//       const contractor =  req.contractor;
-//       const contractorId = contractor.id
-//       //get user info from databas
-//       const contractorExist = await ContractorModel.findOne({_id: contractorId});
-//       if (!contractorExist) {
-//         return res
-//           .status(401)
-//           .json({ message: "invalid credential" });
-//       }
-//       const job = await JobModel.findOne({_id: jobId, contractorId, status: 'sent request'}).sort({ createdAt: -1 })
-//       if (!job) {
-//         return res
-//           .status(401)
-//           .json({ message: "job request do not exist" });
-//       }
-//       if (quatations.length < 1) {
-//         return res
-//           .status(401)
-//           .json({ message: "invalid quatation format" });
-//       }
-//       const customer = await CustomerRegModel.findOne({_id: job.customerId})
-//       if (!customer) {
-//         return res
-//         .status(401)
-//         .json({ message: "invalid customer Id" });
-//       }
-//       let totalQuatation = 0
-//       for (let i = 0; i < quatations.length; i++) {
-//         const quatation = quatations[i];
-//         totalQuatation = totalQuatation + quatation.amount
-//       }
-//       totalQuatation = totalQuatation + workmanShip;
-//       let companyCharge = 0
-//       if (totalQuatation <= 1000) {
-//         companyCharge = parseFloat(((20 / 100) * totalQuatation).toFixed(2));
-//       }else if (totalQuatation <=  5000){
-//         companyCharge = parseFloat(((15 / 100) * totalQuatation).toFixed(2));
-//       }else{
-//         companyCharge = parseFloat(((10 / 100) * totalQuatation).toFixed(2));
-//       }
-//       const gst = parseFloat(((5 / 100) * totalQuatation).toFixed(2));
-//       const totalAmountCustomerToPaid = companyCharge + totalQuatation + gst;
-//       const totalAmountContractorWithdraw = totalQuatation + gst;
-//       job.quate = quatations
-//       job.workmanShip = workmanShip
-//       job.gst = gst
-//       job.totalQuatation = totalQuatation
-//       job.companyCharge = companyCharge
-//       job.totalAmountCustomerToPaid =  parseFloat(totalAmountCustomerToPaid.toFixed(2));
-//       job.totalAmountContractorWithdraw = parseFloat(totalAmountContractorWithdraw.toFixed(2))
-//       job.status = "sent qoutation";
-//       await job.save()
-//       const html = htmlJobQoutationTemplate(customer.firstName, contractorExist.firstName)
-//       let emailData = {
-//         emailTo: customer.email,
-//         subject: "Job qoutetation from artisan",
-//         html
-//       };
-//       await sendEmail(emailData);
-//       res.json({  
-//         message: "job qoutation sucessfully sent"
-//      });
-//     } catch (err: any) {
-//       // signup error
-//       res.status(500).json({ message: err.message });
-//     }
-// }
+//contractor send job quatation /////////////
+var sendJobApplication = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, startDate, endDate, siteVisit, estimates, jobId, errors, contractorId, contractor, job, customer, jobApplication, _b, html, emailData, err_1;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
+            case 0:
+                _c.trys.push([0, 7, , 8]);
+                _a = req.body, startDate = _a.startDate, endDate = _a.endDate, siteVisit = _a.siteVisit, estimates = _a.estimates;
+                jobId = req.params.jobId;
+                errors = (0, express_validator_1.validationResult)(req);
+                if (!errors.isEmpty()) {
+                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                }
+                contractorId = req.contractor.id;
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: contractorId })];
+            case 1:
+                contractor = _c.sent();
+                if (!contractor) {
+                    return [2 /*return*/, res
+                            .status(401)
+                            .json({ message: "invalid credential" })];
+                }
+                return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobId }).sort({ createdAt: -1 })];
+            case 2:
+                job = _c.sent();
+                if (!job) {
+                    return [2 /*return*/, res
+                            .status(401)
+                            .json({ message: "job does not exist" })];
+                }
+                if (estimates.length < 1) {
+                    return [2 /*return*/, res
+                            .status(401)
+                            .json({ message: "invalid estimate format" })];
+                }
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: job.customer })];
+            case 3:
+                customer = _c.sent();
+                if (!customer) {
+                    return [2 /*return*/, res
+                            .status(401)
+                            .json({ message: "invalid customer Id" })];
+                }
+                return [4 /*yield*/, job_application_model_1.JobApplicationModel.findOneAndUpdate({ jobId: jobId, contractorId: contractorId }, {
+                        startDate: startDate,
+                        endDate: endDate,
+                        siteVisit: siteVisit,
+                        estimates: estimates,
+                        jobId: jobId,
+                        contractorId: contractorId
+                    }, { new: true, upsert: true })];
+            case 4:
+                jobApplication = _c.sent();
+                _b = jobApplication;
+                return [4 /*yield*/, jobApplication.calculateCharges(estimates)];
+            case 5:
+                _b.charges = _c.sent();
+                html = (0, jobQoutationTemplate_1.htmlJobQoutationTemplate)(customer.firstName, contractor.name);
+                emailData = {
+                    emailTo: customer.email,
+                    subject: "Job application from contractor",
+                    html: html
+                };
+                return [4 /*yield*/, (0, send_email_utility_1.sendEmail)(emailData)];
+            case 6:
+                _c.sent();
+                res.json({
+                    success: true,
+                    message: "job application sucessfully sent",
+                    data: jobApplication
+                });
+                return [3 /*break*/, 8];
+            case 7:
+                err_1 = _c.sent();
+                res.status(500).json({ message: err_1.message });
+                return [3 /*break*/, 8];
+            case 8: return [2 /*return*/];
+        }
+    });
+}); };
+exports.sendJobApplication = sendJobApplication;
+var getApplicationForJob = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var jobId, contractorId, jobApplication, _a, error_5;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 3, , 4]);
+                jobId = req.params.jobId;
+                contractorId = req.contractor.id;
+                // Check if the jobId and contractorId are provided
+                if (!jobId) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Job ID  are required' })];
+                }
+                return [4 /*yield*/, job_application_model_1.JobApplicationModel.findOne({ jobId: jobId, contractorId: contractorId })];
+            case 1:
+                jobApplication = _b.sent();
+                // Check if the job application exists
+                if (!jobApplication) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Job application not found' })];
+                }
+                _a = jobApplication;
+                return [4 /*yield*/, jobApplication.calculateCharges(jobApplication.estimates)];
+            case 2:
+                _a.charges = _b.sent();
+                res.status(200).json({ success: true, message: 'Job application retrieved successfully', data: jobApplication });
+                return [3 /*break*/, 4];
+            case 3:
+                error_5 = _b.sent();
+                console.error('Error fetching job application:', error_5);
+                res.status(500).json({ success: false, message: 'Internal Server Error' });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getApplicationForJob = getApplicationForJob;
+var updateJobApplication = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var jobId, contractorId, _a, startDate, endDate, siteVisit, estimates, errors, jobApplication, _b, error_6;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
+            case 0:
+                _c.trys.push([0, 4, , 5]);
+                jobId = req.params.jobId;
+                contractorId = req.contractor.id;
+                // Check if the jobId and contractorId are provided
+                if (!jobId || !contractorId) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Job ID is missing from params' })];
+                }
+                _a = req.body, startDate = _a.startDate, endDate = _a.endDate, siteVisit = _a.siteVisit, estimates = _a.estimates;
+                errors = (0, express_validator_1.validationResult)(req);
+                if (!errors.isEmpty()) {
+                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                }
+                return [4 /*yield*/, job_application_model_1.JobApplicationModel.findOne({ jobId: jobId, contractorId: contractorId })];
+            case 1:
+                jobApplication = _c.sent();
+                // If the job application does not exist, create a new one
+                if (!jobApplication) {
+                    jobApplication = new job_application_model_1.JobApplicationModel({ jobId: jobId, contractorId: contractorId });
+                }
+                // Update the job application fields
+                jobApplication.startDate = startDate;
+                jobApplication.endDate = endDate;
+                jobApplication.siteVisit = siteVisit;
+                jobApplication.estimates = estimates;
+                // Save the updated job application
+                return [4 /*yield*/, jobApplication.save()];
+            case 2:
+                // Save the updated job application
+                _c.sent();
+                _b = jobApplication;
+                return [4 /*yield*/, jobApplication.calculateCharges(jobApplication.estimates)];
+            case 3:
+                _b.charges = _c.sent();
+                res.status(200).json({ success: true, message: 'Job application updated successfully', data: jobApplication });
+                return [3 /*break*/, 5];
+            case 4:
+                error_6 = _c.sent();
+                console.error('Error updating job application:', error_6);
+                res.status(500).json({ success: false, message: 'Internal Server Error' });
+                return [3 /*break*/, 5];
+            case 5: return [2 /*return*/];
+        }
+    });
+}); };
+exports.updateJobApplication = updateJobApplication;
 // //contractor send job quatation two /////////////
 // export const contractorSendJobQuatationControllerTwo = async (
 //   req: any,
@@ -1047,5 +1151,8 @@ exports.ContractorJobController = {
     getJobRequests: exports.getJobRequests,
     getJobRequestById: exports.getJobRequestById,
     rejectJobRequest: exports.rejectJobRequest,
-    acceptJobRequest: exports.acceptJobRequest
+    acceptJobRequest: exports.acceptJobRequest,
+    sendJobApplication: exports.sendJobApplication,
+    getApplicationForJob: exports.getApplicationForJob,
+    updateJobApplication: exports.updateJobApplication
 };

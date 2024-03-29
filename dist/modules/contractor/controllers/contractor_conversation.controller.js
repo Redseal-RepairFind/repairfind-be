@@ -41,32 +41,52 @@ var api_feature_1 = require("../../../utils/api.feature");
 var conversations_schema_1 = require("../../../database/common/conversations.schema");
 var messages_schema_1 = require("../../../database/common/messages.schema");
 var getConversations = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, startDate, endDate, read, unread, contractorId, filter, _b, data, error, error_1;
+    var _a, startDate, endDate, read, unread, contractorId_1, filter, _b, data, error, error_1;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
-                _c.trys.push([0, 2, , 3]);
+                _c.trys.push([0, 4, , 5]);
                 _a = req.query, startDate = _a.startDate, endDate = _a.endDate, read = _a.read, unread = _a.unread;
-                contractorId = req.contractor.id;
-                filter = { 'members.member': contractorId, 'members.memberType': 'contractors' };
+                contractorId_1 = req.contractor.id;
+                filter = { 'members.member': contractorId_1, 'members.memberType': 'contractors' };
                 // Filtering by startDate and endDate
                 if (startDate && endDate) {
                     filter.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
                 }
-                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(conversations_schema_1.ConversationModel.find(filter).populate(['members.member']), req.query)];
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(conversations_schema_1.ConversationModel.find(filter), req.query)];
             case 1:
                 _b = _c.sent(), data = _b.data, error = _b.error;
+                if (!data) return [3 /*break*/, 3];
+                // Map through each conversation and fetch heading info
+                return [4 /*yield*/, Promise.all(data.data.map(function (conversation) { return __awaiter(void 0, void 0, void 0, function () {
+                        var _a;
+                        return __generator(this, function (_b) {
+                            switch (_b.label) {
+                                case 0:
+                                    _a = conversation;
+                                    return [4 /*yield*/, conversation.getHeading(contractorId_1)];
+                                case 1:
+                                    _a.heading = _b.sent();
+                                    return [2 /*return*/];
+                            }
+                        });
+                    }); }))];
+            case 2:
+                // Map through each conversation and fetch heading info
+                _c.sent();
+                _c.label = 3;
+            case 3:
                 res.status(200).json({
                     success: true, message: "Conversations retrieved",
                     data: data
                 });
-                return [3 /*break*/, 3];
-            case 2:
+                return [3 /*break*/, 5];
+            case 4:
                 error_1 = _c.sent();
                 console.error("Error fetching conversations:", error_1);
                 res.status(500).json({ success: false, message: "Server error" });
-                return [3 /*break*/, 3];
-            case 3: return [2 /*return*/];
+                return [3 /*break*/, 5];
+            case 5: return [2 /*return*/];
         }
     });
 }); };
@@ -96,13 +116,13 @@ var getSingleConversation = function (req, res) { return __awaiter(void 0, void 
 }); };
 exports.getSingleConversation = getSingleConversation;
 var getConversationMessages = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var conversationId, contractorId_1, conversation, contractorIsMember, _a, data, error, error_3;
+    var conversationId, contractorId_2, conversation, contractorIsMember, _a, data, error, error_3;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
                 _b.trys.push([0, 3, , 4]);
                 conversationId = req.params.conversationId;
-                contractorId_1 = req.contractor.id;
+                contractorId_2 = req.contractor.id;
                 return [4 /*yield*/, conversations_schema_1.ConversationModel.findOne({ _id: conversationId })
                         .populate('members')];
             case 1:
@@ -111,7 +131,7 @@ var getConversationMessages = function (req, res) { return __awaiter(void 0, voi
                 if (!conversation) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Conversation not found' })];
                 }
-                contractorIsMember = conversation.members.some(function (member) { return member.member.toString() === contractorId_1; });
+                contractorIsMember = conversation.members.some(function (member) { return member.member.toString() === contractorId_2; });
                 if (!contractorIsMember) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'Unauthorized: You do not have access to this conversation' })];
                 }

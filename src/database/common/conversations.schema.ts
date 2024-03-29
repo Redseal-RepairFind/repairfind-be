@@ -78,6 +78,32 @@ const ConversationSchema = new mongoose.Schema<IConversationDocument>({
     }
 );
 
+
+// Define a schema method to get the heading
+ConversationSchema.methods.getHeading = async function(loggedInUserId: string) {
+    const otherMember = this.members.find((member: { member: { toString: () => string; }; }) => member.member.toString() !== loggedInUserId);
+    if (otherMember) {
+        let UserModel = mongoose.model('contractors');
+        if(otherMember.memberType == 'contractors'){
+            UserModel = mongoose.model('contractors'); // Assuming your user model is named 'User'
+        }else{
+            UserModel = mongoose.model('customers'); // Assuming your user model is named 'User'
+        }
+        const otherMemberUser = await UserModel.findById(otherMember.member);
+        if (otherMemberUser) {
+            return {
+                name: otherMemberUser.name,
+                profilePhoto: otherMemberUser.profilePhoto,
+            };
+        }
+    }
+    return {
+        "klds": "sda"
+    };
+};
+
+
+
 export const ConversationModel = model<IConversationDocument>('conversations', ConversationSchema);
 
 

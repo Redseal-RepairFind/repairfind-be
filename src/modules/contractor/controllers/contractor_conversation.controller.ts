@@ -14,7 +14,14 @@ export const getConversations = async (req: any, res: Response) => {
             filter.createdAt = { $gte: new Date(startDate as string), $lte: new Date(endDate as string) };
         }
 
-        const {data, error} = await applyAPIFeature(ConversationModel.find(filter).populate(['members.member']), req.query);
+        const {data, error} = await applyAPIFeature(ConversationModel.find(filter), req.query);
+        if(data){
+            // Map through each conversation and fetch heading info
+            await Promise.all(data.data.map(async (conversation: any) => {
+                conversation.heading = await conversation.getHeading(contractorId);
+            }));
+        }
+
         res.status(200).json({
             success: true, message: "Conversations retrieved", 
             data: data

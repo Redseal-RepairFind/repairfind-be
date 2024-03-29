@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorHttpRequest = exports.CreateScheduleRequest = exports.UpdateOrDevice = exports.CreateStripeSessionRequest = exports.InviteToTeam = exports.UpdateBankDetailRequest = exports.PasswordChangeRequest = exports.PasswordResetRequest = exports.ResendEmailRequest = exports.LoginRequest = exports.EmailVerificationRequest = exports.UpdateProfileRequest = exports.CreateProfileRequest = exports.CreateContractorRequest = void 0;
+exports.ContractorHttpRequest = exports.CreateJobApplicationRequest = exports.CreateScheduleRequest = exports.UpdateOrDevice = exports.CreateStripeSessionRequest = exports.InviteToTeam = exports.UpdateBankDetailRequest = exports.PasswordChangeRequest = exports.PasswordResetRequest = exports.ResendEmailRequest = exports.LoginRequest = exports.EmailVerificationRequest = exports.UpdateProfileRequest = exports.CreateProfileRequest = exports.CreateContractorRequest = void 0;
 var express_validator_1 = require("express-validator");
 exports.CreateContractorRequest = [
     (0, express_validator_1.body)('email').isEmail(),
@@ -243,6 +243,17 @@ exports.CreateScheduleRequest = [
     (0, express_validator_1.body)('events.*.booking').optional().isNumeric().withMessage('Booking should be a number'),
     (0, express_validator_1.body)('events.*.description').optional().isString().withMessage('Description should be a string'),
 ];
+// JOB
+exports.CreateJobApplicationRequest = [
+    (0, express_validator_1.body)("startDate").optional().isISO8601(),
+    (0, express_validator_1.body)("endDate").optional().isISO8601(),
+    (0, express_validator_1.body)("siteVisit").optional().isObject(),
+    (0, express_validator_1.body)("siteVisit.date").if((0, express_validator_1.body)("siteVisit").exists()).notEmpty().isISO8601(),
+    (0, express_validator_1.body)("estimates").optional().isArray(), // Making estimates optional
+    (0, express_validator_1.body)("estimates.*.rate").if((0, express_validator_1.body)("estimates").exists()).notEmpty().isNumeric(), // Checking rate only if estimates is provided
+    (0, express_validator_1.body)("estimates.*.quantity").if((0, express_validator_1.body)("estimates").exists()).notEmpty().isNumeric(), // Checking quantity only if estimates is provided
+    (0, express_validator_1.body)("estimates.*.description").if((0, express_validator_1.body)("estimates").exists()).notEmpty().isString(), // Checking description only if estimates is provided
+];
 exports.ContractorHttpRequest = {
     CreateProfileRequest: exports.CreateProfileRequest,
     CreateContractorRequest: exports.CreateContractorRequest,
@@ -256,5 +267,6 @@ exports.ContractorHttpRequest = {
     UpdateProfileRequest: exports.UpdateProfileRequest,
     PasswordChangeRequest: exports.PasswordChangeRequest,
     CreateStripeSessionRequest: exports.CreateStripeSessionRequest,
-    UpdateOrDevice: exports.UpdateOrDevice
+    UpdateOrDevice: exports.UpdateOrDevice,
+    CreateJobApplicationRequest: exports.CreateJobApplicationRequest
 };
