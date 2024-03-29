@@ -56,6 +56,7 @@ export interface IJob extends Document {
     updatedAt: Date;
     applications: string[];
     jobHistory: IJobHistory[];
+    emergency: boolean;
 }
 
 const JobLocationSchema = new Schema<IJobLocation>({
@@ -99,6 +100,7 @@ const JobSchema = new Schema<IJob>({
         type: [String],
         ref: 'job_applications'
     },
+    emergency: {type: Boolean, default:false}
 }, { timestamps: true });
 
 const JobModel = model<IJob>("jobs", JobSchema);

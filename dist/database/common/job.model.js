@@ -54,6 +54,7 @@ var JobSchema = new mongoose_1.Schema({
         type: [String],
         ref: 'job_applications'
     },
+    emergency: { type: Boolean, default: false }
 }, { timestamps: true });
 var JobModel = (0, mongoose_1.model)("jobs", JobSchema);
 exports.JobModel = JobModel;

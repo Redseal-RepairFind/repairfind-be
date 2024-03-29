@@ -122,19 +122,28 @@ router.post("/stripe-session",  checkContractorRole, ContractorHttpRequest.Creat
 router.post("/stripe-setupintent",  checkContractorRole, ContractorStripeController.createSetupIntent ); 
 
 
+/*
+    JOB 
+*/
+
 // Contractor Jobs
 router.get('/jobs', checkContractorRole, ContractorJobController.getJobRequests)
 
-router.post('/jobs/:jobId/applications', checkContractorRole, ContractorHttpRequest.CreateJobApplicationRequest, ContractorJobController.sendJobApplication) // send application and estimate
-router.get('/jobs/:jobId/applications', checkContractorRole, ContractorJobController.getApplicationForJob) // send application and estimate
-router.patch('/jobs/:jobId/applications', checkContractorRole,ContractorHttpRequest.CreateJobApplicationRequest, ContractorJobController.updateJobApplication) // send application and estimate
+// Job Listings
+router.get('/jobs/listings', checkContractorRole, ContractorJobController.getJobListings)
+router.get('/jobs/listings/jobId', checkContractorRole, ContractorJobController.getJobListings)
 
-router.get('/jobs/listings', checkContractorRole, ContractorJobController.getJobRequests)
-
+// Job Request
 router.get('/jobs/requests', checkContractorRole, ContractorJobController.getJobRequests)
 router.get('/jobs/requests/:jobId', checkContractorRole, ContractorJobController.getJobRequestById)
 router.post('/jobs/requests/:jobId/accept', checkContractorRole, ContractorJobController.acceptJobRequest)
 router.post('/jobs/requests/:jobId/reject', checkContractorRole, ContractorJobController.rejectJobRequest)
+
+// Application & Estimate
+router.post('/jobs/:jobId/applications', checkContractorRole, ContractorHttpRequest.CreateJobApplicationRequest, ContractorJobController.sendJobApplication) // send application and estimate
+router.get('/jobs/:jobId/applications', checkContractorRole, ContractorJobController.getApplicationForJob) // send application and estimate
+router.patch('/jobs/:jobId/applications', checkContractorRole,ContractorHttpRequest.CreateJobApplicationRequest, ContractorJobController.updateJobApplication) // send application and estimate
+
 
 
 // Notifications

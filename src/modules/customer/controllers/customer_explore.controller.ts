@@ -142,7 +142,7 @@ export const exploreContractors = async (
             });
             pipeline.push({ $match: { "distance": { $lte: parseInt(distance) } } });
         }
-
+ 
         if (sort) {
             const [sortField, sortOrder] = sort.startsWith('-') ? [sort.slice(1), -1] : [sort, 1];
             const sortStage: PipelineStage = {

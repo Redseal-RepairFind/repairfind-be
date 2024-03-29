@@ -1,4 +1,15 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -39,7 +50,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorJobController = exports.updateJobApplication = exports.getApplicationForJob = exports.sendJobApplication = exports.getJobRequestById = exports.rejectJobRequest = exports.acceptJobRequest = exports.getJobRequests = void 0;
+exports.ContractorJobController = exports.getJobListings = exports.updateJobApplication = exports.getApplicationForJob = exports.sendJobApplication = exports.getJobRequestById = exports.rejectJobRequest = exports.acceptJobRequest = exports.getJobRequests = void 0;
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var send_email_utility_1 = require("../../../utils/send_email_utility");
@@ -421,6 +432,104 @@ var updateJobApplication = function (req, res) { return __awaiter(void 0, void 0
     });
 }); };
 exports.updateJobApplication = updateJobApplication;
+var getJobListings = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var errors, _a, distance, latitude, longitude, emergency, category, city, country, address, startDate, endDate, _b, page, _c, limit, sort // Sort field and order (-fieldName or fieldName)
+    , pipeline, _d, sortField, sortOrder, sortStage, skip, result, jobs, metadata, error_7;
+    var _e;
+    return __generator(this, function (_f) {
+        switch (_f.label) {
+            case 0:
+                errors = (0, express_validator_1.validationResult)(req);
+                if (!errors.isEmpty()) {
+                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                }
+                _f.label = 1;
+            case 1:
+                _f.trys.push([1, 3, , 4]);
+                _a = req.query, distance = _a.distance, latitude = _a.latitude, longitude = _a.longitude, emergency = _a.emergency, category = _a.category, city = _a.city, country = _a.country, address = _a.address, startDate = _a.startDate, endDate = _a.endDate, _b = _a.page, page = _b === void 0 ? 1 : _b, _c = _a.limit, limit = _c === void 0 ? 10 : _c, sort = _a.sort;
+                limit = limit > 0 ? parseInt(limit) : 10; // Handle null limit
+                pipeline = [];
+                // Match job listings based on query parameters
+                pipeline.push({ $match: { type: job_model_1.JobType.LISTING } });
+                pipeline.push({ $match: { status: job_model_1.JobStatus.PENDING } });
+                if (category) {
+                    pipeline.push({ $match: { category: { $regex: new RegExp(category, 'i') } } });
+                }
+                if (country) {
+                    pipeline.push({ $match: { 'location.country': { $regex: new RegExp(country, 'i') } } });
+                }
+                if (city) {
+                    pipeline.push({ $match: { 'location.city': { $regex: new RegExp(city, 'i') } } });
+                }
+                if (address) {
+                    pipeline.push({ $match: { 'location.address': { $regex: new RegExp(address, 'i') } } });
+                }
+                if (emergency !== undefined) {
+                    pipeline.push({ $match: { emergency: emergency === "true" } });
+                }
+                if (startDate && endDate) {
+                    pipeline.push({
+                        $match: {
+                            date: {
+                                $gte: new Date(startDate),
+                                $lte: new Date(endDate)
+                            }
+                        }
+                    });
+                }
+                if (distance && latitude && longitude) {
+                    pipeline.push({
+                        $addFields: {
+                            distance: {
+                                $sqrt: {
+                                    $sum: [
+                                        { $pow: [{ $subtract: [{ $toDouble: "$location.latitude" }, parseFloat(latitude)] }, 2] },
+                                        { $pow: [{ $subtract: [{ $toDouble: "$location.longitude" }, parseFloat(longitude)] }, 2] }
+                                    ]
+                                }
+                            }
+                        }
+                    });
+                    pipeline.push({ $match: { "distance": { $lte: parseInt(distance) } } });
+                }
+                // Add sorting stage if specified
+                if (sort) {
+                    _d = sort.startsWith('-') ? [sort.slice(1), -1] : [sort, 1], sortField = _d[0], sortOrder = _d[1];
+                    sortStage = {
+                        //@ts-ignore
+                        $sort: (_e = {}, _e[sortField] = sortOrder, _e)
+                    };
+                    pipeline.push(sortStage);
+                }
+                skip = (parseInt(page) - 1) * parseInt(limit);
+                // Add $facet stage for pagination
+                pipeline.push({
+                    $facet: {
+                        metadata: [
+                            { $count: "totalItems" },
+                            { $addFields: { page: page, limit: limit, currentPage: parseInt(page), lastPage: { $ceil: { $divide: ["$totalItems", parseInt(limit)] } } } }
+                        ],
+                        data: [{ $skip: skip }, { $limit: parseInt(limit) }]
+                    }
+                });
+                return [4 /*yield*/, job_model_1.JobModel.aggregate(pipeline)];
+            case 2:
+                result = _f.sent();
+                jobs = result[0].data;
+                metadata = result[0].metadata[0];
+                // Send response with job listings data
+                res.status(200).json({ success: true, data: __assign(__assign({}, metadata), { data: jobs }) });
+                return [3 /*break*/, 4];
+            case 3:
+                error_7 = _f.sent();
+                console.error('Error fetching job listings:', error_7);
+                res.status(500).json({ success: false, message: 'Server error' });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getJobListings = getJobListings;
 // //contractor send job quatation two /////////////
 // export const contractorSendJobQuatationControllerTwo = async (
 //   req: any,
@@ -1149,6 +1258,7 @@ exports.updateJobApplication = updateJobApplication;
 // }
 exports.ContractorJobController = {
     getJobRequests: exports.getJobRequests,
+    getJobListings: exports.getJobListings,
     getJobRequestById: exports.getJobRequestById,
     rejectJobRequest: exports.rejectJobRequest,
     acceptJobRequest: exports.acceptJobRequest,
