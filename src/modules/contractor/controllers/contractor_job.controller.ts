@@ -95,6 +95,16 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
       return res.status(404).json({ success: false, message: 'Job request not found' });
     }
 
+
+     // Find the job request by ID
+     const customer = await CustomerModel.findById(jobRequest.customer);
+
+     // Check if the customer request exists
+     if (!customer) {
+       return res.status(404).json({ success: false, message: 'Customer not found' });
+     }
+ 
+
     // Check if the job request belongs to the contractor
     if (jobRequest.contractor.toString() !== contractorId) {
       return res.status(403).json({ success: false, message: 'Unauthorized: You do not have permission to accept this job request' });
@@ -144,11 +154,19 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
 
 
     // Create a conversation
-    const conversation =  await ConversationModel.findByIdAndUpdate({entity: jobId, entityType: ConversationEntityType.JOB, contractor: contractorId, customer: jobRequest.customer  },{
-      entity: jobId, 
-      entityType: ConversationEntityType.JOB, 
-      participants: [contractorId, jobRequest.customer] 
-    }, {new: true, upsert: true});
+    const conversation =  await ConversationModel.findOneAndUpdate(
+      {
+        entity: jobId,
+        entityType: ConversationEntityType.JOB,
+        'members.member': { $all: [contractorId, customer.id] }
+      },
+      
+      {
+        entity: jobId, 
+        entityType: ConversationEntityType.JOB, 
+        members: [{member:contractorId, memberType: 'contractors'}, {member: customer.id, memberType:'customers'}] 
+      }, 
+    {new: true, upsert: true});
 
     // Send a message to the customer
     const message = new MessageModel({
@@ -220,7 +238,7 @@ export const rejectJobRequest = async (req: any, res: Response) => {
     const conversation =  await ConversationModel.findByIdAndUpdate({entity: jobId, entityType: ConversationEntityType.JOB, contractor: contractorId, customer: jobRequest.customer  },{
       entity: jobId, 
       entityType: ConversationEntityType.JOB, 
-      participants: [contractorId, jobRequest.customer] 
+      members: [{member: contractorId, memberType: 'contractors'}, {member: jobRequest.customer, memberType: 'customer'}] 
     }, {new: true, upsert: true});
 
     // Send a message to the customer

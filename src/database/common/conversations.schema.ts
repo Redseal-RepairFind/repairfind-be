@@ -27,20 +27,23 @@ export interface IConversationDocument extends Document {
 
 const ConversationSchema = new mongoose.Schema<IConversationDocument>({
 
-        members: [
-            {
-                memberType: {
-                    type: String,
-                    enum: ['contractors', 'customers'],
-                    required: true,
-                },
-                member: {
-                    type: Schema.Types.ObjectId,
-                    refPath: 'members.memberType',
-                    required: true,
-                },
-            },
-        ],
+        // members: [
+        //     {
+        //         memberType: {
+        //             type: String,
+        //             enum: ['contractors', 'customers'],
+        //             required: true,
+        //         },
+        //         member: {
+        //             type: Schema.Types.ObjectId,
+        //             refPath: 'members.memberType',
+        //             required: true,
+        //         },
+        //     },
+        // ],
+
+        members: [{ member: { type: Schema.Types.ObjectId, refPath: 'members.memberType' }, memberType: String }],
+
 
         entity: {
             type: String,

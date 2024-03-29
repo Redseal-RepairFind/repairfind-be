@@ -67,20 +67,21 @@ var ConversationEntityType;
     ConversationEntityType["JOB"] = "jobs";
 })(ConversationEntityType || (exports.ConversationEntityType = ConversationEntityType = {}));
 var ConversationSchema = new mongoose_1.default.Schema({
-    members: [
-        {
-            memberType: {
-                type: String,
-                enum: ['contractors', 'customers'],
-                required: true,
-            },
-            member: {
-                type: mongoose_1.Schema.Types.ObjectId,
-                refPath: 'members.memberType',
-                required: true,
-            },
-        },
-    ],
+    // members: [
+    //     {
+    //         memberType: {
+    //             type: String,
+    //             enum: ['contractors', 'customers'],
+    //             required: true,
+    //         },
+    //         member: {
+    //             type: Schema.Types.ObjectId,
+    //             refPath: 'members.memberType',
+    //             required: true,
+    //         },
+    //     },
+    // ],
+    members: [{ member: { type: mongoose_1.Schema.Types.ObjectId, refPath: 'members.memberType' }, memberType: String }],
     entity: {
         type: String,
         refPath: 'entityType',
