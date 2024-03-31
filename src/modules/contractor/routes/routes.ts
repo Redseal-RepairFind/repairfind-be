@@ -84,6 +84,9 @@ router.get("/me/devices", checkContractorRole, (req: Request, res: Response, nex
     ProfileController(req, res, next).myDevices();
 });
 
+router.post("/me/stripe-account", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
+    ProfileController(req, res, next).createStripeAccount();
+});
 
 //  QUiz
 router.get("/quiz-start", checkContractorRole, QuizController.StartQuiz );

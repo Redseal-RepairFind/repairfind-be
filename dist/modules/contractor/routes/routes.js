@@ -69,6 +69,9 @@ router.post("/me/devices", contractorRoleCheck_middleware_1.checkContractorRole,
 router.get("/me/devices", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
     (0, contractor_controller_1.ProfileController)(req, res, next).myDevices();
 });
+router.post("/me/stripe-account", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
+    (0, contractor_controller_1.ProfileController)(req, res, next).createStripeAccount();
+});
 //  QUiz
 router.get("/quiz-start", contractorRoleCheck_middleware_1.checkContractorRole, contractor_quiz_controller_1.QuizController.StartQuiz);
 router.get("/quiz-result", contractorRoleCheck_middleware_1.checkContractorRole, contractor_quiz_controller_1.QuizController.GetQuizResult); // contractor get quiz result

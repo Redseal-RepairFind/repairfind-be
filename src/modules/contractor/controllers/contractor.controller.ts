@@ -347,14 +347,85 @@ class ProfileHandler extends Base {
         quiz,
       };
 
+
+
       if (!contractor) {
         return res.status(404).json({ success: false, message: 'Contractor not found' });
+      }
+
+      // check if connected account
+      if(!contractor.stripeAccount){
+          const stripeAccount =  await StripeService.account.createAccount({
+            userType: 'contractor',
+            userId: contractorId,
+            email: contractor.email
+          })
+          
+          contractor.stripeAccount = {
+            accountId: stripeAccount.id,
+            type: stripeAccount.type,
+            details_submitted: stripeAccount.details_submitted,
+            tos_acceptance: stripeAccount.tos_acceptance,
+            payouts_enabled: stripeAccount.payouts_enabled,
+            charges_enabled: stripeAccount.charges_enabled,
+            country: stripeAccount.country
+          }
+
+          await contractor.save()
+
       }
 
       res.json({
         success: true,
         message: 'Account fetched successfully',
         data: contractorResponse,
+      });
+    } catch (err: any) {
+      console.log('error', err);
+      res.status(500).json({ success: false, message: err.message });
+    }
+  }
+
+  @handleAsyncError()
+  public async createStripeAccount(): Promise<Response | void> {
+    let req = <any>this.req
+    let res = this.res
+    try {
+      const contractorId = req.contractor.id;
+      const contractor = await ContractorModel.findById(contractorId);
+
+      if (!contractor) {
+        return res.status(404).json({ success: false, message: 'Contractor not found' });
+      }
+
+      // check if connected account
+      if(!contractor.stripeAccount){
+          const stripeAccount =  await StripeService.account.createAccount({
+            userType: 'contractor',
+            userId: contractorId,
+            email: contractor.email
+          })
+          
+          contractor.stripeAccount = {
+            accountId: stripeAccount.id,
+            type: stripeAccount.type,
+            details_submitted: stripeAccount.details_submitted,
+            tos_acceptance: stripeAccount.tos_acceptance,
+            payouts_enabled: stripeAccount.payouts_enabled,
+            charges_enabled: stripeAccount.charges_enabled,
+            country: stripeAccount.country
+          }
+          await contractor.save()
+      }
+
+      // create account onboarding link 
+      // @ts-ignore
+      const stripeAccountLink =  await StripeService.account.createAccountLink(contractor.stripeAccount.accountId)
+
+      res.json({
+        success: true,
+        message: 'Stripe connected account create successfully',
+        data: stripeAccountLink,
       });
     } catch (err: any) {
       console.log('error', err);
@@ -568,6 +639,7 @@ class ProfileHandler extends Base {
       return res.status(error.code ?? 500).json({ success: false, message: error.message ?? 'Internal Server Error' });
     }
   }
+  
 
 }
 

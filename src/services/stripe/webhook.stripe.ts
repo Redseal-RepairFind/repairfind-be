@@ -62,8 +62,11 @@ export const StripeWebhookHandler = async (req: Request) => {
             case 'payment_method.detached':
                 paymentMethodDetached(eventData.object);
                 break;
+            case 'customer.updated':
+                customerUpdated(eventData.object);
+                break;
             default:
-                console.log(`Unhandled event type: ${eventType}`, event.object);
+                console.log(`Unhandled event type: ${eventType}`, eventData.object);
                 break;
         }
     } catch (error: any) {
@@ -86,11 +89,15 @@ export const setupIntentCreated = async (payload: any) => {
 
 
 export const setupIntentSucceeded = async (payload: any) => {
+
+    console.log('Stripe Event Handler: setupIntentSucceeded', payload)
     try {
         const customer: any = await StripeService.customer.getCustomerById(payload.customer)
         const paymentMethod: any = await StripeService.payment.getPaymentMethod(payload.payment_method)
-        const userType = customer?.metadata?.userType
-        const userId = customer?.metadata?.userId
+        
+        //  instead of trying to retreive meta from customer get it from the payload metadata
+        const userType = payload?.metadata?.userType
+        const userId = payload?.metadata?.userId
 
         if (!userType || !userId) return // Ensure userType and userId are valid
 
@@ -114,6 +121,7 @@ export const setupIntentSucceeded = async (payload: any) => {
 
 
 export const paymentMethodAttached = async (payload: any) => {
+    console.log('Stripe Event Handler: paymentMethodAttached', payload)
     try {
 
         if(payload.object != 'payment_method') return
@@ -137,6 +145,28 @@ export const paymentMethodAttached = async (payload: any) => {
             user.stripePaymentMethods.push(paymentMethod)
         }
 
+        await user.save()
+    } catch (error: any) {
+        // throw new BadRequestError(error.message || "Something went wrong");
+    }
+
+};
+
+
+export const customerUpdated = async (payload: any) => {
+    console.log('Stripe Event Handler: paymentMethodAttached', payload)
+    try {
+
+        if(payload.object != 'payment_method') return
+
+        const customer: any = await StripeService.customer.getCustomerById(payload.customer)
+        const paymentMethod: any = await StripeService.payment.getPaymentMethod(payload.id)
+        const userType = customer?.metadata?.userType
+        const userId = customer?.metadata?.userId
+        if (!userType || !userId) return // Ensure userType and userId are valid
+        const user = userType === 'contractor' ? await ContractorModel.findById(userId) : await CustomerModel.findById(userId)
+        if (!user) return // Ensure user exists
+        user.stripeCustomer = customer
         await user.save()
     } catch (error: any) {
         // throw new BadRequestError(error.message || "Something went wrong");

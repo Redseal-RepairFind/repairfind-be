@@ -52,6 +52,7 @@ export interface IContractor extends Document {
   };
   stripeCustomer: IStripeCustomer
   stripeIdentity: object,
+  stripeAccount: object,
   stripePaymentMethods: Array<object>,
   createdAt: Date;
   updatedAt: Date;

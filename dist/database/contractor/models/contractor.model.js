@@ -135,6 +135,10 @@ var ContractorSchema = new mongoose_1.Schema({
         type: Object,
         default: null,
     },
+    stripeAccount: {
+        type: Object,
+        default: null,
+    },
     stripePaymentMethods: {
         type: Array,
         default: []

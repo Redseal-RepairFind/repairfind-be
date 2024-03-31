@@ -89,6 +89,7 @@ export const getAccount = async (req: any, res: Response) => {
 };
 
 
+
 export const changePassword = async (
   req: any,
   res: Response,
@@ -204,6 +205,7 @@ export const updateOrCreateDevice = async (
   }
 
 }
+
 
 export const CustomerController = {
   changePassword,

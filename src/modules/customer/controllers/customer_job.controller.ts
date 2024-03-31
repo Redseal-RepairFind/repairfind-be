@@ -20,12 +20,13 @@ import ContractorBankModel from "../../../database/contractor/models/contractorB
 import CustomerJobRequestModel, { ICustomerJobRequest, JobRequestStatus } from "../../../database/customer/models/customer_jobrequest.model";
 import CustomerModel from "../../../database/customer/models/customer.model";
 import { EmailService, NotificationService } from "../../../services";
-import { addHours, isFuture, isValid } from "date-fns";
+import { addHours, endOfDay, isAfter, isBefore, isFuture, isPast, isValid, startOfDay } from "date-fns";
 import { IJob, JobModel, JobType } from "../../../database/common/job.model";
 import { BadRequestError } from "../../../utils/custom.errors";
 import { applyAPIFeature } from "../../../utils/api.feature";
 import { ConversationEntityType, ConversationModel, IConversationDocument } from "../../../database/common/conversations.schema";
 import { IMessage, MessageModel, MessageType } from "../../../database/common/messages.schema";
+import { Date } from "mongoose";
 
 
 
@@ -57,9 +58,10 @@ export const createJobRequest = async (
             return res.status(400).json({ success: false, message: "Contractor not found" })
         }
 
-        // Check if the specified date is valid
-        if (!isFuture(new Date(date))) {
-            return res.status(400).json({ success: false, message: 'Invalid date formate or date is not in the future' });
+       // Get the end of the current day (11:59:59 PM)
+        const startOfToday = startOfDay(new Date());
+        if (!isValid(new Date(date)) || (!isFuture(new Date(date)) && new Date(date) < startOfToday)) {
+            return res.status(400).json({ success: false, message: 'Invalid date format or date is in the past' });
         }
 
         // Check if there is a similar job request sent to the same contractor within the last 72 hours

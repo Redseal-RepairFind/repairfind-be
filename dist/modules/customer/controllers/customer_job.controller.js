@@ -53,7 +53,7 @@ var api_feature_1 = require("../../../utils/api.feature");
 var conversations_schema_1 = require("../../../database/common/conversations.schema");
 var messages_schema_1 = require("../../../database/common/messages.schema");
 var createJobRequest = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, contractorId, category, description, location_1, date, expiresIn, emergency, media, voiceDescription, time, customerId, customer, contractor, existingJobRequest, dateTimeString, jobTime, newJob, conversationMembers, newConversation, newMessage, html, error_1;
+    var errors, _a, contractorId, category, description, location_1, date, expiresIn, emergency, media, voiceDescription, time, customerId, customer, contractor, startOfToday, existingJobRequest, dateTimeString, jobTime, newJob, conversationMembers, newConversation, newMessage, html, error_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -76,9 +76,9 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 if (!contractor) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "Contractor not found" })];
                 }
-                // Check if the specified date is valid
-                if (!(0, date_fns_1.isFuture)(new Date(date))) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid date formate or date is not in the future' })];
+                startOfToday = (0, date_fns_1.startOfDay)(new Date());
+                if (!(0, date_fns_1.isValid)(new Date(date)) || (!(0, date_fns_1.isFuture)(new Date(date)) && new Date(date) < startOfToday)) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid date format or date is in the past' })];
                 }
                 return [4 /*yield*/, job_model_1.JobModel.findOne({
                         customer: customerId,
@@ -251,7 +251,7 @@ var createJobListing = function (req, res) { return __awaiter(void 0, void 0, vo
 }); };
 exports.createJobListing = createJobListing;
 var getJobs = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, contractorId, status_1, startDate, endDate, date, type, customerId, filter, start, end, selectedDate, startOfDay, endOfDay, _b, data, error, error_3;
+    var errors, _a, contractorId, status_1, startDate, endDate, date, type, customerId, filter, start, end, selectedDate, startOfDay_1, endOfDay_1, _b, data, error, error_3;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
@@ -284,10 +284,10 @@ var getJobs = function (req, res) { return __awaiter(void 0, void 0, void 0, fun
                 }
                 if (date) {
                     selectedDate = new Date(date);
-                    startOfDay = new Date(selectedDate.setUTCHours(0, 0, 0, 0));
-                    endOfDay = new Date(startOfDay);
-                    endOfDay.setDate(startOfDay.getUTCDate() + 1);
-                    filter.date = { $gte: startOfDay, $lt: endOfDay };
+                    startOfDay_1 = new Date(selectedDate.setUTCHours(0, 0, 0, 0));
+                    endOfDay_1 = new Date(startOfDay_1);
+                    endOfDay_1.setDate(startOfDay_1.getUTCDate() + 1);
+                    filter.date = { $gte: startOfDay_1, $lt: endOfDay_1 };
                 }
                 return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_model_1.JobModel.find(filter), req.query)];
             case 1:
