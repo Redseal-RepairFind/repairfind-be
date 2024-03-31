@@ -5,6 +5,7 @@ import CustomerModel from "../../../database/customer/models/customer.model";
 import { sendPushNotifications } from "../../../services/expo";
 import CustomerDeviceModel from "../../../database/customer/models/customer_devices.model";
 import { transferFileToS3 } from "../../../services/storage";
+import { StripeService } from "../../../services/stripe";
 
 
 export const updateAccount = async (
@@ -76,6 +77,25 @@ export const getAccount = async (req: any, res: Response) => {
       return res.status(404).json({ success: false, message: 'Customer account not found' });
     }
 
+    
+
+    //TODO: for now always update the meta data of stripe customer with this email address
+    if(customer.stripeCustomer){
+      StripeService.customer.updateCustomer(customer.stripeCustomer.id, {
+        metadata: {userType: 'customer', userId: customerId }
+      })
+    }else{
+      StripeService.customer.createCustomer({
+        email: customer.email,
+        metadata: {
+            userType: 'customer',
+            userId: customer.id,
+        },
+        name: `${customer.firstName} ${customer.lastName} `,
+        phone:  `${customer.phoneNumber.code}${customer.phoneNumber.number} `, 
+    })
+    }
+   
     //@ts-ignore
     const customerResponse = customer.toJSON({includeStripeIdentity: true, includeStripeCustomer: true, includeStripePaymentMethods: true});
 

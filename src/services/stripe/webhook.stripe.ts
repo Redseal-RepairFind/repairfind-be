@@ -65,6 +65,9 @@ export const StripeWebhookHandler = async (req: Request) => {
             case 'customer.updated':
                 customerUpdated(eventData.object);
                 break;
+            case 'customer.created':
+                customerCreated(eventData.object);
+                break;
             default:
                 console.log(`Unhandled event type: ${eventType}`, eventData.object);
                 break;
@@ -154,19 +157,34 @@ export const paymentMethodAttached = async (payload: any) => {
 
 
 export const customerUpdated = async (payload: any) => {
-    console.log('Stripe Event Handler: paymentMethodAttached', payload)
+    console.log('Stripe Event Handler: customerUpdated', payload)
     try {
 
-        if(payload.object != 'payment_method') return
-
-        const customer: any = await StripeService.customer.getCustomerById(payload.customer)
-        const paymentMethod: any = await StripeService.payment.getPaymentMethod(payload.id)
-        const userType = customer?.metadata?.userType
-        const userId = customer?.metadata?.userId
+        // if(payload.object != 'customer') return
+        const userType = payload?.metadata?.userType
+        const userId = payload?.metadata?.userId
         if (!userType || !userId) return // Ensure userType and userId are valid
         const user = userType === 'contractor' ? await ContractorModel.findById(userId) : await CustomerModel.findById(userId)
         if (!user) return // Ensure user exists
-        user.stripeCustomer = customer
+        user.stripeCustomer = payload
+        await user.save()
+    } catch (error: any) {
+        // throw new BadRequestError(error.message || "Something went wrong");
+    }
+
+};
+
+export const customerCreated = async (payload: any) => {
+    console.log('Stripe Event Handler: customerCreated', payload)
+    try {
+
+        // if(payload.object != 'customer') return
+        const userType = payload?.metadata?.userType
+        const userId = payload?.metadata?.userId
+        if (!userType || !userId) return // Ensure userType and userId are valid
+        const user = userType === 'contractor' ? await ContractorModel.findById(userId) : await CustomerModel.findById(userId)
+        if (!user) return // Ensure user exists
+        user.stripeCustomer = payload
         await user.save()
     } catch (error: any) {
         // throw new BadRequestError(error.message || "Something went wrong");
@@ -180,10 +198,8 @@ export const paymentMethodDetached = async (payload: any) => {
 
         if(payload.object != 'payment_method') return
         const paymentMethodId = payload.id;
-        const user = await ContractorModel.findOne({ "stripePaymentMethods.id": paymentMethodId });
-
+        const user = await CustomerModel.findOne({ "stripePaymentMethods.id": paymentMethodId });
         if (!user) return; // User not found with the detached payment method
-
         // Remove the detached payment method from user's stripePaymentMethods array
         user.stripePaymentMethods = user.stripePaymentMethods.filter((pm: any) => pm.id !== paymentMethodId);
 

@@ -28,7 +28,7 @@ export const createSession = async (req: any, res: Response) => {
             limit: 1
         })
 
-        // if(!stripeCustomer){
+        if(!stripeCustomer){
              stripeCustomer  = await StripeService.customer.createCustomer({
                 email: customer.email,
                 metadata: {
@@ -38,7 +38,7 @@ export const createSession = async (req: any, res: Response) => {
                 name: `${customer.firstName} ${customer.lastName} `,
                 phone:  `${customer.phoneNumber.code}${customer.phoneNumber.number} `, 
             })
-        // }
+        }
         
         if(stripeCustomer){
             const stripeSession = await StripeService.session.createSession({
@@ -66,9 +66,7 @@ export const createSession = async (req: any, res: Response) => {
 
 export const createAccount = async (req: any, res: Response) => {
     try {
-        const { memberId, role } = req.body;
         const customerId = req.customer.id;
-
 
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -83,7 +81,10 @@ export const createAccount = async (req: any, res: Response) => {
 
         const stripeCustomer  = await StripeService.customer.createCustomer({
             email: customer.email,
-            metadata:{},
+            metadata:{
+                userType: 'customer',
+                userId: customerId
+            },
             name: `${customer.firstName} ${customer.lastName} `,
             phone:  `${customer.phoneNumber.code}${customer.phoneNumber.number} `, 
         })
