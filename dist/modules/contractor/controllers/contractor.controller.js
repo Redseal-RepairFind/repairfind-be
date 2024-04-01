@@ -443,7 +443,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         res = this.res;
                         _a.label = 1;
                     case 1:
-                        _a.trys.push([1, 9, , 10]);
+                        _a.trys.push([1, 11, , 12]);
                         contractorId = req.contractor.id;
                         return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
                     case 2:
@@ -475,31 +475,40 @@ var ProfileHandler = /** @class */ (function (_super) {
                         ];
                     case 4:
                         _a.sent();
-                        return [4 /*yield*/, stripe_1.StripeService.account.createAccountLink(contractor.stripeAccount.id)];
+                        return [4 /*yield*/, stripe_1.StripeService.account.createAccountLink(contractor.stripeAccount.id)
+                            //@ts-ignore
+                        ];
                     case 5:
                         // create account onboarding link 
                         // @ts-ignore
                         stripeAccountLink = _a.sent();
-                        return [3 /*break*/, 8];
-                    case 6: return [4 /*yield*/, stripe_1.StripeService.account.createLoginLink(contractor.stripeAccount.id)];
+                        return [3 /*break*/, 10];
+                    case 6:
+                        if (!!contractor.stripeAccount.payouts_enabled) return [3 /*break*/, 8];
+                        return [4 /*yield*/, stripe_1.StripeService.account.createAccountLink(contractor.stripeAccount.id)];
                     case 7:
-                        // create account onboarding link 
+                        //@ts-ignore
+                        stripeAccountLink = _a.sent();
+                        return [3 /*break*/, 10];
+                    case 8: return [4 /*yield*/, stripe_1.StripeService.account.createLoginLink(contractor.stripeAccount.id)];
+                    case 9:
+                        // should create account login link  here if account has already unboarded, but will need to check status shaaa
                         // @ts-ignore
                         stripeAccountLink = _a.sent();
-                        _a.label = 8;
-                    case 8:
+                        _a.label = 10;
+                    case 10:
                         res.json({
                             success: true,
                             message: 'Stripe connected account create successfully',
                             data: stripeAccountLink,
                         });
-                        return [3 /*break*/, 10];
-                    case 9:
+                        return [3 /*break*/, 12];
+                    case 11:
                         err_6 = _a.sent();
                         console.log('error', err_6);
                         res.status(500).json({ success: false, message: err_6.message });
-                        return [3 /*break*/, 10];
-                    case 10: return [2 /*return*/];
+                        return [3 /*break*/, 12];
+                    case 12: return [2 /*return*/];
                 }
             });
         });

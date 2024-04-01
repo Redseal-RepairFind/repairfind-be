@@ -422,8 +422,13 @@ class ProfileHandler extends Base {
         // create account onboarding link 
         // @ts-ignore
         stripeAccountLink = await StripeService.account.createAccountLink(contractor.stripeAccount.id)
-      }else {
-        // create account onboarding link 
+        //@ts-ignore
+      }else if(!contractor.stripeAccount.payouts_enabled){
+        //@ts-ignore
+        stripeAccountLink = await StripeService.account.createAccountLink(contractor.stripeAccount.id)
+      }
+      else {
+        // should create account login link  here if account has already unboarded, but will need to check status shaaa
         // @ts-ignore
         stripeAccountLink = await StripeService.account.createLoginLink(contractor.stripeAccount.id)
       }
