@@ -83,7 +83,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ProfileController = void 0;
+exports.ContractorController = void 0;
 var express_validator_1 = require("express-validator");
 var bcrypt_1 = __importDefault(require("bcrypt"));
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
@@ -435,7 +435,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     };
     ProfileHandler.prototype.createStripeAccount = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, contractorId, contractor, stripeAccount, stripeAccountLink, err_6;
+            var req, res, contractorId, contractor, stripeAccountLink, stripeAccount, err_6;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -443,7 +443,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         res = this.res;
                         _a.label = 1;
                     case 1:
-                        _a.trys.push([1, 7, , 8]);
+                        _a.trys.push([1, 9, , 10]);
                         contractorId = req.contractor.id;
                         return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
                     case 2:
@@ -451,7 +451,8 @@ var ProfileHandler = /** @class */ (function (_super) {
                         if (!contractor) {
                             return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor not found' })];
                         }
-                        if (!!contractor.stripeAccount) return [3 /*break*/, 5];
+                        stripeAccountLink = {};
+                        if (!(!contractor.stripeAccount || !contractor.stripeAccount.id)) return [3 /*break*/, 6];
                         return [4 /*yield*/, stripe_1.StripeService.account.createAccount({
                                 userType: 'contractor',
                                 userId: contractorId,
@@ -460,7 +461,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                     case 3:
                         stripeAccount = _a.sent();
                         contractor.stripeAccount = {
-                            accountId: stripeAccount.id,
+                            id: stripeAccount.id,
                             type: stripeAccount.type,
                             details_submitted: stripeAccount.details_submitted,
                             tos_acceptance: stripeAccount.tos_acceptance,
@@ -468,32 +469,115 @@ var ProfileHandler = /** @class */ (function (_super) {
                             charges_enabled: stripeAccount.charges_enabled,
                             country: stripeAccount.country
                         };
-                        return [4 /*yield*/, contractor.save()];
+                        return [4 /*yield*/, contractor.save()
+                            // create account onboarding link 
+                            // @ts-ignore
+                        ];
                     case 4:
                         _a.sent();
-                        _a.label = 5;
-                    case 5: return [4 /*yield*/, stripe_1.StripeService.account.createAccountLink(contractor.stripeAccount.accountId)];
-                    case 6:
+                        return [4 /*yield*/, stripe_1.StripeService.account.createAccountLink(contractor.stripeAccount.id)];
+                    case 5:
+                        // create account onboarding link 
+                        // @ts-ignore
                         stripeAccountLink = _a.sent();
+                        return [3 /*break*/, 8];
+                    case 6: return [4 /*yield*/, stripe_1.StripeService.account.createLoginLink(contractor.stripeAccount.id)];
+                    case 7:
+                        // create account onboarding link 
+                        // @ts-ignore
+                        stripeAccountLink = _a.sent();
+                        _a.label = 8;
+                    case 8:
                         res.json({
                             success: true,
                             message: 'Stripe connected account create successfully',
                             data: stripeAccountLink,
                         });
-                        return [3 /*break*/, 8];
-                    case 7:
+                        return [3 /*break*/, 10];
+                    case 9:
                         err_6 = _a.sent();
                         console.log('error', err_6);
                         res.status(500).json({ success: false, message: err_6.message });
+                        return [3 /*break*/, 10];
+                    case 10: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    ProfileHandler.prototype.generateStripeAccountDashboardLink = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var req, res, contractorId, contractor, stripeAccountLink, stripeAccount, err_7;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        req = this.req;
+                        res = this.res;
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 9, , 10]);
+                        contractorId = req.contractor.id;
+                        return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
+                    case 2:
+                        contractor = _a.sent();
+                        if (!contractor) {
+                            return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor not found' })];
+                        }
+                        stripeAccountLink = {};
+                        if (!(!contractor.stripeAccount || !contractor.stripeAccount.id)) return [3 /*break*/, 6];
+                        return [4 /*yield*/, stripe_1.StripeService.account.createAccount({
+                                userType: 'contractor',
+                                userId: contractorId,
+                                email: contractor.email
+                            })];
+                    case 3:
+                        stripeAccount = _a.sent();
+                        contractor.stripeAccount = {
+                            id: stripeAccount.id,
+                            type: stripeAccount.type,
+                            details_submitted: stripeAccount.details_submitted,
+                            tos_acceptance: stripeAccount.tos_acceptance,
+                            payouts_enabled: stripeAccount.payouts_enabled,
+                            charges_enabled: stripeAccount.charges_enabled,
+                            country: stripeAccount.country
+                        };
+                        return [4 /*yield*/, contractor.save()
+                            // create account onboarding link 
+                            // @ts-ignore
+                        ];
+                    case 4:
+                        _a.sent();
+                        return [4 /*yield*/, stripe_1.StripeService.account.createAccountLink(contractor.stripeAccount.id)];
+                    case 5:
+                        // create account onboarding link 
+                        // @ts-ignore
+                        stripeAccountLink = _a.sent();
                         return [3 /*break*/, 8];
-                    case 8: return [2 /*return*/];
+                    case 6: return [4 /*yield*/, stripe_1.StripeService.account.createLoginLink(contractor.stripeAccount.id)];
+                    case 7:
+                        // create account onboarding link 
+                        // @ts-ignore
+                        stripeAccountLink = _a.sent();
+                        _a.label = 8;
+                    case 8:
+                        res.json({
+                            success: true,
+                            message: 'Stripe connected account login link created successfully',
+                            data: stripeAccountLink,
+                        });
+                        return [3 /*break*/, 10];
+                    case 9:
+                        err_7 = _a.sent();
+                        console.log('error', err_7);
+                        res.status(500).json({ success: false, message: err_7.message });
+                        return [3 /*break*/, 10];
+                    case 10: return [2 /*return*/];
                 }
             });
         });
     };
     ProfileHandler.prototype.updateBankDetails = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _a, institutionName, transitNumber, institutionNumber, accountNumber, errors, contractorId, contractor, profile, contractorResponse, err_7;
+            var req, res, _a, institutionName, transitNumber, institutionNumber, accountNumber, errors, contractorId, contractor, profile, contractorResponse, err_8;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -536,8 +620,8 @@ var ProfileHandler = /** @class */ (function (_super) {
                         });
                         return [3 /*break*/, 5];
                     case 4:
-                        err_7 = _b.sent();
-                        res.status(500).json({ success: false, message: err_7.message });
+                        err_8 = _b.sent();
+                        res.status(500).json({ success: false, message: err_8.message });
                         return [3 /*break*/, 5];
                     case 5: return [2 /*return*/];
                 }
@@ -762,6 +846,12 @@ var ProfileHandler = /** @class */ (function (_super) {
         __metadata("design:type", Function),
         __metadata("design:paramtypes", []),
         __metadata("design:returntype", Promise)
+    ], ProfileHandler.prototype, "generateStripeAccountDashboardLink", null);
+    __decorate([
+        (0, decorators_abstract_1.handleAsyncError)(),
+        __metadata("design:type", Function),
+        __metadata("design:paramtypes", []),
+        __metadata("design:returntype", Promise)
     ], ProfileHandler.prototype, "updateBankDetails", null);
     __decorate([
         (0, decorators_abstract_1.handleAsyncError)(),
@@ -789,11 +879,11 @@ var ProfileHandler = /** @class */ (function (_super) {
     ], ProfileHandler.prototype, "myDevices", null);
     return ProfileHandler;
 }(base_abstract_1.Base));
-var ProfileController = function () {
+var ContractorController = function () {
     var args = [];
     for (var _i = 0; _i < arguments.length; _i++) {
         args[_i] = arguments[_i];
     }
     return new (ProfileHandler.bind.apply(ProfileHandler, __spreadArray([void 0], args, false)))();
 };
-exports.ProfileController = ProfileController;
+exports.ContractorController = ContractorController;

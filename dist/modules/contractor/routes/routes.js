@@ -39,38 +39,41 @@ router.post("/reset-password", requests_1.ContractorHttpRequest.PasswordResetReq
 // PROFILE
 //   const cpUpload = diskUpload.fields([{ name: 'profilePhoto', maxCount: 1 }, { name: 'previousJobPhotos', maxCount: 10 }, { name: 'previousJobVideos', maxCount: 10 }])
 router.post("/profiles", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateProfileRequest, function (req, res, next) {
-    (0, contractor_controller_1.ProfileController)(req, res, next).createProfile();
+    (0, contractor_controller_1.ContractorController)(req, res, next).createProfile();
 });
 router.get("/profiles/me", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
-    (0, contractor_controller_1.ProfileController)(req, res, next).getProfile();
+    (0, contractor_controller_1.ContractorController)(req, res, next).getProfile();
 });
 router.put("/profiles/me", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.UpdateProfileRequest, function (req, res, next) {
-    (0, contractor_controller_1.ProfileController)(req, res, next).updateProfile();
+    (0, contractor_controller_1.ContractorController)(req, res, next).updateProfile();
 });
 router.post("/profiles/bank-details", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.UpdateBankDetailRequest, function (req, res, next) {
-    (0, contractor_controller_1.ProfileController)(req, res, next).updateBankDetails();
+    (0, contractor_controller_1.ContractorController)(req, res, next).updateBankDetails();
 });
 router.post("/profiles/stripe-identity", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
-    (0, contractor_controller_1.ProfileController)(req, res, next).createIdentitySession();
+    (0, contractor_controller_1.ContractorController)(req, res, next).createIdentitySession();
 });
 //  Account
 router.get("/me", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
-    (0, contractor_controller_1.ProfileController)(req, res, next).getUser();
+    (0, contractor_controller_1.ContractorController)(req, res, next).getUser();
 });
 router.patch("/me", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateProfileRequest, function (req, res, next) {
-    (0, contractor_controller_1.ProfileController)(req, res, next).updateAccount();
+    (0, contractor_controller_1.ContractorController)(req, res, next).updateAccount();
 });
 router.post("/me/change-password", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.PasswordChangeRequest, function (req, res, next) {
-    (0, contractor_controller_1.ProfileController)(req, res, next).changePassword();
+    (0, contractor_controller_1.ContractorController)(req, res, next).changePassword();
 });
 router.post("/me/devices", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.UpdateOrDevice, function (req, res, next) {
-    (0, contractor_controller_1.ProfileController)(req, res, next).createOrUpdateDevice();
+    (0, contractor_controller_1.ContractorController)(req, res, next).createOrUpdateDevice();
 });
 router.get("/me/devices", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
-    (0, contractor_controller_1.ProfileController)(req, res, next).myDevices();
+    (0, contractor_controller_1.ContractorController)(req, res, next).myDevices();
 });
 router.post("/me/stripe-account", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
-    (0, contractor_controller_1.ProfileController)(req, res, next).createStripeAccount();
+    (0, contractor_controller_1.ContractorController)(req, res, next).createStripeAccount();
+});
+router.get("/me/stripe-account-login", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
+    (0, contractor_controller_1.ContractorController)(req, res, next).generateStripeAccountDashboardLink();
 });
 //  QUiz
 router.get("/quiz-start", contractorRoleCheck_middleware_1.checkContractorRole, contractor_quiz_controller_1.QuizController.StartQuiz);

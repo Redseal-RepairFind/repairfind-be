@@ -3,7 +3,7 @@ import { checkContractorRole } from "../middleware/contractorRoleCheck.middlewar
 import { AuthController } from "../controllers/contractor_auth.controller";
 import { NextFunction, Request, Response } from "express";
 import { ContractorHttpRequest } from "../requests";
-import { ProfileController } from "../controllers/contractor.controller";
+import { ContractorController } from "../controllers/contractor.controller";
 import { QuizController } from "../controllers/contractor_quiz.controller";
 import { TeamController } from "../controllers/contractor_team.controller";
 import { ScheduleController } from "../controllers/contractor_schedule.controller";
@@ -48,44 +48,47 @@ router.post("/reset-password", ContractorHttpRequest.PasswordResetRequest, (req:
 // PROFILE
 //   const cpUpload = diskUpload.fields([{ name: 'profilePhoto', maxCount: 1 }, { name: 'previousJobPhotos', maxCount: 10 }, { name: 'previousJobVideos', maxCount: 10 }])
 router.post("/profiles", checkContractorRole, ContractorHttpRequest.CreateProfileRequest, (req: Request, res: Response, next: NextFunction) => {
-    ProfileController(req, res, next).createProfile();
+    ContractorController(req, res, next).createProfile();
 });
 router.get("/profiles/me", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
-    ProfileController(req, res, next).getProfile();
+    ContractorController(req, res, next).getProfile();
 });
 router.put("/profiles/me", checkContractorRole,  ContractorHttpRequest.UpdateProfileRequest, (req: Request, res: Response, next: NextFunction) => {
-    ProfileController(req, res, next).updateProfile();
+    ContractorController(req, res, next).updateProfile();
 });
 
 router.post("/profiles/bank-details", checkContractorRole, ContractorHttpRequest.UpdateBankDetailRequest, (req: Request, res: Response, next: NextFunction) => {
-    ProfileController(req, res, next).updateBankDetails();
+    ContractorController(req, res, next).updateBankDetails();
 });
 
 router.post("/profiles/stripe-identity", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
-    ProfileController(req, res, next).createIdentitySession();
+    ContractorController(req, res, next).createIdentitySession();
 });
 
 //  Account
 router.get("/me", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
-    ProfileController(req, res, next).getUser();
+    ContractorController(req, res, next).getUser();
 });
 router.patch("/me", checkContractorRole,  ContractorHttpRequest.CreateProfileRequest, (req: Request, res: Response, next: NextFunction) => {
-    ProfileController(req, res, next).updateAccount();
+    ContractorController(req, res, next).updateAccount();
 });
 
 router.post("/me/change-password", checkContractorRole, ContractorHttpRequest.PasswordChangeRequest, (req: Request, res: Response, next: NextFunction) => {
-    ProfileController(req, res, next).changePassword();
+    ContractorController(req, res, next).changePassword();
 });
 
 router.post("/me/devices", checkContractorRole, ContractorHttpRequest.UpdateOrDevice, (req: Request, res: Response, next: NextFunction) => {
-    ProfileController(req, res, next).createOrUpdateDevice();
+    ContractorController(req, res, next).createOrUpdateDevice();
 });
 router.get("/me/devices", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
-    ProfileController(req, res, next).myDevices();
+    ContractorController(req, res, next).myDevices();
 });
 
 router.post("/me/stripe-account", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
-    ProfileController(req, res, next).createStripeAccount();
+    ContractorController(req, res, next).createStripeAccount();
+});
+router.get("/me/stripe-account-login", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
+    ContractorController(req, res, next).generateStripeAccountDashboardLink();
 });
 
 //  QUiz

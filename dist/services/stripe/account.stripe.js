@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createAccountLink = exports.createAccount = void 0;
+exports.createLoginLink = exports.createAccountLink = exports.createAccount = void 0;
 var stripe_1 = __importDefault(require("stripe"));
 var custom_errors_1 = require("../../utils/custom.errors");
 var STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
@@ -89,3 +89,21 @@ var createAccountLink = function (accountId) { return __awaiter(void 0, void 0, 
     });
 }); };
 exports.createAccountLink = createAccountLink;
+var createLoginLink = function (accountId) { return __awaiter(void 0, void 0, void 0, function () {
+    var loginLink, error_3;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                return [4 /*yield*/, stripeClient.accounts.createLoginLink(accountId)];
+            case 1:
+                loginLink = _a.sent();
+                return [2 /*return*/, loginLink];
+            case 2:
+                error_3 = _a.sent();
+                throw new custom_errors_1.BadRequestError(error_3.message || "Something went wrong");
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.createLoginLink = createLoginLink;

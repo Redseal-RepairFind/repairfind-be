@@ -39,5 +39,16 @@ export const createAccountLink = async (accountId: any) => {
   }
 };
 
+export const createLoginLink = async (accountId: any) => {
+  try {
+    
+    const loginLink = await stripeClient.accounts.createLoginLink(accountId);
+    return loginLink;
+
+  } catch (error:any) {
+        throw new BadRequestError(error.message || "Something went wrong");
+  }
+};
+
 
 
