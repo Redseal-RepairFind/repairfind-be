@@ -11,6 +11,8 @@ import { ContractorModel } from '../../database/contractor/models/contractor.mod
 import CustomerModel from '../../database/customer/models/customer.model';
 import { sendPushNotifications } from '../expo';
 import ContractorDeviceModel from '../../database/contractor/models/contractor_devices.model';
+import { castPayloadToDTO } from '../../utils/interface_dto.util';
+import { IStripeAccount } from '../../database/common/stripe_account.schema';
 
 
 const STRIPE_SECRET_KEY = <string>process.env.STRIPE_SECRET_KEY;
@@ -67,6 +69,9 @@ export const StripeWebhookHandler = async (req: Request) => {
                 break;
             case 'customer.created':
                 customerCreated(eventData.object);
+                break;
+            case 'account.updated':
+                accountUpdated(eventData.object);
                 break;
             default:
                 console.log(`Unhandled event type: ${eventType}`, eventData.object);
@@ -191,6 +196,7 @@ export const customerCreated = async (payload: any) => {
     }
 
 };
+
 
 
 export const paymentMethodDetached = async (payload: any) => {
@@ -417,4 +423,42 @@ export const identityVerificationVerified = async (payload: any) => {
 };
 
 
+
+export const accountUpdated = async (payload: any) => {
+    console.log('Stripe Event Handler: accountUpdated', payload)
+    try {
+
+        if(payload.object != 'account') return
+        const userType = payload?.metadata?.userType
+        const userId = payload?.metadata?.userId
+        const email = payload?.metadata?.email
+        if (!userType || !email) return // Ensure userType and email are valid,  userId can change on our end
+        const user = userType === 'contractor' ? await ContractorModel.findOne({email}) : await CustomerModel.findOne({email})
+        if (!user) return // Ensure user exists
+        
+        // user.stripeAccount = {
+        //     id: payload.id,
+        //     business_profile: payload.business_profile,
+        //     capabilities: payload.capabilities,
+        //     charges_enabled: payload.charges_enabled,
+        //     country: payload.country,
+        //     default_currency: payload.default_currency,
+        //     details_submitted: payload.details_submitted,
+        //     requirements: payload.requirements,
+        //     payouts_enabled: payload.payouts_enabled,
+        //     type: payload.type,
+        //     external_accounts: payload.external_accounts, // banks and payout methods
+        //     metadata: payload.metadata, // banks and payout methods
+        // }
+
+        // Casting payload to DTO
+        const stripeAccountDTO: IStripeAccount = castPayloadToDTO(payload, {} as IStripeAccount);
+        user.stripeAccount = stripeAccountDTO
+
+        await user.save()
+    } catch (error: any) {
+        // throw new BadRequestError(error.message || "Something went wrong");
+    }
+
+};
 

@@ -82,6 +82,10 @@ const CustomerSchema = new Schema<ICustomer>(
       type: [Object],
      
     },
+    stripeAccount: {
+      type: Object,
+      default: null,
+    },
     stripeIdentity: {
       type: Object,
      

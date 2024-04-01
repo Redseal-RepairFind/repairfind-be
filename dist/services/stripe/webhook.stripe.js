@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.identityVerificationVerified = exports.identityVerificationRequiresInput = exports.identityVerificationCreated = exports.paymentMethodDetached = exports.customerCreated = exports.customerUpdated = exports.paymentMethodAttached = exports.setupIntentSucceeded = exports.setupIntentCreated = exports.StripeWebhookHandler = void 0;
+exports.accountUpdated = exports.identityVerificationVerified = exports.identityVerificationRequiresInput = exports.identityVerificationCreated = exports.paymentMethodDetached = exports.customerCreated = exports.customerUpdated = exports.paymentMethodAttached = exports.setupIntentSucceeded = exports.setupIntentCreated = exports.StripeWebhookHandler = void 0;
 var stripe_1 = __importDefault(require("stripe"));
 var custom_errors_1 = require("../../utils/custom.errors");
 var _1 = require(".");
@@ -47,6 +47,7 @@ var contractor_model_1 = require("../../database/contractor/models/contractor.mo
 var customer_model_1 = __importDefault(require("../../database/customer/models/customer.model"));
 var expo_1 = require("../expo");
 var contractor_devices_model_1 = __importDefault(require("../../database/contractor/models/contractor_devices.model"));
+var interface_dto_util_1 = require("../../utils/interface_dto.util");
 var STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 var STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
 var stripeClient = new stripe_1.default(STRIPE_SECRET_KEY);
@@ -93,6 +94,9 @@ var StripeWebhookHandler = function (req) { return __awaiter(void 0, void 0, voi
                     break;
                 case 'customer.created':
                     (0, exports.customerCreated)(eventData.object);
+                    break;
+                case 'account.updated':
+                    (0, exports.accountUpdated)(eventData.object);
                     break;
                 default:
                     console.log("Unhandled event type: ".concat(eventType), eventData.object);
@@ -558,3 +562,47 @@ var identityVerificationVerified = function (payload) { return __awaiter(void 0,
     });
 }); };
 exports.identityVerificationVerified = identityVerificationVerified;
+var accountUpdated = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
+    var userType, userId, email, user, _a, stripeAccountDTO, error_9;
+    var _b, _c, _d;
+    return __generator(this, function (_e) {
+        switch (_e.label) {
+            case 0:
+                console.log('Stripe Event Handler: accountUpdated', payload);
+                _e.label = 1;
+            case 1:
+                _e.trys.push([1, 7, , 8]);
+                if (payload.object != 'account')
+                    return [2 /*return*/];
+                userType = (_b = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _b === void 0 ? void 0 : _b.userType;
+                userId = (_c = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _c === void 0 ? void 0 : _c.userId;
+                email = (_d = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _d === void 0 ? void 0 : _d.email;
+                if (!userType || !email)
+                    return [2 /*return*/]; // Ensure userType and email are valid,  userId can change on our end
+                if (!(userType === 'contractor')) return [3 /*break*/, 3];
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ email: email })];
+            case 2:
+                _a = _e.sent();
+                return [3 /*break*/, 5];
+            case 3: return [4 /*yield*/, customer_model_1.default.findOne({ email: email })];
+            case 4:
+                _a = _e.sent();
+                _e.label = 5;
+            case 5:
+                user = _a;
+                if (!user)
+                    return [2 /*return*/]; // Ensure user exists
+                stripeAccountDTO = (0, interface_dto_util_1.castPayloadToDTO)(payload, {});
+                user.stripeAccount = stripeAccountDTO;
+                return [4 /*yield*/, user.save()];
+            case 6:
+                _e.sent();
+                return [3 /*break*/, 8];
+            case 7:
+                error_9 = _e.sent();
+                return [3 /*break*/, 8];
+            case 8: return [2 /*return*/];
+        }
+    });
+}); };
+exports.accountUpdated = accountUpdated;
