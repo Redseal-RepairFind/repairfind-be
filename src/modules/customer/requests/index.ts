@@ -213,6 +213,10 @@ export const createJoListingParams = [
   body("time").optional(),
 ];
 
+export const tripArrivalComfirmParams = [
+  body("verificationCode").notEmpty(),
+];
+
 export const validateFormData = (req: Request, res: Response, next: NextFunction) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -248,5 +252,6 @@ export const CustomerHttpRequest = {
   UpdateOrDeviceParams,
   queryContractorParams,
   createJobRequestParams,
-  createJoListingParams
+  createJoListingParams,
+  tripArrivalComfirmParams
 }

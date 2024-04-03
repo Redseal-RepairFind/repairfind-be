@@ -40,7 +40,6 @@ export const checkContractorRole = async (
         .status(403)
         .json({ message: "Access denied. contractor role required." });
     }
-
     // Add the payload to the request object for later use
     req.contractor = contractor;
     

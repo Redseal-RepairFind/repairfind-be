@@ -25,7 +25,7 @@ class SocketService {
                 // Authentication successful, attach user information to the socket
                 socket.user = decoded.user;
                 next();
-            });
+            }); 
         });
 
         this.io.on("connection", (socket: CustomSocket) => {

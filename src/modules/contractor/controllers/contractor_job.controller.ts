@@ -337,14 +337,17 @@ export const sendJobApplication = async (
         .json({ message: "invalid estimate format" });
     }
 
+    console.log(4)
+
     const customer = await CustomerModel.findOne({ _id: job.customer })
+
+    console.log(5)
 
     if (!customer) {
       return res
         .status(401)
         .json({ message: "invalid customer Id" });
     }
-
 
     let jobApplication = await JobApplicationModel.findOneAndUpdate({ job: jobId, contractor: contractorId }, {
       startDate,
@@ -357,7 +360,6 @@ export const sendJobApplication = async (
 
     jobApplication.charges = await jobApplication.calculateCharges(estimates);
 
-
     // @ts-ignore
     const html = htmlJobQoutationTemplate(customer.firstName, contractor.name)
     let emailData = {
@@ -365,7 +367,8 @@ export const sendJobApplication = async (
       subject: "Job application from contractor",
       html
     };
-    await sendEmail(emailData);
+
+    // await sendEmail(emailData);
 
     // Create a conversation
     const conversation =  await ConversationModel.findByIdAndUpdate({entity: jobId, entityType: ConversationEntityType.JOB, contractor: contractorId, customer: customer._id  },{

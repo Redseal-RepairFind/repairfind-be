@@ -12,6 +12,7 @@ import { TeamInvitationController } from "../controllers/contractor_team_invitat
 import { ContractorJobController } from "../controllers/contractor_job.controller";
 import { ContractorNotificationController } from "../controllers/contractor_notification.controller";
 import { ContractorConversationController } from "../controllers/contractor_conversation.controller";
+import { ContractorTripDayController } from "../controllers/contractor_tripDay.controller";
 
 const express = require("express");
 const router = express.Router();
@@ -155,5 +156,9 @@ router.get('/notifications/:notificationId', checkContractorRole, ContractorNoti
 router.get('/conversations', checkContractorRole, ContractorConversationController.getConversations)
 router.get('/conversations/:conversationId', checkContractorRole, ContractorConversationController.getSingleConversation)
 router.get('/conversations/:conversationId/messages', checkContractorRole, ContractorConversationController.getConversationMessages)
+
+// trips day
+router.post('/trip/:jobId/start', checkContractorRole, ContractorTripDayController.contractorStartTripController)
+router.post('/trip/:tripDayId/arrive', checkContractorRole, ContractorTripDayController.contractorArrivedSiteController)
 
 export default router;
