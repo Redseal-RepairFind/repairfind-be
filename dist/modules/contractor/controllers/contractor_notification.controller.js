@@ -40,9 +40,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ContractorNotificationController = exports.getSingleNotification = exports.getNotifications = void 0;
-var contractor_notification_model_1 = __importDefault(require("../../../database/contractor/models/contractor_notification.model"));
 var api_feature_1 = require("../../../utils/api.feature");
 var custom_errors_1 = require("../../../utils/custom.errors");
+var notification_model_1 = __importDefault(require("../../../database/common/notification.model"));
 var getNotifications = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, startDate, endDate, read, unread, contractorId, filter, _b, data, error, error_1;
     return __generator(this, function (_c) {
@@ -51,7 +51,7 @@ var getNotifications = function (req, res, next) { return __awaiter(void 0, void
                 _c.trys.push([0, 2, , 3]);
                 _a = req.query, startDate = _a.startDate, endDate = _a.endDate, read = _a.read, unread = _a.unread;
                 contractorId = req.contractor.id;
-                filter = { contractor: contractorId };
+                filter = { user: contractorId, userType: 'contractors' };
                 // Filtering by startDate and endDate
                 if (startDate && endDate) {
                     filter.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
@@ -63,7 +63,7 @@ var getNotifications = function (req, res, next) { return __awaiter(void 0, void
                 else if (unread === 'true') {
                     filter.readAt = null; // Filter for unread notifications
                 }
-                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(contractor_notification_model_1.default.find(filter), req.query)];
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(notification_model_1.default.find(filter), req.query)];
             case 1:
                 _b = _c.sent(), data = _b.data, error = _b.error;
                 res.status(200).json({
@@ -90,8 +90,8 @@ var getSingleNotification = function (req, res, next) { return __awaiter(void 0,
                 _c.trys.push([0, 2, , 3]);
                 notificationId = req.params.notificationId;
                 contractorId = req.contractor.id;
-                query = { contractor: contractorId, _id: notificationId };
-                return [4 /*yield*/, contractor_notification_model_1.default.findOne(query).populate('entity')];
+                query = { user: contractorId, userType: 'contractors', _id: notificationId };
+                return [4 /*yield*/, notification_model_1.default.findOne(query).populate('entity')];
             case 1:
                 notification = _c.sent();
                 // If notification does not exist, throw a NotFoundError

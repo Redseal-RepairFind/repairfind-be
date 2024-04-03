@@ -77,6 +77,7 @@ router.post('/notifications/:notificationId', checkCustomerRole, CustomerNotific
 router.get('/conversations', checkCustomerRole, CustomerConversationController.getConversations)
 router.get('/conversations/:conversationId', checkCustomerRole, CustomerConversationController.getSingleConversation)
 router.get('/conversations/:conversationId/messages', checkCustomerRole, CustomerConversationController.getConversationMessages)
+router.post('/conversations/:conversationId/messages', checkCustomerRole, CustomerHttpRequest.sendMessageParams, CustomerConversationController.sendMessage)
 
 // router.get("/get_popular_contractor", checkCustomerRole, customerGetPopularContractorController ); // customer get popular contractor
 // router.get("/search_contractor", checkCustomerRole, customerSearchForContractorController ); // customer search contractor

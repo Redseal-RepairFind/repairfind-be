@@ -1,18 +1,18 @@
+import NotificationModel from '../../database/common/notification.model';
 import { ContractorModel } from '../../database/contractor/models/contractor.model';
 import ContractorDeviceModel from '../../database/contractor/models/contractor_devices.model';
-import ContractorNotificationModel from '../../database/contractor/models/contractor_notification.model';
 import CustomerModel from '../../database/customer/models/customer.model';
 import CustomerDeviceModel from '../../database/customer/models/customer_devices.model';
-import CustomerNotificationModel from '../../database/customer/models/customer_notification.model';
 import { sendPushNotifications } from '../expo';
 import SocketService from '../socket';
 
 
 
 export interface SendNotificationData {
-    userId: string // fcmTokens, expoDeviceTokens, userEmails
+    user: string // fcmTokens, expoDeviceTokens, userEmails
     userType: string // fcmTokens, expoDeviceTokens, userEmails
     title: string
+    heading: object
     type: string
     message: string
     payload: any
@@ -35,16 +35,20 @@ export class NotificationService  {
         let user = null
         let deviceTokens :string[] = []
         let devices  = []
+
+        params.payload.userType = params.userType
+        params.payload.user = params.user
+        params.payload.heading = params.heading
         
 
-        if(params.userType == 'contractor'){
-            user  = await ContractorModel.findById(params.userId)
+        if(params.userType == 'contractors'){
+            user  = await ContractorModel.findById(params.user)
             devices = await ContractorDeviceModel.find({contractor: user?.id}).select('deviceToken')
             deviceTokens = devices.map(device => device.deviceToken);
         }
         
-        if(params.userType == 'customer'){
-            user  = await CustomerModel.findById(params.userId)
+        if(params.userType == 'customers'){
+            user  = await CustomerModel.findById(params.user)
             devices = await CustomerDeviceModel.find({contractor: user?.id}).select('deviceToken')
             deviceTokens = devices.map(device => device.deviceToken);
         }
@@ -77,15 +81,8 @@ export class NotificationService  {
         }
        
         if (options.hasOwnProperty('database')) {
-            if(params && params.payload.customer){
-                const customerNotification = new CustomerNotificationModel(params.payload)
-                await customerNotification.save();
-            }
-
-           if(params && params.payload.contractor){
-            const customerNotification = new ContractorNotificationModel(params.payload)
-            await customerNotification.save();
-           }
+            const notification = new NotificationModel(params.payload)
+            await notification.save();
         }
 
        

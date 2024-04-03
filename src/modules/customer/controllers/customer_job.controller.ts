@@ -132,11 +132,12 @@ export const createJobRequest = async (
         //  IT WILL BE WISE TO MOVE ALL THIS TO EVENT LISTENER TO KEEP THE CONTROLLER LEAN
         //   contractor notification
         NotificationService.sendNotification({
-            userId: contractor.id,
-            userType: 'contractor',
+            user: contractor.id,
+            userType: 'contractors',
             title: 'New Job Request',
             type: 'NEW_JOB_REQUEST',
             message: `You've received a job request from ${customer.firstName}`,
+            heading: {name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url},
             payload: {
                 entity: newJob.id,
                 entityType: 'jobs',
@@ -147,12 +148,14 @@ export const createJobRequest = async (
 
 
         NotificationService.sendNotification({
-            userId: customer.id,
-            userType: 'customer',
+            user: customer.id,
+            userType: 'customers',
             title: 'New Job Request',
             type: 'NEW_JOB_REQUEST',
             //@ts-ignore
-            message: `You've been sent a job request to ${contractor.name}`,
+            message: `You've  sent a job request to ${contractor.name}`,
+             //@ts-ignore
+            heading: {name: `${contractor.name}`, image: contractor.profilePhoto?.url},
             payload: {
                 entity: newJob.id,
                 entityType: 'jobs',

@@ -36,7 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorConversationController = exports.getConversationMessages = exports.getSingleConversation = exports.getConversations = void 0;
+exports.ContractorConversationController = exports.sendMessage = exports.getConversationMessages = exports.getSingleConversation = exports.getConversations = void 0;
 var api_feature_1 = require("../../../utils/api.feature");
 var conversations_schema_1 = require("../../../database/common/conversations.schema");
 var messages_schema_1 = require("../../../database/common/messages.schema");
@@ -127,7 +127,7 @@ var getConversationMessages = function (req, res) { return __awaiter(void 0, voi
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 3, , 4]);
+                _b.trys.push([0, 5, , 6]);
                 conversationId = req.params.conversationId;
                 contractorId_2 = req.contractor.id;
                 return [4 /*yield*/, conversations_schema_1.ConversationModel.findOne({ _id: conversationId })
@@ -145,20 +145,85 @@ var getConversationMessages = function (req, res) { return __awaiter(void 0, voi
                 return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(messages_schema_1.MessageModel.find({ conversation: conversationId }), req.query)];
             case 2:
                 _a = _b.sent(), data = _a.data, error = _a.error;
-                res.status(200).json({ success: true, message: 'Conversation messages retrieved', data: data });
-                return [3 /*break*/, 4];
+                if (!data) return [3 /*break*/, 4];
+                return [4 /*yield*/, Promise.all(data.data.map(function (message) { return __awaiter(void 0, void 0, void 0, function () {
+                        var _a, _b;
+                        return __generator(this, function (_c) {
+                            switch (_c.label) {
+                                case 0:
+                                    _a = message;
+                                    return [4 /*yield*/, message.getIsOwn(contractorId_2)];
+                                case 1:
+                                    _a.isOwn = _c.sent();
+                                    _b = message;
+                                    return [4 /*yield*/, message.getHeading(contractorId_2)];
+                                case 2:
+                                    _b.heading = _c.sent();
+                                    return [2 /*return*/];
+                            }
+                        });
+                    }); }))];
             case 3:
+                _b.sent();
+                _b.label = 4;
+            case 4:
+                res.status(200).json({ success: true, message: 'Conversation messages retrieved', data: data });
+                return [3 /*break*/, 6];
+            case 5:
                 error_3 = _b.sent();
                 console.error('Error fetching conversation messages:', error_3);
+                res.status(500).json({ success: false, message: 'Server error' });
+                return [3 /*break*/, 6];
+            case 6: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getConversationMessages = getConversationMessages;
+var sendMessage = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var conversationId, _a, message, media, type, contractorId_3, conversation, customerIsMember, newMessage, error_4;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 3, , 4]);
+                conversationId = req.params.conversationId;
+                _a = req.body, message = _a.message, media = _a.media, type = _a.type;
+                contractorId_3 = req.contractor.id;
+                return [4 /*yield*/, conversations_schema_1.ConversationModel.findById(conversationId)];
+            case 1:
+                conversation = _b.sent();
+                // Check if the conversation exists
+                if (!conversation) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Conversation not found' })];
+                }
+                customerIsMember = conversation.members.some(function (member) { return member.member.toString() === contractorId_3; });
+                if (!customerIsMember) {
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'Unauthorized: You do not have access to this conversation' })];
+                }
+                return [4 /*yield*/, messages_schema_1.MessageModel.create({
+                        conversation: conversationId,
+                        sender: contractorId_3, // Assuming the customer sends the message
+                        senderType: 'contractors', // Type of the sender
+                        message: message, // Message content from the request body
+                        messageType: messages_schema_1.MessageType.TEXT, // Assuming message type is text, adjust as needed
+                        createdAt: new Date()
+                    })];
+            case 2:
+                newMessage = _b.sent();
+                res.status(201).json({ success: true, message: 'Message sent successfully', data: newMessage });
+                return [3 /*break*/, 4];
+            case 3:
+                error_4 = _b.sent();
+                console.error('Error sending message:', error_4);
                 res.status(500).json({ success: false, message: 'Server error' });
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
         }
     });
 }); };
-exports.getConversationMessages = getConversationMessages;
+exports.sendMessage = sendMessage;
 exports.ContractorConversationController = {
     getConversations: exports.getConversations,
     getSingleConversation: exports.getSingleConversation,
-    getConversationMessages: exports.getConversationMessages
+    getConversationMessages: exports.getConversationMessages,
+    sendMessage: exports.sendMessage
 };

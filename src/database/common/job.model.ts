@@ -56,8 +56,8 @@ export interface IJob extends Document {
     updatedAt: Date;
     applications: string[];
     jobHistory: IJobHistory[];
-    invoices: IJobHistory[];
     paymentHistory: ObjectId[];
+    invoices: IJobHistory[];
     emergency: boolean;
 }
 

@@ -161,5 +161,6 @@ router.get('/notifications/:notificationId', checkContractorRole, ContractorNoti
 router.get('/conversations', checkContractorRole, ContractorConversationController.getConversations)
 router.get('/conversations/:conversationId', checkContractorRole, ContractorConversationController.getSingleConversation)
 router.get('/conversations/:conversationId/messages', checkContractorRole, ContractorConversationController.getConversationMessages)
+router.post('/conversations/:conversationId/messages', checkContractorRole, ContractorHttpRequest.sendMessageParams,  ContractorConversationController.sendMessage)
 
 export default router;

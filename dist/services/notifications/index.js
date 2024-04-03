@@ -40,12 +40,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NotificationService = void 0;
+var notification_model_1 = __importDefault(require("../../database/common/notification.model"));
 var contractor_model_1 = require("../../database/contractor/models/contractor.model");
 var contractor_devices_model_1 = __importDefault(require("../../database/contractor/models/contractor_devices.model"));
-var contractor_notification_model_1 = __importDefault(require("../../database/contractor/models/contractor_notification.model"));
 var customer_model_1 = __importDefault(require("../../database/customer/models/customer.model"));
 var customer_devices_model_1 = __importDefault(require("../../database/customer/models/customer_devices.model"));
-var customer_notification_model_1 = __importDefault(require("../../database/customer/models/customer_notification.model"));
 var expo_1 = require("../expo");
 var socket_1 = __importDefault(require("../socket"));
 var NotificationService = /** @class */ (function () {
@@ -58,15 +57,18 @@ var NotificationService = /** @class */ (function () {
             database: true
         }; }
         return __awaiter(this, void 0, void 0, function () {
-            var user, deviceTokens, devices, customerNotification, customerNotification;
+            var user, deviceTokens, devices, notification;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         user = null;
                         deviceTokens = [];
                         devices = [];
-                        if (!(params.userType == 'contractor')) return [3 /*break*/, 3];
-                        return [4 /*yield*/, contractor_model_1.ContractorModel.findById(params.userId)];
+                        params.payload.userType = params.userType;
+                        params.payload.user = params.user;
+                        params.payload.heading = params.heading;
+                        if (!(params.userType == 'contractors')) return [3 /*break*/, 3];
+                        return [4 /*yield*/, contractor_model_1.ContractorModel.findById(params.user)];
                     case 1:
                         user = _a.sent();
                         return [4 /*yield*/, contractor_devices_model_1.default.find({ contractor: user === null || user === void 0 ? void 0 : user.id }).select('deviceToken')];
@@ -75,8 +77,8 @@ var NotificationService = /** @class */ (function () {
                         deviceTokens = devices.map(function (device) { return device.deviceToken; });
                         _a.label = 3;
                     case 3:
-                        if (!(params.userType == 'customer')) return [3 /*break*/, 6];
-                        return [4 /*yield*/, customer_model_1.default.findById(params.userId)];
+                        if (!(params.userType == 'customers')) return [3 /*break*/, 6];
+                        return [4 /*yield*/, customer_model_1.default.findById(params.user)];
                     case 4:
                         user = _a.sent();
                         return [4 /*yield*/, customer_devices_model_1.default.find({ contractor: user === null || user === void 0 ? void 0 : user.id }).select('deviceToken')];
@@ -107,21 +109,13 @@ var NotificationService = /** @class */ (function () {
                                 },
                             });
                         }
-                        if (!options.hasOwnProperty('database')) return [3 /*break*/, 10];
-                        if (!(params && params.payload.customer)) return [3 /*break*/, 8];
-                        customerNotification = new customer_notification_model_1.default(params.payload);
-                        return [4 /*yield*/, customerNotification.save()];
+                        if (!options.hasOwnProperty('database')) return [3 /*break*/, 8];
+                        notification = new notification_model_1.default(params.payload);
+                        return [4 /*yield*/, notification.save()];
                     case 7:
                         _a.sent();
                         _a.label = 8;
-                    case 8:
-                        if (!(params && params.payload.contractor)) return [3 /*break*/, 10];
-                        customerNotification = new contractor_notification_model_1.default(params.payload);
-                        return [4 /*yield*/, customerNotification.save()];
-                    case 9:
-                        _a.sent();
-                        _a.label = 10;
-                    case 10: return [2 /*return*/];
+                    case 8: return [2 /*return*/];
                 }
             });
         });

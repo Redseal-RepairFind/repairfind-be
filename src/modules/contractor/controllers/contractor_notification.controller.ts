@@ -3,13 +3,14 @@ import { NextFunction, Request, Response } from "express";
 import ContractorNotificationModel, { IContractorNotificationDocument } from "../../../database/contractor/models/contractor_notification.model";
 import { APIFeatures, applyAPIFeature } from "../../../utils/api.feature";
 import CustomError, { InternalServerError, NotFoundError } from "../../../utils/custom.errors";
+import NotificationModel from "../../../database/common/notification.model";
 
 
 export const getNotifications = async (req: any, res: Response, next: NextFunction): Promise<void> => {
     try {
         const { startDate, endDate, read, unread } = req.query;
         const contractorId  = req.contractor.id
-        const filter: any = {contractor: contractorId};
+        const filter: any = {user: contractorId, userType: 'contractors'};
 
         // Filtering by startDate and endDate
         if (startDate && endDate) {
@@ -23,7 +24,8 @@ export const getNotifications = async (req: any, res: Response, next: NextFuncti
             filter.readAt = null; // Filter for unread notifications
         }
 
-        const {data, error} = await applyAPIFeature(ContractorNotificationModel.find(filter), req.query)
+        const {data, error} = await applyAPIFeature(NotificationModel.find(filter), req.query)
+
         res.status(200).json({
             success: true, message: "Notifications retrieved", 
             data: data
@@ -39,10 +41,10 @@ export const getSingleNotification = async (req: any, res: Response,  next: Next
     try {
         const { notificationId} = req.params;
         const contractorId  = req.contractor.id
-        const query: any = {contractor: contractorId, _id: notificationId};
+        const query: any = {user: contractorId, userType: 'contractors', _id: notificationId};
 
         //@ts-ignore
-        const notification = await ContractorNotificationModel.findOne(query).populate('entity');
+        const notification = await NotificationModel.findOne(query).populate('entity');
         
         // If notification does not exist, throw a NotFoundError
         if (!notification) {
@@ -58,6 +60,7 @@ export const getSingleNotification = async (req: any, res: Response,  next: Next
         return next(new InternalServerError(message));
     }
 };
+
 export const ContractorNotificationController = {
     getNotifications,
     getSingleNotification

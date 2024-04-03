@@ -124,4 +124,5 @@ router.get('/notifications/:notificationId', contractorRoleCheck_middleware_1.ch
 router.get('/conversations', contractorRoleCheck_middleware_1.checkContractorRole, contractor_conversation_controller_1.ContractorConversationController.getConversations);
 router.get('/conversations/:conversationId', contractorRoleCheck_middleware_1.checkContractorRole, contractor_conversation_controller_1.ContractorConversationController.getSingleConversation);
 router.get('/conversations/:conversationId/messages', contractorRoleCheck_middleware_1.checkContractorRole, contractor_conversation_controller_1.ContractorConversationController.getConversationMessages);
+router.post('/conversations/:conversationId/messages', contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.sendMessageParams, contractor_conversation_controller_1.ContractorConversationController.sendMessage);
 exports.default = router;

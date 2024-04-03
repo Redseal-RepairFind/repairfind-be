@@ -189,6 +189,9 @@ export const sendJobRequestParams = [
 ];
 
 
+
+
+
 export const createJobRequestParams = [
   body("contractorId").isMongoId(),
   body("description").notEmpty(),
@@ -213,6 +216,16 @@ export const createJoListingParams = [
   body("time").optional(),
 ];
 
+
+// Define the validation rules for the message request
+export const sendMessageParams = [
+  body('type').isIn(['TEXT', 'MEDIA']).withMessage('Invalid messageType'),
+  body('message').notEmpty().if(body('type').equals('TEXT')).withMessage('Message is required'),
+  body('media').isArray().if(body('type').equals('MEDIA')).withMessage('Media must be an array'),
+  body('media.*.url').notEmpty().if(body('type').equals('MEDIA')).withMessage('Media URL is required'),
+];
+
+
 export const validateFormData = (req: Request, res: Response, next: NextFunction) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -220,6 +233,9 @@ export const validateFormData = (req: Request, res: Response, next: NextFunction
   }
   next();
 };
+
+
+
 
 export const CustomerHttpRequest = {
   signupParams,
@@ -248,5 +264,6 @@ export const CustomerHttpRequest = {
   UpdateOrDeviceParams,
   queryContractorParams,
   createJobRequestParams,
-  createJoListingParams
+  createJoListingParams,
+  sendMessageParams
 }
