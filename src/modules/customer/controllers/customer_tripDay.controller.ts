@@ -46,9 +46,10 @@ export const customerverifiedContractorSiteArrivalController = async (
         // send notification to  contractor
         NotificationService.sendNotification(
             {
-                userId: JSON.stringify(tripDay.contractor),
+                user: JSON.stringify(tripDay.contractor),
                 userType: 'contractor',
                 title: 'tripDay',
+                heading: {},
                 type: 'tripDayComfirmed',
                 message: 'Customer confirmed your arrival.',
                 payload: {tripId: tripDayId, verificationCode}
@@ -64,9 +65,10 @@ export const customerverifiedContractorSiteArrivalController = async (
         // send notification to  customer
         NotificationService.sendNotification(
             {
-                userId: JSON.stringify(tripDay.customer),
+                user: JSON.stringify(tripDay.customer),
                 userType: 'customer',
                 title: 'tripDay',
+                heading: {},
                 type: 'tripDayComfirmed',
                 message: "You successfully confirmed the contractor's arrival.",
                 payload: {tripId: tripDayId, verificationCode}

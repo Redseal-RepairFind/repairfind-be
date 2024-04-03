@@ -78,6 +78,7 @@ router.post('/notifications/:notificationId', checkCustomerRole, CustomerNotific
 router.get('/conversations', checkCustomerRole, CustomerConversationController.getConversations)
 router.get('/conversations/:conversationId', checkCustomerRole, CustomerConversationController.getSingleConversation)
 router.get('/conversations/:conversationId/messages', checkCustomerRole, CustomerConversationController.getConversationMessages)
+router.post('/conversations/:conversationId/messages', checkCustomerRole, CustomerHttpRequest.sendMessageParams, CustomerConversationController.sendMessage)
 
 // trips day
 router.post('/trip/:tripDayId/comfirm/arrival', checkCustomerRole, CustomerHttpRequest.tripArrivalComfirmParams, CustomerTripDayController.customerverifiedContractorSiteArrivalController)

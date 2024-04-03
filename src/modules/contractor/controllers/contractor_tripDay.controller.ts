@@ -49,9 +49,10 @@ export const contractorStartTripController = async (
         // send notification to  contractor
         NotificationService.sendNotification(
             {
-                userId: contractorId,
+                user: contractorId,
                 userType: 'contractor',
                 title: 'tripDay',
+                heading: {},
                 type: 'tripDayStart',
                 message: 'trip successfully started',
                 payload: {tripId: saveNewTripDay._id}
@@ -67,9 +68,10 @@ export const contractorStartTripController = async (
         // send notification to  customer
         NotificationService.sendNotification(
             {
-                userId: JSON.stringify(jobRequest.customer),
+                user: JSON.stringify(jobRequest.customer),
                 userType: 'customer',
                 title: 'tripDay',
+                heading: {},
                 type: 'tripDayStart',
                 message: 'Contractor starts trip to your site.',
                 payload: {tripId: saveNewTripDay._id}
@@ -137,9 +139,10 @@ export const contractorArrivedSiteController = async (
         // send notification to  contractor
         NotificationService.sendNotification(
             {
-                userId: contractorId,
+                user: contractorId,
                 userType: 'contractor',
                 title: 'tripDay',
+                heading: {},
                 type: 'tripDayarrived',
                 message: 'you successfully arrrived at site, wait for comfirmation from customer.',
                 payload: {tripId: tripDayId, verificationCode}
@@ -155,9 +158,10 @@ export const contractorArrivedSiteController = async (
         // send notification to  customer
         NotificationService.sendNotification(
             {
-                userId: JSON.stringify(tripDay.customer),
+                user: JSON.stringify(tripDay.customer),
                 userType: 'customer',
                 title: 'tripDay',
+                heading: {},
                 type: 'tripDayarrived',
                 message: 'Contractor is at your site.',
                 payload: {tripId: tripDayId, verificationCode}

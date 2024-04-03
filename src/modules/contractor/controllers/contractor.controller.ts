@@ -328,33 +328,175 @@ class ProfileHandler extends Base {
       let includeStripeIdentity = false;
       let includeStripeCustomer = false;
       let includeStripePaymentMethods = false;
-  
+
       // Parse the query parameter "include" to determine which fields to include
       if (req.query.include) {
-          const includedFields = req.query.include.split(',');
-          includeStripeIdentity = includedFields.includes('stripeIdentity');
-          includeStripeCustomer = includedFields.includes('stripeCustomer');
-          includeStripePaymentMethods = includedFields.includes('stripePaymentMethods');
+        const includedFields = req.query.include.split(',');
+        includeStripeIdentity = includedFields.includes('stripeIdentity');
+        includeStripeCustomer = includedFields.includes('stripeCustomer');
+        includeStripePaymentMethods = includedFields.includes('stripePaymentMethods');
       }
-      
-    
+
+
       const contractor = await ContractorModel.findById(contractorId);
       const quiz = contractor?.quiz ?? null;
 
       const contractorResponse = {
         //@ts-ignore
-        ...contractor?.toJSON({includeStripeIdentity: true, includeStripeCustomer: true, includeStripePaymentMethods: true }), // Convert to plain JSON object
+        ...contractor?.toJSON({ includeStripeIdentity: true, includeStripeCustomer: true, includeStripePaymentMethods: true }), // Convert to plain JSON object
         quiz,
       };
 
+
+
       if (!contractor) {
         return res.status(404).json({ success: false, message: 'Contractor not found' });
+      }
+
+      // check if connected account
+      if (!contractor.stripeAccount) {
+        const stripeAccount = await StripeService.account.createAccount({
+          userType: 'contractor',
+          userId: contractorId,
+          email: contractor.email
+        })
+
+        contractor.stripeAccount = {
+          accountId: stripeAccount.id,
+          type: stripeAccount.type,
+          details_submitted: stripeAccount.details_submitted,
+          tos_acceptance: stripeAccount.tos_acceptance,
+          payouts_enabled: stripeAccount.payouts_enabled,
+          charges_enabled: stripeAccount.charges_enabled,
+          country: stripeAccount.country
+        }
+
+        await contractor.save()
+
       }
 
       res.json({
         success: true,
         message: 'Account fetched successfully',
         data: contractorResponse,
+      });
+    } catch (err: any) {
+      console.log('error', err);
+      res.status(500).json({ success: false, message: err.message });
+    }
+  }
+
+  @handleAsyncError()
+  public async createStripeAccount(): Promise<Response | void> {
+    let req = <any>this.req
+    let res = this.res
+    try {
+      const contractorId = req.contractor.id;
+      const contractor = await ContractorModel.findById(contractorId);
+
+      if (!contractor) {
+        return res.status(404).json({ success: false, message: 'Contractor not found' });
+      }
+
+      let stripeAccountLink = {}
+      // check if connected account
+      // @ts-ignore
+      if (!contractor.stripeAccount || !contractor.stripeAccount.id) {
+        const stripeAccount = await StripeService.account.createAccount({
+          userType: 'contractor',
+          userId: contractorId,
+          email: contractor.email
+        })
+
+        contractor.stripeAccount = {
+          id: stripeAccount.id,
+          type: stripeAccount.type,
+          details_submitted: stripeAccount.details_submitted,
+          tos_acceptance: stripeAccount.tos_acceptance,
+          payouts_enabled: stripeAccount.payouts_enabled,
+          charges_enabled: stripeAccount.charges_enabled,
+          country: stripeAccount.country
+        }
+        await contractor.save()
+
+        // create account onboarding link 
+        // @ts-ignore
+        stripeAccountLink = await StripeService.account.createAccountLink(contractor.stripeAccount.id)
+        //@ts-ignore
+      }else if(!contractor.stripeAccount.payouts_enabled){
+        //@ts-ignore
+        stripeAccountLink = await StripeService.account.createAccountLink(contractor.stripeAccount.id)
+      }
+      else {
+        // should create account login link  here if account has already unboarded, but will need to check status shaaa
+        // @ts-ignore
+        stripeAccountLink = await StripeService.account.createLoginLink(contractor.stripeAccount.id)
+      }
+
+
+
+      res.json({
+        success: true,
+        message: 'Stripe connected account create successfully',
+        data: stripeAccountLink,
+      });
+    } catch (err: any) {
+      console.log('error', err);
+      res.status(500).json({ success: false, message: err.message });
+    }
+  }
+
+  @handleAsyncError()
+  public async generateStripeAccountDashboardLink(): Promise<Response | void> {
+    let req = <any>this.req
+    let res = this.res
+    try {
+      const contractorId = req.contractor.id;
+      const contractor = await ContractorModel.findById(contractorId);
+
+      if (!contractor) {
+        return res.status(404).json({ success: false, message: 'Contractor not found' });
+      }
+
+      let stripeAccountLink = {}
+      // check if connected account
+      //@ts-ignore
+      if (!contractor.stripeAccount || !contractor.stripeAccount.id) {
+        const stripeAccount = await StripeService.account.createAccount({
+          userType: 'contractor',
+          userId: contractorId,
+          email: contractor.email
+        })
+
+        contractor.stripeAccount = {
+          id: stripeAccount.id,
+          type: stripeAccount.type,
+          details_submitted: stripeAccount.details_submitted,
+          tos_acceptance: stripeAccount.tos_acceptance,
+          payouts_enabled: stripeAccount.payouts_enabled,
+          charges_enabled: stripeAccount.charges_enabled,
+          country: stripeAccount.country
+        }
+        await contractor.save()
+
+        // create account onboarding link 
+        // @ts-ignore
+        stripeAccountLink = await StripeService.account.createAccountLink(contractor.stripeAccount.id)
+      } else {
+        // create account onboarding link 
+        // @ts-ignore
+        stripeAccountLink = await StripeService.account.createLoginLink(contractor.stripeAccount.id)
+      }
+
+
+
+
+
+
+      res.json({
+        success: true,
+        message: 'Stripe connected account login link created successfully',
+        data: stripeAccountLink,
       });
     } catch (err: any) {
       console.log('error', err);
@@ -569,8 +711,9 @@ class ProfileHandler extends Base {
     }
   }
 
+
 }
 
 
-export const ProfileController = (...args: [Request, Response, NextFunction]) =>
+export const ContractorController = (...args: [Request, Response, NextFunction]) =>
   new ProfileHandler(...args);

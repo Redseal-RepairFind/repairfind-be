@@ -53,11 +53,12 @@ var api_feature_1 = require("../../../utils/api.feature");
 var conversations_schema_1 = require("../../../database/common/conversations.schema");
 var messages_schema_1 = require("../../../database/common/messages.schema");
 var createJobRequest = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, contractorId, category, description, location_1, date, expiresIn, emergency, media, voiceDescription, time, customerId, customer, contractor, existingJobRequest, dateTimeString, jobTime, newJob, conversationMembers, newConversation, newMessage, html, error_1;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+    var errors, _a, contractorId, category, description, location_1, date, expiresIn, emergency, media, voiceDescription, time, customerId, customer, contractor, startOfToday, existingJobRequest, dateTimeString, jobTime, newJob, conversationMembers, newConversation, newMessage, html, error_1;
+    var _b, _c;
+    return __generator(this, function (_d) {
+        switch (_d.label) {
             case 0:
-                _b.trys.push([0, 7, , 8]);
+                _d.trys.push([0, 7, , 8]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ message: 'validatior error occured', errors: errors.array() })];
@@ -66,19 +67,19 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 customerId = req.customer.id;
                 return [4 /*yield*/, customer_model_1.default.findById(customerId)];
             case 1:
-                customer = _b.sent();
+                customer = _d.sent();
                 if (!customer) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "Customer not found" })];
                 }
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId).populate('profile')];
             case 2:
-                contractor = _b.sent();
+                contractor = _d.sent();
                 if (!contractor) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "Contractor not found" })];
                 }
-                // Check if the specified date is valid
-                if (!(0, date_fns_1.isFuture)(new Date(date))) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid date formate or date is not in the future' })];
+                startOfToday = (0, date_fns_1.startOfDay)(new Date());
+                if (!(0, date_fns_1.isValid)(new Date(date)) || (!(0, date_fns_1.isFuture)(new Date(date)) && new Date(date) < startOfToday)) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid date format or date is in the past' })];
                 }
                 return [4 /*yield*/, job_model_1.JobModel.findOne({
                         customer: customerId,
@@ -88,7 +89,7 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                         createdAt: { $gte: (0, date_fns_1.addHours)(new Date(), -72) }, // Check for job requests within the last 72 hours
                     })];
             case 3:
-                existingJobRequest = _b.sent();
+                existingJobRequest = _d.sent();
                 if (existingJobRequest) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'A similar job request has already been sent to this contractor within the last 72 hours' })];
                 }
@@ -115,7 +116,7 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 return [4 /*yield*/, newJob.save()];
             case 4:
                 // Save the job document to the database
-                _b.sent();
+                _d.sent();
                 conversationMembers = [
                     { memberType: 'customers', member: customerId },
                     { memberType: 'contractors', member: contractorId }
@@ -128,7 +129,7 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                         lastMessageAt: new Date() // Set the last message timestamp to now
                     })];
             case 5:
-                newConversation = _b.sent();
+                newConversation = _d.sent();
                 return [4 /*yield*/, messages_schema_1.MessageModel.create({
                         conversation: newConversation._id,
                         sender: customerId, // Assuming the customer sends the initial message
@@ -137,15 +138,16 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                         createdAt: new Date()
                     })];
             case 6:
-                newMessage = _b.sent();
+                newMessage = _d.sent();
                 //  IT WILL BE WISE TO MOVE ALL THIS TO EVENT LISTENER TO KEEP THE CONTROLLER LEAN
                 //   contractor notification
                 services_1.NotificationService.sendNotification({
-                    userId: contractor.id,
-                    userType: 'contractor',
+                    user: contractor.id,
+                    userType: 'contractors',
                     title: 'New Job Request',
                     type: 'NEW_JOB_REQUEST',
                     message: "You've received a job request from ".concat(customer.firstName),
+                    heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_b = customer.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
                     payload: {
                         entity: newJob.id,
                         entityType: 'jobs',
@@ -154,12 +156,14 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                     }
                 }, { database: true, push: true });
                 services_1.NotificationService.sendNotification({
-                    userId: customer.id,
-                    userType: 'customer',
+                    user: customer.id,
+                    userType: 'customers',
                     title: 'New Job Request',
                     type: 'NEW_JOB_REQUEST',
                     //@ts-ignore
-                    message: "You've been sent a job request to ".concat(contractor.name),
+                    message: "You've  sent a job request to ".concat(contractor.name),
+                    //@ts-ignore
+                    heading: { name: "".concat(contractor.name), image: (_c = contractor.profilePhoto) === null || _c === void 0 ? void 0 : _c.url },
                     payload: {
                         entity: newJob.id,
                         entityType: 'jobs',
@@ -173,7 +177,7 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 res.status(201).json({ success: true, message: 'Job request submitted successfully', data: newJob });
                 return [3 /*break*/, 8];
             case 7:
-                error_1 = _b.sent();
+                error_1 = _d.sent();
                 console.error('Error submitting job request:', error_1);
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('Bad Request'))];
             case 8: return [2 /*return*/];
@@ -251,7 +255,7 @@ var createJobListing = function (req, res) { return __awaiter(void 0, void 0, vo
 }); };
 exports.createJobListing = createJobListing;
 var getJobs = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, contractorId, status_1, startDate, endDate, date, type, customerId, filter, start, end, selectedDate, startOfDay, endOfDay, _b, data, error, error_3;
+    var errors, _a, contractorId, status_1, startDate, endDate, date, type, customerId, filter, start, end, selectedDate, startOfDay_1, endOfDay_1, _b, data, error, error_3;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
@@ -284,10 +288,10 @@ var getJobs = function (req, res) { return __awaiter(void 0, void 0, void 0, fun
                 }
                 if (date) {
                     selectedDate = new Date(date);
-                    startOfDay = new Date(selectedDate.setUTCHours(0, 0, 0, 0));
-                    endOfDay = new Date(startOfDay);
-                    endOfDay.setDate(startOfDay.getUTCDate() + 1);
-                    filter.date = { $gte: startOfDay, $lt: endOfDay };
+                    startOfDay_1 = new Date(selectedDate.setUTCHours(0, 0, 0, 0));
+                    endOfDay_1 = new Date(startOfDay_1);
+                    endOfDay_1.setDate(startOfDay_1.getUTCDate() + 1);
+                    filter.date = { $gte: startOfDay_1, $lt: endOfDay_1 };
                 }
                 return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_model_1.JobModel.find(filter), req.query)];
             case 1:

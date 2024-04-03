@@ -42,6 +42,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CustomerNotificationController = exports.markNotificationAsRead = exports.getSingleNotification = exports.getNotifications = void 0;
 var customer_notification_model_1 = __importDefault(require("../../../database/customer/models/customer_notification.model"));
 var api_feature_1 = require("../../../utils/api.feature");
+var notification_model_1 = __importDefault(require("../../../database/common/notification.model"));
 var getNotifications = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, startDate, endDate, read, unread, customerId, filter, _b, data, error, error_1;
     return __generator(this, function (_c) {
@@ -50,7 +51,7 @@ var getNotifications = function (req, res) { return __awaiter(void 0, void 0, vo
                 _c.trys.push([0, 2, , 3]);
                 _a = req.query, startDate = _a.startDate, endDate = _a.endDate, read = _a.read, unread = _a.unread;
                 customerId = req.customer.id;
-                filter = { customer: customerId };
+                filter = { user: customerId, userType: 'customers' };
                 // Filtering by startDate and endDate
                 if (startDate && endDate) {
                     filter.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
@@ -62,7 +63,7 @@ var getNotifications = function (req, res) { return __awaiter(void 0, void 0, vo
                 else if (unread === 'true') {
                     filter.readAt = null; // Filter for unread notifications
                 }
-                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(customer_notification_model_1.default.find(filter), req.query)];
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(notification_model_1.default.find(filter), req.query)];
             case 1:
                 _b = _c.sent(), data = _b.data, error = _b.error;
                 res.status(200).json({
@@ -88,8 +89,8 @@ var getSingleNotification = function (req, res) { return __awaiter(void 0, void 
                 _a.trys.push([0, 2, , 3]);
                 notificationId = req.params.notificationId;
                 customerId = req.customer.id;
-                query = { customer: customerId, _id: notificationId };
-                return [4 /*yield*/, customer_notification_model_1.default.findOne(query).populate('entity')];
+                query = { user: customerId, userType: 'customers', _id: notificationId };
+                return [4 /*yield*/, notification_model_1.default.findOne(query).populate('entity')];
             case 1:
                 notification = _a.sent();
                 res.status(200).json({ success: true, message: "Notification retrieved", data: notification });

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerHttpRequest = exports.validateFormData = exports.createJoListingParams = exports.createJobRequestParams = exports.sendJobRequestParams = exports.queryContractorParams = exports.filterContractorParams = exports.searchCategoryDateParams = exports.searchContractorByCategoryDateParams = exports.searchContractorByLocationParams = exports.UpdateOrDeviceParams = exports.jobListingParams = exports.createStripeSessionParams = exports.rateContractorParams = exports.confirmInspectionPaymentParams = exports.confirmPaymentParams = exports.acceptAndPayParams = exports.updateProfileParams = exports.getContractorParams = exports.searchParams = exports.verifyPasswordOtpParams = exports.changePasswordParams = exports.resetPasswordParams = exports.forgotPasswordParams = exports.loginParams = exports.verifySocialSignon = exports.emailVerificationParams = exports.signupParams = void 0;
+exports.CustomerHttpRequest = exports.validateFormData = exports.sendMessageParams = exports.createJoListingParams = exports.createJobRequestParams = exports.sendJobRequestParams = exports.queryContractorParams = exports.filterContractorParams = exports.searchCategoryDateParams = exports.searchContractorByCategoryDateParams = exports.searchContractorByLocationParams = exports.UpdateOrDeviceParams = exports.jobListingParams = exports.createStripeSessionParams = exports.rateContractorParams = exports.confirmInspectionPaymentParams = exports.confirmPaymentParams = exports.acceptAndPayParams = exports.updateProfileParams = exports.getContractorParams = exports.searchParams = exports.verifyPasswordOtpParams = exports.changePasswordParams = exports.resetPasswordParams = exports.forgotPasswordParams = exports.loginParams = exports.verifySocialSignon = exports.emailVerificationParams = exports.signupParams = void 0;
 var express_validator_1 = require("express-validator");
 var contractorAccountTypes_1 = require("../../../constants/contractorAccountTypes");
 exports.signupParams = [
@@ -194,6 +194,13 @@ exports.createJoListingParams = [
     (0, express_validator_1.body)("date").notEmpty(),
     (0, express_validator_1.body)("time").optional(),
 ];
+// Define the validation rules for the message request
+exports.sendMessageParams = [
+    (0, express_validator_1.body)('type').isIn(['TEXT', 'MEDIA']).withMessage('Invalid messageType'),
+    (0, express_validator_1.body)('message').notEmpty().if((0, express_validator_1.body)('type').equals('TEXT')).withMessage('Message is required'),
+    (0, express_validator_1.body)('media').isArray().if((0, express_validator_1.body)('type').equals('MEDIA')).withMessage('Media must be an array'),
+    (0, express_validator_1.body)('media.*.url').notEmpty().if((0, express_validator_1.body)('type').equals('MEDIA')).withMessage('Media URL is required'),
+];
 var validateFormData = function (req, res, next) {
     var errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty()) {
@@ -229,5 +236,6 @@ exports.CustomerHttpRequest = {
     UpdateOrDeviceParams: exports.UpdateOrDeviceParams,
     queryContractorParams: exports.queryContractorParams,
     createJobRequestParams: exports.createJobRequestParams,
-    createJoListingParams: exports.createJoListingParams
+    createJoListingParams: exports.createJoListingParams,
+    sendMessageParams: exports.sendMessageParams
 };

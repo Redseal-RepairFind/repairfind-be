@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorHttpRequest = exports.CreateJobApplicationRequest = exports.CreateScheduleRequest = exports.UpdateOrDevice = exports.CreateStripeSessionRequest = exports.InviteToTeam = exports.UpdateBankDetailRequest = exports.PasswordChangeRequest = exports.PasswordResetRequest = exports.ResendEmailRequest = exports.LoginRequest = exports.EmailVerificationRequest = exports.UpdateProfileRequest = exports.CreateProfileRequest = exports.CreateContractorRequest = void 0;
+exports.ContractorHttpRequest = exports.sendMessageParams = exports.CreateJobApplicationRequest = exports.CreateScheduleRequest = exports.UpdateOrDevice = exports.CreateStripeSessionRequest = exports.InviteToTeam = exports.UpdateBankDetailRequest = exports.PasswordChangeRequest = exports.PasswordResetRequest = exports.ResendEmailRequest = exports.LoginRequest = exports.EmailVerificationRequest = exports.UpdateProfileRequest = exports.CreateProfileRequest = exports.CreateContractorRequest = void 0;
 var express_validator_1 = require("express-validator");
 exports.CreateContractorRequest = [
     (0, express_validator_1.body)('email').isEmail(),
@@ -254,6 +254,13 @@ exports.CreateJobApplicationRequest = [
     (0, express_validator_1.body)("estimates.*.quantity").if((0, express_validator_1.body)("estimates").exists()).notEmpty().isNumeric(), // Checking quantity only if estimates is provided
     (0, express_validator_1.body)("estimates.*.description").if((0, express_validator_1.body)("estimates").exists()).notEmpty().isString(), // Checking description only if estimates is provided
 ];
+// Define the validation rules for the message request
+exports.sendMessageParams = [
+    (0, express_validator_1.body)('type').isIn(['TEXT', 'MEDIA']).withMessage('Invalid messageType'),
+    (0, express_validator_1.body)('message').notEmpty().if((0, express_validator_1.body)('type').equals('TEXT')).withMessage('Message is required'),
+    (0, express_validator_1.body)('media').isArray().if((0, express_validator_1.body)('type').equals('MEDIA')).withMessage('Media must be an array'),
+    (0, express_validator_1.body)('media.*.url').notEmpty().if((0, express_validator_1.body)('type').equals('MEDIA')).withMessage('Media URL is required'),
+];
 exports.ContractorHttpRequest = {
     CreateProfileRequest: exports.CreateProfileRequest,
     CreateContractorRequest: exports.CreateContractorRequest,
@@ -268,5 +275,6 @@ exports.ContractorHttpRequest = {
     PasswordChangeRequest: exports.PasswordChangeRequest,
     CreateStripeSessionRequest: exports.CreateStripeSessionRequest,
     UpdateOrDevice: exports.UpdateOrDevice,
-    CreateJobApplicationRequest: exports.CreateJobApplicationRequest
+    CreateJobApplicationRequest: exports.CreateJobApplicationRequest,
+    sendMessageParams: exports.sendMessageParams
 };

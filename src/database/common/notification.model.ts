@@ -1,22 +1,30 @@
 import { ObjectId, Schema, model } from "mongoose";
 
 
-export interface IContractorNotificationDocument extends Document {
+export interface INotification extends Document {
     _id: ObjectId;
-    contractor: ObjectId
+    user: ObjectId;
+    userType: string;
     message: string;
     entity: ObjectId;
     entityType: string; // bookings, jobs, customers, 
+    heading: object; //{name, image}
     createdAt: Date;
     updatedAt: Date;
     readAt: Date;
   }
 
 
-const ContractorNotificationSchema = new Schema(
+const NotificationSchema = new Schema(
     {
-      contractor: {
-        type: Schema.Types.ObjectId, ref: 'contractors',
+      user: {
+        type: Schema.Types.ObjectId,
+        refPath: 'userType',
+        default: null,
+      },
+      userType: {
+        type: String,
+        enum: ['contractors', 'customers'],
         required: true,
       },
       message: {
@@ -25,14 +33,15 @@ const ContractorNotificationSchema = new Schema(
       }, 
       entity: {
         type: Schema.Types.ObjectId,
-        refPath: 'entityType', // Dynamically reference either Customer or Contractor model
+        refPath: 'entityType',
         default: null,
       },
       entityType: {
         type: String,
         enum: ['contractors', 'customers', 'bookings', 'jobs', 'others'],
-        default: 'others', // false becos we of alert kind of messages
+        default: 'others',
       },
+      heading: Object,
       createdAt: {
         type: Date,
         default: Date.now,
@@ -52,9 +61,7 @@ const ContractorNotificationSchema = new Schema(
     }
   ); 
 
+  const NotificationModel = model<INotification>("notifications", NotificationSchema);
   
   
-  const ContractorNotificationModel = model<IContractorNotificationDocument>("contractor_notifications", ContractorNotificationSchema);
-  
-  
-  export default ContractorNotificationModel;
+  export default NotificationModel;

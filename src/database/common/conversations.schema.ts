@@ -27,24 +27,7 @@ export interface IConversationDocument extends Document {
 
 const ConversationSchema = new mongoose.Schema<IConversationDocument>({
 
-        // members: [
-        //     {
-        //         memberType: {
-        //             type: String,
-        //             enum: ['contractors', 'customers'],
-        //             required: true,
-        //         },
-        //         member: {
-        //             type: Schema.Types.ObjectId,
-        //             refPath: 'members.memberType',
-        //             required: true,
-        //         },
-        //     },
-        // ],
-
         members: [{ member: { type: Schema.Types.ObjectId, refPath: 'members.memberType' }, memberType: String }],
-
-
         entity: {
             type: String,
             refPath: 'entityType',
@@ -104,13 +87,10 @@ ConversationSchema.methods.getHeading = async function(loggedInUserId: string) {
         if (otherMemberUser) {
             return {
                 name: otherMemberUser.name,
-                profilePhoto: otherMemberUser.profilePhoto,
+                image: otherMemberUser.profilePhoto?.url,
             };
         }
     }
-    return {
-        "klds": "sda"
-    };
 };
 
 

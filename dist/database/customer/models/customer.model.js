@@ -77,6 +77,10 @@ var CustomerSchema = new mongoose_1.Schema({
     stripePaymentMethods: {
         type: [Object],
     },
+    stripeAccount: {
+        type: Object,
+        default: null,
+    },
     stripeIdentity: {
         type: Object,
     },

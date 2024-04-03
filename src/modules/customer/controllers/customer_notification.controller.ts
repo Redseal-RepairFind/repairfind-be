@@ -2,13 +2,14 @@ import { validationResult } from "express-validator";
 import { Request, Response } from "express";
 import CustomerNotificationModel from "../../../database/customer/models/customer_notification.model";
 import { applyAPIFeature } from "../../../utils/api.feature";
+import NotificationModel from "../../../database/common/notification.model";
 
 
 export const getNotifications = async (req: any, res: Response): Promise<void> => {
     try {
         const { startDate, endDate, read, unread } = req.query;
         const customerId = req.customer.id
-        const filter: any = { customer: customerId};
+        const filter: any = { user: customerId, userType: 'customers'};
 
         // Filtering by startDate and endDate
         if (startDate && endDate) {
@@ -23,7 +24,7 @@ export const getNotifications = async (req: any, res: Response): Promise<void> =
         }
 
 
-        const {data, error} = await applyAPIFeature(CustomerNotificationModel.find(filter), req.query)
+        const {data, error} = await applyAPIFeature(NotificationModel.find(filter), req.query)
         res.status(200).json({
             success: true, message: "Notifications retrieved", 
             data: data
@@ -39,8 +40,8 @@ export const getSingleNotification = async (req: any, res: Response): Promise<vo
     try {
         const { notificationId } = req.params;
         const customerId = req.customer.id
-        const query: any = { customer: customerId, _id: notificationId };
-        const notification = await CustomerNotificationModel.findOne(query).populate('entity');
+        const query: any = { user: customerId, userType: 'customers',  _id: notificationId };
+        const notification = await NotificationModel.findOne(query).populate('entity');
         res.status(200).json({ success: true, message: "Notification retrieved", data: notification });
     } catch (error) {
         console.error("Error fetching notification:", error);

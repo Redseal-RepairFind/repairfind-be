@@ -20,7 +20,12 @@ export const getCustomer = async (query: any) => {
   } catch (error: any) {
   //  throw new BadRequestError(error.message || "Something went wrong");
  }
+};
 
+export const updateCustomer = async (customerId: string, params: Stripe.CustomerUpdateParams) => {
+  console.log('updating customer on stripe', customerId)
+  const customer: Stripe.Customer = await stripe.customers.update(customerId, params);
+  return customer
 };
 
 export const getCustomerById = async (customerId: any) => {
@@ -33,7 +38,6 @@ export const getCustomerById = async (customerId: any) => {
 
 
 };
-
 
 
 // Step 1: Create PaymentMethod

@@ -22,7 +22,7 @@ export enum JobStatus {
     DECLINED = 'DECLINED',
     ACCEPTED = 'ACCEPTED',
     EXPIRED = 'EXPIRED',
-    ONGOING = 'ONGOING',
+    BOOKED = 'BOOKED',
     COMPLETED = 'COMPLETED',
     DISPUTED = 'DISPUTED',
 }
@@ -56,6 +56,8 @@ export interface IJob extends Document {
     updatedAt: Date;
     applications: string[];
     jobHistory: IJobHistory[];
+    paymentHistory: ObjectId[];
+    invoices: IJobHistory[];
     emergency: boolean;
 }
 

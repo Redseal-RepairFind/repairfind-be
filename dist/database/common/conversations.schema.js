@@ -67,20 +67,6 @@ var ConversationEntityType;
     ConversationEntityType["JOB"] = "jobs";
 })(ConversationEntityType || (exports.ConversationEntityType = ConversationEntityType = {}));
 var ConversationSchema = new mongoose_1.default.Schema({
-    // members: [
-    //     {
-    //         memberType: {
-    //             type: String,
-    //             enum: ['contractors', 'customers'],
-    //             required: true,
-    //         },
-    //         member: {
-    //             type: Schema.Types.ObjectId,
-    //             refPath: 'members.memberType',
-    //             required: true,
-    //         },
-    //     },
-    // ],
     members: [{ member: { type: mongoose_1.Schema.Types.ObjectId, refPath: 'members.memberType' }, memberType: String }],
     entity: {
         type: String,
@@ -123,10 +109,11 @@ var ConversationSchema = new mongoose_1.default.Schema({
 });
 // Define a schema method to get the heading
 ConversationSchema.methods.getHeading = function (loggedInUserId) {
+    var _a;
     return __awaiter(this, void 0, void 0, function () {
         var otherMember, UserModel, otherMemberUser;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        return __generator(this, function (_b) {
+            switch (_b.label) {
                 case 0:
                     otherMember = this.members.find(function (member) { return member.member.toString() !== loggedInUserId; });
                     if (!otherMember) return [3 /*break*/, 2];
@@ -139,17 +126,15 @@ ConversationSchema.methods.getHeading = function (loggedInUserId) {
                     }
                     return [4 /*yield*/, UserModel.findById(otherMember.member)];
                 case 1:
-                    otherMemberUser = _a.sent();
+                    otherMemberUser = _b.sent();
                     if (otherMemberUser) {
                         return [2 /*return*/, {
                                 name: otherMemberUser.name,
-                                profilePhoto: otherMemberUser.profilePhoto,
+                                image: (_a = otherMemberUser.profilePhoto) === null || _a === void 0 ? void 0 : _a.url,
                             }];
                     }
-                    _a.label = 2;
-                case 2: return [2 /*return*/, {
-                        "klds": "sda"
-                    }];
+                    _b.label = 2;
+                case 2: return [2 /*return*/];
             }
         });
     });

@@ -113,6 +113,10 @@ const ContractorSchema = new Schema<IContractor>(
       type: Object,
       default: null,
     },
+    stripeAccount: {
+      type: Object,
+      default: null,
+    },
     stripePaymentMethods: {
       type: Array,
       default: []

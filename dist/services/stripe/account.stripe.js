@@ -39,108 +39,71 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createCustomerAndAttachPaymentMethod = exports.createPaymentMethod = exports.getCustomerById = exports.updateCustomer = exports.getCustomer = exports.createCustomer = void 0;
+exports.createLoginLink = exports.createAccountLink = exports.createAccount = void 0;
 var stripe_1 = __importDefault(require("stripe"));
+var custom_errors_1 = require("../../utils/custom.errors");
 var STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
-var stripe = new stripe_1.default(STRIPE_SECRET_KEY);
-var createCustomer = function (params) { return __awaiter(void 0, void 0, void 0, function () {
-    var customer;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0: return [4 /*yield*/, stripe.customers.create(params)];
-            case 1:
-                customer = _a.sent();
-                return [2 /*return*/, customer];
-        }
-    });
-}); };
-exports.createCustomer = createCustomer;
-var getCustomer = function (query) { return __awaiter(void 0, void 0, void 0, function () {
-    var customer, error_1;
+var stripeClient = new stripe_1.default(STRIPE_SECRET_KEY);
+var createAccount = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
+    var account, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, stripe.customers.list(query)];
+                return [4 /*yield*/, stripeClient.accounts.create({
+                        type: 'express',
+                        metadata: payload,
+                    })];
             case 1:
-                customer = _a.sent();
-                if (customer.data.length !== 0) {
-                    return [2 /*return*/, customer.data[0]];
-                }
-                return [3 /*break*/, 3];
+                account = _a.sent();
+                console.log(account);
+                return [2 /*return*/, account];
             case 2:
                 error_1 = _a.sent();
-                return [3 /*break*/, 3];
+                throw new custom_errors_1.BadRequestError(error_1.message || "Something went wrong");
             case 3: return [2 /*return*/];
         }
     });
 }); };
-exports.getCustomer = getCustomer;
-var updateCustomer = function (customerId, params) { return __awaiter(void 0, void 0, void 0, function () {
-    var customer;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                console.log('updating customer on stripe', customerId);
-                return [4 /*yield*/, stripe.customers.update(customerId, params)];
-            case 1:
-                customer = _a.sent();
-                return [2 /*return*/, customer];
-        }
-    });
-}); };
-exports.updateCustomer = updateCustomer;
-var getCustomerById = function (customerId) { return __awaiter(void 0, void 0, void 0, function () {
-    var customer, error_2;
+exports.createAccount = createAccount;
+var createAccountLink = function (accountId) { return __awaiter(void 0, void 0, void 0, function () {
+    var accountLink, error_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, stripe.customers.retrieve(customerId)];
+                return [4 /*yield*/, stripeClient.accountLinks.create({
+                        account: accountId,
+                        refresh_url: 'https://example.com/reauth',
+                        return_url: 'https://example.com/return',
+                        type: 'account_onboarding',
+                    })];
             case 1:
-                customer = _a.sent();
-                return [2 /*return*/, customer];
+                accountLink = _a.sent();
+                return [2 /*return*/, accountLink];
             case 2:
                 error_2 = _a.sent();
-                return [3 /*break*/, 3];
+                throw new custom_errors_1.BadRequestError(error_2.message || "Something went wrong");
             case 3: return [2 /*return*/];
         }
     });
 }); };
-exports.getCustomerById = getCustomerById;
-// Step 1: Create PaymentMethod
-var createPaymentMethod = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var paymentMethod;
+exports.createAccountLink = createAccountLink;
+var createLoginLink = function (accountId) { return __awaiter(void 0, void 0, void 0, function () {
+    var loginLink, error_3;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, stripe.paymentMethods.create({
-                    type: 'card',
-                    card: {
-                        number: '4242424242424242',
-                        exp_month: 12,
-                        exp_year: 2022,
-                        cvc: '123',
-                    },
-                })];
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                return [4 /*yield*/, stripeClient.accounts.createLoginLink(accountId)];
             case 1:
-                paymentMethod = _a.sent();
-                return [2 /*return*/, paymentMethod];
+                loginLink = _a.sent();
+                return [2 /*return*/, loginLink];
+            case 2:
+                error_3 = _a.sent();
+                throw new custom_errors_1.BadRequestError(error_3.message || "Something went wrong");
+            case 3: return [2 /*return*/];
         }
     });
 }); };
-exports.createPaymentMethod = createPaymentMethod;
-// Step 2: Create Customer and Attach PaymentMethod
-var createCustomerAndAttachPaymentMethod = function (paymentMethodId) { return __awaiter(void 0, void 0, void 0, function () {
-    var customer;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0: return [4 /*yield*/, stripe.customers.create({
-                    payment_method: paymentMethodId,
-                })];
-            case 1:
-                customer = _a.sent();
-                return [2 /*return*/, customer];
-        }
-    });
-}); };
-exports.createCustomerAndAttachPaymentMethod = createCustomerAndAttachPaymentMethod;
+exports.createLoginLink = createLoginLink;

@@ -1,6 +1,8 @@
 import mongoose, { Document, Schema, Types } from 'mongoose';
+import { ContractorModel } from '../contractor/models/contractor.model';
+import CustomerModel from '../customer/models/customer.model';
 
-export enum MessageType  {
+export enum MessageType {
     TEXT = "TEXT",
     ALERT = "ALERT",
     MEDIA = "MEDIA",
@@ -15,6 +17,8 @@ export interface IMessage extends Document {
     message: string;
     media: { type: string; url: string; blurHash: string }[];
     readBy: Types.ObjectId[]; // References to contractors who have read the message
+    heading: Object;
+    isOwn: Boolean;
 }
 
 // Define schema for messages
@@ -62,7 +66,42 @@ const MessageSchema = new Schema<IMessage>({
             refPath: 'senderType', // Dynamically reference either Customer or Contractor model
         },
     ],
+    heading: {
+        type: Object
+    },
+    isOwn: {
+        type: Boolean
+    }
 }, { timestamps: true });
+
+
+MessageSchema.methods.getIsOwn = async function (loggedInUserId: string) {
+    return this.sender.toString() == loggedInUserId;
+};
+
+
+MessageSchema.methods.getHeading = async function (loggedInUserId: string) {
+
+    if (this.senderType == 'contractors') {
+        const contractor = await ContractorModel.findById(this.sender) // Assuming your user model is named 'User'
+        if(!contractor)return {}
+        return {
+            // @ts-ignore
+            name: contractor.name,
+            profilePhoto: contractor.profilePhoto,
+        };
+
+    } else {
+        const customer = await CustomerModel.findById(this.sender) // Assuming your user model is named 'User'
+        if(!customer)return {}
+        return {
+            // @ts-ignore
+            name: customer.name,
+            image: customer.profilePhoto?.url,
+        };
+    }
+
+};
 
 // Create and export the Message model
 export const MessageModel = mongoose.model<IMessage>('Message', MessageSchema);

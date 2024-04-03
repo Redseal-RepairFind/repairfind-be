@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.identityVerificationVerified = exports.identityVerificationRequiresInput = exports.identityVerificationCreated = exports.paymentMethodDetached = exports.paymentMethodAttached = exports.setupIntentSucceeded = exports.setupIntentCreated = exports.StripeWebhookHandler = void 0;
+exports.accountUpdated = exports.identityVerificationVerified = exports.identityVerificationRequiresInput = exports.identityVerificationCreated = exports.paymentMethodDetached = exports.customerCreated = exports.customerUpdated = exports.paymentMethodAttached = exports.setupIntentSucceeded = exports.setupIntentCreated = exports.StripeWebhookHandler = void 0;
 var stripe_1 = __importDefault(require("stripe"));
 var custom_errors_1 = require("../../utils/custom.errors");
 var _1 = require(".");
@@ -47,6 +47,7 @@ var contractor_model_1 = require("../../database/contractor/models/contractor.mo
 var customer_model_1 = __importDefault(require("../../database/customer/models/customer.model"));
 var expo_1 = require("../expo");
 var contractor_devices_model_1 = __importDefault(require("../../database/contractor/models/contractor_devices.model"));
+var interface_dto_util_1 = require("../../utils/interface_dto.util");
 var STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 var STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
 var stripeClient = new stripe_1.default(STRIPE_SECRET_KEY);
@@ -88,8 +89,17 @@ var StripeWebhookHandler = function (req) { return __awaiter(void 0, void 0, voi
                 case 'payment_method.detached':
                     (0, exports.paymentMethodDetached)(eventData.object);
                     break;
+                case 'customer.updated':
+                    (0, exports.customerUpdated)(eventData.object);
+                    break;
+                case 'customer.created':
+                    (0, exports.customerCreated)(eventData.object);
+                    break;
+                case 'account.updated':
+                    (0, exports.accountUpdated)(eventData.object);
+                    break;
                 default:
-                    console.log("Unhandled event type: ".concat(eventType), event_1.object);
+                    console.log("Unhandled event type: ".concat(eventType), eventData.object);
                     break;
             }
         }
@@ -120,27 +130,32 @@ var setupIntentSucceeded = function (payload) { return __awaiter(void 0, void 0,
     return __generator(this, function (_d) {
         switch (_d.label) {
             case 0:
-                _d.trys.push([0, 8, , 9]);
-                return [4 /*yield*/, _1.StripeService.customer.getCustomerById(payload.customer)];
+                console.log('Stripe Event Handler: setupIntentSucceeded', payload);
+                _d.label = 1;
             case 1:
-                customer = _d.sent();
-                return [4 /*yield*/, _1.StripeService.payment.getPaymentMethod(payload.payment_method)];
+                _d.trys.push([1, 9, , 10]);
+                return [4 /*yield*/, _1.StripeService.customer.getCustomerById(payload.customer)];
             case 2:
+                customer = _d.sent();
+                return [4 /*yield*/, _1.StripeService.payment.getPaymentMethod(payload.payment_method)
+                    //  instead of trying to retreive meta from customer get it from the payload metadata
+                ];
+            case 3:
                 paymentMethod_1 = _d.sent();
-                userType = (_b = customer === null || customer === void 0 ? void 0 : customer.metadata) === null || _b === void 0 ? void 0 : _b.userType;
-                userId = (_c = customer === null || customer === void 0 ? void 0 : customer.metadata) === null || _c === void 0 ? void 0 : _c.userId;
+                userType = (_b = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _b === void 0 ? void 0 : _b.userType;
+                userId = (_c = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _c === void 0 ? void 0 : _c.userId;
                 if (!userType || !userId)
                     return [2 /*return*/]; // Ensure userType and userId are valid
-                if (!(userType === 'contractor')) return [3 /*break*/, 4];
+                if (!(userType === 'contractor')) return [3 /*break*/, 5];
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(userId)];
-            case 3:
+            case 4:
                 _a = _d.sent();
-                return [3 /*break*/, 6];
-            case 4: return [4 /*yield*/, customer_model_1.default.findById(userId)];
-            case 5:
-                _a = _d.sent();
-                _d.label = 6;
+                return [3 /*break*/, 7];
+            case 5: return [4 /*yield*/, customer_model_1.default.findById(userId)];
             case 6:
+                _a = _d.sent();
+                _d.label = 7;
+            case 7:
                 user = _a;
                 if (!user)
                     return [2 /*return*/]; // Ensure user exists
@@ -154,13 +169,13 @@ var setupIntentSucceeded = function (payload) { return __awaiter(void 0, void 0,
                     user.stripePaymentMethods.push(paymentMethod_1);
                 }
                 return [4 /*yield*/, user.save()];
-            case 7:
-                _d.sent();
-                return [3 /*break*/, 9];
             case 8:
+                _d.sent();
+                return [3 /*break*/, 10];
+            case 9:
                 error_1 = _d.sent();
-                return [3 /*break*/, 9];
-            case 9: return [2 /*return*/];
+                return [3 /*break*/, 10];
+            case 10: return [2 /*return*/];
         }
     });
 }); };
@@ -171,29 +186,32 @@ var paymentMethodAttached = function (payload) { return __awaiter(void 0, void 0
     return __generator(this, function (_d) {
         switch (_d.label) {
             case 0:
-                _d.trys.push([0, 8, , 9]);
+                console.log('Stripe Event Handler: paymentMethodAttached', payload);
+                _d.label = 1;
+            case 1:
+                _d.trys.push([1, 9, , 10]);
                 if (payload.object != 'payment_method')
                     return [2 /*return*/];
                 return [4 /*yield*/, _1.StripeService.customer.getCustomerById(payload.customer)];
-            case 1:
+            case 2:
                 customer = _d.sent();
                 return [4 /*yield*/, _1.StripeService.payment.getPaymentMethod(payload.id)];
-            case 2:
+            case 3:
                 paymentMethod_2 = _d.sent();
                 userType = (_b = customer === null || customer === void 0 ? void 0 : customer.metadata) === null || _b === void 0 ? void 0 : _b.userType;
                 userId = (_c = customer === null || customer === void 0 ? void 0 : customer.metadata) === null || _c === void 0 ? void 0 : _c.userId;
                 if (!userType || !userId)
                     return [2 /*return*/]; // Ensure userType and userId are valid
-                if (!(userType === 'contractor')) return [3 /*break*/, 4];
+                if (!(userType === 'contractor')) return [3 /*break*/, 5];
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(userId)];
-            case 3:
+            case 4:
                 _a = _d.sent();
-                return [3 /*break*/, 6];
-            case 4: return [4 /*yield*/, customer_model_1.default.findById(userId)];
-            case 5:
-                _a = _d.sent();
-                _d.label = 6;
+                return [3 /*break*/, 7];
+            case 5: return [4 /*yield*/, customer_model_1.default.findById(userId)];
             case 6:
+                _a = _d.sent();
+                _d.label = 7;
+            case 7:
                 user = _a;
                 if (!user)
                     return [2 /*return*/]; // Ensure user exists
@@ -207,19 +225,99 @@ var paymentMethodAttached = function (payload) { return __awaiter(void 0, void 0
                     user.stripePaymentMethods.push(paymentMethod_2);
                 }
                 return [4 /*yield*/, user.save()];
-            case 7:
-                _d.sent();
-                return [3 /*break*/, 9];
             case 8:
+                _d.sent();
+                return [3 /*break*/, 10];
+            case 9:
                 error_2 = _d.sent();
-                return [3 /*break*/, 9];
-            case 9: return [2 /*return*/];
+                return [3 /*break*/, 10];
+            case 10: return [2 /*return*/];
         }
     });
 }); };
 exports.paymentMethodAttached = paymentMethodAttached;
+var customerUpdated = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
+    var userType, userId, user, _a, error_3;
+    var _b, _c;
+    return __generator(this, function (_d) {
+        switch (_d.label) {
+            case 0:
+                console.log('Stripe Event Handler: customerUpdated', payload);
+                _d.label = 1;
+            case 1:
+                _d.trys.push([1, 7, , 8]);
+                userType = (_b = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _b === void 0 ? void 0 : _b.userType;
+                userId = (_c = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _c === void 0 ? void 0 : _c.userId;
+                if (!userType || !userId)
+                    return [2 /*return*/]; // Ensure userType and userId are valid
+                if (!(userType === 'contractor')) return [3 /*break*/, 3];
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(userId)];
+            case 2:
+                _a = _d.sent();
+                return [3 /*break*/, 5];
+            case 3: return [4 /*yield*/, customer_model_1.default.findById(userId)];
+            case 4:
+                _a = _d.sent();
+                _d.label = 5;
+            case 5:
+                user = _a;
+                if (!user)
+                    return [2 /*return*/]; // Ensure user exists
+                user.stripeCustomer = payload;
+                return [4 /*yield*/, user.save()];
+            case 6:
+                _d.sent();
+                return [3 /*break*/, 8];
+            case 7:
+                error_3 = _d.sent();
+                return [3 /*break*/, 8];
+            case 8: return [2 /*return*/];
+        }
+    });
+}); };
+exports.customerUpdated = customerUpdated;
+var customerCreated = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
+    var userType, userId, user, _a, error_4;
+    var _b, _c;
+    return __generator(this, function (_d) {
+        switch (_d.label) {
+            case 0:
+                console.log('Stripe Event Handler: customerCreated', payload);
+                _d.label = 1;
+            case 1:
+                _d.trys.push([1, 7, , 8]);
+                userType = (_b = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _b === void 0 ? void 0 : _b.userType;
+                userId = (_c = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _c === void 0 ? void 0 : _c.userId;
+                if (!userType || !userId)
+                    return [2 /*return*/]; // Ensure userType and userId are valid
+                if (!(userType === 'contractor')) return [3 /*break*/, 3];
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(userId)];
+            case 2:
+                _a = _d.sent();
+                return [3 /*break*/, 5];
+            case 3: return [4 /*yield*/, customer_model_1.default.findById(userId)];
+            case 4:
+                _a = _d.sent();
+                _d.label = 5;
+            case 5:
+                user = _a;
+                if (!user)
+                    return [2 /*return*/]; // Ensure user exists
+                user.stripeCustomer = payload;
+                return [4 /*yield*/, user.save()];
+            case 6:
+                _d.sent();
+                return [3 /*break*/, 8];
+            case 7:
+                error_4 = _d.sent();
+                return [3 /*break*/, 8];
+            case 8: return [2 /*return*/];
+        }
+    });
+}); };
+exports.customerCreated = customerCreated;
 var paymentMethodDetached = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var paymentMethodId_1, user, error_3;
+    var paymentMethodId_1, user, error_5;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -227,7 +325,7 @@ var paymentMethodDetached = function (payload) { return __awaiter(void 0, void 0
                 if (payload.object != 'payment_method')
                     return [2 /*return*/];
                 paymentMethodId_1 = payload.id;
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ "stripePaymentMethods.id": paymentMethodId_1 })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ "stripePaymentMethods.id": paymentMethodId_1 })];
             case 1:
                 user = _a.sent();
                 if (!user)
@@ -239,7 +337,7 @@ var paymentMethodDetached = function (payload) { return __awaiter(void 0, void 0
                 _a.sent();
                 return [3 /*break*/, 4];
             case 3:
-                error_3 = _a.sent();
+                error_5 = _a.sent();
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
         }
@@ -247,7 +345,7 @@ var paymentMethodDetached = function (payload) { return __awaiter(void 0, void 0
 }); };
 exports.paymentMethodDetached = paymentMethodDetached;
 var identityVerificationCreated = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var userType, userId, user, deviceTokens, devices, error_4;
+    var userType, userId, user, deviceTokens, devices, error_6;
     var _a, _b;
     return __generator(this, function (_c) {
         switch (_c.label) {
@@ -278,7 +376,7 @@ var identityVerificationCreated = function (payload) { return __awaiter(void 0, 
                 }
                 return [3 /*break*/, 7];
             case 6:
-                error_4 = _c.sent();
+                error_6 = _c.sent();
                 return [3 /*break*/, 7];
             case 7: return [2 /*return*/];
         }
@@ -286,7 +384,7 @@ var identityVerificationCreated = function (payload) { return __awaiter(void 0, 
 }); };
 exports.identityVerificationCreated = identityVerificationCreated;
 var identityVerificationRequiresInput = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var userType, userId, user, deviceTokens, devices, message, verification, _a, fileLink, s3fileUrl, error_5;
+    var userType, userId, user, deviceTokens, devices, message, verification, _a, fileLink, s3fileUrl, error_7;
     var _b, _c, _d, _e;
     return __generator(this, function (_f) {
         switch (_f.label) {
@@ -377,8 +475,8 @@ var identityVerificationRequiresInput = function (payload) { return __awaiter(vo
                 });
                 return [3 /*break*/, 10];
             case 9:
-                error_5 = _f.sent();
-                new custom_errors_1.BadRequestError(error_5.message || "Something went wrong");
+                error_7 = _f.sent();
+                new custom_errors_1.BadRequestError(error_7.message || "Something went wrong");
                 return [3 /*break*/, 10];
             case 10: return [2 /*return*/];
         }
@@ -386,7 +484,7 @@ var identityVerificationRequiresInput = function (payload) { return __awaiter(vo
 }); };
 exports.identityVerificationRequiresInput = identityVerificationRequiresInput;
 var identityVerificationVerified = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var userType, userId, user, deviceTokens, devices, verification, _a, fileLink, s3fileUrl, error_6;
+    var userType, userId, user, deviceTokens, devices, verification, _a, fileLink, s3fileUrl, error_8;
     var _b, _c, _d, _e;
     return __generator(this, function (_f) {
         switch (_f.label) {
@@ -457,10 +555,54 @@ var identityVerificationVerified = function (payload) { return __awaiter(void 0,
                 });
                 return [3 /*break*/, 10];
             case 9:
-                error_6 = _f.sent();
+                error_8 = _f.sent();
                 return [3 /*break*/, 10];
             case 10: return [2 /*return*/];
         }
     });
 }); };
 exports.identityVerificationVerified = identityVerificationVerified;
+var accountUpdated = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
+    var userType, userId, email, user, _a, stripeAccountDTO, error_9;
+    var _b, _c, _d;
+    return __generator(this, function (_e) {
+        switch (_e.label) {
+            case 0:
+                console.log('Stripe Event Handler: accountUpdated', payload);
+                _e.label = 1;
+            case 1:
+                _e.trys.push([1, 7, , 8]);
+                if (payload.object != 'account')
+                    return [2 /*return*/];
+                userType = (_b = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _b === void 0 ? void 0 : _b.userType;
+                userId = (_c = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _c === void 0 ? void 0 : _c.userId;
+                email = (_d = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _d === void 0 ? void 0 : _d.email;
+                if (!userType || !email)
+                    return [2 /*return*/]; // Ensure userType and email are valid,  userId can change on our end
+                if (!(userType === 'contractor')) return [3 /*break*/, 3];
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ email: email })];
+            case 2:
+                _a = _e.sent();
+                return [3 /*break*/, 5];
+            case 3: return [4 /*yield*/, customer_model_1.default.findOne({ email: email })];
+            case 4:
+                _a = _e.sent();
+                _e.label = 5;
+            case 5:
+                user = _a;
+                if (!user)
+                    return [2 /*return*/]; // Ensure user exists
+                stripeAccountDTO = (0, interface_dto_util_1.castPayloadToDTO)(payload, {});
+                user.stripeAccount = stripeAccountDTO;
+                return [4 /*yield*/, user.save()];
+            case 6:
+                _e.sent();
+                return [3 /*break*/, 8];
+            case 7:
+                error_9 = _e.sent();
+                return [3 /*break*/, 8];
+            case 8: return [2 /*return*/];
+        }
+    });
+}); };
+exports.accountUpdated = accountUpdated;

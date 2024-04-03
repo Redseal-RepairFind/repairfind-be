@@ -8,7 +8,7 @@ var JobStatus;
     JobStatus["DECLINED"] = "DECLINED";
     JobStatus["ACCEPTED"] = "ACCEPTED";
     JobStatus["EXPIRED"] = "EXPIRED";
-    JobStatus["ONGOING"] = "ONGOING";
+    JobStatus["BOOKED"] = "BOOKED";
     JobStatus["COMPLETED"] = "COMPLETED";
     JobStatus["DISPUTED"] = "DISPUTED";
 })(JobStatus || (exports.JobStatus = JobStatus = {}));
