@@ -216,6 +216,10 @@ export const createJoListingParams = [
   body("time").optional(),
 ];
 
+export const tripArrivalComfirmParams = [
+  body("verificationCode").notEmpty(),
+];
+
 
 // Define the validation rules for the message request
 export const sendMessageParams = [
@@ -265,5 +269,6 @@ export const CustomerHttpRequest = {
   queryContractorParams,
   createJobRequestParams,
   createJoListingParams,
+  tripArrivalComfirmParams,
   sendMessageParams
 }

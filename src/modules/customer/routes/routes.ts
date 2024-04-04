@@ -11,6 +11,7 @@ import { CustomerExploreController } from "../controllers/customer_explore.contr
 import { CustomerJobController } from "../controllers/customer_job.controller";
 import { CustomerNotificationController } from "../controllers/customer_notification.controller";
 import { CustomerConversationController } from "../controllers/customer_conversation.controller";
+import { CustomerTripDayController } from "../controllers/customer_tripDay.controller";
 
 const express = require("express");
 const router = express.Router();
@@ -78,6 +79,9 @@ router.get('/conversations', checkCustomerRole, CustomerConversationController.g
 router.get('/conversations/:conversationId', checkCustomerRole, CustomerConversationController.getSingleConversation)
 router.get('/conversations/:conversationId/messages', checkCustomerRole, CustomerConversationController.getConversationMessages)
 router.post('/conversations/:conversationId/messages', checkCustomerRole, CustomerHttpRequest.sendMessageParams, CustomerConversationController.sendMessage)
+
+// trips day
+router.post('/trip/:tripDayId/comfirm/arrival', checkCustomerRole, CustomerHttpRequest.tripArrivalComfirmParams, CustomerTripDayController.customerverifiedContractorSiteArrivalController)
 
 // router.get("/get_popular_contractor", checkCustomerRole, customerGetPopularContractorController ); // customer get popular contractor
 // router.get("/search_contractor", checkCustomerRole, customerSearchForContractorController ); // customer search contractor
