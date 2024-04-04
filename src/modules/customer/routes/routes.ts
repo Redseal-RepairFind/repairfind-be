@@ -62,6 +62,7 @@ router.post("/jobs/requests", checkCustomerRole, CustomerHttpRequest.createJobRe
 router.post("/jobs/listings", checkCustomerRole, CustomerHttpRequest.createJoListingParams, CustomerJobController.createJobListing ); 
 router.get("/jobs", checkCustomerRole, CustomerJobController.getJobs ); 
 router.get("/jobs/:jobId", checkCustomerRole, CustomerJobController.getSingleJob ); 
+router.get("/jobs/:jobId/applications", checkCustomerRole, CustomerJobController.getSingleJobApplications ); 
 
 
 

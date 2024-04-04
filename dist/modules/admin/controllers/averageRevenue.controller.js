@@ -64,8 +64,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AdminsendEmailsControlleer = exports.AdminGetRevenueAnalysisControlleer = void 0;
 var express_validator_1 = require("express-validator");
-var transaction_model_1 = __importDefault(require("../../../database/admin/models/transaction.model"));
 var nodemailer = __importStar(require("nodemailer"));
+var transaction_model_1 = __importDefault(require("../../../database/common/transaction.model"));
 //get revenue every day /////////////
 var AdminGetRevenueAnalysisControlleer = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, year, month, errors, admin, adminId, startDate, endDate, transactions, revenueJob, a, element, date, day, revenue, job, i, transction, dayCreated, obj, err_1;

@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 import {ContractorModel} from "../../../database/contractor/models/contractor.model";
 import JobModel from "../../../database/contractor/models/job.model";
 import CustomerRegModel from "../../../database/customer/models/customer.model";
-import TransactionModel from "../../../database/admin/models/transaction.model";
+import TransactionModel from "../../../database/common/transaction.model";
 
 
 //get app detail /////////////

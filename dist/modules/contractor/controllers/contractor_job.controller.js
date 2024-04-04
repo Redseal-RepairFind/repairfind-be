@@ -63,7 +63,7 @@ var customer_model_1 = __importDefault(require("../../../database/customer/model
 var conversations_schema_1 = require("../../../database/common/conversations.schema");
 var messages_schema_1 = require("../../../database/common/messages.schema");
 var getJobRequests = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, customerId, status_1, startDate, endDate, date, contractorId, filter, start, end, selectedDate, startOfDay, endOfDay, jobRequests, _b, data, error, error_1;
+    var errors, _a, customerId, status_1, startDate, endDate, date, contractorId, filter, start, end, selectedDate, startOfDay, endOfDay, jobRequests, _b, data, error_2, error_1;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
@@ -103,7 +103,7 @@ var getJobRequests = function (req, res) { return __awaiter(void 0, void 0, void
                 jobRequests = job_model_1.JobModel.find(filter);
                 return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(jobRequests, req.query)];
             case 1:
-                _b = _c.sent(), data = _b.data, error = _b.error;
+                _b = _c.sent(), data = _b.data, error_2 = _b.error;
                 res.status(200).json({
                     success: true, message: "Job requests retrieved",
                     data: data
@@ -120,7 +120,7 @@ var getJobRequests = function (req, res) { return __awaiter(void 0, void 0, void
 }); };
 exports.getJobRequests = getJobRequests;
 var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, jobId, contractorId, jobRequest, customer, jobEvent, initialApplication, conversation, message, error_2;
+    var errors, jobId, contractorId, jobRequest, customer, jobEvent, initialApplication, conversationMembers, conversation, message, error_3;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -184,14 +184,21 @@ var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 return [4 /*yield*/, jobRequest.save()];
             case 4:
                 _a.sent();
+                conversationMembers = [
+                    { memberType: 'customers', member: customer.id },
+                    { memberType: 'contractors', member: contractorId }
+                ];
                 return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
                         entity: jobId,
                         entityType: conversations_schema_1.ConversationEntityType.JOB,
-                        'members.member': { $all: [contractorId, customer.id] }
+                        $and: [
+                            { "members.member": contractorId, "members.memberType": 'contractors' },
+                            { "members.member": customer.id, "members.memberType": 'customers' }
+                        ]
                     }, {
                         entity: jobId,
                         entityType: conversations_schema_1.ConversationEntityType.JOB,
-                        members: [{ member: contractorId, memberType: 'contractors' }, { member: customer.id, memberType: 'customers' }]
+                        members: conversationMembers
                     }, { new: true, upsert: true })];
             case 5:
                 conversation = _a.sent();
@@ -209,15 +216,15 @@ var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 res.json({ success: true, message: 'Job request accepted successfully' });
                 return [3 /*break*/, 8];
             case 7:
-                error_2 = _a.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('Something went wrong', error_2))];
+                error_3 = _a.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('Something went wrong', error_3))];
             case 8: return [2 /*return*/];
         }
     });
 }); };
 exports.acceptJobRequest = acceptJobRequest;
 var rejectJobRequest = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, jobId, rejectionReason, contractorId, jobRequest, jobEvent, conversation, message, error_3;
+    var errors, jobId, rejectionReason, contractorId, jobRequest, jobEvent, conversationMembers, conversation, message, error_4;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -256,10 +263,21 @@ var rejectJobRequest = function (req, res) { return __awaiter(void 0, void 0, vo
                 return [4 /*yield*/, jobRequest.save()];
             case 2:
                 _a.sent();
-                return [4 /*yield*/, conversations_schema_1.ConversationModel.findByIdAndUpdate({ entity: jobId, entityType: conversations_schema_1.ConversationEntityType.JOB, contractor: contractorId, customer: jobRequest.customer }, {
+                conversationMembers = [
+                    { memberType: 'customers', member: jobRequest.customer },
+                    { memberType: 'contractors', member: contractorId }
+                ];
+                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
                         entity: jobId,
                         entityType: conversations_schema_1.ConversationEntityType.JOB,
-                        members: [{ member: contractorId, memberType: 'contractors' }, { member: jobRequest.customer, memberType: 'customer' }]
+                        $and: [
+                            { "members.member": contractorId, "members.memberType": 'contractors' },
+                            { "members.member": jobRequest.customer, "members.memberType": 'customers' }
+                        ]
+                    }, {
+                        entity: jobId,
+                        entityType: conversations_schema_1.ConversationEntityType.JOB,
+                        members: conversationMembers
                     }, { new: true, upsert: true })];
             case 3:
                 conversation = _a.sent();
@@ -274,8 +292,8 @@ var rejectJobRequest = function (req, res) { return __awaiter(void 0, void 0, vo
                 res.json({ success: true, message: 'Job request rejected successfully' });
                 return [3 /*break*/, 5];
             case 4:
-                error_3 = _a.sent();
-                console.error('Error rejecting job request:', error_3);
+                error_4 = _a.sent();
+                console.error('Error rejecting job request:', error_4);
                 res.status(500).json({ success: false, message: 'Internal Server Error' });
                 return [3 /*break*/, 5];
             case 5: return [2 /*return*/];
@@ -284,7 +302,7 @@ var rejectJobRequest = function (req, res) { return __awaiter(void 0, void 0, vo
 }); };
 exports.rejectJobRequest = rejectJobRequest;
 var getJobRequestById = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, jobId, contractorId, jobRequest, error_4;
+    var errors, jobId, contractorId, jobRequest, error_5;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -305,8 +323,8 @@ var getJobRequestById = function (req, res, next) { return __awaiter(void 0, voi
                 res.json({ success: true, data: jobRequest });
                 return [3 /*break*/, 3];
             case 2:
-                error_4 = _a.sent();
-                console.error('Error retrieving job request:', error_4);
+                error_5 = _a.sent();
+                console.error('Error retrieving job request:', error_5);
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('Bad Request'))];
             case 3: return [2 /*return*/];
         }
@@ -314,12 +332,12 @@ var getJobRequestById = function (req, res, next) { return __awaiter(void 0, voi
 }); };
 exports.getJobRequestById = getJobRequestById;
 //contractor send job quatation /////////////
-var sendJobApplication = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, startDate, endDate, siteVisit, estimates, jobId, errors, contractorId, contractor, job, customer, jobApplication, _b, html, emailData, conversation, message, err_1;
+var sendJobApplication = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, startDate, endDate, siteVisit, estimates, jobId, errors, contractorId, contractor, job, customer, jobApplication, _b, html, emailData, conversationMembers, conversation, message, err_1;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
-                _c.trys.push([0, 9, , 10]);
+                _c.trys.push([0, 10, , 11]);
                 _a = req.body, startDate = _a.startDate, endDate = _a.endDate, siteVisit = _a.siteVisit, estimates = _a.estimates;
                 jobId = req.params.jobId;
                 errors = (0, express_validator_1.validationResult)(req);
@@ -370,6 +388,14 @@ var sendJobApplication = function (req, res) { return __awaiter(void 0, void 0, 
                 return [4 /*yield*/, jobApplication.calculateCharges(estimates)];
             case 5:
                 _b.charges = _c.sent();
+                if (!job.applications.includes(jobApplication.id)) {
+                    job.applications.push(jobApplication.id);
+                }
+                return [4 /*yield*/, job.save()
+                    // @ts-ignore
+                ];
+            case 6:
+                _c.sent();
                 html = (0, jobQoutationTemplate_1.htmlJobQoutationTemplate)(customer.firstName, contractor.name);
                 emailData = {
                     emailTo: customer.email,
@@ -377,42 +403,54 @@ var sendJobApplication = function (req, res) { return __awaiter(void 0, void 0, 
                     html: html
                 };
                 return [4 /*yield*/, (0, send_email_utility_1.sendEmail)(emailData)];
-            case 6:
+            case 7:
                 _c.sent();
-                return [4 /*yield*/, conversations_schema_1.ConversationModel.findByIdAndUpdate({ entity: jobId, entityType: conversations_schema_1.ConversationEntityType.JOB, contractor: contractorId, customer: customer._id }, {
+                conversationMembers = [
+                    { memberType: 'customers', member: customer.id },
+                    { memberType: 'contractors', member: contractorId }
+                ];
+                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
                         entity: jobId,
                         entityType: conversations_schema_1.ConversationEntityType.JOB,
-                        participants: [contractorId, customer._id]
+                        $and: [
+                            { "members.member": contractorId, "members.memberType": 'contractors' },
+                            { "members.member": job.customer, "members.memberType": 'customers' }
+                        ]
+                    }, {
+                        entity: jobId,
+                        entityType: conversations_schema_1.ConversationEntityType.JOB,
+                        members: conversationMembers
                     }, { new: true, upsert: true })];
-            case 7:
+            case 8:
                 conversation = _c.sent();
                 message = new messages_schema_1.MessageModel({
-                    conversation: conversation === null || conversation === void 0 ? void 0 : conversation._id,
+                    conversation: conversation.id,
                     sender: contractorId,
-                    receiver: customer._id,
+                    receiver: customer.id,
                     message: "I am available for this Job",
                     messageType: messages_schema_1.MessageType.TEXT,
                 });
                 return [4 /*yield*/, message.save()];
-            case 8:
+            case 9:
                 _c.sent();
                 res.json({
                     success: true,
                     message: "job application sucessfully sent",
                     data: jobApplication
                 });
-                return [3 /*break*/, 10];
-            case 9:
+                return [3 /*break*/, 11];
+            case 10:
                 err_1 = _c.sent();
-                res.status(500).json({ message: err_1.message });
-                return [3 /*break*/, 10];
-            case 10: return [2 /*return*/];
+                // console.error('Error retrieving job requests:', error);
+                // res.status(500).json({ success: false, message: 'Bad request' });
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', err_1))];
+            case 11: return [2 /*return*/];
         }
     });
 }); };
 exports.sendJobApplication = sendJobApplication;
 var getApplicationForJob = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var jobId, contractorId, jobApplication, _a, error_5;
+    var jobId, contractorId, jobApplication, _a, error_6;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -437,8 +475,8 @@ var getApplicationForJob = function (req, res) { return __awaiter(void 0, void 0
                 res.status(200).json({ success: true, message: 'Job application retrieved successfully', data: jobApplication });
                 return [3 /*break*/, 4];
             case 3:
-                error_5 = _b.sent();
-                console.error('Error fetching job application:', error_5);
+                error_6 = _b.sent();
+                console.error('Error fetching job application:', error_6);
                 res.status(500).json({ success: false, message: 'Internal Server Error' });
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
@@ -447,7 +485,7 @@ var getApplicationForJob = function (req, res) { return __awaiter(void 0, void 0
 }); };
 exports.getApplicationForJob = getApplicationForJob;
 var updateJobApplication = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var jobId, contractorId, _a, startDate, endDate, siteVisit, estimates, errors, job, jobApplication, _b, conversation, message, error_6;
+    var jobId, contractorId, _a, startDate, endDate, siteVisit, estimates, errors, job, jobApplication, _b, conversationMembers, conversation, message, error_7;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
@@ -489,14 +527,25 @@ var updateJobApplication = function (req, res) { return __awaiter(void 0, void 0
                 _c.sent();
                 _b = jobApplication;
                 return [4 /*yield*/, jobApplication.calculateCharges(jobApplication.estimates)
-                    // Create a conversation
+                    // Create or update conversation
                 ];
             case 4:
                 _b.charges = _c.sent();
-                return [4 /*yield*/, conversations_schema_1.ConversationModel.findByIdAndUpdate({ entity: jobId, entityType: conversations_schema_1.ConversationEntityType.JOB, contractor: contractorId, customer: job.customer }, {
+                conversationMembers = [
+                    { memberType: 'customers', member: job.customer },
+                    { memberType: 'contractors', member: contractorId }
+                ];
+                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
                         entity: jobId,
                         entityType: conversations_schema_1.ConversationEntityType.JOB,
-                        participants: [contractorId, job.customer]
+                        $and: [
+                            { "members.member": contractorId, "members.memberType": 'contractors' },
+                            { "members.member": job.customer, "members.memberType": 'customers' }
+                        ]
+                    }, {
+                        entity: jobId,
+                        entityType: conversations_schema_1.ConversationEntityType.JOB,
+                        members: conversationMembers
                     }, { new: true, upsert: true })];
             case 5:
                 conversation = _c.sent();
@@ -510,8 +559,8 @@ var updateJobApplication = function (req, res) { return __awaiter(void 0, void 0
                 res.status(200).json({ success: true, message: 'Job application updated successfully', data: jobApplication });
                 return [3 /*break*/, 7];
             case 6:
-                error_6 = _c.sent();
-                console.error('Error updating job application:', error_6);
+                error_7 = _c.sent();
+                console.error('Error updating job application:', error_7);
                 res.status(500).json({ success: false, message: 'Internal Server Error' });
                 return [3 /*break*/, 7];
             case 7: return [2 /*return*/];
@@ -521,7 +570,7 @@ var updateJobApplication = function (req, res) { return __awaiter(void 0, void 0
 exports.updateJobApplication = updateJobApplication;
 var getJobListings = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, distance, latitude, longitude, emergency, category, city, country, address, startDate, endDate, _b, page, _c, limit, sort // Sort field and order (-fieldName or fieldName)
-    , pipeline, _d, sortField, sortOrder, sortStage, skip, result, jobs, metadata, error_7;
+    , pipeline, _d, sortField, sortOrder, sortStage, skip, result, jobs, metadata, error_8;
     var _e;
     return __generator(this, function (_f) {
         switch (_f.label) {
@@ -622,8 +671,8 @@ var getJobListings = function (req, res) { return __awaiter(void 0, void 0, void
                 res.status(200).json({ success: true, data: __assign(__assign({}, metadata), { data: jobs }) });
                 return [3 /*break*/, 4];
             case 3:
-                error_7 = _f.sent();
-                console.error('Error fetching job listings:', error_7);
+                error_8 = _f.sent();
+                console.error('Error fetching job listings:', error_8);
                 res.status(500).json({ success: false, message: 'Server error' });
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];

@@ -69,7 +69,7 @@ var ConversationEntityType;
 var ConversationSchema = new mongoose_1.default.Schema({
     members: [{ member: { type: mongoose_1.Schema.Types.ObjectId, refPath: 'members.memberType' }, memberType: String }],
     entity: {
-        type: String,
+        type: mongoose_1.Schema.Types.ObjectId,
         refPath: 'entityType',
         index: true,
     },

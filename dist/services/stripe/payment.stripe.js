@@ -50,7 +50,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getPaymentMethod = exports.chargeCustomer = exports.chargeUserOnDemand = exports.createSetupIntent = void 0;
+exports.getPaymentMethod = exports.createPaymentIntent = exports.chargeCustomer = exports.chargeUserOnDemand = exports.createSetupIntent = void 0;
 var stripe_1 = __importDefault(require("stripe"));
 var STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 var stripeClient = new stripe_1.default(STRIPE_SECRET_KEY);
@@ -91,14 +91,16 @@ var chargeUserOnDemand = function (setupIntentId) { return __awaiter(void 0, voi
     });
 }); };
 exports.chargeUserOnDemand = chargeUserOnDemand;
-var chargeCustomer = function (customerId, paymentMethodId) { return __awaiter(void 0, void 0, void 0, function () {
+var chargeCustomer = function (customerId, paymentMethodId, payload) { return __awaiter(void 0, void 0, void 0, function () {
     var paymentIntent;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0: return [4 /*yield*/, stripeClient.paymentIntents.create({
-                    amount: 1000,
-                    currency: 'usd',
+                    payment_method_types: ['card'],
+                    amount: payload.amount,
+                    currency: payload.currency,
                     customer: customerId,
+                    metadata: payload.metadata,
                     payment_method: paymentMethodId,
                     off_session: true, // Indicates that this PaymentIntent may be used for future off-session payments
                     confirm: true,
@@ -110,6 +112,26 @@ var chargeCustomer = function (customerId, paymentMethodId) { return __awaiter(v
     });
 }); };
 exports.chargeCustomer = chargeCustomer;
+var createPaymentIntent = function (customerId, paymentMethodId, payload) { return __awaiter(void 0, void 0, void 0, function () {
+    var paymentIntent;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, stripeClient.checkout.sessions.create({
+                    mode: 'payment',
+                    payment_method_types: ['card'],
+                    line_items: payload.line_items,
+                    metadata: payload.metadata,
+                    success_url: "https://repairfind.ca/payment-success/",
+                    cancel_url: "https://cancel.com",
+                    customer_email: payload.email
+                })];
+            case 1:
+                paymentIntent = _a.sent();
+                return [2 /*return*/];
+        }
+    });
+}); };
+exports.createPaymentIntent = createPaymentIntent;
 var getPaymentMethod = function (paymentMethodId) { return __awaiter(void 0, void 0, void 0, function () {
     var paymentMethod;
     return __generator(this, function (_a) {

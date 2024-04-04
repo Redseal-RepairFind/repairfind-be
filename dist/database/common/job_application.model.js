@@ -65,13 +65,13 @@ var JobApplicationSchema = new mongoose_1.Schema({
         } },
 }, { timestamps: true });
 // Define the static method to calculate charges
-JobApplicationSchema.methods.calculateCharges = function (estimates) {
+JobApplicationSchema.methods.calculateCharges = function () {
     return __awaiter(this, void 0, void 0, function () {
         var totalEstimateAmount, processingFee, gst, subtotal, totalAmount, contractorAmount;
         return __generator(this, function (_a) {
             totalEstimateAmount = 0;
             // Calculate total estimate amount from rate * quantity for each estimate
-            estimates.forEach(function (estimate) {
+            this.estimates.forEach(function (estimate) {
                 totalEstimateAmount += estimate.rate * estimate.quantity;
             });
             processingFee = 0;

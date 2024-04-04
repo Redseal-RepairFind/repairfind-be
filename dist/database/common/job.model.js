@@ -17,6 +17,15 @@ var JobType;
     JobType["LISTING"] = "LISTING";
     JobType["REQUEST"] = "REQUEST";
 })(JobType || (exports.JobType = JobType = {}));
+var ScheduleSchema = new mongoose_1.Schema({
+    startDate: { type: Date, required: true },
+    endDate: { type: Date, required: true },
+    isCurrent: { type: Boolean, default: true },
+    isRescheduled: { type: Boolean, default: false },
+    isCustomerAccept: { type: Boolean, default: false },
+    isContractorAccept: { type: Boolean, default: false },
+    createdBy: String
+});
 var JobLocationSchema = new mongoose_1.Schema({
     address: { type: String },
     city: { type: String },
@@ -33,6 +42,7 @@ var JobHistorySchema = new mongoose_1.Schema({
 var JobSchema = new mongoose_1.Schema({
     customer: { type: mongoose_1.Schema.Types.ObjectId, ref: 'customers', required: true },
     contractor: { type: mongoose_1.Schema.Types.ObjectId, ref: 'contractors' },
+    application: { type: mongoose_1.Schema.Types.ObjectId, ref: 'job_applications' },
     contractorType: { type: String },
     status: { type: String, enum: Object.values(JobStatus), default: JobStatus.PENDING },
     type: { type: String, enum: Object.values(JobType), default: JobType.LISTING },
@@ -50,6 +60,8 @@ var JobSchema = new mongoose_1.Schema({
     tags: { type: [String] },
     experience: { type: String },
     jobHistory: [JobHistorySchema], // Array of job history entries
+    schedules: [ScheduleSchema],
+    invoices: [{ type: mongoose_1.Schema.Types.ObjectId, ref: 'invoices', }],
     applications: {
         type: [String],
         ref: 'job_applications'

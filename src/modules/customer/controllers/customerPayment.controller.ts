@@ -11,11 +11,11 @@ import stripe from 'stripe';
 import { customerSendJobRequestSendEmailHtmlMailTemplate } from "../../../templates/email/custotomerSendRequestTemplate";
 import { json } from "body-parser";
 import { customerVerififyPaymentWebhook } from "./customerJob.controller";
-import TransactionModel from "../../../database/admin/models/transaction.model";
 import { htmlJobRequestTemplate } from "../../../templates/contractorEmail/jobRequestTemplate";
 import { htmlAdminPaymentTemplate } from "../../../templates/adminEmail/adminPaymentTemplate";
 import AdminModel from "../../../database/admin/models/admin.model";
 import AdminNoficationModel from "../../../database/admin/models/admin_notification.model";
+import TransactionModel from "../../../database/common/transaction.model";
 
 // pay 50 doller for inspectopn /////////////
 export const customerInpectionMonneyCheckoutContractorController = async (

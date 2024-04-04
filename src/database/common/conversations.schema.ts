@@ -1,4 +1,4 @@
-import mongoose, {Document, Schema, model} from 'mongoose';
+import mongoose, {Document, ObjectId, Schema, model} from 'mongoose';
 import {v4 as uuidv4} from 'uuid';
 
 export enum ConversationEntityType {
@@ -6,13 +6,13 @@ export enum ConversationEntityType {
     JOB = 'jobs',
 }
 
-export interface IConversationDocument extends Document {
-    _id: string;
+export interface IConversation extends Document {
+    _id: ObjectId;
     members: string[]
     challenge: Object|string;
     lastMessageAt: Date;
     lastMessage: string;
-    entity: string
+    entity: ObjectId
     entityType: ConversationEntityType
     heading: Object;
     
@@ -25,11 +25,11 @@ export interface IConversationDocument extends Document {
     };
 }
 
-const ConversationSchema = new mongoose.Schema<IConversationDocument>({
+const ConversationSchema = new mongoose.Schema<IConversation>({
 
         members: [{ member: { type: Schema.Types.ObjectId, refPath: 'members.memberType' }, memberType: String }],
         entity: {
-            type: String,
+            type: Schema.Types.ObjectId,
             refPath: 'entityType',
             index: true,
         },
@@ -95,7 +95,7 @@ ConversationSchema.methods.getHeading = async function(loggedInUserId: string) {
 
 
 
-export const ConversationModel = model<IConversationDocument>('conversations', ConversationSchema);
+export const ConversationModel = model<IConversation>('conversations', ConversationSchema);
 
 
 

@@ -55,11 +55,11 @@ const JobApplicationSchema = new Schema<IJobApplication>({
 
 
 // Define the static method to calculate charges
-JobApplicationSchema.methods.calculateCharges = async function (estimates: any[]) {
+JobApplicationSchema.methods.calculateCharges = async function () {
     let totalEstimateAmount = 0;
 
     // Calculate total estimate amount from rate * quantity for each estimate
-    estimates.forEach(estimate => {
+    this.estimates.forEach( (estimate: any) => {
         totalEstimateAmount += estimate.rate * estimate.quantity;
     });
 

@@ -32,16 +32,33 @@ export const chargeUserOnDemand = async (setupIntentId: any) => {
 };
 
 
-export const chargeCustomer = async (customerId: any, paymentMethodId: any) => {
+
+export const chargeCustomer = async (customerId: any, paymentMethodId: any, payload: any) => {
     const paymentIntent = await stripeClient.paymentIntents.create({
-      amount: 1000,
-      currency: 'usd',
+      payment_method_types: ['card'],
+      amount: payload.amount,
+      currency: payload.currency,
       customer: customerId,
+      metadata: payload.metadata,
       payment_method: paymentMethodId,
       off_session: true, // Indicates that this PaymentIntent may be used for future off-session payments
       confirm: true,
     });
     return paymentIntent;
+};
+
+export const createPaymentIntent = async (customerId: any, paymentMethodId: any, payload: any) => {
+   
+  const paymentIntent = await stripeClient.checkout.sessions.create({
+    mode: 'payment',
+    payment_method_types: ['card'],
+    line_items: payload.line_items,
+    metadata: payload.metadata,
+    success_url: "https://repairfind.ca/payment-success/",
+    cancel_url: "https://cancel.com",
+    customer_email: payload.email
+  })
+
 };
 
 export const getPaymentMethod = async (paymentMethodId: any) => {

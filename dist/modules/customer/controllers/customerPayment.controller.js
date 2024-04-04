@@ -50,11 +50,11 @@ var job_model_1 = __importDefault(require("../../../database/contractor/models/j
 var stripe_1 = __importDefault(require("stripe"));
 var custotomerSendRequestTemplate_1 = require("../../../templates/email/custotomerSendRequestTemplate");
 var customerJob_controller_1 = require("./customerJob.controller");
-var transaction_model_1 = __importDefault(require("../../../database/admin/models/transaction.model"));
 var jobRequestTemplate_1 = require("../../../templates/contractorEmail/jobRequestTemplate");
 var adminPaymentTemplate_1 = require("../../../templates/adminEmail/adminPaymentTemplate");
 var admin_model_1 = __importDefault(require("../../../database/admin/models/admin.model"));
 var admin_notification_model_1 = __importDefault(require("../../../database/admin/models/admin_notification.model"));
+var transaction_model_1 = __importDefault(require("../../../database/common/transaction.model"));
 // pay 50 doller for inspectopn /////////////
 var customerInpectionMonneyCheckoutContractorController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, time, description, address, inspection, postalCode, contractorId, jobTitle, files, errors, customer, customerId, checkCustomer, checkContractor, inspectionVal, images, i, file, fileId, uploadFile, secret, stripeInstance, inpection, job, saveeJob, jobId, generateInvoce, invoiceId, newTransaction, saveTransaction, transactionId, paymentIntent, err_1;

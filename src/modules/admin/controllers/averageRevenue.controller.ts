@@ -3,9 +3,9 @@ import { Request, Response } from "express";
 import {ContractorModel} from "../../../database/contractor/models/contractor.model";
 import JobModel from "../../../database/contractor/models/job.model";
 import CustomerRegModel from "../../../database/customer/models/customer.model";
-import TransactionModel from "../../../database/admin/models/transaction.model";
 import * as nodemailer from 'nodemailer';
 import SMTPTransport from "nodemailer/lib/smtp-transport";
+import TransactionModel from "../../../database/common/transaction.model";
 
 
 

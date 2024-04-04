@@ -14,6 +14,7 @@ import CustomerModel from "../../../database/customer/models/customer.model";
 import { Document, PipelineStage as MongoosePipelineStage } from 'mongoose'; // Import Document type from mongoose
 import { ConversationEntityType, ConversationModel } from "../../../database/common/conversations.schema";
 import { MessageModel, MessageType } from "../../../database/common/messages.schema";
+import { error } from "console";
 
 
 export const getJobRequests = async (req: any, res: Response) => {
@@ -98,14 +99,14 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
     }
 
 
-     // Find the job request by ID
-     const customer = await CustomerModel.findById(jobRequest.customer);
+    // Find the job request by ID
+    const customer = await CustomerModel.findById(jobRequest.customer);
 
-     // Check if the customer request exists
-     if (!customer) {
-       return res.status(404).json({ success: false, message: 'Customer not found' });
-     }
- 
+    // Check if the customer request exists
+    if (!customer) {
+      return res.status(404).json({ success: false, message: 'Customer not found' });
+    }
+
 
     // Check if the job request belongs to the contractor
     if (jobRequest.contractor.toString() !== contractorId) {
@@ -155,20 +156,28 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
     await jobRequest.save();
 
 
-    // Create a conversation
-    const conversation =  await ConversationModel.findOneAndUpdate(
+    // Create or update conversation
+    const conversationMembers = [
+      { memberType: 'customers', member: customer.id },
+      { memberType: 'contractors', member: contractorId }
+    ];
+
+    const conversation = await ConversationModel.findOneAndUpdate(
       {
         entity: jobId,
         entityType: ConversationEntityType.JOB,
-        'members.member': { $all: [contractorId, customer.id] }
+        $and: [
+          { "members.member": contractorId, "members.memberType": 'contractors' },
+          { "members.member": customer.id, "members.memberType": 'customers' }
+        ]
       },
-      
+
       {
-        entity: jobId, 
-        entityType: ConversationEntityType.JOB, 
-        members: [{member:contractorId, memberType: 'contractors'}, {member: customer.id, memberType:'customers'}] 
-      }, 
-    {new: true, upsert: true});
+        entity: jobId,
+        entityType: ConversationEntityType.JOB,
+        members: conversationMembers
+      },
+      { new: true, upsert: true });
 
     // Send a message to the customer
     const message = new MessageModel({
@@ -236,12 +245,28 @@ export const rejectJobRequest = async (req: any, res: Response) => {
     await jobRequest.save();
 
 
-    // Create a conversation
-    const conversation =  await ConversationModel.findByIdAndUpdate({entity: jobId, entityType: ConversationEntityType.JOB, contractor: contractorId, customer: jobRequest.customer  },{
-      entity: jobId, 
-      entityType: ConversationEntityType.JOB, 
-      members: [{member: contractorId, memberType: 'contractors'}, {member: jobRequest.customer, memberType: 'customer'}] 
-    }, {new: true, upsert: true});
+   // Create or update conversation
+  const conversationMembers = [
+    { memberType: 'customers', member: jobRequest.customer },
+    { memberType: 'contractors', member: contractorId }
+];
+
+const conversation =  await ConversationModel.findOneAndUpdate(
+  {
+    entity: jobId,
+    entityType: ConversationEntityType.JOB,
+    $and: [
+      { "members.member": contractorId, "members.memberType": 'contractors' },
+      { "members.member": jobRequest.customer, "members.memberType": 'customers' }
+    ]
+  },
+  
+  {
+    entity: jobId, 
+    entityType: ConversationEntityType.JOB, 
+    members: conversationMembers 
+  }, 
+{new: true, upsert: true});
 
     // Send a message to the customer
     const message = new MessageModel({
@@ -292,6 +317,7 @@ export const getJobRequestById = async (req: any, res: Response, next: NextFunct
 export const sendJobApplication = async (
   req: any,
   res: Response,
+  next: NextFunction
 ) => {
 
   try {
@@ -360,6 +386,12 @@ export const sendJobApplication = async (
 
     jobApplication.charges = await jobApplication.calculateCharges(estimates);
 
+    if (!job.applications.includes(jobApplication.id)) {
+      job.applications.push(jobApplication.id);
+    }
+
+    await job.save()
+
     // @ts-ignore
     const html = htmlJobQoutationTemplate(customer.firstName, contractor.name)
     let emailData = {
@@ -370,18 +402,35 @@ export const sendJobApplication = async (
 
     // await sendEmail(emailData);
 
-    // Create a conversation
-    const conversation =  await ConversationModel.findByIdAndUpdate({entity: jobId, entityType: ConversationEntityType.JOB, contractor: contractorId, customer: customer._id  },{
-      entity: jobId, 
-      entityType: ConversationEntityType.JOB, 
-      participants: [contractorId, customer._id] 
-    }, {new: true, upsert: true});
+
+    // Create or update conversation
+    const conversationMembers = [
+      { memberType: 'customers', member: customer.id },
+      { memberType: 'contractors', member: contractorId }
+    ];
+
+    const conversation = await ConversationModel.findOneAndUpdate(
+      {
+        entity: jobId,
+        entityType: ConversationEntityType.JOB,
+        $and: [
+          { "members.member": contractorId, "members.memberType": 'contractors' },
+          { "members.member": job.customer, "members.memberType": 'customers' }
+        ]
+      },
+
+      {
+        entity: jobId,
+        entityType: ConversationEntityType.JOB,
+        members: conversationMembers
+      },
+      { new: true, upsert: true });
 
     // Send a message to the customer
     const message = new MessageModel({
-      conversation: conversation?._id,
+      conversation: conversation.id,
       sender: contractorId,
-      receiver: customer._id,
+      receiver: customer.id,
       message: "I am available for this Job",
       messageType: MessageType.TEXT,
     });
@@ -394,7 +443,9 @@ export const sendJobApplication = async (
     });
 
   } catch (err: any) {
-    res.status(500).json({ message: err.message });
+    // console.error('Error retrieving job requests:', error);
+    // res.status(500).json({ success: false, message: 'Bad request' });
+    return next(new BadRequestError('An error occured ', err))
   }
 
 }
@@ -451,7 +502,7 @@ export const updateJobApplication = async (req: any, res: Response) => {
 
     // If the job application does not exist, create a new one
     if (!job) {
-      return res.status(400).json({status: false, message: 'Job not found' });
+      return res.status(400).json({ status: false, message: 'Job not found' });
     }
 
 
@@ -476,12 +527,29 @@ export const updateJobApplication = async (req: any, res: Response) => {
     jobApplication.charges = await jobApplication.calculateCharges(jobApplication.estimates)
 
 
-    // Create a conversation
-    const conversation =  await ConversationModel.findByIdAndUpdate({entity: jobId, entityType: ConversationEntityType.JOB, contractor: contractorId, customer: job.customer  },{
-      entity: jobId, 
-      entityType: ConversationEntityType.JOB, 
-      participants: [contractorId, job.customer] 
-    }, {new: true, upsert: true});
+    // Create or update conversation
+    const conversationMembers = [
+      { memberType: 'customers', member: job.customer },
+      { memberType: 'contractors', member: contractorId }
+    ];
+
+    const conversation = await ConversationModel.findOneAndUpdate(
+      {
+        entity: jobId,
+        entityType: ConversationEntityType.JOB,
+        $and: [
+          { "members.member": contractorId, "members.memberType": 'contractors' },
+          { "members.member": job.customer, "members.memberType": 'customers' }
+        ]
+      },
+
+      {
+        entity: jobId,
+        entityType: ConversationEntityType.JOB,
+        members: conversationMembers
+      },
+      { new: true, upsert: true });
+
 
     // Send a message to the customer
     const message = new MessageModel({
@@ -541,17 +609,17 @@ export const getJobListings = async (req: any, res: Response) => {
     const pipeline: PipelineStage[] = [
       {
         $lookup: {
-            from: "job_applications",
-            localField: "_id",
-            foreignField: "job",
-            as: "totalApplications"
+          from: "job_applications",
+          localField: "_id",
+          foreignField: "job",
+          as: "totalApplications"
         }
-    },
-    {
+      },
+      {
         $addFields: {
-            totalApplications: { $size: "$totalApplications" }
+          totalApplications: { $size: "$totalApplications" }
         }
-    }
+      }
     ];
 
     // Match job listings based on query parameters
@@ -572,8 +640,8 @@ export const getJobListings = async (req: any, res: Response) => {
       pipeline.push({ $match: { 'location.address': { $regex: new RegExp(address, 'i') } } });
     }
     if (emergency !== undefined) {
-      pipeline.push({ $match: { emergency: emergency === "true"  } });
-      
+      pipeline.push({ $match: { emergency: emergency === "true" } });
+
     }
 
     if (startDate && endDate) {

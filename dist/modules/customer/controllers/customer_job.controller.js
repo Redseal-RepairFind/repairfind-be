@@ -39,9 +39,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerJobController = exports.getSingleJob = exports.getJobs = exports.createJobListing = exports.createJobRequest = void 0;
+exports.CustomerJobController = exports.makeJobPayment = exports.getSingleJobApplications = exports.getSingleJob = exports.getJobs = exports.createJobListing = exports.createJobRequest = void 0;
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
+var stripe_1 = __importDefault(require("stripe"));
 var jobRequestTemplate_1 = require("../../../templates/contractorEmail/jobRequestTemplate");
 var customer_jobrequest_model_1 = require("../../../database/customer/models/customer_jobrequest.model");
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
@@ -52,6 +53,9 @@ var custom_errors_1 = require("../../../utils/custom.errors");
 var api_feature_1 = require("../../../utils/api.feature");
 var conversations_schema_1 = require("../../../database/common/conversations.schema");
 var messages_schema_1 = require("../../../database/common/messages.schema");
+var job_application_model_1 = require("../../../database/common/job_application.model");
+var transaction_model_1 = __importDefault(require("../../../database/common/transaction.model"));
+var stripe_2 = require("../../../services/stripe");
 var createJobRequest = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, contractorId, category, description, location_1, date, expiresIn, emergency, media, voiceDescription, time, customerId, customer, contractor, startOfToday, existingJobRequest, dateTimeString, jobTime, newJob, conversationMembers, newConversation, newMessage, html, error_1;
     var _b, _c;
@@ -336,150 +340,149 @@ var getSingleJob = function (req, res) { return __awaiter(void 0, void 0, void 0
     });
 }); };
 exports.getSingleJob = getSingleJob;
-// //customer get job with sent qoutation /////////////
-// export const customerGetJobQoutationController = async (
-//     req: any,
-//     res: Response,
-// ) => {
-//     try {
-//         const {
-//         } = req.body;
-//         // Check for validation errors
-//         const errors = validationResult(req);
-//         if (!errors.isEmpty()) {
-//             return res.status(400).json({ errors: errors.array() });
-//         }
-//         const customer = req.customer;
-//         const customerId = customer.id
-//         const checkCustomer = await CustomerRegModel.findOne({ _id: customerId })
-//         if (!checkCustomer) {
-//             return res
-//                 .status(401)
-//                 .json({ message: "incorrect Customer ID" });
-//         }
-//         const jobRequests = await JobModel.find({ customerId, status: 'sent qoutation' }).sort({ createdAt: -1 })
-//         let jobRequested = []
-//         for (let i = 0; i < jobRequests.length; i++) {
-//             const jobRequest = jobRequests[i];
-//             const contractor = await ContractorModel.findOne({ _id: jobRequest.contractorId }).select('-password');
-//             const obj = {
-//                 job: jobRequest,
-//                 contractor
-//             }
-//             jobRequested.push(obj)
-//         }
-//         res.json({
-//             jobRequested
-//         });
-//     } catch (err: any) {
-//         // signup error
-//         res.status(500).json({ message: err.message });
-//     }
-// }
-// //customer accept and pay for the work /////////////
-// export const customerAcceptAndPayForJobController = async (
-//     req: any,
-//     res: Response,
-// ) => {
-//     try {
-//         const {
-//             jobId
-//         } = req.body;
-//         // Check for validation errors
-//         const errors = validationResult(req);
-//         if (!errors.isEmpty()) {
-//             return res.status(400).json({ errors: errors.array() });
-//         }
-//         const customer = req.customer;
-//         const customerId = customer.id
-//         const checkCustomer = await CustomerRegModel.findOne({ _id: customerId })
-//         if (!checkCustomer) {
-//             return res
-//                 .status(401)
-//                 .json({ message: "incorrect Customer ID" });
-//         }
-//         //const job = await JobModel.findOne({_id: jobId, customerId, status: 'sent qoutation'})
-//         const job = await JobModel.findOne({
-//             $and: [
-//                 { _id: jobId },
-//                 { customerId },
-//                 {
-//                     $or: [
-//                         { status: 'sent qoutation' },
-//                         { status: 'qoutation payment open' }
-//                     ]
-//                 }
-//             ]
-//         });
-//         if (!job) {
-//             return res
-//                 .status(401)
-//                 .json({ message: "job do not exist or qoutation have not be sent" });
-//         }
-//         const contractor = await ContractorModel.findOne({ _id: job.contractorId }).select('-password');
-//         let secret = process.env.STRIPE_KEY || "sk_test_51OTMkGIj2KYudFaR1rNIBOPTaBESYoJco6lTCBZw5a0inyttRJOotcds1rXpXCJDSJrpNmIt2FBAaSxdmuma3ZTF00h48RxVny";
-//         let stripeInstance;
-//         if (!secret) {
-//             return res
-//                 .status(401)
-//                 .json({ message: "Sripe API Key is missing" });
-//         }
-//         stripeInstance = new stripe(secret);
-//         const generateInvoce = new Date().getTime().toString()
-//         const invoiceId = generateInvoce.substring(generateInvoce.length - 5)
-//         const newTransaction = new TransactionModel({
-//             type: 'credit',
-//             amount: parseFloat(job.totalAmountCustomerToPaid.toFixed(2)),
-//             initiator: customerId,
-//             from: 'customer',
-//             to: 'admin',
-//             fromId: customerId,
-//             toId: 'admin',
-//             description: `qoutation from ${contractor?.firstName} payment`,
-//             status: 'pending',
-//             form: 'qoutation',
-//             invoiceId: invoiceId,
-//             jobId: jobId
-//         })
-//         const saveTransaction = await newTransaction.save();
-//         const transactionId = JSON.stringify(saveTransaction._id)
-//         const paymentIntent = await stripeInstance.checkout.sessions.create({
-//             mode: 'payment',
-//             payment_method_types: ['card'],
-//             line_items: [
-//                 {
-//                     price_data: {
-//                         currency: 'usd',
-//                         product_data: {
-//                             name: `qoutation payment from ${contractor?.firstName}`
-//                         },
-//                         unit_amount: parseFloat(job.totalAmountCustomerToPaid.toFixed(2)) * 100,
-//                     },
-//                     quantity: 1,
-//                 },
-//             ],
-//             metadata: {
-//                 customerId,
-//                 type: "payment",
-//                 jobId,
-//                 transactionId
-//             },
-//             success_url: "https://repairfind.ca/payment-success/",
-//             cancel_url: "https://cancel.com",
-//             customer_email: checkCustomer.email
-//         })
-//         job.status = "qoutation payment open";
-//         await job.save()
-//         res.json({
-//             jobId,
-//             url: paymentIntent.url,
-//             paymentId: paymentIntent.id
-//         });
-//     } catch (err: any) {
-//         // signup error
-//         res.status(500).json({ message: err.message });
-//     }
-// }
+var getSingleJobApplications = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var customerId, jobId, job, error_5;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                customerId = req.customer.id;
+                jobId = req.params.jobId;
+                return [4 /*yield*/, job_model_1.JobModel.findOne({ customer: customerId, _id: jobId }).populate('applications')];
+            case 1:
+                job = _a.sent();
+                // Check if the job exists
+                if (!job) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found' })];
+                }
+                // If the job exists, return its applications as a response
+                res.json({ success: true, message: 'Job applications retrieved', data: job.applications });
+                return [3 /*break*/, 3];
+            case 2:
+                error_5 = _a.sent();
+                console.error('Error retrieving job applications:', error_5);
+                res.status(500).json({ success: false, message: 'Internal Server Error' });
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getSingleJobApplications = getSingleJobApplications;
+//customer accept and pay for the work /////////////
+var makeJobPayment = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, jobId, applicationId, errors, customerId, customer, job, application, contractor, secret, stripeInstance, generateInvoce, invoiceId, charges, newTransaction, saveTransaction, transactionId, payload, paymentMethod, stripePayment, err_1;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 9, , 10]);
+                _a = req.body, jobId = _a.jobId, applicationId = _a.applicationId;
+                errors = (0, express_validator_1.validationResult)(req);
+                if (!errors.isEmpty()) {
+                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                }
+                customerId = req.customer.id;
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
+            case 1:
+                customer = _b.sent();
+                if (!customer) {
+                    return [2 /*return*/, res
+                            .status(401)
+                            .json({ message: "incorrect Customer ID" })];
+                }
+                return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobId })];
+            case 2:
+                job = _b.sent();
+                return [4 /*yield*/, job_application_model_1.JobApplicationModel.findOne({ _id: applicationId })];
+            case 3:
+                application = _b.sent();
+                if (!application) {
+                    return [2 /*return*/, res
+                            .status(401)
+                            .json({ message: "Job application not found" })];
+                }
+                if (!job) {
+                    return [2 /*return*/, res
+                            .status(401)
+                            .json({ message: "job do not exist or qoutation have not be sent" })];
+                }
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: job.contractor })];
+            case 4:
+                contractor = _b.sent();
+                secret = process.env.STRIPE_KEY || "sk_test_51OTMkGIj2KYudFaR1rNIBOPTaBESYoJco6lTCBZw5a0inyttRJOotcds1rXpXCJDSJrpNmIt2FBAaSxdmuma3ZTF00h48RxVny";
+                stripeInstance = void 0;
+                if (!secret) {
+                    return [2 /*return*/, res
+                            .status(401)
+                            .json({ message: "Sripe API Key is missing" })];
+                }
+                stripeInstance = new stripe_1.default(secret);
+                generateInvoce = new Date().getTime().toString();
+                invoiceId = generateInvoce.substring(generateInvoce.length - 5);
+                return [4 /*yield*/, application.calculateCharges(applicationId)];
+            case 5:
+                charges = _b.sent();
+                newTransaction = new transaction_model_1.default({
+                    type: 'credit',
+                    amount: charges.totalAmount,
+                    initiator: customerId,
+                    from: 'customer',
+                    to: 'admin',
+                    fromId: customerId,
+                    toId: 'admin',
+                    description: "qoutation from ".concat(contractor === null || contractor === void 0 ? void 0 : contractor.firstName, " payment"),
+                    status: 'pending',
+                    form: 'qoutation',
+                    invoiceId: invoiceId,
+                    jobId: jobId
+                });
+                return [4 /*yield*/, newTransaction.save()];
+            case 6:
+                saveTransaction = _b.sent();
+                transactionId = JSON.stringify(saveTransaction._id);
+                payload = {
+                    line_items: [
+                        {
+                            price_data: {
+                                currency: 'usd',
+                                product_data: {
+                                    name: "qoutation payment from ".concat(contractor === null || contractor === void 0 ? void 0 : contractor.firstName)
+                                },
+                                unit_amount: parseFloat(charges.totalAmount.toFixed(2)) * 100,
+                            },
+                            quantity: 1,
+                        },
+                    ],
+                    metadata: {
+                        customerId: customerId,
+                        type: "payment",
+                        jobId: jobId,
+                        transactionId: transactionId
+                    },
+                    email: customer.email,
+                    customerId: customer.stripeCustomer.id
+                };
+                paymentMethod = customer.stripePaymentMethods.find(function (method) { return method.type === "card"; });
+                if (!paymentMethod)
+                    throw new Error("No valid card available for this user");
+                return [4 /*yield*/, stripe_2.StripeService.payment.chargeCustomer(customer.stripeCustomer.id, 'pm_1P00BvDdPEZ0JirQhBqMa6yn', payload)];
+            case 7:
+                stripePayment = _b.sent();
+                job.status = job_model_1.JobStatus.BOOKED;
+                return [4 /*yield*/, job.save()];
+            case 8:
+                _b.sent();
+                res.json({ success: true, message: 'Payment intent created', data: stripePayment });
+                return [3 /*break*/, 10];
+            case 9:
+                err_1 = _b.sent();
+                // signup error
+                res.status(500).json({ message: err_1.message });
+                return [3 /*break*/, 10];
+            case 10: return [2 /*return*/];
+        }
+    });
+}); };
+exports.makeJobPayment = makeJobPayment;
 // //customer get job qoutation payment and open /////////////
 // export const customerGetJobQoutationPaymentOpenController = async (
 //     req: any,
@@ -1043,5 +1046,6 @@ exports.CustomerJobController = {
     createJobRequest: exports.createJobRequest,
     getJobs: exports.getJobs,
     createJobListing: exports.createJobListing,
-    getSingleJob: exports.getSingleJob
+    getSingleJob: exports.getSingleJob,
+    getSingleJobApplications: exports.getSingleJobApplications
 };

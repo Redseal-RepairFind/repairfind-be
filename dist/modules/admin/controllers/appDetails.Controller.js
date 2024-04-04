@@ -44,7 +44,7 @@ var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var job_model_1 = __importDefault(require("../../../database/contractor/models/job.model"));
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
-var transaction_model_1 = __importDefault(require("../../../database/admin/models/transaction.model"));
+var transaction_model_1 = __importDefault(require("../../../database/common/transaction.model"));
 //get app detail /////////////
 var AdminGetAppDetailController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, errors, admin, adminId, totalCustomer, totalContractor, totalJob, totalRequestRejectedJobByContrator, totalPendingJob, totalPendingJobOne, totalPendingJobTwo, totalPendingJobTre, totalPendingJobFor, totalProgressJob, totalProgressJobOne, totalProgressJobTwo, totalCompletedJob, totalComplainedJob, totalRevenue, transactions, i, transaction, err_1;

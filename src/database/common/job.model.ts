@@ -1,5 +1,6 @@
 import { Document, ObjectId, Schema, model } from "mongoose";
 import { IJobApplication, JobApplicationModel } from "./job_application.model";
+import { InvoiceModel } from "./invoices.shema";
 
 export interface IJobLocation extends Document {
     address?: string;
@@ -32,6 +33,18 @@ export enum JobType {
     REQUEST = 'REQUEST',
 }
 
+
+export interface IJobSchedule {
+    startDate: Date;
+    endDate: Date;
+    isCurrent: boolean;
+    isRescheduled: boolean;
+    isCustomerAccept: boolean;
+    isContractorAccept: boolean;
+    createdBy: 'customer' | 'contractor'
+}
+
+
 export interface IJob extends Document {
     _id: ObjectId;
     customer: ObjectId;
@@ -61,16 +74,6 @@ export interface IJob extends Document {
     invoices: ObjectId[];
     schedules: [IJobSchedule];
     emergency: boolean;
-}
-
-interface IJobSchedule {
-    startDate: Date;
-    endDate: Date;
-    isCurrent: boolean;
-    isRescheduled: boolean;
-    isCustomerAccept: boolean;
-    isContractorAccept: boolean;
-    createdBy: 'customer' | 'contractor'
 }
 
 
@@ -104,6 +107,7 @@ const JobHistorySchema = new Schema<IJobHistory>({
     details: { type: Schema.Types.Mixed }, // Additional details specific to the event
 });
 
+
 const JobSchema = new Schema<IJob>({
     customer: { type: Schema.Types.ObjectId, ref: 'customers', required: true },
     contractor: { type: Schema.Types.ObjectId, ref: 'contractors' },
@@ -126,6 +130,7 @@ const JobSchema = new Schema<IJob>({
     experience: { type: String },
     jobHistory: [JobHistorySchema], // Array of job history entries
     schedules: [ScheduleSchema],
+    invoices: [{type: Schema.Types.ObjectId, ref: 'invoices',}],
     applications: {
         type: [String],
         ref: 'job_applications'

@@ -1,10 +1,10 @@
 import { validationResult } from "express-validator";
 import { Request, Response } from "express";
 import {ContractorModel} from "../../../database/contractor/models/contractor.model";
-import TransactionModel from "../../../database/admin/models/transaction.model";
 import CustomerRegModel from "../../../database/customer/models/customer.model";
 import JobModel from "../../../database/contractor/models/job.model";
 import ContractorDocumentValidateModel from "../../../database/contractor/models/contractorDocumentValidate.model";
+import TransactionModel from "../../../database/common/transaction.model";
 
 
 //get transaction detail /////////////

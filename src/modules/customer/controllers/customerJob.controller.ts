@@ -12,7 +12,7 @@ import stripe from 'stripe';
 import { customerAcceptQouteAndPaySendEmailHtmlMailTemplate } from "../../../templates/email/customerAcceptQuoteTem";
 import { customerToAdminAfterPaymentSendEmailHtmlMailTemplate } from "../../../templates/email/customerPaymoneyForQuateTem";
 import AdminRegModel from "../../../database/admin/models/admin.model";
-import TransactionModel from "../../../database/admin/models/transaction.model";
+import TransactionModel from "../../../database/common/transaction.model";
 import { htmlJobRequestTemplate } from "../../../templates/contractorEmail/jobRequestTemplate";
 import { htmlAdminPaymentTemplate } from "../../../templates/adminEmail/adminPaymentTemplate";
 import AdminNoficationModel from "../../../database/admin/models/admin_notification.model";

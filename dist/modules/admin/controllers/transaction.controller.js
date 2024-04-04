@@ -42,10 +42,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AdminGetSingleTransactionDetailController = exports.AdminGetTransactionDetailController = void 0;
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
-var transaction_model_1 = __importDefault(require("../../../database/admin/models/transaction.model"));
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var job_model_1 = __importDefault(require("../../../database/contractor/models/job.model"));
 var contractorDocumentValidate_model_1 = __importDefault(require("../../../database/contractor/models/contractorDocumentValidate.model"));
+var transaction_model_1 = __importDefault(require("../../../database/common/transaction.model"));
 //get transaction detail /////////////
 var AdminGetTransactionDetailController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, page, limit, errors, admin, adminId, skip, transactions, transactionDetail, totalTansactions, i, transaction, from, to, job, customer, contractor, contractorDocument, obj, err_1;
