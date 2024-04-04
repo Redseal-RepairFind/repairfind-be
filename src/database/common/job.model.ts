@@ -35,7 +35,8 @@ export enum JobType {
 export interface IJob extends Document {
     _id: ObjectId;
     customer: ObjectId;
-    contractor: ObjectId;
+    contractor: ObjectId; // contractor that has been engaged
+    application: ObjectId; // application or estimate or quatation that has been paid for
     contractorType: String;
     status: JobStatus;
     type: JobType;
@@ -56,10 +57,35 @@ export interface IJob extends Document {
     updatedAt: Date;
     applications: string[];
     jobHistory: IJobHistory[];
-    paymentHistory: ObjectId[];
-    invoices: IJobHistory[];
+    payments: ObjectId[];
+    invoices: ObjectId[];
+    schedules: [IJobSchedule];
     emergency: boolean;
 }
+
+interface IJobSchedule {
+    startDate: Date;
+    endDate: Date;
+    isCurrent: boolean;
+    isRescheduled: boolean;
+    isCustomerAccept: boolean;
+    isContractorAccept: boolean;
+    createdBy: 'customer' | 'contractor'
+}
+
+
+
+const ScheduleSchema = new Schema<IJobSchedule>({
+    startDate: { type: Date, required: true },
+    endDate: { type: Date, required: true },
+    isCurrent: { type: Boolean, default: true },
+    isRescheduled: { type: Boolean, default: false },
+    isCustomerAccept: { type: Boolean, default: false },
+    isContractorAccept: { type: Boolean, default: false },
+    createdBy: String
+});
+
+
 
 const JobLocationSchema = new Schema<IJobLocation>({
     address: { type: String },
@@ -81,6 +107,7 @@ const JobHistorySchema = new Schema<IJobHistory>({
 const JobSchema = new Schema<IJob>({
     customer: { type: Schema.Types.ObjectId, ref: 'customers', required: true },
     contractor: { type: Schema.Types.ObjectId, ref: 'contractors' },
+    application: { type: Schema.Types.ObjectId, ref: 'job_applications' },
     contractorType: { type: String },
     status: { type: String, enum: Object.values(JobStatus), default: JobStatus.PENDING },
     type: { type: String, enum: Object.values(JobType), default: JobType.LISTING },
@@ -98,6 +125,7 @@ const JobSchema = new Schema<IJob>({
     tags: { type: [String] },
     experience: { type: String },
     jobHistory: [JobHistorySchema], // Array of job history entries
+    schedules: [ScheduleSchema],
     applications: {
         type: [String],
         ref: 'job_applications'
