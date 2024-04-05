@@ -1,9 +1,13 @@
 import { validationResult } from "express-validator";
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { CONTRACTOR_TYPES, ContractorModel } from "../../../database/contractor/models/contractor.model";
 import { Document, PipelineStage as MongoosePipelineStage } from 'mongoose'; // Import Document type from mongoose
-import { getContractorIdsWithDateInSchedule } from "../../../utils/schedule.util";
+import { generateExpandedSchedule, getContractorIdsWithDateInSchedule } from "../../../utils/schedule.util";
 import { applyAPIFeature } from "../../../utils/api.feature";
+import { BadRequestError } from "../../../utils/custom.errors";
+import { ContractorProfileModel } from "../../../database/contractor/models/contractor_profile.model";
+import { endOfMonth, endOfYear, format, getDate, isValid, startOfMonth, startOfYear } from "date-fns";
+import { ContractorScheduleModel } from "../../../database/contractor/models/contractor_schedule.model";
 
 
 type PipelineStage =
@@ -86,8 +90,7 @@ export const exploreContractors = async (
                     password: 0,
                     emailOtp: 0,
                     dateOfBirth: 0,
-                    "profile.previousJobPhotos": 0,
-                    "profile.previousJobVideos": 0,
+                   
                 }
             }
         ];
@@ -177,10 +180,128 @@ export const exploreContractors = async (
     }
 }
 
+export const getSingleContractor = async (req: any, res: Response, next: NextFunction) => {
+    try {
+        const contractorId = req.params.contractorId
+        const contractor = await ContractorModel.findById(contractorId).populate('profile')
+        if(!contractor){
+            return res.status(400).json({success:false, message: 'Contractor not found'})
+        }
+
+        // schedule
+        //reviews etc here
+        return res.status(200).json({success:true, message: 'Contractor  found', data: contractor})
+    } catch (error: any) {
+        next(new BadRequestError('An error occured', error))
+    }
+}
 
 
+export const getContractorSchedules = async (req: any, res: Response) => {
+    try {
+      const { year, month } = req.query;
+      const contractorId = req.params.contractorId;
+  
+      const contractorProfile = await ContractorProfileModel.findOne({contractor: contractorId})
+  
+      if(!contractorProfile){
+        return res.status(400).json({ success: false, message: 'Contractor not found' });
+      }
+      if (year && !isValid(new Date(`${year}-01-01`))) {
+        return res.status(400).json({ success: false, message: 'Invalid year format' });
+      }
+  
+      let startDate: number | Date, endDate: number | Date;
+  
+      if (month) {
+        // If month is specified, retrieve schedules for that month
+        if (!isValid(new Date(`${year}-${month}-01`))) {
+          return res.status(400).json({ success: false, message: 'Invalid month format' });
+        }
+  
+        startDate = startOfMonth(new Date(`${year}-${month}-01`));
+        endDate = endOfMonth(new Date(`${year}-${month}-01`));
+      } else {
+        // If no month specified, retrieve schedules for the whole year
+        startDate = startOfYear(new Date(`${year}-01-01`));
+        endDate = endOfYear(new Date(`${year}-12-31`));
+      }
+  
+      
+      // Group schedules by year and month
+  
+      const expandedSchedules = generateExpandedSchedule(contractorProfile.availableDays).filter(schedule => {
+        return schedule.date >= startDate && schedule.date <= endDate;
+      });
+  
+  
+      // Fetch existing schedules within the specified timeframe
+      const existingSchedules = await ContractorScheduleModel.find({
+        contractor: contractorId,
+        date: { $gte: startDate, $lte: endDate },
+      });
+  
+  
+  
+  
+      // Concatenate expandedSchedules and existingSchedules
+      const mergedSchedules = [...expandedSchedules, ...existingSchedules];
+  
+      // Remove duplicates based on the date, retaining existing schedules
+      const uniqueSchedules = mergedSchedules.filter((schedule, index) => {
+          const date = schedule.date.toDateString();
+          // Check if the current schedule's date is unique within the mergedSchedules array
+          const isFirstOccurrence = mergedSchedules.findIndex((s) => s.date.toDateString() === date) === index;
+          // Retain the existing schedule and the first occurrence of other dates
+          return schedule.events ? schedule : isFirstOccurrence;
+      });
+  
+  
+      const groupedSchedules = uniqueSchedules.reduce((acc: any, schedule) => {
+        const key = format(new Date(schedule.date), 'yyyy-M');
+        if (!acc[key]) {
+          acc[key] = { schedules: [], summary: {}, events: [] };
+        }
+        schedule.contractor = contractorId
+        acc[key].schedules.push(schedule);
+  
+        // Use the event type as the key for the summary object
+        if (!acc[key].summary[schedule.type]) {
+          acc[key].summary[schedule.type] = [];
+        }
+        acc[key].summary[schedule.type].push(getDate(new Date(schedule.date)));
+  
+        // console.log((new Date(schedule.date + 'GMT+800').getDate()), schedule.date)
+  
+        // Include events summary if events are defined
+        if (schedule.events) {
+          const eventsSummary = schedule.events.map((event: any) => ({
+            title: event.title,
+            booking: event.booking,
+            date: event.date,
+            startTime: event.startTime,
+            endTime: event.endTime,
+          }));
+  
+          acc[key].events = acc[key].events.concat(eventsSummary);
+        }
+  
+        return acc;
+      }, {});
+  
+  
+  
+      res.json({ success: true, message: 'Contractor schedules retrieved successfully', data: groupedSchedules });
+    } catch (error) {
+      console.error('Error retrieving schedules:', error);
+      res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+  };
+  
 
 
 export const CustomerExploreController = {
-    exploreContractors
+    exploreContractors,
+    getSingleContractor,
+    getContractorSchedules
 }

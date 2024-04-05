@@ -48,11 +48,13 @@ router.post("/stripe-setupintent",  checkCustomerRole, CustomerStripeController.
 router.post("/job-listing", checkCustomerRole, memoryUpload.any(), CustomerHttpRequest.jobListingParams, CustomerHttpRequest.validateFormData, JobListing.customerListNewJobController ); 
 
 // search for contractor
-router.get("/search-contractor-location", checkCustomerRole, CustomerHttpRequest.searchContractorByLocationParams, CustomerHttpRequest.validateFormData, ContractorSearch.customerSearchForContractorByLocatinController ); 
-router.get("/search-contractor-category-date", checkCustomerRole, CustomerHttpRequest.searchContractorByCategoryDateParams, CustomerHttpRequest.validateFormData, ContractorSearch.customerSearchForContractorByCategoryAndDateController ); 
-router.get("/search-category", checkCustomerRole, CustomerHttpRequest.searchCategoryDateParams, CustomerHttpRequest.validateFormData, ContractorSearch.customerSearchForCategoryController ); 
-router.get("/filter-contractor", checkCustomerRole, CustomerHttpRequest.filterContractorParams, CustomerHttpRequest.validateFormData, ContractorSearch.customerFilterContractoController ); 
+// router.get("/search-contractor-location", checkCustomerRole, CustomerHttpRequest.searchContractorByLocationParams, CustomerHttpRequest.validateFormData, ContractorSearch.customerSearchForContractorByLocatinController ); 
+// router.get("/search-contractor-category-date", checkCustomerRole, CustomerHttpRequest.searchContractorByCategoryDateParams, CustomerHttpRequest.validateFormData, ContractorSearch.customerSearchForContractorByCategoryAndDateController ); 
+// router.get("/search-category", checkCustomerRole, CustomerHttpRequest.searchCategoryDateParams, CustomerHttpRequest.validateFormData, ContractorSearch.customerSearchForCategoryController ); 
+// router.get("/filter-contractor", checkCustomerRole, CustomerHttpRequest.filterContractorParams, CustomerHttpRequest.validateFormData, ContractorSearch.customerFilterContractoController ); 
 router.get("/explore/contractors", checkCustomerRole, CustomerHttpRequest.queryContractorParams, CustomerExploreController.exploreContractors ); 
+router.get("/explore/contractors/:contractorId", checkCustomerRole,  CustomerExploreController.getSingleContractor ); 
+router.get("/explore/contractors/:contractorId/schedules", checkCustomerRole, CustomerExploreController.getContractorSchedules ); 
 
 
 //job request
