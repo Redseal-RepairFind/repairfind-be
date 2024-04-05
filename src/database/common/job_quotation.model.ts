@@ -1,22 +1,30 @@
 import { Document, ObjectId, Schema, model } from "mongoose";
 
-export enum JobApplicationStatus {
+export enum JobQuotationStatus {
     PENDING = 'PENDING',
     ACCEPTED = 'ACCEPTED',
     REJECTED = 'REJECTED',
     COMPLETED = 'COMPLETED',
 }
 
-export interface IJobApplication extends Document {
+export interface IJobQuotationEstimate {
+    description: string;
+    quantity: number;
+    rate: number;
+    amount: number;
+}
+
+
+export interface IJobQuotation extends Document {
     contractor: ObjectId;
     job: ObjectId;
-    status: JobApplicationStatus;
-    estimates: IJobApplicationEstimate[];
+    status: JobQuotationStatus;
+    estimates: IJobQuotationEstimate[];
     startDate: Date;
     endDate: Date;
     siteVisit: object;
     charges: object;
-    calculateCharges: (estimates: { amount: number }[]) => {
+    calculateCharges: () => {
         subtotal: number;
         processingFee: number;
         gst: number;
@@ -25,17 +33,11 @@ export interface IJobApplication extends Document {
     };
 }
 
-export interface IJobApplicationEstimate {
-    description: string;
-    quantity: number;
-    rate: number;
-    amount: number;
-}
 
-const JobApplicationSchema = new Schema<IJobApplication>({
+const JobApplicationSchema = new Schema<IJobQuotation>({
     contractor: { type: Schema.Types.ObjectId, ref: 'contractors', required: true },
     job: { type: Schema.Types.ObjectId, ref: 'jobs', required: true },
-    status: { type: String, enum: Object.values(JobApplicationStatus), default: JobApplicationStatus.PENDING },
+    status: { type: String, enum: Object.values(JobQuotationStatus), default: JobQuotationStatus.PENDING },
     estimates: { type: [Object], required: false },
     startDate: { type: Date, required: false },
     endDate: { type: Date, required: false },
@@ -86,7 +88,7 @@ JobApplicationSchema.methods.calculateCharges = async function () {
     return { subtotal, processingFee, gst, totalAmount, contractorAmount };
 };
 
-const JobApplicationModel = model<IJobApplication>('job_applications', JobApplicationSchema);
+const JobQoutationModel = model<IJobQuotation>('job_quotations', JobApplicationSchema);
 
 
-export { JobApplicationModel };
+export { JobQoutationModel };

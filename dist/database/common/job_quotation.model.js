@@ -36,19 +36,19 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.JobApplicationModel = exports.JobApplicationStatus = void 0;
+exports.JobQoutationModel = exports.JobQuotationStatus = void 0;
 var mongoose_1 = require("mongoose");
-var JobApplicationStatus;
-(function (JobApplicationStatus) {
-    JobApplicationStatus["PENDING"] = "PENDING";
-    JobApplicationStatus["ACCEPTED"] = "ACCEPTED";
-    JobApplicationStatus["REJECTED"] = "REJECTED";
-    JobApplicationStatus["COMPLETED"] = "COMPLETED";
-})(JobApplicationStatus || (exports.JobApplicationStatus = JobApplicationStatus = {}));
+var JobQuotationStatus;
+(function (JobQuotationStatus) {
+    JobQuotationStatus["PENDING"] = "PENDING";
+    JobQuotationStatus["ACCEPTED"] = "ACCEPTED";
+    JobQuotationStatus["REJECTED"] = "REJECTED";
+    JobQuotationStatus["COMPLETED"] = "COMPLETED";
+})(JobQuotationStatus || (exports.JobQuotationStatus = JobQuotationStatus = {}));
 var JobApplicationSchema = new mongoose_1.Schema({
     contractor: { type: mongoose_1.Schema.Types.ObjectId, ref: 'contractors', required: true },
     job: { type: mongoose_1.Schema.Types.ObjectId, ref: 'jobs', required: true },
-    status: { type: String, enum: Object.values(JobApplicationStatus), default: JobApplicationStatus.PENDING },
+    status: { type: String, enum: Object.values(JobQuotationStatus), default: JobQuotationStatus.PENDING },
     estimates: { type: [Object], required: false },
     startDate: { type: Date, required: false },
     endDate: { type: Date, required: false },
@@ -93,5 +93,5 @@ JobApplicationSchema.methods.calculateCharges = function () {
         });
     });
 };
-var JobApplicationModel = (0, mongoose_1.model)('job_applications', JobApplicationSchema);
-exports.JobApplicationModel = JobApplicationModel;
+var JobQoutationModel = (0, mongoose_1.model)('job_quotations', JobApplicationSchema);
+exports.JobQoutationModel = JobQoutationModel;

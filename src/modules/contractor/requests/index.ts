@@ -171,7 +171,7 @@ export const EmailVerificationRequest = [
   
 
   // JOB
-  export const CreateJobApplicationRequest = [
+  export const CreateJobQuotationRequest = [
     body("startDate").optional().isISO8601(),
     body("endDate").optional().isISO8601(),
     body("siteVisit").optional().isObject(),
@@ -208,7 +208,7 @@ export const ContractorHttpRequest = {
     PasswordChangeRequest,
     CreateStripeSessionRequest,
     UpdateOrDevice,
-    CreateJobApplicationRequest,
+    CreateJobQuotationRequest,
     sendMessageParams
     
 }

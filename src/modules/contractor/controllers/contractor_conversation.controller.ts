@@ -37,7 +37,17 @@ export const getSingleConversation = async (req: any, res: Response)=> {
         const { conversationId } = req.params;
         const contractorId = req.contractor.id;
         const query: any = { 'members.member': contractorId, _id: conversationId };
-        const conversation = await ConversationModel.findOne(query).populate(['entity', 'members']);
+
+        const options = {
+            contractorId: contractorId, // Define other options here if needed
+            //@ts-ignore
+            match: function () {
+              //@ts-ignore
+              return { _id: { $in: this.quotations }, contractor: options.contractorId };
+            }
+          };
+
+        const conversation = await ConversationModel.findOne(query).populate(['entity', 'members', { path: 'entity.myQuotation', options: options}]).exec();
         if(conversation){
             conversation.heading = await conversation.getHeading(contractorId);
         }

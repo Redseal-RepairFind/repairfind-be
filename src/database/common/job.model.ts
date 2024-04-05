@@ -1,5 +1,5 @@
 import { Document, ObjectId, Schema, model } from "mongoose";
-import { IJobApplication, JobApplicationModel } from "./job_application.model";
+import { IJobQuotation, JobQoutationModel } from "./job_quotation.model";
 import { InvoiceModel } from "./invoices.shema";
 
 export interface IJobLocation extends Document {
@@ -49,7 +49,7 @@ export interface IJob extends Document {
     _id: ObjectId;
     customer: ObjectId;
     contractor: ObjectId; // contractor that has been engaged
-    application: ObjectId; // application or estimate or quatation that has been paid for
+    quotation: ObjectId; // application or estimate or quatation that has been paid for
     contractorType: String;
     status: JobStatus;
     type: JobType;
@@ -68,7 +68,7 @@ export interface IJob extends Document {
     experience?: string;
     createdAt: Date;
     updatedAt: Date;
-    applications: string[];
+    quotations: ObjectId[];
     jobHistory: IJobHistory[];
     payments: ObjectId[];
     invoices: ObjectId[];
@@ -111,7 +111,7 @@ const JobHistorySchema = new Schema<IJobHistory>({
 const JobSchema = new Schema<IJob>({
     customer: { type: Schema.Types.ObjectId, ref: 'customers', required: true },
     contractor: { type: Schema.Types.ObjectId, ref: 'contractors' },
-    application: { type: Schema.Types.ObjectId, ref: 'job_applications' },
+    quotation: { type: Schema.Types.ObjectId, ref: 'job_quotations' },
     contractorType: { type: String },
     status: { type: String, enum: Object.values(JobStatus), default: JobStatus.PENDING },
     type: { type: String, enum: Object.values(JobType), default: JobType.LISTING },
@@ -131,9 +131,9 @@ const JobSchema = new Schema<IJob>({
     jobHistory: [JobHistorySchema], // Array of job history entries
     schedules: [ScheduleSchema],
     invoices: [{type: Schema.Types.ObjectId, ref: 'invoices',}],
-    applications: {
-        type: [String],
-        ref: 'job_applications'
+    quotations: {
+        type: [Schema.Types.ObjectId],
+        ref: 'job_quotations'
     },
     emergency: {type: Boolean, default:false}
 }, { timestamps: true });
@@ -141,14 +141,37 @@ const JobSchema = new Schema<IJob>({
 
 
 
-JobSchema.virtual('totalApplications').get(function () {
-    return this.applications.length
+JobSchema.virtual('totalQuotations').get(function () {
+    return this.quotations.length
 });
 
 
-JobSchema.set('toJSON', {
-    virtuals: true
+
+
+
+// JobSchema.virtual('hasSentQuotation', {
+//     ref: 'job_quotations',
+//     foreignField: 'contractor', // Assuming this field stores the contractorId in the job_quotations model
+//     localField: function() { return 'contractor' }, // Using a function to dynamically return the localField
+//     justOne: true,
+//     // options: { contractorId: { type: Schema.Types.ObjectId } }, // Define the contractorId option
+//     match: function(options: any) {
+//         console.log(options.contractorId) 
+//       return { _id: { $in: this.quotations }, contractor: options.contractorId }; // Use the passed contractorId option
+//     }
+// });
+
+JobSchema.virtual('myQuotation', {
+    ref: 'job_quotations',
+    foreignField: 'contractor', // Assuming this field stores the contractorId in the job_quotations model
+    localField: 'contractor', // Using a string to specify the localField
+    justOne: true,
+    options: { contractorId: { type: Schema.Types.ObjectId } }, // Define the contractorId option
 });
+
+
+  JobSchema.set('toObject', { virtuals: true });
+  JobSchema.set('toJSON', { virtuals: true });
 
 
 const JobModel = model<IJob>("jobs", JobSchema);

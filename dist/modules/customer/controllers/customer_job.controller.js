@@ -39,10 +39,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerJobController = exports.makeJobPayment = exports.getSingleJobApplications = exports.getSingleJob = exports.getJobs = exports.createJobListing = exports.createJobRequest = void 0;
+exports.CustomerJobController = exports.makeJobPayment = exports.getSingleQuotation = exports.getJobQuotations = exports.getSingleJob = exports.getJobs = exports.createJobListing = exports.createJobRequest = void 0;
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
-var stripe_1 = __importDefault(require("stripe"));
 var jobRequestTemplate_1 = require("../../../templates/contractorEmail/jobRequestTemplate");
 var customer_jobrequest_model_1 = require("../../../database/customer/models/customer_jobrequest.model");
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
@@ -53,9 +52,9 @@ var custom_errors_1 = require("../../../utils/custom.errors");
 var api_feature_1 = require("../../../utils/api.feature");
 var conversations_schema_1 = require("../../../database/common/conversations.schema");
 var messages_schema_1 = require("../../../database/common/messages.schema");
-var job_application_model_1 = require("../../../database/common/job_application.model");
+var job_quotation_model_1 = require("../../../database/common/job_quotation.model");
 var transaction_model_1 = __importDefault(require("../../../database/common/transaction.model"));
-var stripe_2 = require("../../../services/stripe");
+var stripe_1 = require("../../../services/stripe");
 var createJobRequest = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, contractorId, category, description, location_1, date, expiresIn, emergency, media, voiceDescription, time, customerId, customer, contractor, startOfToday, existingJobRequest, dateTimeString, jobTime, newJob, conversationMembers, newConversation, newMessage, html, error_1;
     var _b, _c;
@@ -182,14 +181,13 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 return [3 /*break*/, 8];
             case 7:
                 error_1 = _d.sent();
-                console.error('Error submitting job request:', error_1);
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('Bad Request'))];
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('Bad Request', error_1))];
             case 8: return [2 /*return*/];
         }
     });
 }); };
 exports.createJobRequest = createJobRequest;
-var createJobListing = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+var createJobListing = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, category, description, location_2, date, expiresIn, emergency, media, voiceDescription, time, contractorType, customerId, customer, existingJobRequest, dateTimeString, jobTime, newJob, error_2;
     return __generator(this, function (_b) {
         switch (_b.label) {
@@ -250,15 +248,13 @@ var createJobListing = function (req, res) { return __awaiter(void 0, void 0, vo
                 return [3 /*break*/, 5];
             case 4:
                 error_2 = _b.sent();
-                console.error('Error submitting job listing:', error_2);
-                res.status(400).json({ success: false, message: 'Bad Request' });
-                return [3 /*break*/, 5];
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_2))];
             case 5: return [2 /*return*/];
         }
     });
 }); };
 exports.createJobListing = createJobListing;
-var getJobs = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+var getJobs = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, contractorId, status_1, startDate, endDate, date, type, customerId, filter, start, end, selectedDate, startOfDay_1, endOfDay_1, _b, data, error, error_3;
     return __generator(this, function (_c) {
         switch (_c.label) {
@@ -304,15 +300,13 @@ var getJobs = function (req, res) { return __awaiter(void 0, void 0, void 0, fun
                 return [3 /*break*/, 3];
             case 2:
                 error_3 = _c.sent();
-                console.error('Error retrieving jobs:', error_3);
-                res.status(400).json({ success: false, message: 'Something went wrong' });
-                return [3 /*break*/, 3];
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_3))];
             case 3: return [2 /*return*/];
         }
     });
 }); };
 exports.getJobs = getJobs;
-var getSingleJob = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+var getSingleJob = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var customerId, jobId, job, error_4;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -332,15 +326,13 @@ var getSingleJob = function (req, res) { return __awaiter(void 0, void 0, void 0
                 return [3 /*break*/, 3];
             case 2:
                 error_4 = _a.sent();
-                console.error('Error retrieving job:', error_4);
-                res.status(500).json({ success: false, message: 'Internal Server Error' });
-                return [3 /*break*/, 3];
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_4))];
             case 3: return [2 /*return*/];
         }
     });
 }); };
 exports.getSingleJob = getSingleJob;
-var getSingleJobApplications = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+var getJobQuotations = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var customerId, jobId, job, error_5;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -348,34 +340,62 @@ var getSingleJobApplications = function (req, res) { return __awaiter(void 0, vo
                 _a.trys.push([0, 2, , 3]);
                 customerId = req.customer.id;
                 jobId = req.params.jobId;
-                return [4 /*yield*/, job_model_1.JobModel.findOne({ customer: customerId, _id: jobId }).populate('applications')];
+                return [4 /*yield*/, job_model_1.JobModel.findOne({ customer: customerId, _id: jobId }).populate('quotations')];
             case 1:
                 job = _a.sent();
                 // Check if the job exists
                 if (!job) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found' })];
                 }
-                // If the job exists, return its applications as a response
-                res.json({ success: true, message: 'Job applications retrieved', data: job.applications });
+                // If the job exists, return its quo as a response
+                res.json({ success: true, message: 'Job quotations retrieved', data: job.quotations });
                 return [3 /*break*/, 3];
             case 2:
                 error_5 = _a.sent();
-                console.error('Error retrieving job applications:', error_5);
-                res.status(500).json({ success: false, message: 'Internal Server Error' });
-                return [3 /*break*/, 3];
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_5))];
             case 3: return [2 /*return*/];
         }
     });
 }); };
-exports.getSingleJobApplications = getSingleJobApplications;
-//customer accept and pay for the work /////////////
-var makeJobPayment = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, jobId, applicationId, errors, customerId, customer, job, application, contractor, secret, stripeInstance, generateInvoce, invoiceId, charges, newTransaction, saveTransaction, transactionId, payload, paymentMethod, stripePayment, err_1;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+exports.getJobQuotations = getJobQuotations;
+var getSingleQuotation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var customerId, _a, jobId, quotationId, quotation, _b, error_6;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
             case 0:
-                _b.trys.push([0, 9, , 10]);
-                _a = req.body, jobId = _a.jobId, applicationId = _a.applicationId;
+                _c.trys.push([0, 3, , 4]);
+                customerId = req.customer.id;
+                _a = req.params, jobId = _a.jobId, quotationId = _a.quotationId;
+                return [4 /*yield*/, job_quotation_model_1.JobQoutationModel.findOne({ _id: quotationId, job: jobId })];
+            case 1:
+                quotation = _c.sent();
+                // Check if the job exists
+                if (!quotation) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Qoutation not found' })];
+                }
+                _b = quotation;
+                return [4 /*yield*/, quotation.calculateCharges()];
+            case 2:
+                _b.charges = _c.sent();
+                res.json({ success: true, message: 'Job quotation retrieved', data: quotation });
+                return [3 /*break*/, 4];
+            case 3:
+                error_6 = _c.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_6))];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getSingleQuotation = getSingleQuotation;
+//customer accept and pay for the work /////////////
+var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var quotationId, jobId, errors, customerId, customer, job, quotation, contractor, generateInvoce, invoiceId, charges, newTransaction, saveTransaction, transactionId, payload, stripePayment, err_1;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 9, , 10]);
+                quotationId = req.body.quotationId;
+                jobId = req.params.jobId;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -383,7 +403,7 @@ var makeJobPayment = function (req, res) { return __awaiter(void 0, void 0, void
                 customerId = req.customer.id;
                 return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
             case 1:
-                customer = _b.sent();
+                customer = _a.sent();
                 if (!customer) {
                     return [2 /*return*/, res
                             .status(401)
@@ -391,36 +411,28 @@ var makeJobPayment = function (req, res) { return __awaiter(void 0, void 0, void
                 }
                 return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobId })];
             case 2:
-                job = _b.sent();
-                return [4 /*yield*/, job_application_model_1.JobApplicationModel.findOne({ _id: applicationId })];
-            case 3:
-                application = _b.sent();
-                if (!application) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ message: "Job application not found" })];
-                }
+                job = _a.sent();
                 if (!job) {
                     return [2 /*return*/, res
                             .status(401)
-                            .json({ message: "job do not exist or qoutation have not be sent" })];
+                            .json({ message: "job do not exist" })];
                 }
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: job.contractor })];
-            case 4:
-                contractor = _b.sent();
-                secret = process.env.STRIPE_KEY || "sk_test_51OTMkGIj2KYudFaR1rNIBOPTaBESYoJco6lTCBZw5a0inyttRJOotcds1rXpXCJDSJrpNmIt2FBAaSxdmuma3ZTF00h48RxVny";
-                stripeInstance = void 0;
-                if (!secret) {
+                return [4 /*yield*/, job_quotation_model_1.JobQoutationModel.findOne({ _id: quotationId })];
+            case 3:
+                quotation = _a.sent();
+                if (!quotation) {
                     return [2 /*return*/, res
                             .status(401)
-                            .json({ message: "Sripe API Key is missing" })];
+                            .json({ message: "Job quotation not found" })];
                 }
-                stripeInstance = new stripe_1.default(secret);
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: quotation.contractor })];
+            case 4:
+                contractor = _a.sent();
                 generateInvoce = new Date().getTime().toString();
                 invoiceId = generateInvoce.substring(generateInvoce.length - 5);
-                return [4 /*yield*/, application.calculateCharges(applicationId)];
+                return [4 /*yield*/, quotation.calculateCharges()];
             case 5:
-                charges = _b.sent();
+                charges = _a.sent();
                 newTransaction = new transaction_model_1.default({
                     type: 'credit',
                     amount: charges.totalAmount,
@@ -437,7 +449,7 @@ var makeJobPayment = function (req, res) { return __awaiter(void 0, void 0, void
                 });
                 return [4 /*yield*/, newTransaction.save()];
             case 6:
-                saveTransaction = _b.sent();
+                saveTransaction = _a.sent();
                 transactionId = JSON.stringify(saveTransaction._id);
                 payload = {
                     line_items: [
@@ -447,11 +459,13 @@ var makeJobPayment = function (req, res) { return __awaiter(void 0, void 0, void
                                 product_data: {
                                     name: "qoutation payment from ".concat(contractor === null || contractor === void 0 ? void 0 : contractor.firstName)
                                 },
-                                unit_amount: parseFloat(charges.totalAmount.toFixed(2)) * 100,
+                                unit_amount: (charges.totalAmount) * 100,
                             },
                             quantity: 1,
                         },
                     ],
+                    currency: 'usd',
+                    amount: (charges.totalAmount) * 100,
                     metadata: {
                         customerId: customerId,
                         type: "payment",
@@ -461,23 +475,18 @@ var makeJobPayment = function (req, res) { return __awaiter(void 0, void 0, void
                     email: customer.email,
                     customerId: customer.stripeCustomer.id
                 };
-                paymentMethod = customer.stripePaymentMethods.find(function (method) { return method.type === "card"; });
-                if (!paymentMethod)
-                    throw new Error("No valid card available for this user");
-                return [4 /*yield*/, stripe_2.StripeService.payment.chargeCustomer(customer.stripeCustomer.id, 'pm_1P00BvDdPEZ0JirQhBqMa6yn', payload)];
+                return [4 /*yield*/, stripe_1.StripeService.payment.chargeCustomer('cus_PkdahAH5iZEr9x', 'pm_1P0OWEDdPEZ0JirQE8mHHVxk', payload)];
             case 7:
-                stripePayment = _b.sent();
+                stripePayment = _a.sent();
                 job.status = job_model_1.JobStatus.BOOKED;
                 return [4 /*yield*/, job.save()];
             case 8:
-                _b.sent();
+                _a.sent();
                 res.json({ success: true, message: 'Payment intent created', data: stripePayment });
                 return [3 /*break*/, 10];
             case 9:
-                err_1 = _b.sent();
-                // signup error
-                res.status(500).json({ message: err_1.message });
-                return [3 /*break*/, 10];
+                err_1 = _a.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', err_1))];
             case 10: return [2 /*return*/];
         }
     });
@@ -1047,5 +1056,7 @@ exports.CustomerJobController = {
     getJobs: exports.getJobs,
     createJobListing: exports.createJobListing,
     getSingleJob: exports.getSingleJob,
-    getSingleJobApplications: exports.getSingleJobApplications
+    getJobQuotations: exports.getJobQuotations,
+    getSingleQuotation: exports.getSingleQuotation,
+    makeJobPayment: exports.makeJobPayment
 };

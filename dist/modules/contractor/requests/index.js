@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorHttpRequest = exports.sendMessageParams = exports.CreateJobApplicationRequest = exports.CreateScheduleRequest = exports.UpdateOrDevice = exports.CreateStripeSessionRequest = exports.InviteToTeam = exports.UpdateBankDetailRequest = exports.PasswordChangeRequest = exports.PasswordResetRequest = exports.ResendEmailRequest = exports.LoginRequest = exports.EmailVerificationRequest = exports.UpdateProfileRequest = exports.CreateProfileRequest = exports.CreateContractorRequest = void 0;
+exports.ContractorHttpRequest = exports.sendMessageParams = exports.CreateJobQuotationRequest = exports.CreateScheduleRequest = exports.UpdateOrDevice = exports.CreateStripeSessionRequest = exports.InviteToTeam = exports.UpdateBankDetailRequest = exports.PasswordChangeRequest = exports.PasswordResetRequest = exports.ResendEmailRequest = exports.LoginRequest = exports.EmailVerificationRequest = exports.UpdateProfileRequest = exports.CreateProfileRequest = exports.CreateContractorRequest = void 0;
 var express_validator_1 = require("express-validator");
 exports.CreateContractorRequest = [
     (0, express_validator_1.body)('email').isEmail(),
@@ -244,7 +244,7 @@ exports.CreateScheduleRequest = [
     (0, express_validator_1.body)('events.*.description').optional().isString().withMessage('Description should be a string'),
 ];
 // JOB
-exports.CreateJobApplicationRequest = [
+exports.CreateJobQuotationRequest = [
     (0, express_validator_1.body)("startDate").optional().isISO8601(),
     (0, express_validator_1.body)("endDate").optional().isISO8601(),
     (0, express_validator_1.body)("siteVisit").optional().isObject(),
@@ -275,6 +275,6 @@ exports.ContractorHttpRequest = {
     PasswordChangeRequest: exports.PasswordChangeRequest,
     CreateStripeSessionRequest: exports.CreateStripeSessionRequest,
     UpdateOrDevice: exports.UpdateOrDevice,
-    CreateJobApplicationRequest: exports.CreateJobApplicationRequest,
+    CreateJobQuotationRequest: exports.CreateJobQuotationRequest,
     sendMessageParams: exports.sendMessageParams
 };

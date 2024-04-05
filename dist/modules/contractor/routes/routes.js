@@ -12,6 +12,7 @@ var contractor_team_invitation_controller_1 = require("../controllers/contractor
 var contractor_job_controller_1 = require("../controllers/contractor_job.controller");
 var contractor_notification_controller_1 = require("../controllers/contractor_notification.controller");
 var contractor_conversation_controller_1 = require("../controllers/contractor_conversation.controller");
+var contractor_tripDay_controller_1 = require("../controllers/contractor_tripDay.controller");
 var express = require("express");
 var router = express.Router();
 //  AUTH
@@ -113,10 +114,10 @@ router.get('/jobs/requests', contractorRoleCheck_middleware_1.checkContractorRol
 router.get('/jobs/requests/:jobId', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.getJobRequestById);
 router.post('/jobs/requests/:jobId/accept', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.acceptJobRequest);
 router.post('/jobs/requests/:jobId/reject', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.rejectJobRequest);
-// Application & Estimate
-router.post('/jobs/:jobId/applications', contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateJobApplicationRequest, contractor_job_controller_1.ContractorJobController.sendJobApplication); // send application and estimate
-router.get('/jobs/:jobId/applications', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.getApplicationForJob); // send application and estimate
-router.patch('/jobs/:jobId/applications', contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateJobApplicationRequest, contractor_job_controller_1.ContractorJobController.updateJobApplication); // send application and estimate
+// Quotation & Estimate
+router.post('/jobs/:jobId/quotations', contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateJobQuotationRequest, contractor_job_controller_1.ContractorJobController.sendJobQuotation); // send application and estimate
+router.get('/jobs/:jobId/quotations', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.getQuotationForJob); // send application and estimate
+router.patch('/jobs/:jobId/quotations', contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateJobQuotationRequest, contractor_job_controller_1.ContractorJobController.updateJobQuotation); // send application and estimate
 // Notifications
 router.get('/notifications', contractorRoleCheck_middleware_1.checkContractorRole, contractor_notification_controller_1.ContractorNotificationController.getNotifications);
 router.get('/notifications/:notificationId', contractorRoleCheck_middleware_1.checkContractorRole, contractor_notification_controller_1.ContractorNotificationController.getSingleNotification);
@@ -125,4 +126,7 @@ router.get('/conversations', contractorRoleCheck_middleware_1.checkContractorRol
 router.get('/conversations/:conversationId', contractorRoleCheck_middleware_1.checkContractorRole, contractor_conversation_controller_1.ContractorConversationController.getSingleConversation);
 router.get('/conversations/:conversationId/messages', contractorRoleCheck_middleware_1.checkContractorRole, contractor_conversation_controller_1.ContractorConversationController.getConversationMessages);
 router.post('/conversations/:conversationId/messages', contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.sendMessageParams, contractor_conversation_controller_1.ContractorConversationController.sendMessage);
+// trips day
+router.post('/trip/:jobId/start', contractorRoleCheck_middleware_1.checkContractorRole, contractor_tripDay_controller_1.ContractorTripDayController.contractorStartTripController);
+router.post('/trip/:tripDayId/arrive', contractorRoleCheck_middleware_1.checkContractorRole, contractor_tripDay_controller_1.ContractorTripDayController.contractorArrivedSiteController);
 exports.default = router;

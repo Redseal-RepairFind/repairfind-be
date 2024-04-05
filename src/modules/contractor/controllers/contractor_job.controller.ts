@@ -9,7 +9,7 @@ import CustomerJobRequestModel from "../../../database/customer/models/customer_
 import { JobModel, JobStatus, JobType } from "../../../database/common/job.model";
 import { applyAPIFeature } from "../../../utils/api.feature";
 import { BadRequestError, InternalServerError, NotFoundError } from "../../../utils/custom.errors";
-import { JobApplicationModel, JobApplicationStatus } from "../../../database/common/job_application.model";
+import { JobQoutationModel, JobQuotationStatus } from "../../../database/common/job_quotation.model";
 import CustomerModel from "../../../database/customer/models/customer.model";
 import { Document, PipelineStage as MongoosePipelineStage } from 'mongoose'; // Import Document type from mongoose
 import { ConversationEntityType, ConversationModel } from "../../../database/common/conversations.schema";
@@ -136,10 +136,10 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
 
 
     // Create the initial job application
-    const initialApplication = new JobApplicationModel({
+    const quotation = new JobQoutationModel({
       contractor: contractorId,
       job: jobId,
-      status: JobApplicationStatus.PENDING, // Assuming initial status is pending
+      status: JobQuotationStatus.PENDING, // Assuming initial status is pending
       estimate: [], // You may need to adjust this based on your application schema
       startDate: jobRequest.startDate,
       endDate: jobRequest.endDate,
@@ -148,10 +148,13 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
     });
 
     // Save the initial job application
-    await initialApplication.save();
+    await quotation.save();
 
     // Associate the job application with the job request
-    jobRequest.applications.push(initialApplication._id);
+    if (!jobRequest.quotations.includes(quotation.id)) {
+      jobRequest.quotations.push(quotation.id);
+    }
+
 
     await jobRequest.save();
 
@@ -245,28 +248,28 @@ export const rejectJobRequest = async (req: any, res: Response) => {
     await jobRequest.save();
 
 
-   // Create or update conversation
-  const conversationMembers = [
-    { memberType: 'customers', member: jobRequest.customer },
-    { memberType: 'contractors', member: contractorId }
-];
+    // Create or update conversation
+    const conversationMembers = [
+      { memberType: 'customers', member: jobRequest.customer },
+      { memberType: 'contractors', member: contractorId }
+    ];
 
-const conversation =  await ConversationModel.findOneAndUpdate(
-  {
-    entity: jobId,
-    entityType: ConversationEntityType.JOB,
-    $and: [
-      { "members.member": contractorId, "members.memberType": 'contractors' },
-      { "members.member": jobRequest.customer, "members.memberType": 'customers' }
-    ]
-  },
-  
-  {
-    entity: jobId, 
-    entityType: ConversationEntityType.JOB, 
-    members: conversationMembers 
-  }, 
-{new: true, upsert: true});
+    const conversation = await ConversationModel.findOneAndUpdate(
+      {
+        entity: jobId,
+        entityType: ConversationEntityType.JOB,
+        $and: [
+          { "members.member": contractorId, "members.memberType": 'contractors' },
+          { "members.member": jobRequest.customer, "members.memberType": 'customers' }
+        ]
+      },
+
+      {
+        entity: jobId,
+        entityType: ConversationEntityType.JOB,
+        members: conversationMembers
+      },
+      { new: true, upsert: true });
 
     // Send a message to the customer
     const message = new MessageModel({
@@ -295,7 +298,20 @@ export const getJobRequestById = async (req: any, res: Response, next: NextFunct
     const { jobId } = req.params;
     const contractorId = req.contractor.id;
 
-    const jobRequest = await JobModel.findOne({ _id: jobId, contractor: contractorId, type: JobType.REQUEST }).populate(['contractor', 'customer']).exec();
+
+    const options = {
+      contractorId: contractorId, // Define other options here if needed
+      //@ts-ignore
+      match: function () {
+        //@ts-ignore
+        return { _id: { $in: this.quotations }, contractor: options.contractorId };
+      }
+    };
+
+    const jobRequest = await JobModel.findOne({ _id: jobId, contractor: contractorId, type: JobType.REQUEST })
+      .populate(['contractor', 'customer', { path: 'myQuotation', options: options }])
+      .exec();
+
 
 
 
@@ -314,7 +330,7 @@ export const getJobRequestById = async (req: any, res: Response, next: NextFunct
 
 
 //contractor send job quatation /////////////
-export const sendJobApplication = async (
+export const sendJobQuotation = async (
   req: any,
   res: Response,
   next: NextFunction
@@ -363,11 +379,9 @@ export const sendJobApplication = async (
         .json({ message: "invalid estimate format" });
     }
 
-    console.log(4)
 
     const customer = await CustomerModel.findOne({ _id: job.customer })
 
-    console.log(5)
 
     if (!customer) {
       return res
@@ -375,7 +389,7 @@ export const sendJobApplication = async (
         .json({ message: "invalid customer Id" });
     }
 
-    let jobApplication = await JobApplicationModel.findOneAndUpdate({ job: jobId, contractor: contractorId }, {
+    let jobQuotation = await JobQoutationModel.findOneAndUpdate({ job: jobId, contractor: contractorId }, {
       startDate,
       endDate,
       siteVisit,
@@ -384,11 +398,32 @@ export const sendJobApplication = async (
       contractorId
     }, { new: true, upsert: true })
 
-    jobApplication.charges = await jobApplication.calculateCharges(estimates);
+    jobQuotation.charges = await jobQuotation.calculateCharges();
 
-    if (!job.applications.includes(jobApplication.id)) {
-      job.applications.push(jobApplication.id);
+    if (!job.quotations.includes(jobQuotation.id)) {
+      job.quotations.push(jobQuotation.id);
     }
+
+
+    if (job.type == JobType.REQUEST) {
+      // Update the status of the job request to "Accepted"
+      job.status = JobStatus.ACCEPTED;
+
+      // Define the acceptance event to be stored in the job history
+      const jobEvent = {
+        eventType: JobStatus.ACCEPTED,
+        timestamp: new Date(),
+        details: {
+          message: 'Contactor accepted this job'
+        },
+      };
+      // Push the acceptance event to the job history array
+      if (!job.jobHistory.some( jobEvent =>  jobEvent.eventType == JobStatus.ACCEPTED  )) {
+        job.jobHistory.push(jobEvent);
+      }
+
+    }
+
 
     await job.save()
 
@@ -438,20 +473,18 @@ export const sendJobApplication = async (
 
     res.json({
       success: true,
-      message: "job application sucessfully sent",
-      data: jobApplication
+      message: "job quotation sucessfully sent",
+      data: jobQuotation
     });
 
   } catch (err: any) {
-    // console.error('Error retrieving job requests:', error);
-    // res.status(500).json({ success: false, message: 'Bad request' });
     return next(new BadRequestError('An error occured ', err))
   }
 
 }
 
 
-export const getApplicationForJob = async (req: any, res: Response) => {
+export const getQuotationForJob = async (req: any, res: Response, next: NextFunction) => {
   try {
     const { jobId } = req.params;
     const contractorId = req.contractor.id
@@ -462,24 +495,23 @@ export const getApplicationForJob = async (req: any, res: Response) => {
     }
 
     // Find the job application for the specified job and contractor
-    const jobApplication = await JobApplicationModel.findOne({ jobId, contractorId });
+    const jobQuotation = await JobQoutationModel.findOne({ jobId, contractorId });
 
     // Check if the job application exists
-    if (!jobApplication) {
+    if (!jobQuotation) {
       return res.status(404).json({ success: false, message: 'Job application not found' });
     }
 
-    jobApplication.charges = await jobApplication.calculateCharges(jobApplication.estimates)
+    jobQuotation.charges = await jobQuotation.calculateCharges()
 
-    res.status(200).json({ success: true, message: 'Job application retrieved successfully', data: jobApplication });
-  } catch (error) {
-    console.error('Error fetching job application:', error);
-    res.status(500).json({ success: false, message: 'Internal Server Error' });
+    res.status(200).json({ success: true, message: 'Job application retrieved successfully', data: jobQuotation });
+  } catch (error: any) {
+    return next(new BadRequestError('An error occured ', error))
   }
 };
 
 
-export const updateJobApplication = async (req: any, res: Response) => {
+export const updateJobQuotation = async (req: any, res: Response, next: NextFunction) => {
   try {
     const { jobId } = req.params;
     const contractorId = req.contractor.id
@@ -507,24 +539,24 @@ export const updateJobApplication = async (req: any, res: Response) => {
 
 
     // Find the job application for the specified job and contractor
-    let jobApplication = await JobApplicationModel.findOne({ jobId, contractorId });
+    let jobQuotation = await JobQoutationModel.findOne({ jobId, contractorId });
 
     // If the job application does not exist, create a new one
-    if (!jobApplication) {
-      jobApplication = new JobApplicationModel({ jobId, contractorId });
+    if (!jobQuotation) {
+      jobQuotation = new JobQoutationModel({ jobId, contractorId });
     }
 
     // Update the job application fields
-    jobApplication.startDate = startDate;
-    jobApplication.endDate = endDate;
-    jobApplication.siteVisit = siteVisit;
-    jobApplication.estimates = estimates;
+    jobQuotation.startDate = startDate;
+    jobQuotation.endDate = endDate;
+    jobQuotation.siteVisit = siteVisit;
+    jobQuotation.estimates = estimates;
 
     // Save the updated job application
 
-    await jobApplication.save();
+    await jobQuotation.save();
 
-    jobApplication.charges = await jobApplication.calculateCharges(jobApplication.estimates)
+    jobQuotation.charges = await jobQuotation.calculateCharges()
 
 
     // Create or update conversation
@@ -561,10 +593,9 @@ export const updateJobApplication = async (req: any, res: Response) => {
     });
 
 
-    res.status(200).json({ success: true, message: 'Job application updated successfully', data: jobApplication });
-  } catch (error) {
-    console.error('Error updating job application:', error);
-    res.status(500).json({ success: false, message: 'Internal Server Error' });
+    res.status(200).json({ success: true, message: 'Job application updated successfully', data: jobQuotation });
+  } catch (error: any) {
+    return next(new BadRequestError('An error occured ', error))
   }
 };
 
@@ -579,7 +610,8 @@ type PipelineStage =
   | { $sort: { [key: string]: 1 | -1 } }
   | { $group: any };
 
-export const getJobListings = async (req: any, res: Response) => {
+
+export const getJobListings = async (req: any, res: Response, next: NextFunction) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
@@ -612,12 +644,12 @@ export const getJobListings = async (req: any, res: Response) => {
           from: "job_applications",
           localField: "_id",
           foreignField: "job",
-          as: "totalApplications"
+          as: "totalQuotations"
         }
       },
       {
         $addFields: {
-          totalApplications: { $size: "$totalApplications" }
+          totalQuotations: { $size: "$totalQuotations" }
         }
       }
     ];
@@ -707,9 +739,8 @@ export const getJobListings = async (req: any, res: Response) => {
 
     // Send response with job listings data
     res.status(200).json({ success: true, data: { ...metadata, data: jobs } });
-  } catch (error) {
-    console.error('Error fetching job listings:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
+  } catch (error: any) {
+    return next(new BadRequestError('An error occured ', error))
   }
 };
 
@@ -1779,9 +1810,9 @@ export const ContractorJobController = {
   getJobRequestById,
   rejectJobRequest,
   acceptJobRequest,
-  sendJobApplication,
-  getApplicationForJob,
-  updateJobApplication
+  sendJobQuotation,
+  getQuotationForJob,
+  updateJobQuotation
 }
 
 

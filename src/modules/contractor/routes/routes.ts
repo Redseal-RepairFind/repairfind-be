@@ -146,10 +146,10 @@ router.get('/jobs/requests/:jobId', checkContractorRole, ContractorJobController
 router.post('/jobs/requests/:jobId/accept', checkContractorRole, ContractorJobController.acceptJobRequest)
 router.post('/jobs/requests/:jobId/reject', checkContractorRole, ContractorJobController.rejectJobRequest)
 
-// Application & Estimate
-router.post('/jobs/:jobId/applications', checkContractorRole, ContractorHttpRequest.CreateJobApplicationRequest, ContractorJobController.sendJobApplication) // send application and estimate
-router.get('/jobs/:jobId/applications', checkContractorRole, ContractorJobController.getApplicationForJob) // send application and estimate
-router.patch('/jobs/:jobId/applications', checkContractorRole,ContractorHttpRequest.CreateJobApplicationRequest, ContractorJobController.updateJobApplication) // send application and estimate
+// Quotation & Estimate
+router.post('/jobs/:jobId/quotations', checkContractorRole, ContractorHttpRequest.CreateJobQuotationRequest, ContractorJobController.sendJobQuotation) // send application and estimate
+router.get('/jobs/:jobId/quotations', checkContractorRole, ContractorJobController.getQuotationForJob) // send application and estimate
+router.patch('/jobs/:jobId/quotations', checkContractorRole,ContractorHttpRequest.CreateJobQuotationRequest, ContractorJobController.updateJobQuotation) // send application and estimate
 
 
 

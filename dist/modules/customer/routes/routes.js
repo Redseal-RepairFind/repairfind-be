@@ -13,6 +13,7 @@ var customer_explore_controller_1 = require("../controllers/customer_explore.con
 var customer_job_controller_1 = require("../controllers/customer_job.controller");
 var customer_notification_controller_1 = require("../controllers/customer_notification.controller");
 var customer_conversation_controller_1 = require("../controllers/customer_conversation.controller");
+var customer_tripDay_controller_1 = require("../controllers/customer_tripDay.controller");
 var express = require("express");
 var router = express.Router();
 // Auth
@@ -49,7 +50,9 @@ router.post("/jobs/requests", customerRoleChecker_middleware_1.checkCustomerRole
 router.post("/jobs/listings", customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.createJoListingParams, customer_job_controller_1.CustomerJobController.createJobListing);
 router.get("/jobs", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.getJobs);
 router.get("/jobs/:jobId", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.getSingleJob);
-router.get("/jobs/:jobId/applications", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.getSingleJobApplications);
+router.get("/jobs/:jobId/quotations", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.getJobQuotations);
+router.get("/jobs/:jobId/quotations/:quotationId", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.getSingleQuotation);
+router.post("/jobs/:jobId/pay", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.makeJobPayment);
 router.post("/jobs", customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.sendJobRequestParams, requests_1.CustomerHttpRequest.validateFormData, job_request_controller_1.JobRequest.customerSendJobRequestController);
 // Notifications
 router.get('/notifications', customerRoleChecker_middleware_1.checkCustomerRole, customer_notification_controller_1.CustomerNotificationController.getNotifications);
@@ -60,6 +63,8 @@ router.get('/conversations', customerRoleChecker_middleware_1.checkCustomerRole,
 router.get('/conversations/:conversationId', customerRoleChecker_middleware_1.checkCustomerRole, customer_conversation_controller_1.CustomerConversationController.getSingleConversation);
 router.get('/conversations/:conversationId/messages', customerRoleChecker_middleware_1.checkCustomerRole, customer_conversation_controller_1.CustomerConversationController.getConversationMessages);
 router.post('/conversations/:conversationId/messages', customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.sendMessageParams, customer_conversation_controller_1.CustomerConversationController.sendMessage);
+// trips day
+router.post('/trip/:tripDayId/comfirm/arrival', customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.tripArrivalComfirmParams, customer_tripDay_controller_1.CustomerTripDayController.customerverifiedContractorSiteArrivalController);
 // router.get("/get_popular_contractor", checkCustomerRole, customerGetPopularContractorController ); // customer get popular contractor
 // router.get("/search_contractor", checkCustomerRole, customerSearchForContractorController ); // customer search contractor
 // router.get("/get_all_contractor_on_skill", validateContractorSearckParams, checkCustomerRole, customerGetAllContractorOnSkillController ); // customer get all contractor on a skill

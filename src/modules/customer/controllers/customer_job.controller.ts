@@ -26,7 +26,7 @@ import { applyAPIFeature } from "../../../utils/api.feature";
 import { ConversationEntityType, ConversationModel, IConversation } from "../../../database/common/conversations.schema";
 import { IMessage, MessageModel, MessageType } from "../../../database/common/messages.schema";
 import { Date } from "mongoose";
-import { JobApplicationModel } from "../../../database/common/job_application.model";
+import { JobQoutationModel } from "../../../database/common/job_quotation.model";
 import TransactionModel from "../../../database/common/transaction.model";
 import { StripeService } from "../../../services/stripe";
 
@@ -175,9 +175,8 @@ export const createJobRequest = async (
 
 
         res.status(201).json({ success: true, message: 'Job request submitted successfully', data: newJob });
-    } catch (error) {
-        console.error('Error submitting job request:', error);
-        return next(new BadRequestError('Bad Request'));
+    } catch (error: any) {
+        return next(new BadRequestError('Bad Request', error));
     }
 
 }
@@ -186,6 +185,7 @@ export const createJobRequest = async (
 export const createJobListing = async (
     req: any,
     res: Response,
+    next: NextFunction,
 ) => {
 
     try {
@@ -249,15 +249,14 @@ export const createJobListing = async (
         await newJob.save();
 
         res.status(201).json({ success: true, message: 'Job listing submitted successfully', data: newJob });
-    } catch (error) {
-        console.error('Error submitting job listing:', error);
-        res.status(400).json({ success: false, message: 'Bad Request' });
+    } catch (error: any) {
+        return next(new BadRequestError('An error occured ', error))
     }
 
 }
 
 
-export const getJobs = async (req: any, res: Response) => {
+export const getJobs = async (req: any, res: Response, next: NextFunction) => {
     try {
         // Validate incoming request
         const errors = validationResult(req);
@@ -305,13 +304,12 @@ export const getJobs = async (req: any, res: Response) => {
         const { data, error } = await applyAPIFeature(JobModel.find(filter), req.query)
 
         res.json({ success: true, message: 'Jobs retrieved', data: data });
-    } catch (error) {
-        console.error('Error retrieving jobs:', error);
-        res.status(400).json({ success: false, message: 'Something went wrong' });
+    } catch (error:any) {
+        return next(new BadRequestError('An error occured ', error))
     }
 };
 
-export const getSingleJob = async (req: any, res: Response) => {
+export const getSingleJob = async (req: any, res: Response, next: NextFunction) => {
     try {
 
         const customerId = req.customer.id
@@ -326,29 +324,46 @@ export const getSingleJob = async (req: any, res: Response) => {
 
         // If the job exists, return it as a response
         res.json({ success: true, message: 'Job retrieved', data: job });
-    } catch (error) {
-        console.error('Error retrieving job:', error);
-        res.status(500).json({ success: false, message: 'Internal Server Error' });
+    } catch (error: any) {
+        return next(new BadRequestError('An error occured ', error))
     }
 };
 
-export const getSingleJobApplications = async (req: any, res: Response) => {
+export const getJobQuotations = async (req: any, res: Response, next: NextFunction) => {
     try {
         const customerId = req.customer.id;
         const jobId = req.params.jobId;
 
-        const job = await JobModel.findOne({ customer: customerId, _id: jobId }).populate('applications');
+        const job = await JobModel.findOne({ customer: customerId, _id: jobId }).populate('quotations');
 
         // Check if the job exists
         if (!job) {
             return res.status(404).json({ success: false, message: 'Job not found' });
         }
 
-        // If the job exists, return its applications as a response
-        res.json({ success: true, message: 'Job applications retrieved', data: job.applications });
-    } catch (error) {
-        console.error('Error retrieving job applications:', error);
-        res.status(500).json({ success: false, message: 'Internal Server Error' });
+        // If the job exists, return its quo as a response
+        res.json({ success: true, message: 'Job quotations retrieved', data: job.quotations });
+    } catch (error: any) {
+        return next(new BadRequestError('An error occured ', error))
+    }
+};
+
+export const getSingleQuotation = async (req: any, res: Response, next: NextFunction) => {
+    try {
+        const customerId = req.customer.id;
+        const {jobId, quotationId} = req.params;
+
+        const quotation = await JobQoutationModel.findOne({ _id: quotationId, job: jobId });
+
+        // Check if the job exists
+        if (!quotation) {
+            return res.status(404).json({ success: false, message: 'Qoutation not found' });
+        }
+
+        quotation.charges = await quotation.calculateCharges()
+        res.json({ success: true, message: 'Job quotation retrieved', data: quotation });
+    } catch (error: any) {
+        return next(new BadRequestError('An error occured ', error))
     }
 };
 
@@ -359,13 +374,15 @@ export const getSingleJobApplications = async (req: any, res: Response) => {
 export const makeJobPayment = async (
     req: any,
     res: Response,
+    next: NextFunction
 ) => {
 
     try {
         const {
-            jobId,
-            applicationId,
+            quotationId,
         } = req.body;
+
+        const jobId = req.params.jobId
 
         // Check for validation errors
         const errors = validationResult(req);
@@ -386,37 +403,40 @@ export const makeJobPayment = async (
 
         //const job = await JobModel.findOne({_id: jobId, customerId, status: 'sent qoutation'})
         const job = await JobModel.findOne({ _id: jobId })
-        const application = await JobApplicationModel.findOne({ _id: applicationId })
-        if (!application) {
-            return res
-                .status(401)
-                .json({ message: "Job application not found" });
-        }
-
+       
         if (!job) {
             return res
                 .status(401)
-                .json({ message: "job do not exist or qoutation have not be sent" });
+                .json({ message: "job do not exist" });
         }
 
-        const contractor = await ContractorModel.findOne({ _id: job.contractor });
 
-        let secret = process.env.STRIPE_KEY || "sk_test_51OTMkGIj2KYudFaR1rNIBOPTaBESYoJco6lTCBZw5a0inyttRJOotcds1rXpXCJDSJrpNmIt2FBAaSxdmuma3ZTF00h48RxVny";
-
-        let stripeInstance;
-
-        if (!secret) {
+        const quotation = await JobQoutationModel.findOne({ _id: quotationId })
+        if (!quotation) {
             return res
                 .status(401)
-                .json({ message: "Sripe API Key is missing" });
+                .json({ message: "Job quotation not found" });
         }
 
-        stripeInstance = new stripe(secret);
+       
+        const contractor = await ContractorModel.findOne({ _id: quotation.contractor });
+
+        // let secret = process.env.STRIPE_KEY || "sk_test_51OTMkGIj2KYudFaR1rNIBOPTaBESYoJco6lTCBZw5a0inyttRJOotcds1rXpXCJDSJrpNmIt2FBAaSxdmuma3ZTF00h48RxVny";
+
+        // let stripeInstance;
+
+        // if (!secret) {
+        //     return res
+        //         .status(401)
+        //         .json({ message: "Sripe API Key is missing" });
+        // }
+
+        // stripeInstance = new stripe(secret);
 
         const generateInvoce = new Date().getTime().toString()
 
         const invoiceId = generateInvoce.substring(generateInvoce.length - 5)
-        const charges = await application.calculateCharges(applicationId)
+        const charges = await quotation.calculateCharges()
 
         const newTransaction = new TransactionModel({
             type: 'credit',
@@ -446,11 +466,13 @@ export const makeJobPayment = async (
                         product_data: {
                             name: `qoutation payment from ${contractor?.firstName}`
                         },
-                        unit_amount: parseFloat(charges.totalAmount.toFixed(2)) * 100,
+                        unit_amount: (charges.totalAmount) * 100,
                     },
                     quantity: 1,
                 },
             ],
+            currency: 'usd',
+            amount: (charges.totalAmount) * 100,
             metadata: {
                 customerId,
                 type: "payment",
@@ -462,10 +484,9 @@ export const makeJobPayment = async (
         }
 
         //@ts-ignore
-        const paymentMethod = customer.stripePaymentMethods.find((method) => method.type === "card")
-
-        if (!paymentMethod) throw new Error("No valid card available for this user");
-        const stripePayment = await StripeService.payment.chargeCustomer(customer.stripeCustomer.id, 'pm_1P00BvDdPEZ0JirQhBqMa6yn', payload)
+        // const paymentMethod = customer.stripePaymentMethods.find((method) => method.type === "card")
+        // if (!paymentMethod) throw new Error("No valid card available for this user");
+        const stripePayment = await StripeService.payment.chargeCustomer('cus_PkdahAH5iZEr9x', 'pm_1P0OWEDdPEZ0JirQE8mHHVxk', payload)
 
         job.status = JobStatus.BOOKED;
         await job.save()
@@ -473,8 +494,7 @@ export const makeJobPayment = async (
         res.json({success:true, message: 'Payment intent created', data: stripePayment });
 
     } catch (err: any) {
-        // signup error
-        res.status(500).json({ message: err.message });
+        return next(new BadRequestError('An error occured ', err))
     }
 
 }
@@ -1288,7 +1308,9 @@ export const CustomerJobController = {
     getJobs,
     createJobListing,
     getSingleJob,
-    getSingleJobApplications
+    getJobQuotations,
+    getSingleQuotation,
+    makeJobPayment
 }
 
 

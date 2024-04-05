@@ -42,7 +42,7 @@ var JobHistorySchema = new mongoose_1.Schema({
 var JobSchema = new mongoose_1.Schema({
     customer: { type: mongoose_1.Schema.Types.ObjectId, ref: 'customers', required: true },
     contractor: { type: mongoose_1.Schema.Types.ObjectId, ref: 'contractors' },
-    application: { type: mongoose_1.Schema.Types.ObjectId, ref: 'job_applications' },
+    quotation: { type: mongoose_1.Schema.Types.ObjectId, ref: 'job_quotations' },
     contractorType: { type: String },
     status: { type: String, enum: Object.values(JobStatus), default: JobStatus.PENDING },
     type: { type: String, enum: Object.values(JobType), default: JobType.LISTING },
@@ -62,17 +62,34 @@ var JobSchema = new mongoose_1.Schema({
     jobHistory: [JobHistorySchema], // Array of job history entries
     schedules: [ScheduleSchema],
     invoices: [{ type: mongoose_1.Schema.Types.ObjectId, ref: 'invoices', }],
-    applications: {
-        type: [String],
-        ref: 'job_applications'
+    quotations: {
+        type: [mongoose_1.Schema.Types.ObjectId],
+        ref: 'job_quotations'
     },
     emergency: { type: Boolean, default: false }
 }, { timestamps: true });
-JobSchema.virtual('totalApplications').get(function () {
-    return this.applications.length;
+JobSchema.virtual('totalQuotations').get(function () {
+    return this.quotations.length;
 });
-JobSchema.set('toJSON', {
-    virtuals: true
+// JobSchema.virtual('hasSentQuotation', {
+//     ref: 'job_quotations',
+//     foreignField: 'contractor', // Assuming this field stores the contractorId in the job_quotations model
+//     localField: function() { return 'contractor' }, // Using a function to dynamically return the localField
+//     justOne: true,
+//     // options: { contractorId: { type: Schema.Types.ObjectId } }, // Define the contractorId option
+//     match: function(options: any) {
+//         console.log(options.contractorId) 
+//       return { _id: { $in: this.quotations }, contractor: options.contractorId }; // Use the passed contractorId option
+//     }
+// });
+JobSchema.virtual('myQuotation', {
+    ref: 'job_quotations',
+    foreignField: 'contractor', // Assuming this field stores the contractorId in the job_quotations model
+    localField: 'contractor', // Using a string to specify the localField
+    justOne: true,
+    options: { contractorId: { type: mongoose_1.Schema.Types.ObjectId } }, // Define the contractorId option
 });
+JobSchema.set('toObject', { virtuals: true });
+JobSchema.set('toJSON', { virtuals: true });
 var JobModel = (0, mongoose_1.model)("jobs", JobSchema);
 exports.JobModel = JobModel;
