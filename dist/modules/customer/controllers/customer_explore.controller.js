@@ -46,11 +46,24 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerExploreController = exports.exploreContractors = void 0;
+exports.CustomerExploreController = exports.getContractorSchedules = exports.getSingleContractor = exports.exploreContractors = void 0;
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var schedule_util_1 = require("../../../utils/schedule.util");
+var custom_errors_1 = require("../../../utils/custom.errors");
+var contractor_profile_model_1 = require("../../../database/contractor/models/contractor_profile.model");
+var date_fns_1 = require("date-fns");
+var contractor_schedule_model_1 = require("../../../database/contractor/models/contractor_schedule.model");
 var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, distance, latitude, longitude, emergencyJobs, category, location_1, city, country, address, accountType, date, isOffDuty, availableDays, experienceYear, gstNumber, _b, page, _c, limit, sort // Sort field and order (-fieldName or fieldName)
     , availableDaysArray, skip, pipeline, contractorIdsWithDateInSchedule, _d, sortField, sortOrder, sortStage, result, contractors, metadata, err_1;
@@ -104,8 +117,6 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
                             password: 0,
                             emailOtp: 0,
                             dateOfBirth: 0,
-                            "profile.previousJobPhotos": 0,
-                            "profile.previousJobVideos": 0,
                         }
                     }
                 ];
@@ -198,6 +209,118 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
     });
 }); };
 exports.exploreContractors = exploreContractors;
+var getSingleContractor = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var contractorId, contractor, error_1;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                contractorId = req.params.contractorId;
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId).populate('profile')];
+            case 1:
+                contractor = _a.sent();
+                if (!contractor) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Contractor not found' })];
+                }
+                // schedule
+                //reviews etc here
+                return [2 /*return*/, res.status(200).json({ success: true, message: 'Contractor  found', data: contractor })];
+            case 2:
+                error_1 = _a.sent();
+                next(new custom_errors_1.BadRequestError('An error occured', error_1));
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getSingleContractor = getSingleContractor;
+var getContractorSchedules = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, year, month, contractorId_1, contractorProfile, startDate_1, endDate_1, expandedSchedules, existingSchedules, mergedSchedules_1, uniqueSchedules, groupedSchedules, error_2;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 3, , 4]);
+                _a = req.query, year = _a.year, month = _a.month;
+                contractorId_1 = req.params.contractorId;
+                return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: contractorId_1 })];
+            case 1:
+                contractorProfile = _b.sent();
+                if (!contractorProfile) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Contractor not found' })];
+                }
+                if (year && !(0, date_fns_1.isValid)(new Date("".concat(year, "-01-01")))) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid year format' })];
+                }
+                if (month) {
+                    // If month is specified, retrieve schedules for that month
+                    if (!(0, date_fns_1.isValid)(new Date("".concat(year, "-").concat(month, "-01")))) {
+                        return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid month format' })];
+                    }
+                    startDate_1 = (0, date_fns_1.startOfMonth)(new Date("".concat(year, "-").concat(month, "-01")));
+                    endDate_1 = (0, date_fns_1.endOfMonth)(new Date("".concat(year, "-").concat(month, "-01")));
+                }
+                else {
+                    // If no month specified, retrieve schedules for the whole year
+                    startDate_1 = (0, date_fns_1.startOfYear)(new Date("".concat(year, "-01-01")));
+                    endDate_1 = (0, date_fns_1.endOfYear)(new Date("".concat(year, "-12-31")));
+                }
+                expandedSchedules = (0, schedule_util_1.generateExpandedSchedule)(contractorProfile.availableDays).filter(function (schedule) {
+                    return schedule.date >= startDate_1 && schedule.date <= endDate_1;
+                });
+                return [4 /*yield*/, contractor_schedule_model_1.ContractorScheduleModel.find({
+                        contractor: contractorId_1,
+                        date: { $gte: startDate_1, $lte: endDate_1 },
+                    })];
+            case 2:
+                existingSchedules = _b.sent();
+                mergedSchedules_1 = __spreadArray(__spreadArray([], expandedSchedules, true), existingSchedules, true);
+                uniqueSchedules = mergedSchedules_1.filter(function (schedule, index) {
+                    var date = schedule.date.toDateString();
+                    // Check if the current schedule's date is unique within the mergedSchedules array
+                    var isFirstOccurrence = mergedSchedules_1.findIndex(function (s) { return s.date.toDateString() === date; }) === index;
+                    // Retain the existing schedule and the first occurrence of other dates
+                    return schedule.events ? schedule : isFirstOccurrence;
+                });
+                groupedSchedules = uniqueSchedules.reduce(function (acc, schedule) {
+                    var key = (0, date_fns_1.format)(new Date(schedule.date), 'yyyy-M');
+                    if (!acc[key]) {
+                        acc[key] = { schedules: [], summary: {}, events: [] };
+                    }
+                    schedule.contractor = contractorId_1;
+                    acc[key].schedules.push(schedule);
+                    // Use the event type as the key for the summary object
+                    if (!acc[key].summary[schedule.type]) {
+                        acc[key].summary[schedule.type] = [];
+                    }
+                    acc[key].summary[schedule.type].push((0, date_fns_1.getDate)(new Date(schedule.date)));
+                    // console.log((new Date(schedule.date + 'GMT+800').getDate()), schedule.date)
+                    // Include events summary if events are defined
+                    if (schedule.events) {
+                        var eventsSummary = schedule.events.map(function (event) { return ({
+                            title: event.title,
+                            booking: event.booking,
+                            date: event.date,
+                            startTime: event.startTime,
+                            endTime: event.endTime,
+                        }); });
+                        acc[key].events = acc[key].events.concat(eventsSummary);
+                    }
+                    return acc;
+                }, {});
+                res.json({ success: true, message: 'Contractor schedules retrieved successfully', data: groupedSchedules });
+                return [3 /*break*/, 4];
+            case 3:
+                error_2 = _b.sent();
+                console.error('Error retrieving schedules:', error_2);
+                res.status(500).json({ success: false, message: 'Internal Server Error' });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getContractorSchedules = getContractorSchedules;
 exports.CustomerExploreController = {
-    exploreContractors: exports.exploreContractors
+    exploreContractors: exports.exploreContractors,
+    getSingleContractor: exports.getSingleContractor,
+    getContractorSchedules: exports.getContractorSchedules
 };

@@ -386,7 +386,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                             includeStripeCustomer = includedFields.includes('stripeCustomer');
                             includeStripePaymentMethods = includedFields.includes('stripePaymentMethods');
                         }
-                        return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
+                        return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId).populate('profile')];
                     case 2:
                         contractor = _b.sent();
                         quiz = (_a = contractor === null || contractor === void 0 ? void 0 : contractor.quiz) !== null && _a !== void 0 ? _a : null;
