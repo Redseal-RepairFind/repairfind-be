@@ -19,6 +19,9 @@ export const getConversations = async (req: any, res: Response) => {
             // Map through each conversation and fetch heading info
             await Promise.all(data.data.map(async (conversation: any) => {
                 conversation.heading = await conversation.getHeading(contractorId);
+                if(conversation.entityType == 'jobs'){
+                    conversation.entity.myQuotation = await conversation.entity.getMyQoutation(conversation.entity.id, contractorId);
+                }
             }));
         }
 
@@ -41,6 +44,11 @@ export const getSingleConversation = async (req: any, res: Response)=> {
         const conversation = await ConversationModel.findOne(query).populate(['entity', 'members']).exec();
         if(conversation){
             conversation.heading = await conversation.getHeading(contractorId);
+            
+            if(conversation.entityType == 'jobs'){
+                //@ts-ignore
+                conversation.entity.myQuotation = await conversation.entity.getMyQoutation(conversation.entity.id, contractorId);
+            }
         }
         res.status(200).json({ success: true, message: "Conversation retrieved", data: conversation });
     } catch (error) {
