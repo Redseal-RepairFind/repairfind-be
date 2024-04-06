@@ -138,7 +138,7 @@ router.get('/jobs', checkContractorRole, ContractorJobController.getJobRequests)
 
 // Job Listings
 router.get('/jobs/listings', checkContractorRole, ContractorJobController.getJobListings)
-router.get('/jobs/listings/jobId', checkContractorRole, ContractorJobController.getJobListings)
+router.get('/jobs/listings/:jobId', checkContractorRole, ContractorJobController.getJobListingById)
 
 // Job Request
 router.get('/jobs/requests', checkContractorRole, ContractorJobController.getJobRequests)

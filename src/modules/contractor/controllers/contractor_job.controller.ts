@@ -289,6 +289,8 @@ export const rejectJobRequest = async (req: any, res: Response) => {
 };
 
 
+
+
 export const getJobRequestById = async (req: any, res: Response, next: NextFunction) => {
   try {
     const errors = validationResult(req);
@@ -327,6 +329,48 @@ export const getJobRequestById = async (req: any, res: Response, next: NextFunct
     return next(new BadRequestError('Bad Request'));
   }
 };
+
+
+
+export const getJobListingById = async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    const { jobId } = req.params;
+    const contractorId = req.contractor.id;
+
+
+    const options = {
+      contractorId: contractorId, // Define other options here if needed
+      //@ts-ignore
+      match: function () {
+        //@ts-ignore
+        return { _id: { $in: this.quotations }, contractor: options.contractorId };
+      }
+    };
+
+    const jobRequest = await JobModel.findOne({ _id: jobId, type: JobType.LISTING })
+      .populate(['contractor', 'customer', { path: 'myQuotation', options: options }])
+      .exec();
+
+
+
+
+    if (!jobRequest) {
+      return next(new NotFoundError('Job listing not found'));
+    }
+
+
+    // Return the job request details
+    res.json({ success: true, data: jobRequest });
+  } catch (error) {
+    console.error('Error retrieving job listing:', error);
+    return next(new BadRequestError('Bad Request'));
+  }
+};
+
 
 
 //contractor send job quatation /////////////
@@ -1812,7 +1856,8 @@ export const ContractorJobController = {
   acceptJobRequest,
   sendJobQuotation,
   getQuotationForJob,
-  updateJobQuotation
+  updateJobQuotation,
+  getJobListingById
 }
 
 
