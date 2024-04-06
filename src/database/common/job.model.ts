@@ -149,18 +149,6 @@ JobSchema.virtual('totalQuotations').get(function () {
 
 
 
-// JobSchema.virtual('hasSentQuotation', {
-//     ref: 'job_quotations',
-//     foreignField: 'contractor', // Assuming this field stores the contractorId in the job_quotations model
-//     localField: function() { return 'contractor' }, // Using a function to dynamically return the localField
-//     justOne: true,
-//     // options: { contractorId: { type: Schema.Types.ObjectId } }, // Define the contractorId option
-//     match: function(options: any) {
-//         console.log(options.contractorId) 
-//       return { _id: { $in: this.quotations }, contractor: options.contractorId }; // Use the passed contractorId option
-//     }
-// });
-
 JobSchema.virtual('myQuotation', {
     ref: 'job_quotations',
     foreignField: 'contractor', // Assuming this field stores the contractorId in the job_quotations model
@@ -169,6 +157,21 @@ JobSchema.virtual('myQuotation', {
     options: { contractorId: { type: Schema.Types.ObjectId } }, // Define the contractorId option
 });
 
+
+JobSchema.statics.hasContractorQuotation = async function(jobId, contractorId) {
+    try {
+      const job = await this.findById(jobId).populate({
+        path: 'quotations',
+        match: { contractor: contractorId } // Match quotations by contractorId
+      });
+  
+      return job.quotations.length > 0; // Return true if contractor has quotations for the job
+    } catch (error) {
+      console.error('Error checking contractor quotations:', error);
+      return false; // Return false in case of any errors
+    }
+  };
+  
 
   JobSchema.set('toObject', { virtuals: true });
   JobSchema.set('toJSON', { virtuals: true });

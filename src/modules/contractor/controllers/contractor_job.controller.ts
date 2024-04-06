@@ -15,6 +15,7 @@ import { Document, PipelineStage as MongoosePipelineStage } from 'mongoose'; // 
 import { ConversationEntityType, ConversationModel } from "../../../database/common/conversations.schema";
 import { MessageModel, MessageType } from "../../../database/common/messages.schema";
 import { error } from "console";
+import { EmailService } from "../../../services";
 
 
 export const getJobRequests = async (req: any, res: Response) => {
@@ -387,6 +388,7 @@ export const sendJobQuotation = async (
     } = req.body;
 
     const { jobId } = req.params
+    const contractorId = req.contractor.id
 
 
     // Check for validation errors
@@ -396,11 +398,8 @@ export const sendJobQuotation = async (
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const contractorId = req.contractor.id
 
-    //get user info from databas
     const contractor = await ContractorModel.findOne({ _id: contractorId });
-
     if (!contractor) {
       return res
         .status(401)
@@ -408,7 +407,6 @@ export const sendJobQuotation = async (
     }
 
     const job = await JobModel.findOne({ _id: jobId }).sort({ createdAt: -1 })
-
     if (!job) {
       return res
         .status(401)
@@ -421,16 +419,14 @@ export const sendJobQuotation = async (
         .json({ message: "invalid estimate format" });
     }
 
-
     const customer = await CustomerModel.findOne({ _id: job.customer })
-
-
     if (!customer) {
       return res
         .status(401)
         .json({ message: "invalid customer Id" });
     }
 
+    
     let jobQuotation = await JobQoutationModel.findOneAndUpdate({ job: jobId, contractor: contractorId }, {
       startDate,
       endDate,
@@ -439,6 +435,7 @@ export const sendJobQuotation = async (
       jobId,
       contractorId
     }, { new: true, upsert: true })
+
 
     jobQuotation.charges = await jobQuotation.calculateCharges();
 
@@ -469,18 +466,9 @@ export const sendJobQuotation = async (
 
     await job.save()
 
-    // @ts-ignore
-    const html = htmlJobQoutationTemplate(customer.firstName, contractor.name)
-    let emailData = {
-      emailTo: customer.email,
-      subject: "Job quotation from contractor",
-      html
-    };
+    
 
-    // await sendEmail(emailData);
-
-
-    // Create or update conversation
+    // Create or update conversation and send message to customer
     const conversationMembers = [
       { memberType: 'customers', member: customer.id },
       { memberType: 'contractors', member: contractorId }
@@ -502,14 +490,47 @@ export const sendJobQuotation = async (
       },
       { new: true, upsert: true });
 
-    const message = new MessageModel({
+    await MessageModel.create({
       conversation: conversation.id,
       sender: contractorId,
       receiver: customer.id,
       message: "I am available for this Job",
       messageType: MessageType.TEXT,
     });
-    await message.save();
+   
+
+
+    // DO OTHER THINGS HERE
+
+    if(estimates){
+      // @ts-ignore
+      const html = htmlJobQoutationTemplate(customer.firstName, contractor.name)
+      EmailService.send(customer.email, 'Job quotation from contractor', html)
+
+      await MessageModel.create({
+        conversation: conversation.id,
+        sender: contractorId,
+        receiver: customer.id,
+        message: "Please see attached estimate",
+        messageType: MessageType.ALERT,
+      });
+
+
+    }
+
+    if(siteVisit){
+      //send message alert indicating that contractor has requested for site visit
+      await MessageModel.create({
+        conversation: conversation.id,
+        sender: contractorId,
+        receiver: customer.id,
+        message: "Contractor requested for site visit",
+        messageType: MessageType.ALERT,
+      });
+
+    }
+
+
 
     res.json({
       success: true,
@@ -579,7 +600,7 @@ export const updateJobQuotation = async (req: any, res: Response, next: NextFunc
 
 
     // Find the job application for the specified job and contractor
-    let jobQuotation = await JobQoutationModel.findOne({ jobId, contractorId });
+    let jobQuotation = await JobQoutationModel.findOne({ job: jobId, contractor: contractorId });
 
     // If the job application does not exist, create a new one
     if (!jobQuotation) {
