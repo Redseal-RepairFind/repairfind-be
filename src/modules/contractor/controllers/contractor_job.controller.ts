@@ -535,16 +535,16 @@ export const getQuotationForJob = async (req: any, res: Response, next: NextFunc
     }
 
     // Find the job application for the specified job and contractor
-    const jobQuotation = await JobQoutationModel.findOne({ jobId, contractorId });
+    const jobQuotation = await JobQoutationModel.findOne({ job:jobId, contractor:contractorId });
 
     // Check if the job application exists
     if (!jobQuotation) {
-      return res.status(404).json({ success: false, message: 'Job application not found' });
+      return res.status(404).json({ success: false, message: 'Job quotation not found' });
     }
 
     jobQuotation.charges = await jobQuotation.calculateCharges()
 
-    res.status(200).json({ success: true, message: 'Job application retrieved successfully', data: jobQuotation });
+    res.status(200).json({ success: true, message: 'Job quotation retrieved successfully', data: jobQuotation });
   } catch (error: any) {
     return next(new BadRequestError('An error occured ', error))
   }

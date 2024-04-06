@@ -519,18 +519,18 @@ var getQuotationForJob = function (req, res, next) { return __awaiter(void 0, vo
                 if (!jobId) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Job ID  are required' })];
                 }
-                return [4 /*yield*/, job_quotation_model_1.JobQoutationModel.findOne({ jobId: jobId, contractorId: contractorId })];
+                return [4 /*yield*/, job_quotation_model_1.JobQoutationModel.findOne({ job: jobId, contractor: contractorId })];
             case 1:
                 jobQuotation = _b.sent();
                 // Check if the job application exists
                 if (!jobQuotation) {
-                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Job application not found' })];
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Job quotation not found' })];
                 }
                 _a = jobQuotation;
                 return [4 /*yield*/, jobQuotation.calculateCharges()];
             case 2:
                 _a.charges = _b.sent();
-                res.status(200).json({ success: true, message: 'Job application retrieved successfully', data: jobQuotation });
+                res.status(200).json({ success: true, message: 'Job quotation retrieved successfully', data: jobQuotation });
                 return [3 /*break*/, 4];
             case 3:
                 error_7 = _b.sent();
