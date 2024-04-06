@@ -289,7 +289,6 @@ export const rejectJobRequest = async (req: any, res: Response) => {
 
 
 
-
 export const getJobRequestById = async (req: any, res: Response, next: NextFunction) => {
   try {
     const errors = validationResult(req);
@@ -309,20 +308,19 @@ export const getJobRequestById = async (req: any, res: Response, next: NextFunct
       }
     };
 
-    const jobRequest = await JobModel.findOne({ _id: jobId, contractor: contractorId, type: JobType.REQUEST })
+    const job = await JobModel.findOne({ _id: jobId, contractor: contractorId, type: JobType.REQUEST })
       .populate(['contractor', 'customer', { path: 'myQuotation', options: options }])
       .exec();
 
 
-
-
-    if (!jobRequest) {
+    if (!job) {
       return next(new NotFoundError('Job request not found'));
     }
 
+    job.myQuotation = await job.getMyQoutation(jobId, contractorId);
 
     // Return the job request details
-    res.json({ success: true, data: jobRequest });
+    res.json({ success: true, data: job });
   } catch (error) {
     console.error('Error retrieving job request:', error);
     return next(new BadRequestError('Bad Request'));
@@ -350,20 +348,22 @@ export const getJobListingById = async (req: any, res: Response, next: NextFunct
       }
     };
 
-    const jobRequest = await JobModel.findOne({ _id: jobId, type: JobType.LISTING })
+    const job = await JobModel.findOne({ _id: jobId, type: JobType.LISTING })
       .populate(['contractor', 'customer', { path: 'myQuotation', options: options }])
       .exec();
 
 
 
 
-    if (!jobRequest) {
+    if (!job) {
       return next(new NotFoundError('Job listing not found'));
     }
 
+    job.myQuotation = await job.getMyQoutation(jobId, contractorId);
+
 
     // Return the job request details
-    res.json({ success: true, data: jobRequest });
+    res.json({ success: true, data: job });
   } catch (error) {
     console.error('Error retrieving job listing:', error);
     return next(new BadRequestError('Bad Request'));

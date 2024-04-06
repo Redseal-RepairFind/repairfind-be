@@ -74,6 +74,9 @@ export interface IJob extends Document {
     invoices: ObjectId[];
     schedules: [IJobSchedule];
     emergency: boolean;
+    myQuotation: Object | null
+    getMyQoutation: (jobId: ObjectId, contractorId: ObjectId) => {
+    };
 }
 
 
@@ -135,7 +138,8 @@ const JobSchema = new Schema<IJob>({
         type: [Schema.Types.ObjectId],
         ref: 'job_quotations'
     },
-    emergency: {type: Boolean, default:false}
+    emergency: {type: Boolean, default:false},
+    myQuotation: { type: Object, default: null },
 }, { timestamps: true });
 
 
@@ -149,29 +153,31 @@ JobSchema.virtual('totalQuotations').get(function () {
 
 
 
-JobSchema.virtual('myQuotation', {
-    ref: 'job_quotations',
-    foreignField: 'contractor', // Assuming this field stores the contractorId in the job_quotations model
-    localField: 'contractor', // Using a string to specify the localField
-    justOne: true,
-    options: { contractorId: { type: Schema.Types.ObjectId } }, // Define the contractorId option
-});
+// JobSchema.virtual('myQuotation', {
+//     ref: 'job_quotations',
+//     foreignField: 'contractor', // Assuming this field stores the contractorId in the job_quotations model
+//     localField: 'contractor', // Using a string to specify the localField
+//     justOne: true,
+//     options: { contractorId: { type: Schema.Types.ObjectId } }, // Define the contractorId option
+// });
 
 
-JobSchema.statics.hasContractorQuotation = async function(jobId, contractorId) {
-    try {
-      const job = await this.findById(jobId).populate({
+
+JobSchema.methods.getMyQoutation = async function (jobId: any, contractorId: any) {
+    const job = await this.populate({
         path: 'quotations',
         match: { contractor: contractorId } // Match quotations by contractorId
       });
   
-      return job.quotations.length > 0; // Return true if contractor has quotations for the job
-    } catch (error) {
-      console.error('Error checking contractor quotations:', error);
-      return false; // Return false in case of any errors
+    if(job.quotations.length){
+        return job.quotations[0]
+    }else{
+        return null
     }
-  };
-  
+    
+};
+
+
 
   JobSchema.set('toObject', { virtuals: true });
   JobSchema.set('toJSON', { virtuals: true });

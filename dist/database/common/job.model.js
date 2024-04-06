@@ -102,37 +102,37 @@ var JobSchema = new mongoose_1.Schema({
         type: [mongoose_1.Schema.Types.ObjectId],
         ref: 'job_quotations'
     },
-    emergency: { type: Boolean, default: false }
+    emergency: { type: Boolean, default: false },
+    myQuotation: { type: Object, default: null },
 }, { timestamps: true });
 JobSchema.virtual('totalQuotations').get(function () {
     return this.quotations.length;
 });
-JobSchema.virtual('myQuotation', {
-    ref: 'job_quotations',
-    foreignField: 'contractor', // Assuming this field stores the contractorId in the job_quotations model
-    localField: 'contractor', // Using a string to specify the localField
-    justOne: true,
-    options: { contractorId: { type: mongoose_1.Schema.Types.ObjectId } }, // Define the contractorId option
-});
-JobSchema.statics.hasContractorQuotation = function (jobId, contractorId) {
+// JobSchema.virtual('myQuotation', {
+//     ref: 'job_quotations',
+//     foreignField: 'contractor', // Assuming this field stores the contractorId in the job_quotations model
+//     localField: 'contractor', // Using a string to specify the localField
+//     justOne: true,
+//     options: { contractorId: { type: Schema.Types.ObjectId } }, // Define the contractorId option
+// });
+JobSchema.methods.getMyQoutation = function (jobId, contractorId) {
     return __awaiter(this, void 0, void 0, function () {
-        var job, error_1;
+        var job;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0:
-                    _a.trys.push([0, 2, , 3]);
-                    return [4 /*yield*/, this.findById(jobId).populate({
-                            path: 'quotations',
-                            match: { contractor: contractorId } // Match quotations by contractorId
-                        })];
+                case 0: return [4 /*yield*/, this.populate({
+                        path: 'quotations',
+                        match: { contractor: contractorId } // Match quotations by contractorId
+                    })];
                 case 1:
                     job = _a.sent();
-                    return [2 /*return*/, job.quotations.length > 0]; // Return true if contractor has quotations for the job
-                case 2:
-                    error_1 = _a.sent();
-                    console.error('Error checking contractor quotations:', error_1);
-                    return [2 /*return*/, false]; // Return false in case of any errors
-                case 3: return [2 /*return*/];
+                    if (job.quotations.length) {
+                        return [2 /*return*/, job.quotations[0]];
+                    }
+                    else {
+                        return [2 /*return*/, null];
+                    }
+                    return [2 /*return*/];
             }
         });
     });

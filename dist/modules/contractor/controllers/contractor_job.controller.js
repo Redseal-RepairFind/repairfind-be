@@ -302,11 +302,11 @@ var rejectJobRequest = function (req, res) { return __awaiter(void 0, void 0, vo
 }); };
 exports.rejectJobRequest = rejectJobRequest;
 var getJobRequestById = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, jobId, contractorId, options_1, jobRequest, error_5;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var errors, jobId, contractorId, options_1, job, _a, error_5;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
-                _a.trys.push([0, 2, , 3]);
+                _b.trys.push([0, 3, , 4]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -325,28 +325,32 @@ var getJobRequestById = function (req, res, next) { return __awaiter(void 0, voi
                         .populate(['contractor', 'customer', { path: 'myQuotation', options: options_1 }])
                         .exec()];
             case 1:
-                jobRequest = _a.sent();
-                if (!jobRequest) {
+                job = _b.sent();
+                if (!job) {
                     return [2 /*return*/, next(new custom_errors_1.NotFoundError('Job request not found'))];
                 }
-                // Return the job request details
-                res.json({ success: true, data: jobRequest });
-                return [3 /*break*/, 3];
+                _a = job;
+                return [4 /*yield*/, job.getMyQoutation(jobId, contractorId)];
             case 2:
-                error_5 = _a.sent();
+                _a.myQuotation = _b.sent();
+                // Return the job request details
+                res.json({ success: true, data: job });
+                return [3 /*break*/, 4];
+            case 3:
+                error_5 = _b.sent();
                 console.error('Error retrieving job request:', error_5);
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('Bad Request'))];
-            case 3: return [2 /*return*/];
+            case 4: return [2 /*return*/];
         }
     });
 }); };
 exports.getJobRequestById = getJobRequestById;
 var getJobListingById = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, jobId, contractorId, options_2, jobRequest, error_6;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var errors, jobId, contractorId, options_2, job, _a, error_6;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
-                _a.trys.push([0, 2, , 3]);
+                _b.trys.push([0, 3, , 4]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -365,18 +369,22 @@ var getJobListingById = function (req, res, next) { return __awaiter(void 0, voi
                         .populate(['contractor', 'customer', { path: 'myQuotation', options: options_2 }])
                         .exec()];
             case 1:
-                jobRequest = _a.sent();
-                if (!jobRequest) {
+                job = _b.sent();
+                if (!job) {
                     return [2 /*return*/, next(new custom_errors_1.NotFoundError('Job listing not found'))];
                 }
-                // Return the job request details
-                res.json({ success: true, data: jobRequest });
-                return [3 /*break*/, 3];
+                _a = job;
+                return [4 /*yield*/, job.getMyQoutation(jobId, contractorId)];
             case 2:
-                error_6 = _a.sent();
+                _a.myQuotation = _b.sent();
+                // Return the job request details
+                res.json({ success: true, data: job });
+                return [3 /*break*/, 4];
+            case 3:
+                error_6 = _b.sent();
                 console.error('Error retrieving job listing:', error_6);
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('Bad Request'))];
-            case 3: return [2 /*return*/];
+            case 4: return [2 /*return*/];
         }
     });
 }); };
