@@ -338,7 +338,7 @@ class ProfileHandler extends Base {
       }
 
 
-      const contractor = await ContractorModel.findById(contractorId);
+      const contractor = await ContractorModel.findById(contractorId).populate('profile');
       const quiz = contractor?.quiz ?? null;
 
       const contractorResponse = {
