@@ -14,7 +14,7 @@ export const getConversations = async (req: any, res: Response) => {
             filter.createdAt = { $gte: new Date(startDate as string), $lte: new Date(endDate as string) };
         }
 
-        const {data, error} = await applyAPIFeature(ConversationModel.find(filter), req.query);
+        const {data, error} = await applyAPIFeature(ConversationModel.find(filter).populate('entity'), req.query);
         if(data){
             // Map through each conversation and fetch heading info
             await Promise.all(data.data.map(async (conversation: any) => {
@@ -38,16 +38,7 @@ export const getSingleConversation = async (req: any, res: Response)=> {
         const contractorId = req.contractor.id;
         const query: any = { 'members.member': contractorId, _id: conversationId };
 
-        const options = {
-            contractorId: contractorId, // Define other options here if needed
-            //@ts-ignore
-            match: function () {
-              //@ts-ignore
-              return { _id: { $in: this.quotations }, contractor: options.contractorId };
-            }
-          };
-
-        const conversation = await ConversationModel.findOne(query).populate(['entity', 'members', { path: 'entity.myQuotation', options: options}]).exec();
+        const conversation = await ConversationModel.findOne(query).populate(['entity', 'members']).exec();
         if(conversation){
             conversation.heading = await conversation.getHeading(contractorId);
         }

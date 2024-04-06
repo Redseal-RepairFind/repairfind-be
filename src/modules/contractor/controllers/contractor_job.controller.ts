@@ -578,7 +578,7 @@ export const updateJobQuotation = async (req: any, res: Response, next: NextFunc
     const contractorId = req.contractor.id
 
     // Check if the jobId and contractorId are provided
-    if (!jobId || !contractorId) {
+    if (!jobId) {
       return res.status(400).json({ success: false, message: 'Job ID is missing from params' });
     }
 
@@ -591,7 +591,7 @@ export const updateJobQuotation = async (req: any, res: Response, next: NextFunc
     }
 
     // Find the job application for the specified job and contractor
-    let job = await JobModel.findOne({ jobId });
+    let job = await JobModel.findById(jobId);
 
     // If the job application does not exist, create a new one
     if (!job) {

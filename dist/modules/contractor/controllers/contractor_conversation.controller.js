@@ -53,7 +53,7 @@ var getConversations = function (req, res) { return __awaiter(void 0, void 0, vo
                 if (startDate && endDate) {
                     filter.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
                 }
-                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(conversations_schema_1.ConversationModel.find(filter), req.query)];
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(conversations_schema_1.ConversationModel.find(filter).populate('entity'), req.query)];
             case 1:
                 _b = _c.sent(), data = _b.data, error = _b.error;
                 if (!data) return [3 /*break*/, 3];
@@ -92,7 +92,7 @@ var getConversations = function (req, res) { return __awaiter(void 0, void 0, vo
 }); };
 exports.getConversations = getConversations;
 var getSingleConversation = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var conversationId, contractorId, query, options_1, conversation, _a, error_2;
+    var conversationId, contractorId, query, conversation, _a, error_2;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -100,15 +100,7 @@ var getSingleConversation = function (req, res) { return __awaiter(void 0, void 
                 conversationId = req.params.conversationId;
                 contractorId = req.contractor.id;
                 query = { 'members.member': contractorId, _id: conversationId };
-                options_1 = {
-                    contractorId: contractorId, // Define other options here if needed
-                    //@ts-ignore
-                    match: function () {
-                        //@ts-ignore
-                        return { _id: { $in: this.quotations }, contractor: options_1.contractorId };
-                    }
-                };
-                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOne(query).populate(['entity', 'members', { path: 'entity.myQuotation', options: options_1 }]).exec()];
+                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOne(query).populate(['entity', 'members']).exec()];
             case 1:
                 conversation = _b.sent();
                 if (!conversation) return [3 /*break*/, 3];

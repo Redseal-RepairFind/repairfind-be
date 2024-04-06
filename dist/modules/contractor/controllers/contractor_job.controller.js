@@ -579,7 +579,7 @@ var updateJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
                 jobId = req.params.jobId;
                 contractorId = req.contractor.id;
                 // Check if the jobId and contractorId are provided
-                if (!jobId || !contractorId) {
+                if (!jobId) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Job ID is missing from params' })];
                 }
                 _a = req.body, startDate = _a.startDate, endDate = _a.endDate, siteVisit = _a.siteVisit, estimates = _a.estimates;
@@ -587,7 +587,7 @@ var updateJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
-                return [4 /*yield*/, job_model_1.JobModel.findOne({ jobId: jobId })];
+                return [4 /*yield*/, job_model_1.JobModel.findById(jobId)];
             case 1:
                 job = _c.sent();
                 // If the job application does not exist, create a new one
