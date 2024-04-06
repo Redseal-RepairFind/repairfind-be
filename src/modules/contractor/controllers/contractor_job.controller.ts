@@ -169,10 +169,9 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
       {
         entity: jobId,
         entityType: ConversationEntityType.JOB,
-        $and: [
-          { "members.member": contractorId, "members.memberType": 'contractors' },
-          { "members.member": customer.id, "members.memberType": 'customers' }
-        ]
+        members: {
+          $elemMatch: { $or: [{ member: customer.id }, { member: contractorId }] }
+        }
       },
 
       {
@@ -258,10 +257,9 @@ export const rejectJobRequest = async (req: any, res: Response) => {
       {
         entity: jobId,
         entityType: ConversationEntityType.JOB,
-        $and: [
-          { "members.member": contractorId, "members.memberType": 'contractors' },
-          { "members.member": jobRequest.customer, "members.memberType": 'customers' }
-        ]
+        members: {
+          $elemMatch: { $or: [{ member: jobRequest.customer }, { member: contractorId }] }
+        }
       },
 
       {
@@ -492,10 +490,9 @@ export const sendJobQuotation = async (
       {
         entity: jobId,
         entityType: ConversationEntityType.JOB,
-        $and: [
-          { "members.member": contractorId, "members.memberType": 'contractors' },
-          { "members.member": job.customer, "members.memberType": 'customers' }
-        ]
+        members: {
+          $elemMatch: { $or: [{ member: customer.id }, { member: contractorId }] }
+        }
       },
 
       {
@@ -505,7 +502,6 @@ export const sendJobQuotation = async (
       },
       { new: true, upsert: true });
 
-    // Send a message to the customer
     const message = new MessageModel({
       conversation: conversation.id,
       sender: contractorId,
@@ -613,10 +609,9 @@ export const updateJobQuotation = async (req: any, res: Response, next: NextFunc
       {
         entity: jobId,
         entityType: ConversationEntityType.JOB,
-        $and: [
-          { "members.member": contractorId, "members.memberType": 'contractors' },
-          { "members.member": job.customer, "members.memberType": 'customers' }
-        ]
+        members: {
+          $elemMatch: { $or: [{ member: job.customer }, { member: contractorId }] }
+        }
       },
 
       {

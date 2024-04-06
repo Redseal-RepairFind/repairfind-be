@@ -192,10 +192,9 @@ var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
                         entity: jobId,
                         entityType: conversations_schema_1.ConversationEntityType.JOB,
-                        $and: [
-                            { "members.member": contractorId, "members.memberType": 'contractors' },
-                            { "members.member": customer.id, "members.memberType": 'customers' }
-                        ]
+                        members: {
+                            $elemMatch: { $or: [{ member: customer.id }, { member: contractorId }] }
+                        }
                     }, {
                         entity: jobId,
                         entityType: conversations_schema_1.ConversationEntityType.JOB,
@@ -271,10 +270,9 @@ var rejectJobRequest = function (req, res) { return __awaiter(void 0, void 0, vo
                 return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
                         entity: jobId,
                         entityType: conversations_schema_1.ConversationEntityType.JOB,
-                        $and: [
-                            { "members.member": contractorId, "members.memberType": 'contractors' },
-                            { "members.member": jobRequest.customer, "members.memberType": 'customers' }
-                        ]
+                        members: {
+                            $elemMatch: { $or: [{ member: jobRequest.customer }, { member: contractorId }] }
+                        }
                     }, {
                         entity: jobId,
                         entityType: conversations_schema_1.ConversationEntityType.JOB,
@@ -475,10 +473,9 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                 return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
                         entity: jobId,
                         entityType: conversations_schema_1.ConversationEntityType.JOB,
-                        $and: [
-                            { "members.member": contractorId, "members.memberType": 'contractors' },
-                            { "members.member": job.customer, "members.memberType": 'customers' }
-                        ]
+                        members: {
+                            $elemMatch: { $or: [{ member: customer.id }, { member: contractorId }] }
+                        }
                     }, {
                         entity: jobId,
                         entityType: conversations_schema_1.ConversationEntityType.JOB,
@@ -597,10 +594,9 @@ var updateJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
                 return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
                         entity: jobId,
                         entityType: conversations_schema_1.ConversationEntityType.JOB,
-                        $and: [
-                            { "members.member": contractorId, "members.memberType": 'contractors' },
-                            { "members.member": job.customer, "members.memberType": 'customers' }
-                        ]
+                        members: {
+                            $elemMatch: { $or: [{ member: job.customer }, { member: contractorId }] }
+                        }
                     }, {
                         entity: jobId,
                         entityType: conversations_schema_1.ConversationEntityType.JOB,
