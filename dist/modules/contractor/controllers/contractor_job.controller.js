@@ -412,7 +412,7 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                             .status(401)
                             .json({ message: "job does not exist" })];
                 }
-                if (estimates.length < 1) {
+                if (estimates && estimates.length < 1) {
                     return [2 /*return*/, res
                             .status(401)
                             .json({ message: "invalid estimate format" })];
@@ -465,7 +465,7 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                 html = (0, jobQoutationTemplate_1.htmlJobQoutationTemplate)(customer.firstName, contractor.name);
                 emailData = {
                     emailTo: customer.email,
-                    subject: "Job application from contractor",
+                    subject: "Job quotation from contractor",
                     html: html
                 };
                 conversationMembers = [

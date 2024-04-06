@@ -417,7 +417,7 @@ export const sendJobQuotation = async (
         .json({ message: "job does not exist" });
     }
 
-    if (estimates.length < 1) {
+    if (estimates && estimates.length < 1) {
       return res
         .status(401)
         .json({ message: "invalid estimate format" });
@@ -475,7 +475,7 @@ export const sendJobQuotation = async (
     const html = htmlJobQoutationTemplate(customer.firstName, contractor.name)
     let emailData = {
       emailTo: customer.email,
-      subject: "Job application from contractor",
+      subject: "Job quotation from contractor",
       html
     };
 

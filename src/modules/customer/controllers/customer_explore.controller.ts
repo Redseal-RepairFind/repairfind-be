@@ -199,7 +199,7 @@ export const getSingleContractor = async (req: any, res: Response, next: NextFun
 
 export const getContractorSchedules = async (req: any, res: Response) => {
     try {
-      const { year, month } = req.query;
+      let { year, month } = req.query;
       const contractorId = req.params.contractorId;
   
       const contractorProfile = await ContractorProfileModel.findOne({contractor: contractorId})
@@ -212,6 +212,9 @@ export const getContractorSchedules = async (req: any, res: Response) => {
       }
   
       let startDate: number | Date, endDate: number | Date;
+      if(!year){
+        year = new Date().getFullYear().toString();
+      }
   
       if (month) {
         // If month is specified, retrieve schedules for that month
@@ -230,7 +233,7 @@ export const getContractorSchedules = async (req: any, res: Response) => {
       
       // Group schedules by year and month
   
-      const expandedSchedules = generateExpandedSchedule(contractorProfile.availableDays).filter(schedule => {
+      const expandedSchedules = generateExpandedSchedule(contractorProfile.availableDays, year).filter(schedule => {
         return schedule.date >= startDate && schedule.date <= endDate;
       });
   

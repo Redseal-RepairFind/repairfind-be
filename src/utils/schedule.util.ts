@@ -4,21 +4,25 @@ import { IContractorProfile } from "../database/contractor/interface/contractor_
 import { ContractorProfileModel } from "../database/contractor/models/contractor_profile.model";
 import { IContractorSchedule } from "../database/contractor/models/contractor_schedule.model";
 
-export const generateExpandedSchedule = function (availabilityDays: Array<string>) {
+export const generateExpandedSchedule = function (availabilityDays: Array<string>, year?: string) {
 
     const expandedSchedule: IContractorSchedule[] = [];
-    const year = new Date().getFullYear();
+    let currentYear = new Date().getFullYear();
+
+    if(year){
+        currentYear = new Date(`${year}-01-01`).getFullYear();
+    }
 
     // Iterate over each weekday in the availability days array
     availabilityDays.forEach(day => {
 
-        let currentDate = firstWeekdayDate(day)
+        let currentDate = firstWeekdayDate(day, year)
 
         if (!currentDate) {
             return
         }
         // Find all occurrences of the current weekday in the year
-        while (currentDate.getFullYear() === year) {
+        while (currentDate.getFullYear() === currentYear) {
             if (currentDate.toLocaleString('en-us', { weekday: 'long' }) === day) {
                 expandedSchedule.push({
                     date: new Date(currentDate),
@@ -101,8 +105,11 @@ export const getContractorIdsWithDateInSchedule = async (dateToCheck: Date): Pro
 
 
 
-function firstWeekdayDate(day: string): Date | null {
-    const today = new Date();
+function firstWeekdayDate(day: string, year?:string): Date | null {
+    let today = new Date();
+    if(year){
+        today =new Date(`${year}-01-01`)
+    }
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     const weekdayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -119,5 +126,6 @@ function firstWeekdayDate(day: string): Date | null {
         currentDate.setDate(currentDate.getDate() + 1);
     }
 
+    // console.log(currentDate)
     return currentDate;
 }

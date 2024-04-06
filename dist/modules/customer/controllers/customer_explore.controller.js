@@ -251,6 +251,9 @@ var getContractorSchedules = function (req, res) { return __awaiter(void 0, void
                 if (year && !(0, date_fns_1.isValid)(new Date("".concat(year, "-01-01")))) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid year format' })];
                 }
+                if (!year) {
+                    year = new Date().getFullYear().toString();
+                }
                 if (month) {
                     // If month is specified, retrieve schedules for that month
                     if (!(0, date_fns_1.isValid)(new Date("".concat(year, "-").concat(month, "-01")))) {
@@ -264,7 +267,7 @@ var getContractorSchedules = function (req, res) { return __awaiter(void 0, void
                     startDate_1 = (0, date_fns_1.startOfYear)(new Date("".concat(year, "-01-01")));
                     endDate_1 = (0, date_fns_1.endOfYear)(new Date("".concat(year, "-12-31")));
                 }
-                expandedSchedules = (0, schedule_util_1.generateExpandedSchedule)(contractorProfile.availableDays).filter(function (schedule) {
+                expandedSchedules = (0, schedule_util_1.generateExpandedSchedule)(contractorProfile.availableDays, year).filter(function (schedule) {
                     return schedule.date >= startDate_1 && schedule.date <= endDate_1;
                 });
                 return [4 /*yield*/, contractor_schedule_model_1.ContractorScheduleModel.find({

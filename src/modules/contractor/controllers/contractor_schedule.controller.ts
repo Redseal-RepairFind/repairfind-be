@@ -7,6 +7,7 @@ import { isValid, startOfMonth, endOfMonth, startOfYear, endOfYear, format, getD
 import { ContractorModel } from '../../../database/contractor/models/contractor.model';
 import { ContractorProfileModel } from '../../../database/contractor/models/contractor_profile.model';
 import { scheduler } from 'timers/promises';
+import { generateExpandedSchedule } from '../../../utils/schedule.util';
 
 
 export const createSchedule = async (req: any, res: Response) => {
@@ -198,7 +199,7 @@ export const getSchedules = async (req: any, res: Response) => {
 
 export const getSchedulesByDate = async (req: any, res: Response) => {
   try {
-    const { year, month } = req.query;
+    let { year, month } = req.query;
     const contractorId = req.contractor.id;
 
     const contractorProfile = await ContractorProfileModel.findOne({contractor: contractorId})
@@ -211,6 +212,10 @@ export const getSchedulesByDate = async (req: any, res: Response) => {
     }
 
     let startDate: number | Date, endDate: number | Date;
+
+    if(!year){
+      year = new Date().getFullYear().toString();
+    }
 
     if (month) {
       // If month is specified, retrieve schedules for that month
@@ -229,7 +234,7 @@ export const getSchedulesByDate = async (req: any, res: Response) => {
     
     // Group schedules by year and month
 
-    const expandedSchedules = generateExpandedSchedule(contractorProfile.availableDays).filter(schedule => {
+    const expandedSchedules = generateExpandedSchedule(contractorProfile.availableDays, year).filter(schedule => {
       return schedule.date >= startDate && schedule.date <= endDate;
     });
 
@@ -510,64 +515,6 @@ export const isDateInExpandedSchedule = async (req: any, res: Response) => {
 
 
 
-
-// Helper function to generate the expanded schedule based on availability days
-const generateExpandedSchedule = function (availabilityDays: Array<string>) {
-
-  const expandedSchedule: IContractorSchedule[] = [];
-  const year = new Date().getFullYear();
-
-  // Iterate over each weekday in the availability days array
-  availabilityDays.forEach(day => {
-
-    let currentDate = firstWeekdayDate(day)
- 
-    if(!currentDate){
-      return
-    }
-       // Find all occurrences of the current weekday in the year
-    while (currentDate.getFullYear() === year) {
-      if (currentDate.toLocaleString('en-us', { weekday: 'long' }) === day) {
-        expandedSchedule.push({
-          date: new Date(currentDate),
-          type: 'available',
-        }); 
-      }
-
-      // Move to the next week
-      currentDate.setDate(currentDate.getDate() + 7);
-
-    
-   }
-
-   
-  })
-
-  // console.log(expandedSchedule)
-  return expandedSchedule;
-};
-
-
-function firstWeekdayDate(day: string): Date | null {
-  const today = new Date();
-  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-  const weekdayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-
-  // Get the index of the specified day
-  const dayIndex = weekdayNames.indexOf(day);
-  if (dayIndex === -1) {
-    console.error('Invalid day specified');
-    return null;
-  }
-
-  // Start from the first day of the month and iterate until we find the first occurrence of the specified weekday
-  let currentDate = new Date(firstDayOfMonth);
-  while (currentDate.getDay() !== dayIndex) {
-    currentDate.setDate(currentDate.getDate() + 1);
-  }
-
-  return currentDate;
-}
 
 
 export const ScheduleController = {

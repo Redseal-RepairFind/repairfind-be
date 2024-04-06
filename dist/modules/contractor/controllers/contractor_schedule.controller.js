@@ -61,6 +61,7 @@ var contractor_schedule_model_1 = require("../../../database/contractor/models/c
 var express_validator_1 = require("express-validator");
 var date_fns_1 = require("date-fns");
 var contractor_profile_model_1 = require("../../../database/contractor/models/contractor_profile.model");
+var schedule_util_1 = require("../../../utils/schedule.util");
 var createSchedule = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, dates, type, recurrence, contractorId, schedules, _i, dates_1, date, existingSchedule, updatedSchedule, newScheduleData, newSchedule, error_1;
     return __generator(this, function (_b) {
@@ -151,7 +152,7 @@ var setAvailability = function (req, res) { return __awaiter(void 0, void 0, voi
                 }
                 startDate_1 = (0, date_fns_1.startOfYear)(new Date("".concat(year, "-01-01")));
                 endDate_1 = (0, date_fns_1.endOfYear)(new Date("".concat(year, "-12-31")));
-                expandedSchedules = generateExpandedSchedule(contractorProfile.availableDays).filter(function (schedule) {
+                expandedSchedules = (0, schedule_util_1.generateExpandedSchedule)(contractorProfile.availableDays).filter(function (schedule) {
                     return schedule.date >= startDate_1 && schedule.date <= endDate_1;
                 });
                 return [4 /*yield*/, contractor_schedule_model_1.ContractorScheduleModel.find({
@@ -262,6 +263,9 @@ var getSchedulesByDate = function (req, res) { return __awaiter(void 0, void 0, 
                 if (year && !(0, date_fns_1.isValid)(new Date("".concat(year, "-01-01")))) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid year format' })];
                 }
+                if (!year) {
+                    year = new Date().getFullYear().toString();
+                }
                 if (month) {
                     // If month is specified, retrieve schedules for that month
                     if (!(0, date_fns_1.isValid)(new Date("".concat(year, "-").concat(month, "-01")))) {
@@ -275,7 +279,7 @@ var getSchedulesByDate = function (req, res) { return __awaiter(void 0, void 0, 
                     startDate_2 = (0, date_fns_1.startOfYear)(new Date("".concat(year, "-01-01")));
                     endDate_2 = (0, date_fns_1.endOfYear)(new Date("".concat(year, "-12-31")));
                 }
-                expandedSchedules = generateExpandedSchedule(contractorProfile.availableDays).filter(function (schedule) {
+                expandedSchedules = (0, schedule_util_1.generateExpandedSchedule)(contractorProfile.availableDays, year).filter(function (schedule) {
                     return schedule.date >= startDate_2 && schedule.date <= endDate_2;
                 });
                 return [4 /*yield*/, contractor_schedule_model_1.ContractorScheduleModel.find({
@@ -518,7 +522,7 @@ var isDateInExpandedSchedule = function (req, res) { return __awaiter(void 0, vo
             _a = req.body, startDate = _a.startDate, availabilityDays = _a.availabilityDays;
             contractorId = req.contractor.id;
             dateToCheck_1 = new Date('2024-12-08T23:00:00.000Z');
-            expandedSchedule = generateExpandedSchedule(availabilityDays);
+            expandedSchedule = (0, schedule_util_1.generateExpandedSchedule)(availabilityDays);
             isDateInExpandedSchedule_1 = expandedSchedule.some(function (schedule) { return dateToCheck_1.toDateString() === schedule.date.toDateString(); });
             res.json({ success: true, message: 'Events retrieved successfully', data: isDateInExpandedSchedule_1 });
         }
@@ -530,48 +534,6 @@ var isDateInExpandedSchedule = function (req, res) { return __awaiter(void 0, vo
     });
 }); };
 exports.isDateInExpandedSchedule = isDateInExpandedSchedule;
-// Helper function to generate the expanded schedule based on availability days
-var generateExpandedSchedule = function (availabilityDays) {
-    var expandedSchedule = [];
-    var year = new Date().getFullYear();
-    // Iterate over each weekday in the availability days array
-    availabilityDays.forEach(function (day) {
-        var currentDate = firstWeekdayDate(day);
-        if (!currentDate) {
-            return;
-        }
-        // Find all occurrences of the current weekday in the year
-        while (currentDate.getFullYear() === year) {
-            if (currentDate.toLocaleString('en-us', { weekday: 'long' }) === day) {
-                expandedSchedule.push({
-                    date: new Date(currentDate),
-                    type: 'available',
-                });
-            }
-            // Move to the next week
-            currentDate.setDate(currentDate.getDate() + 7);
-        }
-    });
-    // console.log(expandedSchedule)
-    return expandedSchedule;
-};
-function firstWeekdayDate(day) {
-    var today = new Date();
-    var firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    var weekdayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    // Get the index of the specified day
-    var dayIndex = weekdayNames.indexOf(day);
-    if (dayIndex === -1) {
-        console.error('Invalid day specified');
-        return null;
-    }
-    // Start from the first day of the month and iterate until we find the first occurrence of the specified weekday
-    var currentDate = new Date(firstDayOfMonth);
-    while (currentDate.getDay() !== dayIndex) {
-        currentDate.setDate(currentDate.getDate() + 1);
-    }
-    return currentDate;
-}
 exports.ScheduleController = {
     createSchedule: exports.createSchedule,
     getSchedules: exports.getSchedules,

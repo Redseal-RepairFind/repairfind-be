@@ -38,17 +38,20 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getContractorIdsWithDateInSchedule = exports.getContractorsWithDateInSchedule = exports.isDateInExpandedSchedule = exports.generateExpandedSchedule = void 0;
 var contractor_profile_model_1 = require("../database/contractor/models/contractor_profile.model");
-var generateExpandedSchedule = function (availabilityDays) {
+var generateExpandedSchedule = function (availabilityDays, year) {
     var expandedSchedule = [];
-    var year = new Date().getFullYear();
+    var currentYear = new Date().getFullYear();
+    if (year) {
+        currentYear = new Date("".concat(year, "-01-01")).getFullYear();
+    }
     // Iterate over each weekday in the availability days array
     availabilityDays.forEach(function (day) {
-        var currentDate = firstWeekdayDate(day);
+        var currentDate = firstWeekdayDate(day, year);
         if (!currentDate) {
             return;
         }
         // Find all occurrences of the current weekday in the year
-        while (currentDate.getFullYear() === year) {
+        while (currentDate.getFullYear() === currentYear) {
             if (currentDate.toLocaleString('en-us', { weekday: 'long' }) === day) {
                 expandedSchedule.push({
                     date: new Date(currentDate),
@@ -158,8 +161,11 @@ var getContractorIdsWithDateInSchedule = function (dateToCheck) { return __await
     });
 }); };
 exports.getContractorIdsWithDateInSchedule = getContractorIdsWithDateInSchedule;
-function firstWeekdayDate(day) {
+function firstWeekdayDate(day, year) {
     var today = new Date();
+    if (year) {
+        today = new Date("".concat(year, "-01-01"));
+    }
     var firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     var weekdayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     // Get the index of the specified day
@@ -173,5 +179,6 @@ function firstWeekdayDate(day) {
     while (currentDate.getDay() !== dayIndex) {
         currentDate.setDate(currentDate.getDate() + 1);
     }
+    // console.log(currentDate)
     return currentDate;
 }
