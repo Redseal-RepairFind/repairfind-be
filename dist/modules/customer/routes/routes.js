@@ -33,6 +33,8 @@ router.post("/me/change-password", customerRoleChecker_middleware_1.checkCustome
 router.post("/me/devices", customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.UpdateOrDeviceParams, customer_controller_1.CustomerController.updateOrCreateDevice);
 router.get("/me/devices", customerRoleChecker_middleware_1.checkCustomerRole, customer_controller_1.CustomerController.myDevices);
 router.post("/stripe-account", customerRoleChecker_middleware_1.checkCustomerRole, customer_stripe_controller_1.CustomerStripeController.createAccount);
+router.post("/stripe-payment-methods/:paymentMethodId/detach", customerRoleChecker_middleware_1.checkCustomerRole, customer_stripe_controller_1.CustomerStripeController.detachStripePaymentMethod);
+router.post("/stripe-payment-methods/:paymentMethodId/attach", customerRoleChecker_middleware_1.checkCustomerRole, customer_stripe_controller_1.CustomerStripeController.attachStripePaymentMethod);
 router.post("/stripe-session", customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.createStripeSessionParams, customer_stripe_controller_1.CustomerStripeController.createSession);
 router.post("/stripe-setupintent", customerRoleChecker_middleware_1.checkCustomerRole, customer_stripe_controller_1.CustomerStripeController.createSetupIntent);
 // Job Listing

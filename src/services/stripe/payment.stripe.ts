@@ -35,15 +35,11 @@ export const chargeUserOnDemand = async (setupIntentId: any) => {
 
 export const chargeCustomer = async (customerId: any, paymentMethodId: any, payload: any) => {
     const paymentIntent = await stripeClient.paymentIntents.create({
-      payment_method_types: ['card'],
-      amount: payload.amount,
-      currency: payload.currency,
-      customer: customerId,
-      metadata: payload.metadata,
-      payment_method: paymentMethodId,
-      off_session: true, // Indicates that this PaymentIntent may be used for future off-session payments
-      confirm: true,
-    });
+      ...payload
+    },
+    // header
+    // {stripeAccount: payload.on_behalf_of}
+    );
     return paymentIntent;
 };
 
@@ -64,6 +60,12 @@ export const createPaymentIntent = async (customerId: any, paymentMethodId: any,
 export const getPaymentMethod = async (paymentMethodId: any) => {
     const paymentMethod = await stripeClient.paymentMethods.retrieve(paymentMethodId);
     return paymentMethod;
+};
+export const detachPaymentMethod = async (paymentMethodId: any) => {
+    return await stripeClient.paymentMethods.detach(paymentMethodId);
+};
+export const attachPaymentMethod = async (paymentMethodId: any, payload: any) => {
+    return await stripeClient.paymentMethods.attach(paymentMethodId, payload);
 };
 
 

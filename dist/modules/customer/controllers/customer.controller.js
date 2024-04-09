@@ -250,5 +250,5 @@ exports.CustomerController = {
     updateAccount: exports.updateAccount,
     getAccount: exports.getAccount,
     updateOrCreateDevice: exports.updateOrCreateDevice,
-    myDevices: exports.myDevices,
+    myDevices: exports.myDevices
 };

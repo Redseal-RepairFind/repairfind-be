@@ -389,12 +389,13 @@ var getSingleQuotation = function (req, res, next) { return __awaiter(void 0, vo
 exports.getSingleQuotation = getSingleQuotation;
 //customer accept and pay for the work /////////////
 var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var quotationId, jobId, errors, customerId, customer, job, quotation, contractor, generateInvoce, invoiceId, charges, newTransaction, saveTransaction, transactionId, payload, stripePayment, err_1;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var _a, quotationId, paymentMethodId_1, jobId, errors, customerId, customer, job, quotation, contractor, generateInvoce, invoiceId, charges, newTransaction, saveTransaction, transactionId, paymentMethod, payload, stripePayment, err_1;
+    var _b;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
             case 0:
-                _a.trys.push([0, 9, , 10]);
-                quotationId = req.body.quotationId;
+                _c.trys.push([0, 9, , 10]);
+                _a = req.body, quotationId = _a.quotationId, paymentMethodId_1 = _a.paymentMethodId;
                 jobId = req.params.jobId;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
@@ -403,7 +404,7 @@ var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0
                 customerId = req.customer.id;
                 return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
             case 1:
-                customer = _a.sent();
+                customer = _c.sent();
                 if (!customer) {
                     return [2 /*return*/, res
                             .status(401)
@@ -411,7 +412,7 @@ var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0
                 }
                 return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobId })];
             case 2:
-                job = _a.sent();
+                job = _c.sent();
                 if (!job) {
                     return [2 /*return*/, res
                             .status(401)
@@ -419,7 +420,7 @@ var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0
                 }
                 return [4 /*yield*/, job_quotation_model_1.JobQoutationModel.findOne({ _id: quotationId })];
             case 3:
-                quotation = _a.sent();
+                quotation = _c.sent();
                 if (!quotation) {
                     return [2 /*return*/, res
                             .status(401)
@@ -427,12 +428,12 @@ var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0
                 }
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: quotation.contractor })];
             case 4:
-                contractor = _a.sent();
+                contractor = _c.sent();
                 generateInvoce = new Date().getTime().toString();
                 invoiceId = generateInvoce.substring(generateInvoce.length - 5);
                 return [4 /*yield*/, quotation.calculateCharges()];
             case 5:
-                charges = _a.sent();
+                charges = _c.sent();
                 newTransaction = new transaction_model_1.default({
                     type: 'credit',
                     amount: charges.totalAmount,
@@ -449,44 +450,56 @@ var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0
                 });
                 return [4 /*yield*/, newTransaction.save()];
             case 6:
-                saveTransaction = _a.sent();
+                saveTransaction = _c.sent();
                 transactionId = JSON.stringify(saveTransaction._id);
+                paymentMethod = customer.stripePaymentMethods.find(function (method) { return method.id == paymentMethodId_1; });
+                if (!paymentMethod) {
+                    paymentMethod = customer.stripePaymentMethods[0];
+                }
+                ;
+                if (!paymentMethod)
+                    throw new Error("No such payment method");
                 payload = {
-                    line_items: [
-                        {
-                            price_data: {
-                                currency: 'usd',
-                                product_data: {
-                                    name: "qoutation payment from ".concat(contractor === null || contractor === void 0 ? void 0 : contractor.firstName)
-                                },
-                                unit_amount: (charges.totalAmount) * 100,
-                            },
-                            quantity: 1,
-                        },
-                    ],
+                    payment_method_types: ['card'],
+                    payment_method: paymentMethod.id,
                     currency: 'usd',
                     amount: (charges.totalAmount) * 100,
+                    application_fee_amount: (charges.processingFee) * 100, // send everthing to connected account and  application_fee_amount will be transfered back
+                    transfer_data: {
+                        // amount: (charges.contractorAmount) * 100, // transfer to connected account
+                        destination: (_b = contractor === null || contractor === void 0 ? void 0 : contractor.stripeAccount.id) !== null && _b !== void 0 ? _b : '' // mostimes only work with same region example us, user
+                        // https://docs.stripe.com/connect/destination-charges
+                    },
+                    on_behalf_of: contractor === null || contractor === void 0 ? void 0 : contractor.stripeAccount.id,
                     metadata: {
                         customerId: customerId,
                         type: "payment",
                         jobId: jobId,
+                        email: customer.email,
                         transactionId: transactionId
                     },
-                    email: customer.email,
-                    customerId: customer.stripeCustomer.id
+                    customer: customer.stripeCustomer.id,
+                    off_session: true,
+                    confirm: true,
                 };
-                return [4 /*yield*/, stripe_1.StripeService.payment.chargeCustomer('cus_PkdahAH5iZEr9x', 'pm_1P0OWEDdPEZ0JirQE8mHHVxk', payload)];
+                console.log('payload', payload);
+                return [4 /*yield*/, stripe_1.StripeService.payment.chargeCustomer(paymentMethod.customer, paymentMethod.id, payload)
+                    //pm_1P0OWEDdPEZ0JirQE8mHHVxk
+                    //cus_PkdahAH5iZEr9x
+                ];
             case 7:
-                stripePayment = _a.sent();
+                stripePayment = _c.sent();
+                //pm_1P0OWEDdPEZ0JirQE8mHHVxk
+                //cus_PkdahAH5iZEr9x
                 job.status = job_model_1.JobStatus.BOOKED;
                 return [4 /*yield*/, job.save()];
             case 8:
-                _a.sent();
+                _c.sent();
                 res.json({ success: true, message: 'Payment intent created', data: stripePayment });
                 return [3 /*break*/, 10];
             case 9:
-                err_1 = _a.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', err_1))];
+                err_1 = _c.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError(err_1.message, err_1))];
             case 10: return [2 /*return*/];
         }
     });

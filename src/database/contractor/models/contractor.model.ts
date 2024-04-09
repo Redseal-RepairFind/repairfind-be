@@ -6,6 +6,8 @@ import { contractorStatus } from "../../../constants/contractorStatus";
 import { config } from "../../../config";
 import ContractorQuizModel from "./contractor_quiz.model";
 import { StripeCustomerSchema } from "../../common/stripe_customer.schema";
+import { StripeAccountSchema } from "../../common/stripe_account.schema";
+import { StripePaymentMethodSchema } from "../../common/stripe_paymentmethod.schema";
 
 
 export enum CONTRACTOR_TYPES {
@@ -114,13 +116,11 @@ const ContractorSchema = new Schema<IContractor>(
       default: null,
     },
     stripeAccount: {
-      type: Object,
-      default: null,
+      type: StripeAccountSchema,
     },
     stripePaymentMethods: {
-      type: Array,
-      default: []
-    }
+      type: [StripePaymentMethodSchema],
+    },
 
   },
   {

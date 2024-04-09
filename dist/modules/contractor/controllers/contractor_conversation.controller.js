@@ -59,15 +59,21 @@ var getConversations = function (req, res) { return __awaiter(void 0, void 0, vo
                 if (!data) return [3 /*break*/, 3];
                 // Map through each conversation and fetch heading info
                 return [4 /*yield*/, Promise.all(data.data.map(function (conversation) { return __awaiter(void 0, void 0, void 0, function () {
-                        var _a;
-                        return __generator(this, function (_b) {
-                            switch (_b.label) {
+                        var _a, _b;
+                        return __generator(this, function (_c) {
+                            switch (_c.label) {
                                 case 0:
                                     _a = conversation;
                                     return [4 /*yield*/, conversation.getHeading(contractorId_1)];
                                 case 1:
-                                    _a.heading = _b.sent();
-                                    return [2 /*return*/];
+                                    _a.heading = _c.sent();
+                                    if (!(conversation.entityType == 'jobs')) return [3 /*break*/, 3];
+                                    _b = conversation.entity;
+                                    return [4 /*yield*/, conversation.entity.getMyQoutation(conversation.entity.id, contractorId_1)];
+                                case 2:
+                                    _b.myQuotation = _c.sent();
+                                    _c.label = 3;
+                                case 3: return [2 /*return*/];
                             }
                         });
                     }); }))];
@@ -92,32 +98,39 @@ var getConversations = function (req, res) { return __awaiter(void 0, void 0, vo
 }); };
 exports.getConversations = getConversations;
 var getSingleConversation = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var conversationId, contractorId, query, conversation, _a, error_2;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+    var conversationId, contractorId, query, conversation, _a, _b, error_2;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
             case 0:
-                _b.trys.push([0, 4, , 5]);
+                _c.trys.push([0, 5, , 6]);
                 conversationId = req.params.conversationId;
                 contractorId = req.contractor.id;
                 query = { 'members.member': contractorId, _id: conversationId };
                 return [4 /*yield*/, conversations_schema_1.ConversationModel.findOne(query).populate(['entity', 'members']).exec()];
             case 1:
-                conversation = _b.sent();
-                if (!conversation) return [3 /*break*/, 3];
+                conversation = _c.sent();
+                if (!conversation) return [3 /*break*/, 4];
                 _a = conversation;
                 return [4 /*yield*/, conversation.getHeading(contractorId)];
             case 2:
-                _a.heading = _b.sent();
-                _b.label = 3;
+                _a.heading = _c.sent();
+                if (!(conversation.entityType == 'jobs')) return [3 /*break*/, 4];
+                //@ts-ignore
+                _b = conversation.entity;
+                return [4 /*yield*/, conversation.entity.getMyQoutation(conversation.entity.id, contractorId)];
             case 3:
-                res.status(200).json({ success: true, message: "Conversation retrieved", data: conversation });
-                return [3 /*break*/, 5];
+                //@ts-ignore
+                _b.myQuotation = _c.sent();
+                _c.label = 4;
             case 4:
-                error_2 = _b.sent();
+                res.status(200).json({ success: true, message: "Conversation retrieved", data: conversation });
+                return [3 /*break*/, 6];
+            case 5:
+                error_2 = _c.sent();
                 console.error("Error fetching conversation:", error_2);
                 res.status(500).json({ success: false, message: "Server error" });
-                return [3 /*break*/, 5];
-            case 5: return [2 /*return*/];
+                return [3 /*break*/, 6];
+            case 6: return [2 /*return*/];
         }
     });
 }); };

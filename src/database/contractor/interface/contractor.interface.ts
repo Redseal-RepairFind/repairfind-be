@@ -1,5 +1,6 @@
 import { Document, Types, ObjectId } from "mongoose";
 import { IStripeCustomer } from "../../common/stripe_customer.interface";
+import { IStripeAccount } from "../../common/stripe_account.schema";
 
 
 
@@ -52,7 +53,7 @@ export interface IContractor extends Document {
   };
   stripeCustomer: IStripeCustomer
   stripeIdentity: object,
-  stripeAccount: object,
+  stripeAccount: IStripeAccount,
   stripePaymentMethods: Array<object>,
   createdAt: Date;
   updatedAt: Date;

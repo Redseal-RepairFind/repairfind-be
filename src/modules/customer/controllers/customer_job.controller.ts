@@ -29,6 +29,7 @@ import { Date } from "mongoose";
 import { JobQoutationModel } from "../../../database/common/job_quotation.model";
 import TransactionModel from "../../../database/common/transaction.model";
 import { StripeService } from "../../../services/stripe";
+import Stripe from 'stripe';
 
 
 
@@ -304,7 +305,7 @@ export const getJobs = async (req: any, res: Response, next: NextFunction) => {
         const { data, error } = await applyAPIFeature(JobModel.find(filter), req.query)
 
         res.json({ success: true, message: 'Jobs retrieved', data: data });
-    } catch (error:any) {
+    } catch (error: any) {
         return next(new BadRequestError('An error occured ', error))
     }
 };
@@ -351,7 +352,7 @@ export const getJobQuotations = async (req: any, res: Response, next: NextFuncti
 export const getSingleQuotation = async (req: any, res: Response, next: NextFunction) => {
     try {
         const customerId = req.customer.id;
-        const {jobId, quotationId} = req.params;
+        const { jobId, quotationId } = req.params;
 
         const quotation = await JobQoutationModel.findOne({ _id: quotationId, job: jobId });
 
@@ -380,6 +381,7 @@ export const makeJobPayment = async (
     try {
         const {
             quotationId,
+            paymentMethodId
         } = req.body;
 
         const jobId = req.params.jobId
@@ -392,7 +394,6 @@ export const makeJobPayment = async (
         }
 
         const customerId = req.customer.id;
-
         const customer = await CustomerModel.findOne({ _id: customerId })
 
         if (!customer) {
@@ -403,7 +404,6 @@ export const makeJobPayment = async (
 
         //const job = await JobModel.findOne({_id: jobId, customerId, status: 'sent qoutation'})
         const job = await JobModel.findOne({ _id: jobId })
-       
         if (!job) {
             return res
                 .status(401)
@@ -418,20 +418,11 @@ export const makeJobPayment = async (
                 .json({ message: "Job quotation not found" });
         }
 
-       
         const contractor = await ContractorModel.findOne({ _id: quotation.contractor });
 
-        // let secret = process.env.STRIPE_KEY || "sk_test_51OTMkGIj2KYudFaR1rNIBOPTaBESYoJco6lTCBZw5a0inyttRJOotcds1rXpXCJDSJrpNmIt2FBAaSxdmuma3ZTF00h48RxVny";
-
-        // let stripeInstance;
-
-        // if (!secret) {
-        //     return res
-        //         .status(401)
-        //         .json({ message: "Sripe API Key is missing" });
-        // }
-
-        // stripeInstance = new stripe(secret);
+        // make checks here 
+        // ensure contractor has a verified connected account
+        //ensure customer has a valid payment method or create a setup that will require payment on the fly 
 
         const generateInvoce = new Date().getTime().toString()
 
@@ -458,43 +449,93 @@ export const makeJobPayment = async (
         const transactionId = JSON.stringify(saveTransaction._id)
 
 
-        let payload = {
-            line_items: [
-                {
-                    price_data: {
-                        currency: 'usd',
-                        product_data: {
-                            name: `qoutation payment from ${contractor?.firstName}`
-                        },
-                        unit_amount: (charges.totalAmount) * 100,
-                    },
-                    quantity: 1,
-                },
-            ],
+        //  Direct CHARGES
+        // With Connect, you can make charges directly to the connected account and take fees in the process.
+        // To create a direct charge on the connected account, create a PaymentIntent object and add the Stripe-Account header with a value of the connected account ID:
+
+        //  https://docs.stripe.com/connect/charges
+        // When using Standard accounts, Stripe recommends that you create direct charges. Though uncommon, there are times when it’s appropriate to use direct charges on Express or Custom accounts.
+        // With this charge type:
+        // You create a charge on your user’s account so the payment appears as a charge on the connected account, not in your account balance.
+        // The connected account’s balance increases with every charge.
+        // Funds always settle in the country of the connected account.
+        // Your account balance increases with application fees from every charge.
+        // The connected account’s balance is debited for refunds and chargebacks.
+        //direct charge requires the customer has to exists on the connected account platform -- consider cloning https://docs.stripe.com/connect/cloning-customers-across-accounts
+        // we can still take fees back to the platform by specifying application_fee_amount: 123,
+
+        // DESTINATION CHARGES
+        // Customers transact with your platform for products or services provided by your connected account.
+        // The transaction involves a single user.
+        // Stripe fees are debited from your platform account.
+
+        //flow 1
+        // here everything is transfered to connected account and then application_fee_amount is wired back to platform
+        // application_fee_amount: 123,
+        // transfer_data: {
+        //     destination: '{{CONNECTED_ACCOUNT_ID}}',
+        // },
+
+        //flow 2
+        // here only amount specified in transfer_data is transfered to connected account
+        // transfer_data: {
+        //     amount: 877,
+        //     destination: '{{CONNECTED_ACCOUNT_ID}}',
+        //   },
+
+        // When you use on_behalf_of:
+        // Charges are settled in the connected account’s country and settlement currency.
+        // The connected account’s statement descriptor is displayed on the customer’s credit card statement.
+        // If the connected account is in a different country than the platform, the connected account’s address and phone number are displayed on the customer’s credit card statement.
+        // The number of days that a pending balance is held before being paid out depends on the delay_days setting on the connected account.
+
+
+        let paymentMethod = customer.stripePaymentMethods.find((method) => method.id == paymentMethodId)
+        if (!paymentMethod) {
+            paymentMethod = customer.stripePaymentMethods[0]
+        };
+
+        if (!paymentMethod) throw new Error("No such payment method")
+
+
+
+        let payload: Stripe.PaymentIntentCreateParams = {
+            payment_method_types: ['card'],
+            payment_method: paymentMethod.id,
             currency: 'usd',
             amount: (charges.totalAmount) * 100,
+            application_fee_amount: (charges.processingFee) * 100, // send everthing to connected account and  application_fee_amount will be transfered back
+            transfer_data: {
+                // amount: (charges.contractorAmount) * 100, // transfer to connected account
+                destination: contractor?.stripeAccount.id ?? '' // mostimes only work with same region example us, user
+                // https://docs.stripe.com/connect/destination-charges
+            },
+            on_behalf_of: contractor?.stripeAccount.id,
             metadata: {
                 customerId,
                 type: "payment",
                 jobId,
+                email: customer.email,
                 transactionId
             },
-            email: customer.email,
-            customerId: customer.stripeCustomer.id
+           
+            customer: customer.stripeCustomer.id,
+            off_session: true,
+            confirm: true,
         }
 
-        //@ts-ignore
-        // const paymentMethod = customer.stripePaymentMethods.find((method) => method.type === "card")
-        // if (!paymentMethod) throw new Error("No valid card available for this user");
-        const stripePayment = await StripeService.payment.chargeCustomer('cus_PkdahAH5iZEr9x', 'pm_1P0OWEDdPEZ0JirQE8mHHVxk', payload)
+
+
+        console.log('payload',payload)
+        const stripePayment = await StripeService.payment.chargeCustomer(paymentMethod.customer, paymentMethod.id, payload)
 
         job.status = JobStatus.BOOKED;
         await job.save()
 
-        res.json({success:true, message: 'Payment intent created', data: stripePayment });
+        res.json({ success: true, message: 'Payment intent created', data: stripePayment });
 
     } catch (err: any) {
-        return next(new BadRequestError('An error occured ', err))
+        return next(new BadRequestError(err.message, err))
     }
 
 }

@@ -50,7 +50,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getPaymentMethod = exports.createPaymentIntent = exports.chargeCustomer = exports.chargeUserOnDemand = exports.createSetupIntent = void 0;
+exports.attachPaymentMethod = exports.detachPaymentMethod = exports.getPaymentMethod = exports.createPaymentIntent = exports.chargeCustomer = exports.chargeUserOnDemand = exports.createSetupIntent = void 0;
 var stripe_1 = __importDefault(require("stripe"));
 var STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 var stripeClient = new stripe_1.default(STRIPE_SECRET_KEY);
@@ -95,16 +95,7 @@ var chargeCustomer = function (customerId, paymentMethodId, payload) { return __
     var paymentIntent;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, stripeClient.paymentIntents.create({
-                    payment_method_types: ['card'],
-                    amount: payload.amount,
-                    currency: payload.currency,
-                    customer: customerId,
-                    metadata: payload.metadata,
-                    payment_method: paymentMethodId,
-                    off_session: true, // Indicates that this PaymentIntent may be used for future off-session payments
-                    confirm: true,
-                })];
+            case 0: return [4 /*yield*/, stripeClient.paymentIntents.create(__assign({}, payload))];
             case 1:
                 paymentIntent = _a.sent();
                 return [2 /*return*/, paymentIntent];
@@ -144,3 +135,21 @@ var getPaymentMethod = function (paymentMethodId) { return __awaiter(void 0, voi
     });
 }); };
 exports.getPaymentMethod = getPaymentMethod;
+var detachPaymentMethod = function (paymentMethodId) { return __awaiter(void 0, void 0, void 0, function () {
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, stripeClient.paymentMethods.detach(paymentMethodId)];
+            case 1: return [2 /*return*/, _a.sent()];
+        }
+    });
+}); };
+exports.detachPaymentMethod = detachPaymentMethod;
+var attachPaymentMethod = function (paymentMethodId, payload) { return __awaiter(void 0, void 0, void 0, function () {
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, stripeClient.paymentMethods.attach(paymentMethodId, payload)];
+            case 1: return [2 /*return*/, _a.sent()];
+        }
+    });
+}); };
+exports.attachPaymentMethod = attachPaymentMethod;

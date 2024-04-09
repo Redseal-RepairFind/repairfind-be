@@ -13,6 +13,7 @@ import { initiateCertnInvite } from "../../../services/certn";
 import { EmailService } from "../../../services";
 import { StripeService } from "../../../services/stripe";
 import ContractorDeviceModel from "../../../database/contractor/models/contractor_devices.model";
+import { IStripeAccount } from "../../../database/common/stripe_account.schema";
 
 
 class ProfileHandler extends Base {
@@ -362,14 +363,16 @@ class ProfileHandler extends Base {
         })
 
         contractor.stripeAccount = {
-          accountId: stripeAccount.id,
+          id: stripeAccount.id,
           type: stripeAccount.type,
           details_submitted: stripeAccount.details_submitted,
           tos_acceptance: stripeAccount.tos_acceptance,
           payouts_enabled: stripeAccount.payouts_enabled,
           charges_enabled: stripeAccount.charges_enabled,
-          country: stripeAccount.country
-        }
+          country: stripeAccount.country,
+          external_accounts: stripeAccount.external_accounts,
+      } as IStripeAccount;
+      
 
         await contractor.save()
 
@@ -415,8 +418,9 @@ class ProfileHandler extends Base {
           tos_acceptance: stripeAccount.tos_acceptance,
           payouts_enabled: stripeAccount.payouts_enabled,
           charges_enabled: stripeAccount.charges_enabled,
-          country: stripeAccount.country
-        }
+          country: stripeAccount.country,
+          external_accounts: stripeAccount.external_accounts,
+        } as IStripeAccount
         await contractor.save()
 
         // create account onboarding link 
@@ -475,8 +479,9 @@ class ProfileHandler extends Base {
           tos_acceptance: stripeAccount.tos_acceptance,
           payouts_enabled: stripeAccount.payouts_enabled,
           charges_enabled: stripeAccount.charges_enabled,
-          country: stripeAccount.country
-        }
+          country: stripeAccount.country,
+          external_accounts: stripeAccount.external_accounts,
+        } as IStripeAccount
         await contractor.save()
 
         // create account onboarding link 

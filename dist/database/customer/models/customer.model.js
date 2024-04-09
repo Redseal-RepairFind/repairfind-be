@@ -4,6 +4,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var mongoose_1 = require("mongoose");
 var customer_interface_1 = require("../interface/customer.interface");
 var stripe_customer_schema_1 = require("../../common/stripe_customer.schema");
+var stripe_paymentmethod_schema_1 = require("../../common/stripe_paymentmethod.schema");
 var CustomerSchema = new mongoose_1.Schema({
     email: {
         type: String,
@@ -75,7 +76,7 @@ var CustomerSchema = new mongoose_1.Schema({
         type: stripe_customer_schema_1.StripeCustomerSchema,
     },
     stripePaymentMethods: {
-        type: [Object],
+        type: [stripe_paymentmethod_schema_1.StripePaymentMethodSchema],
     },
     stripeAccount: {
         type: Object,

@@ -40,12 +40,16 @@ export const StripeWebhookHandler = async (req: Request) => {
         // Log.info(event)
         
         switch (eventType) {
+            
+            // Setup Intent
             case 'setup_intent.created':
                 setupIntentCreated(eventData.object);
                 break;
             case 'setup_intent.succeeded':
                 setupIntentSucceeded(eventData.object);
                 break;
+
+            // Identity
             case 'identity.verification_session.created':
                 identityVerificationCreated(eventData.object);
                 break;
@@ -58,20 +62,31 @@ export const StripeWebhookHandler = async (req: Request) => {
                 // All the verification checks passed
                 identityVerificationVerified(eventData.object)
                 break
+
+            // Payment Method
             case 'payment_method.attached':
                 paymentMethodAttached(eventData.object);
                 break;
             case 'payment_method.detached':
                 paymentMethodDetached(eventData.object);
                 break;
+
+            // Customer
             case 'customer.updated':
                 customerUpdated(eventData.object);
                 break;
             case 'customer.created':
                 customerCreated(eventData.object);
                 break;
+
+            // Account
             case 'account.updated':
                 accountUpdated(eventData.object);
+                break;
+
+            // Payment and Intents
+            case 'payment_intent.succeeded':
+                paymentIntentSucceeded(eventData.object);
                 break;
             default:
                 console.log(`Unhandled event type: ${eventType}`, eventData.object);
@@ -128,38 +143,6 @@ export const setupIntentSucceeded = async (payload: any) => {
 };
 
 
-export const paymentMethodAttached = async (payload: any) => {
-    console.log('Stripe Event Handler: paymentMethodAttached', payload)
-    try {
-
-        if(payload.object != 'payment_method') return
-
-        const customer: any = await StripeService.customer.getCustomerById(payload.customer)
-        const paymentMethod: any = await StripeService.payment.getPaymentMethod(payload.id)
-        const userType = customer?.metadata?.userType
-        const userId = customer?.metadata?.userId
-
-        if (!userType || !userId) return // Ensure userType and userId are valid
-
-        const user = userType === 'contractor' ? await ContractorModel.findById(userId) : await CustomerModel.findById(userId)
-        if (!user) return // Ensure user exists
-
-        const existingPaymentMethodIndex = user.stripePaymentMethods.findIndex((pm: any) => pm.id === paymentMethod.id)
-        if (existingPaymentMethodIndex !== -1) {
-            // If paymentMethod already exists, update it
-            user.stripePaymentMethods[existingPaymentMethodIndex] = paymentMethod
-        } else {
-            // If paymentMethod doesn't exist, push it to the array
-            user.stripePaymentMethods.push(paymentMethod)
-        }
-
-        await user.save()
-    } catch (error: any) {
-        // throw new BadRequestError(error.message || "Something went wrong");
-    }
-
-};
-
 
 export const customerUpdated = async (payload: any) => {
     console.log('Stripe Event Handler: customerUpdated', payload)
@@ -198,6 +181,43 @@ export const customerCreated = async (payload: any) => {
 };
 
 
+export const paymentMethodAttached = async (payload: any) => {
+    console.log('Stripe Event Handler: paymentMethodAttached', payload)
+    try {
+
+        if(payload.object != 'payment_method') return
+
+        const customer: any = await StripeService.customer.getCustomerById(payload.customer)
+
+        console.log('customer', customer)
+        const paymentMethod: any = await StripeService.payment.getPaymentMethod(payload.id)
+        const userType = customer?.metadata?.userType
+        const userId = customer?.metadata?.userId
+
+
+        
+        if (!userType || !userId) return // Ensure userType and userId are valid
+
+        const user = userType === 'contractor' ? await ContractorModel.findById(userId) : await CustomerModel.findById(userId)
+        if (!user) return // Ensure user exists
+
+        const existingPaymentMethodIndex = user.stripePaymentMethods.findIndex((pm: any) => pm.id === paymentMethod.id)
+        if (existingPaymentMethodIndex !== -1) {
+            // If paymentMethod already exists, update it
+            user.stripePaymentMethods[existingPaymentMethodIndex] = paymentMethod
+        } else {
+            // If paymentMethod doesn't exist, push it to the array
+            user.stripePaymentMethods.push(paymentMethod)
+        }
+
+        console.log(user)
+
+        await user.save()
+    } catch (error: any) {
+        // throw new BadRequestError(error.message || "Something went wrong");
+    }
+
+};
 
 export const paymentMethodDetached = async (payload: any) => {
     try {
@@ -436,21 +456,7 @@ export const accountUpdated = async (payload: any) => {
         const user = userType === 'contractor' ? await ContractorModel.findOne({email}) : await CustomerModel.findOne({email})
         if (!user) return // Ensure user exists
         
-        // user.stripeAccount = {
-        //     id: payload.id,
-        //     business_profile: payload.business_profile,
-        //     capabilities: payload.capabilities,
-        //     charges_enabled: payload.charges_enabled,
-        //     country: payload.country,
-        //     default_currency: payload.default_currency,
-        //     details_submitted: payload.details_submitted,
-        //     requirements: payload.requirements,
-        //     payouts_enabled: payload.payouts_enabled,
-        //     type: payload.type,
-        //     external_accounts: payload.external_accounts, // banks and payout methods
-        //     metadata: payload.metadata, // banks and payout methods
-        // }
-
+    
         // Casting payload to DTO
         const stripeAccountDTO: IStripeAccount = castPayloadToDTO(payload, {} as IStripeAccount);
         user.stripeAccount = stripeAccountDTO
@@ -458,7 +464,41 @@ export const accountUpdated = async (payload: any) => {
         await user.save()
     } catch (error: any) {
         // throw new BadRequestError(error.message || "Something went wrong");
+        console.log('accountUpdated', error)
     }
 
 };
 
+
+// Payment
+export const paymentIntentSucceeded = async (payload: any) => {
+    console.log('Stripe Event Handler: paymentIntentSucceeded', payload)
+    try {
+
+        if(payload.object != 'payment_intent') return
+
+        const customer: any = await StripeService.customer.getCustomerById(payload.customer)
+        const paymentMethod: any = await StripeService.payment.getPaymentMethod(payload.id)
+        const userType = customer?.metadata?.userType
+        const userId = customer?.metadata?.userId
+
+        if (!userType || !userId) return // Ensure userType and userId are valid
+
+        const user = userType === 'contractor' ? await ContractorModel.findById(userId) : await CustomerModel.findById(userId)
+        if (!user) return // Ensure user exists
+
+        const existingPaymentMethodIndex = user.stripePaymentMethods.findIndex((pm: any) => pm.id === paymentMethod.id)
+        if (existingPaymentMethodIndex !== -1) {
+            // If paymentMethod already exists, update it
+            user.stripePaymentMethods[existingPaymentMethodIndex] = paymentMethod
+        } else {
+            // If paymentMethod doesn't exist, push it to the array
+            user.stripePaymentMethods.push(paymentMethod)
+        }
+
+        await user.save()
+    } catch (error: any) {
+        // throw new BadRequestError(error.message || "Something went wrong");
+    }
+
+};

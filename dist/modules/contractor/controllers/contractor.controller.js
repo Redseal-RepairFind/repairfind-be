@@ -404,13 +404,14 @@ var ProfileHandler = /** @class */ (function (_super) {
                     case 3:
                         stripeAccount = _b.sent();
                         contractor.stripeAccount = {
-                            accountId: stripeAccount.id,
+                            id: stripeAccount.id,
                             type: stripeAccount.type,
                             details_submitted: stripeAccount.details_submitted,
                             tos_acceptance: stripeAccount.tos_acceptance,
                             payouts_enabled: stripeAccount.payouts_enabled,
                             charges_enabled: stripeAccount.charges_enabled,
-                            country: stripeAccount.country
+                            country: stripeAccount.country,
+                            external_accounts: stripeAccount.external_accounts,
                         };
                         return [4 /*yield*/, contractor.save()];
                     case 4:
@@ -467,7 +468,8 @@ var ProfileHandler = /** @class */ (function (_super) {
                             tos_acceptance: stripeAccount.tos_acceptance,
                             payouts_enabled: stripeAccount.payouts_enabled,
                             charges_enabled: stripeAccount.charges_enabled,
-                            country: stripeAccount.country
+                            country: stripeAccount.country,
+                            external_accounts: stripeAccount.external_accounts,
                         };
                         return [4 /*yield*/, contractor.save()
                             // create account onboarding link 
@@ -547,7 +549,8 @@ var ProfileHandler = /** @class */ (function (_super) {
                             tos_acceptance: stripeAccount.tos_acceptance,
                             payouts_enabled: stripeAccount.payouts_enabled,
                             charges_enabled: stripeAccount.charges_enabled,
-                            country: stripeAccount.country
+                            country: stripeAccount.country,
+                            external_accounts: stripeAccount.external_accounts,
                         };
                         return [4 /*yield*/, contractor.save()
                             // create account onboarding link 

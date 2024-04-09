@@ -52,6 +52,15 @@ var createAccount = function (payload) { return __awaiter(void 0, void 0, void 0
                 _a.trys.push([0, 2, , 3]);
                 return [4 /*yield*/, stripeClient.accounts.create({
                         type: 'express',
+                        capabilities: {
+                            card_payments: {
+                                requested: true,
+                            },
+                            transfers: {
+                                requested: true,
+                            },
+                        },
+                        // business_type: 'company',
                         metadata: payload,
                     })];
             case 1:

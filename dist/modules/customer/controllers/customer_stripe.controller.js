@@ -39,10 +39,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerStripeController = exports.createSetupIntent = exports.createAccount = exports.createSession = void 0;
+exports.CustomerStripeController = exports.attachStripePaymentMethod = exports.detachStripePaymentMethod = exports.createSetupIntent = exports.createAccount = exports.createSession = void 0;
 var express_validator_1 = require("express-validator");
 var stripe_1 = require("../../../services/stripe");
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
+var custom_errors_1 = require("../../../utils/custom.errors");
 var createSession = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var mode, customerId, errors, customer, stripeCustomer, stripeSession, error_1;
     return __generator(this, function (_a) {
@@ -204,11 +205,13 @@ var createSetupIntent = function (req, res) { return __awaiter(void 0, void 0, v
                 stripeSetupIntent = _a.sent();
                 customer.stripeCustomer = stripeCustomer;
                 customer.save();
-                return [2 /*return*/, res.status(200).json({ success: true, message: 'Stripe setup intent created', data: {
+                return [2 /*return*/, res.status(200).json({
+                        success: true, message: 'Stripe setup intent created', data: {
                             stripeSetupIntent: stripeSetupIntent,
                             ephemeralKey: ephemeralKey,
                             stripeCustomer: stripeCustomer
-                        } })];
+                        }
+                    })];
             case 7:
                 error_3 = _a.sent();
                 console.error('Error Creating Session', error_3);
@@ -218,8 +221,78 @@ var createSetupIntent = function (req, res) { return __awaiter(void 0, void 0, v
     });
 }); };
 exports.createSetupIntent = createSetupIntent;
+var detachStripePaymentMethod = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var paymentMethodId_1, customerId, customer, paymentMethodIndex, updatedCustomer, err_1;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 4, , 5]);
+                paymentMethodId_1 = req.params.paymentMethodId;
+                customerId = req.customer.id;
+                return [4 /*yield*/, customer_model_1.default.findById(customerId)];
+            case 1:
+                customer = _a.sent();
+                // Check if the customer document exists
+                if (!customer) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: "Customer not found" })];
+                }
+                paymentMethodIndex = customer.stripePaymentMethods.findIndex(function (method) { return method.id === paymentMethodId_1; });
+                // Check if the payment method exists in the array
+                if (paymentMethodIndex === -1) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: "Payment method not found" })];
+                }
+                // Remove the payment method from the stripePaymentMethods array using splice
+                customer.stripePaymentMethods.splice(paymentMethodIndex, 1);
+                //attempt to remove on stripe
+                return [4 /*yield*/, stripe_1.StripeService.payment.detachPaymentMethod(paymentMethodId_1)];
+            case 2:
+                //attempt to remove on stripe
+                _a.sent();
+                return [4 /*yield*/, customer.save()];
+            case 3:
+                updatedCustomer = _a.sent();
+                return [2 /*return*/, res.status(200).json({ success: true, message: "Payment method removed successfully", data: updatedCustomer })];
+            case 4:
+                err_1 = _a.sent();
+                next(new custom_errors_1.BadRequestError(err_1.message, err_1));
+                return [3 /*break*/, 5];
+            case 5: return [2 /*return*/];
+        }
+    });
+}); };
+exports.detachStripePaymentMethod = detachStripePaymentMethod;
+var attachStripePaymentMethod = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var paymentMethodId, customerId, customer, paymentMethod, err_2;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 3, , 4]);
+                paymentMethodId = req.params.paymentMethodId;
+                customerId = req.customer.id;
+                return [4 /*yield*/, customer_model_1.default.findById(customerId)];
+            case 1:
+                customer = _a.sent();
+                // Check if the customer document exists
+                if (!customer) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: "Customer not found" })];
+                }
+                return [4 /*yield*/, stripe_1.StripeService.payment.attachPaymentMethod(paymentMethodId, { customer: customer.stripeCustomer.id })];
+            case 2:
+                paymentMethod = _a.sent();
+                return [2 /*return*/, res.status(200).json({ success: true, message: "Payment method removed successfully", data: paymentMethod })];
+            case 3:
+                err_2 = _a.sent();
+                next(new custom_errors_1.BadRequestError(err_2.message, err_2));
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.attachStripePaymentMethod = attachStripePaymentMethod;
 exports.CustomerStripeController = {
     createSession: exports.createSession,
     createAccount: exports.createAccount,
-    createSetupIntent: exports.createSetupIntent
+    createSetupIntent: exports.createSetupIntent,
+    detachStripePaymentMethod: exports.detachStripePaymentMethod,
+    attachStripePaymentMethod: exports.attachStripePaymentMethod
 };

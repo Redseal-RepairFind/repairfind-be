@@ -3,6 +3,7 @@
 import { Schema, model } from "mongoose";
 import { CustomerAuthProviders, ICustomer } from "../interface/customer.interface";
 import { StripeCustomerSchema } from "../../common/stripe_customer.schema";
+import { StripePaymentMethodSchema } from "../../common/stripe_paymentmethod.schema";
 
 
 
@@ -79,16 +80,15 @@ const CustomerSchema = new Schema<ICustomer>(
       type: StripeCustomerSchema,
     },
     stripePaymentMethods: {
-      type: [Object],
-     
+      type: [StripePaymentMethodSchema],
     },
     stripeAccount: {
       type: Object,
       default: null,
     },
+
     stripeIdentity: {
       type: Object,
-     
     },
 
   },

@@ -40,6 +40,8 @@ router.get("/me/devices", checkCustomerRole,  CustomerController.myDevices );
 
 
 router.post("/stripe-account",  checkCustomerRole,  CustomerStripeController.createAccount ); 
+router.post("/stripe-payment-methods/:paymentMethodId/detach",  checkCustomerRole,  CustomerStripeController.detachStripePaymentMethod ); 
+router.post("/stripe-payment-methods/:paymentMethodId/attach",  checkCustomerRole,  CustomerStripeController.attachStripePaymentMethod ); 
 router.post("/stripe-session",  checkCustomerRole, CustomerHttpRequest.createStripeSessionParams, CustomerStripeController.createSession ); 
 router.post("/stripe-setupintent",  checkCustomerRole, CustomerStripeController.createSetupIntent ); 
 

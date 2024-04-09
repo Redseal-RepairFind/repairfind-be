@@ -1,5 +1,6 @@
 import { Document, Types, ObjectId } from "mongoose";
 import { IStripeCustomer } from "../../common/stripe_customer.interface";
+import { IStripePaymentMethod } from "../../common/stripe_paymentmethod.schema";
 
 export enum CustomerAuthProviders  {
   PASSWORD = "PASSWORD",
@@ -50,7 +51,7 @@ export interface ICustomer extends Document {
   };
 
   stripeCustomer: IStripeCustomer
-  stripePaymentMethods: Array<object>
+  stripePaymentMethods: Array<IStripePaymentMethod>
   stripeAccount: object,
   stripeIdentity: object
   acceptTerms: Boolean;

@@ -52,6 +52,8 @@ export const updateAccount = async (
 }
 
 
+
+
 export const getAccount = async (req: any, res: Response) => {
   try {
     const customerId = req.customer.id;
@@ -77,27 +79,27 @@ export const getAccount = async (req: any, res: Response) => {
       return res.status(404).json({ success: false, message: 'Customer account not found' });
     }
 
-    
+
 
     //TODO: for now always update the meta data of stripe customer with this email address
-    if(customer.stripeCustomer){
+    if (customer.stripeCustomer) {
       StripeService.customer.updateCustomer(customer.stripeCustomer.id, {
-        metadata: {userType: 'customer', userId: customerId }
+        metadata: { userType: 'customer', userId: customerId }
       })
-    }else{
+    } else {
       StripeService.customer.createCustomer({
         email: customer.email,
         metadata: {
-            userType: 'customer',
-            userId: customer.id,
+          userType: 'customer',
+          userId: customer.id,
         },
         name: `${customer.firstName} ${customer.lastName} `,
-        phone:  `${customer.phoneNumber.code}${customer.phoneNumber.number} `, 
-    })
+        phone: `${customer.phoneNumber.code}${customer.phoneNumber.number} `,
+      })
     }
-   
+
     //@ts-ignore
-    const customerResponse = customer.toJSON({includeStripeIdentity: true, includeStripeCustomer: true, includeStripePaymentMethods: true});
+    const customerResponse = customer.toJSON({ includeStripeIdentity: true, includeStripeCustomer: true, includeStripePaymentMethods: true });
 
 
     return res.status(200).json({ success: true, message: 'Customer account retrieved successfully', data: customerResponse });
@@ -232,6 +234,5 @@ export const CustomerController = {
   updateAccount,
   getAccount,
   updateOrCreateDevice,
-  myDevices,
-
+  myDevices
 }

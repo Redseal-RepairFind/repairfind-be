@@ -46,6 +46,8 @@ var constants_1 = require("../../../constants");
 var contractorStatus_1 = require("../../../constants/contractorStatus");
 var contractor_quiz_model_1 = __importDefault(require("./contractor_quiz.model"));
 var stripe_customer_schema_1 = require("../../common/stripe_customer.schema");
+var stripe_account_schema_1 = require("../../common/stripe_account.schema");
+var stripe_paymentmethod_schema_1 = require("../../common/stripe_paymentmethod.schema");
 var CONTRACTOR_TYPES;
 (function (CONTRACTOR_TYPES) {
     CONTRACTOR_TYPES["INDIVIDUAL"] = "Individual";
@@ -136,13 +138,11 @@ var ContractorSchema = new mongoose_1.Schema({
         default: null,
     },
     stripeAccount: {
-        type: Object,
-        default: null,
+        type: stripe_account_schema_1.StripeAccountSchema,
     },
     stripePaymentMethods: {
-        type: Array,
-        default: []
-    }
+        type: [stripe_paymentmethod_schema_1.StripePaymentMethodSchema],
+    },
 }, {
     timestamps: true,
 });

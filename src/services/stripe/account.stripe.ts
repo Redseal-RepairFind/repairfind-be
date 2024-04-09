@@ -12,6 +12,15 @@ export const createAccount = async (payload: any) => {
   try {
       const account = await stripeClient.accounts.create({
         type: 'express',
+        capabilities: {
+          card_payments: {
+            requested: true,
+          },
+          transfers: {
+            requested: true,
+          },
+        },
+        // business_type: 'company',
         metadata: payload,
       });
       console.log(account)

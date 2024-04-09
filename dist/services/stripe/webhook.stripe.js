@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.accountUpdated = exports.identityVerificationVerified = exports.identityVerificationRequiresInput = exports.identityVerificationCreated = exports.paymentMethodDetached = exports.customerCreated = exports.customerUpdated = exports.paymentMethodAttached = exports.setupIntentSucceeded = exports.setupIntentCreated = exports.StripeWebhookHandler = void 0;
+exports.paymentIntentSucceeded = exports.accountUpdated = exports.identityVerificationVerified = exports.identityVerificationRequiresInput = exports.identityVerificationCreated = exports.paymentMethodDetached = exports.paymentMethodAttached = exports.customerCreated = exports.customerUpdated = exports.setupIntentSucceeded = exports.setupIntentCreated = exports.StripeWebhookHandler = void 0;
 var stripe_1 = __importDefault(require("stripe"));
 var custom_errors_1 = require("../../utils/custom.errors");
 var _1 = require(".");
@@ -65,12 +65,14 @@ var StripeWebhookHandler = function (req) { return __awaiter(void 0, void 0, voi
             // console.log(event)
             // Log.info(event)
             switch (eventType) {
+                // Setup Intent
                 case 'setup_intent.created':
                     (0, exports.setupIntentCreated)(eventData.object);
                     break;
                 case 'setup_intent.succeeded':
                     (0, exports.setupIntentSucceeded)(eventData.object);
                     break;
+                // Identity
                 case 'identity.verification_session.created':
                     (0, exports.identityVerificationCreated)(eventData.object);
                     break;
@@ -83,20 +85,27 @@ var StripeWebhookHandler = function (req) { return __awaiter(void 0, void 0, voi
                     // All the verification checks passed
                     (0, exports.identityVerificationVerified)(eventData.object);
                     break;
+                // Payment Method
                 case 'payment_method.attached':
                     (0, exports.paymentMethodAttached)(eventData.object);
                     break;
                 case 'payment_method.detached':
                     (0, exports.paymentMethodDetached)(eventData.object);
                     break;
+                // Customer
                 case 'customer.updated':
                     (0, exports.customerUpdated)(eventData.object);
                     break;
                 case 'customer.created':
                     (0, exports.customerCreated)(eventData.object);
                     break;
+                // Account
                 case 'account.updated':
                     (0, exports.accountUpdated)(eventData.object);
+                    break;
+                // Payment and Intents
+                case 'payment_intent.succeeded':
+                    (0, exports.paymentIntentSucceeded)(eventData.object);
                     break;
                 default:
                     console.log("Unhandled event type: ".concat(eventType), eventData.object);
@@ -180,69 +189,53 @@ var setupIntentSucceeded = function (payload) { return __awaiter(void 0, void 0,
     });
 }); };
 exports.setupIntentSucceeded = setupIntentSucceeded;
-var paymentMethodAttached = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var customer, paymentMethod_2, userType, userId, user, _a, existingPaymentMethodIndex, error_2;
-    var _b, _c;
-    return __generator(this, function (_d) {
-        switch (_d.label) {
-            case 0:
-                console.log('Stripe Event Handler: paymentMethodAttached', payload);
-                _d.label = 1;
-            case 1:
-                _d.trys.push([1, 9, , 10]);
-                if (payload.object != 'payment_method')
-                    return [2 /*return*/];
-                return [4 /*yield*/, _1.StripeService.customer.getCustomerById(payload.customer)];
-            case 2:
-                customer = _d.sent();
-                return [4 /*yield*/, _1.StripeService.payment.getPaymentMethod(payload.id)];
-            case 3:
-                paymentMethod_2 = _d.sent();
-                userType = (_b = customer === null || customer === void 0 ? void 0 : customer.metadata) === null || _b === void 0 ? void 0 : _b.userType;
-                userId = (_c = customer === null || customer === void 0 ? void 0 : customer.metadata) === null || _c === void 0 ? void 0 : _c.userId;
-                if (!userType || !userId)
-                    return [2 /*return*/]; // Ensure userType and userId are valid
-                if (!(userType === 'contractor')) return [3 /*break*/, 5];
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(userId)];
-            case 4:
-                _a = _d.sent();
-                return [3 /*break*/, 7];
-            case 5: return [4 /*yield*/, customer_model_1.default.findById(userId)];
-            case 6:
-                _a = _d.sent();
-                _d.label = 7;
-            case 7:
-                user = _a;
-                if (!user)
-                    return [2 /*return*/]; // Ensure user exists
-                existingPaymentMethodIndex = user.stripePaymentMethods.findIndex(function (pm) { return pm.id === paymentMethod_2.id; });
-                if (existingPaymentMethodIndex !== -1) {
-                    // If paymentMethod already exists, update it
-                    user.stripePaymentMethods[existingPaymentMethodIndex] = paymentMethod_2;
-                }
-                else {
-                    // If paymentMethod doesn't exist, push it to the array
-                    user.stripePaymentMethods.push(paymentMethod_2);
-                }
-                return [4 /*yield*/, user.save()];
-            case 8:
-                _d.sent();
-                return [3 /*break*/, 10];
-            case 9:
-                error_2 = _d.sent();
-                return [3 /*break*/, 10];
-            case 10: return [2 /*return*/];
-        }
-    });
-}); };
-exports.paymentMethodAttached = paymentMethodAttached;
 var customerUpdated = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var userType, userId, user, _a, error_3;
+    var userType, userId, user, _a, error_2;
     var _b, _c;
     return __generator(this, function (_d) {
         switch (_d.label) {
             case 0:
                 console.log('Stripe Event Handler: customerUpdated', payload);
+                _d.label = 1;
+            case 1:
+                _d.trys.push([1, 7, , 8]);
+                userType = (_b = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _b === void 0 ? void 0 : _b.userType;
+                userId = (_c = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _c === void 0 ? void 0 : _c.userId;
+                if (!userType || !userId)
+                    return [2 /*return*/]; // Ensure userType and userId are valid
+                if (!(userType === 'contractor')) return [3 /*break*/, 3];
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(userId)];
+            case 2:
+                _a = _d.sent();
+                return [3 /*break*/, 5];
+            case 3: return [4 /*yield*/, customer_model_1.default.findById(userId)];
+            case 4:
+                _a = _d.sent();
+                _d.label = 5;
+            case 5:
+                user = _a;
+                if (!user)
+                    return [2 /*return*/]; // Ensure user exists
+                user.stripeCustomer = payload;
+                return [4 /*yield*/, user.save()];
+            case 6:
+                _d.sent();
+                return [3 /*break*/, 8];
+            case 7:
+                error_2 = _d.sent();
+                return [3 /*break*/, 8];
+            case 8: return [2 /*return*/];
+        }
+    });
+}); };
+exports.customerUpdated = customerUpdated;
+var customerCreated = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
+    var userType, userId, user, _a, error_3;
+    var _b, _c;
+    return __generator(this, function (_d) {
+        switch (_d.label) {
+            case 0:
+                console.log('Stripe Event Handler: customerCreated', payload);
                 _d.label = 1;
             case 1:
                 _d.trys.push([1, 7, , 8]);
@@ -275,47 +268,65 @@ var customerUpdated = function (payload) { return __awaiter(void 0, void 0, void
         }
     });
 }); };
-exports.customerUpdated = customerUpdated;
-var customerCreated = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var userType, userId, user, _a, error_4;
+exports.customerCreated = customerCreated;
+var paymentMethodAttached = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
+    var customer, paymentMethod_2, userType, userId, user, _a, existingPaymentMethodIndex, error_4;
     var _b, _c;
     return __generator(this, function (_d) {
         switch (_d.label) {
             case 0:
-                console.log('Stripe Event Handler: customerCreated', payload);
+                console.log('Stripe Event Handler: paymentMethodAttached', payload);
                 _d.label = 1;
             case 1:
-                _d.trys.push([1, 7, , 8]);
-                userType = (_b = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _b === void 0 ? void 0 : _b.userType;
-                userId = (_c = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _c === void 0 ? void 0 : _c.userId;
+                _d.trys.push([1, 9, , 10]);
+                if (payload.object != 'payment_method')
+                    return [2 /*return*/];
+                return [4 /*yield*/, _1.StripeService.customer.getCustomerById(payload.customer)];
+            case 2:
+                customer = _d.sent();
+                console.log('customer', customer);
+                return [4 /*yield*/, _1.StripeService.payment.getPaymentMethod(payload.id)];
+            case 3:
+                paymentMethod_2 = _d.sent();
+                userType = (_b = customer === null || customer === void 0 ? void 0 : customer.metadata) === null || _b === void 0 ? void 0 : _b.userType;
+                userId = (_c = customer === null || customer === void 0 ? void 0 : customer.metadata) === null || _c === void 0 ? void 0 : _c.userId;
                 if (!userType || !userId)
                     return [2 /*return*/]; // Ensure userType and userId are valid
-                if (!(userType === 'contractor')) return [3 /*break*/, 3];
+                if (!(userType === 'contractor')) return [3 /*break*/, 5];
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(userId)];
-            case 2:
-                _a = _d.sent();
-                return [3 /*break*/, 5];
-            case 3: return [4 /*yield*/, customer_model_1.default.findById(userId)];
             case 4:
                 _a = _d.sent();
-                _d.label = 5;
-            case 5:
+                return [3 /*break*/, 7];
+            case 5: return [4 /*yield*/, customer_model_1.default.findById(userId)];
+            case 6:
+                _a = _d.sent();
+                _d.label = 7;
+            case 7:
                 user = _a;
                 if (!user)
                     return [2 /*return*/]; // Ensure user exists
-                user.stripeCustomer = payload;
+                existingPaymentMethodIndex = user.stripePaymentMethods.findIndex(function (pm) { return pm.id === paymentMethod_2.id; });
+                if (existingPaymentMethodIndex !== -1) {
+                    // If paymentMethod already exists, update it
+                    user.stripePaymentMethods[existingPaymentMethodIndex] = paymentMethod_2;
+                }
+                else {
+                    // If paymentMethod doesn't exist, push it to the array
+                    user.stripePaymentMethods.push(paymentMethod_2);
+                }
+                console.log(user);
                 return [4 /*yield*/, user.save()];
-            case 6:
+            case 8:
                 _d.sent();
-                return [3 /*break*/, 8];
-            case 7:
+                return [3 /*break*/, 10];
+            case 9:
                 error_4 = _d.sent();
-                return [3 /*break*/, 8];
-            case 8: return [2 /*return*/];
+                return [3 /*break*/, 10];
+            case 10: return [2 /*return*/];
         }
     });
 }); };
-exports.customerCreated = customerCreated;
+exports.paymentMethodAttached = paymentMethodAttached;
 var paymentMethodDetached = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
     var paymentMethodId_1, user, error_5;
     return __generator(this, function (_a) {
@@ -600,9 +611,68 @@ var accountUpdated = function (payload) { return __awaiter(void 0, void 0, void 
                 return [3 /*break*/, 8];
             case 7:
                 error_9 = _e.sent();
+                // throw new BadRequestError(error.message || "Something went wrong");
+                console.log('accountUpdated', error_9);
                 return [3 /*break*/, 8];
             case 8: return [2 /*return*/];
         }
     });
 }); };
 exports.accountUpdated = accountUpdated;
+// Payment
+var paymentIntentSucceeded = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
+    var customer, paymentMethod_3, userType, userId, user, _a, existingPaymentMethodIndex, error_10;
+    var _b, _c;
+    return __generator(this, function (_d) {
+        switch (_d.label) {
+            case 0:
+                console.log('Stripe Event Handler: paymentIntentSucceeded', payload);
+                _d.label = 1;
+            case 1:
+                _d.trys.push([1, 9, , 10]);
+                if (payload.object != 'payment_intent')
+                    return [2 /*return*/];
+                return [4 /*yield*/, _1.StripeService.customer.getCustomerById(payload.customer)];
+            case 2:
+                customer = _d.sent();
+                return [4 /*yield*/, _1.StripeService.payment.getPaymentMethod(payload.id)];
+            case 3:
+                paymentMethod_3 = _d.sent();
+                userType = (_b = customer === null || customer === void 0 ? void 0 : customer.metadata) === null || _b === void 0 ? void 0 : _b.userType;
+                userId = (_c = customer === null || customer === void 0 ? void 0 : customer.metadata) === null || _c === void 0 ? void 0 : _c.userId;
+                if (!userType || !userId)
+                    return [2 /*return*/]; // Ensure userType and userId are valid
+                if (!(userType === 'contractor')) return [3 /*break*/, 5];
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(userId)];
+            case 4:
+                _a = _d.sent();
+                return [3 /*break*/, 7];
+            case 5: return [4 /*yield*/, customer_model_1.default.findById(userId)];
+            case 6:
+                _a = _d.sent();
+                _d.label = 7;
+            case 7:
+                user = _a;
+                if (!user)
+                    return [2 /*return*/]; // Ensure user exists
+                existingPaymentMethodIndex = user.stripePaymentMethods.findIndex(function (pm) { return pm.id === paymentMethod_3.id; });
+                if (existingPaymentMethodIndex !== -1) {
+                    // If paymentMethod already exists, update it
+                    user.stripePaymentMethods[existingPaymentMethodIndex] = paymentMethod_3;
+                }
+                else {
+                    // If paymentMethod doesn't exist, push it to the array
+                    user.stripePaymentMethods.push(paymentMethod_3);
+                }
+                return [4 /*yield*/, user.save()];
+            case 8:
+                _d.sent();
+                return [3 /*break*/, 10];
+            case 9:
+                error_10 = _d.sent();
+                return [3 /*break*/, 10];
+            case 10: return [2 /*return*/];
+        }
+    });
+}); };
+exports.paymentIntentSucceeded = paymentIntentSucceeded;
