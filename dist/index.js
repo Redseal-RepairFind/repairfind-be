@@ -56,6 +56,8 @@ var seeders_1 = require("./database/seeders");
 var socket_1 = __importDefault(require("./services/socket"));
 var custom_errors_1 = require("./utils/custom.errors");
 var logger_1 = require("./utils/logger");
+var bullmq_1 = require("./services/bullmq");
+var worker_1 = require("./services/bullmq/worker");
 dotenv_1.default.config();
 // console.debug = Logger.debug.bind(Logger);
 // console.log = Logger.info.bind(Logger);
@@ -123,6 +125,8 @@ app.use("/api/v1/contractor", routes_1.default);
 app.use("/api/v1/admin", routes_2.default);
 app.use("/api/v1/customer", routes_3.default);
 app.use("/api/v1/common", routes_4.default);
+bullmq_1.QueueService.attach(app); // Attach Bull Board middleware
+worker_1.RepairFindQueueWorker;
 // Middleware to handle non-existing pages (404)
 app.use(function (req, res, next) {
     res.status(404).json({ success: false, message: "Not found:  ".concat(req.hostname).concat(req.originalUrl) });

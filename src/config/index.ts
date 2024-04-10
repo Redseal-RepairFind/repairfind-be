@@ -29,8 +29,11 @@ export const config = {
     },
 
     redis: {
-        uri: <string>process.env.REDIS_URI,
-        password: <string>process.env.REDIS_PASSWORD
+        uri:  <string>process.env.REDIS_URI,
+        host: <string>process.env.REDIS_HOST,
+        port: Number(process.env.REDIS_PORT),
+        password: <string>process.env.REDIS_PASSWORD,
+        username: <string>process.env.REDIS_USERNAME
     },
 
     aws: {

@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { TripDayModel, TripDayStatus } from "../../../database/common/trip_day.model";
 import { validationResult } from "express-validator";
-import { JobModel, JobStatus, JobType } from "../../../database/common/job.model";
+import { JobModel, JOB_STATUS, JobType } from "../../../database/common/job.model";
 import { generateOTP } from "../../../utils/otpGenerator";
 import { NotificationService } from "../../../services/notifications/index";
 
@@ -24,7 +24,7 @@ export const contractorStartTripController = async (
         const contractorId = req.contractor.id
 
         // Find the job request by ID
-        const jobRequest = await JobModel.findOne({ _id: jobId, contractor: contractorId, status: JobStatus.ACCEPTED });
+        const jobRequest = await JobModel.findOne({ _id: jobId, contractor: contractorId, status: JOB_STATUS.ACCEPTED });
 
         // Check if the job request exists
         if (!jobRequest) {

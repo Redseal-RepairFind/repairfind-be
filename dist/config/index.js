@@ -51,7 +51,10 @@ exports.config = {
     },
     redis: {
         uri: process.env.REDIS_URI,
-        password: process.env.REDIS_PASSWORD
+        host: process.env.REDIS_HOST,
+        port: Number(process.env.REDIS_PORT),
+        password: process.env.REDIS_PASSWORD,
+        username: process.env.REDIS_USERNAME
     },
     aws: {
         secretAccessKey: process.env.AWS_SECRET_KEY,

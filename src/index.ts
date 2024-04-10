@@ -16,6 +16,8 @@ import { RunSeeders } from "./database/seeders";
 import SocketService from "./services/socket";
 import { errorHandler } from "./utils/custom.errors";
 import { Logger } from "./utils/logger";
+import { QueueService } from "./services/bullmq";
+import { RepairFindQueueWorker } from "./services/bullmq/worker";
 
 dotenv.config();
 
@@ -31,6 +33,8 @@ const app = express();
 const server = http.createServer(app);
 
 const csrfProtection = csrf({ cookie: true });
+
+
 
 const io = require("socket.io")(server, {
   cors: {
@@ -89,6 +93,9 @@ app.use("/api/v1/customer", customerRoute);
 app.use("/api/v1/common", commonRoute);
 
 
+QueueService.attach(app); // Attach Bull Board middleware
+RepairFindQueueWorker
+
 
 // Middleware to handle non-existing pages (404)
 app.use((req, res, next) => {
@@ -101,6 +108,7 @@ app.use(errorHandler)
 
 // Socket connections
 const socketService = new SocketService(io);
+
 
 
 

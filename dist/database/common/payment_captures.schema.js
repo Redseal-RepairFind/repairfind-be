@@ -1,7 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PaymentCaptureModel = void 0;
+exports.PaymentCaptureModel = exports.PAYMENT_CAPTURE_STATUS = void 0;
 var mongoose_1 = require("mongoose");
+var PAYMENT_CAPTURE_STATUS;
+(function (PAYMENT_CAPTURE_STATUS) {
+    PAYMENT_CAPTURE_STATUS["REQUIRES_CAPTURE"] = "REQUIRES_CAPTURE";
+    PAYMENT_CAPTURE_STATUS["CAPTURED"] = "CAPTURED";
+    PAYMENT_CAPTURE_STATUS["CANCELLED"] = "CANCELLED";
+    PAYMENT_CAPTURE_STATUS["FAILED"] = "FAILED";
+})(PAYMENT_CAPTURE_STATUS || (exports.PAYMENT_CAPTURE_STATUS = PAYMENT_CAPTURE_STATUS = {}));
 var PaymentCaptureSchema = new mongoose_1.Schema({
     payment: { type: mongoose_1.Schema.Types.ObjectId, required: true },
     user: { type: mongoose_1.Schema.Types.ObjectId, refPath: 'userType', required: true },
@@ -42,8 +49,11 @@ var PaymentCaptureSchema = new mongoose_1.Schema({
     status: { type: String, required: true },
     captured: { type: Boolean, required: true },
     canceled_at: { type: String },
+    captured_at: { type: String },
     cancellation_reason: { type: String },
     capture_method: { type: String }
+}, {
+    timestamps: true,
 });
 var PaymentCaptureModel = (0, mongoose_1.model)('payment_captures', PaymentCaptureSchema);
 exports.PaymentCaptureModel = PaymentCaptureModel;

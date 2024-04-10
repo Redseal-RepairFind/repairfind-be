@@ -20,7 +20,7 @@ import CustomerJobRequestModel, { ICustomerJobRequest, JobRequestStatus } from "
 import CustomerModel from "../../../database/customer/models/customer.model";
 import { EmailService, NotificationService } from "../../../services";
 import { addHours, endOfDay, isAfter, isBefore, isFuture, isPast, isValid, startOfDay } from "date-fns";
-import { IJob, JobModel, JobStatus, JobType } from "../../../database/common/job.model";
+import { IJob, JobModel, JOB_STATUS, JobType } from "../../../database/common/job.model";
 import { BadRequestError } from "../../../utils/custom.errors";
 import { applyAPIFeature } from "../../../utils/api.feature";
 import { ConversationEntityType, ConversationModel, IConversation } from "../../../database/common/conversations.schema";
@@ -30,6 +30,7 @@ import { JobQoutationModel } from "../../../database/common/job_quotation.model"
 import TransactionModel from "../../../database/common/transaction.model";
 import { StripeService } from "../../../services/stripe";
 import Stripe from 'stripe';
+import { QueueService } from "../../../services/bullmq";
 
 
 
@@ -532,7 +533,7 @@ export const makeJobPayment = async (
         console.log('payload',payload)
         const stripePayment = await StripeService.payment.chargeCustomer(paymentMethod.customer, paymentMethod.id, payload)
 
-        job.status = JobStatus.BOOKED;
+        job.status = JOB_STATUS.BOOKED;
         await job.save()
 
         res.json({ success: true, message: 'Payment intent created', data: stripePayment });
@@ -693,7 +694,7 @@ export const captureJobPayment = async (
                 customerId,
                 constractorId: contractor?.id,
                 quotationId,
-                type: "job_booking",
+                type: "job_payment",
                 jobId,
                 email: customer.email,
                 transactionId,
@@ -711,8 +712,10 @@ export const captureJobPayment = async (
         // console.log('payload',payload)
         const stripePayment = await StripeService.payment.chargeCustomer(paymentMethod.customer, paymentMethod.id, payload)
 
-        job.status = JobStatus.BOOKED;
+        job.status = JOB_STATUS.BOOKED;
         await job.save()
+
+        QueueService.addJob('dod', {}, {})
 
         res.json({ success: true, message: 'Payment intent created', data: stripePayment });
 

@@ -36,15 +36,15 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.JobQoutationModel = exports.JobQuotationStatus = void 0;
+exports.JobQoutationModel = exports.JOB_QUOTATION_STATUS = void 0;
 var mongoose_1 = require("mongoose");
-var JobQuotationStatus;
-(function (JobQuotationStatus) {
-    JobQuotationStatus["PENDING"] = "PENDING";
-    JobQuotationStatus["ACCEPTED"] = "ACCEPTED";
-    JobQuotationStatus["REJECTED"] = "REJECTED";
-    JobQuotationStatus["COMPLETED"] = "COMPLETED";
-})(JobQuotationStatus || (exports.JobQuotationStatus = JobQuotationStatus = {}));
+var JOB_QUOTATION_STATUS;
+(function (JOB_QUOTATION_STATUS) {
+    JOB_QUOTATION_STATUS["PENDING"] = "PENDING";
+    JOB_QUOTATION_STATUS["ACCEPTED"] = "ACCEPTED";
+    JOB_QUOTATION_STATUS["REJECTED"] = "REJECTED";
+    JOB_QUOTATION_STATUS["COMPLETED"] = "COMPLETED";
+})(JOB_QUOTATION_STATUS || (exports.JOB_QUOTATION_STATUS = JOB_QUOTATION_STATUS = {}));
 // Define schema for job quotation estimates
 var JobQuotationEstimateSchema = new mongoose_1.Schema({
     description: { type: String, required: true },
@@ -62,7 +62,7 @@ var ExtraEstimatesSchema = new mongoose_1.Schema({
 var JobQoutationSchema = new mongoose_1.Schema({
     contractor: { type: mongoose_1.Schema.Types.ObjectId, ref: 'contractors', required: true },
     job: { type: mongoose_1.Schema.Types.ObjectId, ref: 'jobs', required: true },
-    status: { type: String, enum: Object.values(JobQuotationStatus), default: JobQuotationStatus.PENDING },
+    status: { type: String, enum: Object.values(JOB_QUOTATION_STATUS), default: JOB_QUOTATION_STATUS.PENDING },
     estimates: { type: [JobQuotationEstimateSchema], required: false },
     startDate: { type: Date, required: false },
     endDate: { type: Date, required: false },

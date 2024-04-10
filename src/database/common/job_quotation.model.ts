@@ -1,6 +1,6 @@
 import { Document, ObjectId, Schema, model } from "mongoose";
 
-export enum JobQuotationStatus {
+export enum JOB_QUOTATION_STATUS {
     PENDING = 'PENDING',
     ACCEPTED = 'ACCEPTED',
     REJECTED = 'REJECTED',
@@ -26,7 +26,7 @@ interface IExtraEstimates {
 export interface IJobQuotation extends Document {
     contractor: ObjectId;
     job: ObjectId;
-    status: JobQuotationStatus;
+    status: JOB_QUOTATION_STATUS;
     estimates: IJobQuotationEstimate[];
     startDate: Date;
     endDate: Date;
@@ -64,7 +64,7 @@ const ExtraEstimatesSchema = new Schema<IExtraEstimates>({
 const JobQoutationSchema = new Schema<IJobQuotation>({
     contractor: { type: Schema.Types.ObjectId, ref: 'contractors', required: true },
     job: { type: Schema.Types.ObjectId, ref: 'jobs', required: true },
-    status: { type: String, enum: Object.values(JobQuotationStatus), default: JobQuotationStatus.PENDING },
+    status: { type: String, enum: Object.values(JOB_QUOTATION_STATUS), default: JOB_QUOTATION_STATUS.PENDING },
     estimates: { type: [JobQuotationEstimateSchema], required: false },
     startDate: { type: Date, required: false },
     endDate: { type: Date, required: false },

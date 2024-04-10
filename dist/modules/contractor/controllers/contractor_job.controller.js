@@ -150,13 +150,13 @@ var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'Unauthorized: You do not have permission to accept this job request' })];
                 }
                 // Check if the job request is pending
-                if (jobRequest.status !== job_model_1.JobStatus.PENDING) {
+                if (jobRequest.status !== job_model_1.JOB_STATUS.PENDING) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'Job request is not pending' })];
                 }
                 // Update the status of the job request to "Accepted"
-                jobRequest.status = job_model_1.JobStatus.ACCEPTED;
+                jobRequest.status = job_model_1.JOB_STATUS.ACCEPTED;
                 jobEvent = {
-                    eventType: job_model_1.JobStatus.ACCEPTED,
+                    eventType: job_model_1.JOB_STATUS.ACCEPTED,
                     timestamp: new Date(),
                     details: {
                         message: 'Contactor accepted this job'
@@ -167,7 +167,7 @@ var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 quotation = new job_quotation_model_1.JobQoutationModel({
                     contractor: contractorId,
                     job: jobId,
-                    status: job_quotation_model_1.JobQuotationStatus.PENDING, // Assuming initial status is pending
+                    status: job_quotation_model_1.JOB_QUOTATION_STATUS.PENDING, // Assuming initial status is pending
                     estimate: [], // You may need to adjust this based on your application schema
                     startDate: jobRequest.startDate,
                     endDate: jobRequest.endDate,
@@ -249,13 +249,13 @@ var rejectJobRequest = function (req, res) { return __awaiter(void 0, void 0, vo
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'Unauthorized: You do not have permission to reject this job request' })];
                 }
                 // Check if the job request is pending
-                if (jobRequest.status !== job_model_1.JobStatus.PENDING) {
+                if (jobRequest.status !== job_model_1.JOB_STATUS.PENDING) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'Job request is not pending' })];
                 }
                 // Update the status of the job request to "Rejected" and set the rejection reason
-                jobRequest.status = job_model_1.JobStatus.DECLINED;
+                jobRequest.status = job_model_1.JOB_STATUS.DECLINED;
                 jobEvent = {
-                    eventType: job_model_1.JobStatus.DECLINED,
+                    eventType: job_model_1.JOB_STATUS.DECLINED,
                     timestamp: new Date(),
                     details: { reason: rejectionReason }, // Store the rejection reason
                 };
@@ -451,16 +451,16 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                 }
                 if (job.type == job_model_1.JobType.REQUEST) {
                     // Update the status of the job request to "Accepted"
-                    job.status = job_model_1.JobStatus.ACCEPTED;
+                    job.status = job_model_1.JOB_STATUS.ACCEPTED;
                     jobEvent = {
-                        eventType: job_model_1.JobStatus.ACCEPTED,
+                        eventType: job_model_1.JOB_STATUS.ACCEPTED,
                         timestamp: new Date(),
                         details: {
                             message: 'Contactor accepted this job'
                         },
                     };
                     // Push the acceptance event to the job history array
-                    if (!job.jobHistory.some(function (jobEvent) { return jobEvent.eventType == job_model_1.JobStatus.ACCEPTED; })) {
+                    if (!job.jobHistory.some(function (jobEvent) { return jobEvent.eventType == job_model_1.JOB_STATUS.ACCEPTED; })) {
                         job.jobHistory.push(jobEvent);
                     }
                 }
@@ -684,7 +684,7 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                 ];
                 // Match job listings based on query parameters
                 pipeline.push({ $match: { type: job_model_1.JobType.LISTING } });
-                pipeline.push({ $match: { status: job_model_1.JobStatus.PENDING } });
+                pipeline.push({ $match: { status: job_model_1.JOB_STATUS.PENDING } });
                 if (category) {
                     pipeline.push({ $match: { category: { $regex: new RegExp(category, 'i') } } });
                 }

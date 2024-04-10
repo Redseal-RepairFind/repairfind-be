@@ -6,10 +6,10 @@ import { sendEmail } from "../../../utils/send_email_utility";
 import { htmlJobQoutationTemplate } from "../../../templates/customerEmail/jobQoutationTemplate";
 import AdminNoficationModel from "../../../database/admin/models/admin_notification.model";
 import CustomerJobRequestModel from "../../../database/customer/models/customer_jobrequest.model";
-import { JobModel, JobStatus, JobType } from "../../../database/common/job.model";
+import { JobModel, JOB_STATUS, JobType } from "../../../database/common/job.model";
 import { applyAPIFeature } from "../../../utils/api.feature";
 import { BadRequestError, InternalServerError, NotFoundError } from "../../../utils/custom.errors";
-import { JobQoutationModel, JobQuotationStatus } from "../../../database/common/job_quotation.model";
+import { JobQoutationModel, JOB_QUOTATION_STATUS } from "../../../database/common/job_quotation.model";
 import CustomerModel from "../../../database/customer/models/customer.model";
 import { Document, PipelineStage as MongoosePipelineStage } from 'mongoose'; // Import Document type from mongoose
 import { ConversationEntityType, ConversationModel } from "../../../database/common/conversations.schema";
@@ -115,16 +115,16 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
     }
 
     // Check if the job request is pending
-    if (jobRequest.status !== JobStatus.PENDING) {
+    if (jobRequest.status !== JOB_STATUS.PENDING) {
       return res.status(403).json({ success: false, message: 'Job request is not pending' });
     }
 
     // Update the status of the job request to "Accepted"
-    jobRequest.status = JobStatus.ACCEPTED;
+    jobRequest.status = JOB_STATUS.ACCEPTED;
 
     // Define the rejection event to be stored in the job history
     const jobEvent = {
-      eventType: JobStatus.ACCEPTED,
+      eventType: JOB_STATUS.ACCEPTED,
       timestamp: new Date(),
       details: {
         message: 'Contactor accepted this job'
@@ -140,7 +140,7 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
     const quotation = new JobQoutationModel({
       contractor: contractorId,
       job: jobId,
-      status: JobQuotationStatus.PENDING, // Assuming initial status is pending
+      status: JOB_QUOTATION_STATUS.PENDING, // Assuming initial status is pending
       estimate: [], // You may need to adjust this based on your application schema
       startDate: jobRequest.startDate,
       endDate: jobRequest.endDate,
@@ -228,16 +228,16 @@ export const rejectJobRequest = async (req: any, res: Response) => {
     }
 
     // Check if the job request is pending
-    if (jobRequest.status !== JobStatus.PENDING) {
+    if (jobRequest.status !== JOB_STATUS.PENDING) {
       return res.status(403).json({ success: false, message: 'Job request is not pending' });
     }
 
     // Update the status of the job request to "Rejected" and set the rejection reason
-    jobRequest.status = JobStatus.DECLINED;
+    jobRequest.status = JOB_STATUS.DECLINED;
 
     // Define the rejection event to be stored in the job history
     const jobEvent = {
-      eventType: JobStatus.DECLINED,
+      eventType: JOB_STATUS.DECLINED,
       timestamp: new Date(),
       details: { reason: rejectionReason }, // Store the rejection reason
     };
@@ -446,18 +446,18 @@ export const sendJobQuotation = async (
 
     if (job.type == JobType.REQUEST) {
       // Update the status of the job request to "Accepted"
-      job.status = JobStatus.ACCEPTED;
+      job.status = JOB_STATUS.ACCEPTED;
 
       // Define the acceptance event to be stored in the job history
       const jobEvent = {
-        eventType: JobStatus.ACCEPTED,
+        eventType: JOB_STATUS.ACCEPTED,
         timestamp: new Date(),
         details: {
           message: 'Contactor accepted this job'
         },
       };
       // Push the acceptance event to the job history array
-      if (!job.jobHistory.some( jobEvent =>  jobEvent.eventType == JobStatus.ACCEPTED  )) {
+      if (!job.jobHistory.some( jobEvent =>  jobEvent.eventType == JOB_STATUS.ACCEPTED  )) {
         job.jobHistory.push(jobEvent);
       }
 
@@ -717,7 +717,7 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
     // Match job listings based on query parameters
 
     pipeline.push({ $match: { type: JobType.LISTING } });
-    pipeline.push({ $match: { status: JobStatus.PENDING } });
+    pipeline.push({ $match: { status: JOB_STATUS.PENDING } });
 
     if (category) {
       pipeline.push({ $match: { category: { $regex: new RegExp(category, 'i') } } });

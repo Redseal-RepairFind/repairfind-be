@@ -43,6 +43,11 @@ export const chargeCustomer = async (customerId: any, paymentMethodId: any, payl
     return paymentIntent;
 };
 
+
+export const capturePayment = async (paymentIntent: any) => {
+  return await stripeClient.paymentIntents.capture(paymentIntent)
+};
+
 export const createPaymentIntent = async (customerId: any, paymentMethodId: any, payload: any) => {
    
   const paymentIntent = await stripeClient.checkout.sessions.create({

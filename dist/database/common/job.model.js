@@ -36,18 +36,18 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.JobModel = exports.JobType = exports.JobStatus = void 0;
+exports.JobModel = exports.JobType = exports.JOB_STATUS = void 0;
 var mongoose_1 = require("mongoose");
-var JobStatus;
-(function (JobStatus) {
-    JobStatus["PENDING"] = "PENDING";
-    JobStatus["DECLINED"] = "DECLINED";
-    JobStatus["ACCEPTED"] = "ACCEPTED";
-    JobStatus["EXPIRED"] = "EXPIRED";
-    JobStatus["BOOKED"] = "BOOKED";
-    JobStatus["COMPLETED"] = "COMPLETED";
-    JobStatus["DISPUTED"] = "DISPUTED";
-})(JobStatus || (exports.JobStatus = JobStatus = {}));
+var JOB_STATUS;
+(function (JOB_STATUS) {
+    JOB_STATUS["PENDING"] = "PENDING";
+    JOB_STATUS["DECLINED"] = "DECLINED";
+    JOB_STATUS["ACCEPTED"] = "ACCEPTED";
+    JOB_STATUS["EXPIRED"] = "EXPIRED";
+    JOB_STATUS["BOOKED"] = "BOOKED";
+    JOB_STATUS["COMPLETED"] = "COMPLETED";
+    JOB_STATUS["DISPUTED"] = "DISPUTED";
+})(JOB_STATUS || (exports.JOB_STATUS = JOB_STATUS = {}));
 var JobType;
 (function (JobType) {
     JobType["LISTING"] = "LISTING";
@@ -80,7 +80,7 @@ var JobSchema = new mongoose_1.Schema({
     contractor: { type: mongoose_1.Schema.Types.ObjectId, ref: 'contractors' },
     quotation: { type: mongoose_1.Schema.Types.ObjectId, ref: 'job_quotations' },
     contractorType: { type: String },
-    status: { type: String, enum: Object.values(JobStatus), default: JobStatus.PENDING },
+    status: { type: String, enum: Object.values(JOB_STATUS), default: JOB_STATUS.PENDING },
     type: { type: String, enum: Object.values(JobType), default: JobType.LISTING },
     category: { type: String, required: false },
     description: { type: String, required: true },
@@ -101,6 +101,10 @@ var JobSchema = new mongoose_1.Schema({
     quotations: {
         type: [mongoose_1.Schema.Types.ObjectId],
         ref: 'job_quotations'
+    },
+    payments: {
+        type: [mongoose_1.Schema.Types.ObjectId],
+        ref: 'payments'
     },
     emergency: { type: Boolean, default: false },
     myQuotation: { type: Object, default: null },

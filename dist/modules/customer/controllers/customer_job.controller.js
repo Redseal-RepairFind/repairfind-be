@@ -55,6 +55,7 @@ var messages_schema_1 = require("../../../database/common/messages.schema");
 var job_quotation_model_1 = require("../../../database/common/job_quotation.model");
 var transaction_model_1 = __importDefault(require("../../../database/common/transaction.model"));
 var stripe_1 = require("../../../services/stripe");
+var bullmq_1 = require("../../../services/bullmq");
 var createJobRequest = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, contractorId, category, description, location_1, date, expiresIn, emergency, media, voiceDescription, time, customerId, customer, contractor, startOfToday, existingJobRequest, dateTimeString, jobTime, newJob, conversationMembers, newConversation, newMessage, html, error_1;
     var _b, _c;
@@ -489,7 +490,7 @@ var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0
                 return [4 /*yield*/, stripe_1.StripeService.payment.chargeCustomer(paymentMethod.customer, paymentMethod.id, payload)];
             case 7:
                 stripePayment = _c.sent();
-                job.status = job_model_1.JobStatus.BOOKED;
+                job.status = job_model_1.JOB_STATUS.BOOKED;
                 return [4 /*yield*/, job.save()];
             case 8:
                 _c.sent();
@@ -597,7 +598,7 @@ var captureJobPayment = function (req, res, next) { return __awaiter(void 0, voi
                         customerId: customerId,
                         constractorId: contractor === null || contractor === void 0 ? void 0 : contractor.id,
                         quotationId: quotationId,
-                        type: "job_booking",
+                        type: "job_payment",
                         jobId: jobId,
                         email: customer.email,
                         transactionId: transactionId,
@@ -611,10 +612,11 @@ var captureJobPayment = function (req, res, next) { return __awaiter(void 0, voi
                 return [4 /*yield*/, stripe_1.StripeService.payment.chargeCustomer(paymentMethod.customer, paymentMethod.id, payload)];
             case 7:
                 stripePayment = _c.sent();
-                job.status = job_model_1.JobStatus.BOOKED;
+                job.status = job_model_1.JOB_STATUS.BOOKED;
                 return [4 /*yield*/, job.save()];
             case 8:
                 _c.sent();
+                bullmq_1.QueueService.addJob('dod', {}, {});
                 res.json({ success: true, message: 'Payment intent created', data: stripePayment });
                 return [3 /*break*/, 10];
             case 9:

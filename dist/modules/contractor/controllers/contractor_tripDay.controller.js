@@ -55,7 +55,7 @@ var contractorStartTripController = function (req, res) { return __awaiter(void 
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
                 contractorId = req.contractor.id;
-                return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobId, contractor: contractorId, status: job_model_1.JobStatus.ACCEPTED })];
+                return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobId, contractor: contractorId, status: job_model_1.JOB_STATUS.ACCEPTED })];
             case 1:
                 jobRequest = _a.sent();
                 // Check if the job request exists

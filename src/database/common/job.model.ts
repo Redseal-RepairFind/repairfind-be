@@ -18,7 +18,7 @@ export interface IJobHistory {
     details?: any; // Additional details specific to each event
 }
 
-export enum JobStatus {
+export enum JOB_STATUS {
     PENDING = 'PENDING',
     DECLINED = 'DECLINED',
     ACCEPTED = 'ACCEPTED',
@@ -51,7 +51,7 @@ export interface IJob extends Document {
     contractor: ObjectId; // contractor that has been engaged
     quotation: ObjectId; // application or estimate or quatation that has been paid for
     contractorType: String;
-    status: JobStatus;
+    status: JOB_STATUS;
     type: JobType;
     category: string;
     description: string;
@@ -116,7 +116,7 @@ const JobSchema = new Schema<IJob>({
     contractor: { type: Schema.Types.ObjectId, ref: 'contractors' },
     quotation: { type: Schema.Types.ObjectId, ref: 'job_quotations' },
     contractorType: { type: String },
-    status: { type: String, enum: Object.values(JobStatus), default: JobStatus.PENDING },
+    status: { type: String, enum: Object.values(JOB_STATUS), default: JOB_STATUS.PENDING },
     type: { type: String, enum: Object.values(JobType), default: JobType.LISTING },
     category: { type: String, required: false },
     description: { type: String, required: true },
@@ -137,6 +137,10 @@ const JobSchema = new Schema<IJob>({
     quotations: {
         type: [Schema.Types.ObjectId],
         ref: 'job_quotations'
+    },
+    payments: {
+        type: [Schema.Types.ObjectId],
+        ref: 'payments'
     },
     emergency: {type: Boolean, default:false},
     myQuotation: { type: Object, default: null },
