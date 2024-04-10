@@ -4,7 +4,7 @@ import Stripe from 'stripe';
 import { BadRequestError } from '../../utils/custom.errors';
 import { Request, Response } from "express";
 import { Log } from '../../utils/logger';
-import {EventEmitter} from 'events';
+import { EventEmitter } from 'events';
 import { eventEmitter } from '../../events';
 import { StripeService } from '.';
 import { ContractorModel } from '../../database/contractor/models/contractor.model';
@@ -15,7 +15,7 @@ import { castPayloadToDTO } from '../../utils/interface_dto.util';
 import { IStripeAccount } from '../../database/common/stripe_account.schema';
 import { IPayment, PaymentModel } from '../../database/common/payment.schema';
 import { PAYMENT_CAPTURE_STATUS, IPaymentCapture, PaymentCaptureModel } from '../../database/common/payment_captures.schema';
-import { JobModel, JOB_STATUS } from '../../database/common/job.model';
+import { JobModel, JOB_STATUS, JOB_SCHEDULE_TYPE } from '../../database/common/job.model';
 import { IJobQuotation, JobQoutationModel, JOB_QUOTATION_STATUS } from '../../database/common/job_quotation.model';
 import { ObjectId } from 'mongoose';
 
@@ -30,7 +30,7 @@ export const StripeWebhookHandler = async (req: Request) => {
         const payloadString = JSON.stringify(req.body);
 
         const sig = <string>req.headers['stripe-signature'];
-        
+
         const event = stripeClient.webhooks.constructEvent(
             //@ts-ignore
             req.rawBody,
@@ -43,9 +43,9 @@ export const StripeWebhookHandler = async (req: Request) => {
 
         // console.log(event)
         // Log.info(event)
-        
+
         switch (eventType) {
-            
+
             // Setup Intent
             case 'setup_intent.created':
                 setupIntentCreated(eventData.object);
@@ -60,10 +60,10 @@ export const StripeWebhookHandler = async (req: Request) => {
                 break;
             case 'identity.verification_session.processing':
                 break
-            case 'identity.verification_session.requires_input': 
+            case 'identity.verification_session.requires_input':
                 identityVerificationRequiresInput(eventData.object)
                 break
-             case 'identity.verification_session.verified':
+            case 'identity.verification_session.verified':
                 // All the verification checks passed
                 identityVerificationVerified(eventData.object)
                 break
@@ -114,7 +114,7 @@ export const setupIntentCreated = async (payload: any) => {
     try {
         //  const customer = await StripeService.customer.getCustomerById(payload.customer)
         //  console.log('Customer from setupIntentCreated', customer)
-         
+
     } catch (error: any) {
         // throw new BadRequestError(error.message || "Something went wrong");
     }
@@ -128,7 +128,7 @@ export const setupIntentSucceeded = async (payload: any) => {
     try {
         const customer: any = await StripeService.customer.getCustomerById(payload.customer)
         const paymentMethod: any = await StripeService.payment.getPaymentMethod(payload.payment_method)
-        
+
         //  instead of trying to retreive meta from customer get it from the payload metadata
         const userType = payload?.metadata?.userType
         const userId = payload?.metadata?.userId
@@ -196,7 +196,7 @@ export const paymentMethodAttached = async (payload: any) => {
     console.log('Stripe Event Handler: paymentMethodAttached', payload)
     try {
 
-        if(payload.object != 'payment_method') return
+        if (payload.object != 'payment_method') return
 
         const customer: any = await StripeService.customer.getCustomerById(payload.customer)
 
@@ -206,7 +206,7 @@ export const paymentMethodAttached = async (payload: any) => {
         const userId = customer?.metadata?.userId
 
 
-        
+
         if (!userType || !userId) return // Ensure userType and userId are valid
 
         const user = userType === 'contractors' ? await ContractorModel.findById(userId) : await CustomerModel.findById(userId)
@@ -233,7 +233,7 @@ export const paymentMethodAttached = async (payload: any) => {
 export const paymentMethodDetached = async (payload: any) => {
     try {
 
-        if(payload.object != 'payment_method') return
+        if (payload.object != 'payment_method') return
         const paymentMethodId = payload.id;
         const user = await CustomerModel.findOne({ "stripePaymentMethods.id": paymentMethodId });
         if (!user) return; // User not found with the detached payment method
@@ -249,34 +249,34 @@ export const paymentMethodDetached = async (payload: any) => {
 
 export const identityVerificationCreated = async (payload: any) => {
     try {
-        
+
         const userType = payload?.metadata?.userType
         const userId = payload?.metadata?.userId
-        
-        let user= null
-        let deviceTokens :string[] = []
-        let devices  = []
 
-        if(userType == 'contractors'){
-            user  = await ContractorModel.findById(userId)
-            devices = await ContractorDeviceModel.find({contractor: user?.id}).select('deviceToken')
+        let user = null
+        let deviceTokens: string[] = []
+        let devices = []
+
+        if (userType == 'contractors') {
+            user = await ContractorModel.findById(userId)
+            devices = await ContractorDeviceModel.find({ contractor: user?.id }).select('deviceToken')
             deviceTokens = devices.map(device => device.deviceToken);
             // console.log('deviceTokens', deviceTokens)
-        }else{
-            user  = await CustomerModel.findById(userId)
+        } else {
+            user = await CustomerModel.findById(userId)
         }
 
-        if(user){
+        if (user) {
             user.stripeIdentity = payload
             user.save()
 
-          
+
 
         }
 
 
-        
-         
+
+
     } catch (error: any) {
         // throw new BadRequestError(error.message || "Something went wrong");
     }
@@ -289,78 +289,78 @@ export const identityVerificationRequiresInput = async (payload: any) => {
 
         const userType = payload?.metadata?.userType
         const userId = payload?.metadata?.userId
-        
-        let user= null
-        let deviceTokens :string[] = []
-        let devices  = []
 
-        if(userType == 'contractors'){
-            user  = await ContractorModel.findById(userId)
-            devices = await ContractorDeviceModel.find({contractor: user?.id}).select('deviceToken')
+        let user = null
+        let deviceTokens: string[] = []
+        let devices = []
+
+        if (userType == 'contractors') {
+            user = await ContractorModel.findById(userId)
+            devices = await ContractorDeviceModel.find({ contractor: user?.id }).select('deviceToken')
             deviceTokens = devices.map(device => device.deviceToken);
-        }else{
-            user  = await CustomerModel.findById(userId)
-            devices = await ContractorDeviceModel.find({contractor: user?.id}).select('deviceToken')
+        } else {
+            user = await CustomerModel.findById(userId)
+            devices = await ContractorDeviceModel.find({ contractor: user?.id }).select('deviceToken')
             deviceTokens = devices.map(device => device.deviceToken);
         }
 
-        if(!user) return
+        if (!user) return
 
-        let message =  'Verification check failed: ' + payload.last_error.reason
+        let message = 'Verification check failed: ' + payload.last_error.reason
 
         // Handle specific failure reasons
         switch (payload.last_error.code) {
-          case 'document_unverified_other': {
-            // The document was invalid
+            case 'document_unverified_other': {
+                // The document was invalid
 
-            break;
-          }
-          case 'document_expired': {
-            // The document was expired
-            break;
-          }
-          case 'document_type_not_supported': {
-            // document type not supported
-            break;
-          }
-          default: {
-            // ...
-          }
+                break;
+            }
+            case 'document_expired': {
+                // The document was expired
+                break;
+            }
+            case 'document_type_not_supported': {
+                // document type not supported
+                break;
+            }
+            default: {
+                // ...
+            }
         }
 
 
-        if(!user) return
+        if (!user) return
 
-         //fetch and expand
-         let verification  = await StripeService.identity.retrieveVerificationSession(payload.id)
-         console.log(verification)
-        
- 
-         // update user profile picture here
-         //@ts-ignore
-         const {fileLink, s3fileUrl} = await StripeService.file.createFileLink({
-              //@ts-ignore
-             file: verification?.last_verification_report?.selfie?.selfie,
-             expires_at: Math.floor(Date.now() / 1000) + 30,  // link expires in 30 seconds
-         }, true)
-         console.log('fileLink from stripe', fileLink)
-         console.log('s3fileUrl of file uploaded to s3', s3fileUrl)
- 
-          
-         user.stripeIdentity = verification
-          //@ts-ignore
-         user.profilePhoto = {url: s3fileUrl}
-         user.save()
+        //fetch and expand
+        let verification = await StripeService.identity.retrieveVerificationSession(payload.id)
+        console.log(verification)
 
-        
-        
-        sendPushNotifications( deviceTokens , {
+
+        // update user profile picture here
+        //@ts-ignore
+        const { fileLink, s3fileUrl } = await StripeService.file.createFileLink({
+            //@ts-ignore
+            file: verification?.last_verification_report?.selfie?.selfie,
+            expires_at: Math.floor(Date.now() / 1000) + 30,  // link expires in 30 seconds
+        }, true)
+        console.log('fileLink from stripe', fileLink)
+        console.log('s3fileUrl of file uploaded to s3', s3fileUrl)
+
+
+        user.stripeIdentity = verification
+        //@ts-ignore
+        user.profilePhoto = { url: s3fileUrl }
+        user.save()
+
+
+
+        sendPushNotifications(deviceTokens, {
             title: 'Identity Verification',
             icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
             body: message,
-            data: { 
+            data: {
                 event: 'identity.verification_session.requires_input',
-                user:{
+                user: {
                     email: user.email,
                     profilePhoto: user.profilePhoto,
                 },
@@ -375,9 +375,9 @@ export const identityVerificationRequiresInput = async (payload: any) => {
         })
 
 
-       
+
     } catch (error: any) {
-         new BadRequestError(error.message || "Something went wrong");
+        new BadRequestError(error.message || "Something went wrong");
     }
 };
 
@@ -386,56 +386,56 @@ export const identityVerificationVerified = async (payload: any) => {
 
         console.log('Verification session verified: ' + payload.status);
         console.log(payload)
-        if(payload.object != 'identity.verification_session')return
+        if (payload.object != 'identity.verification_session') return
 
         const userType = payload?.metadata?.userType
         const userId = payload?.metadata?.userId
-        
-        let user= null
-        let deviceTokens :string[] = []
-        let devices  = []
 
-        if(userType == 'contractors'){
-            user  = await ContractorModel.findById(userId)
-            devices = await ContractorDeviceModel.find({contractor: user?.id}).select('deviceToken')
+        let user = null
+        let deviceTokens: string[] = []
+        let devices = []
+
+        if (userType == 'contractors') {
+            user = await ContractorModel.findById(userId)
+            devices = await ContractorDeviceModel.find({ contractor: user?.id }).select('deviceToken')
             deviceTokens = devices.map(device => device.deviceToken);
-        }else{
-            user  = await CustomerModel.findById(userId)
-            devices = await ContractorDeviceModel.find({contractor: user?.id}).select('deviceToken')
+        } else {
+            user = await CustomerModel.findById(userId)
+            devices = await ContractorDeviceModel.find({ contractor: user?.id }).select('deviceToken')
             deviceTokens = devices.map(device => device.deviceToken);
         }
 
-        if(!user) return
+        if (!user) return
 
-       
+
         //fetch and expand
-        let verification  = await StripeService.identity.retrieveVerificationSession(payload.id)
+        let verification = await StripeService.identity.retrieveVerificationSession(payload.id)
         console.log(verification)
-       
+
 
         // update user profile picture here
         //@ts-ignore
-        const {fileLink, s3fileUrl} = await StripeService.file.createFileLink({
-             //@ts-ignore
+        const { fileLink, s3fileUrl } = await StripeService.file.createFileLink({
+            //@ts-ignore
             file: verification?.last_verification_report?.selfie?.document,
             expires_at: Math.floor(Date.now() / 1000) + 30,  // link expires in 30 seconds
         }, true)
         console.log('fileLink from stripe', fileLink)
         console.log('s3fileUrl of file uploaded to s3', s3fileUrl)
 
-        
+
         user.stripeIdentity = verification
-         //@ts-ignore
-        user.profilePhoto = {url: s3fileUrl}
+        //@ts-ignore
+        user.profilePhoto = { url: s3fileUrl }
         user.save()
-        
-        sendPushNotifications( deviceTokens , {
+
+        sendPushNotifications(deviceTokens, {
             title: 'Identity Verification',
             icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
             body: 'Identity verification session verified',
-            data: { 
+            data: {
                 event: 'identity.verification_session.verified',
-                user:{
+                user: {
                     email: user.email,
                     profilePhoto: user.profilePhoto,
                 },
@@ -447,7 +447,7 @@ export const identityVerificationVerified = async (payload: any) => {
             },
         })
 
-       
+
     } catch (error: any) {
         // throw new BadRequestError(error.message || "Something went wrong");
     }
@@ -459,15 +459,15 @@ export const accountUpdated = async (payload: any) => {
     console.log('Stripe Event Handler: accountUpdated', payload)
     try {
 
-        if(payload.object != 'account') return
+        if (payload.object != 'account') return
         const userType = payload?.metadata?.userType
         const userId = payload?.metadata?.userId
         const email = payload?.metadata?.email
         if (!userType || !email) return // Ensure userType and email are valid,  userId can change on our end
-        const user = userType === 'contractors' ? await ContractorModel.findOne({email}) : await CustomerModel.findOne({email})
+        const user = userType === 'contractors' ? await ContractorModel.findOne({ email }) : await CustomerModel.findOne({ email })
         if (!user) return // Ensure user exists
-        
-    
+
+
         // Casting payload to DTO
         const stripeAccountDTO: IStripeAccount = castPayloadToDTO(payload, {} as IStripeAccount);
         user.stripeAccount = stripeAccountDTO
@@ -486,7 +486,7 @@ export const paymentIntentSucceeded = async (payload: any) => {
     console.log('Stripe Event Handler: paymentIntentSucceeded', payload)
     try {
 
-        if(payload.object != 'payment_intent') return
+        if (payload.object != 'payment_intent') return
 
         const customer: any = await StripeService.customer.getCustomerById(payload.customer)
         const userType = customer?.metadata?.userType
@@ -497,7 +497,7 @@ export const paymentIntentSucceeded = async (payload: any) => {
         const user = userType === 'contractors' ? await ContractorModel.findById(userId) : await CustomerModel.findById(userId)
         if (!user) return // Ensure user exists
 
-       
+
         await user.save()
     } catch (error: any) {
         // throw new BadRequestError(error.message || "Something went wrong");
@@ -509,7 +509,7 @@ export const chargeSucceeded = async (payload: any) => {
     console.log('Stripe Event Handler: chargeSucceeded', payload)
     try {
 
-        if(payload.object != 'charge') return
+        if (payload.object != 'charge') return
 
         const customer: any = await StripeService.customer.getCustomerById(payload.customer)
         const userType = customer?.metadata?.userType
@@ -527,13 +527,13 @@ export const chargeSucceeded = async (payload: any) => {
         stripeChargeDTO.user = user.id
         stripeChargeDTO.userType = userType
 
-        let payment = await PaymentModel.findOneAndUpdate({reference:stripeChargeDTO.reference }, stripeChargeDTO, {
+        let payment = await PaymentModel.findOneAndUpdate({ reference: stripeChargeDTO.reference }, stripeChargeDTO, {
             new: true, upsert: true
         })
 
         // handle things here
         //1 handle transfer payment method options if it requires future capturing to another model ?
-        if(!payment.captured){
+        if (!payment.captured) {
             const captureDetails = payload.payment_method_details.card
             //save payment capture here
             let paymentCaptureDto: IPaymentCapture = castPayloadToDTO(captureDetails, captureDetails as IPaymentCapture);
@@ -546,10 +546,10 @@ export const chargeSucceeded = async (payload: any) => {
             paymentCaptureDto.captured = false
             paymentCaptureDto.currency = payment.currency
 
-            let paymentCapture = await PaymentCaptureModel.findOneAndUpdate({payment:payment.id }, paymentCaptureDto, {
+            let paymentCapture = await PaymentCaptureModel.findOneAndUpdate({ payment: payment.id }, paymentCaptureDto, {
                 new: true, upsert: true
             })
-        }else{
+        } else {
             const captureDetails = payload.payment_method_details.card
             //save payment capture here
             let paymentCaptureDto: IPaymentCapture = castPayloadToDTO(captureDetails, captureDetails as IPaymentCapture);
@@ -563,51 +563,82 @@ export const chargeSucceeded = async (payload: any) => {
             paymentCaptureDto.captured_at = payment.created
             paymentCaptureDto.currency = payment.currency
 
-            let paymentCapture = await PaymentCaptureModel.findOneAndUpdate({payment:payment.id }, paymentCaptureDto, {
+            let paymentCapture = await PaymentCaptureModel.findOneAndUpdate({ payment: payment.id }, paymentCaptureDto, {
                 new: true, upsert: true
             })
         }
 
         // handle job booking creating here ?
-        const metadata = payment.metadata as {jobId: string, quotationId:string, constractorId: ObjectId, type: string, customerId:ObjectId, remark: string, extraEstimateId: ObjectId }
-        if(metadata.type == 'job_payment'){
+        const metadata = payment.metadata as { jobId: string, quotationId: string, constractorId: ObjectId, type: string, customerId: ObjectId, remark: string, extraEstimateId: ObjectId }
+        if (metadata.type == 'job_payment') {
             const jobId = metadata.jobId
-            if(jobId){
+            if (jobId) {
                 let job = await JobModel.findById(jobId)
-                if(!job)return
+                if (!job) return
                 const quotationId = metadata.quotationId
                 let quotation = await JobQoutationModel.findById(quotationId)
-                if(!quotation)return
-                
-                if(metadata.remark == 'initial_job_payment'){
+                if (!quotation) return
+
+                if (metadata.remark == 'initial_job_payment') {
                     job.status = JOB_STATUS.BOOKED
-                    job.quotation = quotation.id 
-                    job.contractor = quotation.contractor 
+                    job.quotation = quotation.id
+                    job.contractor = quotation.contractor
 
                     quotation.isPaid = true
                     quotation.status = JOB_QUOTATION_STATUS.ACCEPTED
 
-                   
+                    // Check if quotation.startDate is valid and not null or undefined
+                    if (quotation.startDate) {
+                        // Check if job.schedules does not contain a similar schedule with the same startDate and type JOB_DAY
+                        if (!job.schedules.some(schedule => schedule.startDate.getTime() === quotation?.startDate.getTime() && schedule.type === JOB_SCHEDULE_TYPE.JOB_DAY)) {
+                            // Push the new schedule with type JOB_DAY
+                            job.schedules.push({
+                                startDate: quotation.startDate,
+                                endDate: quotation.endDate,
+                                type: JOB_SCHEDULE_TYPE.JOB_DAY
+                            });
+                        }
+                    } else if (quotation.siteVisit) {
+                        // Check if quotation.siteVisit.date is a valid Date object
+                        if (quotation.siteVisit instanceof Date) {
+                            // Check if job.schedules does not contain a similar schedule with the same startDate and type SITE_VISIT
+                            if (!job.schedules.some(schedule => schedule.startDate.getTime() === quotation?.siteVisit.getTime() && schedule.type === JOB_SCHEDULE_TYPE.SITE_VISIT)) {
+                                // Push the new schedule with type SITE_VISIT
+                                job.schedules.push({
+                                    startDate: quotation.siteVisit,
+                                    type: JOB_SCHEDULE_TYPE.SITE_VISIT
+                                });
+                            }
+                        } else {
+                            // Handle case where quotation.siteVisit.date is not a valid Date object
+                            console.log('quotation.siteVisit.date is not a valid Date object.');
+                        }
+                    }
+
                 }
 
-                if(metadata.remark == 'extra_job_payment'){
-                   
+                if (metadata.remark == 'extra_job_payment') {
+
 
                 }
 
-                if(!job.payments.includes(payment.id)) job.payments.push(payment.id)
+                if (!job.payments.includes(payment.id)) job.payments.push(payment.id)
+
+                // create schedule here ?
+
+
 
                 await quotation.save()
                 await job.save()
-              
+
             }
 
         }
 
 
-        
 
-       
+
+
     } catch (error: any) {
         // throw new BadRequestError(error.message || "Something went wrong");
         console.log('Error handling chargeSucceeded stripe webhook event', error)

@@ -36,7 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.JobModel = exports.JobType = exports.JOB_STATUS = void 0;
+exports.JobModel = exports.JobType = exports.JOB_SCHEDULE_TYPE = exports.JOB_STATUS = void 0;
 var mongoose_1 = require("mongoose");
 var JOB_STATUS;
 (function (JOB_STATUS) {
@@ -48,6 +48,11 @@ var JOB_STATUS;
     JOB_STATUS["COMPLETED"] = "COMPLETED";
     JOB_STATUS["DISPUTED"] = "DISPUTED";
 })(JOB_STATUS || (exports.JOB_STATUS = JOB_STATUS = {}));
+var JOB_SCHEDULE_TYPE;
+(function (JOB_SCHEDULE_TYPE) {
+    JOB_SCHEDULE_TYPE["JOB_DAY"] = "JOB_DAY";
+    JOB_SCHEDULE_TYPE["SITE_VISIT"] = "SITE_VISIT";
+})(JOB_SCHEDULE_TYPE || (exports.JOB_SCHEDULE_TYPE = JOB_SCHEDULE_TYPE = {}));
 var JobType;
 (function (JobType) {
     JobType["LISTING"] = "LISTING";
@@ -55,12 +60,13 @@ var JobType;
 })(JobType || (exports.JobType = JobType = {}));
 var ScheduleSchema = new mongoose_1.Schema({
     startDate: { type: Date, required: true },
-    endDate: { type: Date, required: true },
+    endDate: { type: Date },
     isCurrent: { type: Boolean, default: true },
     isRescheduled: { type: Boolean, default: false },
     isCustomerAccept: { type: Boolean, default: false },
     isContractorAccept: { type: Boolean, default: false },
-    createdBy: String
+    createdBy: String,
+    type: { type: String, enum: Object.values(JOB_SCHEDULE_TYPE) },
 });
 var JobLocationSchema = new mongoose_1.Schema({
     address: { type: String },
@@ -97,7 +103,6 @@ var JobSchema = new mongoose_1.Schema({
     experience: { type: String },
     jobHistory: [JobHistorySchema], // Array of job history entries
     schedules: [ScheduleSchema],
-    invoices: [{ type: mongoose_1.Schema.Types.ObjectId, ref: 'invoices', }],
     quotations: {
         type: [mongoose_1.Schema.Types.ObjectId],
         ref: 'job_quotations'

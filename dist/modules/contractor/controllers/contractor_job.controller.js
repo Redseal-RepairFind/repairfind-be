@@ -433,9 +433,9 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                             .json({ message: "invalid customer Id" })];
                 }
                 return [4 /*yield*/, job_quotation_model_1.JobQoutationModel.findOneAndUpdate({ job: jobId, contractor: contractorId }, {
-                        startDate: startDate,
-                        endDate: endDate,
-                        siteVisit: siteVisit,
+                        startDate: new Date(startDate),
+                        endDate: endDate ? new Date(startDate) : null,
+                        siteVisit: siteVisit ? new Date(siteVisit) : null,
                         estimates: estimates,
                         jobId: jobId,
                         contractorId: contractorId

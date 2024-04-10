@@ -1,6 +1,5 @@
 import { Document, ObjectId, Schema, model } from "mongoose";
 import { IJobQuotation, JobQoutationModel } from "./job_quotation.model";
-import { InvoiceModel } from "./invoices.shema";
 
 export interface IJobLocation extends Document {
     address?: string;
@@ -28,6 +27,12 @@ export enum JOB_STATUS {
     DISPUTED = 'DISPUTED',
 }
 
+export enum JOB_SCHEDULE_TYPE {
+    JOB_DAY = 'JOB_DAY',
+    SITE_VISIT = 'SITE_VISIT',
+}
+
+
 export enum JobType {
     LISTING = 'LISTING',
     REQUEST = 'REQUEST',
@@ -36,12 +41,13 @@ export enum JobType {
 
 export interface IJobSchedule {
     startDate: Date;
-    endDate: Date;
-    isCurrent: boolean;
-    isRescheduled: boolean;
-    isCustomerAccept: boolean;
-    isContractorAccept: boolean;
-    createdBy: 'customer' | 'contractor'
+    endDate?: Date;
+    isCurrent?: boolean;
+    isRescheduled?: boolean;
+    isCustomerAccept?: boolean;
+    isContractorAccept?: boolean;
+    createdBy?: 'customer' | 'contractor'
+    type: JOB_SCHEDULE_TYPE
 }
 
 
@@ -71,7 +77,6 @@ export interface IJob extends Document {
     quotations: ObjectId[];
     jobHistory: IJobHistory[];
     payments: ObjectId[];
-    invoices: ObjectId[];
     schedules: [IJobSchedule];
     emergency: boolean;
     myQuotation: Object | null
@@ -83,12 +88,13 @@ export interface IJob extends Document {
 
 const ScheduleSchema = new Schema<IJobSchedule>({
     startDate: { type: Date, required: true },
-    endDate: { type: Date, required: true },
+    endDate: { type: Date},
     isCurrent: { type: Boolean, default: true },
     isRescheduled: { type: Boolean, default: false },
     isCustomerAccept: { type: Boolean, default: false },
     isContractorAccept: { type: Boolean, default: false },
-    createdBy: String
+    createdBy: String,
+    type: { type: String, enum: Object.values(JOB_SCHEDULE_TYPE) },
 });
 
 
@@ -133,7 +139,6 @@ const JobSchema = new Schema<IJob>({
     experience: { type: String },
     jobHistory: [JobHistorySchema], // Array of job history entries
     schedules: [ScheduleSchema],
-    invoices: [{type: Schema.Types.ObjectId, ref: 'invoices',}],
     quotations: {
         type: [Schema.Types.ObjectId],
         ref: 'job_quotations'

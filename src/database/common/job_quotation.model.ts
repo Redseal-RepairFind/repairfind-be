@@ -30,7 +30,7 @@ export interface IJobQuotation extends Document {
     estimates: IJobQuotationEstimate[];
     startDate: Date;
     endDate: Date;
-    siteVisit: object;
+    siteVisit: Date;
     charges: object;
     payment: ObjectId;
     isPaid: boolean;
@@ -68,10 +68,7 @@ const JobQoutationSchema = new Schema<IJobQuotation>({
     estimates: { type: [JobQuotationEstimateSchema], required: false },
     startDate: { type: Date, required: false },
     endDate: { type: Date, required: false },
-    siteVisit: { type: Object, default: null, properties: {
-        address: { type: String, required: false },
-        date: { type: Date, required: false },
-    } },
+    siteVisit: { type: Date, required: false },
     charges: { type: Object, default:{
         subtotal: 0.00, 
         processingFee: 0.00, 

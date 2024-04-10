@@ -675,7 +675,7 @@ var paymentIntentSucceeded = function (payload) { return __awaiter(void 0, void 
 }); };
 exports.paymentIntentSucceeded = paymentIntentSucceeded;
 var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var customer, userType, userId, user, _a, stripeChargeDTO, payment, captureDetails, paymentCaptureDto, paymentCapture, captureDetails, paymentCaptureDto, paymentCapture, metadata, jobId, job, quotationId, quotation, error_11;
+    var customer, userType, userId, user, _a, stripeChargeDTO, payment, captureDetails, paymentCaptureDto, paymentCapture, captureDetails, paymentCaptureDto, paymentCapture, metadata, jobId, job, quotationId, quotation_1, error_11;
     var _b, _c;
     return __generator(this, function (_d) {
         switch (_d.label) {
@@ -767,22 +767,53 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                 quotationId = metadata.quotationId;
                 return [4 /*yield*/, job_quotation_model_1.JobQoutationModel.findById(quotationId)];
             case 13:
-                quotation = _d.sent();
-                if (!quotation)
+                quotation_1 = _d.sent();
+                if (!quotation_1)
                     return [2 /*return*/];
                 if (metadata.remark == 'initial_job_payment') {
                     job.status = job_model_1.JOB_STATUS.BOOKED;
-                    job.quotation = quotation.id;
-                    job.contractor = quotation.contractor;
-                    quotation.isPaid = true;
-                    quotation.status = job_quotation_model_1.JOB_QUOTATION_STATUS.ACCEPTED;
+                    job.quotation = quotation_1.id;
+                    job.contractor = quotation_1.contractor;
+                    quotation_1.isPaid = true;
+                    quotation_1.status = job_quotation_model_1.JOB_QUOTATION_STATUS.ACCEPTED;
+                    // Check if quotation.startDate is valid and not null or undefined
+                    if (quotation_1.startDate) {
+                        // Check if job.schedules does not contain a similar schedule with the same startDate and type JOB_DAY
+                        if (!job.schedules.some(function (schedule) { return schedule.startDate.getTime() === (quotation_1 === null || quotation_1 === void 0 ? void 0 : quotation_1.startDate.getTime()) && schedule.type === job_model_1.JOB_SCHEDULE_TYPE.JOB_DAY; })) {
+                            // Push the new schedule with type JOB_DAY
+                            job.schedules.push({
+                                startDate: quotation_1.startDate,
+                                endDate: quotation_1.endDate,
+                                type: job_model_1.JOB_SCHEDULE_TYPE.JOB_DAY
+                            });
+                        }
+                    }
+                    else if (quotation_1.siteVisit) {
+                        // Check if quotation.siteVisit.date is a valid Date object
+                        if (quotation_1.siteVisit instanceof Date) {
+                            // Check if job.schedules does not contain a similar schedule with the same startDate and type SITE_VISIT
+                            if (!job.schedules.some(function (schedule) { return schedule.startDate.getTime() === (quotation_1 === null || quotation_1 === void 0 ? void 0 : quotation_1.siteVisit.getTime()) && schedule.type === job_model_1.JOB_SCHEDULE_TYPE.SITE_VISIT; })) {
+                                // Push the new schedule with type SITE_VISIT
+                                job.schedules.push({
+                                    startDate: quotation_1.siteVisit,
+                                    type: job_model_1.JOB_SCHEDULE_TYPE.SITE_VISIT
+                                });
+                            }
+                        }
+                        else {
+                            // Handle case where quotation.siteVisit.date is not a valid Date object
+                            console.log('quotation.siteVisit.date is not a valid Date object.');
+                        }
+                    }
                 }
                 if (metadata.remark == 'extra_job_payment') {
                 }
                 if (!job.payments.includes(payment.id))
                     job.payments.push(payment.id);
-                return [4 /*yield*/, quotation.save()];
+                // create schedule here ?
+                return [4 /*yield*/, quotation_1.save()];
             case 14:
+                // create schedule here ?
                 _d.sent();
                 return [4 /*yield*/, job.save()];
             case 15:

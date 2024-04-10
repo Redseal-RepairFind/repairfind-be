@@ -174,8 +174,7 @@ export const EmailVerificationRequest = [
   export const CreateJobQuotationRequest = [
     body("startDate").optional().isISO8601(),
     body("endDate").optional().isISO8601(),
-    body("siteVisit").optional().isObject(),
-    body("siteVisit.date").if(body("siteVisit").exists()).notEmpty().isISO8601(),
+    body("siteVisit").optional().isISO8601(),
     body("estimates").optional().isArray(), // Making estimates optional
     body("estimates.*.rate").if(body("estimates").exists()).notEmpty().isNumeric(), // Checking rate only if estimates is provided
     body("estimates.*.quantity").if(body("estimates").exists()).notEmpty().isNumeric(), // Checking quantity only if estimates is provided
