@@ -18,6 +18,7 @@ var JobQueue = /** @class */ (function () {
             host: config_1.config.redis.host,
             password: config_1.config.redis.password,
             username: config_1.config.redis.username,
+            tls: {}
         };
         var redisConnection = new ioredis_1.default(redisConfig);
         this.repairFindQueue = new bullmq_1.Queue('RepairFindQueue', { connection: redisConnection });

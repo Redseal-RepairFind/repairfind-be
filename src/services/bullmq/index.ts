@@ -17,6 +17,7 @@ class JobQueue {
       host: config.redis.host,
       password: config.redis.password,
       username: config.redis.username,
+      tls: {}
     };
     const redisConnection = new Redis(redisConfig);
     this.repairFindQueue = new Queue('RepairFindQueue', { connection: redisConnection });
