@@ -45,11 +45,25 @@ var JobQuotationStatus;
     JobQuotationStatus["REJECTED"] = "REJECTED";
     JobQuotationStatus["COMPLETED"] = "COMPLETED";
 })(JobQuotationStatus || (exports.JobQuotationStatus = JobQuotationStatus = {}));
-var JobApplicationSchema = new mongoose_1.Schema({
+// Define schema for job quotation estimates
+var JobQuotationEstimateSchema = new mongoose_1.Schema({
+    description: { type: String, required: true },
+    quantity: { type: Number, required: true },
+    rate: { type: Number, required: true },
+    amount: { type: Number, required: true }
+});
+// Define schema for extra estimates
+var ExtraEstimatesSchema = new mongoose_1.Schema({
+    estimates: { type: [JobQuotationEstimateSchema], required: true },
+    isPaid: { type: Boolean, default: false },
+    payment: { type: mongoose_1.Schema.Types.ObjectId, ref: 'payments' },
+    date: { type: Date, required: true }
+});
+var JobQoutationSchema = new mongoose_1.Schema({
     contractor: { type: mongoose_1.Schema.Types.ObjectId, ref: 'contractors', required: true },
     job: { type: mongoose_1.Schema.Types.ObjectId, ref: 'jobs', required: true },
     status: { type: String, enum: Object.values(JobQuotationStatus), default: JobQuotationStatus.PENDING },
-    estimates: { type: [Object], required: false },
+    estimates: { type: [JobQuotationEstimateSchema], required: false },
     startDate: { type: Date, required: false },
     endDate: { type: Date, required: false },
     siteVisit: { type: Object, default: null, properties: {
@@ -63,9 +77,12 @@ var JobApplicationSchema = new mongoose_1.Schema({
             totalAmount: 0.00,
             contractorAmount: 0.00
         } },
+    payment: { type: mongoose_1.Schema.Types.ObjectId, ref: 'payments' },
+    isPaid: { type: Boolean, default: false },
+    extraEstimates: { type: ExtraEstimatesSchema }
 }, { timestamps: true });
 // Define the static method to calculate charges
-JobApplicationSchema.methods.calculateCharges = function () {
+JobQoutationSchema.methods.calculateCharges = function () {
     return __awaiter(this, void 0, void 0, function () {
         var totalEstimateAmount, processingFee, gst, subtotal, totalAmount, contractorAmount;
         return __generator(this, function (_a) {
@@ -93,5 +110,5 @@ JobApplicationSchema.methods.calculateCharges = function () {
         });
     });
 };
-var JobQoutationModel = (0, mongoose_1.model)('job_quotations', JobApplicationSchema);
+var JobQoutationModel = (0, mongoose_1.model)('job_quotations', JobQoutationSchema);
 exports.JobQoutationModel = JobQoutationModel;

@@ -50,7 +50,7 @@ export const contractorStartTripController = async (
         NotificationService.sendNotification(
             {
                 user: contractorId,
-                userType: 'contractor',
+                userType: 'contractors',
                 title: 'tripDay',
                 heading: {},
                 type: 'tripDayStart',
@@ -69,7 +69,7 @@ export const contractorStartTripController = async (
         NotificationService.sendNotification(
             {
                 user: JSON.stringify(jobRequest.customer),
-                userType: 'customer',
+                userType: 'customers',
                 title: 'tripDay',
                 heading: {},
                 type: 'tripDayStart',
@@ -140,7 +140,7 @@ export const contractorArrivedSiteController = async (
         NotificationService.sendNotification(
             {
                 user: contractorId,
-                userType: 'contractor',
+                userType: 'contractors',
                 title: 'tripDay',
                 heading: {},
                 type: 'tripDayarrived',
@@ -159,7 +159,7 @@ export const contractorArrivedSiteController = async (
         NotificationService.sendNotification(
             {
                 user: JSON.stringify(tripDay.customer),
-                userType: 'customer',
+                userType: 'customers',
                 title: 'tripDay',
                 heading: {},
                 type: 'tripDayarrived',

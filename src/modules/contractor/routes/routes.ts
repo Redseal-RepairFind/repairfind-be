@@ -68,7 +68,7 @@ router.post("/profiles/stripe-identity", checkContractorRole, (req: Request, res
 
 //  Account
 router.get("/me", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
-    ContractorController(req, res, next).getUser();
+    ContractorController(req, res, next).getAccount();
 });
 router.patch("/me", checkContractorRole,  ContractorHttpRequest.CreateProfileRequest, (req: Request, res: Response, next: NextFunction) => {
     ContractorController(req, res, next).updateAccount();

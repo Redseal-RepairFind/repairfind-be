@@ -56,7 +56,7 @@ router.post("/profiles/stripe-identity", contractorRoleCheck_middleware_1.checkC
 });
 //  Account
 router.get("/me", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
-    (0, contractor_controller_1.ContractorController)(req, res, next).getUser();
+    (0, contractor_controller_1.ContractorController)(req, res, next).getAccount();
 });
 router.patch("/me", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateProfileRequest, function (req, res, next) {
     (0, contractor_controller_1.ContractorController)(req, res, next).updateAccount();

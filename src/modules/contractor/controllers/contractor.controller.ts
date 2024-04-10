@@ -320,7 +320,7 @@ class ProfileHandler extends Base {
 
 
   @handleAsyncError()
-  public async getUser(): Promise<Response | void> {
+  public async getAccount(): Promise<Response | void> {
     let req = <any>this.req
     let res = this.res
     try {
@@ -357,7 +357,7 @@ class ProfileHandler extends Base {
       // check if connected account
       if (!contractor.stripeAccount) {
         const stripeAccount = await StripeService.account.createAccount({
-          userType: 'contractor',
+          userType: 'contractors',
           userId: contractorId,
           email: contractor.email
         })
@@ -371,12 +371,32 @@ class ProfileHandler extends Base {
           charges_enabled: stripeAccount.charges_enabled,
           country: stripeAccount.country,
           external_accounts: stripeAccount.external_accounts,
-      } as IStripeAccount;
-      
+        } as IStripeAccount;
+
 
         await contractor.save()
 
       }
+
+
+      //TODO: for now always update the meta data of stripe customer with this email address
+      if (contractor.stripeCustomer) {
+        StripeService.customer.updateCustomer(contractor.stripeCustomer.id, {
+          metadata: { userType: 'contractors', userId: contractor.id }
+        })
+      } else {
+        StripeService.customer.createCustomer({
+          email: contractor.email,
+          metadata: {
+            userType: 'contractors',
+            userId: contractor.id,
+          },
+          //@ts-ignore
+          name: `${contractor.name} `,
+          phone: `${contractor.phoneNumber.code}${contractor.phoneNumber.number} `,
+        })
+      }
+
 
       res.json({
         success: true,
@@ -406,7 +426,7 @@ class ProfileHandler extends Base {
       // @ts-ignore
       if (!contractor.stripeAccount || !contractor.stripeAccount.id) {
         const stripeAccount = await StripeService.account.createAccount({
-          userType: 'contractor',
+          userType: 'contractors',
           userId: contractorId,
           email: contractor.email
         })
@@ -427,7 +447,7 @@ class ProfileHandler extends Base {
         // @ts-ignore
         stripeAccountLink = await StripeService.account.createAccountLink(contractor.stripeAccount.id)
         //@ts-ignore
-      }else if(!contractor.stripeAccount.payouts_enabled){
+      } else if (!contractor.stripeAccount.payouts_enabled) {
         //@ts-ignore
         stripeAccountLink = await StripeService.account.createAccountLink(contractor.stripeAccount.id)
       }
@@ -467,7 +487,7 @@ class ProfileHandler extends Base {
       //@ts-ignore
       if (!contractor.stripeAccount || !contractor.stripeAccount.id) {
         const stripeAccount = await StripeService.account.createAccount({
-          userType: 'contractor',
+          userType: 'contractors',
           userId: contractorId,
           email: contractor.email
         })
@@ -632,7 +652,7 @@ class ProfileHandler extends Base {
       }
 
       const verificationSession = await StripeService.identity.createVerificationSession({
-        userType: 'contractor',
+        userType: 'contractors',
         userId: contractorId,
         email: contractor.email
       })

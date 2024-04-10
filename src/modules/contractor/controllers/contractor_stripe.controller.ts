@@ -33,7 +33,7 @@ export const createSession = async (req: any, res: Response) => {
             email: contractor.email,
             metadata: {
                 userId: contractor.id,
-                userType: 'contractor'
+                userType: 'contractors'
             },
             name: `${contractor.firstName} ${contractor.lastName} `,
             phone: `${contractor.phoneNumber.code}${contractor.phoneNumber.number} `,
@@ -47,7 +47,7 @@ export const createSession = async (req: any, res: Response) => {
                 customer: stripeCustomer.id,
                 setup_intent_data: {
                     metadata: {
-                        userType: 'contractor',
+                        userType: 'contractors',
                         userId: contractorId,
                     }
                 }
@@ -95,7 +95,7 @@ export const createSetupIntent = async (req: any, res: Response) => {
                 email: contractor.email,
                 metadata: {
                     userId: contractor.id,
-                    userType: 'contractor'
+                    userType: 'contractors'
                 },
                 name: `${contractor.firstName} ${contractor.lastName} `,
                 phone: `${contractor.phoneNumber.code}${contractor.phoneNumber.number} `,
@@ -116,7 +116,7 @@ export const createSetupIntent = async (req: any, res: Response) => {
                 'card'
             ],
             metadata: {
-                userType: 'contractor',
+                userType: 'contractors',
                 userId: contractorId,
             }
 

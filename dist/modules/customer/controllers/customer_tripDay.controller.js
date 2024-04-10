@@ -79,7 +79,7 @@ var customerverifiedContractorSiteArrivalController = function (req, res) { retu
                 // send notification to  contractor
                 index_1.NotificationService.sendNotification({
                     user: JSON.stringify(tripDay.contractor),
-                    userType: 'contractor',
+                    userType: 'contractors',
                     title: 'tripDay',
                     heading: {},
                     type: 'tripDayComfirmed',
@@ -93,7 +93,7 @@ var customerverifiedContractorSiteArrivalController = function (req, res) { retu
                 // send notification to  customer
                 index_1.NotificationService.sendNotification({
                     user: JSON.stringify(tripDay.customer),
-                    userType: 'customer',
+                    userType: 'customers',
                     title: 'tripDay',
                     heading: {},
                     type: 'tripDayComfirmed',

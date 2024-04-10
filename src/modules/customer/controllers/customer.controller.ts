@@ -84,13 +84,13 @@ export const getAccount = async (req: any, res: Response) => {
     //TODO: for now always update the meta data of stripe customer with this email address
     if (customer.stripeCustomer) {
       StripeService.customer.updateCustomer(customer.stripeCustomer.id, {
-        metadata: { userType: 'customer', userId: customerId }
+        metadata: { userType: 'customers', userId: customerId }
       })
     } else {
       StripeService.customer.createCustomer({
         email: customer.email,
         metadata: {
-          userType: 'customer',
+          userType: 'customers',
           userId: customer.id,
         },
         name: `${customer.firstName} ${customer.lastName} `,

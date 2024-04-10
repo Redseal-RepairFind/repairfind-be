@@ -69,6 +69,7 @@ router.get("/jobs/:jobId", checkCustomerRole, CustomerJobController.getSingleJob
 router.get("/jobs/:jobId/quotations", checkCustomerRole, CustomerJobController.getJobQuotations ); 
 router.get("/jobs/:jobId/quotations/:quotationId", checkCustomerRole, CustomerJobController.getSingleQuotation ); 
 router.post("/jobs/:jobId/pay", checkCustomerRole, CustomerJobController.makeJobPayment ); 
+router.post("/jobs/:jobId/payment-capture", checkCustomerRole, CustomerJobController.captureJobPayment ); 
 
 
 

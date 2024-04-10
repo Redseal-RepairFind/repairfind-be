@@ -31,6 +31,7 @@ export const exploreContractors = async (
 
     try {
         const {
+            listing,
             distance,
             latitude,
             longitude,
@@ -155,12 +156,44 @@ export const exploreContractors = async (
             pipeline.push(sortStage);
         }
 
+
+        switch (listing) {
+            case 'recommended':
+                // Logic to fetch recommended contractors
+                // pipeline.push(
+                //     { $match: { rating: { $gte: 4.5 } } }, // Fetch contractors with rating >= 4.5
+                //     { $sort: { rating: -1 } } // Sort by rating in descending order
+                // );
+                pipeline.push(
+                    { $sample: { size: 10 } } // Randomly sample 10 contractors
+                );
+                break;
+            case 'top-rated':
+                // Logic to fetch top-rated contractors
+                pipeline.push(
+                    { $match: { rating: { $exists: true } } }, // Filter out contractors with no ratings
+                    { $sort: { rating: -1 } } // Sort by rating in descending order
+                );
+                break;
+            case 'featured':
+                // Logic to fetch featured contractors
+                pipeline.push(
+                    { $match: { isFeatured: true } } // Filter contractors marked as featured
+                );
+                break;
+            default:
+                // Default logic if type is not specified or invalid
+                // You can handle this case based on your requirements
+                break;
+        }
+
+
         // Add $facet stage for pagination
         pipeline.push({
             $facet: {
                 metadata: [
                     { $count: "totalItems" },
-                    { $addFields: { page, limit, currentPage: parseInt(page), lastPage: { $ceil: { $divide: ["$totalItems", parseInt(limit)] } } } }
+                    { $addFields: { page, limit, currentPage: parseInt(page), lastPage: { $ceil: { $divide: ["$totalItems", parseInt(limit)] }}, listing } }
                 ],
                 data: [{ $skip: skip }, { $limit: parseInt(limit) }]
             }
@@ -179,6 +212,11 @@ export const exploreContractors = async (
         res.status(400).json({ message: 'Something went wrong' });
     }
 }
+
+
+
+
+
 
 export const getSingleContractor = async (req: any, res: Response, next: NextFunction) => {
     try {

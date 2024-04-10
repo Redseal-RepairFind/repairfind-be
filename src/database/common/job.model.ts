@@ -60,7 +60,7 @@ export interface IJob extends Document {
     location: IJobLocation;
     date: Date;
     startDate: Date;
-    endDate: Date;
+    endDate: Date; 
     time: Date;
     expiresIn: number;
     media: string[];
@@ -149,17 +149,6 @@ JobSchema.virtual('totalQuotations').get(function () {
     return this.quotations.length
 });
 
-
-
-
-
-// JobSchema.virtual('myQuotation', {
-//     ref: 'job_quotations',
-//     foreignField: 'contractor', // Assuming this field stores the contractorId in the job_quotations model
-//     localField: 'contractor', // Using a string to specify the localField
-//     justOne: true,
-//     options: { contractorId: { type: Schema.Types.ObjectId } }, // Define the contractorId option
-// });
 
 
 

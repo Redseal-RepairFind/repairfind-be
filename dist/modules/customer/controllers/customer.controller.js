@@ -109,14 +109,14 @@ var getAccount = function (req, res) { return __awaiter(void 0, void 0, void 0, 
                 //TODO: for now always update the meta data of stripe customer with this email address
                 if (customer.stripeCustomer) {
                     stripe_1.StripeService.customer.updateCustomer(customer.stripeCustomer.id, {
-                        metadata: { userType: 'customer', userId: customerId }
+                        metadata: { userType: 'customers', userId: customerId }
                     });
                 }
                 else {
                     stripe_1.StripeService.customer.createCustomer({
                         email: customer.email,
                         metadata: {
-                            userType: 'customer',
+                            userType: 'customers',
                             userId: customer.id,
                         },
                         name: "".concat(customer.firstName, " ").concat(customer.lastName, " "),

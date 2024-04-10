@@ -82,7 +82,7 @@ var contractorStartTripController = function (req, res) { return __awaiter(void 
                 // send notification to  contractor
                 index_1.NotificationService.sendNotification({
                     user: contractorId,
-                    userType: 'contractor',
+                    userType: 'contractors',
                     title: 'tripDay',
                     heading: {},
                     type: 'tripDayStart',
@@ -96,7 +96,7 @@ var contractorStartTripController = function (req, res) { return __awaiter(void 
                 // send notification to  customer
                 index_1.NotificationService.sendNotification({
                     user: JSON.stringify(jobRequest.customer),
-                    userType: 'customer',
+                    userType: 'customers',
                     title: 'tripDay',
                     heading: {},
                     type: 'tripDayStart',
@@ -159,7 +159,7 @@ var contractorArrivedSiteController = function (req, res) { return __awaiter(voi
                 // send notification to  contractor
                 index_1.NotificationService.sendNotification({
                     user: contractorId,
-                    userType: 'contractor',
+                    userType: 'contractors',
                     title: 'tripDay',
                     heading: {},
                     type: 'tripDayarrived',
@@ -173,7 +173,7 @@ var contractorArrivedSiteController = function (req, res) { return __awaiter(voi
                 // send notification to  customer
                 index_1.NotificationService.sendNotification({
                     user: JSON.stringify(tripDay.customer),
-                    userType: 'customer',
+                    userType: 'customers',
                     title: 'tripDay',
                     heading: {},
                     type: 'tripDayarrived',

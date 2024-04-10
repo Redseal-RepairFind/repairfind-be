@@ -47,7 +47,7 @@ export const customerverifiedContractorSiteArrivalController = async (
         NotificationService.sendNotification(
             {
                 user: JSON.stringify(tripDay.contractor),
-                userType: 'contractor',
+                userType: 'contractors',
                 title: 'tripDay',
                 heading: {},
                 type: 'tripDayComfirmed',
@@ -66,7 +66,7 @@ export const customerverifiedContractorSiteArrivalController = async (
         NotificationService.sendNotification(
             {
                 user: JSON.stringify(tripDay.customer),
-                userType: 'customer',
+                userType: 'customers',
                 title: 'tripDay',
                 heading: {},
                 type: 'tripDayComfirmed',

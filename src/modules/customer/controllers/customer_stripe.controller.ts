@@ -33,7 +33,7 @@ export const createSession = async (req: any, res: Response) => {
             stripeCustomer = await StripeService.customer.createCustomer({
                 email: customer.email,
                 metadata: {
-                    userType: 'customer',
+                    userType: 'customers',
                     userId: customer.id,
                 },
                 name: `${customer.firstName} ${customer.lastName} `,
@@ -48,7 +48,7 @@ export const createSession = async (req: any, res: Response) => {
                 customer: stripeCustomer.id,
                 setup_intent_data: {
                     metadata: {
-                        userType: 'customer',
+                        userType: 'customers',
                         userId: customer.id,
                     }
                 }
@@ -83,7 +83,7 @@ export const createAccount = async (req: any, res: Response) => {
         const stripeCustomer = await StripeService.customer.createCustomer({
             email: customer.email,
             metadata: {
-                userType: 'customer',
+                userType: 'customers',
                 userId: customerId
             },
             name: `${customer.firstName} ${customer.lastName} `,
@@ -132,7 +132,7 @@ export const createSetupIntent = async (req: any, res: Response) => {
                 email: customer.email,
                 metadata: {
                     userId: customer.id,
-                    userType: 'customer'
+                    userType: 'customers'
                 },
                 name: `${customer.firstName} ${customer.lastName} `,
                 phone: `${customer.phoneNumber.code}${customer.phoneNumber.number} `,
@@ -152,7 +152,7 @@ export const createSetupIntent = async (req: any, res: Response) => {
                 'card'
             ],
             metadata: {
-                userType: 'customer',
+                userType: 'customers',
                 userId: customerId,
             }
 

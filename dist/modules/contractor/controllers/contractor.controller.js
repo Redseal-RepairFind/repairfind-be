@@ -363,7 +363,7 @@ var ProfileHandler = /** @class */ (function (_super) {
             });
         });
     };
-    ProfileHandler.prototype.getUser = function () {
+    ProfileHandler.prototype.getAccount = function () {
         var _a;
         return __awaiter(this, void 0, void 0, function () {
             var req, res, contractorId, includeStripeIdentity, includeStripeCustomer, includeStripePaymentMethods, includedFields, contractor, quiz, contractorResponse, stripeAccount, err_5;
@@ -397,7 +397,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         }
                         if (!!contractor.stripeAccount) return [3 /*break*/, 5];
                         return [4 /*yield*/, stripe_1.StripeService.account.createAccount({
-                                userType: 'contractor',
+                                userType: 'contractors',
                                 userId: contractorId,
                                 email: contractor.email
                             })];
@@ -418,6 +418,24 @@ var ProfileHandler = /** @class */ (function (_super) {
                         _b.sent();
                         _b.label = 5;
                     case 5:
+                        //TODO: for now always update the meta data of stripe customer with this email address
+                        if (contractor.stripeCustomer) {
+                            stripe_1.StripeService.customer.updateCustomer(contractor.stripeCustomer.id, {
+                                metadata: { userType: 'contractors', userId: contractor.id }
+                            });
+                        }
+                        else {
+                            stripe_1.StripeService.customer.createCustomer({
+                                email: contractor.email,
+                                metadata: {
+                                    userType: 'contractors',
+                                    userId: contractor.id,
+                                },
+                                //@ts-ignore
+                                name: "".concat(contractor.name, " "),
+                                phone: "".concat(contractor.phoneNumber.code).concat(contractor.phoneNumber.number, " "),
+                            });
+                        }
                         res.json({
                             success: true,
                             message: 'Account fetched successfully',
@@ -455,7 +473,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         stripeAccountLink = {};
                         if (!(!contractor.stripeAccount || !contractor.stripeAccount.id)) return [3 /*break*/, 6];
                         return [4 /*yield*/, stripe_1.StripeService.account.createAccount({
-                                userType: 'contractor',
+                                userType: 'contractors',
                                 userId: contractorId,
                                 email: contractor.email
                             })];
@@ -536,7 +554,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         stripeAccountLink = {};
                         if (!(!contractor.stripeAccount || !contractor.stripeAccount.id)) return [3 /*break*/, 6];
                         return [4 /*yield*/, stripe_1.StripeService.account.createAccount({
-                                userType: 'contractor',
+                                userType: 'contractors',
                                 userId: contractorId,
                                 email: contractor.email
                             })];
@@ -714,7 +732,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                             return [2 /*return*/, res.status(404).json({ success: false, message: 'User not found' })];
                         }
                         return [4 /*yield*/, stripe_1.StripeService.identity.createVerificationSession({
-                                userType: 'contractor',
+                                userType: 'contractors',
                                 userId: contractorId,
                                 email: contractor.email
                             })
@@ -846,7 +864,7 @@ var ProfileHandler = /** @class */ (function (_super) {
         __metadata("design:type", Function),
         __metadata("design:paramtypes", []),
         __metadata("design:returntype", Promise)
-    ], ProfileHandler.prototype, "getUser", null);
+    ], ProfileHandler.prototype, "getAccount", null);
     __decorate([
         (0, decorators_abstract_1.handleAsyncError)(),
         __metadata("design:type", Function),

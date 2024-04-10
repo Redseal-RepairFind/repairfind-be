@@ -72,7 +72,7 @@ var createSession = function (req, res) { return __awaiter(void 0, void 0, void 
                 return [4 /*yield*/, stripe_1.StripeService.customer.createCustomer({
                         email: customer.email,
                         metadata: {
-                            userType: 'customer',
+                            userType: 'customers',
                             userId: customer.id,
                         },
                         name: "".concat(customer.firstName, " ").concat(customer.lastName, " "),
@@ -89,7 +89,7 @@ var createSession = function (req, res) { return __awaiter(void 0, void 0, void 
                         customer: stripeCustomer.id,
                         setup_intent_data: {
                             metadata: {
-                                userType: 'customer',
+                                userType: 'customers',
                                 userId: customer.id,
                             }
                         }
@@ -129,7 +129,7 @@ var createAccount = function (req, res) { return __awaiter(void 0, void 0, void 
                 return [4 /*yield*/, stripe_1.StripeService.customer.createCustomer({
                         email: customer.email,
                         metadata: {
-                            userType: 'customer',
+                            userType: 'customers',
                             userId: customerId
                         },
                         name: "".concat(customer.firstName, " ").concat(customer.lastName, " "),
@@ -178,7 +178,7 @@ var createSetupIntent = function (req, res) { return __awaiter(void 0, void 0, v
                         email: customer.email,
                         metadata: {
                             userId: customer.id,
-                            userType: 'customer'
+                            userType: 'customers'
                         },
                         name: "".concat(customer.firstName, " ").concat(customer.lastName, " "),
                         phone: "".concat(customer.phoneNumber.code).concat(customer.phoneNumber.number, " "),
@@ -197,7 +197,7 @@ var createSetupIntent = function (req, res) { return __awaiter(void 0, void 0, v
                             'card'
                         ],
                         metadata: {
-                            userType: 'customer',
+                            userType: 'customers',
                             userId: customerId,
                         }
                     })];

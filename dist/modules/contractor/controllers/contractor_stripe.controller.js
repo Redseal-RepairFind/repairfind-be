@@ -70,7 +70,7 @@ var createSession = function (req, res) { return __awaiter(void 0, void 0, void 
                         email: contractor.email,
                         metadata: {
                             userId: contractor.id,
-                            userType: 'contractor'
+                            userType: 'contractors'
                         },
                         name: "".concat(contractor.firstName, " ").concat(contractor.lastName, " "),
                         phone: "".concat(contractor.phoneNumber.code).concat(contractor.phoneNumber.number, " "),
@@ -87,7 +87,7 @@ var createSession = function (req, res) { return __awaiter(void 0, void 0, void 
                         customer: stripeCustomer.id,
                         setup_intent_data: {
                             metadata: {
-                                userType: 'contractor',
+                                userType: 'contractors',
                                 userId: contractorId,
                             }
                         }
@@ -136,7 +136,7 @@ var createSetupIntent = function (req, res) { return __awaiter(void 0, void 0, v
                         email: contractor.email,
                         metadata: {
                             userId: contractor.id,
-                            userType: 'contractor'
+                            userType: 'contractors'
                         },
                         name: "".concat(contractor.firstName, " ").concat(contractor.lastName, " "),
                         phone: "".concat(contractor.phoneNumber.code).concat(contractor.phoneNumber.number, " "),
@@ -155,7 +155,7 @@ var createSetupIntent = function (req, res) { return __awaiter(void 0, void 0, v
                             'card'
                         ],
                         metadata: {
-                            userType: 'contractor',
+                            userType: 'contractors',
                             userId: contractorId,
                         }
                     })];

@@ -65,7 +65,7 @@ var contractor_profile_model_1 = require("../../../database/contractor/models/co
 var date_fns_1 = require("date-fns");
 var contractor_schedule_model_1 = require("../../../database/contractor/models/contractor_schedule.model");
 var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, distance, latitude, longitude, emergencyJobs, category, location_1, city, country, address, accountType, date, isOffDuty, availableDays, experienceYear, gstNumber, _b, page, _c, limit, sort // Sort field and order (-fieldName or fieldName)
+    var errors, _a, listing, distance, latitude, longitude, emergencyJobs, category, location_1, city, country, address, accountType, date, isOffDuty, availableDays, experienceYear, gstNumber, _b, page, _c, limit, sort // Sort field and order (-fieldName or fieldName)
     , availableDaysArray, skip, pipeline, contractorIdsWithDateInSchedule, _d, sortField, sortOrder, sortStage, result, contractors, metadata, err_1;
     var _e;
     return __generator(this, function (_f) {
@@ -78,7 +78,7 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
                 _f.label = 1;
             case 1:
                 _f.trys.push([1, 5, , 6]);
-                _a = req.query, distance = _a.distance, latitude = _a.latitude, longitude = _a.longitude, emergencyJobs = _a.emergencyJobs, category = _a.category, location_1 = _a.location, city = _a.city, country = _a.country, address = _a.address, accountType = _a.accountType, date = _a.date, isOffDuty = _a.isOffDuty, availableDays = _a.availableDays, experienceYear = _a.experienceYear, gstNumber = _a.gstNumber, _b = _a.page, page = _b === void 0 ? 1 : _b, _c = _a.limit, limit = _c === void 0 ? 10 : _c, sort = _a.sort;
+                _a = req.query, listing = _a.listing, distance = _a.distance, latitude = _a.latitude, longitude = _a.longitude, emergencyJobs = _a.emergencyJobs, category = _a.category, location_1 = _a.location, city = _a.city, country = _a.country, address = _a.address, accountType = _a.accountType, date = _a.date, isOffDuty = _a.isOffDuty, availableDays = _a.availableDays, experienceYear = _a.experienceYear, gstNumber = _a.gstNumber, _b = _a.page, page = _b === void 0 ? 1 : _b, _c = _a.limit, limit = _c === void 0 ? 10 : _c, sort = _a.sort;
                 availableDaysArray = availableDays ? availableDays.split(',') : [];
                 skip = (parseInt(page) - 1) * parseInt(limit);
                 pipeline = [
@@ -181,12 +181,38 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
                     };
                     pipeline.push(sortStage);
                 }
+                switch (listing) {
+                    case 'recommended':
+                        // Logic to fetch recommended contractors
+                        // pipeline.push(
+                        //     { $match: { rating: { $gte: 4.5 } } }, // Fetch contractors with rating >= 4.5
+                        //     { $sort: { rating: -1 } } // Sort by rating in descending order
+                        // );
+                        pipeline.push({ $sample: { size: 10 } } // Randomly sample 10 contractors
+                        );
+                        break;
+                    case 'top-rated':
+                        // Logic to fetch top-rated contractors
+                        pipeline.push({ $match: { rating: { $exists: true } } }, // Filter out contractors with no ratings
+                        { $sort: { rating: -1 } } // Sort by rating in descending order
+                        );
+                        break;
+                    case 'featured':
+                        // Logic to fetch featured contractors
+                        pipeline.push({ $match: { isFeatured: true } } // Filter contractors marked as featured
+                        );
+                        break;
+                    default:
+                        // Default logic if type is not specified or invalid
+                        // You can handle this case based on your requirements
+                        break;
+                }
                 // Add $facet stage for pagination
                 pipeline.push({
                     $facet: {
                         metadata: [
                             { $count: "totalItems" },
-                            { $addFields: { page: page, limit: limit, currentPage: parseInt(page), lastPage: { $ceil: { $divide: ["$totalItems", parseInt(limit)] } } } }
+                            { $addFields: { page: page, limit: limit, currentPage: parseInt(page), lastPage: { $ceil: { $divide: ["$totalItems", parseInt(limit)] } }, listing: listing } }
                         ],
                         data: [{ $skip: skip }, { $limit: parseInt(limit) }]
                     }

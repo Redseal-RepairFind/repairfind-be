@@ -15,6 +15,14 @@ export interface IJobQuotationEstimate {
 }
 
 
+// Define interface for extra estimates
+interface IExtraEstimates {
+    estimates: IJobQuotationEstimate[];
+    isPaid: boolean;
+    payment: ObjectId;
+    date: Date;
+}
+
 export interface IJobQuotation extends Document {
     contractor: ObjectId;
     job: ObjectId;
@@ -24,6 +32,9 @@ export interface IJobQuotation extends Document {
     endDate: Date;
     siteVisit: object;
     charges: object;
+    payment: ObjectId;
+    isPaid: boolean;
+    extraEstimates: IExtraEstimates;
     calculateCharges: () => {
         subtotal: number;
         processingFee: number;
@@ -33,12 +44,28 @@ export interface IJobQuotation extends Document {
     };
 }
 
+// Define schema for job quotation estimates
+const JobQuotationEstimateSchema = new Schema<IJobQuotationEstimate>({
+    description: { type: String, required: true },
+    quantity: { type: Number, required: true },
+    rate: { type: Number, required: true },
+    amount: { type: Number, required: true }
+});
 
-const JobApplicationSchema = new Schema<IJobQuotation>({
+// Define schema for extra estimates
+const ExtraEstimatesSchema = new Schema<IExtraEstimates>({
+    estimates: { type: [JobQuotationEstimateSchema], required: true },
+    isPaid: { type: Boolean, default: false },
+    payment: { type: Schema.Types.ObjectId, ref: 'payments' },
+    date: { type: Date, required: true }
+});
+
+
+const JobQoutationSchema = new Schema<IJobQuotation>({
     contractor: { type: Schema.Types.ObjectId, ref: 'contractors', required: true },
     job: { type: Schema.Types.ObjectId, ref: 'jobs', required: true },
     status: { type: String, enum: Object.values(JobQuotationStatus), default: JobQuotationStatus.PENDING },
-    estimates: { type: [Object], required: false },
+    estimates: { type: [JobQuotationEstimateSchema], required: false },
     startDate: { type: Date, required: false },
     endDate: { type: Date, required: false },
     siteVisit: { type: Object, default: null, properties: {
@@ -52,12 +79,15 @@ const JobApplicationSchema = new Schema<IJobQuotation>({
         totalAmount: 0.00, 
         contractorAmount: 0.00
     } },
+    payment: { type: Schema.Types.ObjectId, ref: 'payments' },
+    isPaid: {type: Boolean, default:false},
+    extraEstimates: { type: ExtraEstimatesSchema }
 }, { timestamps: true });
 
 
 
 // Define the static method to calculate charges
-JobApplicationSchema.methods.calculateCharges = async function () {
+JobQoutationSchema.methods.calculateCharges = async function () {
     let totalEstimateAmount = 0;
 
     // Calculate total estimate amount from rate * quantity for each estimate
@@ -88,7 +118,7 @@ JobApplicationSchema.methods.calculateCharges = async function () {
     return { subtotal, processingFee, gst, totalAmount, contractorAmount };
 };
 
-const JobQoutationModel = model<IJobQuotation>('job_quotations', JobApplicationSchema);
+const JobQoutationModel = model<IJobQuotation>('job_quotations', JobQoutationSchema);
 
 
 export { JobQoutationModel };

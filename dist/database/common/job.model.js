@@ -108,13 +108,6 @@ var JobSchema = new mongoose_1.Schema({
 JobSchema.virtual('totalQuotations').get(function () {
     return this.quotations.length;
 });
-// JobSchema.virtual('myQuotation', {
-//     ref: 'job_quotations',
-//     foreignField: 'contractor', // Assuming this field stores the contractorId in the job_quotations model
-//     localField: 'contractor', // Using a string to specify the localField
-//     justOne: true,
-//     options: { contractorId: { type: Schema.Types.ObjectId } }, // Define the contractorId option
-// });
 JobSchema.methods.getMyQoutation = function (jobId, contractorId) {
     return __awaiter(this, void 0, void 0, function () {
         var job;
