@@ -81,7 +81,8 @@ exports.config = {
         authToken: process.env.AUTH_TOKEN,
         twilioPhoneNumber: process.env.TWILIO_PHONE_NUMBER
     },
-    port: process.env.PORT
+    port: process.env.PORT,
+    environment: process.env.APN_ENV,
 };
 exports.s3 = new AWS.S3({
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,

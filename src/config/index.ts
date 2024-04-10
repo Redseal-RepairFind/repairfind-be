@@ -65,7 +65,8 @@ export const config = {
         twilioPhoneNumber: <string>process.env.TWILIO_PHONE_NUMBER
     },
 
-    port: process.env.PORT as unknown as number
+    port: process.env.PORT as unknown as number,
+    environment: <string>process.env.APN_ENV,
 
 };
 

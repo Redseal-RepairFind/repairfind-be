@@ -1,5 +1,5 @@
 // queue.ts
-import { Queue, Worker,  } from 'bullmq';
+import { Queue, RedisOptions, Worker,  } from 'bullmq';
 
 import Redis from 'ioredis';
 import { config } from '../../config';
@@ -17,8 +17,11 @@ class JobQueue {
       host: config.redis.host,
       password: config.redis.password,
       username: config.redis.username,
-      tls: {}
-    };
+    } as RedisOptions;
+
+    console.log(config)
+    if( !(config.environment == 'development') ) {redisConfig.tls = {}};
+
     const redisConnection = new Redis(redisConfig);
     this.repairFindQueue = new Queue('RepairFindQueue', { connection: redisConnection });
 
