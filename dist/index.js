@@ -53,11 +53,9 @@ var routes_2 = __importDefault(require("./modules/admin/routes/routes"));
 var routes_3 = __importDefault(require("./modules/customer/routes/routes"));
 var routes_4 = __importDefault(require("./modules/common/routes/routes"));
 var seeders_1 = require("./database/seeders");
-var socket_1 = __importDefault(require("./services/socket"));
 var custom_errors_1 = require("./utils/custom.errors");
 var logger_1 = require("./utils/logger");
-var bullmq_1 = require("./services/bullmq");
-var worker_1 = require("./services/bullmq/worker");
+var socket_1 = __importDefault(require("./utils/socket"));
 dotenv_1.default.config();
 // console.debug = Logger.debug.bind(Logger);
 // console.log = Logger.info.bind(Logger);
@@ -67,11 +65,11 @@ console.trace = logger_1.Logger.trace.bind(logger_1.Logger);
 var app = (0, express_1.default)();
 var server = http_1.default.createServer(app);
 var csrfProtection = (0, csurf_1.default)({ cookie: true });
-var io = require("socket.io")(server, {
-    cors: {
-        origin: "*",
-    },
-});
+// const io = require("socket.io")(server, {
+//   cors: {
+//     origin: "*",
+//   },
+// });
 var limiter = (0, express_rate_limit_1.default)({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 1000, // limit each IP to 100 requests per windowMs
@@ -125,8 +123,8 @@ app.use("/api/v1/contractor", routes_1.default);
 app.use("/api/v1/admin", routes_2.default);
 app.use("/api/v1/customer", routes_3.default);
 app.use("/api/v1/common", routes_4.default);
-bullmq_1.QueueService.attach(app); // Attach Bull Board middleware
-worker_1.RepairFindQueueWorker;
+// QueueService.attach(app); // Attach Bull Board middleware
+// RepairFindQueueWorker
 // Middleware to handle non-existing pages (404)
 app.use(function (req, res, next) {
     res.status(404).json({ success: false, message: "Not found:  ".concat(req.hostname).concat(req.originalUrl) });
@@ -135,8 +133,9 @@ app.use(custom_errors_1.errorHandler);
 // TODO:
 // Socket connections
 // Initialize SocketService with the Express server
-socket_1.default.initialize(io);
-new socket_1.default(io);
+// SocketService.initialize(io);
+// new SocketService(io)
+socket_1.default.io.attach(server);
 // Initialize server
 var port = process.env.PORT || 3000;
 server.listen(port, function () {

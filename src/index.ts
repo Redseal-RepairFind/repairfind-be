@@ -18,6 +18,7 @@ import { errorHandler } from "./utils/custom.errors";
 import { Logger } from "./utils/logger";
 import { QueueService } from "./services/bullmq";
 import { RepairFindQueueWorker } from "./services/bullmq/worker";
+import socketapi from "./utils/socket";
 
 dotenv.config();
 
@@ -36,11 +37,12 @@ const csrfProtection = csrf({ cookie: true });
 
 
 
-const io = require("socket.io")(server, {
-  cors: {
-    origin: "*",
-  },
-});
+// const io = require("socket.io")(server, {
+//   cors: {
+//     origin: "*",
+//   },
+// });
+
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -93,8 +95,8 @@ app.use("/api/v1/customer", customerRoute);
 app.use("/api/v1/common", commonRoute);
 
 
-QueueService.attach(app); // Attach Bull Board middleware
-RepairFindQueueWorker
+// QueueService.attach(app); // Attach Bull Board middleware
+// RepairFindQueueWorker
 
 
 // Middleware to handle non-existing pages (404)
@@ -110,10 +112,11 @@ app.use(errorHandler)
 
 // Socket connections
 // Initialize SocketService with the Express server
-SocketService.initialize(io);
-new SocketService(io)
+// SocketService.initialize(io);
+// new SocketService(io)
 
 
+socketapi.io.attach(server)
 
 // Initialize server
 const port = process.env.PORT || 3000;
