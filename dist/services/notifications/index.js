@@ -46,7 +46,7 @@ var contractor_devices_model_1 = __importDefault(require("../../database/contrac
 var customer_model_1 = __importDefault(require("../../database/customer/models/customer.model"));
 var customer_devices_model_1 = __importDefault(require("../../database/customer/models/customer_devices.model"));
 var expo_1 = require("../expo");
-var socket_1 = __importDefault(require("../socket"));
+var socket_1 = require("../socket");
 var NotificationService = /** @class */ (function () {
     function NotificationService() {
     }
@@ -92,7 +92,7 @@ var NotificationService = /** @class */ (function () {
                         if ('firebase' in options) {
                         }
                         if ('socket' in options) {
-                            socket_1.default.sendNotification(user.email, params.type, {
+                            socket_1.SocketService.sendNotification(user.email, params.type, {
                                 type: params.type,
                                 message: params.message,
                                 data: params.payload

@@ -4,7 +4,7 @@ import ContractorDeviceModel from '../../database/contractor/models/contractor_d
 import CustomerModel from '../../database/customer/models/customer.model';
 import CustomerDeviceModel from '../../database/customer/models/customer_devices.model';
 import { sendPushNotifications } from '../expo';
-import SocketService from '../socket';
+import { SocketService } from '../socket';
 
 
 

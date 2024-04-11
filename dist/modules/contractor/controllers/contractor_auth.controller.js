@@ -233,6 +233,7 @@ var AuthHandler = /** @class */ (function (_super) {
                         accessToken = jsonwebtoken_1.default.sign({
                             id: contractor === null || contractor === void 0 ? void 0 : contractor._id,
                             email: contractor.email,
+                            userType: 'contractors',
                         }, process.env.JWT_CONTRACTOR_SECRET_KEY, { expiresIn: "24h" });
                         return [4 /*yield*/, (contractor === null || contractor === void 0 ? void 0 : contractor.quiz)];
                     case 4:
@@ -299,6 +300,7 @@ var AuthHandler = /** @class */ (function (_super) {
                         accessToken = jsonwebtoken_1.default.sign({
                             id: contractor === null || contractor === void 0 ? void 0 : contractor._id,
                             email: contractor.email,
+                            userType: 'contractors',
                         }, process.env.JWT_CONTRACTOR_SECRET_KEY, { expiresIn: "24h" });
                         // return access token
                         return [2 /*return*/, res.json({

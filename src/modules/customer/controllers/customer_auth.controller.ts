@@ -179,6 +179,7 @@ export const verifyEmail = async (
       {
         id: customer?._id,
         email: customer.email,
+        userType: 'customers',
       },
       process.env.JWT_CONTRACTOR_SECRET_KEY!,
       { expiresIn: "24h" }
@@ -250,6 +251,7 @@ export const signIn = async (
       {
         id: customer?._id,
         email: customer.email,
+        userType: 'customers',
       },
       process.env.JWT_CONTRACTOR_SECRET_KEY!,
       { expiresIn: "24h" }
@@ -546,6 +548,7 @@ export const googleSignon = async (
       {
         id: user._id,
         email: user.email,
+        userType: 'customers',
       },
       process.env.JWT_CONTRACTOR_SECRET_KEY!,
       { expiresIn: '24h' }
@@ -627,6 +630,7 @@ export const facebookSignon = async (req: Request, res: Response) => {
       {
         id: user._id,
         email: user.email,
+        userType: 'customers',
       },
       process.env.JWT_CONTRACTOR_SECRET_KEY!,
       { expiresIn: '24h' }
@@ -711,6 +715,7 @@ export const appleSignon = async (req: Request, res: Response) => {
       {
         id: user._id,
         email: user.email,
+        userType: 'customers',
       },
       process.env.JWT_CONTRACTOR_SECRET_KEY!,
       { expiresIn: '24h' }

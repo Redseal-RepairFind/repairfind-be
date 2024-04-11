@@ -13,12 +13,15 @@ import adminRoute from "./modules/admin/routes/routes";
 import customerRoute from "./modules/customer/routes/routes";
 import commonRoute from "./modules/common/routes/routes";
 import { RunSeeders } from "./database/seeders";
-import SocketService from "./services/socket";
 import { errorHandler } from "./utils/custom.errors";
 import { Logger } from "./utils/logger";
 import { QueueService } from "./services/bullmq";
 import { RepairFindQueueWorker } from "./services/bullmq/worker";
-import socketapi from "./utils/socket";
+import WebSocket from 'ws';
+import WebSocketService from "./services/socket/websocket";
+import { Server } from "socket.io";
+import SocketIOService from "./services/socket/socketio";
+
 
 dotenv.config();
 
@@ -37,18 +40,13 @@ const csrfProtection = csrf({ cookie: true });
 
 
 
-// const io = require("socket.io")(server, {
-//   cors: {
-//     origin: "*",
-//   },
-// });
+
 
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 1000, // limit each IP to 100 requests per windowMs
 });
-
 
 
 //@ts-ignore
@@ -108,15 +106,35 @@ app.use((req, res, next) => {
 app.use(errorHandler)
 
 
+// const wss = new WebSocket.Server({ server });
+// new WebSocketService(wss);
+
 // TODO:
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+  },
+});
 
-// Socket connections
-// Initialize SocketService with the Express server
-// SocketService.initialize(io);
-// new SocketService(io)
 
+// Socket.IO event handlers
+// io.on("connection", (socket) => {
+//   console.log("A user connected");
 
-socketapi.io.attach(server)
+//   // Handle custom events
+//   socket.on("chat message", (msg) => {
+//     console.log("Message:", msg);
+//     // Broadcast the message to all connected clients
+//     io.emit("chat message", msg);
+//   });
+
+//   // Handle disconnection
+//   socket.on("disconnect", () => {
+//     console.log("User disconnected");
+//   });
+// });
+
+ SocketIOService.initialize(io)
 
 // Initialize server
 const port = process.env.PORT || 3000;

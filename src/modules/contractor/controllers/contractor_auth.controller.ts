@@ -150,6 +150,7 @@ class AuthHandler extends Base {
                 {
                     id: contractor?._id,
                     email: contractor.email,
+                    userType: 'contractors',
                 },
                 process.env.JWT_CONTRACTOR_SECRET_KEY!,
                 { expiresIn: "24h" }
@@ -232,6 +233,7 @@ class AuthHandler extends Base {
                 {
                     id: contractor?._id,
                     email: contractor.email,
+                    userType: 'contractors',
                 },
                 process.env.JWT_CONTRACTOR_SECRET_KEY!,
                 { expiresIn: "24h" }

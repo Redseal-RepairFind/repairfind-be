@@ -182,6 +182,7 @@ var verifyEmail = function (req, res) { return __awaiter(void 0, void 0, void 0,
                 accessToken = jsonwebtoken_1.default.sign({
                     id: customer === null || customer === void 0 ? void 0 : customer._id,
                     email: customer.email,
+                    userType: 'customers',
                 }, process.env.JWT_CONTRACTOR_SECRET_KEY, { expiresIn: "24h" });
                 return [2 /*return*/, res.json({
                         success: true,
@@ -238,6 +239,7 @@ var signIn = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                 accessToken = jsonwebtoken_1.default.sign({
                     id: customer === null || customer === void 0 ? void 0 : customer._id,
                     email: customer.email,
+                    userType: 'customers',
                 }, process.env.JWT_CONTRACTOR_SECRET_KEY, { expiresIn: "24h" });
                 // return access token
                 res.json({
@@ -486,6 +488,7 @@ var googleSignon = function (req, res) { return __awaiter(void 0, void 0, void 0
                 token = jsonwebtoken_1.default.sign({
                     id: user._id,
                     email: user.email,
+                    userType: 'customers',
                 }, process.env.JWT_CONTRACTOR_SECRET_KEY, { expiresIn: '24h' });
                 res.json({
                     status: true,
@@ -556,6 +559,7 @@ var facebookSignon = function (req, res) { return __awaiter(void 0, void 0, void
                 token = jsonwebtoken_1.default.sign({
                     id: user._id,
                     email: user.email,
+                    userType: 'customers',
                 }, process.env.JWT_CONTRACTOR_SECRET_KEY, { expiresIn: '24h' });
                 res.json({
                     status: true,
@@ -628,6 +632,7 @@ var appleSignon = function (req, res) { return __awaiter(void 0, void 0, void 0,
                 token = jsonwebtoken_1.default.sign({
                     id: user._id,
                     email: user.email,
+                    userType: 'customers',
                 }, process.env.JWT_CONTRACTOR_SECRET_KEY, { expiresIn: '24h' });
                 res.json({
                     status: true,

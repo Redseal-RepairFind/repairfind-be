@@ -55,7 +55,8 @@ var routes_4 = __importDefault(require("./modules/common/routes/routes"));
 var seeders_1 = require("./database/seeders");
 var custom_errors_1 = require("./utils/custom.errors");
 var logger_1 = require("./utils/logger");
-var socket_1 = __importDefault(require("./utils/socket"));
+var socket_io_1 = require("socket.io");
+var socketio_1 = __importDefault(require("./services/socket/socketio"));
 dotenv_1.default.config();
 // console.debug = Logger.debug.bind(Logger);
 // console.log = Logger.info.bind(Logger);
@@ -65,11 +66,6 @@ console.trace = logger_1.Logger.trace.bind(logger_1.Logger);
 var app = (0, express_1.default)();
 var server = http_1.default.createServer(app);
 var csrfProtection = (0, csurf_1.default)({ cookie: true });
-// const io = require("socket.io")(server, {
-//   cors: {
-//     origin: "*",
-//   },
-// });
 var limiter = (0, express_rate_limit_1.default)({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 1000, // limit each IP to 100 requests per windowMs
@@ -130,12 +126,29 @@ app.use(function (req, res, next) {
     res.status(404).json({ success: false, message: "Not found:  ".concat(req.hostname).concat(req.originalUrl) });
 });
 app.use(custom_errors_1.errorHandler);
+// const wss = new WebSocket.Server({ server });
+// new WebSocketService(wss);
 // TODO:
-// Socket connections
-// Initialize SocketService with the Express server
-// SocketService.initialize(io);
-// new SocketService(io)
-socket_1.default.io.attach(server);
+var io = new socket_io_1.Server(server, {
+    cors: {
+        origin: "*",
+    },
+});
+// Socket.IO event handlers
+// io.on("connection", (socket) => {
+//   console.log("A user connected");
+//   // Handle custom events
+//   socket.on("chat message", (msg) => {
+//     console.log("Message:", msg);
+//     // Broadcast the message to all connected clients
+//     io.emit("chat message", msg);
+//   });
+//   // Handle disconnection
+//   socket.on("disconnect", () => {
+//     console.log("User disconnected");
+//   });
+// });
+socketio_1.default.initialize(io);
 // Initialize server
 var port = process.env.PORT || 3000;
 server.listen(port, function () {
