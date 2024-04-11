@@ -106,9 +106,11 @@ app.use((req, res, next) => {
 app.use(errorHandler)
 
 
-// Socket connections
-const socketService = new SocketService(io);
+// TODO:
 
+// Socket connections
+// Initialize SocketService with the Express server
+SocketService.initialize(io);
 
 
 

@@ -17,19 +17,21 @@ class JobQueue {
       port: Number(config.redis.port),
       host: config.redis.host,
       password: config.redis.password,
-      // username: config.redis.username,
-    } ;
+      username: config.redis.username,
+      uri: config.redis.uri,
+      tls: {}
+    } as RedisOptions ;
 
-    console.log(config)
+    // console.log(config)
     // @ts-ignore
-    // if( !(config.environment == 'development') ) {redisConfig.tls = {}};
+    if( !(config.environment == 'development') ) {redisConfig.tls = {}};
 
-    const redisConnection = createClient(redisConfig); // Create Redis client
-    this.repairFindQueue = new Queue('RepairFindQueue', { connection: redisConfig });
+    // const redisConnection = createClient(redisConfig); // Create Redis client
+    // this.repairFindQueue = new Queue('RepairFindQueue', { connection: redisConfig });
 
 
-    // const redisConnection = new Redis(redisConfig);
-    // this.repairFindQueue = new Queue('RepairFindQueue', { connection: redisConnection });
+    const redisConnection = new Redis(redisConfig);
+    this.repairFindQueue = new Queue('RepairFindQueue', { connection: redisConnection });
 
 
 
