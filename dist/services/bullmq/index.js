@@ -58,7 +58,7 @@ var JobQueue = /** @class */ (function () {
                 // offset: new Date().getTimezoneOffset(), 
                 // tz: 'Europe/Berlin',
                 // limit: 1,
-                every: 5000, // 5000 mili = 5 seconds
+                every: 100000, // 5000 mili = 5 seconds
             },
         });
         app.use('/queues', this.serverAdapter.getRouter());
