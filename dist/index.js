@@ -132,8 +132,10 @@ app.use(function (req, res, next) {
     res.status(404).json({ success: false, message: "Not found:  ".concat(req.hostname).concat(req.originalUrl) });
 });
 app.use(custom_errors_1.errorHandler);
+// TODO:
 // Socket connections
-var socketService = new socket_1.default(io);
+// Initialize SocketService with the Express server
+socket_1.default.initialize(io);
 // Initialize server
 var port = process.env.PORT || 3000;
 server.listen(port, function () {

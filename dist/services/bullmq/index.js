@@ -18,8 +18,10 @@ var JobQueue = /** @class */ (function () {
             host: config_1.config.redis.host,
             password: config_1.config.redis.password,
             username: config_1.config.redis.username,
+            uri: config_1.config.redis.uri,
+            tls: {}
         };
-        console.log(config_1.config);
+        // console.log(config)
         // @ts-ignore
         if (!(config_1.config.environment == 'development')) {
             redisConfig.tls = {};
