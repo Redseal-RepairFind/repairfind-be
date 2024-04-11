@@ -1,31 +1,28 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.QueueService = void 0;
 // queue.ts
 var bullmq_1 = require("bullmq");
-var ioredis_1 = __importDefault(require("ioredis"));
 var config_1 = require("../../config");
 var api_1 = require("@bull-board/api");
 var bullAdapter_1 = require("@bull-board/api/bullAdapter");
 var express_1 = require("@bull-board/express");
+var redis_1 = require("redis");
 var JobQueue = /** @class */ (function () {
     function JobQueue() {
         var redisConfig = {
             port: Number(config_1.config.redis.port),
             host: config_1.config.redis.host,
             password: config_1.config.redis.password,
-            username: config_1.config.redis.username,
+            // username: config.redis.username,
         };
         console.log(config_1.config);
-        if (!(config_1.config.environment == 'development')) {
-            redisConfig.tls = {};
-        }
-        ;
-        var redisConnection = new ioredis_1.default(redisConfig);
-        this.repairFindQueue = new bullmq_1.Queue('RepairFindQueue', { connection: redisConnection });
+        // @ts-ignore
+        // if( !(config.environment == 'development') ) {redisConfig.tls = {}};
+        var redisConnection = (0, redis_1.createClient)(redisConfig); // Create Redis client
+        this.repairFindQueue = new bullmq_1.Queue('RepairFindQueue', { connection: redisConfig });
+        // const redisConnection = new Redis(redisConfig);
+        // this.repairFindQueue = new Queue('RepairFindQueue', { connection: redisConnection });
         this.serverAdapter = new express_1.ExpressAdapter();
         this.serverAdapter.setBasePath('/queues');
         (0, api_1.createBullBoard)({
@@ -34,12 +31,13 @@ var JobQueue = /** @class */ (function () {
         });
     }
     JobQueue.prototype.addJob = function (jobName, jobPayload, options) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c;
         var jobOptions = {
-            delay: (_a = options.delay) !== null && _a !== void 0 ? _a : 0,
-            attempts: (_b = options.attempts) !== null && _b !== void 0 ? _b : 2,
-            priority: (_c = options.priority) !== null && _c !== void 0 ? _c : 10,
-            repeat: (_d = options.repeat) !== null && _d !== void 0 ? _d : null
+            attempts: (_a = options.attempts) !== null && _a !== void 0 ? _a : 2,
+            priority: (_b = options.priority) !== null && _b !== void 0 ? _b : 10,
+            repeat: (_c = options.repeat) !== null && _c !== void 0 ? _c : null,
+            removeOnComplete: true,
+            removeOnFail: true
         };
         this.repairFindQueue.add(jobName, jobPayload, jobOptions);
     };

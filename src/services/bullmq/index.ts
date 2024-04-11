@@ -6,6 +6,7 @@ import { config } from '../../config';
 import { createBullBoard } from '@bull-board/api';
 import { BullAdapter } from '@bull-board/api/bullAdapter';
 import { ExpressAdapter } from '@bull-board/express';
+import { createClient } from 'redis';
 
 class JobQueue {
   private repairFindQueue: Queue;
@@ -16,14 +17,21 @@ class JobQueue {
       port: Number(config.redis.port),
       host: config.redis.host,
       password: config.redis.password,
-      username: config.redis.username,
-    } as RedisOptions;
+      // username: config.redis.username,
+    } ;
 
     console.log(config)
-    if( !(config.environment == 'development') ) {redisConfig.tls = {}};
+    // @ts-ignore
+    // if( !(config.environment == 'development') ) {redisConfig.tls = {}};
 
-    const redisConnection = new Redis(redisConfig);
-    this.repairFindQueue = new Queue('RepairFindQueue', { connection: redisConnection });
+    const redisConnection = createClient(redisConfig); // Create Redis client
+    this.repairFindQueue = new Queue('RepairFindQueue', { connection: redisConfig });
+
+
+    // const redisConnection = new Redis(redisConfig);
+    // this.repairFindQueue = new Queue('RepairFindQueue', { connection: redisConnection });
+
+
 
     this.serverAdapter = new ExpressAdapter();
     this.serverAdapter.setBasePath('/queues');
@@ -37,10 +45,11 @@ class JobQueue {
 
   public addJob(jobName: string, jobPayload: any, options: any) {
     const jobOptions = {
-      delay: options.delay ?? 0,
       attempts: options.attempts ?? 2,
       priority: options.priority ?? 10,
-      repeat: options.repeat ?? null
+      repeat: options.repeat ?? null,
+      removeOnComplete: true, 
+      removeOnFail: true
     };
     this.repairFindQueue.add(jobName, jobPayload, jobOptions);
   }
