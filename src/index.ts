@@ -93,8 +93,8 @@ app.use("/api/v1/customer", customerRoute);
 app.use("/api/v1/common", commonRoute);
 
 
-// QueueService.attach(app); // Attach Bull Board middleware
-// RepairFindQueueWorker
+QueueService.attach(app); // Attach Bull Board middleware
+RepairFindQueueWorker
 
 
 // Middleware to handle non-existing pages (404)
@@ -105,7 +105,7 @@ app.use((req, res, next) => {
 
 app.use(errorHandler)
 
-
+// Websocket here
 // const wss = new WebSocket.Server({ server });
 // new WebSocketService(wss);
 
@@ -118,22 +118,6 @@ const io = new Server(server, {
 
 
 // Socket.IO event handlers
-// io.on("connection", (socket) => {
-//   console.log("A user connected");
-
-//   // Handle custom events
-//   socket.on("chat message", (msg) => {
-//     console.log("Message:", msg);
-//     // Broadcast the message to all connected clients
-//     io.emit("chat message", msg);
-//   });
-
-//   // Handle disconnection
-//   socket.on("disconnect", () => {
-//     console.log("User disconnected");
-//   });
-// });
-
  SocketIOService.initialize(io)
 
 // Initialize server
