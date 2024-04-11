@@ -136,6 +136,7 @@ app.use(custom_errors_1.errorHandler);
 // Socket connections
 // Initialize SocketService with the Express server
 socket_1.default.initialize(io);
+new socket_1.default(io);
 // Initialize server
 var port = process.env.PORT || 3000;
 server.listen(port, function () {

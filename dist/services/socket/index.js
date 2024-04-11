@@ -11,7 +11,11 @@ var SocketService = /** @class */ (function () {
     }
     SocketService.prototype.initializeSocketEvents = function () {
         this.io.use(function (socket, next) {
-            var token = socket.handshake.auth.token;
+            var _a;
+            var token = (_a = socket.handshake.auth) === null || _a === void 0 ? void 0 : _a.token;
+            if (!token) {
+                return next(new Error("Authentication token is missing."));
+            }
             var secret = process.env.JWT_CONTRACTOR_SECRET_KEY;
             jsonwebtoken_1.default.verify(token, secret, function (err, decoded) {
                 if (err) {
@@ -25,10 +29,14 @@ var SocketService = /** @class */ (function () {
         });
         this.io.on("connection", function (socket) {
             console.log("A user connected");
-            socket.join(socket.user.email);
+            if (socket.user && socket.user.email) {
+                socket.join(socket.user.email);
+            }
             // Handle notification events from client here
             socket.on("joinChannel", function (channel) {
-                socket.join(channel); //// Join a room based on user email to enable private notifications
+                if (socket.user && socket.user.email) {
+                    socket.join(channel); // Join a room based on user email to enable private notifications
+                }
             });
         });
     };

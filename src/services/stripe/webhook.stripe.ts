@@ -469,7 +469,7 @@ export const accountUpdated = async (payload: any) => {
 
 
         // Casting payload to DTO
-        const stripeAccountDTO: IStripeAccount = castPayloadToDTO(payload, {} as IStripeAccount);
+        const stripeAccountDTO: IStripeAccount = castPayloadToDTO(payload, payload as IStripeAccount);
         user.stripeAccount = stripeAccountDTO
 
         await user.save()

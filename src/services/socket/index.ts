@@ -15,7 +15,11 @@ class SocketService {
 
     private initializeSocketEvents() {
         this.io.use((socket: CustomSocket, next) => {
-            const token = socket.handshake.auth.token;
+            const token = socket.handshake.auth?.token;
+            if (!token) {
+                return next(new Error("Authentication token is missing."));
+            }
+            
             const secret = process.env.JWT_CONTRACTOR_SECRET_KEY as string;
             jwt.verify(token, secret, (err: any, decoded: any) => {
                 if (err) {
@@ -30,11 +34,15 @@ class SocketService {
 
         this.io.on("connection", (socket: CustomSocket) => {
             console.log("A user connected");
-            socket.join(socket.user.email);
+            if (socket.user && socket.user.email) {
+                socket.join(socket.user.email);
+            }
 
             // Handle notification events from client here
             socket.on("joinChannel", (channel: string) => {
-                socket.join(channel); //// Join a room based on user email to enable private notifications
+                if (socket.user && socket.user.email) {
+                    socket.join(channel); // Join a room based on user email to enable private notifications
+                }
             });
         });
     }

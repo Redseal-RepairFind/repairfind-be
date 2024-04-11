@@ -6,7 +6,6 @@ import { config } from '../../config';
 import { createBullBoard } from '@bull-board/api';
 import { BullAdapter } from '@bull-board/api/bullAdapter';
 import { ExpressAdapter } from '@bull-board/express';
-import { createClient } from 'redis';
 
 class JobQueue {
   private repairFindQueue: Queue;
@@ -18,13 +17,15 @@ class JobQueue {
       host: config.redis.host,
       password: config.redis.password,
       username: config.redis.username,
-      uri: config.redis.uri,
-      tls: {}
+      // uri: config.redis.uri,
     } as RedisOptions ;
 
     // console.log(config)
     // @ts-ignore
-    if( !(config.environment == 'development') ) {redisConfig.tls = {}};
+    if( !(config.environment == 'development') ) {
+      console.log('not developement')
+      redisConfig.tls = {
+    }};
 
     // const redisConnection = createClient(redisConfig); // Create Redis client
     // this.repairFindQueue = new Queue('RepairFindQueue', { connection: redisConfig });

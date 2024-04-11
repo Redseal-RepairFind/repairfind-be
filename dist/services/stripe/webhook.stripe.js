@@ -613,7 +613,7 @@ var accountUpdated = function (payload) { return __awaiter(void 0, void 0, void 
                 user = _a;
                 if (!user)
                     return [2 /*return*/]; // Ensure user exists
-                stripeAccountDTO = (0, interface_dto_util_1.castPayloadToDTO)(payload, {});
+                stripeAccountDTO = (0, interface_dto_util_1.castPayloadToDTO)(payload, payload);
                 user.stripeAccount = stripeAccountDTO;
                 return [4 /*yield*/, user.save()];
             case 6:

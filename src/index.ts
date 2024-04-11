@@ -111,6 +111,7 @@ app.use(errorHandler)
 // Socket connections
 // Initialize SocketService with the Express server
 SocketService.initialize(io);
+new SocketService(io)
 
 
 
