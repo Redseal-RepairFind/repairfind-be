@@ -56,7 +56,7 @@ class SocketIOService {
 
     static sendNotification(channels: string | string[], type: string, payload: object) {
         const channelArray = typeof channels === 'string' ? [channels] : channels;
-        
+        console.log('socket notification is fired', payload)
         for (const channel of channelArray) {
             this.io.to(channel).emit(type, { payload });
         }

@@ -36,6 +36,7 @@ class JobQueue {
     this.repairFindQueue = new Queue('RepairFindQueue', { connection: redisConnection });
 
 
+    this.repairFindQueue.obliterate()
 
     this.serverAdapter = new ExpressAdapter();
     this.serverAdapter.setBasePath('/queues');
@@ -52,8 +53,14 @@ class JobQueue {
       attempts: options.attempts ?? 2,
       priority: options.priority ?? 10,
       repeat: options.repeat ?? null,
-      removeOnComplete: true, 
-      removeOnFail: true
+      removeOnComplete: {
+        age: 3600, // keep up to 1 hour
+        count: 50, // keep up to 50 jobs
+      },
+      removeOnFail: {
+        age: 3600, // keep up to 1 hour
+        count: 50, // keep up to 50 jobs
+      },
     };
     this.repairFindQueue.add(jobName, jobPayload, jobOptions);
   }

@@ -36,6 +36,7 @@ export const RepairFindQueueWorker = new Worker('RepairFindQueue', async job => 
 }, { connection: redisConnection });
 
 
+
 RepairFindQueueWorker.on('completed', job => {
     console.log(`${job.name} - ${job.id} has completed!`);
 });

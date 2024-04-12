@@ -90,12 +90,12 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                         contractor: contractorId,
                         status: customer_jobrequest_model_1.JobRequestStatus.PENDING,
                         date: { $eq: new Date(date) }, // consider all past jobs
-                        createdAt: { $gte: (0, date_fns_1.addHours)(new Date(), -72) }, // Check for job requests within the last 72 hours
+                        createdAt: { $gte: (0, date_fns_1.addHours)(new Date(), -24) }, // Check for job requests within the last 72 hours
                     })];
             case 3:
                 existingJobRequest = _d.sent();
                 if (existingJobRequest) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'A similar job request has already been sent to this contractor within the last 72 hours' })];
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'A similar job request has already been sent to this contractor within the last 24 hours' })];
                 }
                 dateTimeString = "".concat(new Date(date).toISOString().split('T')[0], "T").concat(time);
                 jobTime = new Date(dateTimeString);
@@ -149,7 +149,7 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                     user: contractor.id,
                     userType: 'contractors',
                     title: 'New Job Request',
-                    type: 'NEW_JOB_REQUEST',
+                    type: 'NEW_JOB_REQUEST', // Notification, Inbox ?
                     message: "You've received a job request from ".concat(customer.firstName),
                     heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_b = customer.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
                     payload: {
@@ -157,8 +157,9 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                         entityType: 'jobs',
                         message: "You've received a job request from ".concat(customer.firstName),
                         contractor: contractor.id,
+                        category: 'Notification_Inbox', // Notification, Inbox, Notification_Inbox
                     }
-                }, { database: true, push: true });
+                }, { database: true, push: true, socket: true });
                 services_1.NotificationService.sendNotification({
                     user: customer.id,
                     userType: 'customers',
@@ -174,8 +175,9 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                         //@ts-ignore
                         message: "You've sent a job request to ".concat(contractor.name),
                         customer: customer.id,
+                        category: 'Notification_Inbox', // Notification, Inbox, Notification_Inbox
                     }
-                }, { database: true, push: true });
+                }, { database: true, push: true, socket: true });
                 html = (0, jobRequestTemplate_1.htmlJobRequestTemplate)(customer.firstName, customer.firstName, "".concat(date, " ").concat(time), description);
                 services_1.EmailService.send(contractor.email, 'Job request from customer', html);
                 res.status(201).json({ success: true, message: 'Job request submitted successfully', data: newJob });
@@ -189,7 +191,7 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
 }); };
 exports.createJobRequest = createJobRequest;
 var createJobListing = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, category, description, location_2, date, expiresIn, emergency, media, voiceDescription, time, contractorType, customerId, customer, existingJobRequest, dateTimeString, jobTime, newJob, error_2;
+    var errors, _a, category, description, location_2, date, expiresIn, emergency, media, voiceDescription, time, contractorType, customerId, customer, startOfToday, existingJobRequest, dateTimeString, jobTime, newJob, error_2;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -206,9 +208,9 @@ var createJobListing = function (req, res, next) { return __awaiter(void 0, void
                 if (!customer) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "Customer not found" })];
                 }
-                // Check if the specified date is valid
-                if (!(0, date_fns_1.isFuture)(new Date(date))) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid date formate or date is not in the future' })];
+                startOfToday = (0, date_fns_1.startOfDay)(new Date());
+                if (!(0, date_fns_1.isValid)(new Date(date)) || (!(0, date_fns_1.isFuture)(new Date(date)) && new Date(date) < startOfToday)) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid date format or date is in the past' })];
                 }
                 return [4 /*yield*/, job_model_1.JobModel.findOne({
                         customer: customerId,

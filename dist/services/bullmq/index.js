@@ -32,6 +32,7 @@ var JobQueue = /** @class */ (function () {
         // this.repairFindQueue = new Queue('RepairFindQueue', { connection: redisConfig });
         var redisConnection = new ioredis_1.default(redisConfig);
         this.repairFindQueue = new bullmq_1.Queue('RepairFindQueue', { connection: redisConnection });
+        this.repairFindQueue.obliterate();
         this.serverAdapter = new express_1.ExpressAdapter();
         this.serverAdapter.setBasePath('/queues');
         (0, api_1.createBullBoard)({
@@ -45,8 +46,14 @@ var JobQueue = /** @class */ (function () {
             attempts: (_a = options.attempts) !== null && _a !== void 0 ? _a : 2,
             priority: (_b = options.priority) !== null && _b !== void 0 ? _b : 10,
             repeat: (_c = options.repeat) !== null && _c !== void 0 ? _c : null,
-            removeOnComplete: true,
-            removeOnFail: true
+            removeOnComplete: {
+                age: 3600, // keep up to 1 hour
+                count: 50, // keep up to 50 jobs
+            },
+            removeOnFail: {
+                age: 3600, // keep up to 1 hour
+                count: 50, // keep up to 50 jobs
+            },
         };
         this.repairFindQueue.add(jobName, jobPayload, jobOptions);
     };

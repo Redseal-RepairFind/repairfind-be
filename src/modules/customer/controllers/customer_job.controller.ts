@@ -74,11 +74,11 @@ export const createJobRequest = async (
             contractor: contractorId,
             status: JobRequestStatus.PENDING,
             date: { $eq: new Date(date) }, // consider all past jobs
-            createdAt: { $gte: addHours(new Date(), -72) }, // Check for job requests within the last 72 hours
+            createdAt: { $gte: addHours(new Date(), -24) }, // Check for job requests within the last 72 hours
         });
 
         if (existingJobRequest) {
-            return res.status(400).json({ success: false, message: 'A similar job request has already been sent to this contractor within the last 72 hours' });
+            return res.status(400).json({ success: false, message: 'A similar job request has already been sent to this contractor within the last 24 hours' });
         }
 
         const dateTimeString = `${new Date(date).toISOString().split('T')[0]}T${time}`; // Combine date and time
@@ -139,7 +139,7 @@ export const createJobRequest = async (
             user: contractor.id,
             userType: 'contractors',
             title: 'New Job Request',
-            type: 'NEW_JOB_REQUEST',
+            type: 'NEW_JOB_REQUEST', // Notification, Inbox ?
             message: `You've received a job request from ${customer.firstName}`,
             heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
             payload: {
@@ -147,8 +147,9 @@ export const createJobRequest = async (
                 entityType: 'jobs',
                 message: `You've received a job request from ${customer.firstName}`,
                 contractor: contractor.id,
+                category: 'Notification_Inbox', // Notification, Inbox, Notification_Inbox
             }
-        }, { database: true, push: true })
+        }, { database: true, push: true, socket: true })
 
 
         NotificationService.sendNotification({
@@ -166,8 +167,9 @@ export const createJobRequest = async (
                 //@ts-ignore
                 message: `You've sent a job request to ${contractor.name}`,
                 customer: customer.id,
+                category: 'Notification_Inbox', // Notification, Inbox, Notification_Inbox
             }
-        }, { database: true, push: true })
+        }, { database: true, push: true, socket:true})
 
 
         const html = htmlJobRequestTemplate(customer.firstName, customer.firstName, `${date} ${time}`, description)
@@ -207,9 +209,10 @@ export const createJobListing = async (
         }
 
 
-        // Check if the specified date is valid
-        if (!isFuture(new Date(date))) {
-            return res.status(400).json({ success: false, message: 'Invalid date formate or date is not in the future' });
+        // Get the end of the current day (11:59:59 PM)
+        const startOfToday = startOfDay(new Date());
+        if (!isValid(new Date(date)) || (!isFuture(new Date(date)) && new Date(date) < startOfToday)) {
+            return res.status(400).json({ success: false, message: 'Invalid date format or date is in the past' });
         }
 
         // Check if there is a similar job request sent to the same contractor within the last 72 hours

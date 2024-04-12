@@ -50,6 +50,7 @@ var SocketIOService = /** @class */ (function () {
     };
     SocketIOService.sendNotification = function (channels, type, payload) {
         var channelArray = typeof channels === 'string' ? [channels] : channels;
+        console.log('socket notification is fired', payload);
         for (var _i = 0, channelArray_1 = channelArray; _i < channelArray_1.length; _i++) {
             var channel = channelArray_1[_i];
             this.io.to(channel).emit(type, { payload: payload });
