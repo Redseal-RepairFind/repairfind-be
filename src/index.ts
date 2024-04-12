@@ -119,7 +119,7 @@ const io = new Server(server, {
 
 
 // Socket.IO event handlers
-//  SocketIOService.initialize(io)
+ SocketIOService.initialize(io)
 //  TwilioService.initialize()
 
 // Initialize server
