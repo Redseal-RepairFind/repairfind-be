@@ -119,8 +119,8 @@ const io = new Server(server, {
 
 
 // Socket.IO event handlers
- SocketIOService.initialize(io)
- TwilioService.initialize()
+//  SocketIOService.initialize(io)
+//  TwilioService.initialize()
 
 // Initialize server
 const port = process.env.PORT || 3000;
