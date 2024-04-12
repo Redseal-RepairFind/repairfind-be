@@ -13,7 +13,6 @@ var SocketIOService = /** @class */ (function () {
         this.initializeSocketEvents();
     };
     SocketIOService.initializeSocketEvents = function () {
-        var _this = this;
         this.io.use(function (socket, next) {
             var token = socket.handshake.headers.token;
             if (!token) {
@@ -44,7 +43,6 @@ var SocketIOService = /** @class */ (function () {
             socket.on("joinChannel", function (channel) {
                 console.log("user joined a channel here ".concat(channel));
                 socket.join(channel); // Join a room based on user email to enable private notifications
-                _this.sendNotification(channel, 'Notification', { channel: channel });
             });
         });
     };
