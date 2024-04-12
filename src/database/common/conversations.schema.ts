@@ -8,7 +8,10 @@ export enum ConversationEntityType {
 
 export interface IConversation extends Document {
     _id: ObjectId;
-    members: string[]
+    members: [{
+        member: ObjectId,
+        memberType: string
+    }]
     challenge: Object|string;
     lastMessageAt: Date;
     lastMessage: string;

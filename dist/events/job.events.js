@@ -35,20 +35,116 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.JobEvent = void 0;
 var events_1 = require("events");
+var services_1 = require("../services");
+var customer_model_1 = __importDefault(require("../database/customer/models/customer.model"));
+var contractor_model_1 = require("../database/contractor/models/contractor.model");
+var job_model_1 = require("../database/common/job.model");
+var conversations_schema_1 = require("../database/common/conversations.schema");
 exports.JobEvent = new events_1.EventEmitter();
-exports.JobEvent.on('TestEvent', function (params) {
+exports.JobEvent.on('NEW_JOB_REQUEST', function (payload) {
+    var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function () {
-        return __generator(this, function (_a) {
-            try {
-                console.log("Notifications sent to participants of challenge");
+        var customer, contractor, job, conversation, error_1;
+        return __generator(this, function (_e) {
+            switch (_e.label) {
+                case 0:
+                    _e.trys.push([0, 5, , 6]);
+                    console.log('handling NEW_JOB_REQUEST event');
+                    return [4 /*yield*/, customer_model_1.default.findById(payload.customerId)];
+                case 1:
+                    customer = _e.sent();
+                    return [4 /*yield*/, contractor_model_1.ContractorModel.findById(payload.contractorId)];
+                case 2:
+                    contractor = _e.sent();
+                    return [4 /*yield*/, job_model_1.JobModel.findById(payload.jobId)];
+                case 3:
+                    job = _e.sent();
+                    return [4 /*yield*/, conversations_schema_1.ConversationModel.findById(payload.conversationId)];
+                case 4:
+                    conversation = _e.sent();
+                    if (job && contractor && customer) {
+                        services_1.NotificationService.sendNotification({
+                            user: contractor.id,
+                            userType: 'contractors',
+                            title: 'New Job Request',
+                            type: 'Conversation',
+                            message: "You've received a job request from ".concat(customer.firstName),
+                            heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_a = customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
+                            payload: {
+                                entity: job.id,
+                                entityType: 'jobs',
+                                message: "You've received a job request from ".concat(customer.firstName),
+                                contractor: contractor.id,
+                                event: 'NEW_JOB_REQUEST',
+                                conversation: conversation === null || conversation === void 0 ? void 0 : conversation.id
+                            }
+                        }, { socket: true });
+                        services_1.NotificationService.sendNotification({
+                            user: contractor.id,
+                            userType: 'contractors',
+                            title: 'New Job Request',
+                            type: 'Notification', //
+                            message: "You've received a job request from ".concat(customer.firstName),
+                            heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_b = customer.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
+                            payload: {
+                                entity: job.id,
+                                entityType: 'jobs',
+                                message: "You've received a job request from ".concat(customer.firstName),
+                                contractor: contractor.id,
+                                event: 'NEW_JOB_REQUEST',
+                            }
+                        }, { database: true, push: true, socket: true });
+                        services_1.NotificationService.sendNotification({
+                            user: customer.id,
+                            userType: 'customers',
+                            title: 'New Job Request',
+                            type: 'Conversation', // Conversation, Conversation_Notification
+                            //@ts-ignore
+                            message: "You've  sent a job request to ".concat(contractor.name),
+                            //@ts-ignore
+                            heading: { name: "".concat(contractor.name), image: (_c = contractor.profilePhoto) === null || _c === void 0 ? void 0 : _c.url },
+                            payload: {
+                                entity: job.id,
+                                entityType: 'jobs',
+                                //@ts-ignore
+                                message: "You've sent a job request to ".concat(contractor.name),
+                                customer: customer.id,
+                                event: 'NEW_JOB_REQUEST',
+                                conversation: conversation === null || conversation === void 0 ? void 0 : conversation.id
+                            }
+                        }, { socket: true });
+                        services_1.NotificationService.sendNotification({
+                            user: customer.id,
+                            userType: 'customers',
+                            title: 'New Job Request',
+                            type: 'Notification', // Conversation, Conversation_Notification
+                            //@ts-ignore
+                            message: "You've  sent a job request to ".concat(contractor.name),
+                            //@ts-ignore
+                            heading: { name: "".concat(contractor.name), image: (_d = contractor.profilePhoto) === null || _d === void 0 ? void 0 : _d.url },
+                            payload: {
+                                entity: job.id,
+                                entityType: 'jobs',
+                                //@ts-ignore
+                                message: "You've sent a job request to ".concat(contractor.name),
+                                customer: customer.id,
+                                event: 'NEW_JOB_REQUEST',
+                            }
+                        }, { database: true, push: true, socket: true });
+                    }
+                    return [3 /*break*/, 6];
+                case 5:
+                    error_1 = _e.sent();
+                    console.error("Error handling NEW_JOB_REQUEST event: ".concat(error_1));
+                    return [3 /*break*/, 6];
+                case 6: return [2 /*return*/];
             }
-            catch (error) {
-                console.error("Error handling TestEvent event: ".concat(error));
-            }
-            return [2 /*return*/];
         });
     });
 });

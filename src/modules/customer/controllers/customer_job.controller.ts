@@ -31,6 +31,7 @@ import TransactionModel from "../../../database/common/transaction.model";
 import { StripeService } from "../../../services/stripe";
 import Stripe from 'stripe';
 import { QueueService } from "../../../services/bullmq";
+import { JobEvent, eventEmitter } from "../../../events";
 
 
 
@@ -121,7 +122,6 @@ export const createJobRequest = async (
             lastMessageAt: new Date() // Set the last message timestamp to now
         });
 
-
         // Create a message in the conversation
         const newMessage: IMessage = await MessageModel.create({
             conversation: newConversation._id,
@@ -133,49 +133,10 @@ export const createJobRequest = async (
 
 
 
-        //  IT WILL BE WISE TO MOVE ALL THIS TO EVENT LISTENER TO KEEP THE CONTROLLER LEAN
-        //   contractor notification
-        NotificationService.sendNotification({
-            user: contractor.id,
-            userType: 'contractors',
-            title: 'New Job Request',
-            type: 'Conversation_Notification', // Conversation, Conversation_Notification
-            message: `You've received a job request from ${customer.firstName}`,
-            heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
-            payload: {
-                entity: newJob.id,
-                entityType: 'jobs',
-                message: `You've received a job request from ${customer.firstName}`,
-                contractor: contractor.id,
-                event: 'NEW_JOB_REQUEST',
-            }
-        }, { database: true, push: true, socket: true })
-
-
-        NotificationService.sendNotification({
-            user: customer.id,
-            userType: 'customers',
-            title: 'New Job Request',
-            type: 'Conversation_Notification', // Conversation, Conversation_Notification
-            //@ts-ignore
-            message: `You've  sent a job request to ${contractor.name}`,
-            //@ts-ignore
-            heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
-            payload: {
-                entity: newJob.id,
-                entityType: 'jobs',
-                //@ts-ignore
-                message: `You've sent a job request to ${contractor.name}`,
-                customer: customer.id,
-                event: 'NEW_JOB_REQUEST',
-            }
-        }, { database: true, push: true, socket:true})
-
+        JobEvent.emit('NEW_JOB_REQUEST', {jobId: newJob.id, contractorId, customerId, conversationId: newConversation.id})
 
         const html = htmlJobRequestTemplate(customer.firstName, customer.firstName, `${date} ${time}`, description)
         EmailService.send(contractor.email, 'Job request from customer', html)
-
-
 
 
         res.status(201).json({ success: true, message: 'Job request submitted successfully', data: newJob });

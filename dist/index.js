@@ -59,6 +59,7 @@ var bullmq_1 = require("./services/bullmq");
 var worker_1 = require("./services/bullmq/worker");
 var socket_io_1 = require("socket.io");
 var socketio_1 = __importDefault(require("./services/socket/socketio"));
+var twillio_1 = __importDefault(require("./services/twillio"));
 dotenv_1.default.config();
 // console.debug = Logger.debug.bind(Logger);
 // console.log = Logger.info.bind(Logger);
@@ -139,6 +140,7 @@ var io = new socket_io_1.Server(server, {
 });
 // Socket.IO event handlers
 socketio_1.default.initialize(io);
+twillio_1.default.initialize();
 // Initialize server
 var port = process.env.PORT || 3000;
 server.listen(port, function () {

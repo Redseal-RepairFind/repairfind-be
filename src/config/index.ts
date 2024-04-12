@@ -61,9 +61,10 @@ export const config = {
 
     twilio: {
         accountSid: <string>process.env.TWILIO_ACCOUNT_SID,
-        authToken: <string>process.env.AUTH_TOKEN,
+        authToken: <string>process.env.TWILIO_AUTH_TOKEN,
         twilioPhoneNumber: <string>process.env.TWILIO_PHONE_NUMBER
     },
+
 
     port: process.env.PORT as unknown as number,
     environment: <string>process.env.APN_ENV,

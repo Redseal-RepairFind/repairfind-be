@@ -35,20 +35,83 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ConversationEvent = void 0;
 var events_1 = require("events");
+var conversations_schema_1 = require("../database/common/conversations.schema");
+var notifications_1 = require("../services/notifications");
+var contractor_model_1 = require("../database/contractor/models/contractor.model");
+var customer_model_1 = __importDefault(require("../database/customer/models/customer.model"));
 exports.ConversationEvent = new events_1.EventEmitter();
-exports.ConversationEvent.on('TestEvent', function (params) {
+exports.ConversationEvent.on('NEW_MESSAGE', function (params) {
     return __awaiter(this, void 0, void 0, function () {
+        var message_1, conversation_1, members, error_1;
+        var _this = this;
         return __generator(this, function (_a) {
-            try {
-                console.log("Notifications sent to participants of challenge");
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 2, , 3]);
+                    console.log("Notifications sent to participants of challenge");
+                    message_1 = params.message;
+                    return [4 /*yield*/, conversations_schema_1.ConversationModel.findById(message_1.conversation)];
+                case 1:
+                    conversation_1 = _a.sent();
+                    members = conversation_1 === null || conversation_1 === void 0 ? void 0 : conversation_1.members;
+                    console.log(members);
+                    if (!conversation_1 || !members)
+                        return [2 /*return*/];
+                    members.forEach(function (member) { return __awaiter(_this, void 0, void 0, function () {
+                        var user, _a, _b;
+                        var _c;
+                        return __generator(this, function (_d) {
+                            switch (_d.label) {
+                                case 0:
+                                    if (!(member.memberType === 'contractors')) return [3 /*break*/, 2];
+                                    return [4 /*yield*/, contractor_model_1.ContractorModel.findById(member.member)];
+                                case 1:
+                                    _a = _d.sent();
+                                    return [3 /*break*/, 4];
+                                case 2: return [4 /*yield*/, customer_model_1.default.findById(member.member)];
+                                case 3:
+                                    _a = _d.sent();
+                                    _d.label = 4;
+                                case 4:
+                                    user = _a;
+                                    if (!user)
+                                        return [2 /*return*/];
+                                    _b = message_1;
+                                    return [4 /*yield*/, message_1.getIsOwn(message_1.sender)];
+                                case 5:
+                                    _b.isOwn = _d.sent();
+                                    notifications_1.NotificationService.sendNotification({
+                                        user: user.id.toString(),
+                                        userType: member.memberType,
+                                        title: 'New Job Request',
+                                        type: 'Conversation', // Conversation, Conversation_Notification
+                                        message: "You have a new message",
+                                        //@ts-ignore
+                                        heading: { name: "".concat(user.name), image: (_c = user.profilePhoto) === null || _c === void 0 ? void 0 : _c.url },
+                                        payload: {
+                                            entity: conversation_1.id,
+                                            entityType: 'conversations',
+                                            message: message_1,
+                                            event: 'NEW_MESSAGE',
+                                        }
+                                    }, { socket: true });
+                                    return [2 /*return*/];
+                            }
+                        });
+                    }); });
+                    return [3 /*break*/, 3];
+                case 2:
+                    error_1 = _a.sent();
+                    console.error("Error handling TestEvent event: ".concat(error_1));
+                    return [3 /*break*/, 3];
+                case 3: return [2 /*return*/];
             }
-            catch (error) {
-                console.error("Error handling TestEvent event: ".concat(error));
-            }
-            return [2 /*return*/];
         });
     });
 });

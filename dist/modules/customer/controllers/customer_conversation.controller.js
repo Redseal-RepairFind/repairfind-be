@@ -40,6 +40,7 @@ exports.CustomerConversationController = exports.sendMessage = exports.getConver
 var api_feature_1 = require("../../../utils/api.feature");
 var conversations_schema_1 = require("../../../database/common/conversations.schema");
 var messages_schema_1 = require("../../../database/common/messages.schema");
+var events_1 = require("../../../events");
 var getConversations = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, startDate, endDate, read, unread, customerId_1, filter, _b, data, error, error_1;
     return __generator(this, function (_c) {
@@ -209,6 +210,7 @@ var sendMessage = function (req, res) { return __awaiter(void 0, void 0, void 0,
                     })];
             case 2:
                 newMessage = _b.sent();
+                events_1.ConversationEvent.emit('NEW_MESSAGE', { message: newMessage });
                 res.status(201).json({ success: true, message: 'Message sent successfully', data: newMessage });
                 return [3 /*break*/, 4];
             case 3:

@@ -21,6 +21,7 @@ import WebSocket from 'ws';
 import WebSocketService from "./services/socket/websocket";
 import { Server } from "socket.io";
 import SocketIOService from "./services/socket/socketio";
+import TwilioService from "./services/twillio";
 
 
 dotenv.config();
@@ -119,6 +120,7 @@ const io = new Server(server, {
 
 // Socket.IO event handlers
  SocketIOService.initialize(io)
+ TwilioService.initialize()
 
 // Initialize server
 const port = process.env.PORT || 3000;

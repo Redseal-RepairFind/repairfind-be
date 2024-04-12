@@ -56,13 +56,13 @@ var job_quotation_model_1 = require("../../../database/common/job_quotation.mode
 var transaction_model_1 = __importDefault(require("../../../database/common/transaction.model"));
 var stripe_1 = require("../../../services/stripe");
 var bullmq_1 = require("../../../services/bullmq");
+var events_1 = require("../../../events");
 var createJobRequest = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, contractorId, category, description, location_1, date, expiresIn, emergency, media, voiceDescription, time, customerId, customer, contractor, startOfToday, existingJobRequest, dateTimeString, jobTime, newJob, conversationMembers, newConversation, newMessage, html, error_1;
-    var _b, _c;
-    return __generator(this, function (_d) {
-        switch (_d.label) {
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
-                _d.trys.push([0, 7, , 8]);
+                _b.trys.push([0, 7, , 8]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ message: 'validatior error occured', errors: errors.array() })];
@@ -71,13 +71,13 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 customerId = req.customer.id;
                 return [4 /*yield*/, customer_model_1.default.findById(customerId)];
             case 1:
-                customer = _d.sent();
+                customer = _b.sent();
                 if (!customer) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "Customer not found" })];
                 }
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId).populate('profile')];
             case 2:
-                contractor = _d.sent();
+                contractor = _b.sent();
                 if (!contractor) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "Contractor not found" })];
                 }
@@ -93,7 +93,7 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                         createdAt: { $gte: (0, date_fns_1.addHours)(new Date(), -24) }, // Check for job requests within the last 72 hours
                     })];
             case 3:
-                existingJobRequest = _d.sent();
+                existingJobRequest = _b.sent();
                 if (existingJobRequest) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'A similar job request has already been sent to this contractor within the last 24 hours' })];
                 }
@@ -120,7 +120,7 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 return [4 /*yield*/, newJob.save()];
             case 4:
                 // Save the job document to the database
-                _d.sent();
+                _b.sent();
                 conversationMembers = [
                     { memberType: 'customers', member: customerId },
                     { memberType: 'contractors', member: contractorId }
@@ -133,7 +133,7 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                         lastMessageAt: new Date() // Set the last message timestamp to now
                     })];
             case 5:
-                newConversation = _d.sent();
+                newConversation = _b.sent();
                 return [4 /*yield*/, messages_schema_1.MessageModel.create({
                         conversation: newConversation._id,
                         sender: customerId, // Assuming the customer sends the initial message
@@ -142,48 +142,14 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                         createdAt: new Date()
                     })];
             case 6:
-                newMessage = _d.sent();
-                //  IT WILL BE WISE TO MOVE ALL THIS TO EVENT LISTENER TO KEEP THE CONTROLLER LEAN
-                //   contractor notification
-                services_1.NotificationService.sendNotification({
-                    user: contractor.id,
-                    userType: 'contractors',
-                    title: 'New Job Request',
-                    type: 'Conversation_Notification', // Conversation, Conversation_Notification
-                    message: "You've received a job request from ".concat(customer.firstName),
-                    heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_b = customer.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
-                    payload: {
-                        entity: newJob.id,
-                        entityType: 'jobs',
-                        message: "You've received a job request from ".concat(customer.firstName),
-                        contractor: contractor.id,
-                        event: 'NEW_JOB_REQUEST',
-                    }
-                }, { database: true, push: true, socket: true });
-                services_1.NotificationService.sendNotification({
-                    user: customer.id,
-                    userType: 'customers',
-                    title: 'New Job Request',
-                    type: 'Conversation_Notification', // Conversation, Conversation_Notification
-                    //@ts-ignore
-                    message: "You've  sent a job request to ".concat(contractor.name),
-                    //@ts-ignore
-                    heading: { name: "".concat(contractor.name), image: (_c = contractor.profilePhoto) === null || _c === void 0 ? void 0 : _c.url },
-                    payload: {
-                        entity: newJob.id,
-                        entityType: 'jobs',
-                        //@ts-ignore
-                        message: "You've sent a job request to ".concat(contractor.name),
-                        customer: customer.id,
-                        event: 'NEW_JOB_REQUEST',
-                    }
-                }, { database: true, push: true, socket: true });
+                newMessage = _b.sent();
+                events_1.JobEvent.emit('NEW_JOB_REQUEST', { jobId: newJob.id, contractorId: contractorId, customerId: customerId, conversationId: newConversation.id });
                 html = (0, jobRequestTemplate_1.htmlJobRequestTemplate)(customer.firstName, customer.firstName, "".concat(date, " ").concat(time), description);
                 services_1.EmailService.send(contractor.email, 'Job request from customer', html);
                 res.status(201).json({ success: true, message: 'Job request submitted successfully', data: newJob });
                 return [3 /*break*/, 8];
             case 7:
-                error_1 = _d.sent();
+                error_1 = _b.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('Bad Request', error_1))];
             case 8: return [2 /*return*/];
         }
