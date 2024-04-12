@@ -60,7 +60,7 @@ exports.ConversationEvent.on('NEW_MESSAGE', function (params) {
                 case 1:
                     conversation_1 = _a.sent();
                     members = conversation_1 === null || conversation_1 === void 0 ? void 0 : conversation_1.members;
-                    console.log(members);
+                    // console.log(members)
                     if (!conversation_1 || !members)
                         return [2 /*return*/];
                     members.forEach(function (member) { return __awaiter(_this, void 0, void 0, function () {
@@ -83,9 +83,10 @@ exports.ConversationEvent.on('NEW_MESSAGE', function (params) {
                                     if (!user)
                                         return [2 /*return*/];
                                     _b = message_1;
-                                    return [4 /*yield*/, message_1.getIsOwn(message_1.sender)];
+                                    return [4 /*yield*/, message_1.getIsOwn(user.id)];
                                 case 5:
                                     _b.isOwn = _d.sent();
+                                    console.log("message owner troubleshooting ".concat({ user: user.id, sender: message_1.sender, message: message_1 }));
                                     notifications_1.NotificationService.sendNotification({
                                         user: user.id.toString(),
                                         userType: member.memberType,

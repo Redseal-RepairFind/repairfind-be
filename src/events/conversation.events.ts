@@ -13,14 +13,17 @@ ConversationEvent.on('NEW_MESSAGE', async function (params) {
         const message = params.message
         const conversation = await ConversationModel.findById(message.conversation)
         const members = conversation?.members;
-        console.log(members)
+        // console.log(members)
         if (!conversation || !members) return
+
         members.forEach(async member => {
 
             const user = member.memberType === 'contractors' ? await ContractorModel.findById(member.member) : await CustomerModel.findById(member.member)
             if (!user) return
 
-            message.isOwn = await message.getIsOwn(message.sender)
+            message.isOwn = await message.getIsOwn(user.id)
+            console.log(`message owner troubleshooting ${{user: user.id, sender: message.sender, message}}`)
+
             NotificationService.sendNotification({
                 user: user.id.toString(),
                 userType: member.memberType,
