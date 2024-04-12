@@ -22,7 +22,7 @@ ConversationEvent.on('NEW_MESSAGE', async function (params) {
             if (!user) return
 
             message.isOwn = await message.getIsOwn(user.id)
-            console.log(`message owner troubleshooting ${{user: user.id, sender: message.sender, message}}`)
+            console.log('message owner troubleshooting', user.id,message.sender, message)
 
             NotificationService.sendNotification({
                 user: user.id.toString(),

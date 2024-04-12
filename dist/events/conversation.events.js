@@ -86,7 +86,7 @@ exports.ConversationEvent.on('NEW_MESSAGE', function (params) {
                                     return [4 /*yield*/, message_1.getIsOwn(user.id)];
                                 case 5:
                                     _b.isOwn = _d.sent();
-                                    console.log("message owner troubleshooting ".concat({ user: user.id, sender: message_1.sender, message: message_1 }));
+                                    console.log('message owner troubleshooting', user.id, message_1.sender, message_1);
                                     notifications_1.NotificationService.sendNotification({
                                         user: user.id.toString(),
                                         userType: member.memberType,
