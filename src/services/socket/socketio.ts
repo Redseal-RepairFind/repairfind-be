@@ -47,9 +47,9 @@ class SocketIOService {
             // Handle notification events from client here
             socket.on("joinChannel", (channel: string) => {
                 console.log(`user joined a channel here ${channel}`)
-                if (socket.user && socket.user.email) {
-                    socket.join(channel); // Join a room based on user email to enable private notifications
-                }
+                socket.join(channel); // Join a room based on user email to enable private notifications
+
+                this.sendNotification(channel, 'Notification', {channel})
             });
         });
     }

@@ -1,4 +1,4 @@
-import { Worker } from 'bullmq';
+import { RedisOptions, Worker } from 'bullmq';
 import { config } from '../../config';
 import Redis from 'ioredis';
 import { captureStripePayments } from './jobs/capture_stripe_payments';
@@ -6,10 +6,24 @@ import { captureStripePayments } from './jobs/capture_stripe_payments';
 const redisConfig = {
     port: Number(config.redis.port),
     host: config.redis.host,
+    password: config.redis.password,
+    username: config.redis.username,
     maxRetriesPerRequest: null,
-};
+    // uri: config.redis.uri,
+  } as RedisOptions ;
 
-const redisConnection = new Redis(redisConfig);
+  // console.log(config)
+  // @ts-ignore
+  if( !(config.environment == 'development') ) {
+    console.log('not developement')
+    redisConfig.tls = {
+  }};
+
+  // const redisConnection = createClient(redisConfig); // Create Redis client
+  // this.repairFindQueue = new Queue('RepairFindQueue', { connection: redisConfig });
+
+
+  const redisConnection = new Redis(redisConfig);
 
 export const RepairFindQueueWorker = new Worker('RepairFindQueue', async job => {
     // Job processing logic here

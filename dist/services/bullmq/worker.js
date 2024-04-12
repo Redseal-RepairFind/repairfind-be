@@ -47,8 +47,20 @@ var capture_stripe_payments_1 = require("./jobs/capture_stripe_payments");
 var redisConfig = {
     port: Number(config_1.config.redis.port),
     host: config_1.config.redis.host,
+    password: config_1.config.redis.password,
+    username: config_1.config.redis.username,
     maxRetriesPerRequest: null,
+    // uri: config.redis.uri,
 };
+// console.log(config)
+// @ts-ignore
+if (!(config_1.config.environment == 'development')) {
+    console.log('not developement');
+    redisConfig.tls = {};
+}
+;
+// const redisConnection = createClient(redisConfig); // Create Redis client
+// this.repairFindQueue = new Queue('RepairFindQueue', { connection: redisConfig });
 var redisConnection = new ioredis_1.default(redisConfig);
 exports.RepairFindQueueWorker = new bullmq_1.Worker('RepairFindQueue', function (job) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {

@@ -18,6 +18,7 @@ var JobQueue = /** @class */ (function () {
             host: config_1.config.redis.host,
             password: config_1.config.redis.password,
             username: config_1.config.redis.username,
+            maxRetriesPerRequest: null,
             // uri: config.redis.uri,
         };
         // console.log(config)

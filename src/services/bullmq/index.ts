@@ -17,6 +17,7 @@ class JobQueue {
       host: config.redis.host,
       password: config.redis.password,
       username: config.redis.username,
+      maxRetriesPerRequest: null,
       // uri: config.redis.uri,
     } as RedisOptions ;
 
