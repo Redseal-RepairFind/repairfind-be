@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { applyAPIFeature } from "../../../utils/api.feature";
 import { ConversationModel } from "../../../database/common/conversations.schema";
 import { MessageModel, MessageType } from "../../../database/common/messages.schema";
+import { ConversationEvent } from "../../../events";
 
 export const getConversations = async (req: any, res: Response) => {
     try {
@@ -130,6 +131,9 @@ export const sendMessage = async (req: any, res: Response) => {
             createdAt: new Date()
         });
 
+        ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
+
+        
         res.status(201).json({ success: true, message: 'Message sent successfully', data: newMessage });
     } catch (error) {
         console.error('Error sending message:', error);
