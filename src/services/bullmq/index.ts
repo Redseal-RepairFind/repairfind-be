@@ -68,7 +68,7 @@ class JobQueue {
       // offset: new Date().getTimezoneOffset(), 
       // tz: 'Europe/Berlin',
       // limit: 1,
-      every: 100000, // 5000 mili = 5 seconds
+      every: 600000, // 600000 mili = 10 minutes
 		},
 	})
 
