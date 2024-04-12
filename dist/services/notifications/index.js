@@ -92,7 +92,6 @@ var NotificationService = /** @class */ (function () {
                         if ('firebase' in options) {
                         }
                         if ('socket' in options) {
-                            console.log('socket notification is fired', params);
                             socket_1.SocketService.sendNotification(user.email, params.type, {
                                 type: params.type,
                                 message: params.message,

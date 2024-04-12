@@ -60,7 +60,6 @@ exports.ConversationEvent.on('NEW_MESSAGE', function (params) {
                 case 1:
                     conversation_1 = _a.sent();
                     members = conversation_1 === null || conversation_1 === void 0 ? void 0 : conversation_1.members;
-                    // console.log(members)
                     if (!conversation_1 || !members)
                         return [2 /*return*/];
                     members.forEach(function (member) { return __awaiter(_this, void 0, void 0, function () {
@@ -86,12 +85,11 @@ exports.ConversationEvent.on('NEW_MESSAGE', function (params) {
                                     return [4 /*yield*/, message_1.getIsOwn(user.id)];
                                 case 5:
                                     _b.isOwn = _d.sent();
-                                    console.log('message owner troubleshooting', user.id, message_1.sender, message_1);
                                     notifications_1.NotificationService.sendNotification({
                                         user: user.id.toString(),
                                         userType: member.memberType,
                                         title: 'New Job Request',
-                                        type: 'Conversation', // Conversation, Conversation_Notification
+                                        type: 'Conversation',
                                         message: "You have a new message",
                                         //@ts-ignore
                                         heading: { name: "".concat(user.name), image: (_c = user.profilePhoto) === null || _c === void 0 ? void 0 : _c.url },
@@ -102,6 +100,7 @@ exports.ConversationEvent.on('NEW_MESSAGE', function (params) {
                                             event: 'NEW_MESSAGE',
                                         }
                                     }, { socket: true });
+                                    message_1.isOwn = false;
                                     return [2 /*return*/];
                             }
                         });

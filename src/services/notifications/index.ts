@@ -60,8 +60,6 @@ export class NotificationService  {
         }
 
         if ('socket' in options) {
-
-            console.log('socket notification is fired', params)
             SocketService.sendNotification(user.email, params.type, {
                 type: params.type, 
                 message: params.message, 
@@ -78,7 +76,6 @@ export class NotificationService  {
                     payload: params.payload
                 },
             })
-
 
         }
        

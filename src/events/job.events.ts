@@ -51,9 +51,6 @@ JobEvent.on('NEW_JOB_REQUEST', async function (payload) {
                 }
             }, { database: true, push: true, socket: true })
 
-
-
-
             NotificationService.sendNotification({
                 user: customer.id,
                 userType: 'customers',
