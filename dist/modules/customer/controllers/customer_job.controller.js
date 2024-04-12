@@ -149,7 +149,7 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                     user: contractor.id,
                     userType: 'contractors',
                     title: 'New Job Request',
-                    type: 'NEW_JOB_REQUEST', // Notification, Inbox ?
+                    type: 'Conversation_Notification', // Conversation, Conversation_Notification
                     message: "You've received a job request from ".concat(customer.firstName),
                     heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_b = customer.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
                     payload: {
@@ -157,14 +157,14 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                         entityType: 'jobs',
                         message: "You've received a job request from ".concat(customer.firstName),
                         contractor: contractor.id,
-                        category: 'Notification_Inbox', // Notification, Inbox, Notification_Inbox
+                        event: 'NEW_JOB_REQUEST',
                     }
                 }, { database: true, push: true, socket: true });
                 services_1.NotificationService.sendNotification({
                     user: customer.id,
                     userType: 'customers',
                     title: 'New Job Request',
-                    type: 'NEW_JOB_REQUEST',
+                    type: 'Conversation_Notification', // Conversation, Conversation_Notification
                     //@ts-ignore
                     message: "You've  sent a job request to ".concat(contractor.name),
                     //@ts-ignore
@@ -175,7 +175,7 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                         //@ts-ignore
                         message: "You've sent a job request to ".concat(contractor.name),
                         customer: customer.id,
-                        category: 'Notification_Inbox', // Notification, Inbox, Notification_Inbox
+                        event: 'NEW_JOB_REQUEST',
                     }
                 }, { database: true, push: true, socket: true });
                 html = (0, jobRequestTemplate_1.htmlJobRequestTemplate)(customer.firstName, customer.firstName, "".concat(date, " ").concat(time), description);

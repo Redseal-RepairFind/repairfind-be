@@ -139,7 +139,7 @@ export const createJobRequest = async (
             user: contractor.id,
             userType: 'contractors',
             title: 'New Job Request',
-            type: 'NEW_JOB_REQUEST', // Notification, Inbox ?
+            type: 'Conversation_Notification', // Conversation, Conversation_Notification
             message: `You've received a job request from ${customer.firstName}`,
             heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
             payload: {
@@ -147,7 +147,7 @@ export const createJobRequest = async (
                 entityType: 'jobs',
                 message: `You've received a job request from ${customer.firstName}`,
                 contractor: contractor.id,
-                category: 'Notification_Inbox', // Notification, Inbox, Notification_Inbox
+                event: 'NEW_JOB_REQUEST',
             }
         }, { database: true, push: true, socket: true })
 
@@ -156,7 +156,7 @@ export const createJobRequest = async (
             user: customer.id,
             userType: 'customers',
             title: 'New Job Request',
-            type: 'NEW_JOB_REQUEST',
+            type: 'Conversation_Notification', // Conversation, Conversation_Notification
             //@ts-ignore
             message: `You've  sent a job request to ${contractor.name}`,
             //@ts-ignore
@@ -167,7 +167,7 @@ export const createJobRequest = async (
                 //@ts-ignore
                 message: `You've sent a job request to ${contractor.name}`,
                 customer: customer.id,
-                category: 'Notification_Inbox', // Notification, Inbox, Notification_Inbox
+                event: 'NEW_JOB_REQUEST',
             }
         }, { database: true, push: true, socket:true})
 

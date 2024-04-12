@@ -1,5 +1,5 @@
 // queue.ts
-import { Queue, RedisOptions, Worker,  } from 'bullmq';
+import { Queue, RedisOptions, Worker, } from 'bullmq';
 
 import Redis from 'ioredis';
 import { config } from '../../config';
@@ -19,14 +19,15 @@ class JobQueue {
       username: config.redis.username,
       maxRetriesPerRequest: null,
       // uri: config.redis.uri,
-    } as RedisOptions ;
+    } as RedisOptions;
 
     // console.log(config)
     // @ts-ignore
-    if( !(config.environment == 'development') ) {
+    if (!(config.environment == 'development')) {
       console.log('not developement')
       redisConfig.tls = {
-    }};
+      }
+    };
 
     // const redisConnection = createClient(redisConfig); // Create Redis client
     // this.repairFindQueue = new Queue('RepairFindQueue', { connection: redisConfig });
@@ -36,7 +37,8 @@ class JobQueue {
     this.repairFindQueue = new Queue('RepairFindQueue', { connection: redisConnection });
 
 
-    this.repairFindQueue.obliterate()
+    // TODO: Make the obliterate to used via a cli command
+    // this.repairFindQueue.obliterate()
 
     this.serverAdapter = new ExpressAdapter();
     this.serverAdapter.setBasePath('/queues');
@@ -45,7 +47,7 @@ class JobQueue {
       queues: [new BullAdapter(this.repairFindQueue)],
       serverAdapter: this.serverAdapter,
     });
-	
+
   }
 
   public addJob(jobName: string, jobPayload: any, options: any) {
@@ -67,22 +69,33 @@ class JobQueue {
 
   public attach(app: any) {
 
-	// add cron jobs here
-	QueueService.addJob('CapturePayments', {}, { 
-		repeat: {
-			// pattern: '* * * * *',
-      // cron: '*/5 * * * * *', // Every 5 seconds
-      // offset: new Date().getTimezoneOffset(), 
-      // tz: 'Europe/Berlin',
-      // limit: 1,
-      every: 600000, // 600000 mili = 10 minutes
-		},
-	})
-
+    // add cron jobs here
+    QueueService.addJob('CapturePayments', {}, {
+      repeat: {
+        // pattern: '* * * * *',
+        // cron: '*/5 * * * * *', // Every 5 seconds
+        // offset: new Date().getTimezoneOffset(), 
+        // tz: 'Europe/Berlin',
+        // limit: 1,
+        every: 600000, // 600000 mili = 10 minutes
+      },
+    })
 
     app.use('/queues', this.serverAdapter.getRouter());
   }
+
+  public getQueue(queueName: string): Queue | undefined {
+    if (queueName === 'RepairFindQueue') {
+      return this.repairFindQueue;
+    }
+    // Add more logic for other queues if needed
+    return undefined;
+  }
+
+
 }
+
+
 
 
 

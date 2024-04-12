@@ -32,7 +32,8 @@ var JobQueue = /** @class */ (function () {
         // this.repairFindQueue = new Queue('RepairFindQueue', { connection: redisConfig });
         var redisConnection = new ioredis_1.default(redisConfig);
         this.repairFindQueue = new bullmq_1.Queue('RepairFindQueue', { connection: redisConnection });
-        this.repairFindQueue.obliterate();
+        // TODO: Make the obliterate to used via a cli command
+        // this.repairFindQueue.obliterate()
         this.serverAdapter = new express_1.ExpressAdapter();
         this.serverAdapter.setBasePath('/queues');
         (0, api_1.createBullBoard)({
@@ -70,6 +71,13 @@ var JobQueue = /** @class */ (function () {
             },
         });
         app.use('/queues', this.serverAdapter.getRouter());
+    };
+    JobQueue.prototype.getQueue = function (queueName) {
+        if (queueName === 'RepairFindQueue') {
+            return this.repairFindQueue;
+        }
+        // Add more logic for other queues if needed
+        return undefined;
     };
     return JobQueue;
 }());
