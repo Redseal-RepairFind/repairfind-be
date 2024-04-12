@@ -3,9 +3,6 @@ import { applyAPIFeature } from "../../../utils/api.feature";
 import { ConversationModel } from "../../../database/common/conversations.schema";
 import { MessageModel, MessageType } from "../../../database/common/messages.schema";
 import { ConversationEvent } from "../../../events";
-import { NotificationService } from "../../../services/notifications";
-import { ContractorModel } from "../../../database/contractor/models/contractor.model";
-import CustomerModel from "../../../database/customer/models/customer.model";
 
 export const getConversations = async (req: any, res: Response) => {
     try {
@@ -135,36 +132,6 @@ export const sendMessage = async (req: any, res: Response) => {
         });
 
         ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
-
-        console.log(`Notifications sent to participants of challenge`);
-        // const message = params.message
-        // const conversation = await ConversationModel.findById(message.conversation)
-        const members = conversation?.members;
-        console.log(members)
-        if (!conversation || !members) return
-        members.forEach(async member => {
-
-            const user = member.memberType === 'contractors' ? await ContractorModel.findById(member.member) : await CustomerModel.findById(member.member)
-            if (!user) return
-
-            message.isOwn = await message.getIsOwn(message.sender)
-            NotificationService.sendNotification({
-                user: user.id.toString(),
-                userType: member.memberType,
-                title: 'New Job Request',
-                type: 'Conversation', // Conversation, Conversation_Notification
-                message: `You have a new message`,
-                //@ts-ignore
-                heading: { name: `${user.name}`, image: user.profilePhoto?.url },
-                payload: {
-                    entity: conversation.id,
-                    entityType: 'conversations',
-                    message: message,
-                    event: 'NEW_MESSAGE',
-                }
-            }, { socket: true })
-        })
-        
 
         
 
