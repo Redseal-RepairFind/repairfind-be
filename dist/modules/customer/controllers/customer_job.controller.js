@@ -340,7 +340,7 @@ var getSingleQuotation = function (req, res, next) { return __awaiter(void 0, vo
                 _c.trys.push([0, 3, , 4]);
                 customerId = req.customer.id;
                 _a = req.params, jobId = _a.jobId, quotationId = _a.quotationId;
-                return [4 /*yield*/, job_quotation_model_1.JobQoutationModel.findOne({ _id: quotationId, job: jobId })];
+                return [4 /*yield*/, job_quotation_model_1.JobQoutationModel.findOne({ _id: quotationId, job: jobId }).populate('contractor')];
             case 1:
                 quotation = _c.sent();
                 // Check if the job exists

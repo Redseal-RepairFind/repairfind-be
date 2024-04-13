@@ -321,7 +321,7 @@ export const getSingleQuotation = async (req: any, res: Response, next: NextFunc
         const customerId = req.customer.id;
         const { jobId, quotationId } = req.params;
 
-        const quotation = await JobQoutationModel.findOne({ _id: quotationId, job: jobId });
+        const quotation = await JobQoutationModel.findOne({ _id: quotationId, job: jobId }).populate('contractor');
 
         // Check if the job exists
         if (!quotation) {

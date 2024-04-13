@@ -90,7 +90,7 @@ ConversationSchema.methods.getHeading = async function(loggedInUserId: string) {
         if (otherMemberUser) {
             return {
                 name: otherMemberUser.name,
-                image: otherMemberUser.profilePhoto?.url ?? null,
+                image: otherMemberUser.profilePhoto?.url ?? otherMemberUser.profilePhoto,
             };
         }
     }
