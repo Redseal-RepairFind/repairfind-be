@@ -652,7 +652,7 @@ var updateJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
 }); };
 exports.updateJobQuotation = updateJobQuotation;
 var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, distance, latitude, longitude, emergency, category, city, country, address, startDate, endDate, _b, page, _c, limit, sort // Sort field and order (-fieldName or fieldName)
+    var errors, contractorId, _a, distance, latitude, longitude, emergency, category, city, country, address, startDate, endDate, _b, page, _c, limit, sort // Sort field and order (-fieldName or fieldName)
     , pipeline, _d, sortField, sortOrder, sortStage, skip, result, jobs, metadata, error_9;
     var _e;
     return __generator(this, function (_f) {
@@ -662,9 +662,10 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
+                contractorId = req.contractor.id;
                 _f.label = 1;
             case 1:
-                _f.trys.push([1, 3, , 4]);
+                _f.trys.push([1, 5, , 6]);
                 _a = req.query, distance = _a.distance, latitude = _a.latitude, longitude = _a.longitude, emergency = _a.emergency, category = _a.category, city = _a.city, country = _a.country, address = _a.address, startDate = _a.startDate, endDate = _a.endDate, _b = _a.page, page = _b === void 0 ? 1 : _b, _c = _a.limit, limit = _c === void 0 ? 10 : _c, sort = _a.sort;
                 limit = limit > 0 ? parseInt(limit) : 10; // Handle null limit
                 pipeline = [
@@ -749,14 +750,35 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
             case 2:
                 result = _f.sent();
                 jobs = result[0].data;
+                if (!jobs) return [3 /*break*/, 4];
+                // Map through each job and attach myQuotation if contractor has applied 
+                return [4 /*yield*/, Promise.all(jobs.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
+                        var _a;
+                        return __generator(this, function (_b) {
+                            switch (_b.label) {
+                                case 0:
+                                    job.id = job._id;
+                                    _a = job;
+                                    return [4 /*yield*/, job_quotation_model_1.JobQoutationModel.findOne({ contractor: contractorId, job: job._id })];
+                                case 1:
+                                    _a.myQuotation = _b.sent();
+                                    return [2 /*return*/];
+                            }
+                        });
+                    }); }))];
+            case 3:
+                // Map through each job and attach myQuotation if contractor has applied 
+                _f.sent();
+                _f.label = 4;
+            case 4:
                 metadata = result[0].metadata[0];
                 // Send response with job listings data
                 res.status(200).json({ success: true, data: __assign(__assign({}, metadata), { data: jobs }) });
-                return [3 /*break*/, 4];
-            case 3:
+                return [3 /*break*/, 6];
+            case 5:
                 error_9 = _f.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_9))];
-            case 4: return [2 /*return*/];
+            case 6: return [2 /*return*/];
         }
     });
 }); };

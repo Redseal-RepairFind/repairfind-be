@@ -6,7 +6,7 @@ import { sendEmail } from "../../../utils/send_email_utility";
 import { htmlJobQoutationTemplate } from "../../../templates/customerEmail/jobQoutationTemplate";
 import AdminNoficationModel from "../../../database/admin/models/admin_notification.model";
 import CustomerJobRequestModel from "../../../database/customer/models/customer_jobrequest.model";
-import { JobModel, JOB_STATUS, JobType } from "../../../database/common/job.model";
+import { JobModel, JOB_STATUS, JobType, IJob } from "../../../database/common/job.model";
 import { applyAPIFeature } from "../../../utils/api.feature";
 import { BadRequestError, InternalServerError, NotFoundError } from "../../../utils/custom.errors";
 import { JobQoutationModel, JOB_QUOTATION_STATUS } from "../../../database/common/job_quotation.model";
@@ -677,6 +677,7 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
     return res.status(400).json({ errors: errors.array() });
   }
 
+  const contractorId = req.contractor.id
   try {
     // Extract query parameters
     let {
@@ -795,7 +796,16 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
 
     const result = await JobModel.aggregate(pipeline); // Assuming Contractor is your Mongoose model
     const jobs = result[0].data;
-    const metadata = result[0].metadata[0];
+
+    if(jobs){
+      // Map through each job and attach myQuotation if contractor has applied 
+      await Promise.all(jobs.map(async (job: any) => {
+        job.id = job._id 
+        job.myQuotation = await JobQoutationModel.findOne({contractor: contractorId, job: job._id})
+      }));
+  }
+
+    const metadata = result[0].metadata[0]; 
 
     // Send response with job listings data
     res.status(200).json({ success: true, data: { ...metadata, data: jobs } });
