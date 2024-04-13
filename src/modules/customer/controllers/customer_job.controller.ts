@@ -26,12 +26,14 @@ import { applyAPIFeature } from "../../../utils/api.feature";
 import { ConversationEntityType, ConversationModel, IConversation } from "../../../database/common/conversations.schema";
 import { IMessage, MessageModel, MessageType } from "../../../database/common/messages.schema";
 import { Date } from "mongoose";
-import { JobQoutationModel } from "../../../database/common/job_quotation.model";
+import { JOB_QUOTATION_STATUS, JobQoutationModel } from "../../../database/common/job_quotation.model";
 import TransactionModel from "../../../database/common/transaction.model";
 import { StripeService } from "../../../services/stripe";
 import Stripe from 'stripe';
 import { QueueService } from "../../../services/bullmq";
 import { JobEvent, eventEmitter } from "../../../events";
+import { htmlJobQuotationAcceptedContractorEmailTemplate } from "../../../templates/contractorEmail/job_quotation_accepted.template";
+import { htmlJobQuotationDeclinedContractorEmailTemplate } from "../../../templates/contractorEmail/job_quotation_declined.template";
 
 
 
@@ -336,6 +338,117 @@ export const getSingleQuotation = async (req: any, res: Response, next: NextFunc
 };
 
 
+export const acceptJobQuotation = async (req: any, res: Response, next: NextFunction) => {
+    try {
+        const customerId = req.customer.id;
+        const { jobId, quotationId } = req.params;
+
+        const quotation = await JobQoutationModel.findOne({ _id: quotationId, job: jobId });
+        const job = await JobModel.findById(jobId);
+        
+
+        // Check if the job exists
+        if (!job) {
+            return res.status(404).json({ success: false, message: 'Job not found' });
+        }
+        // check if contractor exists
+        if (!quotation) {
+            return res.status(404).json({ success: false, message: 'Qoutation not found' });
+        }
+
+        quotation.status = JOB_QUOTATION_STATUS.ACCEPTED;
+        // create conversation here
+
+         // Create a new conversation between the customer and the contractor
+         const conversationMembers = [
+            { memberType: 'customers', member: customerId },
+            { memberType: 'contractors', member: quotation.contractor }
+        ];
+
+        const conversation: IConversation = await ConversationModel.create({
+            members: conversationMembers,
+            entity: quotation.job,
+            entityType: ConversationEntityType.JOB,
+            lastMessage: 'I have accepted your qoutation for the Job', // Set the last message to the job description
+            lastMessageAt: new Date() // Set the last message timestamp to now
+        });
+
+        // Create a message in the conversation
+        const newMessage: IMessage = await MessageModel.create({
+            conversation: conversation._id,
+            sender: customerId, // Assuming the customer sends the initial message
+            message: `I have accepted your qoutation for the Job`, // You can customize the message content as needed
+            messageType: MessageType.TEXT, // You can customize the message content as needed
+            createdAt: new Date()
+        });
+
+        job.quotation = quotation.id
+        job.status = JOB_STATUS.ACCEPTED
+
+        await quotation.save()
+        await job.save()
+
+        
+        const contractor = await ContractorModel.findById(quotation.contractor)
+        const customer = await CustomerModel.findById(customerId)
+        //emit event - mail should be sent from event handler shaa
+        JobEvent.emit('JOB_QOUTATION_ACCEPTED', {jobId, contractorId: quotation.contractor, customerId, conversationId: conversation.id})
+
+        // send mail to contractor
+        if(contractor && customer){
+            const html = htmlJobQuotationAcceptedContractorEmailTemplate(contractor.name, customer.name,  job)
+            EmailService.send(contractor.email, 'Job Quotation Accepted', html)
+        }
+       
+
+
+        quotation.charges = await quotation.calculateCharges()
+        res.json({ success: true, message: 'Job quotation accepted' });
+    } catch (error: any) {
+        return next(new BadRequestError('An error occured ', error))
+    }
+};
+
+export const declineJobQuotation = async (req: any, res: Response, next: NextFunction) => {
+    try {
+        const customerId = req.customer.id;
+        const { jobId, quotationId } = req.params;
+
+        const quotation = await JobQoutationModel.findOne({ _id: quotationId, job: jobId });
+        const job = await JobModel.findById(jobId);
+
+
+        // Check if the job exists
+        if (!job) {
+            return res.status(404).json({ success: false, message: 'Job not found' });
+        }
+        // check if contractor exists
+        if (!quotation) {
+            return res.status(404).json({ success: false, message: 'Qoutation not found' });
+        }
+
+        quotation.status = JOB_QUOTATION_STATUS.DECLINED;
+
+         // maybe send mail out ?
+        await quotation.save()
+
+        const contractor = await ContractorModel.findById(quotation.contractor)
+        const customer = await CustomerModel.findById(customerId)
+        //emit event - mail should be sent from event handler shaa
+        JobEvent.emit('JOB_QOUTATION_DECLINED', {jobId, contractorId: quotation.contractor, customerId})
+
+        // send mail to contractor
+        if(contractor && customer){
+            const html = htmlJobQuotationDeclinedContractorEmailTemplate(contractor.name, customer.name,  job)
+            EmailService.send(contractor.email, 'Job Quotation Declined', html)
+        }
+
+
+        res.json({ success: true, message: 'Job quotation declined' });
+    } catch (error: any) {
+        return next(new BadRequestError('An error occured ', error))
+    }
+};
 
 
 //customer accept and pay for the work /////////////
@@ -1503,7 +1616,9 @@ export const CustomerJobController = {
     getJobQuotations,
     getSingleQuotation,
     makeJobPayment,
-    captureJobPayment
+    captureJobPayment,
+    acceptJobQuotation,
+    declineJobQuotation
 }
 
 

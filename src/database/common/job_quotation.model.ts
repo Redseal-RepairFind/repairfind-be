@@ -3,7 +3,7 @@ import { Document, ObjectId, Schema, model } from "mongoose";
 export enum JOB_QUOTATION_STATUS {
     PENDING = 'PENDING',
     ACCEPTED = 'ACCEPTED',
-    REJECTED = 'REJECTED',
+    DECLINED = 'DECLINED',
     COMPLETED = 'COMPLETED',
 }
 

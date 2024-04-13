@@ -55,6 +55,8 @@ router.get("/jobs", customerRoleChecker_middleware_1.checkCustomerRole, customer
 router.get("/jobs/:jobId", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.getSingleJob);
 router.get("/jobs/:jobId/quotations", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.getJobQuotations);
 router.get("/jobs/:jobId/quotations/:quotationId", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.getSingleQuotation);
+router.post("/jobs/:jobId/quotations/:quotationId/accept", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.acceptJobQuotation);
+router.post("/jobs/:jobId/quotations/:quotationId/decline", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.declineJobQuotation);
 router.post("/jobs/:jobId/pay", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.makeJobPayment);
 router.post("/jobs/:jobId/payment-capture", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.captureJobPayment);
 router.post("/jobs", customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.sendJobRequestParams, requests_1.CustomerHttpRequest.validateFormData, job_request_controller_1.JobRequest.customerSendJobRequestController);

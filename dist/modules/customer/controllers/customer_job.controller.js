@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerJobController = exports.captureJobPayment = exports.makeJobPayment = exports.getSingleQuotation = exports.getJobQuotations = exports.getSingleJob = exports.getJobs = exports.createJobListing = exports.createJobRequest = void 0;
+exports.CustomerJobController = exports.captureJobPayment = exports.makeJobPayment = exports.declineJobQuotation = exports.acceptJobQuotation = exports.getSingleQuotation = exports.getJobQuotations = exports.getSingleJob = exports.getJobs = exports.createJobListing = exports.createJobRequest = void 0;
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var jobRequestTemplate_1 = require("../../../templates/contractorEmail/jobRequestTemplate");
@@ -57,6 +57,8 @@ var transaction_model_1 = __importDefault(require("../../../database/common/tran
 var stripe_1 = require("../../../services/stripe");
 var bullmq_1 = require("../../../services/bullmq");
 var events_1 = require("../../../events");
+var job_quotation_accepted_template_1 = require("../../../templates/contractorEmail/job_quotation_accepted.template");
+var job_quotation_declined_template_1 = require("../../../templates/contractorEmail/job_quotation_declined.template");
 var createJobRequest = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, contractorId, category, description, location_1, date, expiresIn, emergency, media, voiceDescription, time, customerId, customer, contractor, startOfToday, existingJobRequest, dateTimeString, jobTime, newJob, conversationMembers, newConversation, newMessage, html, error_1;
     return __generator(this, function (_b) {
@@ -361,6 +363,141 @@ var getSingleQuotation = function (req, res, next) { return __awaiter(void 0, vo
     });
 }); };
 exports.getSingleQuotation = getSingleQuotation;
+var acceptJobQuotation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var customerId, _a, jobId, quotationId, quotation, job, conversationMembers, conversation, newMessage, contractor, customer, html, _b, error_7;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
+            case 0:
+                _c.trys.push([0, 10, , 11]);
+                customerId = req.customer.id;
+                _a = req.params, jobId = _a.jobId, quotationId = _a.quotationId;
+                return [4 /*yield*/, job_quotation_model_1.JobQoutationModel.findOne({ _id: quotationId, job: jobId })];
+            case 1:
+                quotation = _c.sent();
+                return [4 /*yield*/, job_model_1.JobModel.findById(jobId)];
+            case 2:
+                job = _c.sent();
+                // Check if the job exists
+                if (!job) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found' })];
+                }
+                // check if contractor exists
+                if (!quotation) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Qoutation not found' })];
+                }
+                quotation.status = job_quotation_model_1.JOB_QUOTATION_STATUS.ACCEPTED;
+                conversationMembers = [
+                    { memberType: 'customers', member: customerId },
+                    { memberType: 'contractors', member: quotation.contractor }
+                ];
+                return [4 /*yield*/, conversations_schema_1.ConversationModel.create({
+                        members: conversationMembers,
+                        entity: quotation.job,
+                        entityType: conversations_schema_1.ConversationEntityType.JOB,
+                        lastMessage: 'I have accepted your qoutation for the Job', // Set the last message to the job description
+                        lastMessageAt: new Date() // Set the last message timestamp to now
+                    })];
+            case 3:
+                conversation = _c.sent();
+                return [4 /*yield*/, messages_schema_1.MessageModel.create({
+                        conversation: conversation._id,
+                        sender: customerId, // Assuming the customer sends the initial message
+                        message: "I have accepted your qoutation for the Job", // You can customize the message content as needed
+                        messageType: messages_schema_1.MessageType.TEXT, // You can customize the message content as needed
+                        createdAt: new Date()
+                    })];
+            case 4:
+                newMessage = _c.sent();
+                job.quotation = quotation.id;
+                job.status = job_model_1.JOB_STATUS.ACCEPTED;
+                return [4 /*yield*/, quotation.save()];
+            case 5:
+                _c.sent();
+                return [4 /*yield*/, job.save()];
+            case 6:
+                _c.sent();
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(quotation.contractor)];
+            case 7:
+                contractor = _c.sent();
+                return [4 /*yield*/, customer_model_1.default.findById(customerId)
+                    //emit event - mail should be sent from event handler shaa
+                ];
+            case 8:
+                customer = _c.sent();
+                //emit event - mail should be sent from event handler shaa
+                events_1.JobEvent.emit('JOB_QOUTATION_ACCEPTED', { jobId: jobId, contractorId: quotation.contractor, customerId: customerId, conversationId: conversation.id });
+                // send mail to contractor
+                if (contractor && customer) {
+                    html = (0, job_quotation_accepted_template_1.htmlJobQuotationAcceptedContractorEmailTemplate)(contractor.name, customer.name, job);
+                    services_1.EmailService.send(contractor.email, 'Job Quotation Accepted', html);
+                }
+                _b = quotation;
+                return [4 /*yield*/, quotation.calculateCharges()];
+            case 9:
+                _b.charges = _c.sent();
+                res.json({ success: true, message: 'Job quotation accepted' });
+                return [3 /*break*/, 11];
+            case 10:
+                error_7 = _c.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_7))];
+            case 11: return [2 /*return*/];
+        }
+    });
+}); };
+exports.acceptJobQuotation = acceptJobQuotation;
+var declineJobQuotation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var customerId, _a, jobId, quotationId, quotation, job, contractor, customer, html, error_8;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 6, , 7]);
+                customerId = req.customer.id;
+                _a = req.params, jobId = _a.jobId, quotationId = _a.quotationId;
+                return [4 /*yield*/, job_quotation_model_1.JobQoutationModel.findOne({ _id: quotationId, job: jobId })];
+            case 1:
+                quotation = _b.sent();
+                return [4 /*yield*/, job_model_1.JobModel.findById(jobId)];
+            case 2:
+                job = _b.sent();
+                // Check if the job exists
+                if (!job) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found' })];
+                }
+                // check if contractor exists
+                if (!quotation) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Qoutation not found' })];
+                }
+                quotation.status = job_quotation_model_1.JOB_QUOTATION_STATUS.DECLINED;
+                // maybe send mail out ?
+                return [4 /*yield*/, quotation.save()];
+            case 3:
+                // maybe send mail out ?
+                _b.sent();
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(quotation.contractor)];
+            case 4:
+                contractor = _b.sent();
+                return [4 /*yield*/, customer_model_1.default.findById(customerId)
+                    //emit event - mail should be sent from event handler shaa
+                ];
+            case 5:
+                customer = _b.sent();
+                //emit event - mail should be sent from event handler shaa
+                events_1.JobEvent.emit('JOB_QOUTATION_DECLINED', { jobId: jobId, contractorId: quotation.contractor, customerId: customerId });
+                // send mail to contractor
+                if (contractor && customer) {
+                    html = (0, job_quotation_declined_template_1.htmlJobQuotationDeclinedContractorEmailTemplate)(contractor.name, customer.name, job);
+                    services_1.EmailService.send(contractor.email, 'Job Quotation Declined', html);
+                }
+                res.json({ success: true, message: 'Job quotation declined' });
+                return [3 /*break*/, 7];
+            case 6:
+                error_8 = _b.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_8))];
+            case 7: return [2 /*return*/];
+        }
+    });
+}); };
+exports.declineJobQuotation = declineJobQuotation;
 //customer accept and pay for the work /////////////
 var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, quotationId, paymentMethodId_1, jobId, errors, customerId, customer, job, quotation, contractor, generateInvoce, invoiceId, charges, newTransaction, saveTransaction, transactionId, paymentMethod, payload, stripePayment, err_1;
@@ -1167,5 +1304,7 @@ exports.CustomerJobController = {
     getJobQuotations: exports.getJobQuotations,
     getSingleQuotation: exports.getSingleQuotation,
     makeJobPayment: exports.makeJobPayment,
-    captureJobPayment: exports.captureJobPayment
+    captureJobPayment: exports.captureJobPayment,
+    acceptJobQuotation: exports.acceptJobQuotation,
+    declineJobQuotation: exports.declineJobQuotation
 };

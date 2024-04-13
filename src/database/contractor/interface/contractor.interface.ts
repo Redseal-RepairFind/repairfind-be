@@ -9,6 +9,7 @@ export interface IContractor extends Document {
   profile: ObjectId;
   firstName: string;
   lastName: string;
+  name: string;
   companyName: string;
   email: string;
   password: string;

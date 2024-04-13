@@ -16,6 +16,7 @@ export interface ICustomer extends Document {
   password: string;
   firstName: string;
   lastName: string;
+  name: string;
   phoneNumber: {
     code: string,
     number: string
