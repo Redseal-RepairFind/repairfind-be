@@ -6,7 +6,7 @@ import { ConversationModel } from "../../../database/common/conversations.schema
 import { MessageModel, MessageType } from "../../../database/common/messages.schema";
 import { ConversationEvent } from "../../../events";
 
-
+ 
 export const getConversations = async (req: any, res: Response): Promise<void> => {
     try {
         const { startDate, endDate, read, unread } = req.query;
@@ -18,7 +18,7 @@ export const getConversations = async (req: any, res: Response): Promise<void> =
             filter.createdAt = { $gte: new Date(startDate as string), $lte: new Date(endDate as string) };
         }
 
-        const {data, error} = await applyAPIFeature(ConversationModel.find(filter), req.query)
+        const {data, error} = await applyAPIFeature(ConversationModel.find(filter).populate('entity'), req.query)
 
         if(data){
             // Map through each conversation and fetch heading info
@@ -42,11 +42,19 @@ export const getSingleConversation = async (req: any, res: Response): Promise<vo
     try {
         const { conversationId } = req.params;
         const customerId = req.customer.id
-        const query: any = { 'members.member': customerId, _id: conversationId };
-        const conversation = await ConversationModel.findOne(query).populate(['entity', 'members']);
+        // const query: any = { 'members.member': customerId, _id: conversationId };
+        const conversation = await ConversationModel.findById(conversationId).populate(['entity', 'members']);
         if(conversation){
             conversation.heading = await conversation.getHeading(customerId);
+            if(conversation.entityType == 'jobs'){
+                // try to get contractor
+                const contractor = conversation.members.find((member: any) => member.memberType == 'contractors');
+                const contractorId = contractor?.member
+                // @ts-ignore
+                conversation.entity.myQuotation = await conversation.entity.getMyQoutation(conversation.entity.id, contractorId);
+            }
         }
+
         
         res.status(200).json({ success: true, message: "Conversation retrieved", data: conversation });
     } catch (error) {

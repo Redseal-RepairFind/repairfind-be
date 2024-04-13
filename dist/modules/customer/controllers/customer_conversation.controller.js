@@ -54,7 +54,7 @@ var getConversations = function (req, res) { return __awaiter(void 0, void 0, vo
                 if (startDate && endDate) {
                     filter.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
                 }
-                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(conversations_schema_1.ConversationModel.find(filter), req.query)];
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(conversations_schema_1.ConversationModel.find(filter).populate('entity'), req.query)];
             case 1:
                 _b = _c.sent(), data = _b.data, error = _b.error;
                 if (!data) return [3 /*break*/, 3];
@@ -93,32 +93,40 @@ var getConversations = function (req, res) { return __awaiter(void 0, void 0, vo
 }); };
 exports.getConversations = getConversations;
 var getSingleConversation = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var conversationId, customerId, query, conversation, _a, error_2;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+    var conversationId, customerId, conversation, _a, contractor, contractorId, _b, error_2;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
             case 0:
-                _b.trys.push([0, 4, , 5]);
+                _c.trys.push([0, 5, , 6]);
                 conversationId = req.params.conversationId;
                 customerId = req.customer.id;
-                query = { 'members.member': customerId, _id: conversationId };
-                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOne(query).populate(['entity', 'members'])];
+                return [4 /*yield*/, conversations_schema_1.ConversationModel.findById(conversationId).populate(['entity', 'members'])];
             case 1:
-                conversation = _b.sent();
-                if (!conversation) return [3 /*break*/, 3];
+                conversation = _c.sent();
+                if (!conversation) return [3 /*break*/, 4];
                 _a = conversation;
                 return [4 /*yield*/, conversation.getHeading(customerId)];
             case 2:
-                _a.heading = _b.sent();
-                _b.label = 3;
+                _a.heading = _c.sent();
+                if (!(conversation.entityType == 'jobs')) return [3 /*break*/, 4];
+                contractor = conversation.members.find(function (member) { return member.memberType == 'contractors'; });
+                contractorId = contractor === null || contractor === void 0 ? void 0 : contractor.member;
+                // @ts-ignore
+                _b = conversation.entity;
+                return [4 /*yield*/, conversation.entity.getMyQoutation(conversation.entity.id, contractorId)];
             case 3:
-                res.status(200).json({ success: true, message: "Conversation retrieved", data: conversation });
-                return [3 /*break*/, 5];
+                // @ts-ignore
+                _b.myQuotation = _c.sent();
+                _c.label = 4;
             case 4:
-                error_2 = _b.sent();
+                res.status(200).json({ success: true, message: "Conversation retrieved", data: conversation });
+                return [3 /*break*/, 6];
+            case 5:
+                error_2 = _c.sent();
                 console.error("Error fetching conversation:", error_2);
                 res.status(500).json({ success: false, message: "Server error" });
-                return [3 /*break*/, 5];
-            case 5: return [2 /*return*/];
+                return [3 /*break*/, 6];
+            case 6: return [2 /*return*/];
         }
     });
 }); };
