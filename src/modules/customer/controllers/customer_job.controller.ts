@@ -304,11 +304,13 @@ export const getJobQuotations = async (req: any, res: Response, next: NextFuncti
 
         // Check if the job exists
         if (!job) {
-            return res.status(404).json({ success: false, message: 'Job not found' });
+            return res.status(404).json({ success: false, message: 'Job not found or does not belong to customer' });
         }
+        const quotations = await JobQoutationModel.find({job:jobId }).populate([{path: 'contractor'}])
+
 
         // If the job exists, return its quo as a response
-        res.json({ success: true, message: 'Job quotations retrieved', data: job.quotations });
+        res.json({ success: true, message: 'Job quotations retrieved', data: quotations });
     } catch (error: any) {
         return next(new BadRequestError('An error occured ', error))
     }

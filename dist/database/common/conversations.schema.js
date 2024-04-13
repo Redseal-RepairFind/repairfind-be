@@ -109,11 +109,11 @@ var ConversationSchema = new mongoose_1.default.Schema({
 });
 // Define a schema method to get the heading
 ConversationSchema.methods.getHeading = function (loggedInUserId) {
-    var _a;
+    var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
         var otherMember, UserModel, otherMemberUser;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
+        return __generator(this, function (_c) {
+            switch (_c.label) {
                 case 0:
                     otherMember = this.members.find(function (member) { return member.member.toString() !== loggedInUserId; });
                     if (!otherMember) return [3 /*break*/, 2];
@@ -126,14 +126,14 @@ ConversationSchema.methods.getHeading = function (loggedInUserId) {
                     }
                     return [4 /*yield*/, UserModel.findById(otherMember.member)];
                 case 1:
-                    otherMemberUser = _b.sent();
+                    otherMemberUser = _c.sent();
                     if (otherMemberUser) {
                         return [2 /*return*/, {
                                 name: otherMemberUser.name,
-                                image: (_a = otherMemberUser.profilePhoto) === null || _a === void 0 ? void 0 : _a.url,
+                                image: (_b = (_a = otherMemberUser.profilePhoto) === null || _a === void 0 ? void 0 : _a.url) !== null && _b !== void 0 ? _b : null,
                             }];
                     }
-                    _b.label = 2;
+                    _c.label = 2;
                 case 2: return [2 /*return*/];
             }
         });

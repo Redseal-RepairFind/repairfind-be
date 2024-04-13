@@ -302,11 +302,11 @@ var getSingleJob = function (req, res, next) { return __awaiter(void 0, void 0, 
 }); };
 exports.getSingleJob = getSingleJob;
 var getJobQuotations = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, jobId, job, error_5;
+    var customerId, jobId, job, quotations, error_5;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 2, , 3]);
+                _a.trys.push([0, 3, , 4]);
                 customerId = req.customer.id;
                 jobId = req.params.jobId;
                 return [4 /*yield*/, job_model_1.JobModel.findOne({ customer: customerId, _id: jobId }).populate('quotations')];
@@ -314,15 +314,20 @@ var getJobQuotations = function (req, res, next) { return __awaiter(void 0, void
                 job = _a.sent();
                 // Check if the job exists
                 if (!job) {
-                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found' })];
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found or does not belong to customer' })];
                 }
-                // If the job exists, return its quo as a response
-                res.json({ success: true, message: 'Job quotations retrieved', data: job.quotations });
-                return [3 /*break*/, 3];
+                return [4 /*yield*/, job_quotation_model_1.JobQoutationModel.find({ job: jobId }).populate([{ path: 'contractor' }])
+                    // If the job exists, return its quo as a response
+                ];
             case 2:
+                quotations = _a.sent();
+                // If the job exists, return its quo as a response
+                res.json({ success: true, message: 'Job quotations retrieved', data: quotations });
+                return [3 /*break*/, 4];
+            case 3:
                 error_5 = _a.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_5))];
-            case 3: return [2 /*return*/];
+            case 4: return [2 /*return*/];
         }
     });
 }); };
