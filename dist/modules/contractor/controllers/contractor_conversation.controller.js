@@ -42,6 +42,7 @@ var conversations_schema_1 = require("../../../database/common/conversations.sch
 var messages_schema_1 = require("../../../database/common/messages.schema");
 var events_1 = require("../../../events");
 var custom_errors_1 = require("../../../utils/custom.errors");
+var express_validator_1 = require("express-validator");
 var getConversations = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, startDate, endDate, read, unread, contractorId_1, filter, _b, data, error, error_1;
     return __generator(this, function (_c) {
@@ -189,11 +190,15 @@ var getConversationMessages = function (req, res, next) { return __awaiter(void 
 }); };
 exports.getConversationMessages = getConversationMessages;
 var sendMessage = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var conversationId, _a, message, media, type, contractorId_3, conversation, customerIsMember, newMessage, error_4;
+    var errors, conversationId, _a, message, media, type, contractorId_3, conversation, customerIsMember, newMessage, error_4;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
                 _b.trys.push([0, 3, , 4]);
+                errors = (0, express_validator_1.validationResult)(req);
+                if (!errors.isEmpty()) {
+                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                }
                 conversationId = req.params.conversationId;
                 _a = req.body, message = _a.message, media = _a.media, type = _a.type;
                 contractorId_3 = req.contractor.id;

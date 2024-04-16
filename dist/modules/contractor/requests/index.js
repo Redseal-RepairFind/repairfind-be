@@ -258,7 +258,6 @@ exports.sendMessageParams = [
     (0, express_validator_1.body)('type').isIn(['TEXT', 'MEDIA']).withMessage('Invalid messageType'),
     (0, express_validator_1.body)('message').notEmpty().if((0, express_validator_1.body)('type').equals('TEXT')).withMessage('Message is required'),
     (0, express_validator_1.body)('media').isArray().if((0, express_validator_1.body)('type').equals('MEDIA')).withMessage('Media must be an array'),
-    (0, express_validator_1.body)('media.*.url').notEmpty().if((0, express_validator_1.body)('type').equals('MEDIA')).withMessage('Media URL is required'),
 ];
 exports.ContractorHttpRequest = {
     CreateProfileRequest: exports.CreateProfileRequest,

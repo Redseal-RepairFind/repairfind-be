@@ -187,7 +187,6 @@ export const sendMessageParams = [
   body('type').isIn(['TEXT', 'MEDIA']).withMessage('Invalid messageType'),
   body('message').notEmpty().if(body('type').equals('TEXT')).withMessage('Message is required'),
   body('media').isArray().if(body('type').equals('MEDIA')).withMessage('Media must be an array'),
-  body('media.*.url').notEmpty().if(body('type').equals('MEDIA')).withMessage('Media URL is required'),
 ];
 
   

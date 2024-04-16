@@ -4,6 +4,7 @@ import { ConversationModel } from "../../../database/common/conversations.schema
 import { MessageModel, MessageType } from "../../../database/common/messages.schema";
 import { ConversationEvent } from "../../../events";
 import { BadRequestError } from "../../../utils/custom.errors";
+import { validationResult } from "express-validator";
 
 export const getConversations = async (req: any, res: Response, next: NextFunction) => {
     try {
@@ -100,6 +101,13 @@ export const getConversationMessages = async (req: any, res: Response, next: Nex
 
 export const sendMessage = async (req: any, res: Response, next: NextFunction) => {
     try {
+
+         // Check for validation errors
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+        }
+        
         const { conversationId } = req.params;
         const { message, media, type } = req.body; // Assuming you pass message content in the request body
         const contractorId = req.contractor.id;
