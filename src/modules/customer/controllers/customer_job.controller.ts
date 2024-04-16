@@ -237,7 +237,7 @@ export const getJobs = async (req: any, res: Response, next: NextFunction) => {
         const customerId = req.customer.id;
 
         // Construct filter object based on query parameters
-        const filter: any = {};
+        const filter: any = {customer: customerId};
 
         if (customerId) {
             filter.customer = customerId;
