@@ -51,7 +51,7 @@ router.get("/explore/contractors/:contractorId/schedules", customerRoleChecker_m
 router.post("/send-job-request", customerRoleChecker_middleware_1.checkCustomerRole, upload_utility_1.memoryUpload.any(), requests_1.CustomerHttpRequest.sendJobRequestParams, requests_1.CustomerHttpRequest.validateFormData, job_request_controller_1.JobRequest.customerSendJobRequestController);
 router.post("/jobs/requests", customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.createJobRequestParams, customer_job_controller_1.CustomerJobController.createJobRequest);
 router.post("/jobs/listings", customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.createJoListingParams, customer_job_controller_1.CustomerJobController.createJobListing);
-router.get("/jobs", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.getJobs);
+router.get("/jobs", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.getMyJobs);
 router.get("/jobs/:jobId", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.getSingleJob);
 router.get("/jobs/:jobId/quotations", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.getJobQuotations);
 router.get("/jobs/:jobId/quotations/:quotationId", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.getSingleQuotation);

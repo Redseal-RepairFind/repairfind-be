@@ -98,19 +98,7 @@ var MessageSchema = new mongoose_1.Schema({
         trim: true,
         required: true,
     },
-    media: [
-        {
-            type: {
-                type: String,
-            },
-            url: {
-                type: String,
-            },
-            blurHash: {
-                type: String,
-            },
-        },
-    ],
+    media: [String],
     readBy: [
         {
             type: mongoose_1.Schema.Types.ObjectId,

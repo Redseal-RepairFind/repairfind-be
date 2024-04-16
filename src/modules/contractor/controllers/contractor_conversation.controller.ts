@@ -127,7 +127,8 @@ export const sendMessage = async (req: any, res: Response) => {
             sender: contractorId, // Assuming the customer sends the message
             senderType: 'contractors', // Type of the sender
             message: message, // Message content from the request body
-            messageType: MessageType.TEXT, // Assuming message type is text, adjust as needed
+            messageType: type, 
+            media: media, 
             createdAt: new Date()
         });
 

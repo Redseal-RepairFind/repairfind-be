@@ -64,7 +64,7 @@ router.post("/send-job-request", checkCustomerRole, memoryUpload.any(), Customer
 
 router.post("/jobs/requests", checkCustomerRole, CustomerHttpRequest.createJobRequestParams, CustomerJobController.createJobRequest ); 
 router.post("/jobs/listings", checkCustomerRole, CustomerHttpRequest.createJoListingParams, CustomerJobController.createJobListing ); 
-router.get("/jobs", checkCustomerRole, CustomerJobController.getJobs ); 
+router.get("/jobs", checkCustomerRole, CustomerJobController.getMyJobs ); 
 router.get("/jobs/:jobId", checkCustomerRole, CustomerJobController.getSingleJob ); 
 router.get("/jobs/:jobId/quotations", checkCustomerRole, CustomerJobController.getJobQuotations ); 
 router.get("/jobs/:jobId/quotations/:quotationId", checkCustomerRole, CustomerJobController.getSingleQuotation ); 

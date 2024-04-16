@@ -44,6 +44,7 @@ var bullmq_1 = require("bullmq");
 var config_1 = require("../../config");
 var ioredis_1 = __importDefault(require("ioredis"));
 var capture_stripe_payments_1 = require("./jobs/capture_stripe_payments");
+var logger_1 = require("../../utils/logger");
 var redisConfig = {
     port: Number(config_1.config.redis.port),
     host: config_1.config.redis.host,
@@ -67,7 +68,7 @@ exports.RepairFindQueueWorker = new bullmq_1.Worker('RepairFindQueue', function 
         switch (_a.label) {
             case 0:
                 // Job processing logic here
-                console.log("Processing job: ".concat(job.name, " - ").concat(job.id));
+                logger_1.Logger.info("Job Processing: ".concat(job.name, " - ").concat(job.id));
                 if (!(job.name == 'CapturePayments')) return [3 /*break*/, 2];
                 return [4 /*yield*/, (0, capture_stripe_payments_1.captureStripePayments)()];
             case 1:
@@ -78,5 +79,5 @@ exports.RepairFindQueueWorker = new bullmq_1.Worker('RepairFindQueue', function 
     });
 }); }, { connection: redisConnection });
 exports.RepairFindQueueWorker.on('completed', function (job) {
-    console.log("".concat(job.name, " - ").concat(job.id, " has completed!"));
+    logger_1.Logger.info("Job Completed: ".concat(job.name, " - ").concat(job.id, " has completed!"));
 });

@@ -15,7 +15,7 @@ export interface IMessage extends Document {
     senderType: 'contractor' | 'customer'; // Type of the sender
     messageType: 'TEXT' | 'ALERT' | 'MEDIA'; //
     message: string;
-    media: { type: string; url: string; blurHash: string }[];
+    media: string[];
     readBy: Types.ObjectId[]; // References to contractors who have read the message
     heading: Object;
     isOwn: Boolean;
@@ -47,19 +47,7 @@ const MessageSchema = new Schema<IMessage>({
         trim: true,
         required: true,
     },
-    media: [
-        {
-            type: {
-                type: String,
-            },
-            url: {
-                type: String,
-            },
-            blurHash: {
-                type: String,
-            },
-        },
-    ],
+    media: [String],
     readBy: [
         {
             type: Schema.Types.ObjectId,

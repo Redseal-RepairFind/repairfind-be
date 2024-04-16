@@ -440,7 +440,10 @@ export const sendJobQuotation = async (
     jobQuotation.charges = await jobQuotation.calculateCharges();
 
     if (!job.quotations.includes(jobQuotation.id)) {
-      job.quotations.push(jobQuotation.id);
+      job.quotations.push({
+        id: jobQuotation.id,
+        status: jobQuotation.status
+      });
     }
 
 

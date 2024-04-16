@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerJobController = exports.captureJobPayment = exports.makeJobPayment = exports.declineJobQuotation = exports.acceptJobQuotation = exports.getSingleQuotation = exports.getJobQuotations = exports.getSingleJob = exports.getJobs = exports.createJobListing = exports.createJobRequest = void 0;
+exports.CustomerJobController = exports.captureJobPayment = exports.makeJobPayment = exports.declineJobQuotation = exports.acceptJobQuotation = exports.getSingleQuotation = exports.getJobQuotations = exports.getSingleJob = exports.getMyJobs = exports.createJobListing = exports.createJobRequest = void 0;
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var jobRequestTemplate_1 = require("../../../templates/contractorEmail/jobRequestTemplate");
@@ -225,19 +225,19 @@ var createJobListing = function (req, res, next) { return __awaiter(void 0, void
     });
 }); };
 exports.createJobListing = createJobListing;
-var getJobs = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, contractorId, status_1, startDate, endDate, date, type, customerId, filter, start, end, selectedDate, startOfDay_1, endOfDay_1, _b, data, error, error_3;
+var getMyJobs = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var errors, _a, contractorId, status_1, startDate, endDate, date, type, customerId, filter, start, end, selectedDate, startOfDay_1, endOfDay_1, _b, data, error, jobs, _loop_1, _i, jobs_1, job, error_3;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
-                _c.trys.push([0, 2, , 3]);
+                _c.trys.push([0, 7, , 8]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
                 _a = req.query, contractorId = _a.contractorId, status_1 = _a.status, startDate = _a.startDate, endDate = _a.endDate, date = _a.date, type = _a.type;
                 customerId = req.customer.id;
-                filter = {};
+                filter = { customer: customerId };
                 if (customerId) {
                     filter.customer = customerId;
                 }
@@ -267,16 +267,64 @@ var getJobs = function (req, res, next) { return __awaiter(void 0, void 0, void 
                 return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_model_1.JobModel.find(filter), req.query)];
             case 1:
                 _b = _c.sent(), data = _b.data, error = _b.error;
-                res.json({ success: true, message: 'Jobs retrieved', data: data });
-                return [3 /*break*/, 3];
+                return [4 /*yield*/, job_model_1.JobModel.find()];
             case 2:
+                jobs = _c.sent();
+                _loop_1 = function (job) {
+                    return __generator(this, function (_d) {
+                        switch (_d.label) {
+                            case 0:
+                                // Populate the quotations field with associated data from JobQuotationModel
+                                // Update the status field in each quotation object in the array
+                                job.quotations.forEach(function (quotation) { return __awaiter(void 0, void 0, void 0, function () {
+                                    var quo;
+                                    return __generator(this, function (_a) {
+                                        switch (_a.label) {
+                                            case 0: return [4 /*yield*/, job_quotation_model_1.JobQoutationModel.findOne({ job: job.id })];
+                                            case 1:
+                                                quo = _a.sent();
+                                                if (quo) {
+                                                    quotation.id = quo.id; // Update the status field
+                                                    quotation.status = quo.status; // Update the status field
+                                                }
+                                                return [2 /*return*/];
+                                        }
+                                    });
+                                }); });
+                                // Save the updated job document
+                                // console.log(job)
+                                return [4 /*yield*/, job.save()];
+                            case 1:
+                                // Save the updated job document
+                                // console.log(job)
+                                _d.sent();
+                                return [2 /*return*/];
+                        }
+                    });
+                };
+                _i = 0, jobs_1 = jobs;
+                _c.label = 3;
+            case 3:
+                if (!(_i < jobs_1.length)) return [3 /*break*/, 6];
+                job = jobs_1[_i];
+                return [5 /*yield**/, _loop_1(job)];
+            case 4:
+                _c.sent();
+                _c.label = 5;
+            case 5:
+                _i++;
+                return [3 /*break*/, 3];
+            case 6:
+                res.json({ success: true, message: 'Jobs retrieved', data: data });
+                return [3 /*break*/, 8];
+            case 7:
                 error_3 = _c.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_3))];
-            case 3: return [2 /*return*/];
+            case 8: return [2 /*return*/];
         }
     });
 }); };
-exports.getJobs = getJobs;
+exports.getMyJobs = getMyJobs;
 var getSingleJob = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var customerId, jobId, job, error_4;
     return __generator(this, function (_a) {
@@ -318,7 +366,7 @@ var getJobQuotations = function (req, res, next) { return __awaiter(void 0, void
                 if (!job) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found or does not belong to customer' })];
                 }
-                return [4 /*yield*/, job_quotation_model_1.JobQoutationModel.find({ job: jobId }).populate([{ path: 'contractor' }])
+                return [4 /*yield*/, job_quotation_model_1.JobQoutationModel.find({ job: jobId, status: { $ne: job_quotation_model_1.JOB_QUOTATION_STATUS.DECLINED } }).populate([{ path: 'contractor' }])
                     // If the job exists, return its quo as a response
                 ];
             case 2:
@@ -364,14 +412,14 @@ var getSingleQuotation = function (req, res, next) { return __awaiter(void 0, vo
 }); };
 exports.getSingleQuotation = getSingleQuotation;
 var acceptJobQuotation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, _a, jobId, quotationId, quotation, job, conversationMembers, conversation, newMessage, contractor, customer, html, _b, error_7;
+    var customerId, _a, jobId, quotationId_1, quotation, job, conversationMembers, conversation, newMessage, foundQuotationIndex, contractor, customer, html, _b, error_7;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
                 _c.trys.push([0, 10, , 11]);
                 customerId = req.customer.id;
-                _a = req.params, jobId = _a.jobId, quotationId = _a.quotationId;
-                return [4 /*yield*/, job_quotation_model_1.JobQoutationModel.findOne({ _id: quotationId, job: jobId })];
+                _a = req.params, jobId = _a.jobId, quotationId_1 = _a.quotationId;
+                return [4 /*yield*/, job_quotation_model_1.JobQoutationModel.findOne({ _id: quotationId_1, job: jobId })];
             case 1:
                 quotation = _c.sent();
                 return [4 /*yield*/, job_model_1.JobModel.findById(jobId)];
@@ -413,6 +461,10 @@ var acceptJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
                 return [4 /*yield*/, quotation.save()];
             case 5:
                 _c.sent();
+                foundQuotationIndex = job.quotations.findIndex(function (quotation) { return quotation.id == quotationId_1; });
+                if (foundQuotationIndex !== -1) {
+                    job.quotations[foundQuotationIndex].status = job_quotation_model_1.JOB_QUOTATION_STATUS.ACCEPTED;
+                }
                 return [4 /*yield*/, job.save()];
             case 6:
                 _c.sent();
@@ -446,14 +498,14 @@ var acceptJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
 }); };
 exports.acceptJobQuotation = acceptJobQuotation;
 var declineJobQuotation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, _a, jobId, quotationId, quotation, job, contractor, customer, html, error_8;
+    var customerId, _a, jobId, quotationId_2, quotation, job, foundQuotationIndex, contractor, customer, html, error_8;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 6, , 7]);
+                _b.trys.push([0, 7, , 8]);
                 customerId = req.customer.id;
-                _a = req.params, jobId = _a.jobId, quotationId = _a.quotationId;
-                return [4 /*yield*/, job_quotation_model_1.JobQoutationModel.findOne({ _id: quotationId, job: jobId })];
+                _a = req.params, jobId = _a.jobId, quotationId_2 = _a.quotationId;
+                return [4 /*yield*/, job_quotation_model_1.JobQoutationModel.findOne({ _id: quotationId_2, job: jobId })];
             case 1:
                 quotation = _b.sent();
                 return [4 /*yield*/, job_model_1.JobModel.findById(jobId)];
@@ -473,13 +525,20 @@ var declineJobQuotation = function (req, res, next) { return __awaiter(void 0, v
             case 3:
                 // maybe send mail out ?
                 _b.sent();
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(quotation.contractor)];
+                foundQuotationIndex = job.quotations.findIndex(function (quotation) { return quotation.id == quotationId_2; });
+                if (foundQuotationIndex !== -1) {
+                    job.quotations[foundQuotationIndex].status = job_quotation_model_1.JOB_QUOTATION_STATUS.DECLINED;
+                }
+                return [4 /*yield*/, job.save()];
             case 4:
+                _b.sent();
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(quotation.contractor)];
+            case 5:
                 contractor = _b.sent();
                 return [4 /*yield*/, customer_model_1.default.findById(customerId)
                     //emit event - mail should be sent from event handler shaa
                 ];
-            case 5:
+            case 6:
                 customer = _b.sent();
                 //emit event - mail should be sent from event handler shaa
                 events_1.JobEvent.emit('JOB_QOUTATION_DECLINED', { jobId: jobId, contractorId: quotation.contractor, customerId: customerId });
@@ -489,11 +548,11 @@ var declineJobQuotation = function (req, res, next) { return __awaiter(void 0, v
                     services_1.EmailService.send(contractor.email, 'Job Quotation Declined', html);
                 }
                 res.json({ success: true, message: 'Job quotation declined' });
-                return [3 /*break*/, 7];
-            case 6:
+                return [3 /*break*/, 8];
+            case 7:
                 error_8 = _b.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_8))];
-            case 7: return [2 /*return*/];
+            case 8: return [2 /*return*/];
         }
     });
 }); };
@@ -1298,7 +1357,7 @@ exports.captureJobPayment = captureJobPayment;
 // }
 exports.CustomerJobController = {
     createJobRequest: exports.createJobRequest,
-    getJobs: exports.getJobs,
+    getMyJobs: exports.getMyJobs,
     createJobListing: exports.createJobListing,
     getSingleJob: exports.getSingleJob,
     getJobQuotations: exports.getJobQuotations,

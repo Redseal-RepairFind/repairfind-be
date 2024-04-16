@@ -447,7 +447,10 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
             case 5:
                 _b.charges = _c.sent();
                 if (!job.quotations.includes(jobQuotation.id)) {
-                    job.quotations.push(jobQuotation.id);
+                    job.quotations.push({
+                        id: jobQuotation.id,
+                        status: jobQuotation.status
+                    });
                 }
                 if (job.type == job_model_1.JobType.REQUEST) {
                     // Update the status of the job request to "Accepted"

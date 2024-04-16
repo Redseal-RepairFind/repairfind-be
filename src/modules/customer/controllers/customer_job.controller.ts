@@ -135,7 +135,7 @@ export const createJobRequest = async (
 
 
 
-        JobEvent.emit('NEW_JOB_REQUEST', {jobId: newJob.id, contractorId, customerId, conversationId: newConversation.id})
+        JobEvent.emit('NEW_JOB_REQUEST', { jobId: newJob.id, contractorId, customerId, conversationId: newConversation.id })
 
         const html = htmlJobRequestTemplate(customer.firstName, customer.firstName, `${date} ${time}`, description)
         EmailService.send(contractor.email, 'Job request from customer', html)
@@ -224,7 +224,7 @@ export const createJobListing = async (
 }
 
 
-export const getJobs = async (req: any, res: Response, next: NextFunction) => {
+export const getMyJobs = async (req: any, res: Response, next: NextFunction) => {
     try {
         // Validate incoming request
         const errors = validationResult(req);
@@ -237,7 +237,7 @@ export const getJobs = async (req: any, res: Response, next: NextFunction) => {
         const customerId = req.customer.id;
 
         // Construct filter object based on query parameters
-        const filter: any = {customer: customerId};
+        const filter: any = { customer: customerId };
 
         if (customerId) {
             filter.customer = customerId;
@@ -269,9 +269,36 @@ export const getJobs = async (req: any, res: Response, next: NextFunction) => {
         }
 
         // Execute query
-        const { data, error } = await applyAPIFeature(JobModel.find(filter), req.query)
+        const { data, error } = await applyAPIFeature(JobModel.find(filter), req.query);
+
+
+        const jobs = await JobModel.find(); // Fetch all job documents
+
+        // Iterate through each job document
+        for (const job of jobs) {
+            // Populate the quotations field with associated data from JobQuotationModel
+
+            // Update the status field in each quotation object in the array
+            job.quotations.forEach(async (quotation) => {
+                const quo = await JobQoutationModel.findOne({ job: job.id }); // Fetch the quotation document
+                if (quo) {
+                    quotation.id = quo.id; // Update the status field
+                    quotation.status = quo.status; // Update the status field
+                }
+
+                // console.log(quotation)
+            });
+
+            // Save the updated job document
+            // console.log(job)
+            await job.save();
+        }
+
+
 
         res.json({ success: true, message: 'Jobs retrieved', data: data });
+
+
     } catch (error: any) {
         return next(new BadRequestError('An error occured ', error))
     }
@@ -308,7 +335,7 @@ export const getJobQuotations = async (req: any, res: Response, next: NextFuncti
         if (!job) {
             return res.status(404).json({ success: false, message: 'Job not found or does not belong to customer' });
         }
-        const quotations = await JobQoutationModel.find({job:jobId }).populate([{path: 'contractor'}])
+        const quotations = await JobQoutationModel.find({ job: jobId, status: { $ne: JOB_QUOTATION_STATUS.DECLINED } }).populate([{ path: 'contractor' }])
 
 
         // If the job exists, return its quo as a response
@@ -345,7 +372,7 @@ export const acceptJobQuotation = async (req: any, res: Response, next: NextFunc
 
         const quotation = await JobQoutationModel.findOne({ _id: quotationId, job: jobId });
         const job = await JobModel.findById(jobId);
-        
+
 
         // Check if the job exists
         if (!job) {
@@ -359,8 +386,8 @@ export const acceptJobQuotation = async (req: any, res: Response, next: NextFunc
         quotation.status = JOB_QUOTATION_STATUS.ACCEPTED;
         // create conversation here
 
-         // Create a new conversation between the customer and the contractor
-         const conversationMembers = [
+        // Create a new conversation between the customer and the contractor
+        const conversationMembers = [
             { memberType: 'customers', member: customerId },
             { memberType: 'contractors', member: quotation.contractor }
         ];
@@ -386,20 +413,25 @@ export const acceptJobQuotation = async (req: any, res: Response, next: NextFunc
         job.status = JOB_STATUS.ACCEPTED
 
         await quotation.save()
+
+        const foundQuotationIndex = job.quotations.findIndex(quotation => quotation.id == quotationId);
+        if (foundQuotationIndex !== -1) {
+            job.quotations[foundQuotationIndex].status = JOB_QUOTATION_STATUS.ACCEPTED;
+        }
         await job.save()
 
-        
+
         const contractor = await ContractorModel.findById(quotation.contractor)
         const customer = await CustomerModel.findById(customerId)
         //emit event - mail should be sent from event handler shaa
-        JobEvent.emit('JOB_QOUTATION_ACCEPTED', {jobId, contractorId: quotation.contractor, customerId, conversationId: conversation.id})
+        JobEvent.emit('JOB_QOUTATION_ACCEPTED', { jobId, contractorId: quotation.contractor, customerId, conversationId: conversation.id })
 
         // send mail to contractor
-        if(contractor && customer){
-            const html = htmlJobQuotationAcceptedContractorEmailTemplate(contractor.name, customer.name,  job)
+        if (contractor && customer) {
+            const html = htmlJobQuotationAcceptedContractorEmailTemplate(contractor.name, customer.name, job)
             EmailService.send(contractor.email, 'Job Quotation Accepted', html)
         }
-       
+
 
 
         quotation.charges = await quotation.calculateCharges()
@@ -429,17 +461,24 @@ export const declineJobQuotation = async (req: any, res: Response, next: NextFun
 
         quotation.status = JOB_QUOTATION_STATUS.DECLINED;
 
-         // maybe send mail out ?
+        // maybe send mail out ?
         await quotation.save()
+
+        const foundQuotationIndex = job.quotations.findIndex(quotation => quotation.id == quotationId);
+        if (foundQuotationIndex !== -1) {
+            job.quotations[foundQuotationIndex].status = JOB_QUOTATION_STATUS.DECLINED;
+        }
+        await job.save();
+
 
         const contractor = await ContractorModel.findById(quotation.contractor)
         const customer = await CustomerModel.findById(customerId)
         //emit event - mail should be sent from event handler shaa
-        JobEvent.emit('JOB_QOUTATION_DECLINED', {jobId, contractorId: quotation.contractor, customerId})
+        JobEvent.emit('JOB_QOUTATION_DECLINED', { jobId, contractorId: quotation.contractor, customerId })
 
         // send mail to contractor
-        if(contractor && customer){
-            const html = htmlJobQuotationDeclinedContractorEmailTemplate(contractor.name, customer.name,  job)
+        if (contractor && customer) {
+            const html = htmlJobQuotationDeclinedContractorEmailTemplate(contractor.name, customer.name, job)
             EmailService.send(contractor.email, 'Job Quotation Declined', html)
         }
 
@@ -601,7 +640,7 @@ export const makeJobPayment = async (
                 transactionId,
                 remark: 'initial_job_payment' // we can have extra_job_payment
             },
-           
+
             customer: customer.stripeCustomer.id,
             off_session: true,
             confirm: true,
@@ -609,7 +648,7 @@ export const makeJobPayment = async (
 
 
 
-        console.log('payload',payload)
+        console.log('payload', payload)
         const stripePayment = await StripeService.payment.chargeCustomer(paymentMethod.customer, paymentMethod.id, payload)
 
         job.status = JOB_STATUS.BOOKED;
@@ -1610,7 +1649,7 @@ export const captureJobPayment = async (
 
 export const CustomerJobController = {
     createJobRequest,
-    getJobs,
+    getMyJobs,
     createJobListing,
     getSingleJob,
     getJobQuotations,
