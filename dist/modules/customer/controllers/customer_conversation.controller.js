@@ -213,7 +213,8 @@ var sendMessage = function (req, res) { return __awaiter(void 0, void 0, void 0,
                         sender: customerId_3, // Assuming the customer sends the message
                         senderType: 'customers', // Type of the sender
                         message: message, // Message content from the request body
-                        messageType: messages_schema_1.MessageType.TEXT, // Assuming message type is text, adjust as needed
+                        messageType: type,
+                        media: media,
                         createdAt: new Date()
                     })];
             case 2:

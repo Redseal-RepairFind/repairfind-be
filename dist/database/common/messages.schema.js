@@ -96,7 +96,7 @@ var MessageSchema = new mongoose_1.Schema({
     message: {
         type: String,
         trim: true,
-        required: true,
+        required: false,
     },
     media: [String],
     readBy: [

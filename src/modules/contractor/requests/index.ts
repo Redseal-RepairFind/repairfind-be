@@ -185,8 +185,8 @@ export const EmailVerificationRequest = [
 // Define the validation rules for the message request
 export const sendMessageParams = [
   body('type').isIn(['TEXT', 'MEDIA']).withMessage('Invalid messageType'),
-  body('message').notEmpty().if(body('type').equals('TEXT')).withMessage('Message is required'),
-  body('media').isArray().if(body('type').equals('MEDIA')).withMessage('Media must be an array'),
+  body('message').if(body('type').equals('TEXT')).notEmpty().withMessage('Message is required'),
+  body('media').if(body('type').equals('MEDIA')).isArray().withMessage('Media must be an array'),
 ];
 
   

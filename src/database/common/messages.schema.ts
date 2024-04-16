@@ -45,7 +45,7 @@ const MessageSchema = new Schema<IMessage>({
     message: {
         type: String,
         trim: true,
-        required: true,
+        required: false,
     },
     media: [String],
     readBy: [
