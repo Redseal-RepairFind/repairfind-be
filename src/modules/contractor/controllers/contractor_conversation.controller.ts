@@ -1,10 +1,11 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { applyAPIFeature } from "../../../utils/api.feature";
 import { ConversationModel } from "../../../database/common/conversations.schema";
 import { MessageModel, MessageType } from "../../../database/common/messages.schema";
 import { ConversationEvent } from "../../../events";
+import { BadRequestError } from "../../../utils/custom.errors";
 
-export const getConversations = async (req: any, res: Response) => {
+export const getConversations = async (req: any, res: Response, next: NextFunction) => {
     try {
         const { startDate, endDate, read, unread } = req.query;
         const contractorId = req.contractor.id;
@@ -30,13 +31,12 @@ export const getConversations = async (req: any, res: Response) => {
             success: true, message: "Conversations retrieved", 
             data: data
         });
-    } catch (error) {
-        console.error("Error fetching conversations:", error);
-        res.status(500).json({ success: false, message: "Server error" });
+    } catch (error: any) {
+        return next(new BadRequestError('An error occured ', error))
     }
 };
 
-export const getSingleConversation = async (req: any, res: Response)=> {
+export const getSingleConversation = async (req: any, res: Response, next: NextFunction)=> {
     try {
         const { conversationId } = req.params;
         const contractorId = req.contractor.id;
@@ -52,13 +52,12 @@ export const getSingleConversation = async (req: any, res: Response)=> {
             }
         }
         res.status(200).json({ success: true, message: "Conversation retrieved", data: conversation });
-    } catch (error) {
-        console.error("Error fetching conversation:", error);
-        res.status(500).json({ success: false, message: "Server error" });
+    } catch (error: any) {
+        return next(new BadRequestError('An error occured ', error))
     }
 };
 
-export const getConversationMessages = async (req: any, res: Response) => {
+export const getConversationMessages = async (req: any, res: Response, next: NextFunction) => {
     try {
         const { conversationId } = req.params;
         const contractorId = req.contractor.id;
@@ -94,13 +93,12 @@ export const getConversationMessages = async (req: any, res: Response) => {
 
 
         res.status(200).json({ success: true, message: 'Conversation messages retrieved', data:  data  });
-    } catch (error) {
-        console.error('Error fetching conversation messages:', error);
-        res.status(500).json({ success: false, message: 'Server error' });
+    } catch (error: any) {
+        return next(new BadRequestError('An error occured ', error))
     }
 };
 
-export const sendMessage = async (req: any, res: Response) => {
+export const sendMessage = async (req: any, res: Response, next: NextFunction) => {
     try {
         const { conversationId } = req.params;
         const { message, media, type } = req.body; // Assuming you pass message content in the request body
@@ -135,9 +133,8 @@ export const sendMessage = async (req: any, res: Response) => {
         ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
 
         res.status(201).json({ success: true, message: 'Message sent successfully', data: newMessage });
-    } catch (error) {
-        console.error('Error sending message:', error);
-        res.status(500).json({ success: false, message: 'Server error' });
+    } catch (error: any) {
+        return next(new BadRequestError('An error occured ', error))
     }
 };
 
