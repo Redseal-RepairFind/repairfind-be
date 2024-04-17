@@ -205,6 +205,11 @@ ContractorSchema.set('toJSON', {
       delete ret.stripeAccount;
     }
 
+    if(!ret.profilePhoto ||  !ret.profilePhoto.url){
+      ret.profilePhoto = {
+        url: 'https://ipalas3bucket.s3.us-east-2.amazonaws.com/avatar.png'
+      }
+    }
 
     ret.name = doc.name;
     return ret;
