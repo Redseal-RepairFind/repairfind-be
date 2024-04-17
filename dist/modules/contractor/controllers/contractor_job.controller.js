@@ -50,7 +50,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorJobController = exports.getJobListings = exports.updateJobQuotation = exports.getQuotationForJob = exports.sendJobQuotation = exports.getJobListingById = exports.getJobRequestById = exports.rejectJobRequest = exports.acceptJobRequest = exports.getJobRequests = void 0;
+exports.ContractorJobController = exports.getMyJobs = exports.getJobListings = exports.updateJobQuotation = exports.getQuotationForJob = exports.sendJobQuotation = exports.getJobListingById = exports.getJobRequestById = exports.rejectJobRequest = exports.acceptJobRequest = exports.getJobRequests = void 0;
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var jobQoutationTemplate_1 = require("../../../templates/customerEmail/jobQoutationTemplate");
@@ -786,6 +786,57 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
     });
 }); };
 exports.getJobListings = getJobListings;
+var getMyJobs = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var contractorId, _a, type, _b, page, _c, limit, sort // Sort field and order (-fieldName or fieldName)
+    , filter, _d, data, error_11, error_10;
+    return __generator(this, function (_e) {
+        switch (_e.label) {
+            case 0:
+                contractorId = req.contractor.id;
+                _e.label = 1;
+            case 1:
+                _e.trys.push([1, 5, , 6]);
+                _a = req.query, type = _a.type, _b = _a.page, page = _b === void 0 ? 1 : _b, _c = _a.limit, limit = _c === void 0 ? 10 : _c, sort = _a.sort;
+                filter = { user: contractorId, userType: 'contractors' };
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_model_1.JobModel.find(filter).populate({
+                        path: 'quotations',
+                        match: { contractor: contractorId }, // Match quotations by contractorId
+                        select: 'status' // Optionally select fields to populate
+                    }), req.query)];
+            case 2:
+                _d = _e.sent(), data = _d.data, error_11 = _d.error;
+                if (!data) return [3 /*break*/, 4];
+                // Map through each job and attach myQuotation if contractor has applied 
+                return [4 /*yield*/, Promise.all(data.data.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
+                        var _a;
+                        return __generator(this, function (_b) {
+                            switch (_b.label) {
+                                case 0:
+                                    job.id = job._id;
+                                    _a = job;
+                                    return [4 /*yield*/, job_quotation_model_1.JobQoutationModel.findOne({ contractor: contractorId, job: job._id })];
+                                case 1:
+                                    _a.myQuotation = _b.sent();
+                                    return [2 /*return*/];
+                            }
+                        });
+                    }); }))];
+            case 3:
+                // Map through each job and attach myQuotation if contractor has applied 
+                _e.sent();
+                _e.label = 4;
+            case 4:
+                // Send response with job listings data
+                res.status(200).json({ message: 'My jobs retreived successfully', success: true, data: data });
+                return [3 /*break*/, 6];
+            case 5:
+                error_10 = _e.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_10))];
+            case 6: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getMyJobs = getMyJobs;
 // //contractor send job quatation two /////////////
 // export const contractorSendJobQuatationControllerTwo = async (
 //   req: any,
@@ -1521,5 +1572,6 @@ exports.ContractorJobController = {
     sendJobQuotation: exports.sendJobQuotation,
     getQuotationForJob: exports.getQuotationForJob,
     updateJobQuotation: exports.updateJobQuotation,
-    getJobListingById: exports.getJobListingById
+    getJobListingById: exports.getJobListingById,
+    getMyJobs: exports.getMyJobs
 };

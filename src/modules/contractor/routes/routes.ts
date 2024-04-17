@@ -137,6 +137,7 @@ router.post("/stripe-setupintent",  checkContractorRole, ContractorStripeControl
 router.get('/jobs', checkContractorRole, ContractorJobController.getJobRequests)
 
 // Job Listings
+router.get('/jobs/my-jobs', checkContractorRole, ContractorJobController.getMyJobs)
 router.get('/jobs/listings', checkContractorRole, ContractorJobController.getJobListings)
 router.get('/jobs/listings/:jobId', checkContractorRole, ContractorJobController.getJobListingById)
 

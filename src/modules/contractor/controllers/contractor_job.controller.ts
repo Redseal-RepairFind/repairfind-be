@@ -818,6 +818,43 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
 };
 
 
+export const getMyJobs = async (req: any, res: Response, next: NextFunction) => {
+  
+  const contractorId = req.contractor.id
+  try {
+    
+    let {
+      type,
+      page = 1, // Default to page 1
+      limit = 10, // Default to 10 items per page
+      sort // Sort field and order (-fieldName or fieldName)
+    } = req.query;
+
+    const filter: any = {user: contractorId, userType: 'contractors'};
+  
+   
+    const {data, error} = await applyAPIFeature(JobModel.find(filter).populate({
+      path: 'quotations',
+      match: { contractor: contractorId }, // Match quotations by contractorId
+      select: 'status' // Optionally select fields to populate
+    }), req.query); // Assuming Contractor is your Mongoose model
+
+    if(data){
+      // Map through each job and attach myQuotation if contractor has applied 
+      await Promise.all(data.data.map(async (job: any) => {
+        job.id = job._id 
+        job.myQuotation = await JobQoutationModel.findOne({contractor: contractorId, job: job._id})
+      }));
+  }
+
+    // Send response with job listings data
+    res.status(200).json({message: 'My jobs retreived successfully', success: true, data });
+  } catch (error: any) {
+    return next(new BadRequestError('An error occured ', error))
+  }
+};
+
+
 // //contractor send job quatation two /////////////
 // export const contractorSendJobQuatationControllerTwo = async (
 //   req: any,
@@ -1886,7 +1923,8 @@ export const ContractorJobController = {
   sendJobQuotation,
   getQuotationForJob,
   updateJobQuotation,
-  getJobListingById
+  getJobListingById,
+  getMyJobs
 }
 
 

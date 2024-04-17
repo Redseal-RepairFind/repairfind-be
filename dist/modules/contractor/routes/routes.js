@@ -107,6 +107,7 @@ router.post("/stripe-setupintent", contractorRoleCheck_middleware_1.checkContrac
 // Contractor Jobs
 router.get('/jobs', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.getJobRequests);
 // Job Listings
+router.get('/jobs/my-jobs', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.getMyJobs);
 router.get('/jobs/listings', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.getJobListings);
 router.get('/jobs/listings/:jobId', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.getJobListingById);
 // Job Request
