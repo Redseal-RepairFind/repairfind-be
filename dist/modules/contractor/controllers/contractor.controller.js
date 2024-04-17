@@ -323,7 +323,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     };
     ProfileHandler.prototype.updateAccount = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, contractor, contractorId, _a, name_3, firstName, lastName, profilePhoto, phoneNumber, account, err_4;
+            var req, res, contractor, contractorId, account, _a, firstName, lastName, companyName, profilePhoto, phoneNumber, dateOfBirth, payload, err_4;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -331,34 +331,41 @@ var ProfileHandler = /** @class */ (function (_super) {
                         res = this.res;
                         _b.label = 1;
                     case 1:
-                        _b.trys.push([1, 3, , 4]);
+                        _b.trys.push([1, 4, , 5]);
                         contractor = req.contractor;
                         contractorId = contractor.id;
-                        _a = req.body, name_3 = _a.name, firstName = _a.firstName, lastName = _a.lastName, profilePhoto = _a.profilePhoto, phoneNumber = _a.phoneNumber;
-                        return [4 /*yield*/, contractor_model_1.ContractorModel.findOneAndUpdate({ _id: contractorId }, {
-                                name: name_3,
-                                firstName: firstName,
-                                lastName: lastName,
-                                profilePhoto: profilePhoto,
-                                phoneNumber: phoneNumber
-                            }, { new: true })];
+                        return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
                     case 2:
                         account = _b.sent();
                         if (!account) {
                             return [2 /*return*/, res.status(404).json({ success: false, message: 'Account not found' })];
                         }
+                        _a = req.body, firstName = _a.firstName, lastName = _a.lastName, companyName = _a.companyName, profilePhoto = _a.profilePhoto, phoneNumber = _a.phoneNumber, dateOfBirth = _a.dateOfBirth;
+                        payload = {};
+                        if (account && account.accountType == 'Company') {
+                            payload = { profilePhoto: profilePhoto, phoneNumber: phoneNumber, companyName: companyName };
+                        }
+                        if (account && account.accountType == 'Individual') {
+                            payload = { profilePhoto: profilePhoto, phoneNumber: phoneNumber, firstName: firstName, lastName: lastName, dateOfBirth: dateOfBirth };
+                        }
+                        if (account && account.accountType == 'Employee') {
+                            payload = { profilePhoto: profilePhoto, phoneNumber: phoneNumber, firstName: firstName, lastName: lastName, dateOfBirth: dateOfBirth };
+                        }
+                        return [4 /*yield*/, contractor_model_1.ContractorModel.findOneAndUpdate({ _id: contractorId }, payload, { new: true })];
+                    case 3:
+                        _b.sent();
                         res.json({
                             success: true,
                             message: 'Account updated successfully',
                             data: account,
                         });
-                        return [3 /*break*/, 4];
-                    case 3:
+                        return [3 /*break*/, 5];
+                    case 4:
                         err_4 = _b.sent();
                         console.log('error', err_4);
                         res.status(500).json({ success: false, message: err_4.message });
-                        return [3 /*break*/, 4];
-                    case 4: return [2 /*return*/];
+                        return [3 /*break*/, 5];
+                    case 5: return [2 /*return*/];
                 }
             });
         });
@@ -366,7 +373,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     ProfileHandler.prototype.getAccount = function () {
         var _a;
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, contractorId, includeStripeIdentity, includeStripeCustomer, includeStripePaymentMethods, includedFields, contractor, quiz, contractorResponse, stripeAccount, err_5;
+            var req, res, contractorId, includeStripeIdentity, includeStripeCustomer, includeStripePaymentMethods, includeStripeAccount, includedFields, contractor, quiz, contractorResponse, stripeAccount, err_5;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -374,34 +381,41 @@ var ProfileHandler = /** @class */ (function (_super) {
                         res = this.res;
                         _b.label = 1;
                     case 1:
-                        _b.trys.push([1, 6, , 7]);
+                        _b.trys.push([1, 7, , 8]);
                         contractorId = req.contractor.id;
                         includeStripeIdentity = false;
                         includeStripeCustomer = false;
                         includeStripePaymentMethods = false;
+                        includeStripeAccount = false;
                         // Parse the query parameter "include" to determine which fields to include
                         if (req.query.include) {
                             includedFields = req.query.include.split(',');
                             includeStripeIdentity = includedFields.includes('stripeIdentity');
                             includeStripeCustomer = includedFields.includes('stripeCustomer');
                             includeStripePaymentMethods = includedFields.includes('stripePaymentMethods');
+                            includeStripeAccount = includedFields.includes('stripeAccount');
                         }
                         return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId).populate('profile')];
                     case 2:
                         contractor = _b.sent();
-                        quiz = (_a = contractor === null || contractor === void 0 ? void 0 : contractor.quiz) !== null && _a !== void 0 ? _a : null;
-                        contractorResponse = __assign(__assign({}, contractor === null || contractor === void 0 ? void 0 : contractor.toJSON({ includeStripeIdentity: true, includeStripeCustomer: true, includeStripePaymentMethods: true })), { // Convert to plain JSON object
+                        if (!contractor) {
+                            return [2 /*return*/, res.status(404).json({ success: false, message: 'Account not found' })];
+                        }
+                        return [4 /*yield*/, contractor.quiz];
+                    case 3:
+                        quiz = (_a = _b.sent()) !== null && _a !== void 0 ? _a : null;
+                        contractorResponse = __assign(__assign({}, contractor.toJSON({ includeStripeIdentity: true, includeStripeCustomer: true, includeStripePaymentMethods: true, includeStripeAccount: true })), { // Convert to plain JSON object
                             quiz: quiz });
                         if (!contractor) {
                             return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor not found' })];
                         }
-                        if (!!contractor.stripeAccount) return [3 /*break*/, 5];
+                        if (!!contractor.stripeAccount) return [3 /*break*/, 6];
                         return [4 /*yield*/, stripe_1.StripeService.account.createAccount({
                                 userType: 'contractors',
                                 userId: contractorId,
                                 email: contractor.email
                             })];
-                    case 3:
+                    case 4:
                         stripeAccount = _b.sent();
                         contractor.stripeAccount = {
                             id: stripeAccount.id,
@@ -414,10 +428,10 @@ var ProfileHandler = /** @class */ (function (_super) {
                             external_accounts: stripeAccount.external_accounts,
                         };
                         return [4 /*yield*/, contractor.save()];
-                    case 4:
-                        _b.sent();
-                        _b.label = 5;
                     case 5:
+                        _b.sent();
+                        _b.label = 6;
+                    case 6:
                         //TODO: for now always update the meta data of stripe customer with this email address
                         if (contractor.stripeCustomer) {
                             stripe_1.StripeService.customer.updateCustomer(contractor.stripeCustomer.id, {
@@ -441,13 +455,13 @@ var ProfileHandler = /** @class */ (function (_super) {
                             message: 'Account fetched successfully',
                             data: contractorResponse,
                         });
-                        return [3 /*break*/, 7];
-                    case 6:
+                        return [3 /*break*/, 8];
+                    case 7:
                         err_5 = _b.sent();
                         console.log('error', err_5);
                         res.status(500).json({ success: false, message: err_5.message });
-                        return [3 /*break*/, 7];
-                    case 7: return [2 /*return*/];
+                        return [3 /*break*/, 8];
+                    case 8: return [2 /*return*/];
                 }
             });
         });

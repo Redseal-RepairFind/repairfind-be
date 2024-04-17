@@ -283,29 +283,39 @@ class ProfileHandler extends Base {
       const contractor = req.contractor;
       const contractorId = contractor.id;
 
-      const {
-        name,
-        firstName,
-        lastName,
-        profilePhoto,
-        phoneNumber,
-      } = req.body;
-
-      const account = await ContractorModel.findOneAndUpdate(
-        { _id: contractorId },
-        {
-          name,
-          firstName,
-          lastName,
-          profilePhoto,
-          phoneNumber
-        },
-        { new: true }
-      );
-
+      const account = await ContractorModel.findById(contractorId);
       if (!account) {
         return res.status(404).json({ success: false, message: 'Account not found' });
       }
+      
+      const {
+        firstName,
+        lastName,
+        companyName,
+        profilePhoto,
+        phoneNumber,
+        dateOfBirth,
+      } = req.body;
+
+      let payload  = {}
+      if(account && account.accountType == 'Company'){
+         payload  = { profilePhoto, phoneNumber, companyName}
+      }
+     
+      if(account && account.accountType == 'Individual'){
+         payload  = { profilePhoto, phoneNumber, firstName, lastName, dateOfBirth}
+      }
+
+      if(account && account.accountType == 'Employee'){
+         payload  = { profilePhoto, phoneNumber, firstName, lastName, dateOfBirth}
+      }
+     
+      await ContractorModel.findOneAndUpdate(
+        { _id: contractorId },
+        payload,
+        { new: true }
+      );
+
 
       res.json({
         success: true,
@@ -329,6 +339,7 @@ class ProfileHandler extends Base {
       let includeStripeIdentity = false;
       let includeStripeCustomer = false;
       let includeStripePaymentMethods = false;
+      let includeStripeAccount = false;
 
       // Parse the query parameter "include" to determine which fields to include
       if (req.query.include) {
@@ -336,15 +347,19 @@ class ProfileHandler extends Base {
         includeStripeIdentity = includedFields.includes('stripeIdentity');
         includeStripeCustomer = includedFields.includes('stripeCustomer');
         includeStripePaymentMethods = includedFields.includes('stripePaymentMethods');
+        includeStripeAccount = includedFields.includes('stripeAccount');
       }
 
 
       const contractor = await ContractorModel.findById(contractorId).populate('profile');
-      const quiz = contractor?.quiz ?? null;
+      if(!contractor){
+        return res.status(404).json({ success: false, message: 'Account not found' });
+      }
+      const quiz = await contractor.quiz ?? null;
 
       const contractorResponse = {
         //@ts-ignore
-        ...contractor?.toJSON({ includeStripeIdentity: true, includeStripeCustomer: true, includeStripePaymentMethods: true }), // Convert to plain JSON object
+        ...contractor.toJSON({ includeStripeIdentity: true, includeStripeCustomer: true, includeStripePaymentMethods: true, includeStripeAccount: true }), // Convert to plain JSON object
         quiz,
       };
 

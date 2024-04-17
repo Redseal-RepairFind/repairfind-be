@@ -140,6 +140,10 @@ ContractorSchema.virtual('hasStripeCustomer').get(function (this: IContractor) {
   return !!this.stripeCustomer; // Returns true if stripeCustomer exists, false otherwise
 });
 
+ContractorSchema.virtual('hasStripeAccount').get(function (this: IContractor) {
+  return !!this.stripeAccount; // Returns true if stripeCustomer exists, false otherwise
+});
+
 ContractorSchema.virtual('hasStripePaymentMethods').get(function (this: IContractor) {
   return Array.isArray(this.stripePaymentMethods) && this.stripePaymentMethods.length > 0; // Returns true if stripePaymentMethods is an array with at least one element
 });
@@ -149,6 +153,15 @@ ContractorSchema.virtual('stripeIdentityStatus').get(function (this: IContractor
   return this.stripeIdentity ? this.stripeIdentity.status : 'unverified';
 });
 
+ContractorSchema.virtual('stripeAccountStatus').get(function (this: IContractor) {
+  const stripeAccount = this.stripeAccount;
+  return stripeAccount ? {
+    details_submitted: stripeAccount.details_submitted,
+    payouts_enabled: stripeAccount.payouts_enabled,
+    charges_enabled: stripeAccount.charges_enabled
+  } : 'unverified';
+});
+
 
 ContractorSchema.virtual('quiz').get(async function () {
   const latestQuiz: any = await ContractorQuizModel.findOne({ contractor: this._id }).sort({ createdAt: -1 });
@@ -156,9 +169,9 @@ ContractorSchema.virtual('quiz').get(async function () {
 });
 
 ContractorSchema.virtual('name').get(function () {
-  if (this.accountType === CONTRACTOR_TYPES.INDIVIDUAL || this.accountType === CONTRACTOR_TYPES.EMPLOYEE) {
+  if (this.accountType == CONTRACTOR_TYPES.INDIVIDUAL || this.accountType == CONTRACTOR_TYPES.EMPLOYEE) {
     return `${this.firstName} ${this.lastName}`;
-  } else if (this.accountType === CONTRACTOR_TYPES.COMPANY) {
+  } else if (this.accountType == CONTRACTOR_TYPES.COMPANY) {
     return this.companyName;
   }
 });
@@ -172,7 +185,7 @@ ContractorSchema.set('toJSON', {
 
     // Check if the options include virtuals, if not, delete the fields
 
-    
+
     // Check if the options include virtuals, if not, delete the stripeIdentity field
     if (!options.includeStripeIdentity) {
       delete ret.stripeIdentity;
@@ -183,6 +196,10 @@ ContractorSchema.set('toJSON', {
 
     if (!options.includeStripeCustomer) {
       delete ret.stripeCustomer;
+    }
+
+    if (!options.includeStripeAccount) {
+      delete ret.stripeAccount;
     }
 
 

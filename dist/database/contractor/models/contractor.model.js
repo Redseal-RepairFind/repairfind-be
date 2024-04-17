@@ -153,11 +153,22 @@ ContractorSchema.virtual('hasStripeIdentity').get(function () {
 ContractorSchema.virtual('hasStripeCustomer').get(function () {
     return !!this.stripeCustomer; // Returns true if stripeCustomer exists, false otherwise
 });
+ContractorSchema.virtual('hasStripeAccount').get(function () {
+    return !!this.stripeAccount; // Returns true if stripeCustomer exists, false otherwise
+});
 ContractorSchema.virtual('hasStripePaymentMethods').get(function () {
     return Array.isArray(this.stripePaymentMethods) && this.stripePaymentMethods.length > 0; // Returns true if stripePaymentMethods is an array with at least one element
 });
 ContractorSchema.virtual('stripeIdentityStatus').get(function () {
     return this.stripeIdentity ? this.stripeIdentity.status : 'unverified';
+});
+ContractorSchema.virtual('stripeAccountStatus').get(function () {
+    var stripeAccount = this.stripeAccount;
+    return stripeAccount ? {
+        details_submitted: stripeAccount.details_submitted,
+        payouts_enabled: stripeAccount.payouts_enabled,
+        charges_enabled: stripeAccount.charges_enabled
+    } : 'unverified';
 });
 ContractorSchema.virtual('quiz').get(function () {
     return __awaiter(this, void 0, void 0, function () {
@@ -174,10 +185,10 @@ ContractorSchema.virtual('quiz').get(function () {
     });
 });
 ContractorSchema.virtual('name').get(function () {
-    if (this.accountType === CONTRACTOR_TYPES.INDIVIDUAL || this.accountType === CONTRACTOR_TYPES.EMPLOYEE) {
+    if (this.accountType == CONTRACTOR_TYPES.INDIVIDUAL || this.accountType == CONTRACTOR_TYPES.EMPLOYEE) {
         return "".concat(this.firstName, " ").concat(this.lastName);
     }
-    else if (this.accountType === CONTRACTOR_TYPES.COMPANY) {
+    else if (this.accountType == CONTRACTOR_TYPES.COMPANY) {
         return this.companyName;
     }
 });
@@ -196,6 +207,9 @@ ContractorSchema.set('toJSON', {
         }
         if (!options.includeStripeCustomer) {
             delete ret.stripeCustomer;
+        }
+        if (!options.includeStripeAccount) {
+            delete ret.stripeAccount;
         }
         ret.name = doc.name;
         return ret;
