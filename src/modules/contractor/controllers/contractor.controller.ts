@@ -23,7 +23,7 @@ class ProfileHandler extends Base {
     let res = this.res
     try {
       let {
-        name,
+        gstName,
         gstNumber,
         gstType,
         location,
@@ -39,8 +39,6 @@ class ProfileHandler extends Base {
         profilePhoto,
         previousJobPhotos,
         previousJobVideos,
-        firstName,
-        lastName
       } = req.body;
 
       // Check for validation errors
@@ -79,19 +77,13 @@ class ProfileHandler extends Base {
       };
 
       const profileType = contractor.accountType
-      if (profileType == 'Employee' || profileType == 'Individual') {
-        name = `${contractor.firstName} ${contractor.lastName}`
-      } else {
-        name = `${contractor.companyName}`
-      }
-
+     
       const profile = await ContractorProfileModel.findOneAndUpdate({ contractor: contractorId }, {
         contractor: contractorId,
-        name,
+        gstName,
         gstNumber,
         gstType,
         location,
-        backgroundCheckConsent,
         skill,
         website,
         experienceYear,
@@ -103,7 +95,8 @@ class ProfileHandler extends Base {
         profilePhoto,
         previousJobPhotos,
         previousJobVideos,
-        profileType
+        profileType,
+        backgroundCheckConsent,
       }, { upsert: true, new: true, setDefaultsOnInsert: true })
 
       // Update the ContractorModel with the profile ID
@@ -195,7 +188,9 @@ class ProfileHandler extends Base {
       const contractorId = contractor.id;
 
       const {
-        name,
+        gstName,
+        gstType,
+        gstNumber,
         website,
         accountType, // for account upgrade
         experienceYear,
@@ -204,10 +199,10 @@ class ProfileHandler extends Base {
         location,
         phoneNumber,
         emergencyJobs,
-        profilePhoto,
         availableDays,
         previousJobPhotos,
         previousJobVideos,
+        skill
       } = req.body;
 
       // Check for validation errors
@@ -216,10 +211,18 @@ class ProfileHandler extends Base {
         return res.status(400).json({ errors: errors.array() });
       }
 
-      const profile = await ContractorProfileModel.findOneAndUpdate(
+      const profile = await ContractorProfileModel.find({contractor: contractorId})
+
+      if (!profile) {
+        return res.status(404).json({ success: false, message: 'Profile not found' });
+      }
+
+      await ContractorProfileModel.findOneAndUpdate(
         { contractor: contractorId },
         {
-          name,
+          gstName,
+          gstType,
+          gstNumber,
           website,
           experienceYear,
           about,
@@ -230,30 +233,15 @@ class ProfileHandler extends Base {
           availableDays,
           previousJobPhotos,
           previousJobVideos,
+          skill,
         },
         { new: true }
       );
 
-      if (!profile) {
-        return res.status(404).json({ success: false, message: 'Profile not found' });
-      }
 
       if (accountType) {
         contractor.accountType = accountType;
       }
-      contractor.profilePhoto = profilePhoto;
-
-
-      if (!profile.name) {
-        const profileType = contractor.accountType
-        if (profileType == 'Employee' || profileType == 'Individual') {
-          profile.name = `${contractor.firstName} ${contractor.lastName}`
-        } else {
-          profile.name = `${contractor.companyName}`
-        }
-      }
-
-
 
       await contractor.save();
 

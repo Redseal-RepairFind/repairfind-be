@@ -69,30 +69,28 @@ export const CreateProfileRequest  = [
 export const UpdateProfileRequest  = [
 
     //  validate for all
-    body("location.address").notEmpty(),
+    body("location.address").optional(),
     body("profilePhoto.url").optional().isURL(),
-    body("location.latitude").notEmpty().isNumeric(),
-    body("location.longitude").notEmpty().isNumeric(),
-    body("skill").notEmpty(),
+    body("location.latitude").optional().isNumeric(),
+    body("location.longitude").optional().isNumeric(),
+    body("skill").optional(),
 
    
     //  only validate when  accountType  is  Company and Individual
-    body("name").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) !== 'Employee').notEmpty(),
-    body("gstNumber").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').notEmpty(),
-    body("gstType").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').notEmpty(),
+    body("gstName").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) !== 'Employee').optional(),
+    body("gstNumber").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').optional(),
+    body("gstType").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').optional(),
     body("experienceYear").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').optional().isNumeric(),
     body("about").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').optional(),
     body("website").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').optional().isURL(),
     body("email").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) !== 'Employee').optional().isEmail(),
     body("phoneNumber").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').optional().isObject(),
-    body("emergencyJobs").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').notEmpty(),
-    body("availableDays").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').notEmpty().isArray(),
+    body("emergencyJobs").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').optional().notEmpty(),
+    body("availableDays").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').optional().notEmpty().isArray(),
     body("previousJobPhotos").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').optional().isArray().notEmpty().custom((value) => validateMediaArray(value)),
     body("previousJobVideos").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').optional().isArray().notEmpty().custom((value) => validateMediaArray(value)),
 
-    //  validate only for 'Employee
-    body("firstName").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) === 'Employee').notEmpty(),
-    body("lastName").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) === 'Employee').notEmpty(),
+   
 
 ];
 

@@ -52,9 +52,8 @@ const CompanyProfileSchema = new Schema<IContractorProfile>(
         required: true,
       },
 
-      name: {
-        type: String,
-        required: true,   
+      gstName: {
+        type: String,  
       },
 
       gstNumber: {
@@ -95,6 +94,7 @@ const CompanyProfileSchema = new Schema<IContractorProfile>(
       availableDays: {
         type: [String],
       },
+      
       isOffDuty: {
         type: Boolean,
         default: false,

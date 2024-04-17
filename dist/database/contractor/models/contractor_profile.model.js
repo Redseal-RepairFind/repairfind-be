@@ -39,9 +39,8 @@ var CompanyProfileSchema = new mongoose_1.Schema({
         ref: "contractors",
         required: true,
     },
-    name: {
+    gstName: {
         type: String,
-        required: true,
     },
     gstNumber: {
         type: String,

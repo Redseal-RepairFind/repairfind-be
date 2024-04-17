@@ -104,7 +104,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     }
     ProfileHandler.prototype.createProfile = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _a, name_1, gstNumber, gstType, location_1, backgroundCheckConsent, skill, website, experienceYear, about, email, phoneNumber, emergencyJobs, availableDays, profilePhoto, previousJobPhotos, previousJobVideos, firstName, lastName, errors, contractor, contractorId, constractor, certnToken, data, profileType, profile_1, contractorResponse, htmlCon, html, adminsWithEmails, adminEmails, err_1;
+            var req, res, _a, gstName, gstNumber, gstType, location_1, backgroundCheckConsent, skill, website, experienceYear, about, email, phoneNumber, emergencyJobs, availableDays, profilePhoto, previousJobPhotos, previousJobVideos, errors, contractor, contractorId, constractor, certnToken, data, profileType, profile_1, contractorResponse, htmlCon, html, adminsWithEmails, adminEmails, err_1;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -113,7 +113,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         _b.label = 1;
                     case 1:
                         _b.trys.push([1, 6, , 7]);
-                        _a = req.body, name_1 = _a.name, gstNumber = _a.gstNumber, gstType = _a.gstType, location_1 = _a.location, backgroundCheckConsent = _a.backgroundCheckConsent, skill = _a.skill, website = _a.website, experienceYear = _a.experienceYear, about = _a.about, email = _a.email, phoneNumber = _a.phoneNumber, emergencyJobs = _a.emergencyJobs, availableDays = _a.availableDays, profilePhoto = _a.profilePhoto, previousJobPhotos = _a.previousJobPhotos, previousJobVideos = _a.previousJobVideos, firstName = _a.firstName, lastName = _a.lastName;
+                        _a = req.body, gstName = _a.gstName, gstNumber = _a.gstNumber, gstType = _a.gstType, location_1 = _a.location, backgroundCheckConsent = _a.backgroundCheckConsent, skill = _a.skill, website = _a.website, experienceYear = _a.experienceYear, about = _a.about, email = _a.email, phoneNumber = _a.phoneNumber, emergencyJobs = _a.emergencyJobs, availableDays = _a.availableDays, profilePhoto = _a.profilePhoto, previousJobPhotos = _a.previousJobPhotos, previousJobVideos = _a.previousJobVideos;
                         errors = (0, express_validator_1.validationResult)(req);
                         if (!errors.isEmpty()) {
                             return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -140,19 +140,12 @@ var ProfileHandler = /** @class */ (function (_super) {
                             email: constractor.email
                         };
                         profileType = contractor.accountType;
-                        if (profileType == 'Employee' || profileType == 'Individual') {
-                            name_1 = "".concat(contractor.firstName, " ").concat(contractor.lastName);
-                        }
-                        else {
-                            name_1 = "".concat(contractor.companyName);
-                        }
                         return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOneAndUpdate({ contractor: contractorId }, {
                                 contractor: contractorId,
-                                name: name_1,
+                                gstName: gstName,
                                 gstNumber: gstNumber,
                                 gstType: gstType,
                                 location: location_1,
-                                backgroundCheckConsent: backgroundCheckConsent,
                                 skill: skill,
                                 website: website,
                                 experienceYear: experienceYear,
@@ -164,7 +157,8 @@ var ProfileHandler = /** @class */ (function (_super) {
                                 profilePhoto: profilePhoto,
                                 previousJobPhotos: previousJobPhotos,
                                 previousJobVideos: previousJobVideos,
-                                profileType: profileType
+                                profileType: profileType,
+                                backgroundCheckConsent: backgroundCheckConsent,
                             }, { upsert: true, new: true, setDefaultsOnInsert: true })
                             // Update the ContractorModel with the profile ID
                         ];
@@ -253,7 +247,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     };
     ProfileHandler.prototype.updateProfile = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, contractor, contractorId, _a, name_2, website, accountType, experienceYear, about, email, location_2, phoneNumber, emergencyJobs, profilePhoto, availableDays, previousJobPhotos, previousJobVideos, errors, profile, profileType, contractorResponse, err_3;
+            var req, res, contractor, contractorId, _a, gstName, gstType, gstNumber, website, accountType, experienceYear, about, email, location_2, phoneNumber, emergencyJobs, availableDays, previousJobPhotos, previousJobVideos, skill, errors, profile, contractorResponse, err_3;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -261,16 +255,24 @@ var ProfileHandler = /** @class */ (function (_super) {
                         res = this.res;
                         _b.label = 1;
                     case 1:
-                        _b.trys.push([1, 4, , 5]);
+                        _b.trys.push([1, 5, , 6]);
                         contractor = req.contractor;
                         contractorId = contractor.id;
-                        _a = req.body, name_2 = _a.name, website = _a.website, accountType = _a.accountType, experienceYear = _a.experienceYear, about = _a.about, email = _a.email, location_2 = _a.location, phoneNumber = _a.phoneNumber, emergencyJobs = _a.emergencyJobs, profilePhoto = _a.profilePhoto, availableDays = _a.availableDays, previousJobPhotos = _a.previousJobPhotos, previousJobVideos = _a.previousJobVideos;
+                        _a = req.body, gstName = _a.gstName, gstType = _a.gstType, gstNumber = _a.gstNumber, website = _a.website, accountType = _a.accountType, experienceYear = _a.experienceYear, about = _a.about, email = _a.email, location_2 = _a.location, phoneNumber = _a.phoneNumber, emergencyJobs = _a.emergencyJobs, availableDays = _a.availableDays, previousJobPhotos = _a.previousJobPhotos, previousJobVideos = _a.previousJobVideos, skill = _a.skill;
                         errors = (0, express_validator_1.validationResult)(req);
                         if (!errors.isEmpty()) {
                             return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                         }
+                        return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.find({ contractor: contractorId })];
+                    case 2:
+                        profile = _b.sent();
+                        if (!profile) {
+                            return [2 /*return*/, res.status(404).json({ success: false, message: 'Profile not found' })];
+                        }
                         return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOneAndUpdate({ contractor: contractorId }, {
-                                name: name_2,
+                                gstName: gstName,
+                                gstType: gstType,
+                                gstNumber: gstNumber,
                                 website: website,
                                 experienceYear: experienceYear,
                                 about: about,
@@ -281,27 +283,15 @@ var ProfileHandler = /** @class */ (function (_super) {
                                 availableDays: availableDays,
                                 previousJobPhotos: previousJobPhotos,
                                 previousJobVideos: previousJobVideos,
+                                skill: skill,
                             }, { new: true })];
-                    case 2:
-                        profile = _b.sent();
-                        if (!profile) {
-                            return [2 /*return*/, res.status(404).json({ success: false, message: 'Profile not found' })];
-                        }
+                    case 3:
+                        _b.sent();
                         if (accountType) {
                             contractor.accountType = accountType;
                         }
-                        contractor.profilePhoto = profilePhoto;
-                        if (!profile.name) {
-                            profileType = contractor.accountType;
-                            if (profileType == 'Employee' || profileType == 'Individual') {
-                                profile.name = "".concat(contractor.firstName, " ").concat(contractor.lastName);
-                            }
-                            else {
-                                profile.name = "".concat(contractor.companyName);
-                            }
-                        }
                         return [4 /*yield*/, contractor.save()];
-                    case 3:
+                    case 4:
                         _b.sent();
                         contractorResponse = __assign(__assign({}, contractor.toJSON()), { // Convert to plain JSON object
                             profile: profile });
@@ -310,13 +300,13 @@ var ProfileHandler = /** @class */ (function (_super) {
                             message: 'Profile updated successfully',
                             data: contractorResponse,
                         });
-                        return [3 /*break*/, 5];
-                    case 4:
+                        return [3 /*break*/, 6];
+                    case 5:
                         err_3 = _b.sent();
                         console.log('error', err_3);
                         res.status(500).json({ success: false, message: err_3.message });
-                        return [3 /*break*/, 5];
-                    case 5: return [2 /*return*/];
+                        return [3 /*break*/, 6];
+                    case 6: return [2 /*return*/];
                 }
             });
         });

@@ -119,24 +119,24 @@ exports.CreateProfileRequest = [
 ];
 exports.UpdateProfileRequest = [
     //  validate for all
-    (0, express_validator_1.body)("location.address").notEmpty(),
+    (0, express_validator_1.body)("location.address").optional(),
     (0, express_validator_1.body)("profilePhoto.url").optional().isURL(),
-    (0, express_validator_1.body)("location.latitude").notEmpty().isNumeric(),
-    (0, express_validator_1.body)("location.longitude").notEmpty().isNumeric(),
-    (0, express_validator_1.body)("skill").notEmpty(),
+    (0, express_validator_1.body)("location.latitude").optional().isNumeric(),
+    (0, express_validator_1.body)("location.longitude").optional().isNumeric(),
+    (0, express_validator_1.body)("skill").optional(),
     //  only validate when  accountType  is  Company and Individual
-    (0, express_validator_1.body)("name").if(function (value, _a) {
+    (0, express_validator_1.body)("gstName").if(function (value, _a) {
         var req = _a.req;
         return (req.body.accountType || req.contractor.accountType) !== 'Employee';
-    }).notEmpty(),
+    }).optional(),
     (0, express_validator_1.body)("gstNumber").if(function (value, _a) {
         var req = _a.req;
         return (req.body.accountType || req.contractor.accountType) !== 'Employee';
-    }).notEmpty(),
+    }).optional(),
     (0, express_validator_1.body)("gstType").if(function (value, _a) {
         var req = _a.req;
         return (req.body.accountType || req.contractor.accountType) !== 'Employee';
-    }).notEmpty(),
+    }).optional(),
     (0, express_validator_1.body)("experienceYear").if(function (value, _a) {
         var req = _a.req;
         return (req.body.accountType || req.contractor.accountType) !== 'Employee';
@@ -160,11 +160,11 @@ exports.UpdateProfileRequest = [
     (0, express_validator_1.body)("emergencyJobs").if(function (value, _a) {
         var req = _a.req;
         return (req.body.accountType || req.contractor.accountType) !== 'Employee';
-    }).notEmpty(),
+    }).optional().notEmpty(),
     (0, express_validator_1.body)("availableDays").if(function (value, _a) {
         var req = _a.req;
         return (req.body.accountType || req.contractor.accountType) !== 'Employee';
-    }).notEmpty().isArray(),
+    }).optional().notEmpty().isArray(),
     (0, express_validator_1.body)("previousJobPhotos").if(function (value, _a) {
         var req = _a.req;
         return (req.body.accountType || req.contractor.accountType) !== 'Employee';
@@ -173,15 +173,6 @@ exports.UpdateProfileRequest = [
         var req = _a.req;
         return (req.body.accountType || req.contractor.accountType) !== 'Employee';
     }).optional().isArray().notEmpty().custom(function (value) { return validateMediaArray(value); }),
-    //  validate only for 'Employee
-    (0, express_validator_1.body)("firstName").if(function (value, _a) {
-        var req = _a.req;
-        return (req.body.accountType || req.contractor.accountType) === 'Employee';
-    }).notEmpty(),
-    (0, express_validator_1.body)("lastName").if(function (value, _a) {
-        var req = _a.req;
-        return (req.body.accountType || req.contractor.accountType) === 'Employee';
-    }).notEmpty(),
 ];
 // Custom validation function for checking if an array of media objects contains 'url' property
 var validateMediaArray = function (value) {
