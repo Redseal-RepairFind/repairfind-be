@@ -674,7 +674,7 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                 pipeline = [
                     {
                         $lookup: {
-                            from: "job_applications",
+                            from: "job_quotations",
                             localField: "_id",
                             foreignField: "job",
                             as: "totalQuotations"

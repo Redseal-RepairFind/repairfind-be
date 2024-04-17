@@ -348,8 +348,7 @@ export const identityVerificationRequiresInput = async (payload: any) => {
 
 
         user.stripeIdentity = verification
-        //@ts-ignore
-        user.profilePhoto = { url: s3fileUrl }
+        user.profilePhoto ? user.profilePhoto.url = s3fileUrl  : user.profilePhoto = { url: s3fileUrl }
         user.save()
 
 
@@ -426,7 +425,7 @@ export const identityVerificationVerified = async (payload: any) => {
 
         user.stripeIdentity = verification
         //@ts-ignore
-        user.profilePhoto = { url: s3fileUrl }
+        user.profilePhoto ? user.profilePhoto.url = s3fileUrl  : user.profilePhoto = { url: s3fileUrl }
         user.save()
 
         sendPushNotifications(deviceTokens, {

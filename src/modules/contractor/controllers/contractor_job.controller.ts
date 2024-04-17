@@ -705,7 +705,7 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
     const pipeline: PipelineStage[] = [
       {
         $lookup: {
-          from: "job_applications",
+          from: "job_quotations",
           localField: "_id",
           foreignField: "job",
           as: "totalQuotations"

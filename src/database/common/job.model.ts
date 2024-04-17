@@ -148,7 +148,6 @@ const JobSchema = new Schema<IJob>({
         ref: 'payments'
     },
     emergency: {type: Boolean, default:false},
-    myQuotation: { type: Object, default: null },
 }, { timestamps: true });
 
 
@@ -182,9 +181,8 @@ JobSchema.methods.getMyQoutation = async function (jobId: any, contractor: any) 
 };
 
 
-
-  JobSchema.set('toObject', { virtuals: true });
-  JobSchema.set('toJSON', { virtuals: true });
+JobSchema.set('toObject', { virtuals: true });
+JobSchema.set('toJSON', { virtuals: true });
 
 
 const JobModel = model<IJob>("jobs", JobSchema);

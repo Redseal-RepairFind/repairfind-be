@@ -21,20 +21,17 @@ export interface IContractor extends Document {
   };  
   accountType: string;
   profilePhoto: {
-    type: object
-    properties: {
-      url: {
-        type: String,
-        required: true,
-      },
-      label?: {
-        type: String,
-        unique: true,
-      },
-      descriptions?: {
-        type: Array<string>,
-      },
-    }
+    url: {
+      type: String,
+      required: true,
+    },
+    label?: {
+      type: String,
+      unique: true,
+    },
+    descriptions?: {
+      type: Array<string>,
+    },
   };
   acceptTerms: Boolean;
   passwordOtp: {
