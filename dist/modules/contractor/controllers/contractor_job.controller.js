@@ -302,11 +302,11 @@ var rejectJobRequest = function (req, res) { return __awaiter(void 0, void 0, vo
 }); };
 exports.rejectJobRequest = rejectJobRequest;
 var getJobRequestById = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, jobId, contractorId, options_1, job, _a, error_5;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+    var errors, jobId, contractorId, options_1, job, quotation, error_5;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
             case 0:
-                _b.trys.push([0, 3, , 4]);
+                _a.trys.push([0, 3, , 4]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -325,19 +325,24 @@ var getJobRequestById = function (req, res, next) { return __awaiter(void 0, voi
                         .populate(['contractor', 'customer'])
                         .exec()];
             case 1:
-                job = _b.sent();
+                job = _a.sent();
                 if (!job) {
                     return [2 /*return*/, next(new custom_errors_1.NotFoundError('Job request not found'))];
                 }
-                _a = job;
                 return [4 /*yield*/, job.getMyQoutation(jobId, contractorId)];
             case 2:
-                _a.myQuotation = _b.sent();
+                quotation = _a.sent();
+                if (quotation) {
+                    job.myQuotation = quotation;
+                }
+                else {
+                    job.myQuotation = null;
+                }
                 // Return the job request details
                 res.json({ success: true, data: job });
                 return [3 /*break*/, 4];
             case 3:
-                error_5 = _b.sent();
+                error_5 = _a.sent();
                 console.error('Error retrieving job request:', error_5);
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('Bad Request'))];
             case 4: return [2 /*return*/];

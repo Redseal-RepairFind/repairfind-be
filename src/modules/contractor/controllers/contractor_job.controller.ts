@@ -317,7 +317,12 @@ export const getJobRequestById = async (req: any, res: Response, next: NextFunct
       return next(new NotFoundError('Job request not found'));
     }
 
-    job.myQuotation = await job.getMyQoutation(jobId, contractorId);
+    const quotation = await job.getMyQoutation(jobId, contractorId);
+    if(quotation){
+      job.myQuotation =quotation
+    }else {
+      job.myQuotation = null
+    }
 
     // Return the job request details
     res.json({ success: true, data: job });

@@ -112,6 +112,7 @@ var JobSchema = new mongoose_1.Schema({
         type: [mongoose_1.Schema.Types.ObjectId],
         ref: 'payments'
     },
+    myQuotation: Object,
     emergency: { type: Boolean, default: false },
 }, { timestamps: true });
 JobSchema.virtual('totalQuotations').get(function () {

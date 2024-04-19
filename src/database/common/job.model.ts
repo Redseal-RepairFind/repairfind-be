@@ -147,6 +147,7 @@ const JobSchema = new Schema<IJob>({
         type: [Schema.Types.ObjectId],
         ref: 'payments'
     },
+    myQuotation: Object,
     emergency: {type: Boolean, default:false},
 }, { timestamps: true });
 
