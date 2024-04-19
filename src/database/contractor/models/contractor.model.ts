@@ -164,25 +164,6 @@ const ContractorSchema = new Schema<IContractor>(
 
 
 
-// Rest of your schema
-
-ContractorSchema.virtual('hasStripeIdentity').get(function (this: IContractor) {
-  return !!this.stripeIdentity; // Returns true if stripeIdentity exists, false otherwise
-});
-
-ContractorSchema.virtual('hasStripeCustomer').get(function (this: IContractor) {
-  return !!this.stripeCustomer; // Returns true if stripeCustomer exists, false otherwise
-});
-
-ContractorSchema.virtual('hasStripeAccount').get(function (this: IContractor) {
-  return !!this.stripeAccount; // Returns true if stripeCustomer exists, false otherwise
-});
-
-ContractorSchema.virtual('hasStripePaymentMethods').get(function (this: IContractor) {
-  return Array.isArray(this.stripePaymentMethods) && this.stripePaymentMethods.length > 0; // Returns true if stripePaymentMethods is an array with at least one element
-});
-
-
 ContractorSchema.virtual('stripeIdentityStatus').get(function (this: IContractor) {
   return this.stripeIdentity ? this.stripeIdentity.status : 'unverified';
 });

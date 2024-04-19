@@ -175,19 +175,6 @@ var ContractorSchema = new mongoose_1.Schema({
 }, {
     timestamps: true,
 });
-// Rest of your schema
-ContractorSchema.virtual('hasStripeIdentity').get(function () {
-    return !!this.stripeIdentity; // Returns true if stripeIdentity exists, false otherwise
-});
-ContractorSchema.virtual('hasStripeCustomer').get(function () {
-    return !!this.stripeCustomer; // Returns true if stripeCustomer exists, false otherwise
-});
-ContractorSchema.virtual('hasStripeAccount').get(function () {
-    return !!this.stripeAccount; // Returns true if stripeCustomer exists, false otherwise
-});
-ContractorSchema.virtual('hasStripePaymentMethods').get(function () {
-    return Array.isArray(this.stripePaymentMethods) && this.stripePaymentMethods.length > 0; // Returns true if stripePaymentMethods is an array with at least one element
-});
 ContractorSchema.virtual('stripeIdentityStatus').get(function () {
     return this.stripeIdentity ? this.stripeIdentity.status : 'unverified';
 });
