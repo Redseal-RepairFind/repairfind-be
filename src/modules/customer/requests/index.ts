@@ -1,6 +1,6 @@
 import { body, query, validationResult } from "express-validator";
 import { Request, Response, NextFunction } from "express";
-import { contractorAccountTypes } from "../../../constants/contractorAccountTypes";
+import { CONTRACTOR_ACCOUNT_TYPE } from "../../../database/contractor/interface/contractor.interface";
 
 export const signupParams = [
   body("email").isEmail(),
@@ -118,8 +118,8 @@ export const jobListingParams = [
   body("jobLocation").notEmpty(),
   body("date").notEmpty(),
   body("jobExpiry").notEmpty(),
-  body("contractorType").isIn([contractorAccountTypes.Company, contractorAccountTypes.Employee, contractorAccountTypes.Individual])
-  .withMessage(`contractorType must be ${contractorAccountTypes.Company}, ${contractorAccountTypes.Employee}, or ${contractorAccountTypes.Individual}`),
+  body("contractorType").isIn([CONTRACTOR_ACCOUNT_TYPE.Company, CONTRACTOR_ACCOUNT_TYPE.Employee, CONTRACTOR_ACCOUNT_TYPE.Individual])
+  .withMessage(`contractorType must be ${CONTRACTOR_ACCOUNT_TYPE.Company}, ${CONTRACTOR_ACCOUNT_TYPE.Employee}, or ${CONTRACTOR_ACCOUNT_TYPE.Individual}`),
   body("emergency").isIn(['yes', 'no'])
   .withMessage("emergency must be yes or no"), 
 ];

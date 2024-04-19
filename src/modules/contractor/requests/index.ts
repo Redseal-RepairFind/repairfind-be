@@ -39,17 +39,10 @@ export const CreateProfileRequest  = [
     body("profilePhoto.url").optional().isURL(),
     body("location.latitude").notEmpty().isNumeric(),
     body("location.longitude").notEmpty().isNumeric(),
-    body('backgroundCheckConsent')
-        .exists({ checkFalsy: true }).withMessage('Background consent is required')
-        .custom((value) => value === true).withMessage('You must consent to us running a background check'),
-    body("skill").notEmpty(),
 
-
-
+        
     //  only validate when  accountType  is  Company and Individual
-    body("name").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) !== 'Employee').notEmpty(),
-    body("gstNumber").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').notEmpty(),
-    body("gstType").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').notEmpty(),
+    body("skill").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) !== 'Employee').notEmpty(),
     body("experienceYear").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').optional().isNumeric(),
     body("about").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').optional(),
     body("website").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').optional().isURL(),
@@ -60,9 +53,7 @@ export const CreateProfileRequest  = [
     body("previousJobPhotos").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').optional().isArray().notEmpty().custom((value) => validateMediaArray(value)),
     body("previousJobVideos").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').optional().isArray().notEmpty().custom((value) => validateMediaArray(value)),
 
-    //  validate only for 'Employee
-    body("firstName").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) === 'Employee').notEmpty(),
-    body("lastName").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) === 'Employee').notEmpty(),
+
 
 ];
 
@@ -140,7 +131,11 @@ export const EmailVerificationRequest = [
     body("gstNumber").notEmpty(),
     body("gstType").notEmpty(),
     body("backgroundCheckConsent").notEmpty(),
-    body("gstCertificate").optional(),
+    body("gstCertitificate").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Company').notEmpty(),
+
+    body('backgroundCheckConsent')
+    .exists({ checkFalsy: true }).withMessage('Background consent is required')
+    .custom((value) => value === true).withMessage('You must consent to us running a background check'),
   ];
 
   export const CreateCompanyDetailsRequest = [

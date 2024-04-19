@@ -105,7 +105,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     }
     ProfileHandler.prototype.createProfile = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _a, gstName, gstNumber, gstType, location_1, backgroundCheckConsent, skill, website, experienceYear, about, email, phoneNumber, emergencyJobs, availableDays, profilePhoto, previousJobPhotos, previousJobVideos, errors, contractor, contractorId, constractor, certnToken, data, profileType, profile_1, contractorResponse, htmlCon, html, adminsWithEmails, adminEmails, err_1;
+            var req, res, _a, gstName, gstNumber, gstType, location_1, backgroundCheckConsent, skill, website, experienceYear, about, email, phoneNumber, emergencyJobs, availableDays, profilePhoto, previousJobPhotos, previousJobVideos, contractorId, contractor, errors, certnToken, data, profileType, profile_1, contractorResponse, htmlCon, html, adminsWithEmails, adminEmails, err_1;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -113,21 +113,27 @@ var ProfileHandler = /** @class */ (function (_super) {
                         res = this.res;
                         _b.label = 1;
                     case 1:
-                        _b.trys.push([1, 6, , 7]);
+                        _b.trys.push([1, 7, , 8]);
                         _a = req.body, gstName = _a.gstName, gstNumber = _a.gstNumber, gstType = _a.gstType, location_1 = _a.location, backgroundCheckConsent = _a.backgroundCheckConsent, skill = _a.skill, website = _a.website, experienceYear = _a.experienceYear, about = _a.about, email = _a.email, phoneNumber = _a.phoneNumber, emergencyJobs = _a.emergencyJobs, availableDays = _a.availableDays, profilePhoto = _a.profilePhoto, previousJobPhotos = _a.previousJobPhotos, previousJobVideos = _a.previousJobVideos;
+                        contractorId = req.contractor.id;
+                        return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: contractorId })];
+                    case 2:
+                        contractor = _b.sent();
+                        if (!contractor) {
+                            return [2 /*return*/, res.status(404).json({ message: "Contractor account not found" })];
+                        }
+                        // Define validation rules for the request body
+                        if (contractor.accountType === contractor_interface_1.CONTRACTOR_ACCOUNT_TYPE.Company) { }
+                        return [4 /*yield*/, Promise.all([
+                                (0, express_validator_1.body)('gstName').notEmpty().withMessage('GST Name is required'),
+                                (0, express_validator_1.body)('gstNumber').notEmpty().withMessage('GST Number is required'),
+                                // Add more validation rules for other fields
+                            ])];
+                    case 3:
+                        _b.sent();
                         errors = (0, express_validator_1.validationResult)(req);
                         if (!errors.isEmpty()) {
                             return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
-                        }
-                        contractor = req.contractor;
-                        contractorId = contractor.id;
-                        return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: contractorId })];
-                    case 2:
-                        constractor = _b.sent();
-                        if (!constractor) {
-                            return [2 /*return*/, res
-                                    .status(401)
-                                    .json({ message: "invalid credential" })];
                         }
                         certnToken = process.env.CERTN_KEY;
                         if (!certnToken) {
@@ -138,7 +144,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         data = {
                             request_enhanced_identity_verification: true,
                             request_enhanced_criminal_record_check: true,
-                            email: constractor.email
+                            email: contractor.email
                         };
                         profileType = contractor.accountType;
                         return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOneAndUpdate({ contractor: contractorId }, {
@@ -163,13 +169,13 @@ var ProfileHandler = /** @class */ (function (_super) {
                             }, { upsert: true, new: true, setDefaultsOnInsert: true })
                             // Update the ContractorModel with the profile ID
                         ];
-                    case 3:
+                    case 4:
                         profile_1 = _b.sent();
                         // Update the ContractorModel with the profile ID
                         contractor.profile = profile_1._id;
                         contractor.profilePhoto = profilePhoto;
                         return [4 /*yield*/, contractor.save()];
-                    case 4:
+                    case 5:
                         _b.sent();
                         contractorResponse = __assign(__assign({}, contractor.toJSON()), { // Convert to plain JSON object
                             profile: profile_1 });
@@ -184,7 +190,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                             .catch(function (error) { return console.error('Error sending email:', error); });
                         html = (0, adminContractorDocumentTemplate_1.htmlContractorDocumentValidatinToAdminTemplate)(contractor.firstName);
                         return [4 /*yield*/, admin_model_1.default.find().select('email')];
-                    case 5:
+                    case 6:
                         adminsWithEmails = _b.sent();
                         adminEmails = adminsWithEmails.map(function (admin) { return admin.email; });
                         services_1.EmailService.send(adminEmails, 'New Profile Registered', html, adminEmails)
@@ -195,13 +201,13 @@ var ProfileHandler = /** @class */ (function (_super) {
                             message: "Profile created successfully",
                             data: contractorResponse
                         });
-                        return [3 /*break*/, 7];
-                    case 6:
+                        return [3 /*break*/, 8];
+                    case 7:
                         err_1 = _b.sent();
                         console.log("error", err_1);
                         res.status(500).json({ success: false, message: err_1.message });
-                        return [3 /*break*/, 7];
-                    case 7: return [2 /*return*/];
+                        return [3 /*break*/, 8];
+                    case 8: return [2 /*return*/];
                 }
             });
         });

@@ -1,7 +1,6 @@
 //@ts-nocheck
 import { Schema, model, ObjectId } from "mongoose";
-import { COMPANY_STATUS, GST_STATUS, IContractor, IContractorCompanyDetails, IContractorGstDetails } from "../interface/contractor.interface";
-import { contractorAccountTypes } from "../../../constants";
+import { COMPANY_STATUS, CONTRACTOR_ACCOUNT_TYPE, GST_STATUS, IContractor, IContractorCompanyDetails, IContractorGstDetails } from "../interface/contractor.interface";
 import { contractorStatus } from "../../../constants/contractorStatus";
 import { config } from "../../../config";
 import ContractorQuizModel from "./contractor_quiz.model";
@@ -35,6 +34,12 @@ const CompanyDetailSchema = new Schema<IContractorCompanyDetails>({
   status: { type: String, enum: Object.values(COMPANY_STATUS), default: COMPANY_STATUS.PENDING },
   approvedBy: Schema.Types.ObjectId,
   approvedAt: Date,
+  recentRemark: String,
+});
+
+const CertnDetailSchema = new Schema<IContractorCompanyDetails>({
+  certnId: String,
+  status: { type: String, enum: Object.values(COMPANY_STATUS), default: COMPANY_STATUS.PENDING },
   recentRemark: String,
 });
 
@@ -90,7 +95,7 @@ const ContractorSchema = new Schema<IContractor>(
 
     accountType: {
       type: String,
-      enum: Object.values(contractorAccountTypes),
+      enum: Object.values(CONTRACTOR_ACCOUNT_TYPE),
     },
 
     profilePhoto: {

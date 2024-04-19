@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CustomerHttpRequest = exports.validateFormData = exports.sendMessageParams = exports.tripArrivalComfirmParams = exports.createJoListingParams = exports.createJobRequestParams = exports.sendJobRequestParams = exports.queryContractorParams = exports.filterContractorParams = exports.searchCategoryDateParams = exports.searchContractorByCategoryDateParams = exports.searchContractorByLocationParams = exports.UpdateOrDeviceParams = exports.jobListingParams = exports.createStripeSessionParams = exports.rateContractorParams = exports.confirmInspectionPaymentParams = exports.confirmPaymentParams = exports.acceptAndPayParams = exports.updateProfileParams = exports.getContractorParams = exports.searchParams = exports.verifyPasswordOtpParams = exports.changePasswordParams = exports.resetPasswordParams = exports.forgotPasswordParams = exports.loginParams = exports.verifySocialSignon = exports.emailVerificationParams = exports.signupParams = void 0;
 var express_validator_1 = require("express-validator");
-var contractorAccountTypes_1 = require("../../../constants/contractorAccountTypes");
+var contractor_interface_1 = require("../../../database/contractor/interface/contractor.interface");
 exports.signupParams = [
     (0, express_validator_1.body)("email").isEmail(),
     (0, express_validator_1.body)("firstName").notEmpty(),
@@ -110,8 +110,8 @@ exports.jobListingParams = [
     (0, express_validator_1.body)("jobLocation").notEmpty(),
     (0, express_validator_1.body)("date").notEmpty(),
     (0, express_validator_1.body)("jobExpiry").notEmpty(),
-    (0, express_validator_1.body)("contractorType").isIn([contractorAccountTypes_1.contractorAccountTypes.Company, contractorAccountTypes_1.contractorAccountTypes.Employee, contractorAccountTypes_1.contractorAccountTypes.Individual])
-        .withMessage("contractorType must be ".concat(contractorAccountTypes_1.contractorAccountTypes.Company, ", ").concat(contractorAccountTypes_1.contractorAccountTypes.Employee, ", or ").concat(contractorAccountTypes_1.contractorAccountTypes.Individual)),
+    (0, express_validator_1.body)("contractorType").isIn([contractor_interface_1.CONTRACTOR_ACCOUNT_TYPE.Company, contractor_interface_1.CONTRACTOR_ACCOUNT_TYPE.Employee, contractor_interface_1.CONTRACTOR_ACCOUNT_TYPE.Individual])
+        .withMessage("contractorType must be ".concat(contractor_interface_1.CONTRACTOR_ACCOUNT_TYPE.Company, ", ").concat(contractor_interface_1.CONTRACTOR_ACCOUNT_TYPE.Employee, ", or ").concat(contractor_interface_1.CONTRACTOR_ACCOUNT_TYPE.Individual)),
     (0, express_validator_1.body)("emergency").isIn(['yes', 'no'])
         .withMessage("emergency must be yes or no"),
 ];

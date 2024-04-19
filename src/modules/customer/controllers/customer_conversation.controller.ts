@@ -1,6 +1,5 @@
 import { validationResult } from "express-validator";
 import { Request, Response } from "express";
-import CustomerNotificationModel from "../../../database/customer/models/customer_notification.model";
 import { applyAPIFeature } from "../../../utils/api.feature";
 import { ConversationModel } from "../../../database/common/conversations.schema";
 import { MessageModel, MessageType } from "../../../database/common/messages.schema";

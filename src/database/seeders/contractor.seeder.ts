@@ -1,4 +1,4 @@
-import { contractorAccountTypes } from "../../constants";
+import { CONTRACTOR_ACCOUNT_TYPE } from "../contractor/interface/contractor.interface";
 import { ContractorModel } from "../contractor/models/contractor.model";
 import { ContractorProfileModel } from "../contractor/models/contractor_profile.model";
 import CustomerModel from "../customer/models/customer.model";
@@ -18,7 +18,7 @@ const contractors = [
       url: "https://dsfds"
     },
     acceptTerms: true,
-    accountType: contractorAccountTypes.Employee,
+    accountType: CONTRACTOR_ACCOUNT_TYPE.Employee,
     passwordOtp: {
       verified: true,
     },
@@ -49,7 +49,7 @@ const contractors = [
       url: "https://dsfds"
     },
     acceptTerms: true,
-    accountType: contractorAccountTypes.Employee,
+    accountType: CONTRACTOR_ACCOUNT_TYPE.Employee,
     passwordOtp: {
       verified: true,
     },
@@ -104,7 +104,7 @@ const contractors = [
       url: "https://dsfds"
     },
     acceptTerms: true,
-    accountType: contractorAccountTypes.Individual,
+    accountType: CONTRACTOR_ACCOUNT_TYPE.Individual,
     passwordOtp: {
       verified: true,
     },
@@ -158,7 +158,7 @@ const contractors = [
       url: "https://dsfds"
     },
     acceptTerms: true,
-    accountType: contractorAccountTypes.Company,
+    accountType: CONTRACTOR_ACCOUNT_TYPE.Company,
     passwordOtp: {
       verified: true,
     },

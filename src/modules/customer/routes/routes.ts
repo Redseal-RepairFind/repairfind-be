@@ -3,10 +3,8 @@ import { checkCustomerRole } from "../middleware/customerRoleChecker.middleware"
 import { CustomerHttpRequest } from "../requests";
 import { CustomerController } from "../controllers/customer.controller";
 import { CustomerStripeController } from "../controllers/customer_stripe.controller";
-import { JobListing } from "../controllers/customerJobListing.controller";
 import { ContractorSearch } from "../controllers/customer_contractorSearch.controller";
 import { memoryUpload } from "../.../../../../utils/upload.utility";
-import { JobRequest } from "../controllers/job_request.controller";
 import { CustomerExploreController } from "../controllers/customer_explore.controller";
 import { CustomerJobController } from "../controllers/customer_job.controller";
 import { CustomerNotificationController } from "../controllers/customer_notification.controller";
@@ -46,22 +44,13 @@ router.post("/stripe-session",  checkCustomerRole, CustomerHttpRequest.createStr
 router.post("/stripe-setupintent",  checkCustomerRole, CustomerStripeController.createSetupIntent ); 
 
 
-// Job Listing
-router.post("/job-listing", checkCustomerRole, memoryUpload.any(), CustomerHttpRequest.jobListingParams, CustomerHttpRequest.validateFormData, JobListing.customerListNewJobController ); 
-
-// search for contractor
-// router.get("/search-contractor-location", checkCustomerRole, CustomerHttpRequest.searchContractorByLocationParams, CustomerHttpRequest.validateFormData, ContractorSearch.customerSearchForContractorByLocatinController ); 
-// router.get("/search-contractor-category-date", checkCustomerRole, CustomerHttpRequest.searchContractorByCategoryDateParams, CustomerHttpRequest.validateFormData, ContractorSearch.customerSearchForContractorByCategoryAndDateController ); 
-// router.get("/search-category", checkCustomerRole, CustomerHttpRequest.searchCategoryDateParams, CustomerHttpRequest.validateFormData, ContractorSearch.customerSearchForCategoryController ); 
-// router.get("/filter-contractor", checkCustomerRole, CustomerHttpRequest.filterContractorParams, CustomerHttpRequest.validateFormData, ContractorSearch.customerFilterContractoController ); 
+// Explore Contractors
 router.get("/explore/contractors", checkCustomerRole, CustomerHttpRequest.queryContractorParams, CustomerExploreController.exploreContractors ); 
 router.get("/explore/contractors/:contractorId", checkCustomerRole,  CustomerExploreController.getSingleContractor ); 
 router.get("/explore/contractors/:contractorId/schedules", checkCustomerRole, CustomerExploreController.getContractorSchedules ); 
 
 
-//job request
-router.post("/send-job-request", checkCustomerRole, memoryUpload.any(), CustomerHttpRequest.sendJobRequestParams, CustomerHttpRequest.validateFormData, JobRequest.customerSendJobRequestController ); 
-
+// JOB
 router.post("/jobs/requests", checkCustomerRole, CustomerHttpRequest.createJobRequestParams, CustomerJobController.createJobRequest ); 
 router.post("/jobs/listings", checkCustomerRole, CustomerHttpRequest.createJoListingParams, CustomerJobController.createJobListing ); 
 router.get("/jobs", checkCustomerRole, CustomerJobController.getMyJobs ); 
@@ -72,10 +61,6 @@ router.post("/jobs/:jobId/quotations/:quotationId/accept", checkCustomerRole, Cu
 router.post("/jobs/:jobId/quotations/:quotationId/decline", checkCustomerRole, CustomerJobController.declineJobQuotation ); 
 router.post("/jobs/:jobId/pay", checkCustomerRole, CustomerJobController.makeJobPayment ); 
 router.post("/jobs/:jobId/payment-capture", checkCustomerRole, CustomerJobController.captureJobPayment ); 
-
-
-
-router.post("/jobs", checkCustomerRole, CustomerHttpRequest.sendJobRequestParams, CustomerHttpRequest.validateFormData, JobRequest.customerSendJobRequestController ); 
 
 
 // Notifications

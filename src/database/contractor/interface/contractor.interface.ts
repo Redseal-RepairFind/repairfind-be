@@ -32,6 +32,12 @@ export enum GST_STATUS {
   DECLINED = "DECLINED"
 }
 
+export enum CONTRACTOR_ACCOUNT_TYPE {
+  Individual = "Individual",
+  Company = "Company",
+  Employee = "Employee",
+}
+
 export enum COMPANY_STATUS {
   PENDING= "PENDING",
   REVIEWING = "REVIEWING",

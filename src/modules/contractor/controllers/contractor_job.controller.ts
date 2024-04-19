@@ -5,7 +5,6 @@ import CustomerRegModel from "../../../database/customer/models/customer.model";
 import { sendEmail } from "../../../utils/send_email_utility";
 import { htmlJobQoutationTemplate } from "../../../templates/customerEmail/jobQoutationTemplate";
 import AdminNoficationModel from "../../../database/admin/models/admin_notification.model";
-import CustomerJobRequestModel from "../../../database/customer/models/customer_jobrequest.model";
 import { JobModel, JOB_STATUS, JobType, IJob } from "../../../database/common/job.model";
 import { applyAPIFeature } from "../../../utils/api.feature";
 import { BadRequestError, InternalServerError, NotFoundError } from "../../../utils/custom.errors";

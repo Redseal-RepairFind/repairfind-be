@@ -43,7 +43,6 @@ exports.ContractorModel = exports.CONTRACTOR_TYPES = void 0;
 //@ts-nocheck
 var mongoose_1 = require("mongoose");
 var contractor_interface_1 = require("../interface/contractor.interface");
-var constants_1 = require("../../../constants");
 var contractorStatus_1 = require("../../../constants/contractorStatus");
 var contractor_quiz_model_1 = __importDefault(require("./contractor_quiz.model"));
 var stripe_customer_schema_1 = require("../../common/stripe_customer.schema");
@@ -113,7 +112,7 @@ var ContractorSchema = new mongoose_1.Schema({
     },
     accountType: {
         type: String,
-        enum: Object.values(constants_1.contractorAccountTypes),
+        enum: Object.values(contractor_interface_1.CONTRACTOR_ACCOUNT_TYPE),
     },
     profilePhoto: {
         type: Object,

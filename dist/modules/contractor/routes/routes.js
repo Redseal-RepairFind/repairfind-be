@@ -38,21 +38,14 @@ router.post("/reset-password", requests_1.ContractorHttpRequest.PasswordResetReq
     (0, contractor_auth_controller_1.AuthController)(req, res, next).resetPassword();
 });
 // PROFILE
-//   const cpUpload = diskUpload.fields([{ name: 'profilePhoto', maxCount: 1 }, { name: 'previousJobPhotos', maxCount: 10 }, { name: 'previousJobVideos', maxCount: 10 }])
-router.post("/profiles", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateProfileRequest, function (req, res, next) {
+router.post("/profiles", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
     (0, contractor_controller_1.ContractorController)(req, res, next).createProfile();
 });
-router.get("/profiles/me", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
+router.get("/profiles", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
     (0, contractor_controller_1.ContractorController)(req, res, next).getProfile();
 });
-router.patch("/profiles/me", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.UpdateProfileRequest, function (req, res, next) {
+router.patch("/profiles", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.UpdateProfileRequest, function (req, res, next) {
     (0, contractor_controller_1.ContractorController)(req, res, next).updateProfile();
-});
-router.post("/profiles/bank-details", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.UpdateBankDetailRequest, function (req, res, next) {
-    (0, contractor_controller_1.ContractorController)(req, res, next).updateBankDetails();
-});
-router.post("/profiles/stripe-identity", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
-    (0, contractor_controller_1.ContractorController)(req, res, next).createIdentitySession();
 });
 //  Account
 router.get("/me", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
@@ -81,6 +74,9 @@ router.post("/me/gst", contractorRoleCheck_middleware_1.checkContractorRole, req
 });
 router.post("/me/company", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateCompanyDetailsRequest, function (req, res, next) {
     (0, contractor_controller_1.ContractorController)(req, res, next).addCompanyDetails();
+});
+router.post("/me/stripe-identity", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
+    (0, contractor_controller_1.ContractorController)(req, res, next).createIdentitySession();
 });
 //  QUiz
 router.get("/quiz-start", contractorRoleCheck_middleware_1.checkContractorRole, contractor_quiz_controller_1.QuizController.StartQuiz);

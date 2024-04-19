@@ -1,4 +1,4 @@
-import { validationResult } from "express-validator";
+import { body, validationResult } from "express-validator";
 import bcrypt from "bcrypt";
 import { NextFunction, Request, Response } from "express";
 import { ContractorModel } from "../../../database/contractor/models/contractor.model";
@@ -14,7 +14,7 @@ import { EmailService } from "../../../services";
 import { StripeService } from "../../../services/stripe";
 import ContractorDeviceModel from "../../../database/contractor/models/contractor_devices.model";
 import { IStripeAccount } from "../../../database/common/stripe_account.schema";
-import { COMPANY_STATUS, GST_STATUS, IContractorCompanyDetails, IContractorGstDetails } from "../../../database/contractor/interface/contractor.interface";
+import { COMPANY_STATUS, CONTRACTOR_ACCOUNT_TYPE, GST_STATUS, IContractorCompanyDetails, IContractorGstDetails } from "../../../database/contractor/interface/contractor.interface";
 
 
 class ProfileHandler extends Base {
@@ -43,42 +43,91 @@ class ProfileHandler extends Base {
       } = req.body;
 
       // Check for validation errors
-      const errors = validationResult(req);
 
+
+      const contractorId = req.contractor.id;
+      const contractor = await ContractorModel.findOne({ _id: contractorId });
+
+      if (!contractor) {
+        return res.status(404).json({ message: "Contractor account not found" });
+      }
+
+
+      // Custom validation function for checking if an array of media objects contains 'url' property
+      const validateMediaArray = (value: any): boolean => {
+        return Array.isArray(value) && value.every((item) => typeof item === 'object' && 'url' in item && typeof item.url === 'string' && item.url.trim() !== '');
+      };
+
+
+      // Define validation rules for the request body
+      // if (contractor.accountType == CONTRACTOR_ACCOUNT_TYPE.Company || contractor.accountType == CONTRACTOR_ACCOUNT_TYPE.Individual) {
+      //   await Promise.all([
+      //     body("location.address").notEmpty(),          
+      //     body("location.latitude").notEmpty().isNumeric(),
+      //     body("location.longitude").notEmpty().isNumeric(),
+          
+      //     body('backgroundCheckConsent')
+      //       .exists({ checkFalsy: true }).withMessage('Background consent is required')
+      //       .custom((value) => value === true).withMessage('You must consent to us running a background check'),
+          
+      //     body("skill").notEmpty(),
+
+      //     body("gstDetails.gstNumber").notEmpty(),
+      //     body("gstDetails.gstName").notEmpty(),
+      //     body("gstDetails.gstType").notEmpty(),
+      //     body("gstDetails.gstCertificate").if((value: any, { req }: any) => (req.contractor.accountType) !== 'Company').notEmpty(),
+         
+         
+      //     body("experienceYear").optional().isNumeric(),
+      //     body("about").optional(),
+      //     body("website").optional().isURL(),
+      //     body("email").optional().isEmail(),
+      //     body("phoneNumber").optional().isNumeric(),
+      //     body("emergencyJobs").notEmpty(),
+      //     body("availableDays").notEmpty().isArray(),
+      //     body("previousJobPhotos").optional().isArray().notEmpty().custom((value) => validateMediaArray(value)),
+      //     body("previousJobVideos").optional().isArray().notEmpty().custom((value) => validateMediaArray(value)),
+
+      //     //  validate only for 'Employee
+      //     body("firstName").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) === 'Employee').notEmpty(),
+      //     body("lastName").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) === 'Employee').notEmpty(),
+
+      //   ]);
+      // }
+
+      // if (contractor.accountType == CONTRACTOR_ACCOUNT_TYPE.Employee) {
+      //   await Promise.all([
+      //     body("location.address").notEmpty(),          
+      //     body("location.latitude").notEmpty().isNumeric(),
+      //     body("location.longitude").notEmpty().isNumeric(),
+      //     body('backgroundCheckConsent')
+      //       .exists({ checkFalsy: true }).withMessage('Background consent is required')
+      //       .custom((value) => value === true).withMessage('You must consent to us running a background check'),
+      //   ]);
+      // }
+
+      // Check for validation errors
+      const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
       }
 
-      const contractor = req.contractor;
-      const contractorId = contractor.id
-
-      const constractor = await ContractorModel.findOne({ _id: contractorId });
-
-      if (!constractor) {
-        return res
-          .status(401)
-          .json({ message: "invalid credential" });
-      }
 
 
       let certnToken = process.env.CERTN_KEY
-
       if (!certnToken) {
         return res
           .status(401)
           .json({ message: "Certn API Key is missing" });
       }
-
-      // let imageUrl =  s3FileUpload(files['profilePhoto'][0]);
-
       const data = {
         request_enhanced_identity_verification: true,
         request_enhanced_criminal_record_check: true,
-        email: constractor.email
+        email: contractor.email
       };
 
       const profileType = contractor.accountType
-     
+
       const profile = await ContractorProfileModel.findOneAndUpdate({ contractor: contractorId }, {
         contractor: contractorId,
         gstName,
@@ -212,7 +261,7 @@ class ProfileHandler extends Base {
         return res.status(400).json({ errors: errors.array() });
       }
 
-      const profile = await ContractorProfileModel.find({contractor: contractorId})
+      const profile = await ContractorProfileModel.find({ contractor: contractorId })
 
       if (!profile) {
         return res.status(404).json({ success: false, message: 'Profile not found' });
@@ -276,7 +325,7 @@ class ProfileHandler extends Base {
       if (!account) {
         return res.status(404).json({ success: false, message: 'Account not found' });
       }
-      
+
       const {
         firstName,
         lastName,
@@ -286,19 +335,19 @@ class ProfileHandler extends Base {
         dateOfBirth,
       } = req.body;
 
-      let payload  = {}
-      if(account && account.accountType == 'Company'){
-         payload  = { profilePhoto, phoneNumber, companyName}
-      }
-     
-      if(account && account.accountType == 'Individual'){
-         payload  = { profilePhoto, phoneNumber, firstName, lastName, dateOfBirth}
+      let payload = {}
+      if (account && account.accountType == 'Company') {
+        payload = { profilePhoto, phoneNumber, companyName }
       }
 
-      if(account && account.accountType == 'Employee'){
-         payload  = { profilePhoto, phoneNumber, firstName, lastName, dateOfBirth}
+      if (account && account.accountType == 'Individual') {
+        payload = { profilePhoto, phoneNumber, firstName, lastName, dateOfBirth }
       }
-     
+
+      if (account && account.accountType == 'Employee') {
+        payload = { profilePhoto, phoneNumber, firstName, lastName, dateOfBirth }
+      }
+
       await ContractorModel.findOneAndUpdate(
         { _id: contractorId },
         payload,
@@ -341,7 +390,7 @@ class ProfileHandler extends Base {
 
 
       const contractor = await ContractorModel.findById(contractorId).populate('profile');
-      if(!contractor){
+      if (!contractor) {
         return res.status(404).json({ success: false, message: 'Account not found' });
       }
       const quiz = await contractor.quiz ?? null;
@@ -612,11 +661,11 @@ class ProfileHandler extends Base {
       }
 
       // check if gst has already been approved or is reviewing
-      if(contractor.gstDetails ){
-        if(contractor.gstDetails.status == GST_STATUS.APPROVED){
+      if (contractor.gstDetails) {
+        if (contractor.gstDetails.status == GST_STATUS.APPROVED) {
           return res.status(400).json({ success: false, message: 'GST has already been approved' });
         }
-        if(contractor.gstDetails.status == GST_STATUS.REVIEWING){
+        if (contractor.gstDetails.status == GST_STATUS.REVIEWING) {
           return res.status(400).json({ success: false, message: 'GST is curretnly been reviewed' });
         }
       }
@@ -649,7 +698,7 @@ class ProfileHandler extends Base {
     let req = <any>this.req
     let res = this.res
     try {
-      const { companyLogo, companyStaffId} = req.body;
+      const { companyLogo, companyStaffId } = req.body;
 
       // Check for validation errors
       const errors = validationResult(req);
@@ -669,11 +718,11 @@ class ProfileHandler extends Base {
       }
 
       // check if gst has already been approved or is reviewing
-      if(contractor.companyDetails ){
-        if(contractor.companyDetails.status == COMPANY_STATUS.APPROVED){
+      if (contractor.companyDetails) {
+        if (contractor.companyDetails.status == COMPANY_STATUS.APPROVED) {
           return res.status(400).json({ success: false, message: 'Company details has already been approved' });
         }
-        if(contractor.companyDetails.status == COMPANY_STATUS.REVIEWING){
+        if (contractor.companyDetails.status == COMPANY_STATUS.REVIEWING) {
           return res.status(400).json({ success: false, message: 'Company details are curretnly been reviewed' });
         }
       }

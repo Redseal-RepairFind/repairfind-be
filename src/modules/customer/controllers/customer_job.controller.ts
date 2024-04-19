@@ -16,7 +16,6 @@ import { htmlAdminPaymentTemplate } from "../../../templates/adminEmail/adminPay
 import AdminNoficationModel from "../../../database/admin/models/admin_notification.model";
 import PayoutModel from "../../../database/admin/models/payout.model";
 import ContractorBankModel from "../../../database/contractor/models/contractorBankDetail.model";
-import CustomerJobRequestModel, { ICustomerJobRequest, JobRequestStatus } from "../../../database/customer/models/customer_jobrequest.model";
 import CustomerModel from "../../../database/customer/models/customer.model";
 import { EmailService, NotificationService } from "../../../services";
 import { addHours, endOfDay, isAfter, isBefore, isFuture, isPast, isValid, startOfDay } from "date-fns";
@@ -75,7 +74,7 @@ export const createJobRequest = async (
         const existingJobRequest = await JobModel.findOne({
             customer: customerId,
             contractor: contractorId,
-            status: JobRequestStatus.PENDING,
+            status: JOB_STATUS.PENDING,
             date: { $eq: new Date(date) }, // consider all past jobs
             createdAt: { $gte: addHours(new Date(), -24) }, // Check for job requests within the last 72 hours
         });
@@ -188,7 +187,7 @@ export const createJobListing = async (
         // Check if there is a similar job request sent to the same contractor within the last 72 hours
         const existingJobRequest = await JobModel.findOne({
             customer: customerId,
-            status: JobRequestStatus.PENDING,
+            status: JOB_STATUS.PENDING,
             category: category,
             date: { $eq: new Date(date) }, // consider all past jobs
             createdAt: { $gte: addHours(new Date(), -24) }, // Check for job requests within the last 72 hours

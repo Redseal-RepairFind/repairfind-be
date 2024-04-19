@@ -48,7 +48,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ContractorSeeder = void 0;
-var constants_1 = require("../../constants");
+var contractor_interface_1 = require("../contractor/interface/contractor.interface");
 var contractor_model_1 = require("../contractor/models/contractor.model");
 var contractor_profile_model_1 = require("../contractor/models/contractor_profile.model");
 var contractors = [
@@ -66,7 +66,7 @@ var contractors = [
             url: "https://dsfds"
         },
         acceptTerms: true,
-        accountType: constants_1.contractorAccountTypes.Employee,
+        accountType: contractor_interface_1.CONTRACTOR_ACCOUNT_TYPE.Employee,
         passwordOtp: {
             verified: true,
         },
@@ -97,7 +97,7 @@ var contractors = [
             url: "https://dsfds"
         },
         acceptTerms: true,
-        accountType: constants_1.contractorAccountTypes.Employee,
+        accountType: contractor_interface_1.CONTRACTOR_ACCOUNT_TYPE.Employee,
         passwordOtp: {
             verified: true,
         },
@@ -152,7 +152,7 @@ var contractors = [
             url: "https://dsfds"
         },
         acceptTerms: true,
-        accountType: constants_1.contractorAccountTypes.Individual,
+        accountType: contractor_interface_1.CONTRACTOR_ACCOUNT_TYPE.Individual,
         passwordOtp: {
             verified: true,
         },
@@ -206,7 +206,7 @@ var contractors = [
             url: "https://dsfds"
         },
         acceptTerms: true,
-        accountType: constants_1.contractorAccountTypes.Company,
+        accountType: contractor_interface_1.CONTRACTOR_ACCOUNT_TYPE.Company,
         passwordOtp: {
             verified: true,
         },

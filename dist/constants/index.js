@@ -16,6 +16,5 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.APP_NAME = void 0;
 __exportStar(require("./errorCodes"), exports);
-__exportStar(require("./contractorAccountTypes"), exports);
 exports.APP_NAME = 'THE REPAIRFIND API';
 __exportStar(require("./routes"), exports);

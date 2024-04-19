@@ -43,7 +43,6 @@ exports.CustomerJobController = exports.captureJobPayment = exports.makeJobPayme
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var jobRequestTemplate_1 = require("../../../templates/contractorEmail/jobRequestTemplate");
-var customer_jobrequest_model_1 = require("../../../database/customer/models/customer_jobrequest.model");
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var services_1 = require("../../../services");
 var date_fns_1 = require("date-fns");
@@ -90,7 +89,7 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 return [4 /*yield*/, job_model_1.JobModel.findOne({
                         customer: customerId,
                         contractor: contractorId,
-                        status: customer_jobrequest_model_1.JobRequestStatus.PENDING,
+                        status: job_model_1.JOB_STATUS.PENDING,
                         date: { $eq: new Date(date) }, // consider all past jobs
                         createdAt: { $gte: (0, date_fns_1.addHours)(new Date(), -24) }, // Check for job requests within the last 72 hours
                     })];
@@ -182,7 +181,7 @@ var createJobListing = function (req, res, next) { return __awaiter(void 0, void
                 }
                 return [4 /*yield*/, job_model_1.JobModel.findOne({
                         customer: customerId,
-                        status: customer_jobrequest_model_1.JobRequestStatus.PENDING,
+                        status: job_model_1.JOB_STATUS.PENDING,
                         category: category,
                         date: { $eq: new Date(date) }, // consider all past jobs
                         createdAt: { $gte: (0, date_fns_1.addHours)(new Date(), -24) }, // Check for job requests within the last 72 hours
