@@ -1,6 +1,6 @@
-// @ts-nocheck
-import { Schema, model } from "mongoose";
-import { IContractor } from "../interface/contractor.interface";
+//@ts-nocheck
+import { Schema, model, ObjectId } from "mongoose";
+import { COMPANY_STATUS, GST_STATUS, IContractor, IContractorCompanyDetails, IContractorGstDetails } from "../interface/contractor.interface";
 import { contractorAccountTypes } from "../../../constants";
 import { contractorStatus } from "../../../constants/contractorStatus";
 import { config } from "../../../config";
@@ -15,6 +15,30 @@ export enum CONTRACTOR_TYPES {
   EMPLOYEE = "Employee",
   COMPANY = "Company"
 }
+
+const GstDetailSchema = new Schema<IContractorGstDetails>({
+  gstName: String,
+  gstNumber: String,
+  gstType: String,
+  backgroundCheckConsent: String,
+  status: { type: String, enum: Object.values(GST_STATUS), default: GST_STATUS.PENDING },
+  approvedBy: Schema.Types.ObjectId,
+  approvedAt: Date,
+  recentRemark: String,
+  gstCertificate: String,
+});
+
+
+const CompanyDetailSchema = new Schema<IContractorCompanyDetails>({
+  companyLogo: String,
+  companyStaffId: String, //url
+  status: { type: String, enum: Object.values(COMPANY_STATUS), default: COMPANY_STATUS.PENDING },
+  approvedBy: Schema.Types.ObjectId,
+  approvedAt: Date,
+  recentRemark: String,
+});
+
+
 const ContractorSchema = new Schema<IContractor>(
   {
 
@@ -125,6 +149,13 @@ const ContractorSchema = new Schema<IContractor>(
       type: [StripePaymentMethodSchema],
     },
 
+    gstDetails: {
+      type: GstDetailSchema
+    },
+    companyDetails: {
+      type: CompanyDetailSchema
+    },
+
   },
   {
     timestamps: true,
@@ -173,12 +204,16 @@ ContractorSchema.virtual('onboarding').get(  function (this: IContractor) {
   const hasStripePaymentMethods = Array.isArray(this.stripePaymentMethods) && this.stripePaymentMethods.length > 0
   const hasStripeIdentity = !!this.stripeIdentity;
   const hasProfile = !!this.profile;
+  const hasGstDetails = !!this.gstDetails;
+  const hasCompanyDetails = !!this.companyDetails;
   return {
     hasStripeAccount,
     hasStripeIdentity,
     hasStripePaymentMethods,
     hasStripeCustomer,
     hasProfile,
+    hasGstDetails,
+    hasCompanyDetails
   }
 });
 

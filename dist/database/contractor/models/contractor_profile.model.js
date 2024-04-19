@@ -33,36 +33,17 @@ var BankDetailsSchema = new mongoose_1.Schema({
     institutionNumber: String,
     accountNumber: String,
 });
-var GstDetailSchema = new mongoose_1.Schema({
-    institutionName: String,
-    transitNumber: String,
-    institutionNumber: String,
-    accountNumber: String,
-});
 var CompanyProfileSchema = new mongoose_1.Schema({
     contractor: {
         type: mongoose_1.Schema.Types.ObjectId,
         ref: "contractors",
         required: true,
     },
-    gstName: {
-        type: String,
-    },
-    gstNumber: {
-        type: String,
-        required: false,
-    },
-    gstType: {
-        type: String,
-    },
     profileType: {
         type: String,
     },
     location: {
         type: ContractorLocationSchema,
-    },
-    backgroundCheckConsent: {
-        type: Boolean,
     },
     skill: {
         type: String,
@@ -97,9 +78,6 @@ var CompanyProfileSchema = new mongoose_1.Schema({
     },
     bankDetails: {
         type: BankDetailsSchema, // Embed the BankDetails subdocument
-    },
-    gstDetails: {
-        type: GstDetailSchema
     },
     certnId: {
         type: String,

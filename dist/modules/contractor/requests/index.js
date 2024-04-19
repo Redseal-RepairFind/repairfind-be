@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorHttpRequest = exports.sendMessageParams = exports.CreateJobQuotationRequest = exports.CreateScheduleRequest = exports.UpdateOrDevice = exports.CreateStripeSessionRequest = exports.InviteToTeam = exports.UpdateBankDetailRequest = exports.PasswordChangeRequest = exports.PasswordResetRequest = exports.ResendEmailRequest = exports.LoginRequest = exports.EmailVerificationRequest = exports.UpdateProfileRequest = exports.CreateProfileRequest = exports.CreateContractorRequest = void 0;
+exports.ContractorHttpRequest = exports.sendMessageParams = exports.CreateJobQuotationRequest = exports.CreateScheduleRequest = exports.UpdateOrDevice = exports.CreateStripeSessionRequest = exports.InviteToTeam = exports.CreateCompanyDetailsRequest = exports.CreateGstDetailsRequest = exports.UpdateBankDetailRequest = exports.PasswordChangeRequest = exports.PasswordResetRequest = exports.ResendEmailRequest = exports.LoginRequest = exports.EmailVerificationRequest = exports.UpdateProfileRequest = exports.CreateProfileRequest = exports.CreateContractorRequest = void 0;
 var express_validator_1 = require("express-validator");
 exports.CreateContractorRequest = [
     (0, express_validator_1.body)('email').isEmail(),
@@ -210,6 +210,17 @@ exports.UpdateBankDetailRequest = [
     (0, express_validator_1.body)("institutionNumber").notEmpty(),
     (0, express_validator_1.body)("accountNumber").notEmpty(),
 ];
+exports.CreateGstDetailsRequest = [
+    (0, express_validator_1.body)("gstName").notEmpty(),
+    (0, express_validator_1.body)("gstNumber").notEmpty(),
+    (0, express_validator_1.body)("gstType").notEmpty(),
+    (0, express_validator_1.body)("backgroundCheckConsent").notEmpty(),
+    (0, express_validator_1.body)("gstCertificate").optional(),
+];
+exports.CreateCompanyDetailsRequest = [
+    (0, express_validator_1.body)("companyLogo").notEmpty(),
+    (0, express_validator_1.body)("companyStaffId").notEmpty(),
+];
 exports.InviteToTeam = [
     (0, express_validator_1.body)("memberId").notEmpty(),
     (0, express_validator_1.body)("role").notEmpty(),
@@ -265,5 +276,7 @@ exports.ContractorHttpRequest = {
     CreateStripeSessionRequest: exports.CreateStripeSessionRequest,
     UpdateOrDevice: exports.UpdateOrDevice,
     CreateJobQuotationRequest: exports.CreateJobQuotationRequest,
-    sendMessageParams: exports.sendMessageParams
+    sendMessageParams: exports.sendMessageParams,
+    CreateGstDetailsRequest: exports.CreateGstDetailsRequest,
+    CreateCompanyDetailsRequest: exports.CreateCompanyDetailsRequest
 };

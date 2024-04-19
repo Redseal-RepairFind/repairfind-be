@@ -8,12 +8,13 @@ import { htmlContractorDocumentValidatinTemplate } from "../../../templates/cont
 import { Base } from "../../../abstracts/base.abstract";
 import { handleAsyncError } from "../../../abstracts/decorators.abstract";
 import { ContractorProfileModel } from "../../../database/contractor/models/contractor_profile.model";
-import { IContractorBankDetails, IContractorGstDetails, IContractorProfile } from "../../../database/contractor/interface/contractor_profile.interface";
+import { IContractorBankDetails, IContractorProfile } from "../../../database/contractor/interface/contractor_profile.interface";
 import { initiateCertnInvite } from "../../../services/certn";
 import { EmailService } from "../../../services";
 import { StripeService } from "../../../services/stripe";
 import ContractorDeviceModel from "../../../database/contractor/models/contractor_devices.model";
 import { IStripeAccount } from "../../../database/common/stripe_account.schema";
+import { COMPANY_STATUS, GST_STATUS, IContractorCompanyDetails, IContractorGstDetails } from "../../../database/contractor/interface/contractor.interface";
 
 
 class ProfileHandler extends Base {
@@ -587,7 +588,7 @@ class ProfileHandler extends Base {
   }
 
   @handleAsyncError()
-  public async updateGstDetails(): Promise<Response | void> {
+  public async addGstDetails(): Promise<Response | void> {
     let req = <any>this.req
     let res = this.res
     try {
@@ -603,36 +604,94 @@ class ProfileHandler extends Base {
 
       // Assuming that you have a middleware to attach the contractor ID to the request
       const contractorId: string = req.contractor.id;
-      const contractor = req.contractor;
 
-      // Check if the contractor profile exists
-      const profile: IContractorProfile | null = await ContractorProfileModel.findOne({ contractor: contractorId });
+      const contractor = await ContractorModel.findById(contractorId);
 
-      if (!profile) {
-        return res.status(404).json({ success: false, message: 'Contractor profile not found' });
+      if (!contractor) {
+        return res.status(404).json({ success: false, message: 'Contractor  not found' });
+      }
+
+      // check if gst has already been approved or is reviewing
+      if(contractor.gstDetails ){
+        if(contractor.gstDetails.status == GST_STATUS.APPROVED){
+          return res.status(400).json({ success: false, message: 'GST has already been approved' });
+        }
+        if(contractor.gstDetails.status == GST_STATUS.REVIEWING){
+          return res.status(400).json({ success: false, message: 'GST is curretnly been reviewed' });
+        }
       }
 
       // Update the bankDetails subdocument
-      profile.gstDetails = <IContractorGstDetails>{
+      contractor.gstDetails = <IContractorGstDetails>{
         gstName,
         gstNumber,
         gstType,
         backgroundCheckConsent,
+        status: GST_STATUS.PENDING,
       };
 
       // Save the updated contractor profile
-      await profile.save();
-
-      const contractorResponse = {
-        //@ts-ignore
-        ...contractor.toJSON(), // Convert to plain JSON object
-        profile
-      };
+      await contractor.save();
 
       res.json({
         success: true,
-        message: 'Contractor profile bank details updated successfully',
-        data: contractorResponse,
+        message: 'Contractor Gst  details added successfully',
+        data: contractor,
+      });
+    } catch (err: any) {
+      res.status(500).json({ success: false, message: err.message });
+    }
+
+  }
+
+  @handleAsyncError()
+  public async addCompanyDetails(): Promise<Response | void> {
+    let req = <any>this.req
+    let res = this.res
+    try {
+      const { companyLogo, companyStaffId} = req.body;
+
+      // Check for validation errors
+      const errors = validationResult(req);
+
+
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      // Assuming that you have a middleware to attach the contractor ID to the request
+      const contractorId: string = req.contractor.id;
+
+      const contractor = await ContractorModel.findById(contractorId);
+
+      if (!contractor) {
+        return res.status(404).json({ success: false, message: 'Contractor  not found' });
+      }
+
+      // check if gst has already been approved or is reviewing
+      if(contractor.companyDetails ){
+        if(contractor.companyDetails.status == COMPANY_STATUS.APPROVED){
+          return res.status(400).json({ success: false, message: 'Company details has already been approved' });
+        }
+        if(contractor.companyDetails.status == COMPANY_STATUS.REVIEWING){
+          return res.status(400).json({ success: false, message: 'Company details are curretnly been reviewed' });
+        }
+      }
+
+      // Update the bankDetails subdocument
+      contractor.companyDetails = <IContractorCompanyDetails>{
+        companyLogo,
+        companyStaffId,
+        status: COMPANY_STATUS.PENDING,
+      };
+
+      // Save the updated contractor profile
+      await contractor.save();
+
+      res.json({
+        success: true,
+        message: 'Contractor company details added successfully',
+        data: contractor,
       });
     } catch (err: any) {
       res.status(500).json({ success: false, message: err.message });

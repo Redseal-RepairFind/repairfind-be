@@ -40,8 +40,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ContractorModel = exports.CONTRACTOR_TYPES = void 0;
-// @ts-nocheck
+//@ts-nocheck
 var mongoose_1 = require("mongoose");
+var contractor_interface_1 = require("../interface/contractor.interface");
 var constants_1 = require("../../../constants");
 var contractorStatus_1 = require("../../../constants/contractorStatus");
 var contractor_quiz_model_1 = __importDefault(require("./contractor_quiz.model"));
@@ -54,6 +55,25 @@ var CONTRACTOR_TYPES;
     CONTRACTOR_TYPES["EMPLOYEE"] = "Employee";
     CONTRACTOR_TYPES["COMPANY"] = "Company";
 })(CONTRACTOR_TYPES || (exports.CONTRACTOR_TYPES = CONTRACTOR_TYPES = {}));
+var GstDetailSchema = new mongoose_1.Schema({
+    gstName: String,
+    gstNumber: String,
+    gstType: String,
+    backgroundCheckConsent: String,
+    status: { type: String, enum: Object.values(contractor_interface_1.GST_STATUS), default: contractor_interface_1.GST_STATUS.PENDING },
+    approvedBy: mongoose_1.Schema.Types.ObjectId,
+    approvedAt: Date,
+    recentRemark: String,
+    gstCertificate: String,
+});
+var CompanyDetailSchema = new mongoose_1.Schema({
+    companyLogo: String,
+    companyStaffId: String, //url
+    status: { type: String, enum: Object.values(contractor_interface_1.COMPANY_STATUS), default: contractor_interface_1.COMPANY_STATUS.PENDING },
+    approvedBy: mongoose_1.Schema.Types.ObjectId,
+    approvedAt: Date,
+    recentRemark: String,
+});
 var ContractorSchema = new mongoose_1.Schema({
     profile: {
         type: mongoose_1.Schema.Types.ObjectId,
@@ -146,6 +166,12 @@ var ContractorSchema = new mongoose_1.Schema({
     stripePaymentMethods: {
         type: [stripe_paymentmethod_schema_1.StripePaymentMethodSchema],
     },
+    gstDetails: {
+        type: GstDetailSchema
+    },
+    companyDetails: {
+        type: CompanyDetailSchema
+    },
 }, {
     timestamps: true,
 });
@@ -179,12 +205,16 @@ ContractorSchema.virtual('onboarding').get(function () {
     var hasStripePaymentMethods = Array.isArray(this.stripePaymentMethods) && this.stripePaymentMethods.length > 0;
     var hasStripeIdentity = !!this.stripeIdentity;
     var hasProfile = !!this.profile;
+    var hasGstDetails = !!this.gstDetails;
+    var hasCompanyDetails = !!this.companyDetails;
     return {
         hasStripeAccount: hasStripeAccount,
         hasStripeIdentity: hasStripeIdentity,
         hasStripePaymentMethods: hasStripePaymentMethods,
         hasStripeCustomer: hasStripeCustomer,
         hasProfile: hasProfile,
+        hasGstDetails: hasGstDetails,
+        hasCompanyDetails: hasCompanyDetails
     };
 });
 ContractorSchema.virtual('quiz').get(function () {

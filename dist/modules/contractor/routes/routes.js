@@ -51,9 +51,6 @@ router.patch("/profiles/me", contractorRoleCheck_middleware_1.checkContractorRol
 router.post("/profiles/bank-details", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.UpdateBankDetailRequest, function (req, res, next) {
     (0, contractor_controller_1.ContractorController)(req, res, next).updateBankDetails();
 });
-router.post("/profiles/gst-details", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.UpdateBankDetailRequest, function (req, res, next) {
-    (0, contractor_controller_1.ContractorController)(req, res, next).updateGstDetails();
-});
 router.post("/profiles/stripe-identity", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
     (0, contractor_controller_1.ContractorController)(req, res, next).createIdentitySession();
 });
@@ -78,6 +75,12 @@ router.post("/me/stripe-account", contractorRoleCheck_middleware_1.checkContract
 });
 router.get("/me/stripe-account-login", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
     (0, contractor_controller_1.ContractorController)(req, res, next).generateStripeAccountDashboardLink();
+});
+router.post("/me/gst", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateGstDetailsRequest, function (req, res, next) {
+    (0, contractor_controller_1.ContractorController)(req, res, next).addGstDetails();
+});
+router.post("/me/company", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateCompanyDetailsRequest, function (req, res, next) {
+    (0, contractor_controller_1.ContractorController)(req, res, next).addCompanyDetails();
 });
 //  QUiz
 router.get("/quiz-start", contractorRoleCheck_middleware_1.checkContractorRole, contractor_quiz_controller_1.QuizController.StartQuiz);

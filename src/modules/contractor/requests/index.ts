@@ -135,6 +135,20 @@ export const EmailVerificationRequest = [
     body("institutionNumber").notEmpty(),
     body("accountNumber").notEmpty(),
   ];
+  export const CreateGstDetailsRequest = [
+    body("gstName").notEmpty(),
+    body("gstNumber").notEmpty(),
+    body("gstType").notEmpty(),
+    body("backgroundCheckConsent").notEmpty(),
+    body("gstCertificate").optional(),
+  ];
+
+  export const CreateCompanyDetailsRequest = [
+    body("companyLogo").notEmpty(),
+    body("companyStaffId").notEmpty(),
+  ];
+
+
 
   export const InviteToTeam = [
     body("memberId").notEmpty(),
@@ -205,6 +219,8 @@ export const ContractorHttpRequest = {
     CreateStripeSessionRequest,
     UpdateOrDevice,
     CreateJobQuotationRequest,
-    sendMessageParams
+    sendMessageParams,
+    CreateGstDetailsRequest,
+    CreateCompanyDetailsRequest
     
 }

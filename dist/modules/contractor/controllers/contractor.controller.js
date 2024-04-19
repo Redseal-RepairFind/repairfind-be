@@ -97,6 +97,7 @@ var certn_1 = require("../../../services/certn");
 var services_1 = require("../../../services");
 var stripe_1 = require("../../../services/stripe");
 var contractor_devices_model_1 = __importDefault(require("../../../database/contractor/models/contractor_devices.model"));
+var contractor_interface_1 = require("../../../database/contractor/interface/contractor.interface");
 var ProfileHandler = /** @class */ (function (_super) {
     __extends(ProfileHandler, _super);
     function ProfileHandler() {
@@ -662,9 +663,9 @@ var ProfileHandler = /** @class */ (function (_super) {
             });
         });
     };
-    ProfileHandler.prototype.updateGstDetails = function () {
+    ProfileHandler.prototype.addGstDetails = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _a, gstName, gstNumber, gstType, backgroundCheckConsent, errors, contractorId, contractor, profile, contractorResponse, err_9;
+            var req, res, _a, gstName, gstNumber, gstType, backgroundCheckConsent, errors, contractorId, contractor, err_9;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -679,36 +680,101 @@ var ProfileHandler = /** @class */ (function (_super) {
                             return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                         }
                         contractorId = req.contractor.id;
-                        contractor = req.contractor;
-                        return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: contractorId })];
+                        return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
                     case 2:
-                        profile = _b.sent();
-                        if (!profile) {
-                            return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor profile not found' })];
+                        contractor = _b.sent();
+                        if (!contractor) {
+                            return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor  not found' })];
+                        }
+                        // check if gst has already been approved or is reviewing
+                        if (contractor.gstDetails) {
+                            if (contractor.gstDetails.status == contractor_interface_1.GST_STATUS.APPROVED) {
+                                return [2 /*return*/, res.status(400).json({ success: false, message: 'GST has already been approved' })];
+                            }
+                            if (contractor.gstDetails.status == contractor_interface_1.GST_STATUS.REVIEWING) {
+                                return [2 /*return*/, res.status(400).json({ success: false, message: 'GST is curretnly been reviewed' })];
+                            }
                         }
                         // Update the bankDetails subdocument
-                        profile.gstDetails = {
+                        contractor.gstDetails = {
                             gstName: gstName,
                             gstNumber: gstNumber,
                             gstType: gstType,
                             backgroundCheckConsent: backgroundCheckConsent,
+                            status: contractor_interface_1.GST_STATUS.PENDING,
                         };
                         // Save the updated contractor profile
-                        return [4 /*yield*/, profile.save()];
+                        return [4 /*yield*/, contractor.save()];
                     case 3:
                         // Save the updated contractor profile
                         _b.sent();
-                        contractorResponse = __assign(__assign({}, contractor.toJSON()), { // Convert to plain JSON object
-                            profile: profile });
                         res.json({
                             success: true,
-                            message: 'Contractor profile bank details updated successfully',
-                            data: contractorResponse,
+                            message: 'Contractor Gst  details added successfully',
+                            data: contractor,
                         });
                         return [3 /*break*/, 5];
                     case 4:
                         err_9 = _b.sent();
                         res.status(500).json({ success: false, message: err_9.message });
+                        return [3 /*break*/, 5];
+                    case 5: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    ProfileHandler.prototype.addCompanyDetails = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var req, res, _a, companyLogo, companyStaffId, errors, contractorId, contractor, err_10;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        req = this.req;
+                        res = this.res;
+                        _b.label = 1;
+                    case 1:
+                        _b.trys.push([1, 4, , 5]);
+                        _a = req.body, companyLogo = _a.companyLogo, companyStaffId = _a.companyStaffId;
+                        errors = (0, express_validator_1.validationResult)(req);
+                        if (!errors.isEmpty()) {
+                            return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                        }
+                        contractorId = req.contractor.id;
+                        return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
+                    case 2:
+                        contractor = _b.sent();
+                        if (!contractor) {
+                            return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor  not found' })];
+                        }
+                        // check if gst has already been approved or is reviewing
+                        if (contractor.companyDetails) {
+                            if (contractor.companyDetails.status == contractor_interface_1.COMPANY_STATUS.APPROVED) {
+                                return [2 /*return*/, res.status(400).json({ success: false, message: 'Company details has already been approved' })];
+                            }
+                            if (contractor.companyDetails.status == contractor_interface_1.COMPANY_STATUS.REVIEWING) {
+                                return [2 /*return*/, res.status(400).json({ success: false, message: 'Company details are curretnly been reviewed' })];
+                            }
+                        }
+                        // Update the bankDetails subdocument
+                        contractor.companyDetails = {
+                            companyLogo: companyLogo,
+                            companyStaffId: companyStaffId,
+                            status: contractor_interface_1.COMPANY_STATUS.PENDING,
+                        };
+                        // Save the updated contractor profile
+                        return [4 /*yield*/, contractor.save()];
+                    case 3:
+                        // Save the updated contractor profile
+                        _b.sent();
+                        res.json({
+                            success: true,
+                            message: 'Contractor company details added successfully',
+                            data: contractor,
+                        });
+                        return [3 /*break*/, 5];
+                    case 4:
+                        err_10 = _b.sent();
+                        res.status(500).json({ success: false, message: err_10.message });
                         return [3 /*break*/, 5];
                     case 5: return [2 /*return*/];
                 }
@@ -945,7 +1011,13 @@ var ProfileHandler = /** @class */ (function (_super) {
         __metadata("design:type", Function),
         __metadata("design:paramtypes", []),
         __metadata("design:returntype", Promise)
-    ], ProfileHandler.prototype, "updateGstDetails", null);
+    ], ProfileHandler.prototype, "addGstDetails", null);
+    __decorate([
+        (0, decorators_abstract_1.handleAsyncError)(),
+        __metadata("design:type", Function),
+        __metadata("design:paramtypes", []),
+        __metadata("design:returntype", Promise)
+    ], ProfileHandler.prototype, "addCompanyDetails", null);
     __decorate([
         (0, decorators_abstract_1.handleAsyncError)(),
         __metadata("design:type", Function),

@@ -24,18 +24,6 @@ export interface IContractorBankDetails  extends Document  {
   accountNumber: string,
 }
 
-export interface IContractorGstDetails  extends Document  {
-  gstName: string,
-  gstNumber: string,
-  gstType: string,
-  backgroundCheckConsent: boolean
-  status: boolean
-  approvedBy: string
-  approvedAt: string
-  
-}
-
-
 
 export interface IContractorLocation extends Document  {
   address: string,
@@ -49,11 +37,7 @@ export interface IContractorLocation extends Document  {
 export interface IContractorProfile extends Document {
   _id: ObjectId;
   contractor: IContractor['_id']
-  gstName: string;
-  gstNumber: string;
-  gstType: string;
   location: IContractorLocation
-  backgroundCheckConsent: boolean;
   skill: string;
   experienceYear: number;
   about: string;
@@ -66,7 +50,6 @@ export interface IContractorProfile extends Document {
   previousJobPhotos:  Array<IContractorJobPhoto>;
   previousJobVideos: Array<IContractorJobVideo>
   bankDetails: IContractorBankDetails
-  gstDetails: IContractorGstDetails
   certnId: string;
   createdAt: Date;
   updatedAt: Date;

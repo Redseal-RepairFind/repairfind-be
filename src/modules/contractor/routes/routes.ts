@@ -62,9 +62,7 @@ router.post("/profiles/bank-details", checkContractorRole, ContractorHttpRequest
     ContractorController(req, res, next).updateBankDetails();
 });
 
-router.post("/profiles/gst-details", checkContractorRole, ContractorHttpRequest.UpdateBankDetailRequest, (req: Request, res: Response, next: NextFunction) => {
-    ContractorController(req, res, next).updateGstDetails();
-});
+
 
 router.post("/profiles/stripe-identity", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
     ContractorController(req, res, next).createIdentitySession();
@@ -94,6 +92,14 @@ router.post("/me/stripe-account", checkContractorRole, (req: Request, res: Respo
 });
 router.get("/me/stripe-account-login", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
     ContractorController(req, res, next).generateStripeAccountDashboardLink();
+});
+
+router.post("/me/gst", checkContractorRole, ContractorHttpRequest.CreateGstDetailsRequest, (req: Request, res: Response, next: NextFunction) => {
+    ContractorController(req, res, next).addGstDetails();
+});
+
+router.post("/me/company", checkContractorRole, ContractorHttpRequest.CreateCompanyDetailsRequest, (req: Request, res: Response, next: NextFunction) => {
+    ContractorController(req, res, next).addCompanyDetails();
 });
 
 //  QUiz

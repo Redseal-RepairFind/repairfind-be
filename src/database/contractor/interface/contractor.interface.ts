@@ -4,6 +4,43 @@ import { IStripeAccount } from "../../common/stripe_account.schema";
 
 
 
+export interface IContractorGstDetails  extends Document  {
+  gstName: string,
+  gstNumber: string,
+  gstType: string,
+  backgroundCheckConsent: boolean
+  status: string
+  approvedBy: ObjectId
+  approvedAt: Date
+  recentRemark: string
+  gstCertificate: string
+}
+
+export interface IContractorCompanyDetails  extends Document  {
+  companyLogo: string,
+  companyStaffId: string, //url
+  status: string,
+  approvedBy: ObjectId,
+  approvedAt: Date,
+  recentRemark: String,
+}
+
+export enum GST_STATUS {
+  PENDING= "PENDING",
+  REVIEWING = "REVIEWING",
+  APPROVED = "APPROVED",
+  DECLINED = "DECLINED"
+}
+
+export enum COMPANY_STATUS {
+  PENDING= "PENDING",
+  REVIEWING = "REVIEWING",
+  APPROVED = "APPROVED",
+  DECLINED = "DECLINED"
+}
+
+
+
 export interface IContractor extends Document {
   _id: ObjectId;
   profile: ObjectId;
@@ -53,6 +90,8 @@ export interface IContractor extends Document {
   stripeIdentity: object,
   stripeAccount: IStripeAccount,
   stripePaymentMethods: Array<object>,
+  gstDetails: IContractorGstDetails
+  companyDetails: IContractorCompanyDetails
   createdAt: Date;
   updatedAt: Date;
   quiz: any;

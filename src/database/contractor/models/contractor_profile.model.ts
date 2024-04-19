@@ -42,45 +42,21 @@ const BankDetailsSchema = new Schema<IContractorBankDetails>({
   accountNumber: String,
 });
 
-const GstDetailSchema = new Schema<IContractorBankDetails>({
-  institutionName: String,
-  transitNumber: String,
-  institutionNumber: String,
-  accountNumber: String,
-});
 
 
 const CompanyProfileSchema = new Schema<IContractorProfile>(
     {
-    
       contractor: {
         type: Schema.Types.ObjectId, 
         ref: "contractors",
         required: true,
       },
-
-      gstName: {
-        type: String,  
-      },
-
-      gstNumber: {
-        type: String,
-        required: false, 
-      },
-      gstType: {
-        type: String, 
-      },
-
       profileType: {
         type: String,
       },
       
       location: {
         type: ContractorLocationSchema,
-      },
-
-      backgroundCheckConsent: {
-        type: Boolean,
       },
       skill: {
         type: String,
@@ -126,9 +102,6 @@ const CompanyProfileSchema = new Schema<IContractorProfile>(
         type: BankDetailsSchema, // Embed the BankDetails subdocument
       },
 
-      gstDetails: {
-        type: GstDetailSchema
-      },
 
       certnId: {
         type: String,
