@@ -47,7 +47,7 @@ class AuthHandler extends Base {
 
             let emailData = {
                 emailTo: email,
-                subject: "email verification",
+                subject: "Email Verification",
                 html
             };
 
@@ -300,7 +300,7 @@ class AuthHandler extends Base {
           
               let emailData = {
                   emailTo: email,
-                  subject: "email verification",
+                  subject: "Email Verification",
                   html
               };
           

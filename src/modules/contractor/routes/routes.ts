@@ -62,6 +62,10 @@ router.post("/profiles/bank-details", checkContractorRole, ContractorHttpRequest
     ContractorController(req, res, next).updateBankDetails();
 });
 
+router.post("/profiles/gst-details", checkContractorRole, ContractorHttpRequest.UpdateBankDetailRequest, (req: Request, res: Response, next: NextFunction) => {
+    ContractorController(req, res, next).updateGstDetails();
+});
+
 router.post("/profiles/stripe-identity", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
     ContractorController(req, res, next).createIdentitySession();
 });

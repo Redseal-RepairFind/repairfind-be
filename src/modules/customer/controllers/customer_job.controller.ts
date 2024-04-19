@@ -116,17 +116,24 @@ export const createJobRequest = async (
             { memberType: 'contractors', member: contractorId }
         ];
 
-        const newConversation: IConversation = await ConversationModel.create({
-            members: conversationMembers,
-            entity: newJob._id,
-            entityType: ConversationEntityType.JOB,
-            lastMessage: description, // Set the last message to the job description
-            lastMessageAt: new Date() // Set the last message timestamp to now
-        });
+
+
+        const conversation = await ConversationModel.findOneAndUpdate(
+            {
+                members: {
+                    $elemMatch: { $or: [{ member: customer.id }, { member: contractorId }] }
+                }
+            },
+
+            {
+                members: conversationMembers
+            },
+            { new: true, upsert: true });
+
 
         // Create a message in the conversation
         const newMessage: IMessage = await MessageModel.create({
-            conversation: newConversation._id,
+            conversation: conversation._id,
             sender: customerId, // Assuming the customer sends the initial message
             message: `New job request: ${description}`, // You can customize the message content as needed
             messageType: MessageType.TEXT, // You can customize the message content as needed
@@ -135,7 +142,7 @@ export const createJobRequest = async (
 
 
 
-        JobEvent.emit('NEW_JOB_REQUEST', { jobId: newJob.id, contractorId, customerId, conversationId: newConversation.id })
+        JobEvent.emit('NEW_JOB_REQUEST', { jobId: newJob.id, contractorId, customerId, conversationId: conversation.id })
 
         const html = htmlJobRequestTemplate(customer.firstName, customer.firstName, `${date} ${time}`, description)
         EmailService.send(contractor.email, 'Job request from customer', html)

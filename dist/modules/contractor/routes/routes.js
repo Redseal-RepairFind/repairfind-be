@@ -51,6 +51,9 @@ router.patch("/profiles/me", contractorRoleCheck_middleware_1.checkContractorRol
 router.post("/profiles/bank-details", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.UpdateBankDetailRequest, function (req, res, next) {
     (0, contractor_controller_1.ContractorController)(req, res, next).updateBankDetails();
 });
+router.post("/profiles/gst-details", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.UpdateBankDetailRequest, function (req, res, next) {
+    (0, contractor_controller_1.ContractorController)(req, res, next).updateGstDetails();
+});
 router.post("/profiles/stripe-identity", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
     (0, contractor_controller_1.ContractorController)(req, res, next).createIdentitySession();
 });

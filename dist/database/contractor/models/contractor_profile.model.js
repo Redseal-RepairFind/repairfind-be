@@ -33,6 +33,12 @@ var BankDetailsSchema = new mongoose_1.Schema({
     institutionNumber: String,
     accountNumber: String,
 });
+var GstDetailSchema = new mongoose_1.Schema({
+    institutionName: String,
+    transitNumber: String,
+    institutionNumber: String,
+    accountNumber: String,
+});
 var CompanyProfileSchema = new mongoose_1.Schema({
     contractor: {
         type: mongoose_1.Schema.Types.ObjectId,
@@ -91,6 +97,9 @@ var CompanyProfileSchema = new mongoose_1.Schema({
     },
     bankDetails: {
         type: BankDetailsSchema, // Embed the BankDetails subdocument
+    },
+    gstDetails: {
+        type: GstDetailSchema
     },
     certnId: {
         type: String,

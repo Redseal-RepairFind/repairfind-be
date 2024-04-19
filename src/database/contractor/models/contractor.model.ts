@@ -166,6 +166,23 @@ ContractorSchema.virtual('stripeAccountStatus').get(function (this: IContractor)
 });
 
 
+ContractorSchema.virtual('onboarding').get(  function (this: IContractor) {
+ 
+  const hasStripeAccount = !!this.stripeAccount; 
+  const hasStripeCustomer = !!this.stripeCustomer;
+  const hasStripePaymentMethods = Array.isArray(this.stripePaymentMethods) && this.stripePaymentMethods.length > 0
+  const hasStripeIdentity = !!this.stripeIdentity;
+  const hasProfile = !!this.profile;
+  return {
+    hasStripeAccount,
+    hasStripeIdentity,
+    hasStripePaymentMethods,
+    hasStripeCustomer,
+    hasProfile,
+  }
+});
+
+
 ContractorSchema.virtual('quiz').get(async function () {
   const latestQuiz: any = await ContractorQuizModel.findOne({ contractor: this._id }).sort({ createdAt: -1 });
   return await latestQuiz?.result

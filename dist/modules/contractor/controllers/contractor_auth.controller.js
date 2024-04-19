@@ -132,7 +132,7 @@ var AuthHandler = /** @class */ (function (_super) {
                         html = (0, sendEmailTemplate_1.htmlMailTemplate)(otp, firstName !== null && firstName !== void 0 ? firstName : companyName, "We have received a request to verify your email");
                         emailData = {
                             emailTo: email,
-                            subject: "email verification",
+                            subject: "Email Verification",
                             html: html
                         };
                         return [4 /*yield*/, (0, send_email_utility_1.sendEmail)(emailData)];
@@ -360,7 +360,7 @@ var AuthHandler = /** @class */ (function (_super) {
                         html = (0, sendEmailTemplate_1.htmlMailTemplate)(otp, contractor.firstName, "We have received a request to verify your email");
                         emailData = {
                             emailTo: email,
-                            subject: "email verification",
+                            subject: "Email Verification",
                             html: html
                         };
                         (0, send_email_utility_1.sendEmail)(emailData);

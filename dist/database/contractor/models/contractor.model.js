@@ -173,6 +173,20 @@ ContractorSchema.virtual('stripeAccountStatus').get(function () {
         charges_enabled: stripeAccount.charges_enabled
     } : 'unverified';
 });
+ContractorSchema.virtual('onboarding').get(function () {
+    var hasStripeAccount = !!this.stripeAccount;
+    var hasStripeCustomer = !!this.stripeCustomer;
+    var hasStripePaymentMethods = Array.isArray(this.stripePaymentMethods) && this.stripePaymentMethods.length > 0;
+    var hasStripeIdentity = !!this.stripeIdentity;
+    var hasProfile = !!this.profile;
+    return {
+        hasStripeAccount: hasStripeAccount,
+        hasStripeIdentity: hasStripeIdentity,
+        hasStripePaymentMethods: hasStripePaymentMethods,
+        hasStripeCustomer: hasStripeCustomer,
+        hasProfile: hasProfile,
+    };
+});
 ContractorSchema.virtual('quiz').get(function () {
     return __awaiter(this, void 0, void 0, function () {
         var latestQuiz;

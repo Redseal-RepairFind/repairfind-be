@@ -309,7 +309,7 @@ export const getJobRequestById = async (req: any, res: Response, next: NextFunct
     };
 
     const job = await JobModel.findOne({ _id: jobId, contractor: contractorId, type: JobType.REQUEST })
-      .populate(['contractor', 'customer', { path: 'myQuotation', options: options }])
+      .populate(['contractor', 'customer'])
       .exec();
 
 

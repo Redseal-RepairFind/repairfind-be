@@ -8,7 +8,7 @@ import { htmlContractorDocumentValidatinTemplate } from "../../../templates/cont
 import { Base } from "../../../abstracts/base.abstract";
 import { handleAsyncError } from "../../../abstracts/decorators.abstract";
 import { ContractorProfileModel } from "../../../database/contractor/models/contractor_profile.model";
-import { IContractorBankDetails, IContractorProfile } from "../../../database/contractor/interface/contractor_profile.interface";
+import { IContractorBankDetails, IContractorGstDetails, IContractorProfile } from "../../../database/contractor/interface/contractor_profile.interface";
 import { initiateCertnInvite } from "../../../services/certn";
 import { EmailService } from "../../../services";
 import { StripeService } from "../../../services/stripe";
@@ -564,6 +564,60 @@ class ProfileHandler extends Base {
         transitNumber,
         institutionNumber,
         accountNumber,
+      };
+
+      // Save the updated contractor profile
+      await profile.save();
+
+      const contractorResponse = {
+        //@ts-ignore
+        ...contractor.toJSON(), // Convert to plain JSON object
+        profile
+      };
+
+      res.json({
+        success: true,
+        message: 'Contractor profile bank details updated successfully',
+        data: contractorResponse,
+      });
+    } catch (err: any) {
+      res.status(500).json({ success: false, message: err.message });
+    }
+
+  }
+
+  @handleAsyncError()
+  public async updateGstDetails(): Promise<Response | void> {
+    let req = <any>this.req
+    let res = this.res
+    try {
+      const { gstName, gstNumber, gstType, backgroundCheckConsent } = req.body;
+
+      // Check for validation errors
+      const errors = validationResult(req);
+
+
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      // Assuming that you have a middleware to attach the contractor ID to the request
+      const contractorId: string = req.contractor.id;
+      const contractor = req.contractor;
+
+      // Check if the contractor profile exists
+      const profile: IContractorProfile | null = await ContractorProfileModel.findOne({ contractor: contractorId });
+
+      if (!profile) {
+        return res.status(404).json({ success: false, message: 'Contractor profile not found' });
+      }
+
+      // Update the bankDetails subdocument
+      profile.gstDetails = <IContractorGstDetails>{
+        gstName,
+        gstNumber,
+        gstType,
+        backgroundCheckConsent,
       };
 
       // Save the updated contractor profile

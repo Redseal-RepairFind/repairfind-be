@@ -322,7 +322,7 @@ var getJobRequestById = function (req, res, next) { return __awaiter(void 0, voi
                     }
                 };
                 return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobId, contractor: contractorId, type: job_model_1.JobType.REQUEST })
-                        .populate(['contractor', 'customer', { path: 'myQuotation', options: options_1 }])
+                        .populate(['contractor', 'customer'])
                         .exec()];
             case 1:
                 job = _b.sent();

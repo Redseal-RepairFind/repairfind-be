@@ -60,7 +60,7 @@ var events_1 = require("../../../events");
 var job_quotation_accepted_template_1 = require("../../../templates/contractorEmail/job_quotation_accepted.template");
 var job_quotation_declined_template_1 = require("../../../templates/contractorEmail/job_quotation_declined.template");
 var createJobRequest = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, contractorId, category, description, location_1, date, expiresIn, emergency, media, voiceDescription, time, customerId, customer, contractor, startOfToday, existingJobRequest, dateTimeString, jobTime, newJob, conversationMembers, newConversation, newMessage, html, error_1;
+    var errors, _a, contractorId, category, description, location_1, date, expiresIn, emergency, media, voiceDescription, time, customerId, customer, contractor, startOfToday, existingJobRequest, dateTimeString, jobTime, newJob, conversationMembers, conversation, newMessage, html, error_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -127,17 +127,17 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                     { memberType: 'customers', member: customerId },
                     { memberType: 'contractors', member: contractorId }
                 ];
-                return [4 /*yield*/, conversations_schema_1.ConversationModel.create({
-                        members: conversationMembers,
-                        entity: newJob._id,
-                        entityType: conversations_schema_1.ConversationEntityType.JOB,
-                        lastMessage: description, // Set the last message to the job description
-                        lastMessageAt: new Date() // Set the last message timestamp to now
-                    })];
+                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
+                        members: {
+                            $elemMatch: { $or: [{ member: customer.id }, { member: contractorId }] }
+                        }
+                    }, {
+                        members: conversationMembers
+                    }, { new: true, upsert: true })];
             case 5:
-                newConversation = _b.sent();
+                conversation = _b.sent();
                 return [4 /*yield*/, messages_schema_1.MessageModel.create({
-                        conversation: newConversation._id,
+                        conversation: conversation._id,
                         sender: customerId, // Assuming the customer sends the initial message
                         message: "New job request: ".concat(description), // You can customize the message content as needed
                         messageType: messages_schema_1.MessageType.TEXT, // You can customize the message content as needed
@@ -145,7 +145,7 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                     })];
             case 6:
                 newMessage = _b.sent();
-                events_1.JobEvent.emit('NEW_JOB_REQUEST', { jobId: newJob.id, contractorId: contractorId, customerId: customerId, conversationId: newConversation.id });
+                events_1.JobEvent.emit('NEW_JOB_REQUEST', { jobId: newJob.id, contractorId: contractorId, customerId: customerId, conversationId: conversation.id });
                 html = (0, jobRequestTemplate_1.htmlJobRequestTemplate)(customer.firstName, customer.firstName, "".concat(date, " ").concat(time), description);
                 services_1.EmailService.send(contractor.email, 'Job request from customer', html);
                 res.status(201).json({ success: true, message: 'Job request submitted successfully', data: newJob });

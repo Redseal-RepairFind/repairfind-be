@@ -42,6 +42,13 @@ const BankDetailsSchema = new Schema<IContractorBankDetails>({
   accountNumber: String,
 });
 
+const GstDetailSchema = new Schema<IContractorBankDetails>({
+  institutionName: String,
+  transitNumber: String,
+  institutionNumber: String,
+  accountNumber: String,
+});
+
 
 const CompanyProfileSchema = new Schema<IContractorProfile>(
     {
@@ -117,6 +124,10 @@ const CompanyProfileSchema = new Schema<IContractorProfile>(
 
       bankDetails: {
         type: BankDetailsSchema, // Embed the BankDetails subdocument
+      },
+
+      gstDetails: {
+        type: GstDetailSchema
       },
 
       certnId: {

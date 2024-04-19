@@ -662,6 +662,59 @@ var ProfileHandler = /** @class */ (function (_super) {
             });
         });
     };
+    ProfileHandler.prototype.updateGstDetails = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var req, res, _a, gstName, gstNumber, gstType, backgroundCheckConsent, errors, contractorId, contractor, profile, contractorResponse, err_9;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        req = this.req;
+                        res = this.res;
+                        _b.label = 1;
+                    case 1:
+                        _b.trys.push([1, 4, , 5]);
+                        _a = req.body, gstName = _a.gstName, gstNumber = _a.gstNumber, gstType = _a.gstType, backgroundCheckConsent = _a.backgroundCheckConsent;
+                        errors = (0, express_validator_1.validationResult)(req);
+                        if (!errors.isEmpty()) {
+                            return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                        }
+                        contractorId = req.contractor.id;
+                        contractor = req.contractor;
+                        return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: contractorId })];
+                    case 2:
+                        profile = _b.sent();
+                        if (!profile) {
+                            return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor profile not found' })];
+                        }
+                        // Update the bankDetails subdocument
+                        profile.gstDetails = {
+                            gstName: gstName,
+                            gstNumber: gstNumber,
+                            gstType: gstType,
+                            backgroundCheckConsent: backgroundCheckConsent,
+                        };
+                        // Save the updated contractor profile
+                        return [4 /*yield*/, profile.save()];
+                    case 3:
+                        // Save the updated contractor profile
+                        _b.sent();
+                        contractorResponse = __assign(__assign({}, contractor.toJSON()), { // Convert to plain JSON object
+                            profile: profile });
+                        res.json({
+                            success: true,
+                            message: 'Contractor profile bank details updated successfully',
+                            data: contractorResponse,
+                        });
+                        return [3 /*break*/, 5];
+                    case 4:
+                        err_9 = _b.sent();
+                        res.status(500).json({ success: false, message: err_9.message });
+                        return [3 /*break*/, 5];
+                    case 5: return [2 /*return*/];
+                }
+            });
+        });
+    };
     ProfileHandler.prototype.changePassword = function () {
         return __awaiter(this, void 0, void 0, function () {
             var req, res, errors, _a, currentPassword, newPassword, contractorId, contractor, isPasswordValid, hashedPassword, error_1;
@@ -887,6 +940,12 @@ var ProfileHandler = /** @class */ (function (_super) {
         __metadata("design:paramtypes", []),
         __metadata("design:returntype", Promise)
     ], ProfileHandler.prototype, "updateBankDetails", null);
+    __decorate([
+        (0, decorators_abstract_1.handleAsyncError)(),
+        __metadata("design:type", Function),
+        __metadata("design:paramtypes", []),
+        __metadata("design:returntype", Promise)
+    ], ProfileHandler.prototype, "updateGstDetails", null);
     __decorate([
         (0, decorators_abstract_1.handleAsyncError)(),
         __metadata("design:type", Function),
