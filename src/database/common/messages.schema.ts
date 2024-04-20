@@ -108,16 +108,14 @@ MessageSchema.methods.getHeading = async function (loggedInUserId: string) {
         const contractor = await ContractorModel.findById(this.sender) // Assuming your user model is named 'User'
         if(!contractor)return {}
         return {
-            // @ts-ignore
             name: contractor.name,
-            profilePhoto: contractor.profilePhoto,
+            image: contractor.profilePhoto.url,
         };
 
     } else {
         const customer = await CustomerModel.findById(this.sender) // Assuming your user model is named 'User'
         if(!customer)return {}
         return {
-            // @ts-ignore
             name: customer.name,
             image: customer.profilePhoto?.url,
         };

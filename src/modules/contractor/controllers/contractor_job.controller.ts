@@ -779,7 +779,7 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
     if (jobs) {
       // Map through each job and attach myQuotation if contractor has applied 
       await Promise.all(jobs.map(async (job: any) => {
-        job.myQuotation = await job.getMyQoutation(contractorId)
+        job.myQuotation = await JobQoutationModel.findOne({job: job.id, contractor: contractorId })
       }));
     }
 
