@@ -62,7 +62,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MessageModel = exports.MessageType = void 0;
+exports.MessageModel = exports.MESSAGE_MEDIA_TYPE = exports.MessageType = void 0;
 var mongoose_1 = __importStar(require("mongoose"));
 var contractor_model_1 = require("../contractor/models/contractor.model");
 var customer_model_1 = __importDefault(require("../customer/models/customer.model"));
@@ -72,6 +72,31 @@ var MessageType;
     MessageType["ALERT"] = "ALERT";
     MessageType["MEDIA"] = "MEDIA";
 })(MessageType || (exports.MessageType = MessageType = {}));
+var MESSAGE_MEDIA_TYPE;
+(function (MESSAGE_MEDIA_TYPE) {
+    MESSAGE_MEDIA_TYPE["TEXT"] = "AUDIO";
+    MESSAGE_MEDIA_TYPE["ALERT"] = "VIDEO";
+    MESSAGE_MEDIA_TYPE["MEDIA"] = "IMAGE";
+})(MESSAGE_MEDIA_TYPE || (exports.MESSAGE_MEDIA_TYPE = MESSAGE_MEDIA_TYPE = {}));
+var MediaSchema = new mongoose_1.Schema({
+    url: {
+        type: String,
+        required: true,
+    },
+    metrics: {
+        type: String,
+        required: false,
+    },
+    duration: {
+        type: String,
+        required: false,
+    },
+    type: {
+        type: String,
+        enum: Object.values(MESSAGE_MEDIA_TYPE),
+        required: true,
+    },
+});
 // Define schema for messages
 var MessageSchema = new mongoose_1.Schema({
     conversation: {
@@ -98,7 +123,7 @@ var MessageSchema = new mongoose_1.Schema({
         trim: true,
         required: false,
     },
-    media: [String],
+    media: [MediaSchema],
     readBy: [
         {
             type: mongoose_1.Schema.Types.ObjectId,

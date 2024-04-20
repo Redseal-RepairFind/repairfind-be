@@ -295,7 +295,6 @@ var AuthHandler = /** @class */ (function (_super) {
                     case 4:
                         quiz = (_a = _c.sent()) !== null && _a !== void 0 ? _a : null;
                         contractorResponse = __assign(__assign({}, contractor.toJSON()), { // Convert to plain JSON object
-                            //@ts-ignore
                             quiz: quiz });
                         accessToken = jsonwebtoken_1.default.sign({
                             id: contractor === null || contractor === void 0 ? void 0 : contractor._id,

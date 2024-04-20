@@ -396,7 +396,7 @@ var adminUpdateBioController = function (req, res) { return __awaiter(void 0, vo
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 7, , 8]);
+                _b.trys.push([0, 6, , 7]);
                 _a = req.body, email = _a.email, password = _a.password, firstName = _a.firstName, lastName = _a.lastName;
                 file = req.file;
                 errors = (0, express_validator_1.validationResult)(req);
@@ -419,38 +419,35 @@ var adminUpdateBioController = function (req, res) { return __awaiter(void 0, vo
                             .status(401)
                             .json({ message: "fill in the missing input" })];
                 }
-                profileImage = void 0;
-                if (!!file) return [3 /*break*/, 2];
-                profileImage = adminExists.image;
-                return [3 /*break*/, 4];
-            case 2:
+                profileImage = { url: 'shdj' };
+                if (!file) return [3 /*break*/, 3];
                 filename = (0, uuid_1.v4)();
                 return [4 /*yield*/, (0, upload_utility_1.uploadToS3)(req.file.buffer, "".concat(filename, ".jpg"))];
-            case 3:
+            case 2:
                 result = _b.sent();
-                profileImage = result === null || result === void 0 ? void 0 : result.Location;
-                _b.label = 4;
-            case 4: return [4 /*yield*/, bcrypt_1.default.hash(password, 10)];
-            case 5:
+                profileImage = result ? { url: result.Location } : { url: 'shdj' };
+                _b.label = 3;
+            case 3: return [4 /*yield*/, bcrypt_1.default.hash(password, 10)];
+            case 4:
                 hashedPassword = _b.sent();
                 adminExists.firstName = firstName;
                 adminExists.lastName = lastName;
                 adminExists.email = email;
-                adminExists.image = profileImage;
+                adminExists.profilePhoto = profileImage;
                 adminExists.password = hashedPassword;
                 return [4 /*yield*/, adminExists.save()];
-            case 6:
+            case 5:
                 _b.sent();
                 res.json({
                     message: "profile successfully updated",
                 });
-                return [3 /*break*/, 8];
-            case 7:
+                return [3 /*break*/, 7];
+            case 6:
                 err_7 = _b.sent();
                 // signup error
                 res.status(500).json({ message: err_7.message });
-                return [3 /*break*/, 8];
-            case 8: return [2 /*return*/];
+                return [3 /*break*/, 7];
+            case 7: return [2 /*return*/];
         }
     });
 }); };

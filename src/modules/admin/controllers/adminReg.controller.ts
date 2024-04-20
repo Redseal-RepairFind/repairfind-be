@@ -463,15 +463,12 @@ export const adminUpdateBioController = async (
         .json({ message: "fill in the missing input" });
     }
 
-    let profileImage;
+    let profileImage = {url: 'shdj'};
 
-    if (!file) {
-      profileImage = adminExists.image
-    }else{
+    if (file) {
       const filename = uuidv4();
       const result = await uploadToS3(req.file.buffer, `${filename}.jpg`);
-      profileImage = result?.Location!;
-      
+      profileImage = result ? {url: result.Location} :  {url: 'shdj'};
     }
 
     // Hash password
@@ -480,7 +477,7 @@ export const adminUpdateBioController = async (
     adminExists.firstName = firstName;
     adminExists.lastName = lastName;
     adminExists.email = email;
-    adminExists.image = profileImage;
+    adminExists.profilePhoto = profileImage;
     adminExists.password = hashedPassword;
 
     await adminExists.save()

@@ -9,6 +9,16 @@ export enum CustomerAuthProviders  {
   APPLE = "APPLE",
 }
 
+
+export interface ICustomerLocation extends Document  {
+  address: string,
+  city: string,
+  region: string,
+  country: string,
+  latitude: string
+  longitude: string,
+}
+
 export interface ICustomer extends Document {
   _id: ObjectId;
   
@@ -21,7 +31,7 @@ export interface ICustomer extends Document {
     code: string,
     number: string
   };    
-  location: string;
+  location: ICustomerLocation
   profilePhoto: {
     url: {
       type: String,

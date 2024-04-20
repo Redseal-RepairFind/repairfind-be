@@ -93,11 +93,11 @@ var contractorDocumentTemplate_1 = require("../../../templates/contractorEmail/c
 var base_abstract_1 = require("../../../abstracts/base.abstract");
 var decorators_abstract_1 = require("../../../abstracts/decorators.abstract");
 var contractor_profile_model_1 = require("../../../database/contractor/models/contractor_profile.model");
-var certn_1 = require("../../../services/certn");
 var services_1 = require("../../../services");
 var stripe_1 = require("../../../services/stripe");
 var contractor_devices_model_1 = __importDefault(require("../../../database/contractor/models/contractor_devices.model"));
 var contractor_interface_1 = require("../../../database/contractor/interface/contractor.interface");
+var custom_errors_1 = require("../../../utils/custom.errors");
 var ProfileHandler = /** @class */ (function (_super) {
     __extends(ProfileHandler, _super);
     function ProfileHandler() {
@@ -105,7 +105,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     }
     ProfileHandler.prototype.createProfile = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _a, gstName, gstNumber, gstType, location_1, backgroundCheckConsent, skill, website, experienceYear, about, email, phoneNumber, emergencyJobs, availableDays, profilePhoto, previousJobPhotos, previousJobVideos, contractorId, contractor, errors, certnToken, data, profileType, profile_1, contractorResponse, htmlCon, html, adminsWithEmails, adminEmails, err_1;
+            var req, res, _a, location_1, backgroundCheckConsent, skill, website, experienceYear, about, email, phoneNumber, emergencyJobs, availableDays, profilePhoto, previousJobPhotos, previousJobVideos, contractorId, contractor, errors, payload, profile_1, contractorResponse, data, htmlCon, html, adminsWithEmails, adminEmails, err_1;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -113,8 +113,8 @@ var ProfileHandler = /** @class */ (function (_super) {
                         res = this.res;
                         _b.label = 1;
                     case 1:
-                        _b.trys.push([1, 7, , 8]);
-                        _a = req.body, gstName = _a.gstName, gstNumber = _a.gstNumber, gstType = _a.gstType, location_1 = _a.location, backgroundCheckConsent = _a.backgroundCheckConsent, skill = _a.skill, website = _a.website, experienceYear = _a.experienceYear, about = _a.about, email = _a.email, phoneNumber = _a.phoneNumber, emergencyJobs = _a.emergencyJobs, availableDays = _a.availableDays, profilePhoto = _a.profilePhoto, previousJobPhotos = _a.previousJobPhotos, previousJobVideos = _a.previousJobVideos;
+                        _b.trys.push([1, 6, , 7]);
+                        _a = req.body, location_1 = _a.location, backgroundCheckConsent = _a.backgroundCheckConsent, skill = _a.skill, website = _a.website, experienceYear = _a.experienceYear, about = _a.about, email = _a.email, phoneNumber = _a.phoneNumber, emergencyJobs = _a.emergencyJobs, availableDays = _a.availableDays, profilePhoto = _a.profilePhoto, previousJobPhotos = _a.previousJobPhotos, previousJobVideos = _a.previousJobVideos;
                         contractorId = req.contractor.id;
                         return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: contractorId })];
                     case 2:
@@ -122,36 +122,14 @@ var ProfileHandler = /** @class */ (function (_super) {
                         if (!contractor) {
                             return [2 /*return*/, res.status(404).json({ message: "Contractor account not found" })];
                         }
-                        // Define validation rules for the request body
-                        if (contractor.accountType === contractor_interface_1.CONTRACTOR_ACCOUNT_TYPE.Company) { }
-                        return [4 /*yield*/, Promise.all([
-                                (0, express_validator_1.body)('gstName').notEmpty().withMessage('GST Name is required'),
-                                (0, express_validator_1.body)('gstNumber').notEmpty().withMessage('GST Number is required'),
-                                // Add more validation rules for other fields
-                            ])];
-                    case 3:
-                        _b.sent();
                         errors = (0, express_validator_1.validationResult)(req);
                         if (!errors.isEmpty()) {
                             return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                         }
-                        certnToken = process.env.CERTN_KEY;
-                        if (!certnToken) {
-                            return [2 /*return*/, res
-                                    .status(401)
-                                    .json({ message: "Certn API Key is missing" })];
-                        }
-                        data = {
-                            request_enhanced_identity_verification: true,
-                            request_enhanced_criminal_record_check: true,
-                            email: contractor.email
-                        };
-                        profileType = contractor.accountType;
-                        return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOneAndUpdate({ contractor: contractorId }, {
+                        payload = {};
+                        if (contractor.accountType == contractor_interface_1.CONTRACTOR_TYPES.Company || contractor.accountType == contractor_interface_1.CONTRACTOR_TYPES.Individual) {
+                            payload = {
                                 contractor: contractorId,
-                                gstName: gstName,
-                                gstNumber: gstNumber,
-                                gstType: gstType,
                                 location: location_1,
                                 skill: skill,
                                 website: website,
@@ -164,33 +142,49 @@ var ProfileHandler = /** @class */ (function (_super) {
                                 profilePhoto: profilePhoto,
                                 previousJobPhotos: previousJobPhotos,
                                 previousJobVideos: previousJobVideos,
-                                profileType: profileType,
                                 backgroundCheckConsent: backgroundCheckConsent,
+                            };
+                        }
+                        if (contractor.accountType == contractor_interface_1.CONTRACTOR_TYPES.Employee) {
+                            payload = {
+                                contractor: contractorId,
+                                location: location_1,
+                                backgroundCheckConsent: backgroundCheckConsent,
+                            };
+                        }
+                        return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOneAndUpdate({ contractor: contractorId }, {
+                                payload: payload
                             }, { upsert: true, new: true, setDefaultsOnInsert: true })
                             // Update the ContractorModel with the profile ID
                         ];
-                    case 4:
+                    case 3:
                         profile_1 = _b.sent();
                         // Update the ContractorModel with the profile ID
                         contractor.profile = profile_1._id;
                         contractor.profilePhoto = profilePhoto;
                         return [4 /*yield*/, contractor.save()];
-                    case 5:
+                    case 4:
                         _b.sent();
-                        contractorResponse = __assign(__assign({}, contractor.toJSON()), { // Convert to plain JSON object
-                            profile: profile_1 });
-                        (0, certn_1.initiateCertnInvite)(data).then(function (res) {
-                            profile_1.certnId = res.applicant.id;
-                            profile_1.save();
-                            console.log('Certn invitation sent', profile_1.certnId);
-                        });
+                        contractorResponse = __assign(__assign({}, contractor.toJSON()), { profile: profile_1 });
+                        if (contractor.accountType == contractor_interface_1.CONTRACTOR_TYPES.Individual) {
+                            data = {
+                                request_enhanced_identity_verification: true,
+                                request_enhanced_criminal_record_check: true,
+                                email: contractor.email
+                            };
+                            services_1.CertnService.initiateCertnInvite(data).then(function (res) {
+                                profile_1.certnId = res.applicant.id;
+                                profile_1.save();
+                                console.log('Certn invitation sent', profile_1.certnId);
+                            });
+                        }
                         htmlCon = (0, contractorDocumentTemplate_1.htmlContractorDocumentValidatinTemplate)(contractor.firstName);
                         services_1.EmailService.send(contractor.email, 'New Profile', htmlCon)
                             .then(function () { return console.log('Email sent successfully'); })
                             .catch(function (error) { return console.error('Error sending email:', error); });
                         html = (0, adminContractorDocumentTemplate_1.htmlContractorDocumentValidatinToAdminTemplate)(contractor.firstName);
                         return [4 /*yield*/, admin_model_1.default.find().select('email')];
-                    case 6:
+                    case 5:
                         adminsWithEmails = _b.sent();
                         adminEmails = adminsWithEmails.map(function (admin) { return admin.email; });
                         services_1.EmailService.send(adminEmails, 'New Profile Registered', html, adminEmails)
@@ -201,13 +195,13 @@ var ProfileHandler = /** @class */ (function (_super) {
                             message: "Profile created successfully",
                             data: contractorResponse
                         });
-                        return [3 /*break*/, 8];
-                    case 7:
+                        return [3 /*break*/, 7];
+                    case 6:
                         err_1 = _b.sent();
                         console.log("error", err_1);
                         res.status(500).json({ success: false, message: err_1.message });
-                        return [3 /*break*/, 8];
-                    case 8: return [2 /*return*/];
+                        return [3 /*break*/, 7];
+                    case 7: return [2 /*return*/];
                 }
             });
         });
@@ -254,7 +248,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     };
     ProfileHandler.prototype.updateProfile = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, contractor, contractorId, _a, gstName, gstType, gstNumber, website, accountType, experienceYear, about, email, location_2, phoneNumber, emergencyJobs, availableDays, previousJobPhotos, previousJobVideos, skill, errors, profile, contractorResponse, err_3;
+            var req, res, contractor, contractorId, _a, website, experienceYear, about, email, location_2, phoneNumber, emergencyJobs, availableDays, previousJobPhotos, previousJobVideos, profilePhoto, backgroundCheckConsent, skill, errors, profile, payload, contractorResponse, err_3;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -265,7 +259,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         _b.trys.push([1, 5, , 6]);
                         contractor = req.contractor;
                         contractorId = contractor.id;
-                        _a = req.body, gstName = _a.gstName, gstType = _a.gstType, gstNumber = _a.gstNumber, website = _a.website, accountType = _a.accountType, experienceYear = _a.experienceYear, about = _a.about, email = _a.email, location_2 = _a.location, phoneNumber = _a.phoneNumber, emergencyJobs = _a.emergencyJobs, availableDays = _a.availableDays, previousJobPhotos = _a.previousJobPhotos, previousJobVideos = _a.previousJobVideos, skill = _a.skill;
+                        _a = req.body, website = _a.website, experienceYear = _a.experienceYear, about = _a.about, email = _a.email, location_2 = _a.location, phoneNumber = _a.phoneNumber, emergencyJobs = _a.emergencyJobs, availableDays = _a.availableDays, previousJobPhotos = _a.previousJobPhotos, previousJobVideos = _a.previousJobVideos, profilePhoto = _a.profilePhoto, backgroundCheckConsent = _a.backgroundCheckConsent, skill = _a.skill;
                         errors = (0, express_validator_1.validationResult)(req);
                         if (!errors.isEmpty()) {
                             return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -276,27 +270,35 @@ var ProfileHandler = /** @class */ (function (_super) {
                         if (!profile) {
                             return [2 /*return*/, res.status(404).json({ success: false, message: 'Profile not found' })];
                         }
-                        return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOneAndUpdate({ contractor: contractorId }, {
-                                gstName: gstName,
-                                gstType: gstType,
-                                gstNumber: gstNumber,
+                        payload = {};
+                        if (contractor.accountType == contractor_interface_1.CONTRACTOR_TYPES.Company || contractor.accountType == contractor_interface_1.CONTRACTOR_TYPES.Individual) {
+                            payload = {
+                                contractor: contractorId,
+                                location: location_2,
+                                skill: skill,
                                 website: website,
                                 experienceYear: experienceYear,
                                 about: about,
-                                location: location_2,
                                 email: email,
                                 phoneNumber: phoneNumber,
                                 emergencyJobs: emergencyJobs,
                                 availableDays: availableDays,
+                                profilePhoto: profilePhoto,
                                 previousJobPhotos: previousJobPhotos,
                                 previousJobVideos: previousJobVideos,
-                                skill: skill,
-                            }, { new: true })];
+                                backgroundCheckConsent: backgroundCheckConsent,
+                            };
+                        }
+                        if (contractor.accountType == contractor_interface_1.CONTRACTOR_TYPES.Employee) {
+                            payload = {
+                                contractor: contractorId,
+                                location: location_2,
+                                backgroundCheckConsent: backgroundCheckConsent,
+                            };
+                        }
+                        return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOneAndUpdate({ contractor: contractorId }, __assign({}, payload), { new: true })];
                     case 3:
                         _b.sent();
-                        if (accountType) {
-                            contractor.accountType = accountType;
-                        }
                         return [4 /*yield*/, contractor.save()];
                     case 4:
                         _b.sent();
@@ -318,9 +320,67 @@ var ProfileHandler = /** @class */ (function (_super) {
             });
         });
     };
+    ProfileHandler.prototype.upgradeEmployeeProfile = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var req, res, next, contractor, contractorId, _a, gstDetails, website, experienceYear, about, email, location_3, phoneNumber, emergencyJobs, availableDays, previousJobPhotos, previousJobVideos, skill, errors, profile, contractorResponse, err_4;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        req = this.req;
+                        res = this.res;
+                        next = this.next;
+                        _b.label = 1;
+                    case 1:
+                        _b.trys.push([1, 4, , 5]);
+                        contractor = req.contractor;
+                        contractorId = contractor.id;
+                        _a = req.body, gstDetails = _a.gstDetails, website = _a.website, experienceYear = _a.experienceYear, about = _a.about, email = _a.email, location_3 = _a.location, phoneNumber = _a.phoneNumber, emergencyJobs = _a.emergencyJobs, availableDays = _a.availableDays, previousJobPhotos = _a.previousJobPhotos, previousJobVideos = _a.previousJobVideos, skill = _a.skill;
+                        errors = (0, express_validator_1.validationResult)(req);
+                        if (!errors.isEmpty()) {
+                            return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                        }
+                        return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOneAndUpdate({ contractor: contractorId }, {
+                                website: website,
+                                experienceYear: experienceYear,
+                                about: about,
+                                location: location_3,
+                                email: email,
+                                phoneNumber: phoneNumber,
+                                emergencyJobs: emergencyJobs,
+                                availableDays: availableDays,
+                                previousJobPhotos: previousJobPhotos,
+                                previousJobVideos: previousJobVideos,
+                                skill: skill,
+                            }, { new: true })];
+                    case 2:
+                        profile = _b.sent();
+                        contractor.accountType = contractor_interface_1.CONTRACTOR_TYPES.Individual;
+                        contractor.gstDetails = gstDetails;
+                        return [4 /*yield*/, contractor.save()];
+                    case 3:
+                        _b.sent();
+                        contractorResponse = __assign(__assign({}, contractor.toJSON()), { // Convert to plain JSON object
+                            profile: profile });
+                        res.json({
+                            success: true,
+                            message: 'Profile upgraded successfully',
+                            data: contractorResponse,
+                        });
+                        return [3 /*break*/, 5];
+                    case 4:
+                        err_4 = _b.sent();
+                        console.log('error', err_4);
+                        res.status(500).json({ success: false, message: err_4.message });
+                        next(new custom_errors_1.BadRequestError('An error occured', err_4));
+                        return [3 /*break*/, 5];
+                    case 5: return [2 /*return*/];
+                }
+            });
+        });
+    };
     ProfileHandler.prototype.updateAccount = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, contractor, contractorId, account, _a, firstName, lastName, companyName, profilePhoto, phoneNumber, dateOfBirth, payload, err_4;
+            var req, res, contractor, contractorId, account, _a, firstName, lastName, companyName, profilePhoto, phoneNumber, dateOfBirth, payload, err_5;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -358,9 +418,9 @@ var ProfileHandler = /** @class */ (function (_super) {
                         });
                         return [3 /*break*/, 5];
                     case 4:
-                        err_4 = _b.sent();
-                        console.log('error', err_4);
-                        res.status(500).json({ success: false, message: err_4.message });
+                        err_5 = _b.sent();
+                        console.log('error', err_5);
+                        res.status(500).json({ success: false, message: err_5.message });
                         return [3 /*break*/, 5];
                     case 5: return [2 /*return*/];
                 }
@@ -370,7 +430,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     ProfileHandler.prototype.getAccount = function () {
         var _a;
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, contractorId, includeStripeIdentity, includeStripeCustomer, includeStripePaymentMethods, includeStripeAccount, includedFields, contractor, quiz, contractorResponse, stripeAccount, err_5;
+            var req, res, contractorId, includeStripeIdentity, includeStripeCustomer, includeStripePaymentMethods, includeStripeAccount, includedFields, contractor, quiz, contractorResponse, stripeAccount, err_6;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -454,9 +514,9 @@ var ProfileHandler = /** @class */ (function (_super) {
                         });
                         return [3 /*break*/, 8];
                     case 7:
-                        err_5 = _b.sent();
-                        console.log('error', err_5);
-                        res.status(500).json({ success: false, message: err_5.message });
+                        err_6 = _b.sent();
+                        console.log('error', err_6);
+                        res.status(500).json({ success: false, message: err_6.message });
                         return [3 /*break*/, 8];
                     case 8: return [2 /*return*/];
                 }
@@ -465,7 +525,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     };
     ProfileHandler.prototype.createStripeAccount = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, contractorId, contractor, stripeAccountLink, stripeAccount, err_6;
+            var req, res, contractorId, contractor, stripeAccountLink, stripeAccount, err_7;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -535,9 +595,9 @@ var ProfileHandler = /** @class */ (function (_super) {
                         });
                         return [3 /*break*/, 12];
                     case 11:
-                        err_6 = _a.sent();
-                        console.log('error', err_6);
-                        res.status(500).json({ success: false, message: err_6.message });
+                        err_7 = _a.sent();
+                        console.log('error', err_7);
+                        res.status(500).json({ success: false, message: err_7.message });
                         return [3 /*break*/, 12];
                     case 12: return [2 /*return*/];
                 }
@@ -546,7 +606,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     };
     ProfileHandler.prototype.generateStripeAccountDashboardLink = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, contractorId, contractor, stripeAccountLink, stripeAccount, err_7;
+            var req, res, contractorId, contractor, stripeAccountLink, stripeAccount, err_8;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -607,9 +667,9 @@ var ProfileHandler = /** @class */ (function (_super) {
                         });
                         return [3 /*break*/, 10];
                     case 9:
-                        err_7 = _a.sent();
-                        console.log('error', err_7);
-                        res.status(500).json({ success: false, message: err_7.message });
+                        err_8 = _a.sent();
+                        console.log('error', err_8);
+                        res.status(500).json({ success: false, message: err_8.message });
                         return [3 /*break*/, 10];
                     case 10: return [2 /*return*/];
                 }
@@ -618,7 +678,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     };
     ProfileHandler.prototype.updateBankDetails = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _a, institutionName, transitNumber, institutionNumber, accountNumber, errors, contractorId, contractor, profile, contractorResponse, err_8;
+            var req, res, _a, institutionName, transitNumber, institutionNumber, accountNumber, errors, contractorId, contractor, profile, contractorResponse, err_9;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -661,8 +721,8 @@ var ProfileHandler = /** @class */ (function (_super) {
                         });
                         return [3 /*break*/, 5];
                     case 4:
-                        err_8 = _b.sent();
-                        res.status(500).json({ success: false, message: err_8.message });
+                        err_9 = _b.sent();
+                        res.status(500).json({ success: false, message: err_9.message });
                         return [3 /*break*/, 5];
                     case 5: return [2 /*return*/];
                 }
@@ -671,7 +731,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     };
     ProfileHandler.prototype.addGstDetails = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _a, gstName, gstNumber, gstType, backgroundCheckConsent, errors, contractorId, contractor, err_9;
+            var req, res, _a, gstName, gstNumber, gstType, backgroundCheckConsent, errors, contractorId, contractor, err_10;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -721,8 +781,8 @@ var ProfileHandler = /** @class */ (function (_super) {
                         });
                         return [3 /*break*/, 5];
                     case 4:
-                        err_9 = _b.sent();
-                        res.status(500).json({ success: false, message: err_9.message });
+                        err_10 = _b.sent();
+                        res.status(500).json({ success: false, message: err_10.message });
                         return [3 /*break*/, 5];
                     case 5: return [2 /*return*/];
                 }
@@ -731,7 +791,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     };
     ProfileHandler.prototype.addCompanyDetails = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _a, companyLogo, companyStaffId, errors, contractorId, contractor, err_10;
+            var req, res, _a, companyLogo, companyStaffId, errors, contractorId, contractor, err_11;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -779,8 +839,8 @@ var ProfileHandler = /** @class */ (function (_super) {
                         });
                         return [3 /*break*/, 5];
                     case 4:
-                        err_10 = _b.sent();
-                        res.status(500).json({ success: false, message: err_10.message });
+                        err_11 = _b.sent();
+                        res.status(500).json({ success: false, message: err_11.message });
                         return [3 /*break*/, 5];
                     case 5: return [2 /*return*/];
                 }
@@ -982,6 +1042,12 @@ var ProfileHandler = /** @class */ (function (_super) {
         __metadata("design:paramtypes", []),
         __metadata("design:returntype", Promise)
     ], ProfileHandler.prototype, "updateProfile", null);
+    __decorate([
+        (0, decorators_abstract_1.handleAsyncError)(),
+        __metadata("design:type", Function),
+        __metadata("design:paramtypes", []),
+        __metadata("design:returntype", Promise)
+    ], ProfileHandler.prototype, "upgradeEmployeeProfile", null);
     __decorate([
         (0, decorators_abstract_1.handleAsyncError)(),
         __metadata("design:type", Function),

@@ -1,6 +1,7 @@
 import { body, query, validationResult } from "express-validator";
 import { Request, Response, NextFunction } from "express";
-import { CONTRACTOR_ACCOUNT_TYPE } from "../../../database/contractor/interface/contractor.interface";
+import { CONTRACTOR_TYPES } from "../../../database/contractor/interface/contractor.interface";
+import { MESSAGE_MEDIA_TYPE } from "../../../database/common/messages.schema";
 
 export const signupParams = [
   body("email").isEmail(),
@@ -118,8 +119,8 @@ export const jobListingParams = [
   body("jobLocation").notEmpty(),
   body("date").notEmpty(),
   body("jobExpiry").notEmpty(),
-  body("contractorType").isIn([CONTRACTOR_ACCOUNT_TYPE.Company, CONTRACTOR_ACCOUNT_TYPE.Employee, CONTRACTOR_ACCOUNT_TYPE.Individual])
-  .withMessage(`contractorType must be ${CONTRACTOR_ACCOUNT_TYPE.Company}, ${CONTRACTOR_ACCOUNT_TYPE.Employee}, or ${CONTRACTOR_ACCOUNT_TYPE.Individual}`),
+  body("contractorType").isIn([CONTRACTOR_TYPES.Company, CONTRACTOR_TYPES.Employee, CONTRACTOR_TYPES.Individual])
+  .withMessage(`contractorType must be ${CONTRACTOR_TYPES.Company}, ${CONTRACTOR_TYPES.Employee}, or ${CONTRACTOR_TYPES.Individual}`),
   body("emergency").isIn(['yes', 'no'])
   .withMessage("emergency must be yes or no"), 
 ];
@@ -225,8 +226,26 @@ export const tripArrivalComfirmParams = [
 export const sendMessageParams = [
   body('type').isIn(['TEXT', 'MEDIA']).withMessage('Invalid messageType'),
   body('message').if(body('type').equals('TEXT')).notEmpty().withMessage('Message is required'),
-  body('media').if(body('type').equals('MEDIA')).isArray().withMessage('Media must be an array'),
+
+  body('media').if(body('type').equals('MEDIA')).isArray().withMessage('Media must be an object')
+    .bail() // Stop validation if media is not an object
+    .custom((value, { req }) => {
+      // Check if required properties exist in media object
+      if (!value.every((item:any) => typeof item === 'object' && 'url' in item && typeof item.url === 'string' && item.url.trim() !== '')) {
+        throw new Error('Media url is required');
+      }
+
+      if (!value.every((item:any) => typeof item === 'object' && 'type' in item  ) ) {
+
+        // && Object.values(MESSAGE_MEDIA_TYPE).includes(value.type)
+        throw new Error('Invalid message media type');
+
+      }
+      // Additional validation for metrics, duration, etc. if needed
+      return true;
+    }),
 ];
+
 
 
 export const validateFormData = (req: Request, res: Response, next: NextFunction) => {

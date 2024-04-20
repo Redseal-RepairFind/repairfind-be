@@ -1,11 +1,19 @@
-// @ts-nocheck
 
 import { Schema, model } from "mongoose";
-import { CustomerAuthProviders, ICustomer } from "../interface/customer.interface";
+import { CustomerAuthProviders, ICustomer, ICustomerLocation } from "../interface/customer.interface";
 import { StripeCustomerSchema } from "../../common/stripe_customer.schema";
 import { StripePaymentMethodSchema } from "../../common/stripe_paymentmethod.schema";
 
 
+
+const CustomerLocationSchema = new Schema<ICustomerLocation>({
+  address: String,
+  city: String,
+  region: String,
+  country: String,
+  latitude: String,
+  longitude: String,
+});
 
 const CustomerSchema = new Schema<ICustomer>(
   {
@@ -36,8 +44,7 @@ const CustomerSchema = new Schema<ICustomer>(
       },
     },
     location: {
-      type: String,
-      default: "",
+      type: CustomerLocationSchema,
     },
     profilePhoto: {
       type: Object,
@@ -123,17 +130,21 @@ CustomerSchema.set('toJSON', {
     delete ret.passwordOtp;
     delete ret.phoneNumberOtp;
 
+    //@ts-ignore
     if (!options.includeStripeIdentity) {
       delete ret.stripeIdentity;
     }
+     //@ts-ignore
     if (!options.includeStripePaymentMethods) {
       delete ret.stripePaymentMethods;
     }
 
+    //@ts-ignore
     if (!options.includeStripeCustomer) {
       delete ret.stripeCustomer;
     }
     
+    //@ts-ignore
     ret.name = doc.name;
     return ret;
   },

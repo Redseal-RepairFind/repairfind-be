@@ -37,10 +37,12 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CustomerConversationController = exports.sendMessage = exports.getConversationMessages = exports.getSingleConversation = exports.getConversations = void 0;
+var express_validator_1 = require("express-validator");
 var api_feature_1 = require("../../../utils/api.feature");
 var conversations_schema_1 = require("../../../database/common/conversations.schema");
 var messages_schema_1 = require("../../../database/common/messages.schema");
 var events_1 = require("../../../events");
+var custom_errors_1 = require("../../../utils/custom.errors");
 var getConversations = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, startDate, endDate, read, unread, customerId_1, filter, _b, data, error, error_1;
     return __generator(this, function (_c) {
@@ -188,8 +190,8 @@ var getConversationMessages = function (req, res) { return __awaiter(void 0, voi
     });
 }); };
 exports.getConversationMessages = getConversationMessages;
-var sendMessage = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var conversationId, _a, message, media, type, customerId_3, conversation, customerIsMember, newMessage, error_4;
+var sendMessage = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var conversationId, _a, message, media, type, customerId_3, errors, conversation, customerIsMember, newMessage, error_4;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -197,6 +199,10 @@ var sendMessage = function (req, res) { return __awaiter(void 0, void 0, void 0,
                 conversationId = req.params.conversationId;
                 _a = req.body, message = _a.message, media = _a.media, type = _a.type;
                 customerId_3 = req.customer.id;
+                errors = (0, express_validator_1.validationResult)(req);
+                if (!errors.isEmpty()) {
+                    return [2 /*return*/, res.status(400).json({ message: 'validatior error occured', errors: errors.array() })];
+                }
                 return [4 /*yield*/, conversations_schema_1.ConversationModel.findById(conversationId)];
             case 1:
                 conversation = _b.sent();
@@ -224,9 +230,7 @@ var sendMessage = function (req, res) { return __awaiter(void 0, void 0, void 0,
                 return [3 /*break*/, 4];
             case 3:
                 error_4 = _b.sent();
-                console.error('Error sending message:', error_4);
-                res.status(500).json({ success: false, message: 'Server error' });
-                return [3 /*break*/, 4];
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('Error sending message', error_4))];
             case 4: return [2 /*return*/];
         }
     });

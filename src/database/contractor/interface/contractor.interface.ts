@@ -25,6 +25,12 @@ export interface IContractorCompanyDetails  extends Document  {
   recentRemark: String,
 }
 
+
+export interface IContractorCertnDetails  extends Document  {
+  status: string,
+  approvedAt: Date,
+}
+
 export enum GST_STATUS {
   PENDING= "PENDING",
   REVIEWING = "REVIEWING",
@@ -32,7 +38,7 @@ export enum GST_STATUS {
   DECLINED = "DECLINED"
 }
 
-export enum CONTRACTOR_ACCOUNT_TYPE {
+export enum CONTRACTOR_TYPES {
   Individual = "Individual",
   Company = "Company",
   Employee = "Employee",
@@ -64,17 +70,9 @@ export interface IContractor extends Document {
   };  
   accountType: string;
   profilePhoto: {
-    url: {
-      type: String,
-      required: true,
-    },
-    label?: {
-      type: String,
-      unique: true,
-    },
-    descriptions?: {
-      type: Array<string>,
-    },
+    url: String,
+    label?: String,
+    descriptions?: Array<string>,
   };
   acceptTerms: Boolean;
   passwordOtp: {
@@ -101,4 +99,5 @@ export interface IContractor extends Document {
   createdAt: Date;
   updatedAt: Date;
   quiz: any;
+  onboarding: Object;
 }

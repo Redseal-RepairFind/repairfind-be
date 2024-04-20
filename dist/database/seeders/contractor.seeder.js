@@ -66,7 +66,7 @@ var contractors = [
             url: "https://dsfds"
         },
         acceptTerms: true,
-        accountType: contractor_interface_1.CONTRACTOR_ACCOUNT_TYPE.Employee,
+        accountType: contractor_interface_1.CONTRACTOR_TYPES.Employee,
         passwordOtp: {
             verified: true,
         },
@@ -78,9 +78,7 @@ var contractors = [
                 address: "Logics Senct",
                 latitude: "12323123123",
                 longitude: "2123213213213",
-            },
-            name: "Behd Guyt",
-            profileType: "Employee",
+            }
         }
     },
     {
@@ -97,7 +95,7 @@ var contractors = [
             url: "https://dsfds"
         },
         acceptTerms: true,
-        accountType: contractor_interface_1.CONTRACTOR_ACCOUNT_TYPE.Employee,
+        accountType: contractor_interface_1.CONTRACTOR_TYPES.Employee,
         passwordOtp: {
             verified: true,
         },
@@ -120,7 +118,6 @@ var contractors = [
                 latitude: "12323123123",
                 longitude: "2123213213213",
             },
-            name: "Behd",
             phoneNumber: "3234234",
             previousJobPhotos: [
                 {
@@ -132,7 +129,6 @@ var contractors = [
                     url: "string",
                 }
             ],
-            profileType: "Company",
             skill: "Plumber",
             website: "https://skdjfjkfdsjk.com",
             certnId: "5d1aabc8-e9c9-4e99-8b2f-14ac6995f13f"
@@ -152,7 +148,7 @@ var contractors = [
             url: "https://dsfds"
         },
         acceptTerms: true,
-        accountType: contractor_interface_1.CONTRACTOR_ACCOUNT_TYPE.Individual,
+        accountType: contractor_interface_1.CONTRACTOR_TYPES.Individual,
         passwordOtp: {
             verified: true,
         },
@@ -175,7 +171,6 @@ var contractors = [
                 latitude: "12323123123",
                 longitude: "2123213213213",
             },
-            name: "Behd",
             phoneNumber: "3234234",
             previousJobPhotos: [
                 {
@@ -187,7 +182,6 @@ var contractors = [
                     url: "string",
                 }
             ],
-            profileType: "Individual",
             skill: "Plumber",
             website: "https://skdjfjkfdsjk.com",
             certnId: "5d1aabc8-e9c9-4e99-8b2f-14ac6995f13f"
@@ -206,7 +200,7 @@ var contractors = [
             url: "https://dsfds"
         },
         acceptTerms: true,
-        accountType: contractor_interface_1.CONTRACTOR_ACCOUNT_TYPE.Company,
+        accountType: contractor_interface_1.CONTRACTOR_TYPES.Company,
         passwordOtp: {
             verified: true,
         },
@@ -229,7 +223,6 @@ var contractors = [
                 latitude: "12323123123",
                 longitude: "2123213213213",
             },
-            name: "Behd",
             phoneNumber: "3234234",
             previousJobPhotos: [
                 {
@@ -241,7 +234,6 @@ var contractors = [
                     url: "string",
                 }
             ],
-            profileType: "Company",
             skill: "Plumber",
             website: "https://skdjfjkfdsjk.com",
             certnId: "5d1aabc8-e9c9-4e99-8b2f-14ac6995f13f"
@@ -252,22 +244,27 @@ var ContractorSeeder = function (options) { return __awaiter(void 0, void 0, voi
     return __generator(this, function (_a) {
         try {
             contractors.forEach(function (contractor) { return __awaiter(void 0, void 0, void 0, function () {
-                var newContractor, newProfile;
+                var existingContractor, newContractor, newProfile;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
-                        case 0: return [4 /*yield*/, contractor_model_1.ContractorModel.findOneAndUpdate({ email: contractor.email }, contractor, { upsert: true, new: true, setDefaultsOnInsert: true })];
+                        case 0: return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ email: contractor.email })];
                         case 1:
-                            newContractor = _a.sent();
-                            if (!newContractor) return [3 /*break*/, 4];
-                            return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOneAndUpdate({ contractor: newContractor.id }, __assign({ contractor: newContractor.id }, contractor.profileData), { upsert: true, new: true, setDefaultsOnInsert: true })];
+                            existingContractor = _a.sent();
+                            if (existingContractor)
+                                return [2 /*return*/];
+                            return [4 /*yield*/, contractor_model_1.ContractorModel.findOneAndUpdate({ email: contractor.email }, contractor, { upsert: true, new: true, setDefaultsOnInsert: true })];
                         case 2:
+                            newContractor = _a.sent();
+                            if (!newContractor) return [3 /*break*/, 5];
+                            return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOneAndUpdate({ contractor: newContractor.id }, __assign({ contractor: newContractor.id }, contractor.profileData), { upsert: true, new: true, setDefaultsOnInsert: true })];
+                        case 3:
                             newProfile = _a.sent();
                             newContractor.profile = newProfile === null || newProfile === void 0 ? void 0 : newProfile.id;
                             return [4 /*yield*/, newContractor.save()];
-                        case 3:
+                        case 4:
                             _a.sent(); // Make sure to use await here
-                            _a.label = 4;
-                        case 4: return [2 /*return*/];
+                            _a.label = 5;
+                        case 5: return [2 /*return*/];
                     }
                 });
             }); });

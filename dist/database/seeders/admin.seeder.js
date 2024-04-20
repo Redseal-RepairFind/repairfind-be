@@ -39,24 +39,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerSeeder = void 0;
-var customer_interface_1 = require("../customer/interface/customer.interface");
-var customer_model_1 = __importDefault(require("../customer/models/customer.model"));
+exports.AdminSeeder = void 0;
+var admin_model_1 = __importDefault(require("../admin/models/admin.model"));
 var customers = [
     {
-        email: 'customer@repairfind.com',
+        email: 'admin@repairfind.com',
         password: '$2b$10$34E1yhh/3Z/O1cBn/5seAuyHOBuy/U6uZUH10rhFfAjdJKXehpN2y', // password
-        firstName: 'Customer',
-        lastName: 'User',
-        phoneNumber: {
-            "code": "+123",
-            "number": "3242342324"
-        },
-        location: {
-            address: "Logics Senct",
-            latitude: "12323123123",
-            longitude: "2123213213213",
-        },
+        firstName: 'Repair',
+        lastName: 'Admin',
+        superAdmin: true,
+        validation: true,
         passwordOtp: {
             verified: true,
         },
@@ -70,23 +62,16 @@ var customers = [
             url: "https://dsfds"
         },
         acceptTerms: true,
-        provider: customer_interface_1.CustomerAuthProviders.PASSWORD
     },
 ];
-var CustomerSeeder = function (options) { return __awaiter(void 0, void 0, void 0, function () {
+var AdminSeeder = function (options) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
         try {
-            customers.forEach(function (customer) { return __awaiter(void 0, void 0, void 0, function () {
-                var existingCustomer;
+            customers.forEach(function (admin) { return __awaiter(void 0, void 0, void 0, function () {
                 return __generator(this, function (_a) {
                     switch (_a.label) {
-                        case 0: return [4 /*yield*/, customer_model_1.default.findOne({ email: customer.email })];
+                        case 0: return [4 /*yield*/, admin_model_1.default.findOneAndUpdate({ email: admin.email }, admin, { upsert: true })];
                         case 1:
-                            existingCustomer = _a.sent();
-                            if (existingCustomer)
-                                return [2 /*return*/];
-                            return [4 /*yield*/, customer_model_1.default.findOneAndUpdate({ email: customer.email }, customer, { upsert: true })];
-                        case 2:
                             _a.sent();
                             return [2 /*return*/];
                     }
@@ -94,9 +79,9 @@ var CustomerSeeder = function (options) { return __awaiter(void 0, void 0, void 
             }); });
         }
         catch (error) {
-            console.log("Error seeding challenge tags", error);
+            console.log("Error seeding admins", error);
         }
         return [2 /*return*/];
     });
 }); };
-exports.CustomerSeeder = CustomerSeeder;
+exports.AdminSeeder = AdminSeeder;

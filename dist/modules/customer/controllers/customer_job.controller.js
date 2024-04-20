@@ -126,10 +126,7 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                     { memberType: 'customers', member: customerId },
                     { memberType: 'contractors', member: contractorId }
                 ];
-                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
-                        members: {
-                            $elemMatch: { $or: [{ member: customer.id }, { member: contractorId }] }
-                        }
+                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({ members: { $elemMatch: { $or: [{ member: customer.id }, { member: contractorId }] } }
                     }, {
                         members: conversationMembers
                     }, { new: true, upsert: true })];
@@ -437,13 +434,11 @@ var acceptJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
                     { memberType: 'customers', member: customerId },
                     { memberType: 'contractors', member: quotation.contractor }
                 ];
-                return [4 /*yield*/, conversations_schema_1.ConversationModel.create({
+                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({ members: { $elemMatch: { $or: [{ member: customerId }, { member: quotation.contractor }] } } }, {
                         members: conversationMembers,
-                        entity: quotation.job,
-                        entityType: conversations_schema_1.ConversationEntityType.JOB,
                         lastMessage: 'I have accepted your qoutation for the Job', // Set the last message to the job description
                         lastMessageAt: new Date() // Set the last message timestamp to now
-                    })];
+                    }, { new: true, upsert: true })];
             case 3:
                 conversation = _c.sent();
                 return [4 /*yield*/, messages_schema_1.MessageModel.create({

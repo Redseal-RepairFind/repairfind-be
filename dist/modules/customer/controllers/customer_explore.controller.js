@@ -64,6 +64,7 @@ var custom_errors_1 = require("../../../utils/custom.errors");
 var contractor_profile_model_1 = require("../../../database/contractor/models/contractor_profile.model");
 var date_fns_1 = require("date-fns");
 var contractor_schedule_model_1 = require("../../../database/contractor/models/contractor_schedule.model");
+var contractor_interface_1 = require("../../../database/contractor/interface/contractor.interface");
 var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, listing, distance, latitude, longitude, emergencyJobs, category, location_1, city, country, address, accountType, date, isOffDuty, availableDays, experienceYear, gstNumber, _b, page, _c, limit, sort // Sort field and order (-fieldName or fieldName)
     , availableDaysArray, skip, pipeline, contractorIdsWithDateInSchedule, _d, sortField, sortOrder, sortStage, result, contractors, metadata, err_1;
@@ -97,8 +98,8 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
                                 $cond: {
                                     if: {
                                         $or: [
-                                            { $eq: ['$accountType', contractor_model_1.CONTRACTOR_TYPES.INDIVIDUAL] },
-                                            { $eq: ['$accountType', contractor_model_1.CONTRACTOR_TYPES.EMPLOYEE] }
+                                            { $eq: ['$accountType', contractor_interface_1.CONTRACTOR_TYPES.Individual] },
+                                            { $eq: ['$accountType', contractor_interface_1.CONTRACTOR_TYPES.Employee] }
                                         ]
                                     },
                                     then: { $concat: ['$firstName', ' ', '$lastName'] },

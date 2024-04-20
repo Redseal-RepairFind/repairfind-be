@@ -9,7 +9,11 @@ export interface IAdmin extends Document {
   lastName: string;
   superAdmin: boolean;
   validation: boolean;
-  image: string;
+  profilePhoto: {
+    url:  String,
+    label?:String
+    descriptions?: Array<string>,
+  };
   passwordOtp: {
     otp: string;
     createdTime: Date;

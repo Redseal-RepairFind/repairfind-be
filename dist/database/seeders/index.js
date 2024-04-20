@@ -39,10 +39,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.RunSeeders = void 0;
 var contractor_seeder_1 = require("./contractor.seeder");
 var customer_seeder_1 = require("./customer.seeder");
+var admin_seeder_1 = require("./admin.seeder");
 var RunSeeders = function () { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
         (0, customer_seeder_1.CustomerSeeder)({ ordered: true });
         (0, contractor_seeder_1.ContractorSeeder)({ ordered: false });
+        (0, admin_seeder_1.AdminSeeder)({ ordered: false });
         return [2 /*return*/];
     });
 }); };

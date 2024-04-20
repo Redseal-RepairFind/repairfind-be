@@ -10,11 +10,12 @@ import { handleAsyncError } from "../../../abstracts/decorators.abstract";
 import { ContractorProfileModel } from "../../../database/contractor/models/contractor_profile.model";
 import { IContractorBankDetails, IContractorProfile } from "../../../database/contractor/interface/contractor_profile.interface";
 import { initiateCertnInvite } from "../../../services/certn";
-import { EmailService } from "../../../services";
+import { CertnService, EmailService } from "../../../services";
 import { StripeService } from "../../../services/stripe";
 import ContractorDeviceModel from "../../../database/contractor/models/contractor_devices.model";
 import { IStripeAccount } from "../../../database/common/stripe_account.schema";
-import { COMPANY_STATUS, CONTRACTOR_ACCOUNT_TYPE, GST_STATUS, IContractorCompanyDetails, IContractorGstDetails } from "../../../database/contractor/interface/contractor.interface";
+import { COMPANY_STATUS, CONTRACTOR_TYPES, GST_STATUS, IContractorCompanyDetails, IContractorGstDetails } from "../../../database/contractor/interface/contractor.interface";
+import { BadRequestError } from "../../../utils/custom.errors";
 
 
 class ProfileHandler extends Base {
@@ -24,9 +25,6 @@ class ProfileHandler extends Base {
     let res = this.res
     try {
       let {
-        gstName,
-        gstNumber,
-        gstType,
         location,
         backgroundCheckConsent,
         skill,
@@ -52,101 +50,42 @@ class ProfileHandler extends Base {
         return res.status(404).json({ message: "Contractor account not found" });
       }
 
-
-      // Custom validation function for checking if an array of media objects contains 'url' property
-      const validateMediaArray = (value: any): boolean => {
-        return Array.isArray(value) && value.every((item) => typeof item === 'object' && 'url' in item && typeof item.url === 'string' && item.url.trim() !== '');
-      };
-
-
-      // Define validation rules for the request body
-      // if (contractor.accountType == CONTRACTOR_ACCOUNT_TYPE.Company || contractor.accountType == CONTRACTOR_ACCOUNT_TYPE.Individual) {
-      //   await Promise.all([
-      //     body("location.address").notEmpty(),          
-      //     body("location.latitude").notEmpty().isNumeric(),
-      //     body("location.longitude").notEmpty().isNumeric(),
-          
-      //     body('backgroundCheckConsent')
-      //       .exists({ checkFalsy: true }).withMessage('Background consent is required')
-      //       .custom((value) => value === true).withMessage('You must consent to us running a background check'),
-          
-      //     body("skill").notEmpty(),
-
-      //     body("gstDetails.gstNumber").notEmpty(),
-      //     body("gstDetails.gstName").notEmpty(),
-      //     body("gstDetails.gstType").notEmpty(),
-      //     body("gstDetails.gstCertificate").if((value: any, { req }: any) => (req.contractor.accountType) !== 'Company').notEmpty(),
-         
-         
-      //     body("experienceYear").optional().isNumeric(),
-      //     body("about").optional(),
-      //     body("website").optional().isURL(),
-      //     body("email").optional().isEmail(),
-      //     body("phoneNumber").optional().isNumeric(),
-      //     body("emergencyJobs").notEmpty(),
-      //     body("availableDays").notEmpty().isArray(),
-      //     body("previousJobPhotos").optional().isArray().notEmpty().custom((value) => validateMediaArray(value)),
-      //     body("previousJobVideos").optional().isArray().notEmpty().custom((value) => validateMediaArray(value)),
-
-      //     //  validate only for 'Employee
-      //     body("firstName").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) === 'Employee').notEmpty(),
-      //     body("lastName").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) === 'Employee').notEmpty(),
-
-      //   ]);
-      // }
-
-      // if (contractor.accountType == CONTRACTOR_ACCOUNT_TYPE.Employee) {
-      //   await Promise.all([
-      //     body("location.address").notEmpty(),          
-      //     body("location.latitude").notEmpty().isNumeric(),
-      //     body("location.longitude").notEmpty().isNumeric(),
-      //     body('backgroundCheckConsent')
-      //       .exists({ checkFalsy: true }).withMessage('Background consent is required')
-      //       .custom((value) => value === true).withMessage('You must consent to us running a background check'),
-      //   ]);
-      // }
-
       // Check for validation errors
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
       }
 
-
-
-      let certnToken = process.env.CERTN_KEY
-      if (!certnToken) {
-        return res
-          .status(401)
-          .json({ message: "Certn API Key is missing" });
+      let payload = {}
+      if (contractor.accountType == CONTRACTOR_TYPES.Company || contractor.accountType == CONTRACTOR_TYPES.Individual) {
+        payload = {
+          contractor: contractorId,
+          location,
+          skill,
+          website,
+          experienceYear,
+          about,
+          email,
+          phoneNumber,
+          emergencyJobs,
+          availableDays,
+          profilePhoto,
+          previousJobPhotos,
+          previousJobVideos,
+          backgroundCheckConsent,
+        }
       }
-      const data = {
-        request_enhanced_identity_verification: true,
-        request_enhanced_criminal_record_check: true,
-        email: contractor.email
-      };
 
-      const profileType = contractor.accountType
+      if (contractor.accountType == CONTRACTOR_TYPES.Employee) {
+        payload = {
+          contractor: contractorId,
+          location,
+          backgroundCheckConsent,
+        }
+      }
 
       const profile = await ContractorProfileModel.findOneAndUpdate({ contractor: contractorId }, {
-        contractor: contractorId,
-        gstName,
-        gstNumber,
-        gstType,
-        location,
-        skill,
-        website,
-        experienceYear,
-        about,
-        email,
-        phoneNumber,
-        emergencyJobs,
-        availableDays,
-        profilePhoto,
-        previousJobPhotos,
-        previousJobVideos,
-        profileType,
-        backgroundCheckConsent,
+        payload
       }, { upsert: true, new: true, setDefaultsOnInsert: true })
 
       // Update the ContractorModel with the profile ID
@@ -156,17 +95,26 @@ class ProfileHandler extends Base {
 
 
       const contractorResponse = {
-        //@ts-ignore
-        ...contractor.toJSON(), // Convert to plain JSON object
+        ...contractor.toJSON(),
         profile
       };
 
 
-      initiateCertnInvite(data).then(res => {
-        profile.certnId = res.applicant.id
-        profile.save()
-        console.log('Certn invitation sent', profile.certnId)
-      })
+
+
+      if (contractor.accountType == CONTRACTOR_TYPES.Individual) {
+        const data = {
+          request_enhanced_identity_verification: true,
+          request_enhanced_criminal_record_check: true,
+          email: contractor.email
+        };
+
+        CertnService.initiateCertnInvite(data).then(res => {
+          profile.certnId = res.applicant.id
+          profile.save()
+          console.log('Certn invitation sent', profile.certnId)
+        })
+      }
 
 
 
@@ -176,7 +124,6 @@ class ProfileHandler extends Base {
       EmailService.send(contractor.email, 'New Profile', htmlCon)
         .then(() => console.log('Email sent successfully'))
         .catch(error => console.error('Error sending email:', error));
-
 
 
       // send email to admin
@@ -238,11 +185,7 @@ class ProfileHandler extends Base {
       const contractorId = contractor.id;
 
       const {
-        gstName,
-        gstType,
-        gstNumber,
         website,
-        accountType, // for account upgrade
         experienceYear,
         about,
         email,
@@ -252,6 +195,8 @@ class ProfileHandler extends Base {
         availableDays,
         previousJobPhotos,
         previousJobVideos,
+        profilePhoto,
+        backgroundCheckConsent,
         skill
       } = req.body;
 
@@ -261,37 +206,102 @@ class ProfileHandler extends Base {
         return res.status(400).json({ errors: errors.array() });
       }
 
+      // Custom validation function for checking if an array of media objects contains 'url' property
+      // const validateMediaArray = (value: any): boolean => {
+      //   return Array.isArray(value) && value.every((item) => typeof item === 'object' && 'url' in item && typeof item.url === 'string' && item.url.trim() !== '');
+      // };
+
+
+      // Define validation rules for the request body
+      // if (contractor.accountType == CONTRACTOR_TYPES.Company || contractor.accountType == CONTRACTOR_TYPES.Individual) {
+      //   await Promise.all([
+      //     body("location.address").notEmpty(),          
+      //     body("location.latitude").notEmpty().isNumeric(),
+      //     body("location.longitude").notEmpty().isNumeric(),
+
+      //     body('backgroundCheckConsent')
+      //       .exists({ checkFalsy: true }).withMessage('Background consent is required')
+      //       .custom((value) => value === true).withMessage('You must consent to us running a background check'),
+
+      //     body("skill").notEmpty(),
+
+      //     body("gstDetails.gstNumber").notEmpty(),
+      //     body("gstDetails.gstName").notEmpty(),
+      //     body("gstDetails.gstType").notEmpty(),
+      //     body("gstDetails.gstCertificate").if((value: any, { req }: any) => (req.contractor.accountType) !== 'Company').notEmpty(),
+
+
+      //     body("experienceYear").optional().isNumeric(),
+      //     body("about").optional(),
+      //     body("website").optional().isURL(),
+      //     body("email").optional().isEmail(),
+      //     body("phoneNumber").optional().isNumeric(),
+      //     body("emergencyJobs").notEmpty(),
+      //     body("availableDays").notEmpty().isArray(),
+      //     body("previousJobPhotos").optional().isArray().notEmpty().custom((value) => validateMediaArray(value)),
+      //     body("previousJobVideos").optional().isArray().notEmpty().custom((value) => validateMediaArray(value)),
+
+      //     //  validate only for 'Employee
+      //     body("firstName").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) === 'Employee').notEmpty(),
+      //     body("lastName").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) === 'Employee').notEmpty(),
+
+      //   ]);
+      // }
+
+      // if (contractor.accountType == CONTRACTOR_TYPES.Employee) {
+      //   await Promise.all([
+      //     body("location.address").notEmpty(),          
+      //     body("location.latitude").notEmpty().isNumeric(),
+      //     body("location.longitude").notEmpty().isNumeric(),
+      //     body('backgroundCheckConsent')
+      //       .exists({ checkFalsy: true }).withMessage('Background consent is required')
+      //       .custom((value) => value === true).withMessage('You must consent to us running a background check'),
+      //   ]);
+      // }
+
+
+
       const profile = await ContractorProfileModel.find({ contractor: contractorId })
 
       if (!profile) {
         return res.status(404).json({ success: false, message: 'Profile not found' });
       }
 
-      await ContractorProfileModel.findOneAndUpdate(
-        { contractor: contractorId },
-        {
-          gstName,
-          gstType,
-          gstNumber,
+      let payload = {}
+      if (contractor.accountType == CONTRACTOR_TYPES.Company || contractor.accountType == CONTRACTOR_TYPES.Individual) {
+        payload = {
+          contractor: contractorId,
+          location,
+          skill,
           website,
           experienceYear,
           about,
-          location,
           email,
           phoneNumber,
           emergencyJobs,
           availableDays,
+          profilePhoto,
           previousJobPhotos,
           previousJobVideos,
-          skill,
-        },
+          backgroundCheckConsent,
+        }
+      }
+
+      if (contractor.accountType == CONTRACTOR_TYPES.Employee) {
+        payload = {
+          contractor: contractorId,
+          location,
+          backgroundCheckConsent,
+        }
+      }
+
+
+
+      await ContractorProfileModel.findOneAndUpdate(
+        { contractor: contractorId },
+        { ...payload },
         { new: true }
       );
-
-
-      if (accountType) {
-        contractor.accountType = accountType;
-      }
 
       await contractor.save();
 
@@ -310,6 +320,78 @@ class ProfileHandler extends Base {
     } catch (err: any) {
       console.log('error', err);
       res.status(500).json({ success: false, message: err.message });
+    }
+  }
+
+  @handleAsyncError()
+  public async upgradeEmployeeProfile(): Promise<Response | void> {
+    let req = <any>this.req;
+    let res = this.res;
+    let next = this.next;
+    try {
+      const contractor = req.contractor;
+      const contractorId = contractor.id;
+
+      const {
+        gstDetails,
+        website,
+        experienceYear,
+        about,
+        email,
+        location,
+        phoneNumber,
+        emergencyJobs,
+        availableDays,
+        previousJobPhotos,
+        previousJobVideos,
+        skill
+      } = req.body;
+
+     
+       // Check for validation errors
+       const errors = validationResult(req);
+       if (!errors.isEmpty()) {
+         return res.status(400).json({ errors: errors.array() });
+       }
+
+      const profile = await ContractorProfileModel.findOneAndUpdate(
+        { contractor: contractorId },
+        {
+          website,
+          experienceYear,
+          about,
+          location,
+          email,
+          phoneNumber,
+          emergencyJobs,
+          availableDays,
+          previousJobPhotos,
+          previousJobVideos,
+          skill,
+        },
+        { new: true }
+      );
+
+
+      contractor.accountType = CONTRACTOR_TYPES.Individual;
+      contractor.gstDetails = gstDetails;
+      await contractor.save();
+
+      const contractorResponse = {
+        ...contractor.toJSON(), // Convert to plain JSON object
+        profile
+      };
+
+
+      res.json({
+        success: true,
+        message: 'Profile upgraded successfully',
+        data: contractorResponse,
+      });
+    } catch (err: any) {
+      console.log('error', err);
+      res.status(500).json({ success: false, message: err.message });
+      next( new BadRequestError('An error occured', err))
     }
   }
 

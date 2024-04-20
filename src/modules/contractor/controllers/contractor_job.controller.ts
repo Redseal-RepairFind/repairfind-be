@@ -15,6 +15,7 @@ import { ConversationEntityType, ConversationModel } from "../../../database/com
 import { MessageModel, MessageType } from "../../../database/common/messages.schema";
 import { error } from "console";
 import { EmailService } from "../../../services";
+import { ContractorProfileModel } from "../../../database/contractor/models/contractor_profile.model";
 
 
 export const getJobRequests = async (req: any, res: Response) => {
@@ -91,16 +92,16 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
     const contractorId = req.contractor.id;
 
     // Find the job request by ID
-    const jobRequest = await JobModel.findOne({ _id: jobId, contractor: contractorId, type: JobType.REQUEST });
+    const job = await JobModel.findOne({ _id: jobId, contractor: contractorId, type: JobType.REQUEST });
 
     // Check if the job request exists
-    if (!jobRequest) {
+    if (!job) {
       return res.status(404).json({ success: false, message: 'Job request not found' });
     }
 
 
     // Find the job request by ID
-    const customer = await CustomerModel.findById(jobRequest.customer);
+    const customer = await CustomerModel.findById(job.customer);
 
     // Check if the customer request exists
     if (!customer) {
@@ -109,17 +110,17 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
 
 
     // Check if the job request belongs to the contractor
-    if (jobRequest.contractor.toString() !== contractorId) {
+    if (job.contractor.toString() !== contractorId) {
       return res.status(403).json({ success: false, message: 'Unauthorized: You do not have permission to accept this job request' });
     }
 
     // Check if the job request is pending
-    if (jobRequest.status !== JOB_STATUS.PENDING) {
+    if (job.status !== JOB_STATUS.PENDING) {
       return res.status(403).json({ success: false, message: 'Job request is not pending' });
     }
 
     // Update the status of the job request to "Accepted"
-    jobRequest.status = JOB_STATUS.ACCEPTED;
+    job.status = JOB_STATUS.ACCEPTED;
 
     // Define the rejection event to be stored in the job history
     const jobEvent = {
@@ -131,7 +132,7 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
     };
 
     // Push the rejection event to the job history array
-    jobRequest.jobHistory.push(jobEvent);
+    job.jobHistory.push(jobEvent);
 
 
 
@@ -141,8 +142,8 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
       job: jobId,
       status: JOB_QUOTATION_STATUS.PENDING, // Assuming initial status is pending
       estimate: [], // You may need to adjust this based on your application schema
-      startDate: jobRequest.startDate,
-      endDate: jobRequest.endDate,
+      startDate: job.startDate,
+      endDate: job.endDate,
       siteVerification: false, // Example value, adjust as needed
       processingFee: 0 // Example value, adjust as needed
     });
@@ -151,41 +152,34 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
     await quotation.save();
 
     // Associate the job application with the job request
-    if (!jobRequest.quotations.includes(quotation.id)) {
-      jobRequest.quotations.push(quotation.id);
+    if (!job.quotations.includes(quotation.id)) {
+      job.quotations.push(quotation.id);
     }
 
 
-    await jobRequest.save();
+    await job.save();
 
 
     // Create or update conversation
     const conversationMembers = [
-      { memberType: 'customers', member: customer.id },
-      { memberType: 'contractors', member: contractorId }
+      { memberType: 'customers', member: job.customer },
+      { memberType: 'contractors', member: quotation.contractor }
     ];
-
     const conversation = await ConversationModel.findOneAndUpdate(
+      { members: { $elemMatch: { $or: [{ member: job.customer }, { member: quotation.contractor }] } } },
       {
-        entity: jobId,
-        entityType: ConversationEntityType.JOB,
-        members: {
-          $elemMatch: { $or: [{ member: customer.id }, { member: contractorId }] }
-        }
-      },
-
-      {
-        entity: jobId,
-        entityType: ConversationEntityType.JOB,
-        members: conversationMembers
+        members: conversationMembers,
+        lastMessage: 'I have accepted your qoutation for the Job', // Set the last message to the job description
+        lastMessageAt: new Date() // Set the last message timestamp to now
       },
       { new: true, upsert: true });
+
 
     // Send a message to the customer
     const message = new MessageModel({
       conversation: conversation?._id,
       sender: contractorId,
-      receiver: jobRequest.customer,
+      receiver: job.customer,
       message: "Contractor has accepted this jos request",
       messageType: MessageType.ALERT,
     });
@@ -214,25 +208,25 @@ export const rejectJobRequest = async (req: any, res: Response) => {
     const contractorId = req.contractor.id;
 
     // Find the job request by ID
-    const jobRequest = await JobModel.findOne({ _id: jobId, contractor: contractorId, type: JobType.REQUEST });
+    const job = await JobModel.findOne({ _id: jobId, contractor: contractorId, type: JobType.REQUEST });
 
     // Check if the job request exists
-    if (!jobRequest) {
+    if (!job) {
       return res.status(404).json({ success: false, message: 'Job request not found' });
     }
 
     // Check if the job request belongs to the contractor
-    if (jobRequest.contractor.toString() !== contractorId) {
+    if (job.contractor.toString() !== contractorId) {
       return res.status(403).json({ success: false, message: 'Unauthorized: You do not have permission to reject this job request' });
     }
 
     // Check if the job request is pending
-    if (jobRequest.status !== JOB_STATUS.PENDING) {
+    if (job.status !== JOB_STATUS.PENDING) {
       return res.status(403).json({ success: false, message: 'Job request is not pending' });
     }
 
     // Update the status of the job request to "Rejected" and set the rejection reason
-    jobRequest.status = JOB_STATUS.DECLINED;
+    job.status = JOB_STATUS.DECLINED;
 
     // Define the rejection event to be stored in the job history
     const jobEvent = {
@@ -242,14 +236,14 @@ export const rejectJobRequest = async (req: any, res: Response) => {
     };
 
     // Push the rejection event to the job history array
-    jobRequest.jobHistory.push(jobEvent);
+    job.jobHistory.push(jobEvent);
 
-    await jobRequest.save();
+    await job.save();
 
 
     // Create or update conversation
     const conversationMembers = [
-      { memberType: 'customers', member: jobRequest.customer },
+      { memberType: 'customers', member: job.customer },
       { memberType: 'contractors', member: contractorId }
     ];
 
@@ -258,7 +252,7 @@ export const rejectJobRequest = async (req: any, res: Response) => {
         entity: jobId,
         entityType: ConversationEntityType.JOB,
         members: {
-          $elemMatch: { $or: [{ member: jobRequest.customer }, { member: contractorId }] }
+          $elemMatch: { $or: [{ member: job.customer }, { member: contractorId }] }
         }
       },
 
@@ -273,7 +267,7 @@ export const rejectJobRequest = async (req: any, res: Response) => {
     const message = new MessageModel({
       conversation: conversation?._id,
       sender: contractorId,
-      receiver: jobRequest.customer,
+      receiver: job.customer,
       message: "Contractor has rejected this jos request",
       messageType: MessageType.ALERT,
     });
@@ -317,9 +311,9 @@ export const getJobRequestById = async (req: any, res: Response, next: NextFunct
     }
 
     const quotation = await job.getMyQoutation(jobId, contractorId);
-    if(quotation){
-      job.myQuotation =quotation
-    }else {
+    if (quotation) {
+      job.myQuotation = quotation
+    } else {
       job.myQuotation = null
     }
 
@@ -374,9 +368,6 @@ export const getJobListingById = async (req: any, res: Response, next: NextFunct
   }
 };
 
-
-
-//contractor send job quatation /////////////
 export const sendJobQuotation = async (
   req: any,
   res: Response,
@@ -430,11 +421,11 @@ export const sendJobQuotation = async (
         .json({ message: "invalid customer Id" });
     }
 
-    
+
     let jobQuotation = await JobQoutationModel.findOneAndUpdate({ job: jobId, contractor: contractorId }, {
       startDate: new Date(startDate),
-      endDate: endDate ? new Date(startDate): null,
-      siteVisit: siteVisit ? new Date(siteVisit): null,
+      endDate: endDate ? new Date(startDate) : null,
+      siteVisit: siteVisit ? new Date(siteVisit) : null,
       estimates,
       jobId,
       contractorId
@@ -464,7 +455,7 @@ export const sendJobQuotation = async (
         },
       };
       // Push the acceptance event to the job history array
-      if (!job.jobHistory.some( jobEvent =>  jobEvent.eventType == JOB_STATUS.ACCEPTED  )) {
+      if (!job.jobHistory.some(jobEvent => jobEvent.eventType == JOB_STATUS.ACCEPTED)) {
         job.jobHistory.push(jobEvent);
       }
 
@@ -473,71 +464,57 @@ export const sendJobQuotation = async (
 
     await job.save()
 
-    
 
-    // Create or update conversation and send message to customer
-    const conversationMembers = [
-      { memberType: 'customers', member: customer.id },
-      { memberType: 'contractors', member: contractorId }
-    ];
 
-    const conversation = await ConversationModel.findOneAndUpdate(
-      {
-        entity: jobId,
-        entityType: ConversationEntityType.JOB,
-        members: {
-          $elemMatch: { $or: [{ member: customer.id }, { member: contractorId }] }
-        }
-      },
 
-      {
-        entity: jobId,
-        entityType: ConversationEntityType.JOB,
-        members: conversationMembers
-      },
-      { new: true, upsert: true });
 
-    await MessageModel.create({
-      conversation: conversation.id,
-      sender: contractorId,
-      receiver: customer.id,
-      message: "I am available for this Job",
-      messageType: MessageType.TEXT,
-    });
-   
+    const conversation = await ConversationModel.findOne(
+      { members: { $elemMatch: { $or: [{ member: job.customer }, { member: contractorId }] } } }
+    );
+
+
+    if (conversation) {
+      await MessageModel.create({
+        conversation: conversation.id,
+        sender: contractorId,
+        receiver: customer.id,
+        message: "I am available for this Job",
+        messageType: MessageType.TEXT,
+      });
+    }
+
 
 
     // DO OTHER THINGS HERE
-
-    if(estimates){
-      // @ts-ignore
+    if (estimates) {
       const html = htmlJobQoutationTemplate(customer.firstName, contractor.name)
       EmailService.send(customer.email, 'Job quotation from contractor', html)
+      if (conversation) {
+        await MessageModel.create({
+          conversation: conversation.id,
+          sender: contractorId,
+          receiver: customer.id,
+          message: "Please see attached estimate",
+          messageType: MessageType.ALERT,
+        });
 
-      await MessageModel.create({
-        conversation: conversation.id,
-        sender: contractorId,
-        receiver: customer.id,
-        message: "Please see attached estimate",
-        messageType: MessageType.ALERT,
-      });
-
+      }
 
     }
 
-    if(siteVisit){
+    if (siteVisit) {
       //send message alert indicating that contractor has requested for site visit
-      await MessageModel.create({
-        conversation: conversation.id,
-        sender: contractorId,
-        receiver: customer.id,
-        message: "Contractor requested for site visit",
-        messageType: MessageType.ALERT,
-      });
+      if (conversation) {
+        await MessageModel.create({
+          conversation: conversation.id,
+          sender: contractorId,
+          receiver: customer.id,
+          message: "Contractor requested for site visit",
+          messageType: MessageType.ALERT,
+        });
+      }
 
     }
-
-
 
     res.json({
       success: true,
@@ -563,7 +540,7 @@ export const getQuotationForJob = async (req: any, res: Response, next: NextFunc
     }
 
     // Find the job application for the specified job and contractor
-    const jobQuotation = await JobQoutationModel.findOne({ job:jobId, contractor:contractorId });
+    const jobQuotation = await JobQoutationModel.findOne({ job: jobId, contractor: contractorId });
 
     // Check if the job application exists
     if (!jobQuotation) {
@@ -609,9 +586,10 @@ export const updateJobQuotation = async (req: any, res: Response, next: NextFunc
     // Find the job application for the specified job and contractor
     let jobQuotation = await JobQoutationModel.findOne({ job: jobId, contractor: contractorId });
 
+
     // If the job application does not exist, create a new one
     if (!jobQuotation) {
-      jobQuotation = new JobQoutationModel({ jobId, contractorId });
+      return res.status(400).json({ status: false, message: 'Job quotation not found' });
     }
 
     // Update the job application fields
@@ -634,20 +612,12 @@ export const updateJobQuotation = async (req: any, res: Response, next: NextFunc
     ];
 
     const conversation = await ConversationModel.findOneAndUpdate(
+      { members: { $elemMatch: { $or: [{ member: job.customer }, { member: contractorId }] } } },
       {
-        entity: jobId,
-        entityType: ConversationEntityType.JOB,
-        members: {
-          $elemMatch: { $or: [{ member: job.customer }, { member: contractorId }] }
-        }
-      },
-
-      {
-        entity: jobId,
-        entityType: ConversationEntityType.JOB,
         members: conversationMembers
       },
-      { new: true, upsert: true });
+      { new: true, upsert: true }
+    );
 
 
     // Send a message to the customer
@@ -685,6 +655,9 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
   }
 
   const contractorId = req.contractor.id
+  const contractor = await ContractorModel.findById(contractorId);
+
+  const profile = await ContractorProfileModel.findOne({ contractor: contractorId });
   try {
     // Extract query parameters
     let {
@@ -692,7 +665,7 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
       latitude,
       longitude,
       emergency,
-      category,
+      category = profile?.skill,
       city,
       country,
       address,
@@ -725,6 +698,7 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
     // Match job listings based on query parameters
 
     pipeline.push({ $match: { type: JobType.LISTING } });
+    pipeline.push({ $match: { category: category } });
     pipeline.push({ $match: { status: JOB_STATUS.PENDING } });
 
     if (category) {
@@ -782,8 +756,6 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
       pipeline.push(sortStage);
     }
 
-
-
     // Pagination stages
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
@@ -804,15 +776,14 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
     const result = await JobModel.aggregate(pipeline); // Assuming Contractor is your Mongoose model
     const jobs = result[0].data;
 
-    if(jobs){
+    if (jobs) {
       // Map through each job and attach myQuotation if contractor has applied 
       await Promise.all(jobs.map(async (job: any) => {
-        job.id = job._id 
-        job.myQuotation = await JobQoutationModel.findOne({contractor: contractorId, job: job._id})
+        job.myQuotation = await job.getMyQoutation(contractorId)
       }));
-  }
+    }
 
-    const metadata = result[0].metadata[0]; 
+    const metadata = result[0].metadata[0];
 
     // Send response with job listings data
     res.status(200).json({ success: true, data: { ...metadata, data: jobs } });
@@ -823,40 +794,44 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
 
 
 export const getMyJobs = async (req: any, res: Response, next: NextFunction) => {
-  
-  const contractorId = req.contractor.id
+  const contractorId = req.contractor.id;
+
   try {
-    
     let {
-      type,
+      type = JobType.LISTING,
       page = 1, // Default to page 1
       limit = 10, // Default to 10 items per page
       sort // Sort field and order (-fieldName or fieldName)
     } = req.query;
 
-    const filter: any = {user: contractorId, userType: 'contractors'};
-  
-   
-    const {data, error} = await applyAPIFeature(JobModel.find(filter).populate({
-      path: 'quotations',
-      match: { contractor: contractorId }, // Match quotations by contractorId
-      select: 'status' // Optionally select fields to populate
-    }), req.query); // Assuming Contractor is your Mongoose model
+    let filter: any = { type };
+    if (type === 'BOTH') {
+      delete req.query.type; // Assuming 'BOTH' means no specific type filter
+    }
 
-    if(data){
+    // Retrieve the quotations for the current contractor and extract job IDs
+    const quotations = await JobQoutationModel.find({ contractor: contractorId }).select('job').lean();
+
+    // Extract job IDs from the quotations
+    const jobIds = quotations.map((quotation: any) => quotation.job);
+
+    // Query JobModel to find jobs that have IDs present in the extracted jobIds
+    const {data, error} = await applyAPIFeature(JobModel.find({ _id: { $in: jobIds } }), req.query);
+
+    if (data) {
       // Map through each job and attach myQuotation if contractor has applied 
       await Promise.all(data.data.map(async (job: any) => {
-        job.id = job._id 
-        job.myQuotation = await JobQoutationModel.findOne({contractor: contractorId, job: job._id})
+        job.myQuotation = await job.getMyQoutation(contractorId)
       }));
-  }
+    }
 
     // Send response with job listings data
-    res.status(200).json({message: 'My jobs retreived successfully', success: true, data });
+    res.status(200).json({ success: true, data: data });
   } catch (error: any) {
-    return next(new BadRequestError('An error occured ', error))
+    return next(new BadRequestError('An error occurred', error));
   }
 };
+
 
 
 // //contractor send job quatation two /////////////
@@ -1340,12 +1315,12 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
 //       let jobRequested = []
 
 //       for (let i = 0; i < jobRequests.length; i++) {
-//         const jobRequest = jobRequests[i];
+//         const job = jobRequests[i];
 
-//         const customer = await CustomerRegModel.findOne({_id: jobRequest.customerId}).select('-password');
+//         const customer = await CustomerRegModel.findOne({_id: job.customerId}).select('-password');
 
 //         const obj = {
-//           job: jobRequest,
+//           job: job,
 //           customer
 //         }
 
@@ -1402,12 +1377,12 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
 //     let jobRequested = []
 
 //     for (let i = 0; i < jobRequests.length; i++) {
-//       const jobRequest = jobRequests[i];
+//       const job = jobRequests[i];
 
-//       const customer = await CustomerRegModel.findOne({_id: jobRequest.customerId}).select('-password');
+//       const customer = await CustomerRegModel.findOne({_id: job.customerId}).select('-password');
 
 //       const obj = {
-//         job: jobRequest,
+//         job: job,
 //         customer
 //       }
 
@@ -1542,12 +1517,12 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
 //     let jobRequested = []
 
 //     for (let i = 0; i < jobRequests.length; i++) {
-//       const jobRequest = jobRequests[i];
+//       const job = jobRequests[i];
 
-//       const customer = await CustomerRegModel.findOne({_id: jobRequest.customerId}).select('-password');
+//       const customer = await CustomerRegModel.findOne({_id: job.customerId}).select('-password');
 
 //       const obj = {
-//         job: jobRequest,
+//         job: job,
 //         customer
 //       }
 
@@ -1603,12 +1578,12 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
 //     let jobHistory = []
 
 //     for (let i = 0; i < jobRequests.length; i++) {
-//       const jobRequest = jobRequests[i];
+//       const job = jobRequests[i];
 
-//       const customer = await CustomerRegModel.findOne({_id: jobRequest.customerId}).select('-password');
+//       const customer = await CustomerRegModel.findOne({_id: job.customerId}).select('-password');
 
 //       const obj = {
-//         job: jobRequest,
+//         job: job,
 //         customer
 //       }
 
@@ -1750,12 +1725,12 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
 //     let jobRequested = []
 
 //     for (let i = 0; i < jobRequests.length; i++) {
-//       const jobRequest = jobRequests[i];
+//       const job = jobRequests[i];
 
-//       const customer = await CustomerRegModel.findOne({_id: jobRequest.customerId}).select('-password');
+//       const customer = await CustomerRegModel.findOne({_id: job.customerId}).select('-password');
 
 //       const obj = {
-//         job: jobRequest,
+//         job: job,
 //         customer
 //       }
 
@@ -1812,12 +1787,12 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
 //     let jobRequested = []
 
 //     for (let i = 0; i < jobRequests.length; i++) {
-//       const jobRequest = jobRequests[i];
+//       const job = jobRequests[i];
 
-//       const customer = await CustomerRegModel.findOne({_id: jobRequest.customerId}).select('-password');
+//       const customer = await CustomerRegModel.findOne({_id: job.customerId}).select('-password');
 
 //       const obj = {
-//         job: jobRequest,
+//         job: job,
 //         customer
 //       }
 
@@ -1875,12 +1850,12 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
 //     let jobRequested = []
 
 //     for (let i = 0; i < jobRequests.length; i++) {
-//       const jobRequest = jobRequests[i];
+//       const job = jobRequests[i];
 
-//       const customer = await CustomerRegModel.findOne({_id: jobRequest.customerId}).select('-password');
+//       const customer = await CustomerRegModel.findOne({_id: job.customerId}).select('-password');
 
 //       const obj = {
-//         job: jobRequest,
+//         job: job,
 //         customer
 //       }
 

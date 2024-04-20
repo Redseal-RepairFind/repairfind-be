@@ -1,9 +1,10 @@
 import { validationResult } from "express-validator";
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { applyAPIFeature } from "../../../utils/api.feature";
 import { ConversationModel } from "../../../database/common/conversations.schema";
 import { MessageModel, MessageType } from "../../../database/common/messages.schema";
 import { ConversationEvent } from "../../../events";
+import { BadRequestError } from "../../../utils/custom.errors";
 
  
 export const getConversations = async (req: any, res: Response): Promise<void> => {
@@ -108,12 +109,17 @@ export const getConversationMessages = async (req: any, res: Response) => {
 };
 
 
-export const sendMessage = async (req: any, res: Response) => {
+export const sendMessage = async (req: any, res: Response, next: NextFunction) => {
     try {
         const { conversationId } = req.params;
         const { message, media, type } = req.body; // Assuming you pass message content in the request body
         const customerId = req.customer.id;
 
+
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ message: 'validatior error occured', errors: errors.array() });
+        }
 
         // Find the conversation by ID
         const conversation = await ConversationModel.findById(conversationId);
@@ -144,9 +150,8 @@ export const sendMessage = async (req: any, res: Response) => {
 
 
         res.status(201).json({ success: true, message: 'Message sent successfully', data: newMessage });
-    } catch (error) {
-        console.error('Error sending message:', error);
-        res.status(500).json({ success: false, message: 'Server error' });
+    } catch (error: any) {
+        return next(new BadRequestError('Error sending message', error));
     }
 };
 

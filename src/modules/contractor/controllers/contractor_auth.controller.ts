@@ -221,9 +221,7 @@ class AuthHandler extends Base {
 
             const quiz = await contractor?.quiz ?? null
             const contractorResponse = {
-               //@ts-ignore
               ...contractor.toJSON(), // Convert to plain JSON object
-                //@ts-ignore
               quiz,
             };
 

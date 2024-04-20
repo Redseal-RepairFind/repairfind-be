@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var mongoose_1 = require("mongoose");
-var AdminRegSchema = new mongoose_1.Schema({
+var AdminSchema = new mongoose_1.Schema({
     email: {
         type: String,
         required: true,
@@ -30,9 +30,11 @@ var AdminRegSchema = new mongoose_1.Schema({
         required: true,
         default: false,
     },
-    image: {
-        type: String,
-        default: "",
+    profilePhoto: {
+        type: Object,
+        default: {
+            url: 'https://ipalas3bucket.s3.us-east-2.amazonaws.com/avatar.png'
+        }
     },
     createdAt: {
         type: Date,
@@ -55,5 +57,5 @@ var AdminRegSchema = new mongoose_1.Schema({
 }, {
     timestamps: true,
 });
-var AdminModel = (0, mongoose_1.model)("admins", AdminRegSchema);
+var AdminModel = (0, mongoose_1.model)("admins", AdminSchema);
 exports.default = AdminModel;

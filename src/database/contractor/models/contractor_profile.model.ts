@@ -50,11 +50,7 @@ const CompanyProfileSchema = new Schema<IContractorProfile>(
         type: Schema.Types.ObjectId, 
         ref: "contractors",
         required: true,
-      },
-      profileType: {
-        type: String,
-      },
-      
+      }, 
       location: {
         type: ContractorLocationSchema,
       },

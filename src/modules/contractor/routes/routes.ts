@@ -57,6 +57,10 @@ router.patch("/profiles", checkContractorRole,  ContractorHttpRequest.UpdateProf
     ContractorController(req, res, next).updateProfile();
 });
 
+router.post("/profiles/upgrade-employee", checkContractorRole, ContractorHttpRequest.UpgradeEmployeeProfileRequest, (req: Request, res: Response, next: NextFunction) => {
+    ContractorController(req, res, next).upgradeEmployeeProfile();
+});
+
 
 //  Account
 router.get("/me", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {

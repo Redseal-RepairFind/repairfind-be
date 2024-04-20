@@ -12,7 +12,11 @@ const customers  = [
             "code": "+123",
             "number": "3242342324"
         },
-        location: 'Some Location',
+        location: {
+            address: "Logics Senct",
+            latitude: "12323123123",
+            longitude: "2123213213213",
+        },
         passwordOtp: {
             verified: true,
         },
@@ -34,9 +38,10 @@ const customers  = [
 export  const CustomerSeeder  = async (options: Object) => {
         try {
             customers.forEach(async (customer) => {
+                const existingCustomer= await CustomerModel.findOne({ email: customer.email });
+                if(existingCustomer)return 
                 await CustomerModel.findOneAndUpdate({ email: customer.email }, customer, { upsert: true });
             });
-
         } catch (error) {
             console.log("Error seeding challenge tags", error)
         }

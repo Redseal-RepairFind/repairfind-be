@@ -38,7 +38,7 @@ router.post("/reset-password", requests_1.ContractorHttpRequest.PasswordResetReq
     (0, contractor_auth_controller_1.AuthController)(req, res, next).resetPassword();
 });
 // PROFILE
-router.post("/profiles", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
+router.post("/profiles", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateProfileRequest, function (req, res, next) {
     (0, contractor_controller_1.ContractorController)(req, res, next).createProfile();
 });
 router.get("/profiles", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
@@ -46,6 +46,9 @@ router.get("/profiles", contractorRoleCheck_middleware_1.checkContractorRole, fu
 });
 router.patch("/profiles", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.UpdateProfileRequest, function (req, res, next) {
     (0, contractor_controller_1.ContractorController)(req, res, next).updateProfile();
+});
+router.post("/profiles/upgrade-employee", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.UpgradeEmployeeProfileRequest, function (req, res, next) {
+    (0, contractor_controller_1.ContractorController)(req, res, next).upgradeEmployeeProfile();
 });
 //  Account
 router.get("/me", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {

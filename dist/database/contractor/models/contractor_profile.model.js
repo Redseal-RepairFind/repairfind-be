@@ -39,9 +39,6 @@ var CompanyProfileSchema = new mongoose_1.Schema({
         ref: "contractors",
         required: true,
     },
-    profileType: {
-        type: String,
-    },
     location: {
         type: ContractorLocationSchema,
     },

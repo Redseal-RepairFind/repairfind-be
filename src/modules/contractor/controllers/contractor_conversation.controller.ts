@@ -139,10 +139,9 @@ export const sendMessage = async (req: any, res: Response, next: NextFunction) =
         });
 
         ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
-
         res.status(201).json({ success: true, message: 'Message sent successfully', data: newMessage });
     } catch (error: any) {
-        return next(new BadRequestError('An error occured ', error))
+        return next(new BadRequestError('Error sending message', error));
     }
 };
 

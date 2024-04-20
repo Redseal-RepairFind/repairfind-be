@@ -1,6 +1,5 @@
-//@ts-nocheck
 import { Schema, model, ObjectId } from "mongoose";
-import { COMPANY_STATUS, CONTRACTOR_ACCOUNT_TYPE, GST_STATUS, IContractor, IContractorCompanyDetails, IContractorGstDetails } from "../interface/contractor.interface";
+import { COMPANY_STATUS, CONTRACTOR_TYPES, GST_STATUS, IContractor, IContractorCertnDetails, IContractorCompanyDetails, IContractorGstDetails } from "../interface/contractor.interface";
 import { contractorStatus } from "../../../constants/contractorStatus";
 import { config } from "../../../config";
 import ContractorQuizModel from "./contractor_quiz.model";
@@ -9,11 +8,6 @@ import { StripeAccountSchema } from "../../common/stripe_account.schema";
 import { StripePaymentMethodSchema } from "../../common/stripe_paymentmethod.schema";
 
 
-export enum CONTRACTOR_TYPES {
-  INDIVIDUAL = "Individual",
-  EMPLOYEE = "Employee",
-  COMPANY = "Company"
-}
 
 const GstDetailSchema = new Schema<IContractorGstDetails>({
   gstName: String,
@@ -37,10 +31,8 @@ const CompanyDetailSchema = new Schema<IContractorCompanyDetails>({
   recentRemark: String,
 });
 
-const CertnDetailSchema = new Schema<IContractorCompanyDetails>({
-  certnId: String,
-  status: { type: String, enum: Object.values(COMPANY_STATUS), default: COMPANY_STATUS.PENDING },
-  recentRemark: String,
+const CertnDetailSchema = new Schema<IContractorCertnDetails>({
+  status: { type: String },
 });
 
 
@@ -95,7 +87,7 @@ const ContractorSchema = new Schema<IContractor>(
 
     accountType: {
       type: String,
-      enum: Object.values(CONTRACTOR_ACCOUNT_TYPE),
+      enum: Object.values(CONTRACTOR_TYPES),
     },
 
     profilePhoto: {
@@ -170,6 +162,7 @@ const ContractorSchema = new Schema<IContractor>(
 
 
 ContractorSchema.virtual('stripeIdentityStatus').get(function (this: IContractor) {
+  //@ts-ignore
   return this.stripeIdentity ? this.stripeIdentity.status : 'unverified';
 });
 
@@ -183,9 +176,9 @@ ContractorSchema.virtual('stripeAccountStatus').get(function (this: IContractor)
 });
 
 
-ContractorSchema.virtual('onboarding').get(  function (this: IContractor) {
- 
-  const hasStripeAccount = !!this.stripeAccount; 
+ContractorSchema.virtual('onboarding').get(function (this: IContractor) {
+
+  const hasStripeAccount = !!this.stripeAccount;
   const hasStripeCustomer = !!this.stripeCustomer;
   const hasStripePaymentMethods = Array.isArray(this.stripePaymentMethods) && this.stripePaymentMethods.length > 0
   const hasStripeIdentity = !!this.stripeIdentity;
@@ -210,9 +203,9 @@ ContractorSchema.virtual('quiz').get(async function () {
 });
 
 ContractorSchema.virtual('name').get(function () {
-  if (this.accountType == CONTRACTOR_TYPES.INDIVIDUAL || this.accountType == CONTRACTOR_TYPES.EMPLOYEE) {
+  if (this.accountType == CONTRACTOR_TYPES.Individual || this.accountType == CONTRACTOR_TYPES.Employee) {
     return `${this.firstName} ${this.lastName}`;
-  } else if (this.accountType == CONTRACTOR_TYPES.COMPANY) {
+  } else if (this.accountType == CONTRACTOR_TYPES.Company) {
     return this.companyName;
   }
 });
@@ -228,27 +221,32 @@ ContractorSchema.set('toJSON', {
 
 
     // Check if the options include virtuals, if not, delete the stripeIdentity field
+    //@ts-ignore
     if (!options.includeStripeIdentity) {
       delete ret.stripeIdentity;
     }
+    //@ts-ignore
     if (!options.includeStripePaymentMethods) {
       delete ret.stripePaymentMethods;
     }
 
+    //@ts-ignore
     if (!options.includeStripeCustomer) {
       delete ret.stripeCustomer;
     }
+    //@ts-ignore
 
     if (!options.includeStripeAccount) {
       delete ret.stripeAccount;
     }
 
-    if(!ret.profilePhoto ||  !ret.profilePhoto.url){
+    if (!ret.profilePhoto || !ret.profilePhoto.url) {
       ret.profilePhoto = {
         url: 'https://ipalas3bucket.s3.us-east-2.amazonaws.com/avatar.png'
       }
     }
 
+    //@ts-ignore
     ret.name = doc.name;
     return ret;
   },

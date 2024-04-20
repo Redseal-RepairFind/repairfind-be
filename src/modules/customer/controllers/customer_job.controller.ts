@@ -22,9 +22,8 @@ import { addHours, endOfDay, isAfter, isBefore, isFuture, isPast, isValid, start
 import { IJob, JobModel, JOB_STATUS, JobType } from "../../../database/common/job.model";
 import { BadRequestError } from "../../../utils/custom.errors";
 import { applyAPIFeature } from "../../../utils/api.feature";
-import { ConversationEntityType, ConversationModel, IConversation } from "../../../database/common/conversations.schema";
+import { ConversationModel } from "../../../database/common/conversations.schema";
 import { IMessage, MessageModel, MessageType } from "../../../database/common/messages.schema";
-import { Date } from "mongoose";
 import { JOB_QUOTATION_STATUS, JobQoutationModel } from "../../../database/common/job_quotation.model";
 import TransactionModel from "../../../database/common/transaction.model";
 import { StripeService } from "../../../services/stripe";
@@ -115,20 +114,15 @@ export const createJobRequest = async (
             { memberType: 'contractors', member: contractorId }
         ];
 
-
-
         const conversation = await ConversationModel.findOneAndUpdate(
-            {
-                members: {
-                    $elemMatch: { $or: [{ member: customer.id }, { member: contractorId }] }
-                }
+            { members: { $elemMatch: { $or: [{ member: customer.id }, { member: contractorId }] }}
             },
 
             {
                 members: conversationMembers
             },
-            { new: true, upsert: true });
-
+            { new: true, upsert: true }
+        );
 
         // Create a message in the conversation
         const newMessage: IMessage = await MessageModel.create({
@@ -397,14 +391,15 @@ export const acceptJobQuotation = async (req: any, res: Response, next: NextFunc
             { memberType: 'customers', member: customerId },
             { memberType: 'contractors', member: quotation.contractor }
         ];
+        const conversation = await ConversationModel.findOneAndUpdate(
+            { members: { $elemMatch: { $or: [{ member: customerId }, { member: quotation.contractor }] }}},
+            {
+                members: conversationMembers,
+                lastMessage: 'I have accepted your qoutation for the Job', // Set the last message to the job description
+                lastMessageAt: new Date() // Set the last message timestamp to now
+            },
+            { new: true, upsert: true });
 
-        const conversation: IConversation = await ConversationModel.create({
-            members: conversationMembers,
-            entity: quotation.job,
-            entityType: ConversationEntityType.JOB,
-            lastMessage: 'I have accepted your qoutation for the Job', // Set the last message to the job description
-            lastMessageAt: new Date() // Set the last message timestamp to now
-        });
 
         // Create a message in the conversation
         const newMessage: IMessage = await MessageModel.create({

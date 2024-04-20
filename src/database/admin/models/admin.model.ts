@@ -1,7 +1,7 @@
 import { Schema, model } from "mongoose";
-import { IAdmin } from "../interface/adminReg.interface";
+import { IAdmin } from "../interface/admin.interface";
 
-const AdminRegSchema = new Schema(
+const AdminSchema = new Schema(
     {
       email: {
         type: String,
@@ -31,9 +31,11 @@ const AdminRegSchema = new Schema(
         required: true,
         default: false,
       },
-      image: {
-        type: String,
-        default: "",
+      profilePhoto: {
+        type: Object,
+        default: {
+          url: 'https://ipalas3bucket.s3.us-east-2.amazonaws.com/avatar.png'
+        }
       },
       createdAt: {
         type: Date,
@@ -60,6 +62,6 @@ const AdminRegSchema = new Schema(
     }
   );
   
-  const AdminModel = model<IAdmin>("admins", AdminRegSchema);
+  const AdminModel = model<IAdmin>("admins", AdminSchema);
   
   export default AdminModel;

@@ -119,7 +119,7 @@ JobSchema.virtual('totalQuotations').get(function () {
     var pendingQuotations = this.quotations.filter(function (quote) { return quote.status !== job_quotation_model_1.JOB_QUOTATION_STATUS.DECLINED; });
     return pendingQuotations.length;
 });
-JobSchema.methods.getMyQoutation = function (jobId, contractor) {
+JobSchema.methods.getMyQoutation = function (contractor) {
     return __awaiter(this, void 0, void 0, function () {
         var contractorQuotation;
         return __generator(this, function (_a) {

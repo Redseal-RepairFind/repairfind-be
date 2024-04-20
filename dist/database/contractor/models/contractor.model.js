@@ -39,8 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorModel = exports.CONTRACTOR_TYPES = void 0;
-//@ts-nocheck
+exports.ContractorModel = void 0;
 var mongoose_1 = require("mongoose");
 var contractor_interface_1 = require("../interface/contractor.interface");
 var contractorStatus_1 = require("../../../constants/contractorStatus");
@@ -48,12 +47,6 @@ var contractor_quiz_model_1 = __importDefault(require("./contractor_quiz.model")
 var stripe_customer_schema_1 = require("../../common/stripe_customer.schema");
 var stripe_account_schema_1 = require("../../common/stripe_account.schema");
 var stripe_paymentmethod_schema_1 = require("../../common/stripe_paymentmethod.schema");
-var CONTRACTOR_TYPES;
-(function (CONTRACTOR_TYPES) {
-    CONTRACTOR_TYPES["INDIVIDUAL"] = "Individual";
-    CONTRACTOR_TYPES["EMPLOYEE"] = "Employee";
-    CONTRACTOR_TYPES["COMPANY"] = "Company";
-})(CONTRACTOR_TYPES || (exports.CONTRACTOR_TYPES = CONTRACTOR_TYPES = {}));
 var GstDetailSchema = new mongoose_1.Schema({
     gstName: String,
     gstNumber: String,
@@ -72,6 +65,9 @@ var CompanyDetailSchema = new mongoose_1.Schema({
     approvedBy: mongoose_1.Schema.Types.ObjectId,
     approvedAt: Date,
     recentRemark: String,
+});
+var CertnDetailSchema = new mongoose_1.Schema({
+    status: { type: String },
 });
 var ContractorSchema = new mongoose_1.Schema({
     profile: {
@@ -112,7 +108,7 @@ var ContractorSchema = new mongoose_1.Schema({
     },
     accountType: {
         type: String,
-        enum: Object.values(contractor_interface_1.CONTRACTOR_ACCOUNT_TYPE),
+        enum: Object.values(contractor_interface_1.CONTRACTOR_TYPES),
     },
     profilePhoto: {
         type: Object,
@@ -175,6 +171,7 @@ var ContractorSchema = new mongoose_1.Schema({
     timestamps: true,
 });
 ContractorSchema.virtual('stripeIdentityStatus').get(function () {
+    //@ts-ignore
     return this.stripeIdentity ? this.stripeIdentity.status : 'unverified';
 });
 ContractorSchema.virtual('stripeAccountStatus').get(function () {
@@ -218,10 +215,10 @@ ContractorSchema.virtual('quiz').get(function () {
     });
 });
 ContractorSchema.virtual('name').get(function () {
-    if (this.accountType == CONTRACTOR_TYPES.INDIVIDUAL || this.accountType == CONTRACTOR_TYPES.EMPLOYEE) {
+    if (this.accountType == contractor_interface_1.CONTRACTOR_TYPES.Individual || this.accountType == contractor_interface_1.CONTRACTOR_TYPES.Employee) {
         return "".concat(this.firstName, " ").concat(this.lastName);
     }
-    else if (this.accountType == CONTRACTOR_TYPES.COMPANY) {
+    else if (this.accountType == contractor_interface_1.CONTRACTOR_TYPES.Company) {
         return this.companyName;
     }
 });
@@ -232,15 +229,19 @@ ContractorSchema.set('toJSON', {
         delete ret.passwordOtp;
         // Check if the options include virtuals, if not, delete the fields
         // Check if the options include virtuals, if not, delete the stripeIdentity field
+        //@ts-ignore
         if (!options.includeStripeIdentity) {
             delete ret.stripeIdentity;
         }
+        //@ts-ignore
         if (!options.includeStripePaymentMethods) {
             delete ret.stripePaymentMethods;
         }
+        //@ts-ignore
         if (!options.includeStripeCustomer) {
             delete ret.stripeCustomer;
         }
+        //@ts-ignore
         if (!options.includeStripeAccount) {
             delete ret.stripeAccount;
         }
@@ -249,6 +250,7 @@ ContractorSchema.set('toJSON', {
                 url: 'https://ipalas3bucket.s3.us-east-2.amazonaws.com/avatar.png'
             };
         }
+        //@ts-ignore
         ret.name = doc.name;
         return ret;
     },

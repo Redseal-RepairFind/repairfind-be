@@ -110,8 +110,8 @@ exports.jobListingParams = [
     (0, express_validator_1.body)("jobLocation").notEmpty(),
     (0, express_validator_1.body)("date").notEmpty(),
     (0, express_validator_1.body)("jobExpiry").notEmpty(),
-    (0, express_validator_1.body)("contractorType").isIn([contractor_interface_1.CONTRACTOR_ACCOUNT_TYPE.Company, contractor_interface_1.CONTRACTOR_ACCOUNT_TYPE.Employee, contractor_interface_1.CONTRACTOR_ACCOUNT_TYPE.Individual])
-        .withMessage("contractorType must be ".concat(contractor_interface_1.CONTRACTOR_ACCOUNT_TYPE.Company, ", ").concat(contractor_interface_1.CONTRACTOR_ACCOUNT_TYPE.Employee, ", or ").concat(contractor_interface_1.CONTRACTOR_ACCOUNT_TYPE.Individual)),
+    (0, express_validator_1.body)("contractorType").isIn([contractor_interface_1.CONTRACTOR_TYPES.Company, contractor_interface_1.CONTRACTOR_TYPES.Employee, contractor_interface_1.CONTRACTOR_TYPES.Individual])
+        .withMessage("contractorType must be ".concat(contractor_interface_1.CONTRACTOR_TYPES.Company, ", ").concat(contractor_interface_1.CONTRACTOR_TYPES.Employee, ", or ").concat(contractor_interface_1.CONTRACTOR_TYPES.Individual)),
     (0, express_validator_1.body)("emergency").isIn(['yes', 'no'])
         .withMessage("emergency must be yes or no"),
 ];
@@ -201,7 +201,21 @@ exports.tripArrivalComfirmParams = [
 exports.sendMessageParams = [
     (0, express_validator_1.body)('type').isIn(['TEXT', 'MEDIA']).withMessage('Invalid messageType'),
     (0, express_validator_1.body)('message').if((0, express_validator_1.body)('type').equals('TEXT')).notEmpty().withMessage('Message is required'),
-    (0, express_validator_1.body)('media').if((0, express_validator_1.body)('type').equals('MEDIA')).isArray().withMessage('Media must be an array'),
+    (0, express_validator_1.body)('media').if((0, express_validator_1.body)('type').equals('MEDIA')).isArray().withMessage('Media must be an object')
+        .bail() // Stop validation if media is not an object
+        .custom(function (value, _a) {
+        var req = _a.req;
+        // Check if required properties exist in media object
+        if (!value.every(function (item) { return typeof item === 'object' && 'url' in item && typeof item.url === 'string' && item.url.trim() !== ''; })) {
+            throw new Error('Media url is required');
+        }
+        if (!value.every(function (item) { return typeof item === 'object' && 'type' in item; })) {
+            // && Object.values(MESSAGE_MEDIA_TYPE).includes(value.type)
+            throw new Error('Invalid message media type');
+        }
+        // Additional validation for metrics, duration, etc. if needed
+        return true;
+    }),
 ];
 var validateFormData = function (req, res, next) {
     var errors = (0, express_validator_1.validationResult)(req);

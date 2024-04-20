@@ -7,19 +7,53 @@ export enum MessageType {
     ALERT = "ALERT",
     MEDIA = "MEDIA",
 }
+
+export enum MESSAGE_MEDIA_TYPE {
+    TEXT = "AUDIO",
+    ALERT = "VIDEO",
+    MEDIA = "IMAGE",
+}
+
+interface IMedia {
+    url: string;
+    metrics?: string;
+    duration?: string;
+    type: MESSAGE_MEDIA_TYPE;
+}
+
 // Define base interface for messages
 export interface IMessage extends Document {
-    _id: string;
+    id: string;
     conversation: string;
     sender: Types.ObjectId; // Reference to the sender (contractor or customer)
     senderType: 'contractor' | 'customer'; // Type of the sender
     messageType: 'TEXT' | 'ALERT' | 'MEDIA'; //
-    message: string;
-    media: string[];
+    message?: string; // Optional message
+    media: IMedia[]; // Array of media objects
     readBy: Types.ObjectId[]; // References to contractors who have read the message
     heading: Object;
     isOwn: Boolean;
 }
+
+const MediaSchema = new Schema<IMedia>({
+    url: {
+        type: String,
+        required: true,
+    },
+    metrics: {
+        type: String,
+        required: false,
+    },
+    duration: {
+        type: String,
+        required: false,
+    },
+    type: {
+        type: String,
+        enum: Object.values(MESSAGE_MEDIA_TYPE),
+        required: true,
+    },
+});
 
 // Define schema for messages
 const MessageSchema = new Schema<IMessage>({
@@ -47,7 +81,7 @@ const MessageSchema = new Schema<IMessage>({
         trim: true,
         required: false,
     },
-    media: [String],
+    media: [MediaSchema],
     readBy: [
         {
             type: Schema.Types.ObjectId,

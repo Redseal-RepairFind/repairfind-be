@@ -229,7 +229,7 @@ var sendMessage = function (req, res, next) { return __awaiter(void 0, void 0, v
                 return [3 /*break*/, 4];
             case 3:
                 error_4 = _b.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_4))];
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('Error sending message', error_4))];
             case 4: return [2 /*return*/];
         }
     });

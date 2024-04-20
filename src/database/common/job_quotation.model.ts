@@ -119,31 +119,35 @@ JobQoutationSchema.virtual('charges').get(function () {
     let totalEstimateAmount = 0;
 
     // Calculate total estimate amount from rate * quantity for each estimate
-    this.estimates.forEach( (estimate: any) => {
-        totalEstimateAmount += estimate.rate * estimate.quantity;
-    });
-
-    let processingFee = 0;
-    let gst = 0;
-
-    if (totalEstimateAmount <= 1000) {
-        processingFee = parseFloat(((20 / 100) * totalEstimateAmount).toFixed(2));
-    } else if (totalEstimateAmount <= 5000) {
-        processingFee = parseFloat(((15 / 100) * totalEstimateAmount).toFixed(2));
-    } else {
-        processingFee = parseFloat(( (10 / 100) * totalEstimateAmount).toFixed(2));
+    if(this.estimates){
+        this.estimates.forEach( (estimate: any) => {
+            totalEstimateAmount += estimate.rate * estimate.quantity;
+        });
+    
+        let processingFee = 0;
+        let gst = 0;
+    
+        if (totalEstimateAmount <= 1000) {
+            processingFee = parseFloat(((20 / 100) * totalEstimateAmount).toFixed(2));
+        } else if (totalEstimateAmount <= 5000) {
+            processingFee = parseFloat(((15 / 100) * totalEstimateAmount).toFixed(2));
+        } else {
+            processingFee = parseFloat(( (10 / 100) * totalEstimateAmount).toFixed(2));
+        }
+    
+        gst = parseFloat(((5 / 100) * totalEstimateAmount).toFixed(2));
+    
+        // Calculate subtotal before adding processing fee and GST
+        const subtotal = totalEstimateAmount;
+    
+        // Calculate total amounts for customer and contractor
+        const totalAmount =  (subtotal + processingFee + gst).toFixed(2);
+        const contractorAmount = (subtotal + gst).toFixed(2);
+    
+        return { subtotal, processingFee, gst, totalAmount, contractorAmount };
     }
-
-    gst = parseFloat(((5 / 100) * totalEstimateAmount).toFixed(2));
-
-    // Calculate subtotal before adding processing fee and GST
-    const subtotal = totalEstimateAmount;
-
-    // Calculate total amounts for customer and contractor
-    const totalAmount =  (subtotal + processingFee + gst).toFixed(2);
-    const contractorAmount = (subtotal + gst).toFixed(2);
-
-    return { subtotal, processingFee, gst, totalAmount, contractorAmount };
+    return { subtotal: 0, processingFee: 0, gst: 0, totalAmount: 0, contractorAmount: 0 }
+    
 });
 
 JobQoutationSchema.set('toObject', { virtuals: true });

@@ -161,18 +161,7 @@ JobSchema.virtual('totalQuotations').get(function () {
 
 
 
-JobSchema.methods.getMyQoutation = async function (jobId: any, contractor: any) {
-    // const job = await this.populate({
-    //     path: 'quotations',
-    //     match: { contractor } // Match quotations by contractorId
-    //   });
-  
-    // if(job.quotations.length){
-    //     return job.quotations[0]
-    // }else{
-    //     return null
-    // }
-
+JobSchema.methods.getMyQoutation = async function (contractor: any) {
     const contractorQuotation = await JobQoutationModel.findOne({job:this.id, contractor})
     if(contractorQuotation){
         return contractorQuotation
