@@ -58,6 +58,7 @@ var bullmq_1 = require("../../../services/bullmq");
 var events_1 = require("../../../events");
 var job_quotation_accepted_template_1 = require("../../../templates/contractorEmail/job_quotation_accepted.template");
 var job_quotation_declined_template_1 = require("../../../templates/contractorEmail/job_quotation_declined.template");
+var mongoose_1 = __importDefault(require("mongoose"));
 var createJobRequest = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, contractorId, category, description, location_1, date, expiresIn, emergency, media, voiceDescription, time, customerId, customer, contractor, startOfToday, existingJobRequest, dateTimeString, jobTime, newJob, conversationMembers, conversation, newMessage, html, error_1;
     return __generator(this, function (_b) {
@@ -222,43 +223,43 @@ var createJobListing = function (req, res, next) { return __awaiter(void 0, void
 }); };
 exports.createJobListing = createJobListing;
 var getMyJobs = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, contractorId, status_1, startDate, endDate, date, type, customerId, filter, start, end, selectedDate, startOfDay_1, endOfDay_1, _b, data, error, jobs, _loop_1, _i, jobs_1, job, error_3;
+    var errors, _a, contractor, status_1, startDate, endDate, date, type, customerId, filter, start, end, selectedDate, startOfDay_1, endOfDay_1, _b, data, error, jobs, error_3;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
-                _c.trys.push([0, 7, , 8]);
+                _c.trys.push([0, 3, , 4]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
-                _a = req.query, contractorId = _a.contractorId, status_1 = _a.status, startDate = _a.startDate, endDate = _a.endDate, date = _a.date, type = _a.type;
+                _a = req.query, contractor = _a.contractor, status_1 = _a.status, startDate = _a.startDate, endDate = _a.endDate, date = _a.date, type = _a.type;
                 customerId = req.customer.id;
                 filter = { customer: customerId };
-                if (customerId) {
-                    filter.customer = customerId;
-                }
-                if (contractorId) {
-                    filter.contractor = contractorId;
-                }
-                if (type) {
-                    filter.type = type.toUpperCase();
+                // TODO: when contractor is specified, ensure the contractor quotation is attached
+                if (contractor) {
+                    if (!mongoose_1.default.Types.ObjectId.isValid(contractor)) {
+                        return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid contractor id' })];
+                    }
+                    req.query.contractor = contractor;
                 }
                 if (status_1) {
-                    filter.status = status_1.toUpperCase();
+                    req.query.status = status_1.toUpperCase();
                 }
                 if (startDate && endDate) {
                     start = new Date(startDate);
                     end = new Date(endDate);
                     // Ensure that end date is adjusted to include the entire day
                     end.setDate(end.getDate() + 1);
-                    filter.createdAt = { $gte: start, $lt: end };
+                    req.query.createdAt = { $gte: start, $lt: end };
+                    delete req.query.startDate;
+                    delete req.query.endDate;
                 }
                 if (date) {
                     selectedDate = new Date(date);
                     startOfDay_1 = new Date(selectedDate.setUTCHours(0, 0, 0, 0));
                     endOfDay_1 = new Date(startOfDay_1);
                     endOfDay_1.setDate(startOfDay_1.getUTCDate() + 1);
-                    filter.date = { $gte: startOfDay_1, $lt: endOfDay_1 };
+                    req.query.date = { $gte: startOfDay_1, $lt: endOfDay_1 };
                 }
                 return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_model_1.JobModel.find(filter), req.query)];
             case 1:
@@ -266,57 +267,12 @@ var getMyJobs = function (req, res, next) { return __awaiter(void 0, void 0, voi
                 return [4 /*yield*/, job_model_1.JobModel.find()];
             case 2:
                 jobs = _c.sent();
-                _loop_1 = function (job) {
-                    return __generator(this, function (_d) {
-                        switch (_d.label) {
-                            case 0:
-                                // Populate the quotations field with associated data from JobQuotationModel
-                                // Update the status field in each quotation object in the array
-                                job.quotations.forEach(function (quotation) { return __awaiter(void 0, void 0, void 0, function () {
-                                    var quo;
-                                    return __generator(this, function (_a) {
-                                        switch (_a.label) {
-                                            case 0: return [4 /*yield*/, job_quotation_model_1.JobQoutationModel.findOne({ job: job.id })];
-                                            case 1:
-                                                quo = _a.sent();
-                                                if (quo) {
-                                                    quotation.id = quo.id; // Update the status field
-                                                    quotation.status = quo.status; // Update the status field
-                                                }
-                                                return [2 /*return*/];
-                                        }
-                                    });
-                                }); });
-                                // Save the updated job document
-                                // console.log(job)
-                                return [4 /*yield*/, job.save()];
-                            case 1:
-                                // Save the updated job document
-                                // console.log(job)
-                                _d.sent();
-                                return [2 /*return*/];
-                        }
-                    });
-                };
-                _i = 0, jobs_1 = jobs;
-                _c.label = 3;
-            case 3:
-                if (!(_i < jobs_1.length)) return [3 /*break*/, 6];
-                job = jobs_1[_i];
-                return [5 /*yield**/, _loop_1(job)];
-            case 4:
-                _c.sent();
-                _c.label = 5;
-            case 5:
-                _i++;
-                return [3 /*break*/, 3];
-            case 6:
                 res.json({ success: true, message: 'Jobs retrieved', data: data });
-                return [3 /*break*/, 8];
-            case 7:
+                return [3 /*break*/, 4];
+            case 3:
                 error_3 = _c.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_3))];
-            case 8: return [2 /*return*/];
+            case 4: return [2 /*return*/];
         }
     });
 }); };

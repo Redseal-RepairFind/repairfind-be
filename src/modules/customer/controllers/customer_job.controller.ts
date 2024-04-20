@@ -32,6 +32,7 @@ import { QueueService } from "../../../services/bullmq";
 import { JobEvent, eventEmitter } from "../../../events";
 import { htmlJobQuotationAcceptedContractorEmailTemplate } from "../../../templates/contractorEmail/job_quotation_accepted.template";
 import { htmlJobQuotationDeclinedContractorEmailTemplate } from "../../../templates/contractorEmail/job_quotation_declined.template";
+import mongoose from "mongoose";
 
 
 
@@ -233,23 +234,23 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
         }
 
         // Extract query parameters
-        const { contractorId, status, startDate, endDate, date, type } = req.query;
+        const { contractor, status, startDate, endDate, date, type } = req.query;
         const customerId = req.customer.id;
 
         // Construct filter object based on query parameters
-        const filter: any = { customer: customerId };
+        let filter: any = { customer: customerId };
 
-        if (customerId) {
-            filter.customer = customerId;
+       
+        // TODO: when contractor is specified, ensure the contractor quotation is attached
+        if (contractor) {
+            if( !mongoose.Types.ObjectId.isValid(contractor) ){
+                return res.status(400).json({success:false, message: 'Invalid contractor id'});
+            }
+            req.query.contractor = contractor;
         }
-        if (contractorId) {
-            filter.contractor = contractorId;
-        }
-        if (type) {
-            filter.type = type.toUpperCase();
-        }
+
         if (status) {
-            filter.status = status.toUpperCase();
+            req.query.status = status.toUpperCase();
         }
         if (startDate && endDate) {
             // Parse startDate and endDate into Date objects
@@ -257,7 +258,10 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
             const end = new Date(endDate);
             // Ensure that end date is adjusted to include the entire day
             end.setDate(end.getDate() + 1);
-            filter.createdAt = { $gte: start, $lt: end };
+            req.query.createdAt = { $gte: start, $lt: end };
+
+            delete req.query.startDate
+            delete req.query.endDate
         }
 
         if (date) {
@@ -265,39 +269,14 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
             const startOfDay = new Date(selectedDate.setUTCHours(0, 0, 0, 0));
             const endOfDay = new Date(startOfDay);
             endOfDay.setDate(startOfDay.getUTCDate() + 1);
-            filter.date = { $gte: startOfDay, $lt: endOfDay };
+            req.query.date = { $gte: startOfDay, $lt: endOfDay };
         }
 
         // Execute query
         const { data, error } = await applyAPIFeature(JobModel.find(filter), req.query);
 
-
         const jobs = await JobModel.find(); // Fetch all job documents
-
-        // Iterate through each job document
-        for (const job of jobs) {
-            // Populate the quotations field with associated data from JobQuotationModel
-
-            // Update the status field in each quotation object in the array
-            job.quotations.forEach(async (quotation) => {
-                const quo = await JobQoutationModel.findOne({ job: job.id }); // Fetch the quotation document
-                if (quo) {
-                    quotation.id = quo.id; // Update the status field
-                    quotation.status = quo.status; // Update the status field
-                }
-
-                // console.log(quotation)
-            });
-
-            // Save the updated job document
-            // console.log(job)
-            await job.save();
-        }
-
-
-
         res.json({ success: true, message: 'Jobs retrieved', data: data });
-
 
     } catch (error: any) {
         return next(new BadRequestError('An error occured ', error))

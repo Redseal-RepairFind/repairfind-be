@@ -782,14 +782,16 @@ var getMyJobs = function (req, res, next) { return __awaiter(void 0, void 0, voi
                 _f.trys.push([1, 6, , 7]);
                 _a = req.query, _b = _a.type, type = _b === void 0 ? job_model_1.JobType.LISTING : _b, _c = _a.page, page = _c === void 0 ? 1 : _c, _d = _a.limit, limit = _d === void 0 ? 10 : _d, sort = _a.sort;
                 filter = { type: type };
-                if (type === 'BOTH') {
-                    delete req.query.type; // Assuming 'BOTH' means no specific type filter
-                }
                 return [4 /*yield*/, job_quotation_model_1.JobQoutationModel.find({ contractor: contractorId }).select('job').lean()];
             case 2:
                 quotations = _f.sent();
                 jobIds = quotations.map(function (quotation) { return quotation.job; });
-                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_model_1.JobModel.find({ _id: { $in: jobIds } }), req.query)];
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_model_1.JobModel.find({
+                        $or: [
+                            { _id: { $in: jobIds } }, // Match jobs specified in jobIds
+                            { contractor: contractorId } // Match jobs with contractorId
+                        ]
+                    }).distinct('_id'), req.query)];
             case 3:
                 _e = _f.sent(), data = _e.data, error_11 = _e.error;
                 if (!data) return [3 /*break*/, 5];
@@ -812,6 +814,9 @@ var getMyJobs = function (req, res, next) { return __awaiter(void 0, void 0, voi
                 _f.sent();
                 _f.label = 5;
             case 5:
+                if (error_11) {
+                    return [2 /*return*/, next(new custom_errors_1.BadRequestError('Unkowon error occured'))];
+                }
                 // Send response with job listings data
                 res.status(200).json({ success: true, data: data });
                 return [3 /*break*/, 7];

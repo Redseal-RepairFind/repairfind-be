@@ -805,10 +805,7 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
     } = req.query;
 
     let filter: any = { type };
-    if (type === 'BOTH') {
-      delete req.query.type; // Assuming 'BOTH' means no specific type filter
-    }
-
+    
     // Retrieve the quotations for the current contractor and extract job IDs
     const quotations = await JobQoutationModel.find({ contractor: contractorId }).select('job').lean();
 
@@ -816,13 +813,23 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
     const jobIds = quotations.map((quotation: any) => quotation.job);
 
     // Query JobModel to find jobs that have IDs present in the extracted jobIds
-    const {data, error} = await applyAPIFeature(JobModel.find({ _id: { $in: jobIds } }), req.query);
-
+    const {data, error} = await applyAPIFeature(
+      JobModel.find({
+        $or: [
+          { _id: { $in: jobIds } }, // Match jobs specified in jobIds
+          { contractor: contractorId } // Match jobs with contractorId
+        ]
+      }).distinct('_id'),
+       req.query);
     if (data) {
       // Map through each job and attach myQuotation if contractor has applied 
       await Promise.all(data.data.map(async (job: any) => {
         job.myQuotation = await job.getMyQoutation(contractorId)
       }));
+    }
+
+    if(error){
+      return next(new BadRequestError('Unkowon error occured'));
     }
 
     // Send response with job listings data
