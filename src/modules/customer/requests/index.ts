@@ -10,102 +10,102 @@ export const signupParams = [
   body("phoneNumber").notEmpty(),
   body("password").notEmpty(),
   body('passwordConfirmation')
-        .exists({ checkFalsy: true }).withMessage('You must type a confirmation password')
-        .custom((value, { req }) => value === req.body.password).withMessage('The passwords do not match'),
+    .exists({ checkFalsy: true }).withMessage('You must type a confirmation password')
+    .custom((value, { req }) => value === req.body.password).withMessage('The passwords do not match'),
 
   body('acceptTerms')
-        .notEmpty()
-        .custom((value, { req }) => value === true).withMessage('You must accept our terms and conditions'),
+    .notEmpty()
+    .custom((value, { req }) => value === true).withMessage('You must accept our terms and conditions'),
 
 ];
 
 export const emailVerificationParams = [
-    body("email").isEmail(),
-    body("otp").notEmpty(),
+  body("email").isEmail(),
+  body("otp").notEmpty(),
 ];
 export const verifySocialSignon = [
-    body("accessToken").notEmpty(),
+  body("accessToken").notEmpty(),
 ];
 
 export const loginParams = [
-    body("email").isEmail(),
-    body("password").notEmpty(),
+  body("email").isEmail(),
+  body("password").notEmpty(),
 ];
 
 export const forgotPasswordParams = [
-    body("email").isEmail(),
+  body("email").isEmail(),
 ];
 
 export const resetPasswordParams = [
-    body("email").isEmail(),
-    body("otp").notEmpty(),
-    body("password").notEmpty(),
+  body("email").isEmail(),
+  body("otp").notEmpty(),
+  body("password").notEmpty(),
 ];
 
 export const changePasswordParams = [
   body("currentPassword").notEmpty(),
   body("newPassword").notEmpty(),
   body('newPasswordConfirmation')
-  .exists({ checkFalsy: true }).withMessage('You must type a confirmation password')
-  .custom((value, { req }) => value === req.body.newPassword).withMessage('The passwords do not match'),
+    .exists({ checkFalsy: true }).withMessage('You must type a confirmation password')
+    .custom((value, { req }) => value === req.body.newPassword).withMessage('The passwords do not match'),
 ];
 
 export const verifyPasswordOtpParams = [
-    body("email").isEmail(),
-    body("otp").notEmpty(),
+  body("email").isEmail(),
+  body("otp").notEmpty(),
 ];
 
 export const searchParams = [
-    query("skill").notEmpty(),
+  query("skill").notEmpty(),
 ];
 
 export const getContractorParams = [
-    query("contractorId").notEmpty(),
-    query("skill").notEmpty(),
+  query("contractorId").notEmpty(),
+  query("skill").notEmpty(),
 ];
 
 export const updateProfileParams = [
-    query("fullName").notEmpty(),
-    query("location").notEmpty(),
-    query("phoneNumber").notEmpty(),
+  query("fullName").notEmpty(),
+  query("location").notEmpty(),
+  query("phoneNumber").notEmpty(),
 ];
 
 export const acceptAndPayParams = [
-    body("jobId").notEmpty(),
+  body("jobId").notEmpty(),
 ];
 
 export const confirmPaymentParams = [
-    body("jobId").notEmpty(),
-    body("paymentId").notEmpty(),
+  body("jobId").notEmpty(),
+  body("paymentId").notEmpty(),
 ];
 
 export const confirmInspectionPaymentParams = [
-    body("jobId").notEmpty(),
-    body("inspectionPaymemtId").notEmpty(),
+  body("jobId").notEmpty(),
+  body("inspectionPaymemtId").notEmpty(),
 ];
 
 export const rateContractorParams = [
-    body("jobId").notEmpty(),
-    body("cleanliness")
-      .isIn([1, 2, 3, 4, 5])
-      .withMessage("cleanliness must be 1, 2, 3, 4, 0r 5"),
-    body("timeliness")
-      .isIn([1, 2, 3, 4, 5])
-      .withMessage("timeliness must be 1, 2, 3, 4, 0r 5"),
-    body("skill")
-      .isIn([1, 2, 3, 4, 5])
-      .withMessage("skill must be 1, 2, 3, 4, 0r 5"),
-    body("communication")
-      .isIn([1, 2, 3, 4, 5])
-      .withMessage("communication must be 1, 2, 3, 4, 0r 5"),
-    body("courteous")
-      .isIn([1, 2, 3, 4, 5])
-      .withMessage("courteous must be 1, 2, 3, 4, 0r 5"), 
-    body("cleanlinessText").notEmpty(),
-    body("timelinessText").notEmpty(),
-    body("skillText").notEmpty(),
-    body("communicationText").notEmpty(),
-    body("courteousText").notEmpty(),
+  body("jobId").notEmpty(),
+  body("cleanliness")
+    .isIn([1, 2, 3, 4, 5])
+    .withMessage("cleanliness must be 1, 2, 3, 4, 0r 5"),
+  body("timeliness")
+    .isIn([1, 2, 3, 4, 5])
+    .withMessage("timeliness must be 1, 2, 3, 4, 0r 5"),
+  body("skill")
+    .isIn([1, 2, 3, 4, 5])
+    .withMessage("skill must be 1, 2, 3, 4, 0r 5"),
+  body("communication")
+    .isIn([1, 2, 3, 4, 5])
+    .withMessage("communication must be 1, 2, 3, 4, 0r 5"),
+  body("courteous")
+    .isIn([1, 2, 3, 4, 5])
+    .withMessage("courteous must be 1, 2, 3, 4, 0r 5"),
+  body("cleanlinessText").notEmpty(),
+  body("timelinessText").notEmpty(),
+  body("skillText").notEmpty(),
+  body("communicationText").notEmpty(),
+  body("courteousText").notEmpty(),
 ];
 
 
@@ -120,9 +120,9 @@ export const jobListingParams = [
   body("date").notEmpty(),
   body("jobExpiry").notEmpty(),
   body("contractorType").isIn([CONTRACTOR_TYPES.Company, CONTRACTOR_TYPES.Employee, CONTRACTOR_TYPES.Individual])
-  .withMessage(`contractorType must be ${CONTRACTOR_TYPES.Company}, ${CONTRACTOR_TYPES.Employee}, or ${CONTRACTOR_TYPES.Individual}`),
+    .withMessage(`contractorType must be ${CONTRACTOR_TYPES.Company}, ${CONTRACTOR_TYPES.Employee}, or ${CONTRACTOR_TYPES.Individual}`),
   body("emergency").isIn(['yes', 'no'])
-  .withMessage("emergency must be yes or no"), 
+    .withMessage("emergency must be yes or no"),
 ];
 
 export const UpdateOrDeviceParams = [
@@ -163,18 +163,18 @@ export const queryContractorParams = [
   query("isOffDuty").if(query("isOffDuty").exists()).notEmpty().notEmpty().withMessage("isOffDuty is required"),
   query("availableDays").if(query("availableDays").exists()).notEmpty().withMessage("AvailableDays is required"),
   query("experienceYear").if(query("experienceYear").exists()).notEmpty().withMessage("ExperienceYear is required"),
-  
+
   query("latitude").custom((value, { req }) => {
-      if (req?.query?.distance && !value) {
-          throw new Error("Latitude is required when Distance is specified");
-      }
-      return true;
+    if (req?.query?.distance && !value) {
+      throw new Error("Latitude is required when Distance is specified");
+    }
+    return true;
   }),
   query("longitude").custom((value, { req }) => {
-      if (req?.query?.distance && !value) {
-          throw new Error("Longitude is required when Distance is specified");
-      }
-      return true;
+    if (req?.query?.distance && !value) {
+      throw new Error("Longitude is required when Distance is specified");
+    }
+    return true;
   }),
 
   query("address").if(query("address").exists()).notEmpty().withMessage("Address is required"),
@@ -196,7 +196,16 @@ export const sendJobRequestParams = [
 export const createJobRequestParams = [
   body("contractorId").isMongoId(),
   body("description").notEmpty(),
-  body("voiceDescription").optional(),
+  body('voiceDescription').isObject().withMessage('Media must be an object')
+    .bail() // Stop validation if media is not an object
+    .custom((value, { req }) => {
+      // Check if required properties exist in media object
+      if (!('url' in value && typeof value.url === 'string' && value.url.trim() !== '')) {
+        throw new Error('Media url is required');
+      }
+      return true;
+    }),
+
   body("location").notEmpty(),
   body("media").optional(),
   body("emergency").optional(),
@@ -209,7 +218,15 @@ export const createJoListingParams = [
   body("description").notEmpty(),
   body("expiresIn").notEmpty(),
   body("category").notEmpty(),
-  body("voiceDescription").optional(),
+  body('voiceDescription').isObject().withMessage('Media must be an object')
+    .bail() // Stop validation if media is not an object
+    .custom((value, { req }) => {
+      // Check if required properties exist in media object
+      if (!('url' in value && typeof value.url === 'string' && value.url.trim() !== '')) {
+        throw new Error('Media url is required');
+      }
+      return true;
+    }),
   body("location").notEmpty(),
   body("media").optional().isArray(),
   body("emergency").optional(),
@@ -227,15 +244,15 @@ export const sendMessageParams = [
   body('type').isIn(['TEXT', 'MEDIA']).withMessage('Invalid messageType'),
   body('message').if(body('type').equals('TEXT')).notEmpty().withMessage('Message is required'),
 
-  body('media').if(body('type').equals('MEDIA')).isArray().withMessage('Media must be an object')
+  body('media').if(body('type').equals('MEDIA')).isArray().withMessage('Media must be an array')
     .bail() // Stop validation if media is not an object
     .custom((value, { req }) => {
       // Check if required properties exist in media object
-      if (!value.every((item:any) => typeof item === 'object' && 'url' in item && typeof item.url === 'string' && item.url.trim() !== '')) {
+      if (!value.every((item: any) => typeof item === 'object' && 'url' in item && typeof item.url === 'string' && item.url.trim() !== '')) {
         throw new Error('Media url is required');
       }
 
-      if (!value.every((item:any) => typeof item === 'object' && 'type' in item  ) ) {
+      if (!value.every((item: any) => typeof item === 'object' && 'type' in item)) {
 
         // && Object.values(MESSAGE_MEDIA_TYPE).includes(value.type)
         throw new Error('Invalid message media type');

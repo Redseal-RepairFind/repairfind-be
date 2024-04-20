@@ -50,6 +50,13 @@ export interface IJobSchedule {
     type: JOB_SCHEDULE_TYPE
 }
 
+interface IVoiceDescription {
+    url: string;
+    metrics?: string;
+    duration?: string;
+}
+
+
 
 export interface IJob extends Document {
     _id: ObjectId;
@@ -62,7 +69,7 @@ export interface IJob extends Document {
     category: string;
     description: string;
     title: string;
-    voiceDescription: string;
+    voiceDescription: IVoiceDescription;
     location: IJobLocation;
     date: Date;
     startDate: Date;
@@ -84,6 +91,21 @@ export interface IJob extends Document {
     };
 }
 
+
+const VoiceDescriptionSchema = new Schema<IVoiceDescription>({
+    url: {
+        type: String,
+        required: true,
+    },
+    metrics: {
+        type: String,
+        required: false,
+    },
+    duration: {
+        type: String,
+        required: false,
+    }
+});
 
 
 const ScheduleSchema = new Schema<IJobSchedule>({
@@ -127,7 +149,7 @@ const JobSchema = new Schema<IJob>({
     category: { type: String, required: false },
     description: { type: String, required: true },
     title: { type: String },
-    voiceDescription: { type: String, default: null },
+    voiceDescription: VoiceDescriptionSchema,
     location: { type: JobLocationSchema, required: true },
     date: { type: Date, required: true },
     time: { type: Date, required: false },

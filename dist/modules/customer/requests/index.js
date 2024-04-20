@@ -175,7 +175,16 @@ exports.sendJobRequestParams = [
 exports.createJobRequestParams = [
     (0, express_validator_1.body)("contractorId").isMongoId(),
     (0, express_validator_1.body)("description").notEmpty(),
-    (0, express_validator_1.body)("voiceDescription").optional(),
+    (0, express_validator_1.body)('voiceDescription').isObject().withMessage('Media must be an object')
+        .bail() // Stop validation if media is not an object
+        .custom(function (value, _a) {
+        var req = _a.req;
+        // Check if required properties exist in media object
+        if (!('url' in value && typeof value.url === 'string' && value.url.trim() !== '')) {
+            throw new Error('Media url is required');
+        }
+        return true;
+    }),
     (0, express_validator_1.body)("location").notEmpty(),
     (0, express_validator_1.body)("media").optional(),
     (0, express_validator_1.body)("emergency").optional(),
@@ -187,7 +196,16 @@ exports.createJoListingParams = [
     (0, express_validator_1.body)("description").notEmpty(),
     (0, express_validator_1.body)("expiresIn").notEmpty(),
     (0, express_validator_1.body)("category").notEmpty(),
-    (0, express_validator_1.body)("voiceDescription").optional(),
+    (0, express_validator_1.body)('voiceDescription').isObject().withMessage('Media must be an object')
+        .bail() // Stop validation if media is not an object
+        .custom(function (value, _a) {
+        var req = _a.req;
+        // Check if required properties exist in media object
+        if (!('url' in value && typeof value.url === 'string' && value.url.trim() !== '')) {
+            throw new Error('Media url is required');
+        }
+        return true;
+    }),
     (0, express_validator_1.body)("location").notEmpty(),
     (0, express_validator_1.body)("media").optional().isArray(),
     (0, express_validator_1.body)("emergency").optional(),
@@ -201,7 +219,7 @@ exports.tripArrivalComfirmParams = [
 exports.sendMessageParams = [
     (0, express_validator_1.body)('type').isIn(['TEXT', 'MEDIA']).withMessage('Invalid messageType'),
     (0, express_validator_1.body)('message').if((0, express_validator_1.body)('type').equals('TEXT')).notEmpty().withMessage('Message is required'),
-    (0, express_validator_1.body)('media').if((0, express_validator_1.body)('type').equals('MEDIA')).isArray().withMessage('Media must be an object')
+    (0, express_validator_1.body)('media').if((0, express_validator_1.body)('type').equals('MEDIA')).isArray().withMessage('Media must be an array')
         .bail() // Stop validation if media is not an object
         .custom(function (value, _a) {
         var req = _a.req;

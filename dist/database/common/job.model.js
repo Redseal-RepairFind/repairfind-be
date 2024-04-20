@@ -59,6 +59,20 @@ var JobType;
     JobType["LISTING"] = "LISTING";
     JobType["REQUEST"] = "REQUEST";
 })(JobType || (exports.JobType = JobType = {}));
+var VoiceDescriptionSchema = new mongoose_1.Schema({
+    url: {
+        type: String,
+        required: true,
+    },
+    metrics: {
+        type: String,
+        required: false,
+    },
+    duration: {
+        type: String,
+        required: false,
+    }
+});
 var ScheduleSchema = new mongoose_1.Schema({
     startDate: { type: Date, required: true },
     endDate: { type: Date },
@@ -92,7 +106,7 @@ var JobSchema = new mongoose_1.Schema({
     category: { type: String, required: false },
     description: { type: String, required: true },
     title: { type: String },
-    voiceDescription: { type: String, default: null },
+    voiceDescription: VoiceDescriptionSchema,
     location: { type: JobLocationSchema, required: true },
     date: { type: Date, required: true },
     time: { type: Date, required: false },
