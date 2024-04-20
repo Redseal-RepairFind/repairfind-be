@@ -62,7 +62,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MessageModel = exports.MESSAGE_MEDIA_TYPE = exports.MessageType = void 0;
+exports.MessageModel = exports.MessageType = void 0;
 var mongoose_1 = __importStar(require("mongoose"));
 var contractor_model_1 = require("../contractor/models/contractor.model");
 var customer_model_1 = __importDefault(require("../customer/models/customer.model"));
@@ -71,31 +71,23 @@ var MessageType;
     MessageType["TEXT"] = "TEXT";
     MessageType["ALERT"] = "ALERT";
     MessageType["MEDIA"] = "MEDIA";
+    MessageType["AUDIO"] = "AUDIO";
+    MessageType["VIDEO"] = "VIDEO";
+    MessageType["IMAGE"] = "IMAGE";
 })(MessageType || (exports.MessageType = MessageType = {}));
-var MESSAGE_MEDIA_TYPE;
-(function (MESSAGE_MEDIA_TYPE) {
-    MESSAGE_MEDIA_TYPE["TEXT"] = "AUDIO";
-    MESSAGE_MEDIA_TYPE["ALERT"] = "VIDEO";
-    MESSAGE_MEDIA_TYPE["MEDIA"] = "IMAGE";
-})(MESSAGE_MEDIA_TYPE || (exports.MESSAGE_MEDIA_TYPE = MESSAGE_MEDIA_TYPE = {}));
 var MediaSchema = new mongoose_1.Schema({
     url: {
         type: String,
         required: true,
     },
     metrics: {
-        type: String,
+        type: Array,
         required: false,
     },
     duration: {
         type: String,
         required: false,
-    },
-    type: {
-        type: String,
-        enum: Object.values(MESSAGE_MEDIA_TYPE),
-        required: true,
-    },
+    }
 });
 // Define schema for messages
 var MessageSchema = new mongoose_1.Schema({
@@ -159,9 +151,8 @@ MessageSchema.methods.getHeading = function (loggedInUserId) {
                     if (!contractor)
                         return [2 /*return*/, {}];
                     return [2 /*return*/, {
-                            // @ts-ignore
                             name: contractor.name,
-                            profilePhoto: contractor.profilePhoto,
+                            image: contractor.profilePhoto.url,
                         }];
                 case 2: return [4 /*yield*/, customer_model_1.default.findById(this.sender)]; // Assuming your user model is named 'User'
                 case 3:
@@ -170,7 +161,6 @@ MessageSchema.methods.getHeading = function (loggedInUserId) {
                     if (!customer)
                         return [2 /*return*/, {}];
                     return [2 /*return*/, {
-                            // @ts-ignore
                             name: customer.name,
                             image: (_a = customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url,
                         }];

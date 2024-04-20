@@ -6,19 +6,17 @@ export enum MessageType {
     TEXT = "TEXT",
     ALERT = "ALERT",
     MEDIA = "MEDIA",
+    AUDIO = "AUDIO",
+    VIDEO = "VIDEO",
+    IMAGE = "IMAGE",
 }
 
-export enum MESSAGE_MEDIA_TYPE {
-    TEXT = "AUDIO",
-    ALERT = "VIDEO",
-    MEDIA = "IMAGE",
-}
+
 
 interface IMedia {
     url: string;
     metrics?: string;
     duration?: string;
-    type: MESSAGE_MEDIA_TYPE;
 }
 
 // Define base interface for messages
@@ -41,18 +39,13 @@ const MediaSchema = new Schema<IMedia>({
         required: true,
     },
     metrics: {
-        type: String,
+        type: Array,
         required: false,
     },
     duration: {
         type: String,
         required: false,
-    },
-    type: {
-        type: String,
-        enum: Object.values(MESSAGE_MEDIA_TYPE),
-        required: true,
-    },
+    }
 });
 
 // Define schema for messages

@@ -1,5 +1,4 @@
 import { body } from "express-validator";
-import { MESSAGE_MEDIA_TYPE } from "../../../database/common/messages.schema";
 
 
 export const CreateContractorRequest = [
@@ -229,14 +228,6 @@ export const sendMessageParams = [
       if (!value.every((item:any) => typeof item === 'object' && 'url' in item && typeof item.url === 'string' && item.url.trim() !== '')) {
         throw new Error('Media url is required');
       }
-
-      if (!value.every((item:any) => typeof item === 'object' && 'type' in item  ) ) {
-
-        // && Object.values(MESSAGE_MEDIA_TYPE).includes(value.type)
-        throw new Error('Invalid message media type');
-
-      }
-      // Additional validation for metrics, duration, etc. if needed
       return true;
     }),
 ];

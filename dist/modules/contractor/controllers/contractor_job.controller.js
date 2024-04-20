@@ -746,7 +746,7 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                             switch (_b.label) {
                                 case 0:
                                     _a = job;
-                                    return [4 /*yield*/, job.getMyQoutation(contractorId)];
+                                    return [4 /*yield*/, job_quotation_model_1.JobQoutationModel.findOne({ job: job.id, contractor: contractorId })];
                                 case 1:
                                     _a.myQuotation = _b.sent();
                                     return [2 /*return*/];
