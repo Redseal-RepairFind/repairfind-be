@@ -218,10 +218,10 @@ export const EmailVerificationRequest = [
 
 // Define the validation rules for the message request
 export const sendMessageParams = [
-  body('type').isIn(['TEXT', 'MEDIA']).withMessage('Invalid messageType'),
+  body('type').isIn(['TEXT', 'MEDIA', 'AUDIO', 'VIDEO', 'IMAGE']).withMessage('Invalid messageType'),
   body('message').if(body('type').equals('TEXT')).notEmpty().withMessage('Message is required'),
 
-  body('media').if(body('type').equals('MEDIA')).isArray().withMessage('Media must be an object')
+  body('media').if(body('type').isIn(['MEDIA','AUDIO','VIDEO','IMAGE'])).isArray().withMessage('Media must be an object')
     .bail() // Stop validation if media is not an object
     .custom((value, { req }) => {
       // Check if required properties exist in media object

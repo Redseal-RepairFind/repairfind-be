@@ -217,9 +217,9 @@ exports.tripArrivalComfirmParams = [
 ];
 // Define the validation rules for the message request
 exports.sendMessageParams = [
-    (0, express_validator_1.body)('type').isIn(['TEXT', 'MEDIA']).withMessage('Invalid messageType'),
+    (0, express_validator_1.body)('type').isIn(['TEXT', 'MEDIA', 'AUDIO', 'VIDEO', 'IMAGE']).withMessage('Invalid messageType'),
     (0, express_validator_1.body)('message').if((0, express_validator_1.body)('type').equals('TEXT')).notEmpty().withMessage('Message is required'),
-    (0, express_validator_1.body)('media').if((0, express_validator_1.body)('type').equals('MEDIA')).isArray().withMessage('Media must be an array')
+    (0, express_validator_1.body)('media').if((0, express_validator_1.body)('type').isIn(['MEDIA', 'AUDIO', 'VIDEO', 'IMAGE'])).isArray().withMessage('Media must be an array')
         .bail() // Stop validation if media is not an object
         .custom(function (value, _a) {
         var req = _a.req;
