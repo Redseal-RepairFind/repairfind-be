@@ -59,6 +59,7 @@ var api_feature_1 = require("../../../utils/api.feature");
 var custom_errors_1 = require("../../../utils/custom.errors");
 var job_quotation_model_1 = require("../../../database/common/job_quotation.model");
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
+var mongoose_1 = __importDefault(require("mongoose")); // Import Document type from mongoose
 var conversations_schema_1 = require("../../../database/common/conversations.schema");
 var messages_schema_1 = require("../../../database/common/messages.schema");
 var services_1 = require("../../../services");
@@ -771,21 +772,26 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
 }); };
 exports.getJobListings = getJobListings;
 var getMyJobs = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var contractorId, _a, _b, type, _c, page, _d, limit, sort // Sort field and order (-fieldName or fieldName)
-    , filter, quotations, jobIds, _e, data, error_11, error_10;
-    return __generator(this, function (_f) {
-        switch (_f.label) {
+    var contractorId, _a, type, _b, page, _c, limit, sort, customerId, quotations, jobIds, _d, data, error_11, error_10;
+    return __generator(this, function (_e) {
+        switch (_e.label) {
             case 0:
                 contractorId = req.contractor.id;
-                _f.label = 1;
+                _e.label = 1;
             case 1:
-                _f.trys.push([1, 6, , 7]);
-                _a = req.query, _b = _a.type, type = _b === void 0 ? job_model_1.JobType.LISTING : _b, _c = _a.page, page = _c === void 0 ? 1 : _c, _d = _a.limit, limit = _d === void 0 ? 10 : _d, sort = _a.sort;
-                filter = { type: type };
+                _e.trys.push([1, 6, , 7]);
+                _a = req.query, type = _a.type, _b = _a.page, page = _b === void 0 ? 1 : _b, _c = _a.limit, limit = _c === void 0 ? 10 : _c, sort = _a.sort, customerId = _a.customerId;
                 return [4 /*yield*/, job_quotation_model_1.JobQoutationModel.find({ contractor: contractorId }).select('job').lean()];
             case 2:
-                quotations = _f.sent();
+                quotations = _e.sent();
                 jobIds = quotations.map(function (quotation) { return quotation.job; });
+                if (customerId) {
+                    if (!mongoose_1.default.Types.ObjectId.isValid(customerId)) {
+                        return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid customer id' })];
+                    }
+                    req.query.customer = customerId;
+                    delete req.query.customerId;
+                }
                 return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_model_1.JobModel.find({
                         $or: [
                             { _id: { $in: jobIds } }, // Match jobs specified in jobIds
@@ -793,7 +799,7 @@ var getMyJobs = function (req, res, next) { return __awaiter(void 0, void 0, voi
                         ]
                     }).distinct('_id'), req.query)];
             case 3:
-                _e = _f.sent(), data = _e.data, error_11 = _e.error;
+                _d = _e.sent(), data = _d.data, error_11 = _d.error;
                 if (!data) return [3 /*break*/, 5];
                 // Map through each job and attach myQuotation if contractor has applied 
                 return [4 /*yield*/, Promise.all(data.data.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
@@ -811,8 +817,8 @@ var getMyJobs = function (req, res, next) { return __awaiter(void 0, void 0, voi
                     }); }))];
             case 4:
                 // Map through each job and attach myQuotation if contractor has applied 
-                _f.sent();
-                _f.label = 5;
+                _e.sent();
+                _e.label = 5;
             case 5:
                 if (error_11) {
                     return [2 /*return*/, next(new custom_errors_1.BadRequestError('Unkowon error occured'))];
@@ -821,7 +827,7 @@ var getMyJobs = function (req, res, next) { return __awaiter(void 0, void 0, voi
                 res.status(200).json({ success: true, data: data });
                 return [3 /*break*/, 7];
             case 6:
-                error_10 = _f.sent();
+                error_10 = _e.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_10))];
             case 7: return [2 /*return*/];
         }

@@ -10,7 +10,7 @@ import { applyAPIFeature } from "../../../utils/api.feature";
 import { BadRequestError, InternalServerError, NotFoundError } from "../../../utils/custom.errors";
 import { JobQoutationModel, JOB_QUOTATION_STATUS } from "../../../database/common/job_quotation.model";
 import CustomerModel from "../../../database/customer/models/customer.model";
-import { Document, PipelineStage as MongoosePipelineStage } from 'mongoose'; // Import Document type from mongoose
+import mongoose, { Document, PipelineStage as MongoosePipelineStage } from 'mongoose'; // Import Document type from mongoose
 import { ConversationEntityType, ConversationModel } from "../../../database/common/conversations.schema";
 import { MessageModel, MessageType } from "../../../database/common/messages.schema";
 import { error } from "console";
@@ -779,7 +779,7 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
     if (jobs) {
       // Map through each job and attach myQuotation if contractor has applied 
       await Promise.all(jobs.map(async (job: any) => {
-        job.myQuotation = await JobQoutationModel.findOne({job: job.id, contractor: contractorId })
+        job.myQuotation = await JobQoutationModel.findOne({ job: job.id, contractor: contractorId })
       }));
     }
 
@@ -798,29 +798,37 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
 
   try {
     let {
-      type = JobType.LISTING,
+      type,
       page = 1, // Default to page 1
       limit = 10, // Default to 10 items per page
-      sort // Sort field and order (-fieldName or fieldName)
+      sort, // Sort field and order (-fieldName or fieldName)
+      customerId
     } = req.query;
 
-    let filter: any = { type };
-    
+
     // Retrieve the quotations for the current contractor and extract job IDs
     const quotations = await JobQoutationModel.find({ contractor: contractorId }).select('job').lean();
 
     // Extract job IDs from the quotations
     const jobIds = quotations.map((quotation: any) => quotation.job);
 
+    if (customerId) {
+      if (!mongoose.Types.ObjectId.isValid(customerId)) {
+        return res.status(400).json({ success: false, message: 'Invalid customer id' });
+      }
+      req.query.customer = customerId
+      delete req.query.customerId
+    }
+
     // Query JobModel to find jobs that have IDs present in the extracted jobIds
-    const {data, error} = await applyAPIFeature(
+    const { data, error } = await applyAPIFeature(
       JobModel.find({
         $or: [
           { _id: { $in: jobIds } }, // Match jobs specified in jobIds
           { contractor: contractorId } // Match jobs with contractorId
         ]
       }).distinct('_id'),
-       req.query);
+      req.query);
     if (data) {
       // Map through each job and attach myQuotation if contractor has applied 
       await Promise.all(data.data.map(async (job: any) => {
@@ -828,7 +836,7 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
       }));
     }
 
-    if(error){
+    if (error) {
       return next(new BadRequestError('Unkowon error occured'));
     }
 
