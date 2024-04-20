@@ -65,7 +65,7 @@ var VoiceDescriptionSchema = new mongoose_1.Schema({
         required: true,
     },
     metrics: {
-        type: String,
+        type: Array,
         required: false,
     },
     duration: {

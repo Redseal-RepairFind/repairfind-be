@@ -191,7 +191,6 @@ var createJobListing = function (req, res, next) { return __awaiter(void 0, void
                 }
                 dateTimeString = "".concat(new Date(date).toISOString().split('T')[0], "T").concat(time);
                 jobTime = new Date(dateTimeString);
-                console.log('HWat happened here', jobTime);
                 newJob = new job_model_1.JobModel({
                     customer: customer.id,
                     contractorType: contractorType,
@@ -223,24 +222,25 @@ var createJobListing = function (req, res, next) { return __awaiter(void 0, void
 }); };
 exports.createJobListing = createJobListing;
 var getMyJobs = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, contractor, status_1, startDate, endDate, date, type, customerId, filter, start, end, selectedDate, startOfDay_1, endOfDay_1, _b, data, error, jobs, error_3;
+    var errors, _a, contractorId_1, status_1, startDate, endDate, date, type, customerId, filter, start, end, selectedDate, startOfDay_1, endOfDay_1, _b, data, error, error_3;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
-                _c.trys.push([0, 3, , 4]);
+                _c.trys.push([0, 4, , 5]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
-                _a = req.query, contractor = _a.contractor, status_1 = _a.status, startDate = _a.startDate, endDate = _a.endDate, date = _a.date, type = _a.type;
+                _a = req.query, contractorId_1 = _a.contractorId, status_1 = _a.status, startDate = _a.startDate, endDate = _a.endDate, date = _a.date, type = _a.type;
                 customerId = req.customer.id;
                 filter = { customer: customerId };
                 // TODO: when contractor is specified, ensure the contractor quotation is attached
-                if (contractor) {
-                    if (!mongoose_1.default.Types.ObjectId.isValid(contractor)) {
+                if (contractorId_1) {
+                    if (!mongoose_1.default.Types.ObjectId.isValid(contractorId_1)) {
                         return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid contractor id' })];
                     }
-                    req.query.contractor = contractor;
+                    req.query.contractor = contractorId_1;
+                    delete req.query.contractorId;
                 }
                 if (status_1) {
                     req.query.status = status_1.toUpperCase();
@@ -264,15 +264,32 @@ var getMyJobs = function (req, res, next) { return __awaiter(void 0, void 0, voi
                 return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_model_1.JobModel.find(filter), req.query)];
             case 1:
                 _b = _c.sent(), data = _b.data, error = _b.error;
-                return [4 /*yield*/, job_model_1.JobModel.find()];
+                if (!data) return [3 /*break*/, 3];
+                return [4 /*yield*/, Promise.all(data.data.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
+                        var _a;
+                        return __generator(this, function (_b) {
+                            switch (_b.label) {
+                                case 0:
+                                    if (!contractorId_1) return [3 /*break*/, 2];
+                                    _a = job;
+                                    return [4 /*yield*/, job.getMyQoutation(contractorId_1)];
+                                case 1:
+                                    _a.myQuotation = _b.sent();
+                                    _b.label = 2;
+                                case 2: return [2 /*return*/];
+                            }
+                        });
+                    }); }))];
             case 2:
-                jobs = _c.sent();
-                res.json({ success: true, message: 'Jobs retrieved', data: data });
-                return [3 /*break*/, 4];
+                _c.sent();
+                _c.label = 3;
             case 3:
+                res.json({ success: true, message: 'Jobs retrieved', data: data });
+                return [3 /*break*/, 5];
+            case 4:
                 error_3 = _c.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_3))];
-            case 4: return [2 /*return*/];
+            case 5: return [2 /*return*/];
         }
     });
 }); };

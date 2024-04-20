@@ -52,7 +52,7 @@ export interface IJobSchedule {
 
 interface IVoiceDescription {
     url: string;
-    metrics?: string;
+    metrics?: [];
     duration?: string;
 }
 
@@ -98,7 +98,7 @@ const VoiceDescriptionSchema = new Schema<IVoiceDescription>({
         required: true,
     },
     metrics: {
-        type: String,
+        type: Array,
         required: false,
     },
     duration: {

@@ -195,7 +195,6 @@ export const createJobListing = async (
         const dateTimeString = `${new Date(date).toISOString().split('T')[0]}T${time}`; // Combine date and time
         const jobTime = new Date(dateTimeString);
 
-        console.log('HWat happened here', jobTime)
         // Create a new job document
         const newJob: IJob = new JobModel({
             customer: customer.id,
@@ -234,7 +233,7 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
         }
 
         // Extract query parameters
-        const { contractor, status, startDate, endDate, date, type } = req.query;
+        const { contractorId, status, startDate, endDate, date, type } = req.query;
         const customerId = req.customer.id;
 
         // Construct filter object based on query parameters
@@ -242,11 +241,12 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
 
        
         // TODO: when contractor is specified, ensure the contractor quotation is attached
-        if (contractor) {
-            if( !mongoose.Types.ObjectId.isValid(contractor) ){
+        if (contractorId) {
+            if( !mongoose.Types.ObjectId.isValid(contractorId) ){
                 return res.status(400).json({success:false, message: 'Invalid contractor id'});
             }
-            req.query.contractor = contractor;
+            req.query.contractor = contractorId;
+            delete req.query.contractorId
         }
 
         if (status) {
@@ -275,7 +275,16 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
         // Execute query
         const { data, error } = await applyAPIFeature(JobModel.find(filter), req.query);
 
-        const jobs = await JobModel.find(); // Fetch all job documents
+        if(data){
+
+            await Promise.all(data.data.map(async (job: any) => {
+                if(contractorId){
+                    job.myQuotation = await job.getMyQoutation(contractorId)
+                }
+            }));
+        }
+
+
         res.json({ success: true, message: 'Jobs retrieved', data: data });
 
     } catch (error: any) {

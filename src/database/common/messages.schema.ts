@@ -15,7 +15,7 @@ export enum MessageType {
 
 interface IMedia {
     url: string;
-    metrics?: string;
+    metrics?: [];
     duration?: string;
 }
 
