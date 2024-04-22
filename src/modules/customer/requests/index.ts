@@ -189,22 +189,18 @@ export const sendJobRequestParams = [
 ];
 
 
-
-
-
 export const createJobRequestParams = [
   body("contractorId").isMongoId(),
   body("description").notEmpty(),
-  body('voiceDescription').isObject().withMessage('Media must be an object')
+  body('voiceDescription').optional().isObject().withMessage('Voice description must be an object')
     .bail() // Stop validation if media is not an object
     .custom((value, { req }) => {
       // Check if required properties exist in media object
       if (!('url' in value && typeof value.url === 'string' && value.url.trim() !== '')) {
-        throw new Error('Media url is required');
+        throw new Error('url is required');
       }
       return true;
     }),
-
   body("location").notEmpty(),
   body("media").optional(),
   body("emergency").optional(),

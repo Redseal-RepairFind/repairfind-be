@@ -175,13 +175,13 @@ exports.sendJobRequestParams = [
 exports.createJobRequestParams = [
     (0, express_validator_1.body)("contractorId").isMongoId(),
     (0, express_validator_1.body)("description").notEmpty(),
-    (0, express_validator_1.body)('voiceDescription').isObject().withMessage('Media must be an object')
+    (0, express_validator_1.body)('voiceDescription').optional().isObject().withMessage('Voice description must be an object')
         .bail() // Stop validation if media is not an object
         .custom(function (value, _a) {
         var req = _a.req;
         // Check if required properties exist in media object
         if (!('url' in value && typeof value.url === 'string' && value.url.trim() !== '')) {
-            throw new Error('Media url is required');
+            throw new Error('url is required');
         }
         return true;
     }),

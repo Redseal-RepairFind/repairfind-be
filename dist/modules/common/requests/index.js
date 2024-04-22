@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerHttpRequest = exports.rateContractorParams = exports.confirmInspectionPaymentParams = exports.confirmPaymentParams = exports.acceptAndPayParams = exports.updateProfileParams = exports.getContractorParams = exports.searchParams = exports.verifyPasswordOtpParams = exports.resetPasswordParams = exports.forgotPasswordParams = exports.loginParams = exports.verifySocialSignon = exports.emailVerificationParams = exports.signupParams = void 0;
+exports.CustomerHttpRequest = exports.rateContractorParams = exports.callsParams = exports.confirmInspectionPaymentParams = exports.confirmPaymentParams = exports.acceptAndPayParams = exports.updateProfileParams = exports.getContractorParams = exports.searchParams = exports.verifyPasswordOtpParams = exports.resetPasswordParams = exports.forgotPasswordParams = exports.loginParams = exports.verifySocialSignon = exports.emailVerificationParams = exports.signupParams = void 0;
 var express_validator_1 = require("express-validator");
 exports.signupParams = [
     (0, express_validator_1.body)("email").isEmail(),
@@ -67,6 +67,10 @@ exports.confirmInspectionPaymentParams = [
     (0, express_validator_1.body)("jobId").notEmpty(),
     (0, express_validator_1.body)("inspectionPaymemtId").notEmpty(),
 ];
+exports.callsParams = [
+    (0, express_validator_1.body)("caller").notEmpty(),
+    (0, express_validator_1.body)("reciever").notEmpty(),
+];
 exports.rateContractorParams = [
     (0, express_validator_1.body)("jobId").notEmpty(),
     (0, express_validator_1.body)("cleanliness")
@@ -104,5 +108,6 @@ exports.CustomerHttpRequest = {
     confirmInspectionPaymentParams: exports.confirmInspectionPaymentParams,
     rateContractorParams: exports.rateContractorParams,
     verifyPasswordOtpParams: exports.verifyPasswordOtpParams,
-    verifySocialSignon: exports.verifySocialSignon
+    verifySocialSignon: exports.verifySocialSignon,
+    callsParams: exports.callsParams,
 };
