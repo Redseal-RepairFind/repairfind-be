@@ -1,464 +1,416 @@
 import { validationResult } from "express-validator";
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Response } from "express";
 import { ContractorModel } from "../../../database/contractor/models/contractor.model";
-import { htmlJobRequestTemplate } from "../../../templates/contractorEmail/jobRequestTemplate";
 import CustomerModel from "../../../database/customer/models/customer.model";
-import { EmailService, NotificationService } from "../../../services";
-import { addHours,isFuture,isValid, startOfDay } from "date-fns";
-import { IJob, JobModel, JOB_STATUS, JobType } from "../../../database/common/job.model";
+import { JobModel, JOB_STATUS } from "../../../database/common/job.model";
 import { BadRequestError } from "../../../utils/custom.errors";
-import { applyAPIFeature } from "../../../utils/api.feature";
-import { ConversationModel } from "../../../database/common/conversations.schema";
-import { IMessage, MessageModel, MessageType } from "../../../database/common/messages.schema";
-import { JOB_QUOTATION_STATUS, JobQoutationModel } from "../../../database/common/job_quotation.model";
-import { JobEvent } from "../../../events";
-import { htmlJobQuotationAcceptedContractorEmailTemplate } from "../../../templates/contractorEmail/job_quotation_accepted.template";
-import { htmlJobQuotationDeclinedContractorEmailTemplate } from "../../../templates/contractorEmail/job_quotation_declined.template";
-import mongoose from "mongoose";
+import TransactionModel, { ITransaction, TRANSACTION_STATUS, TRANSACTION_TYPE } from "../../../database/common/transaction.model";
+import { StripeService } from "../../../services/stripe";
+import Stripe from 'stripe';
+import { QueueService } from "../../../services/bullmq";
+import { JobQoutationModel } from "../../../database/common/job_quotation.model";
+import { castPayloadToDTO } from "../../../utils/interface_dto.util";
+import { IStripeAccount } from "../../../database/common/stripe_account.schema";
 
 
 
 
 
-export const createJobRequest = async (
+//customer accept and pay for the work /////////////
+export const makeJobPayment = async (
     req: any,
     res: Response,
     next: NextFunction
 ) => {
 
     try {
+        const {
+            quotationId,
+            paymentMethodId
+        } = req.body;
 
+        const jobId = req.params.jobId
+
+        // Check for validation errors
         const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ message: 'validatior error occured', errors: errors.array() });
-        }
 
-        const { contractorId, category, description, location, date, expiresIn, emergency, media, voiceDescription, time } = req.body;
-        const customerId = req.customer.id
-
-        const customer = await CustomerModel.findById(customerId)
-
-        if (!customer) {
-            return res.status(400).json({ success: false, message: "Customer not found" })
-        }
-        const contractor = await ContractorModel.findById(contractorId).populate('profile')
-        if (!contractor) {
-            return res.status(400).json({ success: false, message: "Contractor not found" })
-        }
-
-        // Get the end of the current day (11:59:59 PM)
-        const startOfToday = startOfDay(new Date());
-        if (!isValid(new Date(date)) || (!isFuture(new Date(date)) && new Date(date) < startOfToday)) {
-            return res.status(400).json({ success: false, message: 'Invalid date format or date is in the past' });
-        }
-
-        // Check if there is a similar job request sent to the same contractor within the last 72 hours
-        const existingJobRequest = await JobModel.findOne({
-            customer: customerId,
-            contractor: contractorId,
-            status: JOB_STATUS.PENDING,
-            date: { $eq: new Date(date) }, // consider all past jobs
-            createdAt: { $gte: addHours(new Date(), -24) }, // Check for job requests within the last 72 hours
-        });
-
-        if (existingJobRequest) {
-            return res.status(400).json({ success: false, message: 'A similar job request has already been sent to this contractor within the last 24 hours' });
-        }
-
-        const dateTimeString = `${new Date(date).toISOString().split('T')[0]}T${time}`; // Combine date and time
-        const jobTime = new Date(dateTimeString);
-
-        // Create a new job document
-        const newJob: IJob = new JobModel({
-            customer: customer.id,
-            contractor: contractorId,
-            description,
-            location,
-            date,
-            type: JobType.REQUEST,
-            time: jobTime,
-            expiresIn,
-            emergency: emergency || false,
-            voiceDescription,
-            media: media || [],
-            //@ts-ignore
-            title: `${contractor.profile.skill} Service`,
-            //@ts-ignore
-            category: `${contractor.profile.skill}`
-
-        });
-
-        // Save the job document to the database
-        await newJob.save();
-
-        // Create a new conversation between the customer and the contractor
-        const conversationMembers = [
-            { memberType: 'customers', member: customerId },
-            { memberType: 'contractors', member: contractorId }
-        ];
-
-        const conversation = await ConversationModel.findOneAndUpdate(
-            { members: { $elemMatch: { $or: [{ member: customer.id }, { member: contractorId }] }}
-            },
-
-            {
-                members: conversationMembers
-            },
-            { new: true, upsert: true }
-        );
-
-        // Create a message in the conversation
-        const newMessage: IMessage = await MessageModel.create({
-            conversation: conversation._id,
-            sender: customerId, // Assuming the customer sends the initial message
-            message: `New job request: ${description}`, // You can customize the message content as needed
-            messageType: MessageType.TEXT, // You can customize the message content as needed
-            createdAt: new Date()
-        });
-
-
-
-        JobEvent.emit('NEW_JOB_REQUEST', { jobId: newJob.id, contractorId, customerId, conversationId: conversation.id })
-
-        const html = htmlJobRequestTemplate(customer.firstName, customer.firstName, `${date} ${time}`, description)
-        EmailService.send(contractor.email, 'Job request from customer', html)
-
-
-        res.status(201).json({ success: true, message: 'Job request submitted successfully', data: newJob });
-    } catch (error: any) {
-        return next(new BadRequestError('Bad Request', error));
-    }
-
-}
-
-
-export const createJobListing = async (
-    req: any,
-    res: Response,
-    next: NextFunction,
-) => {
-
-    try {
-
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ message: 'validatior error occured', errors: errors.array() });
-        }
-
-        const { category, description, location, date, expiresIn, emergency, media, voiceDescription, time, contractorType } = req.body;
-        const customerId = req.customer.id
-
-        const customer = await CustomerModel.findById(customerId)
-
-        if (!customer) {
-            return res.status(400).json({ success: false, message: "Customer not found" })
-        }
-
-
-        // Get the end of the current day (11:59:59 PM)
-        const startOfToday = startOfDay(new Date());
-        if (!isValid(new Date(date)) || (!isFuture(new Date(date)) && new Date(date) < startOfToday)) {
-            return res.status(400).json({ success: false, message: 'Invalid date format or date is in the past' });
-        }
-
-        // Check if there is a similar job request sent to the same contractor within the last 72 hours
-        const existingJobRequest = await JobModel.findOne({
-            customer: customerId,
-            status: JOB_STATUS.PENDING,
-            category: category,
-            date: { $eq: new Date(date) }, // consider all past jobs
-            createdAt: { $gte: addHours(new Date(), -24) }, // Check for job requests within the last 72 hours
-        });
-
-        if (existingJobRequest) {
-            return res.status(400).json({ success: false, message: 'A similar job has already been created within the last 24 hours' });
-        }
-
-        const dateTimeString = `${new Date(date).toISOString().split('T')[0]}T${time}`; // Combine date and time
-        const jobTime = new Date(dateTimeString);
-
-        // Create a new job document
-        const newJob: IJob = new JobModel({
-            customer: customer.id,
-            contractorType,
-            description,
-            category,
-            location,
-            date,
-            time: jobTime,
-            expiresIn,
-            emergency: emergency || false,
-            voiceDescription,
-            media: media || [],
-            type: JobType.LISTING,
-            title: `${category} Service`,
-
-        });
-
-        // Save the job document to the database
-        await newJob.save();
-
-        res.status(201).json({ success: true, message: 'Job listing submitted successfully', data: newJob });
-    } catch (error: any) {
-        return next(new BadRequestError('An error occured ', error))
-    }
-
-}
-
-
-export const getMyJobs = async (req: any, res: Response, next: NextFunction) => {
-    try {
-        // Validate incoming request
-        const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
         }
 
-        // Extract query parameters
-        const { contractorId, status, startDate, endDate, date, type } = req.query;
         const customerId = req.customer.id;
+        const customer = await CustomerModel.findOne({ _id: customerId })
 
-        // Construct filter object based on query parameters
-        let filter: any = { customer: customerId };
-
-       
-        // TODO: when contractor is specified, ensure the contractor quotation is attached
-        if (contractorId) {
-            if( !mongoose.Types.ObjectId.isValid(contractorId) ){
-                return res.status(400).json({success:false, message: 'Invalid contractor id'});
-            }
-            req.query.contractor = contractorId;
-            delete req.query.contractorId
+        if (!customer) {
+            return res
+                .status(401)
+                .json({ message: "incorrect Customer ID" });
         }
 
-        if (status) {
-            req.query.status = status.toUpperCase();
-        }
-        if (startDate && endDate) {
-            // Parse startDate and endDate into Date objects
-            const start = new Date(startDate);
-            const end = new Date(endDate);
-            // Ensure that end date is adjusted to include the entire day
-            end.setDate(end.getDate() + 1);
-            req.query.createdAt = { $gte: start, $lt: end };
-
-            delete req.query.startDate
-            delete req.query.endDate
-        }
-
-        if (date) {
-            const selectedDate = new Date(date);
-            const startOfDay = new Date(selectedDate.setUTCHours(0, 0, 0, 0));
-            const endOfDay = new Date(startOfDay);
-            endOfDay.setDate(startOfDay.getUTCDate() + 1);
-            req.query.date = { $gte: startOfDay, $lt: endOfDay };
-        }
-
-        // Execute query
-        const { data, error } = await applyAPIFeature(JobModel.find(filter), req.query);
-
-        if(data){
-
-            await Promise.all(data.data.map(async (job: any) => {
-                if(contractorId){
-                    job.myQuotation = await job.getMyQoutation(contractorId)
-                }
-            }));
-        }
-
-
-        res.json({ success: true, message: 'Jobs retrieved', data: data });
-
-    } catch (error: any) {
-        return next(new BadRequestError('An error occured ', error))
-    }
-};
-
-export const getSingleJob = async (req: any, res: Response, next: NextFunction) => {
-    try {
-
-        const customerId = req.customer.id
-        const jobId = req.params.jobId;
-
-        const job = await JobModel.findOne({ customer: customerId, _id: jobId }).exec();
-
-        // Check if the job exists
+        //const job = await JobModel.findOne({_id: jobId, customerId, status: 'sent qoutation'})
+        const job = await JobModel.findOne({ _id: jobId })
         if (!job) {
-            return res.status(404).json({ success: false, message: 'Job not found' });
+            return res
+                .status(401)
+                .json({ message: "job do not exist" });
         }
 
-        // If the job exists, return it as a response
-        res.json({ success: true, message: 'Job retrieved', data: job });
-    } catch (error: any) {
-        return next(new BadRequestError('An error occured ', error))
-    }
-};
 
-export const getJobQuotations = async (req: any, res: Response, next: NextFunction) => {
-    try {
-        const customerId = req.customer.id;
-        const jobId = req.params.jobId;
-
-        const job = await JobModel.findOne({ customer: customerId, _id: jobId }).populate('quotations');
-
-        // Check if the job exists
-        if (!job) {
-            return res.status(404).json({ success: false, message: 'Job not found or does not belong to customer' });
-        }
-        const quotations = await JobQoutationModel.find({ job: jobId, status: { $ne: JOB_QUOTATION_STATUS.DECLINED } }).populate([{ path: 'contractor' }])
-
-
-        // If the job exists, return its quo as a response
-        res.json({ success: true, message: 'Job quotations retrieved', data: quotations });
-    } catch (error: any) {
-        return next(new BadRequestError('An error occured ', error))
-    }
-};
-
-export const getSingleQuotation = async (req: any, res: Response, next: NextFunction) => {
-    try {
-        const customerId = req.customer.id;
-        const { jobId, quotationId } = req.params;
-
-        const quotation = await JobQoutationModel.findOne({ _id: quotationId, job: jobId }).populate('contractor');
-
-        // Check if the job exists
+        const quotation = await JobQoutationModel.findOne({ _id: quotationId })
         if (!quotation) {
-            return res.status(404).json({ success: false, message: 'Qoutation not found' });
+            return res
+                .status(404)
+                .json({success:false, message: "Job quotation not found" });
         }
 
-        quotation.charges = await quotation.calculateCharges()
-        res.json({ success: true, message: 'Job quotation retrieved', data: quotation });
-    } catch (error: any) {
-        return next(new BadRequestError('An error occured ', error))
-    }
-};
-
-
-export const acceptJobQuotation = async (req: any, res: Response, next: NextFunction) => {
-    try {
-        const customerId = req.customer.id;
-        const { jobId, quotationId } = req.params;
-
-        const quotation = await JobQoutationModel.findOne({ _id: quotationId, job: jobId });
-        const job = await JobModel.findById(jobId);
-
-
-        // Check if the job exists
-        if (!job) {
-            return res.status(404).json({ success: false, message: 'Job not found' });
+        const contractor = await ContractorModel.findOne({ _id: quotation.contractor });
+        if(!contractor){
+            return res
+                .status(404)
+                .json({ success:false,  message: "Contractor not found" });
         }
-        // check if contractor exists
-        if (!quotation) {
-            return res.status(404).json({ success: false, message: 'Qoutation not found' });
-        }
+        // make checks here 
+        // ensure contractor has a verified connected account
+        //ensure customer has a valid payment method or create a setup that will require payment on the fly 
 
-        quotation.status = JOB_QUOTATION_STATUS.ACCEPTED;
-        // create conversation here
+        const generateInvoce = new Date().getTime().toString()
 
-        // Create a new conversation between the customer and the contractor
-        const conversationMembers = [
-            { memberType: 'customers', member: customerId },
-            { memberType: 'contractors', member: quotation.contractor }
-        ];
-        const conversation = await ConversationModel.findOneAndUpdate(
-            { members: { $elemMatch: { $or: [{ member: customerId }, { member: quotation.contractor }] }}},
-            {
-                members: conversationMembers,
-                lastMessage: 'I have accepted your qoutation for the Job', // Set the last message to the job description
-                lastMessageAt: new Date() // Set the last message timestamp to now
+        const invoiceId = generateInvoce.substring(generateInvoce.length - 5)
+        const charges = await quotation.calculateCharges()
+
+        const transaction: ITransaction = await TransactionModel.create({
+            type: TRANSACTION_TYPE.JOB_PAYMENT,
+            amount: charges.totalAmount,
+
+            initiatorUser: customerId,
+            initiatorUserType: 'customers',
+
+            fromUser: customerId,
+            fromUserType: 'customers',
+
+            toUser: contractor.id,
+            toUserType: 'contractors',
+
+            description: `qoutation from ${contractor?.firstName} payment`,
+            status: TRANSACTION_STATUS.PENDING,
+            remark: 'qoutation',
+            invoice: {
+                items: quotation.estimates,
+                charges: quotation.charges
             },
-            { new: true, upsert: true });
+            job: jobId
+        })
 
 
-        // Create a message in the conversation
-        const newMessage: IMessage = await MessageModel.create({
-            conversation: conversation._id,
-            sender: customerId, // Assuming the customer sends the initial message
-            message: `I have accepted your qoutation for the Job`, // You can customize the message content as needed
-            messageType: MessageType.TEXT, // You can customize the message content as needed
-            createdAt: new Date()
-        });
+        // const transactionId = JSON.stringify(saveTransaction._id)
 
-        job.quotation = quotation.id
-        job.status = JOB_STATUS.ACCEPTED
 
-        await quotation.save()
+        //  Direct CHARGES
+        // With Connect, you can make charges directly to the connected account and take fees in the process.
+        // To create a direct charge on the connected account, create a PaymentIntent object and add the Stripe-Account header with a value of the connected account ID:
 
-        const foundQuotationIndex = job.quotations.findIndex(quotation => quotation.id == quotationId);
-        if (foundQuotationIndex !== -1) {
-            job.quotations[foundQuotationIndex].status = JOB_QUOTATION_STATUS.ACCEPTED;
+        //  https://docs.stripe.com/connect/charges
+        // When using Standard accounts, Stripe recommends that you create direct charges. Though uncommon, there are times when it’s appropriate to use direct charges on Express or Custom accounts.
+        // With this charge type:
+        // You create a charge on your user’s account so the payment appears as a charge on the connected account, not in your account balance.
+        // The connected account’s balance increases with every charge.
+        // Funds always settle in the country of the connected account.
+        // Your account balance increases with application fees from every charge.
+        // The connected account’s balance is debited for refunds and chargebacks.
+        //direct charge requires the customer has to exists on the connected account platform -- consider cloning https://docs.stripe.com/connect/cloning-customers-across-accounts
+        // we can still take fees back to the platform by specifying application_fee_amount: 123,
+
+        // DESTINATION CHARGES
+        // Customers transact with your platform for products or services provided by your connected account.
+        // The transaction involves a single user.
+        // Stripe fees are debited from your platform account.
+
+        //flow 1
+        // here everything is transfered to connected account and then application_fee_amount is wired back to platform
+        // application_fee_amount: 123,
+        // transfer_data: {
+        //     destination: '{{CONNECTED_ACCOUNT_ID}}',
+        // },
+
+        //flow 2
+        // here only amount specified in transfer_data is transfered to connected account
+        // transfer_data: {
+        //     amount: 877,
+        //     destination: '{{CONNECTED_ACCOUNT_ID}}',
+        //   },
+
+        // When you use on_behalf_of:
+        // Charges are settled in the connected account’s country and settlement currency.
+        // The connected account’s statement descriptor is displayed on the customer’s credit card statement.
+        // If the connected account is in a different country than the platform, the connected account’s address and phone number are displayed on the customer’s credit card statement.
+        // The number of days that a pending balance is held before being paid out depends on the delay_days setting on the connected account.
+
+
+        let paymentMethod = customer.stripePaymentMethods.find((method) => method.id == paymentMethodId)
+        if (!paymentMethod) {
+            paymentMethod = customer.stripePaymentMethods[0]
+        };
+
+        if (!paymentMethod) throw new Error("No such payment method")
+
+
+
+        let payload: Stripe.PaymentIntentCreateParams = {
+            payment_method_types: ['card'],
+            payment_method: paymentMethod.id,
+            currency: 'usd',
+            amount: (charges.totalAmount) * 100,
+            application_fee_amount: (charges.processingFee) * 100, // send everthing to connected account and  application_fee_amount will be transfered back
+            transfer_data: {
+                // amount: (charges.contractorAmount) * 100, // transfer to connected account
+                destination: contractor?.stripeAccount.id ?? '' // mostimes only work with same region example us, user
+                // https://docs.stripe.com/connect/destination-charges
+            },
+            on_behalf_of: contractor?.stripeAccount.id,
+            metadata: {
+                customerId,
+                constractorId: contractor?.id,
+                quotationId,
+                type: "job_booking",
+                jobId,
+                email: customer.email,
+                transactionId: transaction.id,
+                remark: 'initial_job_payment' // we can have extra_job_payment
+            },
+
+            customer: customer.stripeCustomer.id,
+            off_session: true,
+            confirm: true,
         }
+
+        const stripePayment = await StripeService.payment.chargeCustomer(paymentMethod.customer, paymentMethod.id, payload)
+
+        job.status = JOB_STATUS.BOOKED;
         await job.save()
 
+        res.json({ success: true, message: 'Payment intent created', data: stripePayment });
 
-        const contractor = await ContractorModel.findById(quotation.contractor)
-        const customer = await CustomerModel.findById(customerId)
-        //emit event - mail should be sent from event handler shaa
-        JobEvent.emit('JOB_QOUTATION_ACCEPTED', { jobId, contractorId: quotation.contractor, customerId, conversationId: conversation.id })
-
-        // send mail to contractor
-        if (contractor && customer) {
-            const html = htmlJobQuotationAcceptedContractorEmailTemplate(contractor.name, customer.name, job)
-            EmailService.send(contractor.email, 'Job Quotation Accepted', html)
-        }
-
-
-
-        quotation.charges = await quotation.calculateCharges()
-        res.json({ success: true, message: 'Job quotation accepted' });
-    } catch (error: any) {
-        return next(new BadRequestError('An error occured ', error))
+    } catch (err: any) {
+        return next(new BadRequestError(err.message, err))
     }
-};
 
-export const declineJobQuotation = async (req: any, res: Response, next: NextFunction) => {
+}
+
+export const captureJobPayment = async (
+    req: any,
+    res: Response,
+    next: NextFunction
+) => {
+
+
+
+
     try {
+        const {
+            quotationId,
+            paymentMethodId
+        } = req.body;
+
+        const jobId = req.params.jobId
+
+        // Check for validation errors
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
         const customerId = req.customer.id;
-        const { jobId, quotationId } = req.params;
+        const customer = await CustomerModel.findOne({ _id: customerId })
 
-        const quotation = await JobQoutationModel.findOne({ _id: quotationId, job: jobId });
-        const job = await JobModel.findById(jobId);
+        if (!customer) {
+            return res
+                .status(401)
+                .json({ success:false,  message: "incorrect Customer ID" });
+        }
 
-
-        // Check if the job exists
+        //const job = await JobModel.findOne({_id: jobId, customerId, status: 'sent qoutation'})
+        const job = await JobModel.findOne({ _id: jobId })
         if (!job) {
-            return res.status(404).json({ success: false, message: 'Job not found' });
+            return res
+                .status(401)
+                .json({ success:false,  message: "job do not exist" });
         }
-        // check if contractor exists
+
+
+        const quotation = await JobQoutationModel.findOne({ _id: quotationId })
         if (!quotation) {
-            return res.status(404).json({ success: false, message: 'Qoutation not found' });
+            return res
+                .status(401)
+                .json({ success:false,  message: "Job quotation not found" });
         }
 
-        quotation.status = JOB_QUOTATION_STATUS.DECLINED;
-
-        // maybe send mail out ?
-        await quotation.save()
-
-        const foundQuotationIndex = job.quotations.findIndex(quotation => quotation.id == quotationId);
-        if (foundQuotationIndex !== -1) {
-            job.quotations[foundQuotationIndex].status = JOB_QUOTATION_STATUS.DECLINED;
-        }
-        await job.save();
-
-
-        const contractor = await ContractorModel.findById(quotation.contractor)
-        const customer = await CustomerModel.findById(customerId)
-        //emit event - mail should be sent from event handler shaa
-        JobEvent.emit('JOB_QOUTATION_DECLINED', { jobId, contractorId: quotation.contractor, customerId })
-
-        // send mail to contractor
-        if (contractor && customer) {
-            const html = htmlJobQuotationDeclinedContractorEmailTemplate(contractor.name, customer.name, job)
-            EmailService.send(contractor.email, 'Job Quotation Declined', html)
+        const contractor = await ContractorModel.findOne({ _id: quotation.contractor });
+        if(!contractor){
+            return res
+                .status(404)
+                .json({ success:false,  message: "Contractor not found" });
         }
 
+        // make checks here 
+        // ensure contractor has a verified connected account
+        // if(contractor.onboarding.hasStripeAccount){
 
-        res.json({ success: true, message: 'Job quotation declined' });
-    } catch (error: any) {
-        return next(new BadRequestError('An error occured ', error))
+        //     //fetch and update contractor stripeaccount here
+        //     const account: unknown = await StripeService.account.getAccount('acct_1P4N6NRdmDaBvbML'); //acct_1P4N6NRdmDaBvbML ,acct_1P7XvFRZlKifQSOs
+        //     console.log(account)
+        //     console.log(contractor.stripeAccount.id)
+
+        //     const stripeAccount =castPayloadToDTO(account, account as IStripeAccount)
+        //     contractor.stripeAccount = stripeAccount
+        //     await contractor.save()
+
+        //     console.log(contractor.stripeAccountStatus)
+        //     if(! (contractor.stripeAccountStatus?.card_payments_enabled && contractor.stripeAccountStatus?.transfers_enabled) ){
+        //         return res
+        //         .status(400)
+        //         .json({ success:false,  message: "Contractor is not capable of receiving payment" });
+        //     }
+        // }else{
+        //     return res
+        //         .status(400)
+        //         .json({ success:false,  message: "Contractor is not capable of receiving payment" });
+        // }
+
+
+        //ensure customer has a valid payment method or create a setup that will require payment on the fly 
+        
+
+        //check if job is already booked
+        if(job.status !== JOB_STATUS.PENDING){
+            return res
+                .status(400)
+                .json({ success:false,  message: "This job is not pending, so new payment is not possible" });
+        }
+  
+        const charges = await quotation.calculateCharges()
+
+        const transaction: ITransaction = await TransactionModel.create({
+            type: TRANSACTION_TYPE.JOB_PAYMENT,
+            amount: charges.totalAmount,
+
+            initiatorUser: customerId,
+            initiatorUserType: 'customers',
+
+            fromUser: customerId,
+            fromUserType: 'customers',
+
+            toUser: contractor.id,
+            toUserType: 'contractors',
+
+            description: `qoutation from ${contractor?.firstName} payment`,
+            status: TRANSACTION_STATUS.PENDING,
+            remark: 'qoutation',
+            invoice: {
+                items: quotation.estimates,
+                charges: quotation.charges
+            },
+            job: jobId
+        })
+
+
+
+        //  Direct CHARGES
+        // With Connect, you can make charges directly to the connected account and take fees in the process.
+        // To create a direct charge on the connected account, create a PaymentIntent object and add the Stripe-Account header with a value of the connected account ID:
+
+        //  https://docs.stripe.com/connect/charges
+        // When using Standard accounts, Stripe recommends that you create direct charges. Though uncommon, there are times when it’s appropriate to use direct charges on Express or Custom accounts.
+        // With this charge type:
+        // You create a charge on your user’s account so the payment appears as a charge on the connected account, not in your account balance.
+        // The connected account’s balance increases with every charge.
+        // Funds always settle in the country of the connected account.
+        // Your account balance increases with application fees from every charge.
+        // The connected account’s balance is debited for refunds and chargebacks.
+        //direct charge requires the customer has to exists on the connected account platform -- consider cloning https://docs.stripe.com/connect/cloning-customers-across-accounts
+        // we can still take fees back to the platform by specifying application_fee_amount: 123,
+
+        // DESTINATION CHARGES
+        // Customers transact with your platform for products or services provided by your connected account.
+        // The transaction involves a single user.
+        // Stripe fees are debited from your platform account.
+
+        //flow 1
+        // here everything is transfered to connected account and then application_fee_amount is wired back to platform
+        // application_fee_amount: 123,
+        // transfer_data: {
+        //     destination: '{{CONNECTED_ACCOUNT_ID}}',
+        // },
+
+        //flow 2
+        // here only amount specified in transfer_data is transfered to connected account
+        // transfer_data: {
+        //     amount: 877,
+        //     destination: '{{CONNECTED_ACCOUNT_ID}}',
+        //   },
+
+        // When you use on_behalf_of:
+        // Charges are settled in the connected account’s country and settlement currency.
+        // The connected account’s statement descriptor is displayed on the customer’s credit card statement.
+        // If the connected account is in a different country than the platform, the connected account’s address and phone number are displayed on the customer’s credit card statement.
+        // The number of days that a pending balance is held before being paid out depends on the delay_days setting on the connected account.
+
+
+        let paymentMethod = customer.stripePaymentMethods.find((method) => method.id == paymentMethodId)
+        if (!paymentMethod) {
+            paymentMethod = customer.stripePaymentMethods[0]
+        };
+
+        if (!paymentMethod) throw new Error("No such payment method")
+
+
+
+        let payload: Stripe.PaymentIntentCreateParams = {
+            payment_method_types: ['card'],
+            payment_method_options: {
+                card: {
+                    capture_method: 'manual', // request_extended_authorization: 'if_available', // 30 days
+                },
+            },
+            expand: ['latest_charge'],
+            payment_method: paymentMethod.id,
+            currency: 'usd',
+            amount: (charges.totalAmount) * 100,
+            application_fee_amount: (charges.processingFee) * 100, // send everthing to connected account and  application_fee_amount will be transfered back
+            transfer_data: {
+                // amount: (charges.contractorAmount) * 100, // transfer to connected account
+                destination: contractor?.stripeAccount.id ?? '' // mostimes only work with same region example us, user // https://docs.stripe.com/connect/destination-charges
+            },
+            on_behalf_of: contractor?.stripeAccount.id,
+            metadata: {
+                customerId,
+                constractorId: contractor?.id,
+                quotationId,
+                type: "job_payment",
+                jobId,
+                email: customer.email,
+                transactionId: transaction.id,
+                remark: 'initial_job_payment' // we can have extra_job_payment
+            },
+
+            customer: customer.stripeCustomer.id,
+            off_session: true,
+            confirm: true,
+            capture_method: 'manual'
+        }
+
+        const stripePayment = await StripeService.payment.chargeCustomer(paymentMethod.customer, paymentMethod.id, payload)
+
+        job.status = JOB_STATUS.BOOKED;
+        await job.save()
+
+        res.json({ success: true, message: 'Payment intent created', data: stripePayment });
+
+    } catch (err: any) {
+        return next(new BadRequestError(err.message, err))
     }
-};
+
+}
 
 
 // //customer get job qoutation payment and open /////////////
@@ -1264,15 +1216,10 @@ export const declineJobQuotation = async (req: any, res: Response, next: NextFun
 // }
 
 
-export const CustomerJobController = {
-    createJobRequest,
-    getMyJobs,
-    createJobListing,
-    getSingleJob,
-    getJobQuotations,
-    getSingleQuotation,
-    acceptJobQuotation,
-    declineJobQuotation
+export const CustomerPaymentController = {
+    makeJobPayment,
+    captureJobPayment,
+
 }
 
 

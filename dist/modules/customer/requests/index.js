@@ -196,7 +196,7 @@ exports.createJoListingParams = [
     (0, express_validator_1.body)("description").notEmpty(),
     (0, express_validator_1.body)("expiresIn").notEmpty(),
     (0, express_validator_1.body)("category").notEmpty(),
-    (0, express_validator_1.body)('voiceDescription').isObject().withMessage('Media must be an object')
+    (0, express_validator_1.body)('voiceDescription').optional().isObject().withMessage('Media must be an object')
         .bail() // Stop validation if media is not an object
         .custom(function (value, _a) {
         var req = _a.req;

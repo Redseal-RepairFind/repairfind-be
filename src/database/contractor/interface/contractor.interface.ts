@@ -99,5 +99,20 @@ export interface IContractor extends Document {
   createdAt: Date;
   updatedAt: Date;
   quiz: any;
-  onboarding: Object;
+  stripeAccountStatus: {
+    details_submitted: boolean,
+    payouts_enabled : boolean,
+    charges_enabled : boolean,
+    transfers_enabled : boolean,
+    card_payments_enabled : boolean,
+  } | null,
+  onboarding: {
+    hasStripeAccount: boolean,
+    hasStripeIdentity: boolean,
+    hasStripePaymentMethods: boolean,
+    hasStripeCustomer: boolean,
+    hasProfile:boolean,
+    hasGstDetails:boolean,
+    hasCompanyDetails:boolean
+  };
 }

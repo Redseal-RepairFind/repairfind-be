@@ -171,8 +171,10 @@ ContractorSchema.virtual('stripeAccountStatus').get(function (this: IContractor)
   return stripeAccount ? {
     details_submitted: stripeAccount.details_submitted,
     payouts_enabled: stripeAccount.payouts_enabled,
-    charges_enabled: stripeAccount.charges_enabled
-  } : 'unverified';
+    charges_enabled: stripeAccount.charges_enabled,
+    transfers_enabled : stripeAccount?.capabilities?.transfers ?? 'inactive',
+    card_payments_enabled : stripeAccount?.capabilities?.card_payments ?? 'inactive',
+  } : null;
 });
 
 

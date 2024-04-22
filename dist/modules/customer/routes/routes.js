@@ -10,6 +10,7 @@ var customer_job_controller_1 = require("../controllers/customer_job.controller"
 var customer_notification_controller_1 = require("../controllers/customer_notification.controller");
 var customer_conversation_controller_1 = require("../controllers/customer_conversation.controller");
 var customer_tripDay_controller_1 = require("../controllers/customer_tripDay.controller");
+var customer_payment_controller_1 = require("../controllers/customer_payment.controller");
 var express = require("express");
 var router = express.Router();
 // Auth
@@ -47,8 +48,8 @@ router.get("/jobs/:jobId/quotations", customerRoleChecker_middleware_1.checkCust
 router.get("/jobs/:jobId/quotations/:quotationId", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.getSingleQuotation);
 router.post("/jobs/:jobId/quotations/:quotationId/accept", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.acceptJobQuotation);
 router.post("/jobs/:jobId/quotations/:quotationId/decline", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.declineJobQuotation);
-router.post("/jobs/:jobId/pay", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.makeJobPayment);
-router.post("/jobs/:jobId/payment-capture", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.captureJobPayment);
+router.post("/jobs/:jobId/pay", customerRoleChecker_middleware_1.checkCustomerRole, customer_payment_controller_1.CustomerPaymentController.makeJobPayment);
+router.post("/jobs/:jobId/payment-capture", customerRoleChecker_middleware_1.checkCustomerRole, customer_payment_controller_1.CustomerPaymentController.captureJobPayment);
 // Notifications
 router.get('/notifications', customerRoleChecker_middleware_1.checkCustomerRole, customer_notification_controller_1.CustomerNotificationController.getNotifications);
 router.get('/notifications/:notificationId', customerRoleChecker_middleware_1.checkCustomerRole, customer_notification_controller_1.CustomerNotificationController.getSingleNotification);

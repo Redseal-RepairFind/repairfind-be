@@ -14,79 +14,79 @@ export const AdminGetRevenueAnalysisControlleer = async (
     req: any,
     res: Response,
   ) => {
-    try {
-      let {  
-        year,
-        month
-      } = req.query;
+    // try {
+    //   let {  
+    //     year,
+    //     month
+    //   } = req.query;
   
-        // Check for validation errors
-        const errors = validationResult(req);
+    //     // Check for validation errors
+    //     const errors = validationResult(req);
     
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        }
+    //     if (!errors.isEmpty()) {
+    //         return res.status(400).json({ errors: errors.array() });
+    //     }
     
-        const admin =  req.admin;
-        const adminId = admin.id
+    //     const admin =  req.admin;
+    //     const adminId = admin.id
         
-        const startDate = new Date(`${year}-${month}-01`)
-        const endDate = new Date(`${year}-${parseInt(month) + 1}-01`)
+    //     const startDate = new Date(`${year}-${month}-01`)
+    //     const endDate = new Date(`${year}-${parseInt(month) + 1}-01`)
 
-        const transactions = await TransactionModel.find({
-            createdAt: {
-            $gte: startDate,
-            $lte: endDate,
-            },
-        });
+    //     const transactions = await TransactionModel.find({
+    //         createdAt: {
+    //         $gte: startDate,
+    //         $lte: endDate,
+    //         },
+    //     });
 
-        let revenueJob = []
+    //     let revenueJob = []
 
-        for (let a = 1; a < 32; a++) {
-            const element = a;
+    //     for (let a = 1; a < 32; a++) {
+    //         const element = a;
 
-            const date  = new Date(`${year}-${month}-${element}`);
+    //         const date  = new Date(`${year}-${month}-${element}`);
 
-            const day = date.getDate()
+    //         const day = date.getDate()
 
-            let revenue = 0;
-            let job = 0;
+    //         let revenue = 0;
+    //         let job = 0;
             
-            for (let i = 0; i < transactions.length; i++) {
-                const transction = transactions[i];
+    //         for (let i = 0; i < transactions.length; i++) {
+    //             const transction = transactions[i];
 
-                const dayCreated = transction.createdAt.getDate()
+    //             const dayCreated = transction.createdAt.getDate()
 
-                if (day == dayCreated) {
+    //             if (day == dayCreated) {
                     
-                    if (transction.form == "qoutation") {
-                        job = job + 1
-                    }
+    //                 if (transction.form == "qoutation") {
+    //                     job = job + 1
+    //                 }
 
-                    if (transction.type == "credit") {
-                        revenue = revenue + transction.amount
-                    }
-                }
+    //                 if (transction.type == "credit") {
+    //                     revenue = revenue + transction.amount
+    //                 }
+    //             }
 
-            }
+    //         }
 
-            let obj = {
-                day: element,
-                revenue,
-                job
-            }
+    //         let obj = {
+    //             day: element,
+    //             revenue,
+    //             job
+    //         }
 
-            revenueJob.push(obj) 
-        }
+    //         revenueJob.push(obj) 
+    //     }
 
-        res.json({  
-            revenueJob
-        });
+    //     res.json({  
+    //         revenueJob
+    //     });
       
-    } catch (err: any) {
-      // signup error
-      res.status(500).json({ message: err.message });
-    }
+    // } catch (err: any) {
+    //   // signup error
+    //   res.status(500).json({ message: err.message });
+    // }
   
 }
 

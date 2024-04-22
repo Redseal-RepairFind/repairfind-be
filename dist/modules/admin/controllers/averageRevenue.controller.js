@@ -58,75 +58,14 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AdminsendEmailsControlleer = exports.AdminGetRevenueAnalysisControlleer = void 0;
 var express_validator_1 = require("express-validator");
 var nodemailer = __importStar(require("nodemailer"));
-var transaction_model_1 = __importDefault(require("../../../database/common/transaction.model"));
 //get revenue every day /////////////
 var AdminGetRevenueAnalysisControlleer = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, year, month, errors, admin, adminId, startDate, endDate, transactions, revenueJob, a, element, date, day, revenue, job, i, transction, dayCreated, obj, err_1;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0:
-                _b.trys.push([0, 2, , 3]);
-                _a = req.query, year = _a.year, month = _a.month;
-                errors = (0, express_validator_1.validationResult)(req);
-                if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
-                }
-                admin = req.admin;
-                adminId = admin.id;
-                startDate = new Date("".concat(year, "-").concat(month, "-01"));
-                endDate = new Date("".concat(year, "-").concat(parseInt(month) + 1, "-01"));
-                return [4 /*yield*/, transaction_model_1.default.find({
-                        createdAt: {
-                            $gte: startDate,
-                            $lte: endDate,
-                        },
-                    })];
-            case 1:
-                transactions = _b.sent();
-                revenueJob = [];
-                for (a = 1; a < 32; a++) {
-                    element = a;
-                    date = new Date("".concat(year, "-").concat(month, "-").concat(element));
-                    day = date.getDate();
-                    revenue = 0;
-                    job = 0;
-                    for (i = 0; i < transactions.length; i++) {
-                        transction = transactions[i];
-                        dayCreated = transction.createdAt.getDate();
-                        if (day == dayCreated) {
-                            if (transction.form == "qoutation") {
-                                job = job + 1;
-                            }
-                            if (transction.type == "credit") {
-                                revenue = revenue + transction.amount;
-                            }
-                        }
-                    }
-                    obj = {
-                        day: element,
-                        revenue: revenue,
-                        job: job
-                    };
-                    revenueJob.push(obj);
-                }
-                res.json({
-                    revenueJob: revenueJob
-                });
-                return [3 /*break*/, 3];
-            case 2:
-                err_1 = _b.sent();
-                // signup error
-                res.status(500).json({ message: err_1.message });
-                return [3 /*break*/, 3];
-            case 3: return [2 /*return*/];
-        }
+    return __generator(this, function (_a) {
+        return [2 /*return*/];
     });
 }); };
 exports.AdminGetRevenueAnalysisControlleer = AdminGetRevenueAnalysisControlleer;

@@ -217,7 +217,7 @@ export const createJoListingParams = [
   body("description").notEmpty(),
   body("expiresIn").notEmpty(),
   body("category").notEmpty(),
-  body('voiceDescription').isObject().withMessage('Media must be an object')
+  body('voiceDescription').optional().isObject().withMessage('Media must be an object')
     .bail() // Stop validation if media is not an object
     .custom((value, { req }) => {
       // Check if required properties exist in media object

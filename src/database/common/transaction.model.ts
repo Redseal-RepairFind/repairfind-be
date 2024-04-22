@@ -2,82 +2,117 @@ import { Schema, model } from "mongoose";
 
 import { Document, Types, ObjectId } from "mongoose";
 
-export interface ITransactionDocument extends Document {
-  _id: ObjectId;
-  type: string;
+// Define enum for transaction status
+export enum TRANSACTION_STATUS {
+  PENDING = "PENDING",
+  SUCCESSFUL = "SUCCESSFUL",
+  FAILED = "FAILED",
+  REFUNDED = "REFUNDED",
+}
+
+
+// Define enum for transaction type
+export enum TRANSACTION_TYPE {
+  TRANSFER = "TRANSFER",
+  JOB_PAYMENT = "JOB_PAYMENT",
+  REFUND = "REFUND",
+  PAYOUT = "PAYOUT",
+  INSPECTION_PAYMENT = "INSPECTION_PAYMENT",
+}
+
+// Define interface for transaction document
+export interface ITransaction extends Document {
+  type: TRANSACTION_TYPE;
   amount: number;
-  initiator: string;
-  from: string;
-  to: string;
-  fromId: string;
-  toId: string;
-  description: string;
-  status: string;
-  form: string;
-  invoiceId: string;
-  jobId: string;
+  initiatorUser: ObjectId;
+  initiatorUserType: string;
+  fromUser: ObjectId;
+  fromUserType: string;
+  toUser: ObjectId;
+  toUserType: string;
+  description?: string;
+  status: TRANSACTION_STATUS;
+  remark?: string;
+  invoice?: object;
+  job?: ObjectId;
+  payment?: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
-const TransactionSchema = new Schema(
+const TransactionSchema = new Schema<ITransaction>(
     {
       type: {
         type: String,
-        enum: ["credit", "debit"],
+        enum: Object.values(TRANSACTION_TYPE), // Use enum values for type field
         required: true,
       },
       amount: {
         type: Number,
-        required: true,
       },
-      initiator: {
+      initiatorUser: {
+        type: Schema.Types.ObjectId,
+        refPath: 'initiatorUserType',
+      },
+      initiatorUserType: {
         type: String,
+      },
+
+      fromUser: {
+        type: Schema.Types.ObjectId,
+        refPath: 'fromUserType',
         required: true,
       },
-      from: {
-        type: String,
-        enum: ["admin", "customer", "contractor"],
+      fromUserType: {
+        type: String,  // ["admins", "customers", "contractors"],
         required: true,
       },
-      to: {
-        type: String,
-        enum: ["admin", "customer", "contractor"],
+      
+      toUser: {
+        type: Schema.Types.ObjectId,
+        refPath: 'toUserType',
         required: true,
       },
-      fromId: {
-        type: String,
+      toUserType: {
+        type: String, // ["admins", "customers", "contractors"],
         required: true,
       },
-      toId: {
-        type: String,
-        required: true,
-      },
+      
+      
       description: {
         type: String,
         default: "",
       },
+
       status: {
         type: String,
-        enum: ["pending", "successful", "failed"],
-        required: true,
+        enum: Object.values(TRANSACTION_STATUS), // Use enum values for status
+        default: TRANSACTION_STATUS.PENDING,
       },
-      form: {
+
+      remark: {
         type: String,
-        enum: ["inspection", "qoutation", "withraw"],
       },
-      invoiceId: {
-        type: String,
+
+      invoice: {
+        type: Object,
+        default: null,
+      }, // tranfer the quotation and charges object her
+
+      job: {
+        type: Schema.Types.ObjectId,
         default: "",
       },
-      jobId: {
-        type: String,
-        default: "",
+
+      payment: {
+        type: Schema.Types.ObjectId,
       },
+
       createdAt: {
         type: Date,
         default: Date.now,
       },
+
       updatedAt: {
         type: Date, 
         default: Date.now,
@@ -89,6 +124,6 @@ const TransactionSchema = new Schema(
     }
   );
   
-  const TransactionModel = model<ITransactionDocument>("Transaction", TransactionSchema);
+  const TransactionModel = model<ITransaction>("Transaction", TransactionSchema);
   
   export default TransactionModel; 
