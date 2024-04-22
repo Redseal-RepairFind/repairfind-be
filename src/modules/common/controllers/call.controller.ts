@@ -49,6 +49,48 @@ export const callController = async (
   
 }
 
+
+export const incommingCallController = async (
+  req: any,
+  res: Response,
+) => {
+
+  try {
+    const { 
+      
+     } = req.body;
+
+      const { tripDayId } = req.params;
+      const { verificationCode } = req.body;
+  
+      // Check for validation errors
+      const errors = validationResult(req);
+  
+      if (!errors.isEmpty()) {
+          return res.status(400).json({ errors: errors.array() });
+      }
+
+      const twiml = new twilio.twiml.VoiceResponse();
+      // Check if the call was answered
+      if (req.body.CallStatus === 'completed') {
+        // Call was completed, no action needed
+        twiml.hangup(); // Hang up the call
+      } else {
+        // An error occurred during the call
+        twiml.say('An application error has occurred. Goodbye.'); // Say a goodbye message
+        twiml.hangup(); // Hang up the call
+      }
+      res.type('text/xml');
+      res.send(twiml.toString());
+    
+  } catch (err: any) {
+    console.log("error", err)
+    res.status(500).json({ message: err.message });
+  }
+
+}
+
 export const callServiceController = {
-    callController
+    callController,
+    incommingCallController
 };
