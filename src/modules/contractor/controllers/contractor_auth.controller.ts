@@ -47,7 +47,7 @@ class AuthHandler extends Base {
 
             let emailData = {
                 emailTo: email,
-                subject: "email verification",
+                subject: "Email Verification",
                 html
             };
 
@@ -221,9 +221,7 @@ class AuthHandler extends Base {
 
             const quiz = await contractor?.quiz ?? null
             const contractorResponse = {
-               //@ts-ignore
               ...contractor.toJSON(), // Convert to plain JSON object
-                //@ts-ignore
               quiz,
             };
 
@@ -300,7 +298,7 @@ class AuthHandler extends Base {
           
               let emailData = {
                   emailTo: email,
-                  subject: "email verification",
+                  subject: "Email Verification",
                   html
               };
           

@@ -39,25 +39,8 @@ var CompanyProfileSchema = new mongoose_1.Schema({
         ref: "contractors",
         required: true,
     },
-    name: {
-        type: String,
-        required: true,
-    },
-    gstNumber: {
-        type: String,
-        required: false,
-    },
-    gstType: {
-        type: String,
-    },
-    profileType: {
-        type: String,
-    },
     location: {
         type: ContractorLocationSchema,
-    },
-    backgroundCheckConsent: {
-        type: Boolean,
     },
     skill: {
         type: String,

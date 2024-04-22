@@ -1,6 +1,5 @@
 import { validationResult } from "express-validator";
 import { Request, Response } from "express";
-import CustomerNotificationModel from "../../../database/customer/models/customer_notification.model";
 import { applyAPIFeature } from "../../../utils/api.feature";
 import NotificationModel from "../../../database/common/notification.model";
 
@@ -56,7 +55,7 @@ export const markNotificationAsRead = async (req: any, res: Response): Promise<a
         const customerId = req.customer.id;
 
         // Find the notification by ID and customer ID
-        const notification = await CustomerNotificationModel.findOne({ _id: notificationId, customer: customerId });
+        const notification = await NotificationModel.findOne({ _id: notificationId, customer: customerId });
 
         // Check if the notification exists
         if (!notification) {

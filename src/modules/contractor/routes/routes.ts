@@ -47,24 +47,20 @@ router.post("/reset-password", ContractorHttpRequest.PasswordResetRequest, (req:
 
 
 // PROFILE
-//   const cpUpload = diskUpload.fields([{ name: 'profilePhoto', maxCount: 1 }, { name: 'previousJobPhotos', maxCount: 10 }, { name: 'previousJobVideos', maxCount: 10 }])
 router.post("/profiles", checkContractorRole, ContractorHttpRequest.CreateProfileRequest, (req: Request, res: Response, next: NextFunction) => {
     ContractorController(req, res, next).createProfile();
 });
-router.get("/profiles/me", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
+router.get("/profiles", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
     ContractorController(req, res, next).getProfile();
 });
-router.put("/profiles/me", checkContractorRole,  ContractorHttpRequest.UpdateProfileRequest, (req: Request, res: Response, next: NextFunction) => {
+router.patch("/profiles", checkContractorRole,  ContractorHttpRequest.UpdateProfileRequest, (req: Request, res: Response, next: NextFunction) => {
     ContractorController(req, res, next).updateProfile();
 });
 
-router.post("/profiles/bank-details", checkContractorRole, ContractorHttpRequest.UpdateBankDetailRequest, (req: Request, res: Response, next: NextFunction) => {
-    ContractorController(req, res, next).updateBankDetails();
+router.post("/profiles/upgrade-employee", checkContractorRole, ContractorHttpRequest.UpgradeEmployeeProfileRequest, (req: Request, res: Response, next: NextFunction) => {
+    ContractorController(req, res, next).upgradeEmployeeProfile();
 });
 
-router.post("/profiles/stripe-identity", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
-    ContractorController(req, res, next).createIdentitySession();
-});
 
 //  Account
 router.get("/me", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
@@ -91,6 +87,19 @@ router.post("/me/stripe-account", checkContractorRole, (req: Request, res: Respo
 router.get("/me/stripe-account-login", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
     ContractorController(req, res, next).generateStripeAccountDashboardLink();
 });
+
+router.post("/me/gst", checkContractorRole, ContractorHttpRequest.CreateGstDetailsRequest, (req: Request, res: Response, next: NextFunction) => {
+    ContractorController(req, res, next).addGstDetails();
+});
+
+router.post("/me/company", checkContractorRole, ContractorHttpRequest.CreateCompanyDetailsRequest, (req: Request, res: Response, next: NextFunction) => {
+    ContractorController(req, res, next).addCompanyDetails();
+});
+
+router.post("/me/stripe-identity", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
+    ContractorController(req, res, next).createIdentitySession();
+});
+
 
 //  QUiz
 router.get("/quiz-start", checkContractorRole, QuizController.StartQuiz );
@@ -137,6 +146,7 @@ router.post("/stripe-setupintent",  checkContractorRole, ContractorStripeControl
 router.get('/jobs', checkContractorRole, ContractorJobController.getJobRequests)
 
 // Job Listings
+router.get('/jobs/my-jobs', checkContractorRole, ContractorJobController.getMyJobs)
 router.get('/jobs/listings', checkContractorRole, ContractorJobController.getJobListings)
 router.get('/jobs/listings/:jobId', checkContractorRole, ContractorJobController.getJobListingById)
 

@@ -4,11 +4,61 @@ import { IStripeAccount } from "../../common/stripe_account.schema";
 
 
 
+export interface IContractorGstDetails  extends Document  {
+  gstName: string,
+  gstNumber: string,
+  gstType: string,
+  backgroundCheckConsent: boolean
+  status: string
+  approvedBy: ObjectId
+  approvedAt: Date
+  recentRemark: string
+  gstCertificate: string
+}
+
+export interface IContractorCompanyDetails  extends Document  {
+  companyLogo: string,
+  companyStaffId: string, //url
+  status: string,
+  approvedBy: ObjectId,
+  approvedAt: Date,
+  recentRemark: String,
+}
+
+
+export interface IContractorCertnDetails  extends Document  {
+  status: string,
+  approvedAt: Date,
+}
+
+export enum GST_STATUS {
+  PENDING= "PENDING",
+  REVIEWING = "REVIEWING",
+  APPROVED = "APPROVED",
+  DECLINED = "DECLINED"
+}
+
+export enum CONTRACTOR_TYPES {
+  Individual = "Individual",
+  Company = "Company",
+  Employee = "Employee",
+}
+
+export enum COMPANY_STATUS {
+  PENDING= "PENDING",
+  REVIEWING = "REVIEWING",
+  APPROVED = "APPROVED",
+  DECLINED = "DECLINED"
+}
+
+
+
 export interface IContractor extends Document {
   _id: ObjectId;
   profile: ObjectId;
   firstName: string;
   lastName: string;
+  name: string;
   companyName: string;
   email: string;
   password: string;
@@ -20,20 +70,9 @@ export interface IContractor extends Document {
   };  
   accountType: string;
   profilePhoto: {
-    type: object
-    properties: {
-      url: {
-        type: String,
-        required: true,
-      },
-      label?: {
-        type: String,
-        unique: true,
-      },
-      descriptions?: {
-        type: Array<string>,
-      },
-    }
+    url: String,
+    label?: String,
+    descriptions?: Array<string>,
   };
   acceptTerms: Boolean;
   passwordOtp: {
@@ -55,7 +94,10 @@ export interface IContractor extends Document {
   stripeIdentity: object,
   stripeAccount: IStripeAccount,
   stripePaymentMethods: Array<object>,
+  gstDetails: IContractorGstDetails
+  companyDetails: IContractorCompanyDetails
   createdAt: Date;
   updatedAt: Date;
   quiz: any;
+  onboarding: Object;
 }

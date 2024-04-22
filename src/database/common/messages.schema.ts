@@ -6,20 +6,47 @@ export enum MessageType {
     TEXT = "TEXT",
     ALERT = "ALERT",
     MEDIA = "MEDIA",
+    AUDIO = "AUDIO",
+    VIDEO = "VIDEO",
+    IMAGE = "IMAGE",
 }
+
+
+
+interface IMedia {
+    url: string;
+    metrics?: [];
+    duration?: string;
+}
+
 // Define base interface for messages
 export interface IMessage extends Document {
-    _id: string;
+    id: string;
     conversation: string;
     sender: Types.ObjectId; // Reference to the sender (contractor or customer)
     senderType: 'contractor' | 'customer'; // Type of the sender
     messageType: 'TEXT' | 'ALERT' | 'MEDIA'; //
-    message: string;
-    media: { type: string; url: string; blurHash: string }[];
+    message?: string; // Optional message
+    media: IMedia[]; // Array of media objects
     readBy: Types.ObjectId[]; // References to contractors who have read the message
     heading: Object;
     isOwn: Boolean;
 }
+
+const MediaSchema = new Schema<IMedia>({
+    url: {
+        type: String,
+        required: true,
+    },
+    metrics: {
+        type: Array,
+        required: false,
+    },
+    duration: {
+        type: String,
+        required: false,
+    }
+});
 
 // Define schema for messages
 const MessageSchema = new Schema<IMessage>({
@@ -45,21 +72,9 @@ const MessageSchema = new Schema<IMessage>({
     message: {
         type: String,
         trim: true,
-        required: true,
+        required: false,
     },
-    media: [
-        {
-            type: {
-                type: String,
-            },
-            url: {
-                type: String,
-            },
-            blurHash: {
-                type: String,
-            },
-        },
-    ],
+    media: [MediaSchema],
     readBy: [
         {
             type: Schema.Types.ObjectId,
@@ -86,16 +101,14 @@ MessageSchema.methods.getHeading = async function (loggedInUserId: string) {
         const contractor = await ContractorModel.findById(this.sender) // Assuming your user model is named 'User'
         if(!contractor)return {}
         return {
-            // @ts-ignore
             name: contractor.name,
-            profilePhoto: contractor.profilePhoto,
+            image: contractor.profilePhoto.url,
         };
 
     } else {
         const customer = await CustomerModel.findById(this.sender) // Assuming your user model is named 'User'
         if(!customer)return {}
         return {
-            // @ts-ignore
             name: customer.name,
             image: customer.profilePhoto?.url,
         };

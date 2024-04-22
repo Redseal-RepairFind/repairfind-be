@@ -1,6 +1,6 @@
 import { validationResult } from "express-validator";
 import { NextFunction, Request, Response } from "express";
-import { CONTRACTOR_TYPES, ContractorModel } from "../../../database/contractor/models/contractor.model";
+import { ContractorModel } from "../../../database/contractor/models/contractor.model";
 import { Document, PipelineStage as MongoosePipelineStage } from 'mongoose'; // Import Document type from mongoose
 import { generateExpandedSchedule, getContractorIdsWithDateInSchedule } from "../../../utils/schedule.util";
 import { applyAPIFeature } from "../../../utils/api.feature";
@@ -8,6 +8,7 @@ import { BadRequestError } from "../../../utils/custom.errors";
 import { ContractorProfileModel } from "../../../database/contractor/models/contractor_profile.model";
 import { endOfMonth, endOfYear, format, getDate, isValid, startOfMonth, startOfYear } from "date-fns";
 import { ContractorScheduleModel } from "../../../database/contractor/models/contractor_schedule.model";
+import { CONTRACTOR_TYPES } from "../../../database/contractor/interface/contractor.interface";
 
 
 type PipelineStage =
@@ -71,8 +72,8 @@ export const exploreContractors = async (
                         $cond: {
                             if: {
                                 $or: [
-                                    { $eq: ['$accountType', CONTRACTOR_TYPES.INDIVIDUAL] },
-                                    { $eq: ['$accountType', CONTRACTOR_TYPES.EMPLOYEE] }
+                                    { $eq: ['$accountType', CONTRACTOR_TYPES.Individual] },
+                                    { $eq: ['$accountType', CONTRACTOR_TYPES.Employee] }
                                 ]
                             },
                             then: { $concat: ['$firstName', ' ', '$lastName'] },

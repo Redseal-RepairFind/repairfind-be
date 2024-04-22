@@ -130,7 +130,7 @@ ConversationSchema.methods.getHeading = function (loggedInUserId) {
                     if (otherMemberUser) {
                         return [2 /*return*/, {
                                 name: otherMemberUser.name,
-                                image: (_b = (_a = otherMemberUser.profilePhoto) === null || _a === void 0 ? void 0 : _a.url) !== null && _b !== void 0 ? _b : null,
+                                image: (_b = (_a = otherMemberUser.profilePhoto) === null || _a === void 0 ? void 0 : _a.url) !== null && _b !== void 0 ? _b : otherMemberUser.profilePhoto,
                             }];
                     }
                     _c.label = 2;

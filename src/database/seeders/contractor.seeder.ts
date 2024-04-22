@@ -1,4 +1,4 @@
-import { contractorAccountTypes } from "../../constants";
+import { CONTRACTOR_TYPES } from "../contractor/interface/contractor.interface";
 import { ContractorModel } from "../contractor/models/contractor.model";
 import { ContractorProfileModel } from "../contractor/models/contractor_profile.model";
 import CustomerModel from "../customer/models/customer.model";
@@ -18,7 +18,7 @@ const contractors = [
       url: "https://dsfds"
     },
     acceptTerms: true,
-    accountType: contractorAccountTypes.Employee,
+    accountType: CONTRACTOR_TYPES.Employee,
     passwordOtp: {
       verified: true,
     },
@@ -30,11 +30,10 @@ const contractors = [
         address: "Logics Senct",
         latitude: "12323123123",
         longitude: "2123213213213",
-      },
-      name: "Behd Guyt",
-      profileType: "Employee",
+      }
     }
   },
+
   {
     email: "employee_upgraded@repairfind.com",
     firstName: "Upgraded",
@@ -49,7 +48,7 @@ const contractors = [
       url: "https://dsfds"
     },
     acceptTerms: true,
-    accountType: contractorAccountTypes.Employee,
+    accountType: CONTRACTOR_TYPES.Employee,
     passwordOtp: {
       verified: true,
     },
@@ -72,7 +71,6 @@ const contractors = [
         latitude: "12323123123",
         longitude: "2123213213213",
       },
-      name: "Behd",
       phoneNumber: "3234234",
       previousJobPhotos: [
         {
@@ -84,7 +82,6 @@ const contractors = [
           url: "string",
         }
       ],
-      profileType: "Company",
       skill: "Plumber",
       website: "https://skdjfjkfdsjk.com",
       certnId: "5d1aabc8-e9c9-4e99-8b2f-14ac6995f13f"
@@ -104,7 +101,7 @@ const contractors = [
       url: "https://dsfds"
     },
     acceptTerms: true,
-    accountType: contractorAccountTypes.Individual,
+    accountType: CONTRACTOR_TYPES.Individual,
     passwordOtp: {
       verified: true,
     },
@@ -127,7 +124,6 @@ const contractors = [
         latitude: "12323123123",
         longitude: "2123213213213",
       },
-      name: "Behd",
       phoneNumber: "3234234",
       previousJobPhotos: [
         {
@@ -139,7 +135,6 @@ const contractors = [
           url: "string",
         }
       ],
-      profileType: "Individual",
       skill: "Plumber",
       website: "https://skdjfjkfdsjk.com",
       certnId: "5d1aabc8-e9c9-4e99-8b2f-14ac6995f13f"
@@ -158,7 +153,7 @@ const contractors = [
       url: "https://dsfds"
     },
     acceptTerms: true,
-    accountType: contractorAccountTypes.Company,
+    accountType: CONTRACTOR_TYPES.Company,
     passwordOtp: {
       verified: true,
     },
@@ -181,7 +176,6 @@ const contractors = [
         latitude: "12323123123",
         longitude: "2123213213213",
       },
-      name: "Behd",
       phoneNumber: "3234234",
       previousJobPhotos: [
         {
@@ -193,7 +187,6 @@ const contractors = [
           url: "string",
         }
       ],
-      profileType: "Company",
       skill: "Plumber",
       website: "https://skdjfjkfdsjk.com",
       certnId: "5d1aabc8-e9c9-4e99-8b2f-14ac6995f13f"
@@ -204,6 +197,8 @@ const contractors = [
 export const ContractorSeeder = async (options: Object) => {
   try {
     contractors.forEach(async (contractor) => {
+      let existingContractor = await ContractorModel.findOne({ email: contractor.email });   
+      if(existingContractor)return 
       let newContractor = await ContractorModel.findOneAndUpdate({ email: contractor.email }, contractor, { upsert: true, new: true, setDefaultsOnInsert: true });      
       if (newContractor) {
         let newProfile = await ContractorProfileModel.findOneAndUpdate({ contractor: newContractor.id }, {

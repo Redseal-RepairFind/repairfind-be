@@ -472,8 +472,7 @@ var identityVerificationRequiresInput = function (payload) { return __awaiter(vo
                 console.log('fileLink from stripe', fileLink);
                 console.log('s3fileUrl of file uploaded to s3', s3fileUrl);
                 user.stripeIdentity = verification;
-                //@ts-ignore
-                user.profilePhoto = { url: s3fileUrl };
+                user.profilePhoto ? user.profilePhoto.url = s3fileUrl : user.profilePhoto = { url: s3fileUrl };
                 user.save();
                 (0, expo_1.sendPushNotifications)(deviceTokens, {
                     title: 'Identity Verification',
@@ -555,7 +554,7 @@ var identityVerificationVerified = function (payload) { return __awaiter(void 0,
                 console.log('s3fileUrl of file uploaded to s3', s3fileUrl);
                 user.stripeIdentity = verification;
                 //@ts-ignore
-                user.profilePhoto = { url: s3fileUrl };
+                user.profilePhoto ? user.profilePhoto.url = s3fileUrl : user.profilePhoto = { url: s3fileUrl };
                 user.save();
                 (0, expo_1.sendPushNotifications)(deviceTokens, {
                     title: 'Identity Verification',

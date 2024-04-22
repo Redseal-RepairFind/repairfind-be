@@ -41,7 +41,9 @@ var api_feature_1 = require("../../../utils/api.feature");
 var conversations_schema_1 = require("../../../database/common/conversations.schema");
 var messages_schema_1 = require("../../../database/common/messages.schema");
 var events_1 = require("../../../events");
-var getConversations = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+var custom_errors_1 = require("../../../utils/custom.errors");
+var express_validator_1 = require("express-validator");
+var getConversations = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, startDate, endDate, read, unread, contractorId_1, filter, _b, data, error, error_1;
     return __generator(this, function (_c) {
         switch (_c.label) {
@@ -90,15 +92,13 @@ var getConversations = function (req, res) { return __awaiter(void 0, void 0, vo
                 return [3 /*break*/, 5];
             case 4:
                 error_1 = _c.sent();
-                console.error("Error fetching conversations:", error_1);
-                res.status(500).json({ success: false, message: "Server error" });
-                return [3 /*break*/, 5];
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_1))];
             case 5: return [2 /*return*/];
         }
     });
 }); };
 exports.getConversations = getConversations;
-var getSingleConversation = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+var getSingleConversation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var conversationId, contractorId, query, conversation, _a, _b, error_2;
     return __generator(this, function (_c) {
         switch (_c.label) {
@@ -128,15 +128,13 @@ var getSingleConversation = function (req, res) { return __awaiter(void 0, void 
                 return [3 /*break*/, 6];
             case 5:
                 error_2 = _c.sent();
-                console.error("Error fetching conversation:", error_2);
-                res.status(500).json({ success: false, message: "Server error" });
-                return [3 /*break*/, 6];
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_2))];
             case 6: return [2 /*return*/];
         }
     });
 }); };
 exports.getSingleConversation = getSingleConversation;
-var getConversationMessages = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+var getConversationMessages = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var conversationId, contractorId_2, conversation, contractorIsMember, _a, data, error, error_3;
     return __generator(this, function (_b) {
         switch (_b.label) {
@@ -185,20 +183,22 @@ var getConversationMessages = function (req, res) { return __awaiter(void 0, voi
                 return [3 /*break*/, 6];
             case 5:
                 error_3 = _b.sent();
-                console.error('Error fetching conversation messages:', error_3);
-                res.status(500).json({ success: false, message: 'Server error' });
-                return [3 /*break*/, 6];
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_3))];
             case 6: return [2 /*return*/];
         }
     });
 }); };
 exports.getConversationMessages = getConversationMessages;
-var sendMessage = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var conversationId, _a, message, media, type, contractorId_3, conversation, customerIsMember, newMessage, error_4;
+var sendMessage = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var errors, conversationId, _a, message, media, type, contractorId_3, conversation, customerIsMember, newMessage, error_4;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
                 _b.trys.push([0, 3, , 4]);
+                errors = (0, express_validator_1.validationResult)(req);
+                if (!errors.isEmpty()) {
+                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                }
                 conversationId = req.params.conversationId;
                 _a = req.body, message = _a.message, media = _a.media, type = _a.type;
                 contractorId_3 = req.contractor.id;
@@ -218,7 +218,8 @@ var sendMessage = function (req, res) { return __awaiter(void 0, void 0, void 0,
                         sender: contractorId_3, // Assuming the customer sends the message
                         senderType: 'contractors', // Type of the sender
                         message: message, // Message content from the request body
-                        messageType: messages_schema_1.MessageType.TEXT, // Assuming message type is text, adjust as needed
+                        messageType: type,
+                        media: media,
                         createdAt: new Date()
                     })];
             case 2:
@@ -228,9 +229,7 @@ var sendMessage = function (req, res) { return __awaiter(void 0, void 0, void 0,
                 return [3 /*break*/, 4];
             case 3:
                 error_4 = _b.sent();
-                console.error('Error sending message:', error_4);
-                res.status(500).json({ success: false, message: 'Server error' });
-                return [3 /*break*/, 4];
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('Error sending message', error_4))];
             case 4: return [2 /*return*/];
         }
     });

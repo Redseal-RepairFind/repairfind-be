@@ -38,21 +38,17 @@ router.post("/reset-password", requests_1.ContractorHttpRequest.PasswordResetReq
     (0, contractor_auth_controller_1.AuthController)(req, res, next).resetPassword();
 });
 // PROFILE
-//   const cpUpload = diskUpload.fields([{ name: 'profilePhoto', maxCount: 1 }, { name: 'previousJobPhotos', maxCount: 10 }, { name: 'previousJobVideos', maxCount: 10 }])
 router.post("/profiles", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateProfileRequest, function (req, res, next) {
     (0, contractor_controller_1.ContractorController)(req, res, next).createProfile();
 });
-router.get("/profiles/me", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
+router.get("/profiles", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
     (0, contractor_controller_1.ContractorController)(req, res, next).getProfile();
 });
-router.put("/profiles/me", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.UpdateProfileRequest, function (req, res, next) {
+router.patch("/profiles", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.UpdateProfileRequest, function (req, res, next) {
     (0, contractor_controller_1.ContractorController)(req, res, next).updateProfile();
 });
-router.post("/profiles/bank-details", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.UpdateBankDetailRequest, function (req, res, next) {
-    (0, contractor_controller_1.ContractorController)(req, res, next).updateBankDetails();
-});
-router.post("/profiles/stripe-identity", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
-    (0, contractor_controller_1.ContractorController)(req, res, next).createIdentitySession();
+router.post("/profiles/upgrade-employee", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.UpgradeEmployeeProfileRequest, function (req, res, next) {
+    (0, contractor_controller_1.ContractorController)(req, res, next).upgradeEmployeeProfile();
 });
 //  Account
 router.get("/me", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
@@ -75,6 +71,15 @@ router.post("/me/stripe-account", contractorRoleCheck_middleware_1.checkContract
 });
 router.get("/me/stripe-account-login", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
     (0, contractor_controller_1.ContractorController)(req, res, next).generateStripeAccountDashboardLink();
+});
+router.post("/me/gst", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateGstDetailsRequest, function (req, res, next) {
+    (0, contractor_controller_1.ContractorController)(req, res, next).addGstDetails();
+});
+router.post("/me/company", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateCompanyDetailsRequest, function (req, res, next) {
+    (0, contractor_controller_1.ContractorController)(req, res, next).addCompanyDetails();
+});
+router.post("/me/stripe-identity", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
+    (0, contractor_controller_1.ContractorController)(req, res, next).createIdentitySession();
 });
 //  QUiz
 router.get("/quiz-start", contractorRoleCheck_middleware_1.checkContractorRole, contractor_quiz_controller_1.QuizController.StartQuiz);
@@ -107,6 +112,7 @@ router.post("/stripe-setupintent", contractorRoleCheck_middleware_1.checkContrac
 // Contractor Jobs
 router.get('/jobs', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.getJobRequests);
 // Job Listings
+router.get('/jobs/my-jobs', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.getMyJobs);
 router.get('/jobs/listings', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.getJobListings);
 router.get('/jobs/listings/:jobId', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.getJobListingById);
 // Job Request

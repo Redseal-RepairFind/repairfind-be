@@ -43,38 +43,16 @@ const BankDetailsSchema = new Schema<IContractorBankDetails>({
 });
 
 
+
 const CompanyProfileSchema = new Schema<IContractorProfile>(
     {
-    
       contractor: {
         type: Schema.Types.ObjectId, 
         ref: "contractors",
         required: true,
-      },
-
-      name: {
-        type: String,
-        required: true,   
-      },
-
-      gstNumber: {
-        type: String,
-        required: false, 
-      },
-      gstType: {
-        type: String, 
-      },
-
-      profileType: {
-        type: String,
-      },
-      
+      }, 
       location: {
         type: ContractorLocationSchema,
-      },
-
-      backgroundCheckConsent: {
-        type: Boolean,
       },
       skill: {
         type: String,
@@ -95,6 +73,7 @@ const CompanyProfileSchema = new Schema<IContractorProfile>(
       availableDays: {
         type: [String],
       },
+      
       isOffDuty: {
         type: Boolean,
         default: false,
@@ -118,6 +97,7 @@ const CompanyProfileSchema = new Schema<IContractorProfile>(
       bankDetails: {
         type: BankDetailsSchema, // Embed the BankDetails subdocument
       },
+
 
       certnId: {
         type: String,

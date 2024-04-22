@@ -38,6 +38,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.JobModel = exports.JobType = exports.JOB_SCHEDULE_TYPE = exports.JOB_STATUS = void 0;
 var mongoose_1 = require("mongoose");
+var job_quotation_model_1 = require("./job_quotation.model");
 var JOB_STATUS;
 (function (JOB_STATUS) {
     JOB_STATUS["PENDING"] = "PENDING";
@@ -58,6 +59,20 @@ var JobType;
     JobType["LISTING"] = "LISTING";
     JobType["REQUEST"] = "REQUEST";
 })(JobType || (exports.JobType = JobType = {}));
+var VoiceDescriptionSchema = new mongoose_1.Schema({
+    url: {
+        type: String,
+        required: true,
+    },
+    metrics: {
+        type: Array,
+        required: false,
+    },
+    duration: {
+        type: String,
+        required: false,
+    }
+});
 var ScheduleSchema = new mongoose_1.Schema({
     startDate: { type: Date, required: true },
     endDate: { type: Date },
@@ -91,7 +106,7 @@ var JobSchema = new mongoose_1.Schema({
     category: { type: String, required: false },
     description: { type: String, required: true },
     title: { type: String },
-    voiceDescription: { type: String, default: null },
+    voiceDescription: VoiceDescriptionSchema,
     location: { type: JobLocationSchema, required: true },
     date: { type: Date, required: true },
     time: { type: Date, required: false },
@@ -103,33 +118,31 @@ var JobSchema = new mongoose_1.Schema({
     experience: { type: String },
     jobHistory: [JobHistorySchema], // Array of job history entries
     schedules: [ScheduleSchema],
-    quotations: {
-        type: [mongoose_1.Schema.Types.ObjectId],
-        ref: 'job_quotations'
-    },
+    quotations: [{
+            id: { type: mongoose_1.Schema.Types.ObjectId, ref: 'job_quotations' },
+            status: { type: String, enum: Object.values(job_quotation_model_1.JOB_QUOTATION_STATUS) }
+        }],
     payments: {
         type: [mongoose_1.Schema.Types.ObjectId],
         ref: 'payments'
     },
+    myQuotation: Object,
     emergency: { type: Boolean, default: false },
-    myQuotation: { type: Object, default: null },
 }, { timestamps: true });
 JobSchema.virtual('totalQuotations').get(function () {
-    return this.quotations.length;
+    var pendingQuotations = this.quotations.filter(function (quote) { return quote.status !== job_quotation_model_1.JOB_QUOTATION_STATUS.DECLINED; });
+    return pendingQuotations.length;
 });
-JobSchema.methods.getMyQoutation = function (jobId, contractorId) {
+JobSchema.methods.getMyQoutation = function (contractor) {
     return __awaiter(this, void 0, void 0, function () {
-        var job;
+        var contractorQuotation;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, this.populate({
-                        path: 'quotations',
-                        match: { contractor: contractorId } // Match quotations by contractorId
-                    })];
+                case 0: return [4 /*yield*/, job_quotation_model_1.JobQoutationModel.findOne({ job: this.id, contractor: contractor })];
                 case 1:
-                    job = _a.sent();
-                    if (job.quotations.length) {
-                        return [2 /*return*/, job.quotations[0]];
+                    contractorQuotation = _a.sent();
+                    if (contractorQuotation) {
+                        return [2 /*return*/, contractorQuotation];
                     }
                     else {
                         return [2 /*return*/, null];

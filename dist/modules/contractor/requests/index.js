@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorHttpRequest = exports.sendMessageParams = exports.CreateJobQuotationRequest = exports.CreateScheduleRequest = exports.UpdateOrDevice = exports.CreateStripeSessionRequest = exports.InviteToTeam = exports.UpdateBankDetailRequest = exports.PasswordChangeRequest = exports.PasswordResetRequest = exports.ResendEmailRequest = exports.LoginRequest = exports.EmailVerificationRequest = exports.UpdateProfileRequest = exports.CreateProfileRequest = exports.CreateContractorRequest = void 0;
+exports.ContractorHttpRequest = exports.sendMessageParams = exports.CreateJobQuotationRequest = exports.CreateScheduleRequest = exports.UpdateOrDevice = exports.CreateStripeSessionRequest = exports.InviteToTeam = exports.CreateCompanyDetailsRequest = exports.CreateGstDetailsRequest = exports.UpdateBankDetailRequest = exports.PasswordChangeRequest = exports.PasswordResetRequest = exports.ResendEmailRequest = exports.LoginRequest = exports.EmailVerificationRequest = exports.UpgradeEmployeeProfileRequest = exports.UpdateProfileRequest = exports.CreateProfileRequest = exports.CreateContractorRequest = void 0;
 var express_validator_1 = require("express-validator");
 exports.CreateContractorRequest = [
     (0, express_validator_1.body)('email').isEmail(),
@@ -54,20 +54,8 @@ exports.CreateProfileRequest = [
     (0, express_validator_1.body)("profilePhoto.url").optional().isURL(),
     (0, express_validator_1.body)("location.latitude").notEmpty().isNumeric(),
     (0, express_validator_1.body)("location.longitude").notEmpty().isNumeric(),
-    (0, express_validator_1.body)('backgroundCheckConsent')
-        .exists({ checkFalsy: true }).withMessage('Background consent is required')
-        .custom(function (value) { return value === true; }).withMessage('You must consent to us running a background check'),
-    (0, express_validator_1.body)("skill").notEmpty(),
     //  only validate when  accountType  is  Company and Individual
-    (0, express_validator_1.body)("name").if(function (value, _a) {
-        var req = _a.req;
-        return (req.body.accountType || req.contractor.accountType) !== 'Employee';
-    }).notEmpty(),
-    (0, express_validator_1.body)("gstNumber").if(function (value, _a) {
-        var req = _a.req;
-        return (req.body.accountType || req.contractor.accountType) !== 'Employee';
-    }).notEmpty(),
-    (0, express_validator_1.body)("gstType").if(function (value, _a) {
+    (0, express_validator_1.body)("skill").if(function (value, _a) {
         var req = _a.req;
         return (req.body.accountType || req.contractor.accountType) !== 'Employee';
     }).notEmpty(),
@@ -107,36 +95,27 @@ exports.CreateProfileRequest = [
         var req = _a.req;
         return (req.body.accountType || req.contractor.accountType) !== 'Employee';
     }).optional().isArray().notEmpty().custom(function (value) { return validateMediaArray(value); }),
-    //  validate only for 'Employee
-    (0, express_validator_1.body)("firstName").if(function (value, _a) {
-        var req = _a.req;
-        return (req.body.accountType || req.contractor.accountType) === 'Employee';
-    }).notEmpty(),
-    (0, express_validator_1.body)("lastName").if(function (value, _a) {
-        var req = _a.req;
-        return (req.body.accountType || req.contractor.accountType) === 'Employee';
-    }).notEmpty(),
 ];
 exports.UpdateProfileRequest = [
     //  validate for all
-    (0, express_validator_1.body)("location.address").notEmpty(),
+    (0, express_validator_1.body)("location.address").optional(),
     (0, express_validator_1.body)("profilePhoto.url").optional().isURL(),
-    (0, express_validator_1.body)("location.latitude").notEmpty().isNumeric(),
-    (0, express_validator_1.body)("location.longitude").notEmpty().isNumeric(),
-    (0, express_validator_1.body)("skill").notEmpty(),
+    (0, express_validator_1.body)("location.latitude").optional().isNumeric(),
+    (0, express_validator_1.body)("location.longitude").optional().isNumeric(),
+    (0, express_validator_1.body)("skill").optional(),
     //  only validate when  accountType  is  Company and Individual
-    (0, express_validator_1.body)("name").if(function (value, _a) {
+    (0, express_validator_1.body)("gstName").if(function (value, _a) {
         var req = _a.req;
         return (req.body.accountType || req.contractor.accountType) !== 'Employee';
-    }).notEmpty(),
+    }).optional(),
     (0, express_validator_1.body)("gstNumber").if(function (value, _a) {
         var req = _a.req;
         return (req.body.accountType || req.contractor.accountType) !== 'Employee';
-    }).notEmpty(),
+    }).optional(),
     (0, express_validator_1.body)("gstType").if(function (value, _a) {
         var req = _a.req;
         return (req.body.accountType || req.contractor.accountType) !== 'Employee';
-    }).notEmpty(),
+    }).optional(),
     (0, express_validator_1.body)("experienceYear").if(function (value, _a) {
         var req = _a.req;
         return (req.body.accountType || req.contractor.accountType) !== 'Employee';
@@ -160,11 +139,11 @@ exports.UpdateProfileRequest = [
     (0, express_validator_1.body)("emergencyJobs").if(function (value, _a) {
         var req = _a.req;
         return (req.body.accountType || req.contractor.accountType) !== 'Employee';
-    }).notEmpty(),
+    }).optional().notEmpty(),
     (0, express_validator_1.body)("availableDays").if(function (value, _a) {
         var req = _a.req;
         return (req.body.accountType || req.contractor.accountType) !== 'Employee';
-    }).notEmpty().isArray(),
+    }).optional().notEmpty().isArray(),
     (0, express_validator_1.body)("previousJobPhotos").if(function (value, _a) {
         var req = _a.req;
         return (req.body.accountType || req.contractor.accountType) !== 'Employee';
@@ -173,15 +152,27 @@ exports.UpdateProfileRequest = [
         var req = _a.req;
         return (req.body.accountType || req.contractor.accountType) !== 'Employee';
     }).optional().isArray().notEmpty().custom(function (value) { return validateMediaArray(value); }),
-    //  validate only for 'Employee
-    (0, express_validator_1.body)("firstName").if(function (value, _a) {
-        var req = _a.req;
-        return (req.body.accountType || req.contractor.accountType) === 'Employee';
-    }).notEmpty(),
-    (0, express_validator_1.body)("lastName").if(function (value, _a) {
-        var req = _a.req;
-        return (req.body.accountType || req.contractor.accountType) === 'Employee';
-    }).notEmpty(),
+];
+exports.UpgradeEmployeeProfileRequest = [
+    (0, express_validator_1.body)("location.address").notEmpty(),
+    (0, express_validator_1.body)("location.latitude").notEmpty().isNumeric(),
+    (0, express_validator_1.body)("location.longitude").notEmpty().isNumeric(),
+    // body('backgroundCheckConsent')
+    //   .exists({ checkFalsy: true }).withMessage('Background consent is required')
+    //   .custom((value) => value === true).withMessage('You must consent to us running a background check'),
+    (0, express_validator_1.body)("skill").notEmpty(),
+    (0, express_validator_1.body)("gstDetails.gstNumber").notEmpty(),
+    (0, express_validator_1.body)("gstDetails.gstName").notEmpty(),
+    (0, express_validator_1.body)("gstDetails.gstType").notEmpty(),
+    (0, express_validator_1.body)("experienceYear").optional().isNumeric(),
+    (0, express_validator_1.body)("about").optional(),
+    (0, express_validator_1.body)("website").optional().isURL(),
+    (0, express_validator_1.body)("email").optional().isEmail(),
+    (0, express_validator_1.body)("phoneNumber").optional().isNumeric(),
+    (0, express_validator_1.body)("emergencyJobs").notEmpty(),
+    (0, express_validator_1.body)("availableDays").notEmpty().isArray(),
+    (0, express_validator_1.body)("previousJobPhotos").optional().isArray().notEmpty().custom(function (value) { return validateMediaArray(value); }),
+    (0, express_validator_1.body)("previousJobVideos").optional().isArray().notEmpty().custom(function (value) { return validateMediaArray(value); }),
 ];
 // Custom validation function for checking if an array of media objects contains 'url' property
 var validateMediaArray = function (value) {
@@ -219,6 +210,23 @@ exports.UpdateBankDetailRequest = [
     (0, express_validator_1.body)("institutionNumber").notEmpty(),
     (0, express_validator_1.body)("accountNumber").notEmpty(),
 ];
+exports.CreateGstDetailsRequest = [
+    (0, express_validator_1.body)("gstName").notEmpty(),
+    (0, express_validator_1.body)("gstNumber").notEmpty(),
+    (0, express_validator_1.body)("gstType").notEmpty(),
+    (0, express_validator_1.body)("backgroundCheckConsent").notEmpty(),
+    (0, express_validator_1.body)("gstCertitificate").if(function (value, _a) {
+        var req = _a.req;
+        return (req.body.accountType || req.contractor.accountType) !== 'Company';
+    }).notEmpty(),
+    (0, express_validator_1.body)('backgroundCheckConsent')
+        .exists({ checkFalsy: true }).withMessage('Background consent is required')
+        .custom(function (value) { return value === true; }).withMessage('You must consent to us running a background check'),
+];
+exports.CreateCompanyDetailsRequest = [
+    (0, express_validator_1.body)("companyLogo").notEmpty(),
+    (0, express_validator_1.body)("companyStaffId").notEmpty(),
+];
 exports.InviteToTeam = [
     (0, express_validator_1.body)("memberId").notEmpty(),
     (0, express_validator_1.body)("role").notEmpty(),
@@ -255,10 +263,18 @@ exports.CreateJobQuotationRequest = [
 ];
 // Define the validation rules for the message request
 exports.sendMessageParams = [
-    (0, express_validator_1.body)('type').isIn(['TEXT', 'MEDIA']).withMessage('Invalid messageType'),
-    (0, express_validator_1.body)('message').notEmpty().if((0, express_validator_1.body)('type').equals('TEXT')).withMessage('Message is required'),
-    (0, express_validator_1.body)('media').isArray().if((0, express_validator_1.body)('type').equals('MEDIA')).withMessage('Media must be an array'),
-    (0, express_validator_1.body)('media.*.url').notEmpty().if((0, express_validator_1.body)('type').equals('MEDIA')).withMessage('Media URL is required'),
+    (0, express_validator_1.body)('type').isIn(['TEXT', 'MEDIA', 'AUDIO', 'VIDEO', 'IMAGE']).withMessage('Invalid messageType'),
+    (0, express_validator_1.body)('message').if((0, express_validator_1.body)('type').equals('TEXT')).notEmpty().withMessage('Message is required'),
+    (0, express_validator_1.body)('media').if((0, express_validator_1.body)('type').isIn(['MEDIA', 'AUDIO', 'VIDEO', 'IMAGE'])).isArray().withMessage('Media must be an object')
+        .bail() // Stop validation if media is not an object
+        .custom(function (value, _a) {
+        var req = _a.req;
+        // Check if required properties exist in media object
+        if (!value.every(function (item) { return typeof item === 'object' && 'url' in item && typeof item.url === 'string' && item.url.trim() !== ''; })) {
+            throw new Error('Media url is required');
+        }
+        return true;
+    }),
 ];
 exports.ContractorHttpRequest = {
     CreateProfileRequest: exports.CreateProfileRequest,
@@ -275,5 +291,8 @@ exports.ContractorHttpRequest = {
     CreateStripeSessionRequest: exports.CreateStripeSessionRequest,
     UpdateOrDevice: exports.UpdateOrDevice,
     CreateJobQuotationRequest: exports.CreateJobQuotationRequest,
-    sendMessageParams: exports.sendMessageParams
+    sendMessageParams: exports.sendMessageParams,
+    CreateGstDetailsRequest: exports.CreateGstDetailsRequest,
+    CreateCompanyDetailsRequest: exports.CreateCompanyDetailsRequest,
+    UpgradeEmployeeProfileRequest: exports.UpgradeEmployeeProfileRequest
 };

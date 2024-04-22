@@ -1,4 +1,4 @@
-import { validationResult } from "express-validator";
+import { body, validationResult } from "express-validator";
 import bcrypt from "bcrypt";
 import { NextFunction, Request, Response } from "express";
 import { ContractorModel } from "../../../database/contractor/models/contractor.model";
@@ -10,10 +10,12 @@ import { handleAsyncError } from "../../../abstracts/decorators.abstract";
 import { ContractorProfileModel } from "../../../database/contractor/models/contractor_profile.model";
 import { IContractorBankDetails, IContractorProfile } from "../../../database/contractor/interface/contractor_profile.interface";
 import { initiateCertnInvite } from "../../../services/certn";
-import { EmailService } from "../../../services";
+import { CertnService, EmailService } from "../../../services";
 import { StripeService } from "../../../services/stripe";
 import ContractorDeviceModel from "../../../database/contractor/models/contractor_devices.model";
 import { IStripeAccount } from "../../../database/common/stripe_account.schema";
+import { COMPANY_STATUS, CONTRACTOR_TYPES, GST_STATUS, IContractorCompanyDetails, IContractorGstDetails } from "../../../database/contractor/interface/contractor.interface";
+import { BadRequestError } from "../../../utils/custom.errors";
 
 
 class ProfileHandler extends Base {
@@ -23,9 +25,6 @@ class ProfileHandler extends Base {
     let res = this.res
     try {
       let {
-        name,
-        gstNumber,
-        gstType,
         location,
         backgroundCheckConsent,
         skill,
@@ -39,71 +38,54 @@ class ProfileHandler extends Base {
         profilePhoto,
         previousJobPhotos,
         previousJobVideos,
-        firstName,
-        lastName
       } = req.body;
 
       // Check for validation errors
-      const errors = validationResult(req);
 
+
+      const contractorId = req.contractor.id;
+      const contractor = await ContractorModel.findOne({ _id: contractorId });
+
+      if (!contractor) {
+        return res.status(404).json({ message: "Contractor account not found" });
+      }
+
+      // Check for validation errors
+      const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
       }
 
-      const contractor = req.contractor;
-      const contractorId = contractor.id
-
-      const constractor = await ContractorModel.findOne({ _id: contractorId });
-
-      if (!constractor) {
-        return res
-          .status(401)
-          .json({ message: "invalid credential" });
+      let payload = {}
+      if (contractor.accountType == CONTRACTOR_TYPES.Company || contractor.accountType == CONTRACTOR_TYPES.Individual) {
+        payload = {
+          contractor: contractorId,
+          location,
+          skill,
+          website,
+          experienceYear,
+          about,
+          email,
+          phoneNumber,
+          emergencyJobs,
+          availableDays,
+          profilePhoto,
+          previousJobPhotos,
+          previousJobVideos,
+          backgroundCheckConsent,
+        }
       }
 
-
-      let certnToken = process.env.CERTN_KEY
-
-      if (!certnToken) {
-        return res
-          .status(401)
-          .json({ message: "Certn API Key is missing" });
-      }
-
-      // let imageUrl =  s3FileUpload(files['profilePhoto'][0]);
-
-      const data = {
-        request_enhanced_identity_verification: true,
-        request_enhanced_criminal_record_check: true,
-        email: constractor.email
-      };
-
-      const profileType = contractor.accountType
-      if (profileType == 'Employee' || profileType == 'Individual') {
-        name = `${contractor.firstName} ${contractor.lastName}`
-      } else {
-        name = `${contractor.companyName}`
+      if (contractor.accountType == CONTRACTOR_TYPES.Employee) {
+        payload = {
+          contractor: contractorId,
+          location,
+          backgroundCheckConsent,
+        }
       }
 
       const profile = await ContractorProfileModel.findOneAndUpdate({ contractor: contractorId }, {
-        contractor: contractorId,
-        name,
-        gstNumber,
-        gstType,
-        location,
-        backgroundCheckConsent,
-        skill,
-        website,
-        experienceYear,
-        about,
-        email,
-        phoneNumber,
-        emergencyJobs,
-        availableDays,
-        profilePhoto,
-        previousJobPhotos,
-        previousJobVideos,
-        profileType
+        payload
       }, { upsert: true, new: true, setDefaultsOnInsert: true })
 
       // Update the ContractorModel with the profile ID
@@ -113,17 +95,26 @@ class ProfileHandler extends Base {
 
 
       const contractorResponse = {
-        //@ts-ignore
-        ...contractor.toJSON(), // Convert to plain JSON object
+        ...contractor.toJSON(),
         profile
       };
 
 
-      initiateCertnInvite(data).then(res => {
-        profile.certnId = res.applicant.id
-        profile.save()
-        console.log('Certn invitation sent', profile.certnId)
-      })
+
+
+      if (contractor.accountType == CONTRACTOR_TYPES.Individual) {
+        const data = {
+          request_enhanced_identity_verification: true,
+          request_enhanced_criminal_record_check: true,
+          email: contractor.email
+        };
+
+        CertnService.initiateCertnInvite(data).then(res => {
+          profile.certnId = res.applicant.id
+          profile.save()
+          console.log('Certn invitation sent', profile.certnId)
+        })
+      }
 
 
 
@@ -133,7 +124,6 @@ class ProfileHandler extends Base {
       EmailService.send(contractor.email, 'New Profile', htmlCon)
         .then(() => console.log('Email sent successfully'))
         .catch(error => console.error('Error sending email:', error));
-
 
 
       // send email to admin
@@ -195,19 +185,19 @@ class ProfileHandler extends Base {
       const contractorId = contractor.id;
 
       const {
-        name,
         website,
-        accountType, // for account upgrade
         experienceYear,
         about,
         email,
         location,
         phoneNumber,
         emergencyJobs,
-        profilePhoto,
         availableDays,
         previousJobPhotos,
         previousJobVideos,
+        profilePhoto,
+        backgroundCheckConsent,
+        skill
       } = req.body;
 
       // Check for validation errors
@@ -216,44 +206,102 @@ class ProfileHandler extends Base {
         return res.status(400).json({ errors: errors.array() });
       }
 
-      const profile = await ContractorProfileModel.findOneAndUpdate(
-        { contractor: contractorId },
-        {
-          name,
-          website,
-          experienceYear,
-          about,
-          location,
-          email,
-          phoneNumber,
-          emergencyJobs,
-          availableDays,
-          previousJobPhotos,
-          previousJobVideos,
-        },
-        { new: true }
-      );
+      // Custom validation function for checking if an array of media objects contains 'url' property
+      // const validateMediaArray = (value: any): boolean => {
+      //   return Array.isArray(value) && value.every((item) => typeof item === 'object' && 'url' in item && typeof item.url === 'string' && item.url.trim() !== '');
+      // };
+
+
+      // Define validation rules for the request body
+      // if (contractor.accountType == CONTRACTOR_TYPES.Company || contractor.accountType == CONTRACTOR_TYPES.Individual) {
+      //   await Promise.all([
+      //     body("location.address").notEmpty(),          
+      //     body("location.latitude").notEmpty().isNumeric(),
+      //     body("location.longitude").notEmpty().isNumeric(),
+
+      //     body('backgroundCheckConsent')
+      //       .exists({ checkFalsy: true }).withMessage('Background consent is required')
+      //       .custom((value) => value === true).withMessage('You must consent to us running a background check'),
+
+      //     body("skill").notEmpty(),
+
+      //     body("gstDetails.gstNumber").notEmpty(),
+      //     body("gstDetails.gstName").notEmpty(),
+      //     body("gstDetails.gstType").notEmpty(),
+      //     body("gstDetails.gstCertificate").if((value: any, { req }: any) => (req.contractor.accountType) !== 'Company').notEmpty(),
+
+
+      //     body("experienceYear").optional().isNumeric(),
+      //     body("about").optional(),
+      //     body("website").optional().isURL(),
+      //     body("email").optional().isEmail(),
+      //     body("phoneNumber").optional().isNumeric(),
+      //     body("emergencyJobs").notEmpty(),
+      //     body("availableDays").notEmpty().isArray(),
+      //     body("previousJobPhotos").optional().isArray().notEmpty().custom((value) => validateMediaArray(value)),
+      //     body("previousJobVideos").optional().isArray().notEmpty().custom((value) => validateMediaArray(value)),
+
+      //     //  validate only for 'Employee
+      //     body("firstName").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) === 'Employee').notEmpty(),
+      //     body("lastName").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) === 'Employee').notEmpty(),
+
+      //   ]);
+      // }
+
+      // if (contractor.accountType == CONTRACTOR_TYPES.Employee) {
+      //   await Promise.all([
+      //     body("location.address").notEmpty(),          
+      //     body("location.latitude").notEmpty().isNumeric(),
+      //     body("location.longitude").notEmpty().isNumeric(),
+      //     body('backgroundCheckConsent')
+      //       .exists({ checkFalsy: true }).withMessage('Background consent is required')
+      //       .custom((value) => value === true).withMessage('You must consent to us running a background check'),
+      //   ]);
+      // }
+
+
+
+      const profile = await ContractorProfileModel.find({ contractor: contractorId })
 
       if (!profile) {
         return res.status(404).json({ success: false, message: 'Profile not found' });
       }
 
-      if (accountType) {
-        contractor.accountType = accountType;
+      let payload = {}
+      if (contractor.accountType == CONTRACTOR_TYPES.Company || contractor.accountType == CONTRACTOR_TYPES.Individual) {
+        payload = {
+          contractor: contractorId,
+          location,
+          skill,
+          website,
+          experienceYear,
+          about,
+          email,
+          phoneNumber,
+          emergencyJobs,
+          availableDays,
+          profilePhoto,
+          previousJobPhotos,
+          previousJobVideos,
+          backgroundCheckConsent,
+        }
       }
-      contractor.profilePhoto = profilePhoto;
 
-
-      if (!profile.name) {
-        const profileType = contractor.accountType
-        if (profileType == 'Employee' || profileType == 'Individual') {
-          profile.name = `${contractor.firstName} ${contractor.lastName}`
-        } else {
-          profile.name = `${contractor.companyName}`
+      if (contractor.accountType == CONTRACTOR_TYPES.Employee) {
+        payload = {
+          contractor: contractorId,
+          location,
+          backgroundCheckConsent,
         }
       }
 
 
+
+      await ContractorProfileModel.findOneAndUpdate(
+        { contractor: contractorId },
+        { ...payload },
+        { new: true }
+      );
 
       await contractor.save();
 
@@ -276,6 +324,78 @@ class ProfileHandler extends Base {
   }
 
   @handleAsyncError()
+  public async upgradeEmployeeProfile(): Promise<Response | void> {
+    let req = <any>this.req;
+    let res = this.res;
+    let next = this.next;
+    try {
+      const contractor = req.contractor;
+      const contractorId = contractor.id;
+
+      const {
+        gstDetails,
+        website,
+        experienceYear,
+        about,
+        email,
+        location,
+        phoneNumber,
+        emergencyJobs,
+        availableDays,
+        previousJobPhotos,
+        previousJobVideos,
+        skill
+      } = req.body;
+
+     
+       // Check for validation errors
+       const errors = validationResult(req);
+       if (!errors.isEmpty()) {
+         return res.status(400).json({ errors: errors.array() });
+       }
+
+      const profile = await ContractorProfileModel.findOneAndUpdate(
+        { contractor: contractorId },
+        {
+          website,
+          experienceYear,
+          about,
+          location,
+          email,
+          phoneNumber,
+          emergencyJobs,
+          availableDays,
+          previousJobPhotos,
+          previousJobVideos,
+          skill,
+        },
+        { new: true }
+      );
+
+
+      contractor.accountType = CONTRACTOR_TYPES.Individual;
+      contractor.gstDetails = gstDetails;
+      await contractor.save();
+
+      const contractorResponse = {
+        ...contractor.toJSON(), // Convert to plain JSON object
+        profile
+      };
+
+
+      res.json({
+        success: true,
+        message: 'Profile upgraded successfully',
+        data: contractorResponse,
+      });
+    } catch (err: any) {
+      console.log('error', err);
+      res.status(500).json({ success: false, message: err.message });
+      next( new BadRequestError('An error occured', err))
+    }
+  }
+
+  @handleAsyncError()
   public async updateAccount(): Promise<Response | void> {
     let req = <any>this.req;
     let res = this.res;
@@ -283,29 +403,39 @@ class ProfileHandler extends Base {
       const contractor = req.contractor;
       const contractorId = contractor.id;
 
-      const {
-        name,
-        firstName,
-        lastName,
-        profilePhoto,
-        phoneNumber,
-      } = req.body;
-
-      const account = await ContractorModel.findOneAndUpdate(
-        { _id: contractorId },
-        {
-          name,
-          firstName,
-          lastName,
-          profilePhoto,
-          phoneNumber
-        },
-        { new: true }
-      );
-
+      const account = await ContractorModel.findById(contractorId);
       if (!account) {
         return res.status(404).json({ success: false, message: 'Account not found' });
       }
+
+      const {
+        firstName,
+        lastName,
+        companyName,
+        profilePhoto,
+        phoneNumber,
+        dateOfBirth,
+      } = req.body;
+
+      let payload = {}
+      if (account && account.accountType == 'Company') {
+        payload = { profilePhoto, phoneNumber, companyName }
+      }
+
+      if (account && account.accountType == 'Individual') {
+        payload = { profilePhoto, phoneNumber, firstName, lastName, dateOfBirth }
+      }
+
+      if (account && account.accountType == 'Employee') {
+        payload = { profilePhoto, phoneNumber, firstName, lastName, dateOfBirth }
+      }
+
+      await ContractorModel.findOneAndUpdate(
+        { _id: contractorId },
+        payload,
+        { new: true }
+      );
+
 
       res.json({
         success: true,
@@ -329,6 +459,7 @@ class ProfileHandler extends Base {
       let includeStripeIdentity = false;
       let includeStripeCustomer = false;
       let includeStripePaymentMethods = false;
+      let includeStripeAccount = false;
 
       // Parse the query parameter "include" to determine which fields to include
       if (req.query.include) {
@@ -336,15 +467,19 @@ class ProfileHandler extends Base {
         includeStripeIdentity = includedFields.includes('stripeIdentity');
         includeStripeCustomer = includedFields.includes('stripeCustomer');
         includeStripePaymentMethods = includedFields.includes('stripePaymentMethods');
+        includeStripeAccount = includedFields.includes('stripeAccount');
       }
 
 
       const contractor = await ContractorModel.findById(contractorId).populate('profile');
-      const quiz = contractor?.quiz ?? null;
+      if (!contractor) {
+        return res.status(404).json({ success: false, message: 'Account not found' });
+      }
+      const quiz = await contractor.quiz ?? null;
 
       const contractorResponse = {
         //@ts-ignore
-        ...contractor?.toJSON({ includeStripeIdentity: true, includeStripeCustomer: true, includeStripePaymentMethods: true }), // Convert to plain JSON object
+        ...contractor.toJSON({ includeStripeIdentity: true, includeStripeCustomer: true, includeStripePaymentMethods: true, includeStripeAccount: true }), // Convert to plain JSON object
         quiz,
       };
 
@@ -576,6 +711,118 @@ class ProfileHandler extends Base {
         success: true,
         message: 'Contractor profile bank details updated successfully',
         data: contractorResponse,
+      });
+    } catch (err: any) {
+      res.status(500).json({ success: false, message: err.message });
+    }
+
+  }
+
+  @handleAsyncError()
+  public async addGstDetails(): Promise<Response | void> {
+    let req = <any>this.req
+    let res = this.res
+    try {
+      const { gstName, gstNumber, gstType, backgroundCheckConsent } = req.body;
+
+      // Check for validation errors
+      const errors = validationResult(req);
+
+
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      // Assuming that you have a middleware to attach the contractor ID to the request
+      const contractorId: string = req.contractor.id;
+
+      const contractor = await ContractorModel.findById(contractorId);
+
+      if (!contractor) {
+        return res.status(404).json({ success: false, message: 'Contractor  not found' });
+      }
+
+      // check if gst has already been approved or is reviewing
+      if (contractor.gstDetails) {
+        if (contractor.gstDetails.status == GST_STATUS.APPROVED) {
+          return res.status(400).json({ success: false, message: 'GST has already been approved' });
+        }
+        if (contractor.gstDetails.status == GST_STATUS.REVIEWING) {
+          return res.status(400).json({ success: false, message: 'GST is curretnly been reviewed' });
+        }
+      }
+
+      // Update the bankDetails subdocument
+      contractor.gstDetails = <IContractorGstDetails>{
+        gstName,
+        gstNumber,
+        gstType,
+        backgroundCheckConsent,
+        status: GST_STATUS.PENDING,
+      };
+
+      // Save the updated contractor profile
+      await contractor.save();
+
+      res.json({
+        success: true,
+        message: 'Contractor Gst  details added successfully',
+        data: contractor,
+      });
+    } catch (err: any) {
+      res.status(500).json({ success: false, message: err.message });
+    }
+
+  }
+
+  @handleAsyncError()
+  public async addCompanyDetails(): Promise<Response | void> {
+    let req = <any>this.req
+    let res = this.res
+    try {
+      const { companyLogo, companyStaffId } = req.body;
+
+      // Check for validation errors
+      const errors = validationResult(req);
+
+
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      // Assuming that you have a middleware to attach the contractor ID to the request
+      const contractorId: string = req.contractor.id;
+
+      const contractor = await ContractorModel.findById(contractorId);
+
+      if (!contractor) {
+        return res.status(404).json({ success: false, message: 'Contractor  not found' });
+      }
+
+      // check if gst has already been approved or is reviewing
+      if (contractor.companyDetails) {
+        if (contractor.companyDetails.status == COMPANY_STATUS.APPROVED) {
+          return res.status(400).json({ success: false, message: 'Company details has already been approved' });
+        }
+        if (contractor.companyDetails.status == COMPANY_STATUS.REVIEWING) {
+          return res.status(400).json({ success: false, message: 'Company details are curretnly been reviewed' });
+        }
+      }
+
+      // Update the bankDetails subdocument
+      contractor.companyDetails = <IContractorCompanyDetails>{
+        companyLogo,
+        companyStaffId,
+        status: COMPANY_STATUS.PENDING,
+      };
+
+      // Save the updated contractor profile
+      await contractor.save();
+
+      res.json({
+        success: true,
+        message: 'Contractor company details added successfully',
+        data: contractor,
       });
     } catch (err: any) {
       res.status(500).json({ success: false, message: err.message });

@@ -39,17 +39,10 @@ export const CreateProfileRequest  = [
     body("profilePhoto.url").optional().isURL(),
     body("location.latitude").notEmpty().isNumeric(),
     body("location.longitude").notEmpty().isNumeric(),
-    body('backgroundCheckConsent')
-        .exists({ checkFalsy: true }).withMessage('Background consent is required')
-        .custom((value) => value === true).withMessage('You must consent to us running a background check'),
-    body("skill").notEmpty(),
 
-
-
+        
     //  only validate when  accountType  is  Company and Individual
-    body("name").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) !== 'Employee').notEmpty(),
-    body("gstNumber").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').notEmpty(),
-    body("gstType").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').notEmpty(),
+    body("skill").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) !== 'Employee').notEmpty(),
     body("experienceYear").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').optional().isNumeric(),
     body("about").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').optional(),
     body("website").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').optional().isURL(),
@@ -60,39 +53,63 @@ export const CreateProfileRequest  = [
     body("previousJobPhotos").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').optional().isArray().notEmpty().custom((value) => validateMediaArray(value)),
     body("previousJobVideos").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').optional().isArray().notEmpty().custom((value) => validateMediaArray(value)),
 
-    //  validate only for 'Employee
-    body("firstName").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) === 'Employee').notEmpty(),
-    body("lastName").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) === 'Employee').notEmpty(),
+
 
 ];
 
 export const UpdateProfileRequest  = [
 
     //  validate for all
-    body("location.address").notEmpty(),
+    body("location.address").optional(),
     body("profilePhoto.url").optional().isURL(),
-    body("location.latitude").notEmpty().isNumeric(),
-    body("location.longitude").notEmpty().isNumeric(),
-    body("skill").notEmpty(),
+    body("location.latitude").optional().isNumeric(),
+    body("location.longitude").optional().isNumeric(),
+    body("skill").optional(),
 
    
     //  only validate when  accountType  is  Company and Individual
-    body("name").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) !== 'Employee').notEmpty(),
-    body("gstNumber").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').notEmpty(),
-    body("gstType").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').notEmpty(),
+    body("gstName").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) !== 'Employee').optional(),
+    body("gstNumber").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').optional(),
+    body("gstType").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').optional(),
     body("experienceYear").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').optional().isNumeric(),
     body("about").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').optional(),
     body("website").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').optional().isURL(),
     body("email").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) !== 'Employee').optional().isEmail(),
     body("phoneNumber").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').optional().isObject(),
-    body("emergencyJobs").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').notEmpty(),
-    body("availableDays").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').notEmpty().isArray(),
+    body("emergencyJobs").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').optional().notEmpty(),
+    body("availableDays").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').optional().notEmpty().isArray(),
     body("previousJobPhotos").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').optional().isArray().notEmpty().custom((value) => validateMediaArray(value)),
     body("previousJobVideos").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Employee').optional().isArray().notEmpty().custom((value) => validateMediaArray(value)),
 
-    //  validate only for 'Employee
-    body("firstName").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) === 'Employee').notEmpty(),
-    body("lastName").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) === 'Employee').notEmpty(),
+   
+
+];
+export const UpgradeEmployeeProfileRequest  = [
+
+  body("location.address").notEmpty(),
+  body("location.latitude").notEmpty().isNumeric(),
+  body("location.longitude").notEmpty().isNumeric(),
+
+  // body('backgroundCheckConsent')
+  //   .exists({ checkFalsy: true }).withMessage('Background consent is required')
+  //   .custom((value) => value === true).withMessage('You must consent to us running a background check'),
+  body("skill").notEmpty(),
+
+  body("gstDetails.gstNumber").notEmpty(),
+  body("gstDetails.gstName").notEmpty(),
+  body("gstDetails.gstType").notEmpty(),
+
+  body("experienceYear").optional().isNumeric(),
+  body("about").optional(),
+  body("website").optional().isURL(),
+  body("email").optional().isEmail(),
+  body("phoneNumber").optional().isNumeric(),
+  body("emergencyJobs").notEmpty(),
+  body("availableDays").notEmpty().isArray(),
+  body("previousJobPhotos").optional().isArray().notEmpty().custom((value) => validateMediaArray(value)),
+  body("previousJobVideos").optional().isArray().notEmpty().custom((value) => validateMediaArray(value)),
+
+   
 
 ];
 
@@ -137,6 +154,23 @@ export const EmailVerificationRequest = [
     body("institutionNumber").notEmpty(),
     body("accountNumber").notEmpty(),
   ];
+  export const CreateGstDetailsRequest = [
+    body("gstName").notEmpty(),
+    body("gstNumber").notEmpty(),
+    body("gstType").notEmpty(),
+    body("backgroundCheckConsent").notEmpty(),
+    body("gstCertitificate").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) !== 'Company').notEmpty(),
+
+    body('backgroundCheckConsent')
+    .exists({ checkFalsy: true }).withMessage('Background consent is required')
+    .custom((value) => value === true).withMessage('You must consent to us running a background check'),
+  ];
+
+  export const CreateCompanyDetailsRequest = [
+    body("companyLogo").notEmpty(),
+    body("companyStaffId").notEmpty(),
+  ];
+
 
   export const InviteToTeam = [
     body("memberId").notEmpty(),
@@ -184,10 +218,18 @@ export const EmailVerificationRequest = [
 
 // Define the validation rules for the message request
 export const sendMessageParams = [
-  body('type').isIn(['TEXT', 'MEDIA']).withMessage('Invalid messageType'),
-  body('message').notEmpty().if(body('type').equals('TEXT')).withMessage('Message is required'),
-  body('media').isArray().if(body('type').equals('MEDIA')).withMessage('Media must be an array'),
-  body('media.*.url').notEmpty().if(body('type').equals('MEDIA')).withMessage('Media URL is required'),
+  body('type').isIn(['TEXT', 'MEDIA', 'AUDIO', 'VIDEO', 'IMAGE']).withMessage('Invalid messageType'),
+  body('message').if(body('type').equals('TEXT')).notEmpty().withMessage('Message is required'),
+
+  body('media').if(body('type').isIn(['MEDIA','AUDIO','VIDEO','IMAGE'])).isArray().withMessage('Media must be an object')
+    .bail() // Stop validation if media is not an object
+    .custom((value, { req }) => {
+      // Check if required properties exist in media object
+      if (!value.every((item:any) => typeof item === 'object' && 'url' in item && typeof item.url === 'string' && item.url.trim() !== '')) {
+        throw new Error('Media url is required');
+      }
+      return true;
+    }),
 ];
 
   
@@ -208,6 +250,8 @@ export const ContractorHttpRequest = {
     CreateStripeSessionRequest,
     UpdateOrDevice,
     CreateJobQuotationRequest,
-    sendMessageParams
-    
+    sendMessageParams,
+    CreateGstDetailsRequest,
+    CreateCompanyDetailsRequest,
+    UpgradeEmployeeProfileRequest
 }

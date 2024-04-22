@@ -50,7 +50,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorJobController = exports.getJobListings = exports.updateJobQuotation = exports.getQuotationForJob = exports.sendJobQuotation = exports.getJobListingById = exports.getJobRequestById = exports.rejectJobRequest = exports.acceptJobRequest = exports.getJobRequests = void 0;
+exports.ContractorJobController = exports.getMyJobs = exports.getJobListings = exports.updateJobQuotation = exports.getQuotationForJob = exports.sendJobQuotation = exports.getJobListingById = exports.getJobRequestById = exports.rejectJobRequest = exports.acceptJobRequest = exports.getJobRequests = void 0;
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var jobQoutationTemplate_1 = require("../../../templates/customerEmail/jobQoutationTemplate");
@@ -59,9 +59,11 @@ var api_feature_1 = require("../../../utils/api.feature");
 var custom_errors_1 = require("../../../utils/custom.errors");
 var job_quotation_model_1 = require("../../../database/common/job_quotation.model");
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
+var mongoose_1 = __importDefault(require("mongoose")); // Import Document type from mongoose
 var conversations_schema_1 = require("../../../database/common/conversations.schema");
 var messages_schema_1 = require("../../../database/common/messages.schema");
 var services_1 = require("../../../services");
+var contractor_profile_model_1 = require("../../../database/contractor/models/contractor_profile.model");
 var getJobRequests = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, customerId, status_1, startDate, endDate, date, contractorId, filter, start, end, selectedDate, startOfDay, endOfDay, jobRequests, _b, data, error_2, error_1;
     return __generator(this, function (_c) {
@@ -120,7 +122,7 @@ var getJobRequests = function (req, res) { return __awaiter(void 0, void 0, void
 }); };
 exports.getJobRequests = getJobRequests;
 var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, jobId, contractorId, jobRequest, customer, jobEvent, quotation, conversationMembers, conversation, message, error_3;
+    var errors, jobId, contractorId, job, customer, jobEvent, quotation, conversationMembers, conversation, message, error_3;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -133,12 +135,12 @@ var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 contractorId = req.contractor.id;
                 return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobId, contractor: contractorId, type: job_model_1.JobType.REQUEST })];
             case 1:
-                jobRequest = _a.sent();
+                job = _a.sent();
                 // Check if the job request exists
-                if (!jobRequest) {
+                if (!job) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Job request not found' })];
                 }
-                return [4 /*yield*/, customer_model_1.default.findById(jobRequest.customer)];
+                return [4 /*yield*/, customer_model_1.default.findById(job.customer)];
             case 2:
                 customer = _a.sent();
                 // Check if the customer request exists
@@ -146,15 +148,15 @@ var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Customer not found' })];
                 }
                 // Check if the job request belongs to the contractor
-                if (jobRequest.contractor.toString() !== contractorId) {
+                if (job.contractor.toString() !== contractorId) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'Unauthorized: You do not have permission to accept this job request' })];
                 }
                 // Check if the job request is pending
-                if (jobRequest.status !== job_model_1.JOB_STATUS.PENDING) {
+                if (job.status !== job_model_1.JOB_STATUS.PENDING) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'Job request is not pending' })];
                 }
                 // Update the status of the job request to "Accepted"
-                jobRequest.status = job_model_1.JOB_STATUS.ACCEPTED;
+                job.status = job_model_1.JOB_STATUS.ACCEPTED;
                 jobEvent = {
                     eventType: job_model_1.JOB_STATUS.ACCEPTED,
                     timestamp: new Date(),
@@ -163,14 +165,14 @@ var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void
                     },
                 };
                 // Push the rejection event to the job history array
-                jobRequest.jobHistory.push(jobEvent);
+                job.jobHistory.push(jobEvent);
                 quotation = new job_quotation_model_1.JobQoutationModel({
                     contractor: contractorId,
                     job: jobId,
                     status: job_quotation_model_1.JOB_QUOTATION_STATUS.PENDING, // Assuming initial status is pending
                     estimate: [], // You may need to adjust this based on your application schema
-                    startDate: jobRequest.startDate,
-                    endDate: jobRequest.endDate,
+                    startDate: job.startDate,
+                    endDate: job.endDate,
                     siteVerification: false, // Example value, adjust as needed
                     processingFee: 0 // Example value, adjust as needed
                 });
@@ -180,33 +182,27 @@ var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 // Save the initial job application
                 _a.sent();
                 // Associate the job application with the job request
-                if (!jobRequest.quotations.includes(quotation.id)) {
-                    jobRequest.quotations.push(quotation.id);
+                if (!job.quotations.includes(quotation.id)) {
+                    job.quotations.push(quotation.id);
                 }
-                return [4 /*yield*/, jobRequest.save()];
+                return [4 /*yield*/, job.save()];
             case 4:
                 _a.sent();
                 conversationMembers = [
-                    { memberType: 'customers', member: customer.id },
-                    { memberType: 'contractors', member: contractorId }
+                    { memberType: 'customers', member: job.customer },
+                    { memberType: 'contractors', member: quotation.contractor }
                 ];
-                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
-                        entity: jobId,
-                        entityType: conversations_schema_1.ConversationEntityType.JOB,
-                        members: {
-                            $elemMatch: { $or: [{ member: customer.id }, { member: contractorId }] }
-                        }
-                    }, {
-                        entity: jobId,
-                        entityType: conversations_schema_1.ConversationEntityType.JOB,
-                        members: conversationMembers
+                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({ members: { $elemMatch: { $or: [{ member: job.customer }, { member: quotation.contractor }] } } }, {
+                        members: conversationMembers,
+                        lastMessage: 'I have accepted your qoutation for the Job', // Set the last message to the job description
+                        lastMessageAt: new Date() // Set the last message timestamp to now
                     }, { new: true, upsert: true })];
             case 5:
                 conversation = _a.sent();
                 message = new messages_schema_1.MessageModel({
                     conversation: conversation === null || conversation === void 0 ? void 0 : conversation._id,
                     sender: contractorId,
-                    receiver: jobRequest.customer,
+                    receiver: job.customer,
                     message: "Contractor has accepted this jos request",
                     messageType: messages_schema_1.MessageType.ALERT,
                 });
@@ -225,7 +221,7 @@ var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void
 }); };
 exports.acceptJobRequest = acceptJobRequest;
 var rejectJobRequest = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, jobId, rejectionReason, contractorId, jobRequest, jobEvent, conversationMembers, conversation, message, error_4;
+    var errors, jobId, rejectionReason, contractorId, job, jobEvent, conversationMembers, conversation, message, error_4;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -239,40 +235,40 @@ var rejectJobRequest = function (req, res) { return __awaiter(void 0, void 0, vo
                 contractorId = req.contractor.id;
                 return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobId, contractor: contractorId, type: job_model_1.JobType.REQUEST })];
             case 1:
-                jobRequest = _a.sent();
+                job = _a.sent();
                 // Check if the job request exists
-                if (!jobRequest) {
+                if (!job) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Job request not found' })];
                 }
                 // Check if the job request belongs to the contractor
-                if (jobRequest.contractor.toString() !== contractorId) {
+                if (job.contractor.toString() !== contractorId) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'Unauthorized: You do not have permission to reject this job request' })];
                 }
                 // Check if the job request is pending
-                if (jobRequest.status !== job_model_1.JOB_STATUS.PENDING) {
+                if (job.status !== job_model_1.JOB_STATUS.PENDING) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'Job request is not pending' })];
                 }
                 // Update the status of the job request to "Rejected" and set the rejection reason
-                jobRequest.status = job_model_1.JOB_STATUS.DECLINED;
+                job.status = job_model_1.JOB_STATUS.DECLINED;
                 jobEvent = {
                     eventType: job_model_1.JOB_STATUS.DECLINED,
                     timestamp: new Date(),
                     details: { reason: rejectionReason }, // Store the rejection reason
                 };
                 // Push the rejection event to the job history array
-                jobRequest.jobHistory.push(jobEvent);
-                return [4 /*yield*/, jobRequest.save()];
+                job.jobHistory.push(jobEvent);
+                return [4 /*yield*/, job.save()];
             case 2:
                 _a.sent();
                 conversationMembers = [
-                    { memberType: 'customers', member: jobRequest.customer },
+                    { memberType: 'customers', member: job.customer },
                     { memberType: 'contractors', member: contractorId }
                 ];
                 return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
                         entity: jobId,
                         entityType: conversations_schema_1.ConversationEntityType.JOB,
                         members: {
-                            $elemMatch: { $or: [{ member: jobRequest.customer }, { member: contractorId }] }
+                            $elemMatch: { $or: [{ member: job.customer }, { member: contractorId }] }
                         }
                     }, {
                         entity: jobId,
@@ -284,7 +280,7 @@ var rejectJobRequest = function (req, res) { return __awaiter(void 0, void 0, vo
                 message = new messages_schema_1.MessageModel({
                     conversation: conversation === null || conversation === void 0 ? void 0 : conversation._id,
                     sender: contractorId,
-                    receiver: jobRequest.customer,
+                    receiver: job.customer,
                     message: "Contractor has rejected this jos request",
                     messageType: messages_schema_1.MessageType.ALERT,
                 });
@@ -302,11 +298,11 @@ var rejectJobRequest = function (req, res) { return __awaiter(void 0, void 0, vo
 }); };
 exports.rejectJobRequest = rejectJobRequest;
 var getJobRequestById = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, jobId, contractorId, options_1, job, _a, error_5;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+    var errors, jobId, contractorId, options_1, job, quotation, error_5;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
             case 0:
-                _b.trys.push([0, 3, , 4]);
+                _a.trys.push([0, 3, , 4]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -322,22 +318,27 @@ var getJobRequestById = function (req, res, next) { return __awaiter(void 0, voi
                     }
                 };
                 return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobId, contractor: contractorId, type: job_model_1.JobType.REQUEST })
-                        .populate(['contractor', 'customer', { path: 'myQuotation', options: options_1 }])
+                        .populate(['contractor', 'customer'])
                         .exec()];
             case 1:
-                job = _b.sent();
+                job = _a.sent();
                 if (!job) {
                     return [2 /*return*/, next(new custom_errors_1.NotFoundError('Job request not found'))];
                 }
-                _a = job;
                 return [4 /*yield*/, job.getMyQoutation(jobId, contractorId)];
             case 2:
-                _a.myQuotation = _b.sent();
+                quotation = _a.sent();
+                if (quotation) {
+                    job.myQuotation = quotation;
+                }
+                else {
+                    job.myQuotation = null;
+                }
                 // Return the job request details
                 res.json({ success: true, data: job });
                 return [3 /*break*/, 4];
             case 3:
-                error_5 = _b.sent();
+                error_5 = _a.sent();
                 console.error('Error retrieving job request:', error_5);
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('Bad Request'))];
             case 4: return [2 /*return*/];
@@ -389,13 +390,12 @@ var getJobListingById = function (req, res, next) { return __awaiter(void 0, voi
     });
 }); };
 exports.getJobListingById = getJobListingById;
-//contractor send job quatation /////////////
 var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, startDate, endDate, siteVisit, estimates, jobId, contractorId, errors, contractor, job, customer, jobQuotation, _b, jobEvent, conversationMembers, conversation, html, err_1;
+    var _a, startDate, endDate, siteVisit, estimates, jobId, contractorId, errors, contractor, job, customer, jobQuotation, _b, jobEvent, conversation, html, err_1;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
-                _c.trys.push([0, 13, , 14]);
+                _c.trys.push([0, 14, , 15]);
                 _a = req.body, startDate = _a.startDate, endDate = _a.endDate, siteVisit = _a.siteVisit, estimates = _a.estimates;
                 jobId = req.params.jobId;
                 contractorId = req.contractor.id;
@@ -447,7 +447,10 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
             case 5:
                 _b.charges = _c.sent();
                 if (!job.quotations.includes(jobQuotation.id)) {
-                    job.quotations.push(jobQuotation.id);
+                    job.quotations.push({
+                        id: jobQuotation.id,
+                        status: jobQuotation.status
+                    });
                 }
                 if (job.type == job_model_1.JobType.REQUEST) {
                     // Update the status of the job request to "Accepted"
@@ -464,28 +467,13 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                         job.jobHistory.push(jobEvent);
                     }
                 }
-                return [4 /*yield*/, job.save()
-                    // Create or update conversation and send message to customer
-                ];
+                return [4 /*yield*/, job.save()];
             case 6:
                 _c.sent();
-                conversationMembers = [
-                    { memberType: 'customers', member: customer.id },
-                    { memberType: 'contractors', member: contractorId }
-                ];
-                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
-                        entity: jobId,
-                        entityType: conversations_schema_1.ConversationEntityType.JOB,
-                        members: {
-                            $elemMatch: { $or: [{ member: customer.id }, { member: contractorId }] }
-                        }
-                    }, {
-                        entity: jobId,
-                        entityType: conversations_schema_1.ConversationEntityType.JOB,
-                        members: conversationMembers
-                    }, { new: true, upsert: true })];
+                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOne({ members: { $elemMatch: { $or: [{ member: job.customer }, { member: contractorId }] } } })];
             case 7:
                 conversation = _c.sent();
+                if (!conversation) return [3 /*break*/, 9];
                 return [4 /*yield*/, messages_schema_1.MessageModel.create({
                         conversation: conversation.id,
                         sender: contractorId,
@@ -495,9 +483,12 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                     })];
             case 8:
                 _c.sent();
-                if (!estimates) return [3 /*break*/, 10];
+                _c.label = 9;
+            case 9:
+                if (!estimates) return [3 /*break*/, 11];
                 html = (0, jobQoutationTemplate_1.htmlJobQoutationTemplate)(customer.firstName, contractor.name);
                 services_1.EmailService.send(customer.email, 'Job quotation from contractor', html);
+                if (!conversation) return [3 /*break*/, 11];
                 return [4 /*yield*/, messages_schema_1.MessageModel.create({
                         conversation: conversation.id,
                         sender: contractorId,
@@ -505,12 +496,12 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                         message: "Please see attached estimate",
                         messageType: messages_schema_1.MessageType.ALERT,
                     })];
-            case 9:
-                _c.sent();
-                _c.label = 10;
             case 10:
-                if (!siteVisit) return [3 /*break*/, 12];
-                //send message alert indicating that contractor has requested for site visit
+                _c.sent();
+                _c.label = 11;
+            case 11:
+                if (!siteVisit) return [3 /*break*/, 13];
+                if (!conversation) return [3 /*break*/, 13];
                 return [4 /*yield*/, messages_schema_1.MessageModel.create({
                         conversation: conversation.id,
                         sender: contractorId,
@@ -518,21 +509,20 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                         message: "Contractor requested for site visit",
                         messageType: messages_schema_1.MessageType.ALERT,
                     })];
-            case 11:
-                //send message alert indicating that contractor has requested for site visit
-                _c.sent();
-                _c.label = 12;
             case 12:
+                _c.sent();
+                _c.label = 13;
+            case 13:
                 res.json({
                     success: true,
                     message: "job quotation sucessfully sent",
                     data: jobQuotation
                 });
-                return [3 /*break*/, 14];
-            case 13:
+                return [3 /*break*/, 15];
+            case 14:
                 err_1 = _c.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', err_1))];
-            case 14: return [2 /*return*/];
+            case 15: return [2 /*return*/];
         }
     });
 }); };
@@ -599,7 +589,7 @@ var updateJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
                 jobQuotation = _c.sent();
                 // If the job application does not exist, create a new one
                 if (!jobQuotation) {
-                    jobQuotation = new job_quotation_model_1.JobQoutationModel({ jobId: jobId, contractorId: contractorId });
+                    return [2 /*return*/, res.status(400).json({ status: false, message: 'Job quotation not found' })];
                 }
                 // Update the job application fields
                 jobQuotation.startDate = startDate;
@@ -621,15 +611,7 @@ var updateJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
                     { memberType: 'customers', member: job.customer },
                     { memberType: 'contractors', member: contractorId }
                 ];
-                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
-                        entity: jobId,
-                        entityType: conversations_schema_1.ConversationEntityType.JOB,
-                        members: {
-                            $elemMatch: { $or: [{ member: job.customer }, { member: contractorId }] }
-                        }
-                    }, {
-                        entity: jobId,
-                        entityType: conversations_schema_1.ConversationEntityType.JOB,
+                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({ members: { $elemMatch: { $or: [{ member: job.customer }, { member: contractorId }] } } }, {
                         members: conversationMembers
                     }, { new: true, upsert: true })];
             case 5:
@@ -652,25 +634,32 @@ var updateJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
 }); };
 exports.updateJobQuotation = updateJobQuotation;
 var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, distance, latitude, longitude, emergency, category, city, country, address, startDate, endDate, _b, page, _c, limit, sort // Sort field and order (-fieldName or fieldName)
-    , pipeline, _d, sortField, sortOrder, sortStage, skip, result, jobs, metadata, error_9;
-    var _e;
-    return __generator(this, function (_f) {
-        switch (_f.label) {
+    var errors, contractorId, contractor, profile, _a, distance, latitude, longitude, emergency, _b, category, city, country, address, startDate, endDate, _c, page, _d, limit, sort // Sort field and order (-fieldName or fieldName)
+    , pipeline, _e, sortField, sortOrder, sortStage, skip, result, jobs, metadata, error_9;
+    var _f;
+    return __generator(this, function (_g) {
+        switch (_g.label) {
             case 0:
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
-                _f.label = 1;
+                contractorId = req.contractor.id;
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
             case 1:
-                _f.trys.push([1, 3, , 4]);
-                _a = req.query, distance = _a.distance, latitude = _a.latitude, longitude = _a.longitude, emergency = _a.emergency, category = _a.category, city = _a.city, country = _a.country, address = _a.address, startDate = _a.startDate, endDate = _a.endDate, _b = _a.page, page = _b === void 0 ? 1 : _b, _c = _a.limit, limit = _c === void 0 ? 10 : _c, sort = _a.sort;
+                contractor = _g.sent();
+                return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: contractorId })];
+            case 2:
+                profile = _g.sent();
+                _g.label = 3;
+            case 3:
+                _g.trys.push([3, 7, , 8]);
+                _a = req.query, distance = _a.distance, latitude = _a.latitude, longitude = _a.longitude, emergency = _a.emergency, _b = _a.category, category = _b === void 0 ? profile === null || profile === void 0 ? void 0 : profile.skill : _b, city = _a.city, country = _a.country, address = _a.address, startDate = _a.startDate, endDate = _a.endDate, _c = _a.page, page = _c === void 0 ? 1 : _c, _d = _a.limit, limit = _d === void 0 ? 10 : _d, sort = _a.sort;
                 limit = limit > 0 ? parseInt(limit) : 10; // Handle null limit
                 pipeline = [
                     {
                         $lookup: {
-                            from: "job_applications",
+                            from: "job_quotations",
                             localField: "_id",
                             foreignField: "job",
                             as: "totalQuotations"
@@ -684,6 +673,7 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                 ];
                 // Match job listings based on query parameters
                 pipeline.push({ $match: { type: job_model_1.JobType.LISTING } });
+                pipeline.push({ $match: { category: category } });
                 pipeline.push({ $match: { status: job_model_1.JOB_STATUS.PENDING } });
                 if (category) {
                     pipeline.push({ $match: { category: { $regex: new RegExp(category, 'i') } } });
@@ -727,10 +717,10 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                 }
                 // Add sorting stage if specified
                 if (sort) {
-                    _d = sort.startsWith('-') ? [sort.slice(1), -1] : [sort, 1], sortField = _d[0], sortOrder = _d[1];
+                    _e = sort.startsWith('-') ? [sort.slice(1), -1] : [sort, 1], sortField = _e[0], sortOrder = _e[1];
                     sortStage = {
                         //@ts-ignore
-                        $sort: (_e = {}, _e[sortField] = sortOrder, _e)
+                        $sort: (_f = {}, _f[sortField] = sortOrder, _f)
                     };
                     pipeline.push(sortStage);
                 }
@@ -746,21 +736,104 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                     }
                 });
                 return [4 /*yield*/, job_model_1.JobModel.aggregate(pipeline)];
-            case 2:
-                result = _f.sent();
+            case 4:
+                result = _g.sent();
                 jobs = result[0].data;
+                if (!jobs) return [3 /*break*/, 6];
+                // Map through each job and attach myQuotation if contractor has applied 
+                return [4 /*yield*/, Promise.all(jobs.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
+                        var _a;
+                        return __generator(this, function (_b) {
+                            switch (_b.label) {
+                                case 0:
+                                    _a = job;
+                                    return [4 /*yield*/, job_quotation_model_1.JobQoutationModel.findOne({ job: job.id, contractor: contractorId })];
+                                case 1:
+                                    _a.myQuotation = _b.sent();
+                                    return [2 /*return*/];
+                            }
+                        });
+                    }); }))];
+            case 5:
+                // Map through each job and attach myQuotation if contractor has applied 
+                _g.sent();
+                _g.label = 6;
+            case 6:
                 metadata = result[0].metadata[0];
                 // Send response with job listings data
                 res.status(200).json({ success: true, data: __assign(__assign({}, metadata), { data: jobs }) });
-                return [3 /*break*/, 4];
-            case 3:
-                error_9 = _f.sent();
+                return [3 /*break*/, 8];
+            case 7:
+                error_9 = _g.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_9))];
-            case 4: return [2 /*return*/];
+            case 8: return [2 /*return*/];
         }
     });
 }); };
 exports.getJobListings = getJobListings;
+var getMyJobs = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var contractorId, _a, type, _b, page, _c, limit, sort, customerId, quotations, jobIds, _d, data, error_11, error_10;
+    return __generator(this, function (_e) {
+        switch (_e.label) {
+            case 0:
+                contractorId = req.contractor.id;
+                _e.label = 1;
+            case 1:
+                _e.trys.push([1, 6, , 7]);
+                _a = req.query, type = _a.type, _b = _a.page, page = _b === void 0 ? 1 : _b, _c = _a.limit, limit = _c === void 0 ? 10 : _c, sort = _a.sort, customerId = _a.customerId;
+                return [4 /*yield*/, job_quotation_model_1.JobQoutationModel.find({ contractor: contractorId }).select('job').lean()];
+            case 2:
+                quotations = _e.sent();
+                jobIds = quotations.map(function (quotation) { return quotation.job; });
+                if (customerId) {
+                    if (!mongoose_1.default.Types.ObjectId.isValid(customerId)) {
+                        return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid customer id' })];
+                    }
+                    req.query.customer = customerId;
+                    delete req.query.customerId;
+                }
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_model_1.JobModel.find({
+                        $or: [
+                            { _id: { $in: jobIds } }, // Match jobs specified in jobIds
+                            { contractor: contractorId } // Match jobs with contractorId
+                        ]
+                    }).distinct('_id'), req.query)];
+            case 3:
+                _d = _e.sent(), data = _d.data, error_11 = _d.error;
+                if (!data) return [3 /*break*/, 5];
+                // Map through each job and attach myQuotation if contractor has applied 
+                return [4 /*yield*/, Promise.all(data.data.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
+                        var _a;
+                        return __generator(this, function (_b) {
+                            switch (_b.label) {
+                                case 0:
+                                    _a = job;
+                                    return [4 /*yield*/, job.getMyQoutation(contractorId)];
+                                case 1:
+                                    _a.myQuotation = _b.sent();
+                                    return [2 /*return*/];
+                            }
+                        });
+                    }); }))];
+            case 4:
+                // Map through each job and attach myQuotation if contractor has applied 
+                _e.sent();
+                _e.label = 5;
+            case 5:
+                if (error_11) {
+                    return [2 /*return*/, next(new custom_errors_1.BadRequestError('Unkowon error occured'))];
+                }
+                // Send response with job listings data
+                res.status(200).json({ success: true, data: data });
+                return [3 /*break*/, 7];
+            case 6:
+                error_10 = _e.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_10))];
+            case 7: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getMyJobs = getMyJobs;
 // //contractor send job quatation two /////////////
 // export const contractorSendJobQuatationControllerTwo = async (
 //   req: any,
@@ -1099,10 +1172,10 @@ exports.getJobListings = getJobListings;
 //       const jobRequests = await JobModel.find({contractorId, status: 'sent qoutation'}).sort({ createdAt: -1 })
 //       let jobRequested = []
 //       for (let i = 0; i < jobRequests.length; i++) {
-//         const jobRequest = jobRequests[i];
-//         const customer = await CustomerRegModel.findOne({_id: jobRequest.customerId}).select('-password');
+//         const job = jobRequests[i];
+//         const customer = await CustomerRegModel.findOne({_id: job.customerId}).select('-password');
 //         const obj = {
-//           job: jobRequest,
+//           job: job,
 //           customer
 //         }
 //         jobRequested.push(obj)
@@ -1140,10 +1213,10 @@ exports.getJobListings = getJobListings;
 //     const jobRequests = await JobModel.find({contractorId, status: 'qoutation payment confirm and job in progress'}).sort({ createdAt: -1 })
 //     let jobRequested = []
 //     for (let i = 0; i < jobRequests.length; i++) {
-//       const jobRequest = jobRequests[i];
-//       const customer = await CustomerRegModel.findOne({_id: jobRequest.customerId}).select('-password');
+//       const job = jobRequests[i];
+//       const customer = await CustomerRegModel.findOne({_id: job.customerId}).select('-password');
 //       const obj = {
-//         job: jobRequest,
+//         job: job,
 //         customer
 //       }
 //       jobRequested.push(obj)
@@ -1236,10 +1309,10 @@ exports.getJobListings = getJobListings;
 //     const jobRequests = await JobModel.find({contractorId, status: 'job reject'}).sort({ createdAt: -1 })
 //     let jobRequested = []
 //     for (let i = 0; i < jobRequests.length; i++) {
-//       const jobRequest = jobRequests[i];
-//       const customer = await CustomerRegModel.findOne({_id: jobRequest.customerId}).select('-password');
+//       const job = jobRequests[i];
+//       const customer = await CustomerRegModel.findOne({_id: job.customerId}).select('-password');
 //       const obj = {
-//         job: jobRequest,
+//         job: job,
 //         customer
 //       }
 //       jobRequested.push(obj)
@@ -1277,10 +1350,10 @@ exports.getJobListings = getJobListings;
 //     const jobRequests = await JobModel.find({contractorId,}).sort({ createdAt: -1 })
 //     let jobHistory = []
 //     for (let i = 0; i < jobRequests.length; i++) {
-//       const jobRequest = jobRequests[i];
-//       const customer = await CustomerRegModel.findOne({_id: jobRequest.customerId}).select('-password');
+//       const job = jobRequests[i];
+//       const customer = await CustomerRegModel.findOne({_id: job.customerId}).select('-password');
 //       const obj = {
-//         job: jobRequest,
+//         job: job,
 //         customer
 //       }
 //       jobHistory.push(obj)
@@ -1376,10 +1449,10 @@ exports.getJobListings = getJobListings;
 //     const jobRequests = await JobModel.find({contractorId, status: 'completed'}).sort({ createdAt: -1 })
 //     let jobRequested = []
 //     for (let i = 0; i < jobRequests.length; i++) {
-//       const jobRequest = jobRequests[i];
-//       const customer = await CustomerRegModel.findOne({_id: jobRequest.customerId}).select('-password');
+//       const job = jobRequests[i];
+//       const customer = await CustomerRegModel.findOne({_id: job.customerId}).select('-password');
 //       const obj = {
-//         job: jobRequest,
+//         job: job,
 //         customer
 //       }
 //       jobRequested.push(obj)
@@ -1417,10 +1490,10 @@ exports.getJobListings = getJobListings;
 //     const jobRequests = await JobModel.find({contractorId, status: 'comfirmed'}).sort({ createdAt: -1 })
 //     let jobRequested = []
 //     for (let i = 0; i < jobRequests.length; i++) {
-//       const jobRequest = jobRequests[i];
-//       const customer = await CustomerRegModel.findOne({_id: jobRequest.customerId}).select('-password');
+//       const job = jobRequests[i];
+//       const customer = await CustomerRegModel.findOne({_id: job.customerId}).select('-password');
 //       const obj = {
-//         job: jobRequest,
+//         job: job,
 //         customer
 //       }
 //       jobRequested.push(obj)
@@ -1458,10 +1531,10 @@ exports.getJobListings = getJobListings;
 //     const jobRequests = await JobModel.find({contractorId, status: 'complain'}).sort({ createdAt: -1 })
 //     let jobRequested = []
 //     for (let i = 0; i < jobRequests.length; i++) {
-//       const jobRequest = jobRequests[i];
-//       const customer = await CustomerRegModel.findOne({_id: jobRequest.customerId}).select('-password');
+//       const job = jobRequests[i];
+//       const customer = await CustomerRegModel.findOne({_id: job.customerId}).select('-password');
 //       const obj = {
-//         job: jobRequest,
+//         job: job,
 //         customer
 //       }
 //       jobRequested.push(obj)
@@ -1496,5 +1569,6 @@ exports.ContractorJobController = {
     sendJobQuotation: exports.sendJobQuotation,
     getQuotationForJob: exports.getQuotationForJob,
     updateJobQuotation: exports.updateJobQuotation,
-    getJobListingById: exports.getJobListingById
+    getJobListingById: exports.getJobListingById,
+    getMyJobs: exports.getMyJobs
 };

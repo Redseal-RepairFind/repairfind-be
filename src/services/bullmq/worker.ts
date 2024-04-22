@@ -2,6 +2,7 @@ import { RedisOptions, Worker } from 'bullmq';
 import { config } from '../../config';
 import Redis from 'ioredis';
 import { captureStripePayments } from './jobs/capture_stripe_payments';
+import { Logger } from '../../utils/logger';
 
 const redisConfig = {
     port: Number(config.redis.port),
@@ -27,7 +28,7 @@ const redisConfig = {
 
 export const RepairFindQueueWorker = new Worker('RepairFindQueue', async job => {
     // Job processing logic here
-    console.log(`Processing job: ${job.name} - ${job.id}`);
+    Logger.info(`Job Processing: ${job.name} - ${job.id}`);
     
     // CapturePayments
     if(job.name =='CapturePayments'){
@@ -38,5 +39,5 @@ export const RepairFindQueueWorker = new Worker('RepairFindQueue', async job => 
 
 
 RepairFindQueueWorker.on('completed', job => {
-    console.log(`${job.name} - ${job.id} has completed!`);
+    Logger.info(`Job Completed: ${job.name} - ${job.id} has completed!`);
 });

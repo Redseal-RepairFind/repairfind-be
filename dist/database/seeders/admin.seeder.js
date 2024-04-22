@@ -39,45 +39,49 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.RepairFindQueueWorker = void 0;
-var bullmq_1 = require("bullmq");
-var config_1 = require("../../config");
-var ioredis_1 = __importDefault(require("ioredis"));
-var capture_stripe_payments_1 = require("./jobs/capture_stripe_payments");
-var logger_1 = require("../../utils/logger");
-var redisConfig = {
-    port: Number(config_1.config.redis.port),
-    host: config_1.config.redis.host,
-    password: config_1.config.redis.password,
-    username: config_1.config.redis.username,
-    maxRetriesPerRequest: null,
-    // uri: config.redis.uri,
-};
-// console.log(config)
-// @ts-ignore
-if (!(config_1.config.environment == 'development')) {
-    console.log('not developement');
-    redisConfig.tls = {};
-}
-;
-// const redisConnection = createClient(redisConfig); // Create Redis client
-// this.repairFindQueue = new Queue('RepairFindQueue', { connection: redisConfig });
-var redisConnection = new ioredis_1.default(redisConfig);
-exports.RepairFindQueueWorker = new bullmq_1.Worker('RepairFindQueue', function (job) { return __awaiter(void 0, void 0, void 0, function () {
+exports.AdminSeeder = void 0;
+var admin_model_1 = __importDefault(require("../admin/models/admin.model"));
+var customers = [
+    {
+        email: 'admin@repairfind.com',
+        password: '$2b$10$34E1yhh/3Z/O1cBn/5seAuyHOBuy/U6uZUH10rhFfAjdJKXehpN2y', // password
+        firstName: 'Repair',
+        lastName: 'Admin',
+        superAdmin: true,
+        validation: true,
+        passwordOtp: {
+            verified: true,
+        },
+        emailOtp: {
+            verified: true,
+        },
+        phoneNumberOtp: {
+            verified: true
+        },
+        profilePhoto: {
+            url: "https://dsfds"
+        },
+        acceptTerms: true,
+    },
+];
+var AdminSeeder = function (options) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                // Job processing logic here
-                logger_1.Logger.info("Job Processing: ".concat(job.name, " - ").concat(job.id));
-                if (!(job.name == 'CapturePayments')) return [3 /*break*/, 2];
-                return [4 /*yield*/, (0, capture_stripe_payments_1.captureStripePayments)()];
-            case 1:
-                _a.sent();
-                _a.label = 2;
-            case 2: return [2 /*return*/];
+        try {
+            customers.forEach(function (admin) { return __awaiter(void 0, void 0, void 0, function () {
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0: return [4 /*yield*/, admin_model_1.default.findOneAndUpdate({ email: admin.email }, admin, { upsert: true })];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
         }
+        catch (error) {
+            console.log("Error seeding admins", error);
+        }
+        return [2 /*return*/];
     });
-}); }, { connection: redisConnection });
-exports.RepairFindQueueWorker.on('completed', function (job) {
-    logger_1.Logger.info("Job Completed: ".concat(job.name, " - ").concat(job.id, " has completed!"));
-});
+}); };
+exports.AdminSeeder = AdminSeeder;

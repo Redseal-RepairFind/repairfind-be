@@ -71,7 +71,24 @@ var MessageType;
     MessageType["TEXT"] = "TEXT";
     MessageType["ALERT"] = "ALERT";
     MessageType["MEDIA"] = "MEDIA";
+    MessageType["AUDIO"] = "AUDIO";
+    MessageType["VIDEO"] = "VIDEO";
+    MessageType["IMAGE"] = "IMAGE";
 })(MessageType || (exports.MessageType = MessageType = {}));
+var MediaSchema = new mongoose_1.Schema({
+    url: {
+        type: String,
+        required: true,
+    },
+    metrics: {
+        type: Array,
+        required: false,
+    },
+    duration: {
+        type: String,
+        required: false,
+    }
+});
 // Define schema for messages
 var MessageSchema = new mongoose_1.Schema({
     conversation: {
@@ -96,21 +113,9 @@ var MessageSchema = new mongoose_1.Schema({
     message: {
         type: String,
         trim: true,
-        required: true,
+        required: false,
     },
-    media: [
-        {
-            type: {
-                type: String,
-            },
-            url: {
-                type: String,
-            },
-            blurHash: {
-                type: String,
-            },
-        },
-    ],
+    media: [MediaSchema],
     readBy: [
         {
             type: mongoose_1.Schema.Types.ObjectId,
@@ -146,9 +151,8 @@ MessageSchema.methods.getHeading = function (loggedInUserId) {
                     if (!contractor)
                         return [2 /*return*/, {}];
                     return [2 /*return*/, {
-                            // @ts-ignore
                             name: contractor.name,
-                            profilePhoto: contractor.profilePhoto,
+                            image: contractor.profilePhoto.url,
                         }];
                 case 2: return [4 /*yield*/, customer_model_1.default.findById(this.sender)]; // Assuming your user model is named 'User'
                 case 3:
@@ -157,7 +161,6 @@ MessageSchema.methods.getHeading = function (loggedInUserId) {
                     if (!customer)
                         return [2 /*return*/, {}];
                     return [2 /*return*/, {
-                            // @ts-ignore
                             name: customer.name,
                             image: (_a = customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url,
                         }];

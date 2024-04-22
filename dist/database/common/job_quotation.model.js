@@ -42,7 +42,7 @@ var JOB_QUOTATION_STATUS;
 (function (JOB_QUOTATION_STATUS) {
     JOB_QUOTATION_STATUS["PENDING"] = "PENDING";
     JOB_QUOTATION_STATUS["ACCEPTED"] = "ACCEPTED";
-    JOB_QUOTATION_STATUS["REJECTED"] = "REJECTED";
+    JOB_QUOTATION_STATUS["DECLINED"] = "DECLINED";
     JOB_QUOTATION_STATUS["COMPLETED"] = "COMPLETED";
 })(JOB_QUOTATION_STATUS || (exports.JOB_QUOTATION_STATUS = JOB_QUOTATION_STATUS = {}));
 // Define schema for job quotation estimates
@@ -67,13 +67,13 @@ var JobQoutationSchema = new mongoose_1.Schema({
     startDate: { type: Date, required: false },
     endDate: { type: Date, required: false },
     siteVisit: { type: Date, required: false },
-    charges: { type: Object, default: {
-            subtotal: 0.00,
-            processingFee: 0.00,
-            gst: 0.00,
-            totalAmount: 0.00,
-            contractorAmount: 0.00
-        } },
+    // charges: { type: Object, default:{
+    //     subtotal: 0.00, 
+    //     processingFee: 0.00, 
+    //     gst: 0.00, 
+    //     totalAmount: 0.00, 
+    //     contractorAmount: 0.00
+    // } },
     payment: { type: mongoose_1.Schema.Types.ObjectId, ref: 'payments' },
     isPaid: { type: Boolean, default: false },
     extraEstimates: { type: ExtraEstimatesSchema }
@@ -107,5 +107,35 @@ JobQoutationSchema.methods.calculateCharges = function () {
         });
     });
 };
+JobQoutationSchema.virtual('charges').get(function () {
+    var totalEstimateAmount = 0;
+    // Calculate total estimate amount from rate * quantity for each estimate
+    if (this.estimates) {
+        this.estimates.forEach(function (estimate) {
+            totalEstimateAmount += estimate.rate * estimate.quantity;
+        });
+        var processingFee = 0;
+        var gst = 0;
+        if (totalEstimateAmount <= 1000) {
+            processingFee = parseFloat(((20 / 100) * totalEstimateAmount).toFixed(2));
+        }
+        else if (totalEstimateAmount <= 5000) {
+            processingFee = parseFloat(((15 / 100) * totalEstimateAmount).toFixed(2));
+        }
+        else {
+            processingFee = parseFloat(((10 / 100) * totalEstimateAmount).toFixed(2));
+        }
+        gst = parseFloat(((5 / 100) * totalEstimateAmount).toFixed(2));
+        // Calculate subtotal before adding processing fee and GST
+        var subtotal = totalEstimateAmount;
+        // Calculate total amounts for customer and contractor
+        var totalAmount = (subtotal + processingFee + gst).toFixed(2);
+        var contractorAmount = (subtotal + gst).toFixed(2);
+        return { subtotal: subtotal, processingFee: processingFee, gst: gst, totalAmount: totalAmount, contractorAmount: contractorAmount };
+    }
+    return { subtotal: 0, processingFee: 0, gst: 0, totalAmount: 0, contractorAmount: 0 };
+});
+JobQoutationSchema.set('toObject', { virtuals: true });
+JobQoutationSchema.set('toJSON', { virtuals: true });
 var JobQoutationModel = (0, mongoose_1.model)('job_quotations', JobQoutationSchema);
 exports.JobQoutationModel = JobQoutationModel;

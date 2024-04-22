@@ -52,7 +52,11 @@ var customers = [
             "code": "+123",
             "number": "3242342324"
         },
-        location: 'Some Location',
+        location: {
+            address: "Logics Senct",
+            latitude: "12323123123",
+            longitude: "2123213213213",
+        },
         passwordOtp: {
             verified: true,
         },
@@ -73,10 +77,16 @@ var CustomerSeeder = function (options) { return __awaiter(void 0, void 0, void 
     return __generator(this, function (_a) {
         try {
             customers.forEach(function (customer) { return __awaiter(void 0, void 0, void 0, function () {
+                var existingCustomer;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
-                        case 0: return [4 /*yield*/, customer_model_1.default.findOneAndUpdate({ email: customer.email }, customer, { upsert: true })];
+                        case 0: return [4 /*yield*/, customer_model_1.default.findOne({ email: customer.email })];
                         case 1:
+                            existingCustomer = _a.sent();
+                            if (existingCustomer)
+                                return [2 /*return*/];
+                            return [4 /*yield*/, customer_model_1.default.findOneAndUpdate({ email: customer.email }, customer, { upsert: true })];
+                        case 2:
                             _a.sent();
                             return [2 /*return*/];
                     }

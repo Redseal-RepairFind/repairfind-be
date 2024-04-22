@@ -40,7 +40,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CustomerNotificationController = exports.markNotificationAsRead = exports.getSingleNotification = exports.getNotifications = void 0;
-var customer_notification_model_1 = __importDefault(require("../../../database/customer/models/customer_notification.model"));
 var api_feature_1 = require("../../../utils/api.feature");
 var notification_model_1 = __importDefault(require("../../../database/common/notification.model"));
 var getNotifications = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
@@ -113,7 +112,7 @@ var markNotificationAsRead = function (req, res) { return __awaiter(void 0, void
                 _a.trys.push([0, 3, , 4]);
                 notificationId = req.params.id;
                 customerId = req.customer.id;
-                return [4 /*yield*/, customer_notification_model_1.default.findOne({ _id: notificationId, customer: customerId })];
+                return [4 /*yield*/, notification_model_1.default.findOne({ _id: notificationId, customer: customerId })];
             case 1:
                 notification = _a.sent();
                 // Check if the notification exists

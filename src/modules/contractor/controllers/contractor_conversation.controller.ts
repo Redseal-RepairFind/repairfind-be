@@ -1,10 +1,12 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { applyAPIFeature } from "../../../utils/api.feature";
 import { ConversationModel } from "../../../database/common/conversations.schema";
 import { MessageModel, MessageType } from "../../../database/common/messages.schema";
 import { ConversationEvent } from "../../../events";
+import { BadRequestError } from "../../../utils/custom.errors";
+import { validationResult } from "express-validator";
 
-export const getConversations = async (req: any, res: Response) => {
+export const getConversations = async (req: any, res: Response, next: NextFunction) => {
     try {
         const { startDate, endDate, read, unread } = req.query;
         const contractorId = req.contractor.id;
@@ -30,13 +32,12 @@ export const getConversations = async (req: any, res: Response) => {
             success: true, message: "Conversations retrieved", 
             data: data
         });
-    } catch (error) {
-        console.error("Error fetching conversations:", error);
-        res.status(500).json({ success: false, message: "Server error" });
+    } catch (error: any) {
+        return next(new BadRequestError('An error occured ', error))
     }
 };
 
-export const getSingleConversation = async (req: any, res: Response)=> {
+export const getSingleConversation = async (req: any, res: Response, next: NextFunction)=> {
     try {
         const { conversationId } = req.params;
         const contractorId = req.contractor.id;
@@ -52,13 +53,12 @@ export const getSingleConversation = async (req: any, res: Response)=> {
             }
         }
         res.status(200).json({ success: true, message: "Conversation retrieved", data: conversation });
-    } catch (error) {
-        console.error("Error fetching conversation:", error);
-        res.status(500).json({ success: false, message: "Server error" });
+    } catch (error: any) {
+        return next(new BadRequestError('An error occured ', error))
     }
 };
 
-export const getConversationMessages = async (req: any, res: Response) => {
+export const getConversationMessages = async (req: any, res: Response, next: NextFunction) => {
     try {
         const { conversationId } = req.params;
         const contractorId = req.contractor.id;
@@ -94,14 +94,20 @@ export const getConversationMessages = async (req: any, res: Response) => {
 
 
         res.status(200).json({ success: true, message: 'Conversation messages retrieved', data:  data  });
-    } catch (error) {
-        console.error('Error fetching conversation messages:', error);
-        res.status(500).json({ success: false, message: 'Server error' });
+    } catch (error: any) {
+        return next(new BadRequestError('An error occured ', error))
     }
 };
 
-export const sendMessage = async (req: any, res: Response) => {
+export const sendMessage = async (req: any, res: Response, next: NextFunction) => {
     try {
+
+         // Check for validation errors
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+        }
+        
         const { conversationId } = req.params;
         const { message, media, type } = req.body; // Assuming you pass message content in the request body
         const contractorId = req.contractor.id;
@@ -127,16 +133,15 @@ export const sendMessage = async (req: any, res: Response) => {
             sender: contractorId, // Assuming the customer sends the message
             senderType: 'contractors', // Type of the sender
             message: message, // Message content from the request body
-            messageType: MessageType.TEXT, // Assuming message type is text, adjust as needed
+            messageType: type, 
+            media: media, 
             createdAt: new Date()
         });
 
         ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
-
         res.status(201).json({ success: true, message: 'Message sent successfully', data: newMessage });
-    } catch (error) {
-        console.error('Error sending message:', error);
-        res.status(500).json({ success: false, message: 'Server error' });
+    } catch (error: any) {
+        return next(new BadRequestError('Error sending message', error));
     }
 };
 

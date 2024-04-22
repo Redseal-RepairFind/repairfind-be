@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CustomerHttpRequest = exports.validateFormData = exports.sendMessageParams = exports.tripArrivalComfirmParams = exports.createJoListingParams = exports.createJobRequestParams = exports.sendJobRequestParams = exports.queryContractorParams = exports.filterContractorParams = exports.searchCategoryDateParams = exports.searchContractorByCategoryDateParams = exports.searchContractorByLocationParams = exports.UpdateOrDeviceParams = exports.jobListingParams = exports.createStripeSessionParams = exports.rateContractorParams = exports.confirmInspectionPaymentParams = exports.confirmPaymentParams = exports.acceptAndPayParams = exports.updateProfileParams = exports.getContractorParams = exports.searchParams = exports.verifyPasswordOtpParams = exports.changePasswordParams = exports.resetPasswordParams = exports.forgotPasswordParams = exports.loginParams = exports.verifySocialSignon = exports.emailVerificationParams = exports.signupParams = void 0;
 var express_validator_1 = require("express-validator");
-var contractorAccountTypes_1 = require("../../../constants/contractorAccountTypes");
+var contractor_interface_1 = require("../../../database/contractor/interface/contractor.interface");
 exports.signupParams = [
     (0, express_validator_1.body)("email").isEmail(),
     (0, express_validator_1.body)("firstName").notEmpty(),
@@ -110,8 +110,8 @@ exports.jobListingParams = [
     (0, express_validator_1.body)("jobLocation").notEmpty(),
     (0, express_validator_1.body)("date").notEmpty(),
     (0, express_validator_1.body)("jobExpiry").notEmpty(),
-    (0, express_validator_1.body)("contractorType").isIn([contractorAccountTypes_1.contractorAccountTypes.Company, contractorAccountTypes_1.contractorAccountTypes.Employee, contractorAccountTypes_1.contractorAccountTypes.Individual])
-        .withMessage("contractorType must be ".concat(contractorAccountTypes_1.contractorAccountTypes.Company, ", ").concat(contractorAccountTypes_1.contractorAccountTypes.Employee, ", or ").concat(contractorAccountTypes_1.contractorAccountTypes.Individual)),
+    (0, express_validator_1.body)("contractorType").isIn([contractor_interface_1.CONTRACTOR_TYPES.Company, contractor_interface_1.CONTRACTOR_TYPES.Employee, contractor_interface_1.CONTRACTOR_TYPES.Individual])
+        .withMessage("contractorType must be ".concat(contractor_interface_1.CONTRACTOR_TYPES.Company, ", ").concat(contractor_interface_1.CONTRACTOR_TYPES.Employee, ", or ").concat(contractor_interface_1.CONTRACTOR_TYPES.Individual)),
     (0, express_validator_1.body)("emergency").isIn(['yes', 'no'])
         .withMessage("emergency must be yes or no"),
 ];
@@ -175,7 +175,16 @@ exports.sendJobRequestParams = [
 exports.createJobRequestParams = [
     (0, express_validator_1.body)("contractorId").isMongoId(),
     (0, express_validator_1.body)("description").notEmpty(),
-    (0, express_validator_1.body)("voiceDescription").optional(),
+    (0, express_validator_1.body)('voiceDescription').isObject().withMessage('Media must be an object')
+        .bail() // Stop validation if media is not an object
+        .custom(function (value, _a) {
+        var req = _a.req;
+        // Check if required properties exist in media object
+        if (!('url' in value && typeof value.url === 'string' && value.url.trim() !== '')) {
+            throw new Error('Media url is required');
+        }
+        return true;
+    }),
     (0, express_validator_1.body)("location").notEmpty(),
     (0, express_validator_1.body)("media").optional(),
     (0, express_validator_1.body)("emergency").optional(),
@@ -187,7 +196,16 @@ exports.createJoListingParams = [
     (0, express_validator_1.body)("description").notEmpty(),
     (0, express_validator_1.body)("expiresIn").notEmpty(),
     (0, express_validator_1.body)("category").notEmpty(),
-    (0, express_validator_1.body)("voiceDescription").optional(),
+    (0, express_validator_1.body)('voiceDescription').isObject().withMessage('Media must be an object')
+        .bail() // Stop validation if media is not an object
+        .custom(function (value, _a) {
+        var req = _a.req;
+        // Check if required properties exist in media object
+        if (!('url' in value && typeof value.url === 'string' && value.url.trim() !== '')) {
+            throw new Error('Media url is required');
+        }
+        return true;
+    }),
     (0, express_validator_1.body)("location").notEmpty(),
     (0, express_validator_1.body)("media").optional().isArray(),
     (0, express_validator_1.body)("emergency").optional(),
@@ -199,10 +217,18 @@ exports.tripArrivalComfirmParams = [
 ];
 // Define the validation rules for the message request
 exports.sendMessageParams = [
-    (0, express_validator_1.body)('type').isIn(['TEXT', 'MEDIA']).withMessage('Invalid messageType'),
-    (0, express_validator_1.body)('message').notEmpty().if((0, express_validator_1.body)('type').equals('TEXT')).withMessage('Message is required'),
-    (0, express_validator_1.body)('media').isArray().if((0, express_validator_1.body)('type').equals('MEDIA')).withMessage('Media must be an array'),
-    (0, express_validator_1.body)('media.*.url').notEmpty().if((0, express_validator_1.body)('type').equals('MEDIA')).withMessage('Media URL is required'),
+    (0, express_validator_1.body)('type').isIn(['TEXT', 'MEDIA', 'AUDIO', 'VIDEO', 'IMAGE']).withMessage('Invalid messageType'),
+    (0, express_validator_1.body)('message').if((0, express_validator_1.body)('type').equals('TEXT')).notEmpty().withMessage('Message is required'),
+    (0, express_validator_1.body)('media').if((0, express_validator_1.body)('type').isIn(['MEDIA', 'AUDIO', 'VIDEO', 'IMAGE'])).isArray().withMessage('Media must be an array')
+        .bail() // Stop validation if media is not an object
+        .custom(function (value, _a) {
+        var req = _a.req;
+        // Check if required properties exist in media object
+        if (!value.every(function (item) { return typeof item === 'object' && 'url' in item && typeof item.url === 'string' && item.url.trim() !== ''; })) {
+            throw new Error('Media url is required');
+        }
+        return true;
+    }),
 ];
 var validateFormData = function (req, res, next) {
     var errors = (0, express_validator_1.validationResult)(req);

@@ -1,10 +1,17 @@
 "use strict";
-// @ts-nocheck
 Object.defineProperty(exports, "__esModule", { value: true });
 var mongoose_1 = require("mongoose");
 var customer_interface_1 = require("../interface/customer.interface");
 var stripe_customer_schema_1 = require("../../common/stripe_customer.schema");
 var stripe_paymentmethod_schema_1 = require("../../common/stripe_paymentmethod.schema");
+var CustomerLocationSchema = new mongoose_1.Schema({
+    address: String,
+    city: String,
+    region: String,
+    country: String,
+    latitude: String,
+    longitude: String,
+});
 var CustomerSchema = new mongoose_1.Schema({
     email: {
         type: String,
@@ -33,8 +40,7 @@ var CustomerSchema = new mongoose_1.Schema({
         },
     },
     location: {
-        type: String,
-        default: "",
+        type: CustomerLocationSchema,
     },
     profilePhoto: {
         type: Object,
@@ -107,15 +113,19 @@ CustomerSchema.set('toJSON', {
         delete ret.emailOtp;
         delete ret.passwordOtp;
         delete ret.phoneNumberOtp;
+        //@ts-ignore
         if (!options.includeStripeIdentity) {
             delete ret.stripeIdentity;
         }
+        //@ts-ignore
         if (!options.includeStripePaymentMethods) {
             delete ret.stripePaymentMethods;
         }
+        //@ts-ignore
         if (!options.includeStripeCustomer) {
             delete ret.stripeCustomer;
         }
+        //@ts-ignore
         ret.name = doc.name;
         return ret;
     },

@@ -1,7 +1,5 @@
-// @ts-nocheck
-import { Schema, model } from "mongoose";
-import { IContractor } from "../interface/contractor.interface";
-import { contractorAccountTypes } from "../../../constants";
+import { Schema, model, ObjectId } from "mongoose";
+import { COMPANY_STATUS, CONTRACTOR_TYPES, GST_STATUS, IContractor, IContractorCertnDetails, IContractorCompanyDetails, IContractorGstDetails } from "../interface/contractor.interface";
 import { contractorStatus } from "../../../constants/contractorStatus";
 import { config } from "../../../config";
 import ContractorQuizModel from "./contractor_quiz.model";
@@ -10,11 +8,34 @@ import { StripeAccountSchema } from "../../common/stripe_account.schema";
 import { StripePaymentMethodSchema } from "../../common/stripe_paymentmethod.schema";
 
 
-export enum CONTRACTOR_TYPES {
-  INDIVIDUAL = "Individual",
-  EMPLOYEE = "Employee",
-  COMPANY = "Company"
-}
+
+const GstDetailSchema = new Schema<IContractorGstDetails>({
+  gstName: String,
+  gstNumber: String,
+  gstType: String,
+  backgroundCheckConsent: String,
+  status: { type: String, enum: Object.values(GST_STATUS), default: GST_STATUS.PENDING },
+  approvedBy: Schema.Types.ObjectId,
+  approvedAt: Date,
+  recentRemark: String,
+  gstCertificate: String,
+});
+
+
+const CompanyDetailSchema = new Schema<IContractorCompanyDetails>({
+  companyLogo: String,
+  companyStaffId: String, //url
+  status: { type: String, enum: Object.values(COMPANY_STATUS), default: COMPANY_STATUS.PENDING },
+  approvedBy: Schema.Types.ObjectId,
+  approvedAt: Date,
+  recentRemark: String,
+});
+
+const CertnDetailSchema = new Schema<IContractorCertnDetails>({
+  status: { type: String },
+});
+
+
 const ContractorSchema = new Schema<IContractor>(
   {
 
@@ -66,11 +87,14 @@ const ContractorSchema = new Schema<IContractor>(
 
     accountType: {
       type: String,
-      enum: Object.values(contractorAccountTypes),
+      enum: Object.values(CONTRACTOR_TYPES),
     },
 
     profilePhoto: {
       type: Object,
+      default: {
+        url: 'https://ipalas3bucket.s3.us-east-2.amazonaws.com/avatar.png'
+      }
     },
 
     phoneNumber: {
@@ -122,6 +146,13 @@ const ContractorSchema = new Schema<IContractor>(
       type: [StripePaymentMethodSchema],
     },
 
+    gstDetails: {
+      type: GstDetailSchema
+    },
+    companyDetails: {
+      type: CompanyDetailSchema
+    },
+
   },
   {
     timestamps: true,
@@ -130,23 +161,39 @@ const ContractorSchema = new Schema<IContractor>(
 
 
 
-// Rest of your schema
-
-ContractorSchema.virtual('hasStripeIdentity').get(function (this: IContractor) {
-  return !!this.stripeIdentity; // Returns true if stripeIdentity exists, false otherwise
-});
-
-ContractorSchema.virtual('hasStripeCustomer').get(function (this: IContractor) {
-  return !!this.stripeCustomer; // Returns true if stripeCustomer exists, false otherwise
-});
-
-ContractorSchema.virtual('hasStripePaymentMethods').get(function (this: IContractor) {
-  return Array.isArray(this.stripePaymentMethods) && this.stripePaymentMethods.length > 0; // Returns true if stripePaymentMethods is an array with at least one element
-});
-
-
 ContractorSchema.virtual('stripeIdentityStatus').get(function (this: IContractor) {
+  //@ts-ignore
   return this.stripeIdentity ? this.stripeIdentity.status : 'unverified';
+});
+
+ContractorSchema.virtual('stripeAccountStatus').get(function (this: IContractor) {
+  const stripeAccount = this.stripeAccount;
+  return stripeAccount ? {
+    details_submitted: stripeAccount.details_submitted,
+    payouts_enabled: stripeAccount.payouts_enabled,
+    charges_enabled: stripeAccount.charges_enabled
+  } : 'unverified';
+});
+
+
+ContractorSchema.virtual('onboarding').get(function (this: IContractor) {
+
+  const hasStripeAccount = !!this.stripeAccount;
+  const hasStripeCustomer = !!this.stripeCustomer;
+  const hasStripePaymentMethods = Array.isArray(this.stripePaymentMethods) && this.stripePaymentMethods.length > 0
+  const hasStripeIdentity = !!this.stripeIdentity;
+  const hasProfile = !!this.profile;
+  const hasGstDetails = !!this.gstDetails;
+  const hasCompanyDetails = !!this.companyDetails;
+  return {
+    hasStripeAccount,
+    hasStripeIdentity,
+    hasStripePaymentMethods,
+    hasStripeCustomer,
+    hasProfile,
+    hasGstDetails,
+    hasCompanyDetails
+  }
 });
 
 
@@ -156,9 +203,9 @@ ContractorSchema.virtual('quiz').get(async function () {
 });
 
 ContractorSchema.virtual('name').get(function () {
-  if (this.accountType === CONTRACTOR_TYPES.INDIVIDUAL || this.accountType === CONTRACTOR_TYPES.EMPLOYEE) {
+  if (this.accountType == CONTRACTOR_TYPES.Individual || this.accountType == CONTRACTOR_TYPES.Employee) {
     return `${this.firstName} ${this.lastName}`;
-  } else if (this.accountType === CONTRACTOR_TYPES.COMPANY) {
+  } else if (this.accountType == CONTRACTOR_TYPES.Company) {
     return this.companyName;
   }
 });
@@ -172,20 +219,34 @@ ContractorSchema.set('toJSON', {
 
     // Check if the options include virtuals, if not, delete the fields
 
-    
+
     // Check if the options include virtuals, if not, delete the stripeIdentity field
+    //@ts-ignore
     if (!options.includeStripeIdentity) {
       delete ret.stripeIdentity;
     }
+    //@ts-ignore
     if (!options.includeStripePaymentMethods) {
       delete ret.stripePaymentMethods;
     }
 
+    //@ts-ignore
     if (!options.includeStripeCustomer) {
       delete ret.stripeCustomer;
     }
+    //@ts-ignore
 
+    if (!options.includeStripeAccount) {
+      delete ret.stripeAccount;
+    }
 
+    if (!ret.profilePhoto || !ret.profilePhoto.url) {
+      ret.profilePhoto = {
+        url: 'https://ipalas3bucket.s3.us-east-2.amazonaws.com/avatar.png'
+      }
+    }
+
+    //@ts-ignore
     ret.name = doc.name;
     return ret;
   },

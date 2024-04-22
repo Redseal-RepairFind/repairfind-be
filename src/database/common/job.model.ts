@@ -1,5 +1,5 @@
 import { Document, ObjectId, Schema, model } from "mongoose";
-import { IJobQuotation, JobQoutationModel } from "./job_quotation.model";
+import { IJobQuotation, JOB_QUOTATION_STATUS, JobQoutationModel } from "./job_quotation.model";
 
 export interface IJobLocation extends Document {
     address?: string;
@@ -50,6 +50,13 @@ export interface IJobSchedule {
     type: JOB_SCHEDULE_TYPE
 }
 
+interface IVoiceDescription {
+    url: string;
+    metrics?: [];
+    duration?: string;
+}
+
+
 
 export interface IJob extends Document {
     _id: ObjectId;
@@ -62,7 +69,7 @@ export interface IJob extends Document {
     category: string;
     description: string;
     title: string;
-    voiceDescription: string;
+    voiceDescription: IVoiceDescription;
     location: IJobLocation;
     date: Date;
     startDate: Date;
@@ -74,7 +81,7 @@ export interface IJob extends Document {
     experience?: string;
     createdAt: Date;
     updatedAt: Date;
-    quotations: ObjectId[];
+    quotations: [{id: ObjectId, status: string}];
     jobHistory: IJobHistory[];
     payments: ObjectId[];
     schedules: [IJobSchedule];
@@ -84,6 +91,21 @@ export interface IJob extends Document {
     };
 }
 
+
+const VoiceDescriptionSchema = new Schema<IVoiceDescription>({
+    url: {
+        type: String,
+        required: true,
+    },
+    metrics: {
+        type: Array,
+        required: false,
+    },
+    duration: {
+        type: String,
+        required: false,
+    }
+});
 
 
 const ScheduleSchema = new Schema<IJobSchedule>({
@@ -127,7 +149,7 @@ const JobSchema = new Schema<IJob>({
     category: { type: String, required: false },
     description: { type: String, required: true },
     title: { type: String },
-    voiceDescription: { type: String, default: null },
+    voiceDescription: VoiceDescriptionSchema,
     location: { type: JobLocationSchema, required: true },
     date: { type: Date, required: true },
     time: { type: Date, required: false },
@@ -139,46 +161,40 @@ const JobSchema = new Schema<IJob>({
     experience: { type: String },
     jobHistory: [JobHistorySchema], // Array of job history entries
     schedules: [ScheduleSchema],
-    quotations: {
-        type: [Schema.Types.ObjectId],
-        ref: 'job_quotations'
-    },
+    quotations: [{
+        id: { type: Schema.Types.ObjectId, ref: 'job_quotations' },
+        status: { type: String, enum: Object.values(JOB_QUOTATION_STATUS) }
+    }],
     payments: {
         type: [Schema.Types.ObjectId],
         ref: 'payments'
     },
+    myQuotation: Object,
     emergency: {type: Boolean, default:false},
-    myQuotation: { type: Object, default: null },
 }, { timestamps: true });
 
 
 
 
 JobSchema.virtual('totalQuotations').get(function () {
-    return this.quotations.length
+    const pendingQuotations = this.quotations.filter(quote => quote.status !== JOB_QUOTATION_STATUS.DECLINED);
+    return pendingQuotations.length;
 });
 
 
 
-
-JobSchema.methods.getMyQoutation = async function (jobId: any, contractorId: any) {
-    const job = await this.populate({
-        path: 'quotations',
-        match: { contractor: contractorId } // Match quotations by contractorId
-      });
-  
-    if(job.quotations.length){
-        return job.quotations[0]
+JobSchema.methods.getMyQoutation = async function (contractor: any) {
+    const contractorQuotation = await JobQoutationModel.findOne({job:this.id, contractor})
+    if(contractorQuotation){
+        return contractorQuotation
     }else{
         return null
     }
-    
 };
 
 
-
-  JobSchema.set('toObject', { virtuals: true });
-  JobSchema.set('toJSON', { virtuals: true });
+JobSchema.set('toObject', { virtuals: true });
+JobSchema.set('toJSON', { virtuals: true });
 
 
 const JobModel = model<IJob>("jobs", JobSchema);
