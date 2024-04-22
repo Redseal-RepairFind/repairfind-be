@@ -73,6 +73,11 @@ export const confirmInspectionPaymentParams = [
     body("inspectionPaymemtId").notEmpty(),
 ];
 
+export const callsParams = [
+  body("caller").notEmpty(),
+  body("reciever").notEmpty(),
+];
+
 export const rateContractorParams = [
     body("jobId").notEmpty(),
     body("cleanliness")
@@ -114,5 +119,6 @@ export const CustomerHttpRequest = {
   confirmInspectionPaymentParams,
   rateContractorParams,
   verifyPasswordOtpParams,
-  verifySocialSignon
+  verifySocialSignon,
+  callsParams,
 }
