@@ -215,10 +215,7 @@ exports.CreateGstDetailsRequest = [
     (0, express_validator_1.body)("gstNumber").notEmpty(),
     (0, express_validator_1.body)("gstType").notEmpty(),
     (0, express_validator_1.body)("backgroundCheckConsent").notEmpty(),
-    (0, express_validator_1.body)("gstCertitificate").if(function (value, _a) {
-        var req = _a.req;
-        return (req.body.accountType || req.contractor.accountType) == 'Company';
-    }).notEmpty(),
+    (0, express_validator_1.body)("gstCertitificate").optional(),
     (0, express_validator_1.body)('backgroundCheckConsent')
         .exists({ checkFalsy: true }).withMessage('Background consent is required')
         .custom(function (value) { return value === true; }).withMessage('You must consent to us running a background check'),

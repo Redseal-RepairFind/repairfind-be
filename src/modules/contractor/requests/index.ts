@@ -159,8 +159,7 @@ export const EmailVerificationRequest = [
     body("gstNumber").notEmpty(),
     body("gstType").notEmpty(),
     body("backgroundCheckConsent").notEmpty(),
-    body("gstCertitificate").if((value: any, { req }: any) =>  (req.body.accountType || req.contractor.accountType) == 'Company').notEmpty(),
-
+    body("gstCertitificate").optional(),
     body('backgroundCheckConsent')
     .exists({ checkFalsy: true }).withMessage('Background consent is required')
     .custom((value) => value === true).withMessage('You must consent to us running a background check'),
