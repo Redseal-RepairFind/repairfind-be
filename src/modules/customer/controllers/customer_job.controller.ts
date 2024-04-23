@@ -98,13 +98,12 @@ export const createJobRequest = async (
         ];
 
         const conversation = await ConversationModel.findOneAndUpdate(
-            // { members: { $elemMatch: { $and: [{ member: customer.id }, { member: contractorId }] }}},
             {
                 $and: [
-                    { members: { $elemMatch: { member: customerId,  } } }, // memberType: 'customers'
-                    { members: { $elemMatch: { member: contractorId, } } } // memberType: 'contractors'
-                ]
-            },
+                      { members: { $elemMatch: { member: customer.id} } }, // memberType: 'customers'
+                      { members: { $elemMatch: { member: contractorId} } } // memberType: 'contractors'
+                  ]
+              },
 
             {
                 members: conversationMembers,
@@ -181,8 +180,14 @@ export const createJobListing = async (
             return res.status(400).json({ success: false, message: 'A similar job has already been created within the last 24 hours' });
         }
 
-        const dateTimeString = `${new Date(date).toISOString().split('T')[0]}T${time}`; // Combine date and time
-        const jobTime = new Date(dateTimeString);
+        let dateTimeString = `${new Date(date).toISOString().split('T')[0]}T${'00:00:00.000Z'}`; // Combine date and time
+        let jobTime = new Date(dateTimeString);
+        
+        if(time){
+            let dateTimeString = `${new Date(date).toISOString().split('T')[0]}T${time}`; // Combine date and time
+            let jobTime = new Date(dateTimeString);
+        }
+       
 
         // Create a new job document
         const newJob: IJob = new JobModel({
@@ -371,12 +376,11 @@ export const acceptJobQuotation = async (req: any, res: Response, next: NextFunc
             { memberType: 'contractors', member: quotation.contractor }
         ];
         const conversation = await ConversationModel.findOneAndUpdate(
-            // { members: { $elemMatch: { $and: [{ member: customerId }, { member: quotation.contractor }] }}},
             {
                 $and: [
-                    { members: { $elemMatch: { member: customerId,  } } }, // memberType: 'customers'
-                    { members: { $elemMatch: { member: quotation.contractor, } } } // memberType: 'contractors'
-                ]
+                      { members: { $elemMatch: { member: customerId} } }, // memberType: 'customers'
+                      { members: { $elemMatch: { member: quotation.contractor} } } // memberType: 'contractors'
+                  ]
             },
             {
                 members: conversationMembers,

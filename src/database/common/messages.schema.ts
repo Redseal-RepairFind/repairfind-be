@@ -31,6 +31,7 @@ export interface IMessage extends Document {
     readBy: Types.ObjectId[]; // References to contractors who have read the message
     heading: Object;
     isOwn: Boolean;
+    createdAt: Date
 }
 
 const MediaSchema = new Schema<IMedia>({

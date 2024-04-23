@@ -192,7 +192,12 @@ var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void
                     { memberType: 'customers', member: job.customer },
                     { memberType: 'contractors', member: quotation.contractor }
                 ];
-                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({ members: { $elemMatch: { $and: [{ member: job.customer }, { member: quotation.contractor }] } } }, {
+                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
+                        $and: [
+                            { members: { $elemMatch: { member: job.customer } } }, // memberType: 'customers'
+                            { members: { $elemMatch: { member: quotation.contractor } } } // memberType: 'contractors'
+                        ]
+                    }, {
                         members: conversationMembers,
                         lastMessage: 'I have accepted your Job request', // Set the last message to the job description
                         lastMessageAt: new Date() // Set the last message timestamp to now
@@ -265,11 +270,10 @@ var rejectJobRequest = function (req, res) { return __awaiter(void 0, void 0, vo
                     { memberType: 'contractors', member: contractorId }
                 ];
                 return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
-                        entity: jobId,
-                        entityType: conversations_schema_1.ConversationEntityType.JOB,
-                        members: {
-                            $elemMatch: { $and: [{ member: job.customer }, { member: contractorId }] }
-                        }
+                        $and: [
+                            { members: { $elemMatch: { member: job.customer } } }, // memberType: 'customers'
+                            { members: { $elemMatch: { member: contractorId } } } // memberType: 'contractors'
+                        ]
                     }, {
                         entity: jobId,
                         entityType: conversations_schema_1.ConversationEntityType.JOB,
@@ -579,7 +583,12 @@ var updateJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
                     { memberType: 'customers', member: job.customer },
                     { memberType: 'contractors', member: contractorId }
                 ];
-                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({ members: { $elemMatch: { $and: [{ member: job.customer }, { member: contractorId }] } } }, {
+                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
+                        $and: [
+                            { members: { $elemMatch: { member: job.customer } } }, // memberType: 'customers'
+                            { members: { $elemMatch: { member: contractorId } } } // memberType: 'contractors'
+                        ]
+                    }, {
                         members: conversationMembers
                     }, { new: true, upsert: true })];
             case 5:

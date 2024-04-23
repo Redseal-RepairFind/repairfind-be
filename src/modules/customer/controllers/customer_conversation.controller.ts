@@ -134,6 +134,7 @@ export const sendMessage = async (req: any, res: Response, next: NextFunction) =
         if (!customerIsMember) {
             return res.status(403).json({ success: false, message: 'Unauthorized: You do not have access to this conversation' });
         }
+        
 
         // Create a new message in the conversation
         const newMessage = await MessageModel.create({
@@ -145,6 +146,14 @@ export const sendMessage = async (req: any, res: Response, next: NextFunction) =
             media: media, 
             createdAt: new Date()
         });
+
+        if(newMessage){
+            ConversationModel.updateOne(conversationId, {
+                lastMessage: newMessage.message,
+                lastMessageAt: newMessage.createdAt,
+            })
+            
+        }
 
         ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
 

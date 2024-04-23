@@ -166,7 +166,12 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
       { memberType: 'contractors', member: quotation.contractor }
     ];
     const conversation = await ConversationModel.findOneAndUpdate(
-      { members: { $elemMatch: { $and: [{ member: job.customer }, { member: quotation.contractor }] } } },
+      {
+        $and: [
+              { members: { $elemMatch: { member: job.customer} } }, // memberType: 'customers'
+              { members: { $elemMatch: { member: quotation.contractor} } } // memberType: 'contractors'
+          ]
+      },
       
       {
         members: conversationMembers,
@@ -250,11 +255,10 @@ export const rejectJobRequest = async (req: any, res: Response) => {
 
     const conversation = await ConversationModel.findOneAndUpdate(
       {
-        entity: jobId,
-        entityType: ConversationEntityType.JOB,
-        members: {
-          $elemMatch: { $and: [{ member: job.customer }, { member: contractorId }] }
-        }
+        $and: [
+              { members: { $elemMatch: { member: job.customer} } }, // memberType: 'customers'
+              { members: { $elemMatch: { member: contractorId} } } // memberType: 'contractors'
+          ]
       },
 
       {
@@ -574,7 +578,13 @@ export const updateJobQuotation = async (req: any, res: Response, next: NextFunc
     ];
 
     const conversation = await ConversationModel.findOneAndUpdate(
-      { members: { $elemMatch: { $and: [{ member: job.customer }, { member: contractorId }] } } },
+      {
+        $and: [
+              { members: { $elemMatch: { member: job.customer} } }, // memberType: 'customers'
+              { members: { $elemMatch: { member: contractorId} } } // memberType: 'contractors'
+          ]
+      },
+
       {
         members: conversationMembers
       },

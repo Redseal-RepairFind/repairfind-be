@@ -138,6 +138,14 @@ export const sendMessage = async (req: any, res: Response, next: NextFunction) =
             createdAt: new Date()
         });
 
+        if(newMessage){
+            ConversationModel.updateOne(conversationId, {
+                lastMessage: newMessage.message,
+                lastMessageAt: newMessage.createdAt,
+            })
+            
+        }
+
         ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
         res.status(201).json({ success: true, message: 'Message sent successfully', data: newMessage });
     } catch (error: any) {

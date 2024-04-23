@@ -6,6 +6,8 @@ import { sendPushNotifications } from "../../../services/expo";
 import CustomerDeviceModel from "../../../database/customer/models/customer_devices.model";
 import { transferFileToS3 } from "../../../services/storage";
 import { StripeService } from "../../../services/stripe";
+import { castPayloadToDTO } from "../../../utils/interface_dto.util";
+import { IStripeCustomer } from "../../../database/common/stripe_customer.interface";
 
 
 export const updateAccount = async (
@@ -82,21 +84,40 @@ export const getAccount = async (req: any, res: Response) => {
 
 
     //TODO: for now always update the meta data of stripe customer with this email address
+    
     if (customer.stripeCustomer) {
       StripeService.customer.updateCustomer(customer.stripeCustomer.id, {
         metadata: { userType: 'customers', userId: customerId }
       })
+      
     } else {
-      StripeService.customer.createCustomer({
-        email: customer.email,
-        metadata: {
-          userType: 'customers',
-          userId: customer.id,
-        },
-        name: `${customer.firstName} ${customer.lastName} `,
-        phone: `${customer.phoneNumber.code}${customer.phoneNumber.number} `,
-      })
+      // try to find account first
+      const stripeCustomer = await StripeService.customer.getCustomer({email: customer.email});
+      
+      if(stripeCustomer){
+        customer.stripeCustomer =  castPayloadToDTO(stripeCustomer, stripeCustomer as IStripeCustomer)
+        customer.save()
+      }else{
+        await StripeService.customer.createCustomer({
+          email: customer.email,
+          metadata: {
+            userType: 'customers',
+            userId: customer.id,
+          },
+          name: `${customer.firstName} ${customer.lastName} `,
+          phone: `${customer.phoneNumber.code}${customer.phoneNumber.number} `,
+        })
+      }
     }
+
+    //TODO: retrieve existing customer payment methods from stripe here - will move all this to scheduler jobs
+    const paymentMethods = await StripeService.payment.listPaymentMethods({customer: customer.stripeCustomer.id})
+    // console.log(paymentMethods)
+    if(paymentMethods){
+      //@ts-ignore
+      customer.stripePaymentMethods = paymentMethods.data
+    }
+
 
     //@ts-ignore
     const customerResponse = customer.toJSON({ includeStripeIdentity: true, includeStripeCustomer: true, includeStripePaymentMethods: true });

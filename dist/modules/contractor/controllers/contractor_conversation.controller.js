@@ -224,6 +224,12 @@ var sendMessage = function (req, res, next) { return __awaiter(void 0, void 0, v
                     })];
             case 2:
                 newMessage = _b.sent();
+                if (newMessage) {
+                    conversations_schema_1.ConversationModel.updateOne(conversationId, {
+                        lastMessage: newMessage.message,
+                        lastMessageAt: newMessage.createdAt,
+                    });
+                }
                 events_1.ConversationEvent.emit('NEW_MESSAGE', { message: newMessage });
                 res.status(201).json({ success: true, message: 'Message sent successfully', data: newMessage });
                 return [3 /*break*/, 4];

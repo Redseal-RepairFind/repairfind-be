@@ -124,12 +124,10 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                     { memberType: 'customers', member: customerId },
                     { memberType: 'contractors', member: contractorId }
                 ];
-                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate(
-                    // { members: { $elemMatch: { $and: [{ member: customer.id }, { member: contractorId }] }}},
-                    {
+                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
                         $and: [
-                            { members: { $elemMatch: { member: customerId, } } }, // memberType: 'customers'
-                            { members: { $elemMatch: { member: contractorId, } } } // memberType: 'contractors'
+                            { members: { $elemMatch: { member: customer.id } } }, // memberType: 'customers'
+                            { members: { $elemMatch: { member: contractorId } } } // memberType: 'contractors'
                         ]
                     }, {
                         members: conversationMembers,
@@ -161,7 +159,7 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
 }); };
 exports.createJobRequest = createJobRequest;
 var createJobListing = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, category, description, location_2, date, expiresIn, emergency, media, voiceDescription, time, contractorType, customerId, customer, startOfToday, existingJobRequest, dateTimeString, jobTime, newJob, error_2;
+    var errors, _a, category, description, location_2, date, expiresIn, emergency, media, voiceDescription, time, contractorType, customerId, customer, startOfToday, existingJobRequest, dateTimeString, jobTime, dateTimeString_1, jobTime_1, newJob, error_2;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -194,8 +192,12 @@ var createJobListing = function (req, res, next) { return __awaiter(void 0, void
                 if (existingJobRequest) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'A similar job has already been created within the last 24 hours' })];
                 }
-                dateTimeString = "".concat(new Date(date).toISOString().split('T')[0], "T").concat(time);
+                dateTimeString = "".concat(new Date(date).toISOString().split('T')[0], "T").concat('00:00:00.000Z');
                 jobTime = new Date(dateTimeString);
+                if (time) {
+                    dateTimeString_1 = "".concat(new Date(date).toISOString().split('T')[0], "T").concat(time);
+                    jobTime_1 = new Date(dateTimeString_1);
+                }
                 newJob = new job_model_1.JobModel({
                     customer: customer.id,
                     contractorType: contractorType,
@@ -412,12 +414,10 @@ var acceptJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
                     { memberType: 'customers', member: customerId },
                     { memberType: 'contractors', member: quotation.contractor }
                 ];
-                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate(
-                    // { members: { $elemMatch: { $and: [{ member: customerId }, { member: quotation.contractor }] }}},
-                    {
+                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
                         $and: [
-                            { members: { $elemMatch: { member: customerId, } } }, // memberType: 'customers'
-                            { members: { $elemMatch: { member: quotation.contractor, } } } // memberType: 'contractors'
+                            { members: { $elemMatch: { member: customerId } } }, // memberType: 'customers'
+                            { members: { $elemMatch: { member: quotation.contractor } } } // memberType: 'contractors'
                         ]
                     }, {
                         members: conversationMembers,
