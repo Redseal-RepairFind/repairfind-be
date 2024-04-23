@@ -44,7 +44,7 @@ class ProfileHandler extends Base {
 
 
       const contractorId = req.contractor.id;
-      const contractor = await ContractorModel.findOne({ _id: contractorId });
+      const contractor = await ContractorModel.findById(contractorId);
 
       if (!contractor) {
         return res.status(404).json({ message: "Contractor account not found" });
@@ -57,7 +57,8 @@ class ProfileHandler extends Base {
       }
 
       let payload = {}
-      if (contractor.accountType == CONTRACTOR_TYPES.Company || contractor.accountType == CONTRACTOR_TYPES.Individual) {
+      console.log(contractor.accountType)
+      if ( (contractor.accountType == CONTRACTOR_TYPES.Company) || (contractor.accountType == CONTRACTOR_TYPES.Individual) ) {
         payload = {
           contractor: contractorId,
           location,
@@ -85,7 +86,7 @@ class ProfileHandler extends Base {
       }
 
       const profile = await ContractorProfileModel.findOneAndUpdate({ contractor: contractorId }, {
-        payload
+        ...payload
       }, { upsert: true, new: true, setDefaultsOnInsert: true })
 
       // Update the ContractorModel with the profile ID
@@ -205,59 +206,6 @@ class ProfileHandler extends Base {
       if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
       }
-
-      // Custom validation function for checking if an array of media objects contains 'url' property
-      // const validateMediaArray = (value: any): boolean => {
-      //   return Array.isArray(value) && value.every((item) => typeof item === 'object' && 'url' in item && typeof item.url === 'string' && item.url.trim() !== '');
-      // };
-
-
-      // Define validation rules for the request body
-      // if (contractor.accountType == CONTRACTOR_TYPES.Company || contractor.accountType == CONTRACTOR_TYPES.Individual) {
-      //   await Promise.all([
-      //     body("location.address").notEmpty(),          
-      //     body("location.latitude").notEmpty().isNumeric(),
-      //     body("location.longitude").notEmpty().isNumeric(),
-
-      //     body('backgroundCheckConsent')
-      //       .exists({ checkFalsy: true }).withMessage('Background consent is required')
-      //       .custom((value) => value === true).withMessage('You must consent to us running a background check'),
-
-      //     body("skill").notEmpty(),
-
-      //     body("gstDetails.gstNumber").notEmpty(),
-      //     body("gstDetails.gstName").notEmpty(),
-      //     body("gstDetails.gstType").notEmpty(),
-      //     body("gstDetails.gstCertificate").if((value: any, { req }: any) => (req.contractor.accountType) !== 'Company').notEmpty(),
-
-
-      //     body("experienceYear").optional().isNumeric(),
-      //     body("about").optional(),
-      //     body("website").optional().isURL(),
-      //     body("email").optional().isEmail(),
-      //     body("phoneNumber").optional().isNumeric(),
-      //     body("emergencyJobs").notEmpty(),
-      //     body("availableDays").notEmpty().isArray(),
-      //     body("previousJobPhotos").optional().isArray().notEmpty().custom((value) => validateMediaArray(value)),
-      //     body("previousJobVideos").optional().isArray().notEmpty().custom((value) => validateMediaArray(value)),
-
-      //     //  validate only for 'Employee
-      //     body("firstName").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) === 'Employee').notEmpty(),
-      //     body("lastName").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) === 'Employee').notEmpty(),
-
-      //   ]);
-      // }
-
-      // if (contractor.accountType == CONTRACTOR_TYPES.Employee) {
-      //   await Promise.all([
-      //     body("location.address").notEmpty(),          
-      //     body("location.latitude").notEmpty().isNumeric(),
-      //     body("location.longitude").notEmpty().isNumeric(),
-      //     body('backgroundCheckConsent')
-      //       .exists({ checkFalsy: true }).withMessage('Background consent is required')
-      //       .custom((value) => value === true).withMessage('You must consent to us running a background check'),
-      //   ]);
-      // }
 
 
 

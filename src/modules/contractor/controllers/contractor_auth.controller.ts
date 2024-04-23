@@ -66,18 +66,19 @@ class AuthHandler extends Base {
             const hashedPassword = await bcrypt.hash(password, 10);
 
             
-            const contractor = new ContractorModel({
+            const contractor = await ContractorModel.create({
                 email,
                 firstName,
                 dateOfBirth,
                 lastName,
                 password: hashedPassword,
                 emailOtp,
-                phoneNumber, acceptTerms, accountType, companyName
+                phoneNumber, 
+                acceptTerms, 
+                accountType, 
+                companyName
             });
 
-
-            let contractorSaved = await contractor.save();
 
             const adminNoti = new AdminNoficationModel({
                 title: "New Account Created",

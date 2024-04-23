@@ -116,7 +116,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         _b.trys.push([1, 6, , 7]);
                         _a = req.body, location_1 = _a.location, backgroundCheckConsent = _a.backgroundCheckConsent, skill = _a.skill, website = _a.website, experienceYear = _a.experienceYear, about = _a.about, email = _a.email, phoneNumber = _a.phoneNumber, emergencyJobs = _a.emergencyJobs, availableDays = _a.availableDays, profilePhoto = _a.profilePhoto, previousJobPhotos = _a.previousJobPhotos, previousJobVideos = _a.previousJobVideos;
                         contractorId = req.contractor.id;
-                        return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: contractorId })];
+                        return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
                     case 2:
                         contractor = _b.sent();
                         if (!contractor) {
@@ -127,7 +127,8 @@ var ProfileHandler = /** @class */ (function (_super) {
                             return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                         }
                         payload = {};
-                        if (contractor.accountType == contractor_interface_1.CONTRACTOR_TYPES.Company || contractor.accountType == contractor_interface_1.CONTRACTOR_TYPES.Individual) {
+                        console.log(contractor.accountType);
+                        if ((contractor.accountType == contractor_interface_1.CONTRACTOR_TYPES.Company) || (contractor.accountType == contractor_interface_1.CONTRACTOR_TYPES.Individual)) {
                             payload = {
                                 contractor: contractorId,
                                 location: location_1,
@@ -152,9 +153,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                                 backgroundCheckConsent: backgroundCheckConsent,
                             };
                         }
-                        return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOneAndUpdate({ contractor: contractorId }, {
-                                payload: payload
-                            }, { upsert: true, new: true, setDefaultsOnInsert: true })
+                        return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOneAndUpdate({ contractor: contractorId }, __assign({}, payload), { upsert: true, new: true, setDefaultsOnInsert: true })
                             // Update the ContractorModel with the profile ID
                         ];
                     case 3:

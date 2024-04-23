@@ -102,7 +102,7 @@ var AuthHandler = /** @class */ (function (_super) {
     }
     AuthHandler.prototype.signUp = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _a, email, password, firstName, dateOfBirth, lastName, phoneNumber, acceptTerms, accountType, companyName, errors, userEmailExists, otp, createdTime, emailOtp, html, emailData, welcomeHtml, welcomeEmailData, hashedPassword, contractor, contractorSaved, adminNoti, err_1;
+            var req, res, _a, email, password, firstName, dateOfBirth, lastName, phoneNumber, acceptTerms, accountType, companyName, errors, userEmailExists, otp, createdTime, emailOtp, html, emailData, welcomeHtml, welcomeEmailData, hashedPassword, contractor, adminNoti, err_1;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -150,21 +150,20 @@ var AuthHandler = /** @class */ (function (_super) {
                         return [4 /*yield*/, bcrypt_1.default.hash(password, 10)];
                     case 5:
                         hashedPassword = _b.sent();
-                        contractor = new contractor_model_1.ContractorModel({
-                            email: email,
-                            firstName: firstName,
-                            dateOfBirth: dateOfBirth,
-                            lastName: lastName,
-                            password: hashedPassword,
-                            emailOtp: emailOtp,
-                            phoneNumber: phoneNumber,
-                            acceptTerms: acceptTerms,
-                            accountType: accountType,
-                            companyName: companyName
-                        });
-                        return [4 /*yield*/, contractor.save()];
+                        return [4 /*yield*/, contractor_model_1.ContractorModel.create({
+                                email: email,
+                                firstName: firstName,
+                                dateOfBirth: dateOfBirth,
+                                lastName: lastName,
+                                password: hashedPassword,
+                                emailOtp: emailOtp,
+                                phoneNumber: phoneNumber,
+                                acceptTerms: acceptTerms,
+                                accountType: accountType,
+                                companyName: companyName
+                            })];
                     case 6:
-                        contractorSaved = _b.sent();
+                        contractor = _b.sent();
                         adminNoti = new admin_notification_model_1.default({
                             title: "New Account Created",
                             message: "A contractor - ".concat(firstName, " just created an account."),

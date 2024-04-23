@@ -39,7 +39,7 @@ export enum GST_STATUS {
 }
 
 export enum CONTRACTOR_TYPES {
-  Individual = "Individual",
+  Individual = "Individual", 
   Company = "Company",
   Employee = "Employee",
 }
