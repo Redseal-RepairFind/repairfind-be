@@ -98,7 +98,7 @@ export const createJobRequest = async (
         ];
 
         const conversation = await ConversationModel.findOneAndUpdate(
-            { members: { $elemMatch: { $or: [{ member: customer.id }, { member: contractorId }] }}
+            { members: { $elemMatch: { $and: [{ member: customer.id }, { member: contractorId }] }}
             },
 
             {
@@ -362,7 +362,7 @@ export const acceptJobQuotation = async (req: any, res: Response, next: NextFunc
             { memberType: 'contractors', member: quotation.contractor }
         ];
         const conversation = await ConversationModel.findOneAndUpdate(
-            { members: { $elemMatch: { $or: [{ member: customerId }, { member: quotation.contractor }] }}},
+            { members: { $elemMatch: { $and: [{ member: customerId }, { member: quotation.contractor }] }}},
             {
                 members: conversationMembers,
                 lastMessage: 'I have accepted your qoutation for the Job', // Set the last message to the job description
