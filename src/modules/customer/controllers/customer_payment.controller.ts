@@ -254,28 +254,28 @@ export const captureJobPayment = async (
 
         // make checks here 
         // ensure contractor has a verified connected account
-        // if(contractor.onboarding.hasStripeAccount){
+        if(contractor.onboarding.hasStripeAccount){
 
-        //     //fetch and update contractor stripeaccount here
-        //     const account: unknown = await StripeService.account.getAccount('acct_1P4N6NRdmDaBvbML'); //acct_1P4N6NRdmDaBvbML ,acct_1P7XvFRZlKifQSOs
-        //     console.log(account)
-        //     console.log(contractor.stripeAccount.id)
+            //fetch and update contractor stripeaccount here
+            const account: unknown = await StripeService.account.getAccount('acct_1P4N6NRdmDaBvbML'); //acct_1P4N6NRdmDaBvbML ,acct_1P7XvFRZlKifQSOs
+            // console.log(account)
+            // console.log(contractor.stripeAccount.id)
 
-        //     const stripeAccount =castPayloadToDTO(account, account as IStripeAccount)
-        //     contractor.stripeAccount = stripeAccount
-        //     await contractor.save()
+            const stripeAccount =castPayloadToDTO(account, account as IStripeAccount)
+            contractor.stripeAccount = stripeAccount
+            await contractor.save()
 
-        //     console.log(contractor.stripeAccountStatus)
-        //     if(! (contractor.stripeAccountStatus?.card_payments_enabled && contractor.stripeAccountStatus?.transfers_enabled) ){
-        //         return res
-        //         .status(400)
-        //         .json({ success:false,  message: "Contractor is not capable of receiving payment" });
-        //     }
-        // }else{
-        //     return res
-        //         .status(400)
-        //         .json({ success:false,  message: "Contractor is not capable of receiving payment" });
-        // }
+            console.log(contractor.stripeAccountStatus)
+            if(! (contractor.stripeAccountStatus?.card_payments_enabled && contractor.stripeAccountStatus?.transfers_enabled) ){
+                return res
+                .status(400)
+                .json({ success:false,  message: "Contractor is not capable of receiving payment" });
+            }
+        }else{
+            return res
+                .status(400)
+                .json({ success:false,  message: "Contractor is not capable of receiving payment" });
+        }
 
 
         //ensure customer has a valid payment method or create a setup that will require payment on the fly 
