@@ -282,7 +282,7 @@ export const captureJobPayment = async (
         
 
         //check if job is already booked
-        if(job.status !== JOB_STATUS.PENDING){
+        if(job.status == JOB_STATUS.BOOKED){
             return res
                 .status(400)
                 .json({ success:false,  message: "This job is not pending, so new payment is not possible" });

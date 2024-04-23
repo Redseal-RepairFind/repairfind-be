@@ -298,7 +298,7 @@ var captureJobPayment = function (req, res, next) { return __awaiter(void 0, voi
                 // }
                 //ensure customer has a valid payment method or create a setup that will require payment on the fly 
                 //check if job is already booked
-                if (job.status !== job_model_1.JOB_STATUS.PENDING) {
+                if (job.status == job_model_1.JOB_STATUS.BOOKED) {
                     return [2 /*return*/, res
                             .status(400)
                             .json({ success: false, message: "This job is not pending, so new payment is not possible" })];
