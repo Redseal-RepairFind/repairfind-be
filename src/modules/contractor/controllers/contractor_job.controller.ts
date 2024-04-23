@@ -310,7 +310,7 @@ export const getJobRequestById = async (req: any, res: Response, next: NextFunct
       return next(new NotFoundError('Job request not found'));
     }
 
-    job.myQuotation = await job.getMyQoutation(jobId, contractorId);
+    job.myQuotation = await job.getMyQoutation(contractorId);
 
     // Return the job request details
     res.json({ success: true, data: job });
@@ -319,7 +319,6 @@ export const getJobRequestById = async (req: any, res: Response, next: NextFunct
     return next(new BadRequestError('Bad Request'));
   }
 };
-
 
 
 export const getJobListingById = async (req: any, res: Response, next: NextFunction) => {
@@ -346,13 +345,11 @@ export const getJobListingById = async (req: any, res: Response, next: NextFunct
       .exec();
 
 
-
-
     if (!job) {
       return next(new NotFoundError('Job listing not found'));
     }
 
-    job.myQuotation = await job.getMyQoutation(jobId, contractorId);
+    job.myQuotation = await job.getMyQoutation(contractorId);
 
 
     // Return the job request details

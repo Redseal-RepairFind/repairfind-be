@@ -326,7 +326,7 @@ var getJobRequestById = function (req, res, next) { return __awaiter(void 0, voi
                     return [2 /*return*/, next(new custom_errors_1.NotFoundError('Job request not found'))];
                 }
                 _a = job;
-                return [4 /*yield*/, job.getMyQoutation(jobId, contractorId)];
+                return [4 /*yield*/, job.getMyQoutation(contractorId)];
             case 2:
                 _a.myQuotation = _b.sent();
                 // Return the job request details
@@ -370,7 +370,7 @@ var getJobListingById = function (req, res, next) { return __awaiter(void 0, voi
                     return [2 /*return*/, next(new custom_errors_1.NotFoundError('Job listing not found'))];
                 }
                 _a = job;
-                return [4 /*yield*/, job.getMyQoutation(jobId, contractorId)];
+                return [4 /*yield*/, job.getMyQoutation(contractorId)];
             case 2:
                 _a.myQuotation = _b.sent();
                 // Return the job request details

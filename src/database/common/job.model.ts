@@ -87,7 +87,7 @@ export interface IJob extends Document {
     schedules: [IJobSchedule];
     emergency: boolean;
     myQuotation: Object | null
-    getMyQoutation: (jobId: ObjectId, contractorId: ObjectId) => {
+    getMyQoutation: (contractorId: ObjectId) => {
     };
 }
 
