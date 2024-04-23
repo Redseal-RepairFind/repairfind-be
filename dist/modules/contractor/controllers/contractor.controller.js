@@ -730,7 +730,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     };
     ProfileHandler.prototype.addGstDetails = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _a, gstName, gstNumber, gstType, backgroundCheckConsent, errors, contractorId, contractor, err_10;
+            var req, res, _a, gstName, gstNumber, gstType, backgroundCheckConsent, gstCertificate, errors, contractorId, contractor, err_10;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -739,7 +739,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         _b.label = 1;
                     case 1:
                         _b.trys.push([1, 4, , 5]);
-                        _a = req.body, gstName = _a.gstName, gstNumber = _a.gstNumber, gstType = _a.gstType, backgroundCheckConsent = _a.backgroundCheckConsent;
+                        _a = req.body, gstName = _a.gstName, gstNumber = _a.gstNumber, gstType = _a.gstType, backgroundCheckConsent = _a.backgroundCheckConsent, gstCertificate = _a.gstCertificate;
                         errors = (0, express_validator_1.validationResult)(req);
                         if (!errors.isEmpty()) {
                             return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -764,6 +764,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         contractor.gstDetails = {
                             gstName: gstName,
                             gstNumber: gstNumber,
+                            gstCertificate: gstCertificate,
                             gstType: gstType,
                             backgroundCheckConsent: backgroundCheckConsent,
                             status: contractor_interface_1.GST_STATUS.PENDING,

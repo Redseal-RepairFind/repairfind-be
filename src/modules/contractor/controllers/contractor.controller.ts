@@ -671,7 +671,7 @@ class ProfileHandler extends Base {
     let req = <any>this.req
     let res = this.res
     try {
-      const { gstName, gstNumber, gstType, backgroundCheckConsent } = req.body;
+      const { gstName, gstNumber, gstType, backgroundCheckConsent, gstCertificate } = req.body;
 
       // Check for validation errors
       const errors = validationResult(req);
@@ -704,6 +704,7 @@ class ProfileHandler extends Base {
       contractor.gstDetails = <IContractorGstDetails>{
         gstName,
         gstNumber,
+        gstCertificate,
         gstType,
         backgroundCheckConsent,
         status: GST_STATUS.PENDING,
