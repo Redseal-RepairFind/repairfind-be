@@ -421,6 +421,7 @@ var acceptJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
             case 4:
                 newMessage = _c.sent();
                 job.quotation = quotation.id;
+                job.contractor = quotation.contractor;
                 job.status = job_model_1.JOB_STATUS.ACCEPTED;
                 return [4 /*yield*/, quotation.save()];
             case 5:

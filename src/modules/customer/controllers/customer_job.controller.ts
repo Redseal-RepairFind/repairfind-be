@@ -381,6 +381,7 @@ export const acceptJobQuotation = async (req: any, res: Response, next: NextFunc
         });
 
         job.quotation = quotation.id
+        job.contractor = quotation.contractor
         job.status = JOB_STATUS.ACCEPTED
 
         await quotation.save()
