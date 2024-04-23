@@ -166,10 +166,11 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
       { memberType: 'contractors', member: quotation.contractor }
     ];
     const conversation = await ConversationModel.findOneAndUpdate(
-      { members: { $elemMatch: { $or: [{ member: job.customer }, { member: quotation.contractor }] } } },
+      { members: { $elemMatch: { $and: [{ member: job.customer }, { member: quotation.contractor }] } } },
+      
       {
         members: conversationMembers,
-        lastMessage: 'I have accepted your qoutation for the Job', // Set the last message to the job description
+        lastMessage: 'I have accepted your Job request', // Set the last message to the job description
         lastMessageAt: new Date() // Set the last message timestamp to now
       },
       { new: true, upsert: true });
@@ -180,7 +181,7 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
       conversation: conversation?._id,
       sender: contractorId,
       receiver: job.customer,
-      message: "Contractor has accepted this jos request",
+      message: "Contractor has accepted this job request",
       messageType: MessageType.ALERT,
     });
     await message.save();
@@ -252,7 +253,7 @@ export const rejectJobRequest = async (req: any, res: Response) => {
         entity: jobId,
         entityType: ConversationEntityType.JOB,
         members: {
-          $elemMatch: { $or: [{ member: job.customer }, { member: contractorId }] }
+          $elemMatch: { $and: [{ member: job.customer }, { member: contractorId }] }
         }
       },
 
@@ -268,7 +269,7 @@ export const rejectJobRequest = async (req: any, res: Response) => {
       conversation: conversation?._id,
       sender: contractorId,
       receiver: job.customer,
-      message: "Contractor has rejected this jos request",
+      message: "Contractor has rejected this job request",
       messageType: MessageType.ALERT,
     });
 
@@ -458,53 +459,22 @@ export const sendJobQuotation = async (
 
 
 
-
-
-    const conversation = await ConversationModel.findOne(
-      { members: { $elemMatch: { $or: [{ member: job.customer }, { member: contractorId }] } } }
-    );
-
-
-    if (conversation) {
-      await MessageModel.create({
-        conversation: conversation.id,
-        sender: contractorId,
-        receiver: customer.id,
-        message: "I am available for this Job",
-        messageType: MessageType.TEXT,
-      });
-    }
-
-
-
     // DO OTHER THINGS HERE
     if (estimates) {
       const html = htmlJobQoutationTemplate(customer.firstName, contractor.name)
       EmailService.send(customer.email, 'Job quotation from contractor', html)
-      if (conversation) {
-        await MessageModel.create({
-          conversation: conversation.id,
-          sender: contractorId,
-          receiver: customer.id,
-          message: "Please see attached estimate",
-          messageType: MessageType.ALERT,
-        });
+      // if (conversation) {
+      //   // send push notification
 
-      }
+      // }
 
     }
 
     if (siteVisit) {
       //send message alert indicating that contractor has requested for site visit
-      if (conversation) {
-        await MessageModel.create({
-          conversation: conversation.id,
-          sender: contractorId,
-          receiver: customer.id,
-          message: "Contractor requested for site visit",
-          messageType: MessageType.ALERT,
-        });
-      }
+      // if (conversation) {
+      //  // send notification
+      // }
 
     }
 
@@ -604,7 +574,7 @@ export const updateJobQuotation = async (req: any, res: Response, next: NextFunc
     ];
 
     const conversation = await ConversationModel.findOneAndUpdate(
-      { members: { $elemMatch: { $or: [{ member: job.customer }, { member: contractorId }] } } },
+      { members: { $elemMatch: { $and: [{ member: job.customer }, { member: contractorId }] } } },
       {
         members: conversationMembers
       },

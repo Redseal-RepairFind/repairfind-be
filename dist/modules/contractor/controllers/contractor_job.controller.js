@@ -192,9 +192,9 @@ var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void
                     { memberType: 'customers', member: job.customer },
                     { memberType: 'contractors', member: quotation.contractor }
                 ];
-                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({ members: { $elemMatch: { $or: [{ member: job.customer }, { member: quotation.contractor }] } } }, {
+                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({ members: { $elemMatch: { $and: [{ member: job.customer }, { member: quotation.contractor }] } } }, {
                         members: conversationMembers,
-                        lastMessage: 'I have accepted your qoutation for the Job', // Set the last message to the job description
+                        lastMessage: 'I have accepted your Job request', // Set the last message to the job description
                         lastMessageAt: new Date() // Set the last message timestamp to now
                     }, { new: true, upsert: true })];
             case 5:
@@ -203,7 +203,7 @@ var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void
                     conversation: conversation === null || conversation === void 0 ? void 0 : conversation._id,
                     sender: contractorId,
                     receiver: job.customer,
-                    message: "Contractor has accepted this jos request",
+                    message: "Contractor has accepted this job request",
                     messageType: messages_schema_1.MessageType.ALERT,
                 });
                 return [4 /*yield*/, message.save()];
@@ -268,7 +268,7 @@ var rejectJobRequest = function (req, res) { return __awaiter(void 0, void 0, vo
                         entity: jobId,
                         entityType: conversations_schema_1.ConversationEntityType.JOB,
                         members: {
-                            $elemMatch: { $or: [{ member: job.customer }, { member: contractorId }] }
+                            $elemMatch: { $and: [{ member: job.customer }, { member: contractorId }] }
                         }
                     }, {
                         entity: jobId,
@@ -281,7 +281,7 @@ var rejectJobRequest = function (req, res) { return __awaiter(void 0, void 0, vo
                     conversation: conversation === null || conversation === void 0 ? void 0 : conversation._id,
                     sender: contractorId,
                     receiver: job.customer,
-                    message: "Contractor has rejected this jos request",
+                    message: "Contractor has rejected this job request",
                     messageType: messages_schema_1.MessageType.ALERT,
                 });
                 // Return success response
@@ -386,11 +386,11 @@ var getJobListingById = function (req, res, next) { return __awaiter(void 0, voi
 }); };
 exports.getJobListingById = getJobListingById;
 var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, startDate, endDate, siteVisit, estimates, jobId, contractorId, errors, contractor, job, customer, jobQuotation, _b, jobEvent, conversation, html, err_1;
+    var _a, startDate, endDate, siteVisit, estimates, jobId, contractorId, errors, contractor, job, customer, jobQuotation, _b, jobEvent, html, err_1;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
-                _c.trys.push([0, 14, , 15]);
+                _c.trys.push([0, 7, , 8]);
                 _a = req.body, startDate = _a.startDate, endDate = _a.endDate, siteVisit = _a.siteVisit, estimates = _a.estimates;
                 jobId = req.params.jobId;
                 contractorId = req.contractor.id;
@@ -462,62 +462,35 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                         job.jobHistory.push(jobEvent);
                     }
                 }
-                return [4 /*yield*/, job.save()];
+                return [4 /*yield*/, job.save()
+                    // DO OTHER THINGS HERE
+                ];
             case 6:
                 _c.sent();
-                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOne({ members: { $elemMatch: { $or: [{ member: job.customer }, { member: contractorId }] } } })];
-            case 7:
-                conversation = _c.sent();
-                if (!conversation) return [3 /*break*/, 9];
-                return [4 /*yield*/, messages_schema_1.MessageModel.create({
-                        conversation: conversation.id,
-                        sender: contractorId,
-                        receiver: customer.id,
-                        message: "I am available for this Job",
-                        messageType: messages_schema_1.MessageType.TEXT,
-                    })];
-            case 8:
-                _c.sent();
-                _c.label = 9;
-            case 9:
-                if (!estimates) return [3 /*break*/, 11];
-                html = (0, jobQoutationTemplate_1.htmlJobQoutationTemplate)(customer.firstName, contractor.name);
-                services_1.EmailService.send(customer.email, 'Job quotation from contractor', html);
-                if (!conversation) return [3 /*break*/, 11];
-                return [4 /*yield*/, messages_schema_1.MessageModel.create({
-                        conversation: conversation.id,
-                        sender: contractorId,
-                        receiver: customer.id,
-                        message: "Please see attached estimate",
-                        messageType: messages_schema_1.MessageType.ALERT,
-                    })];
-            case 10:
-                _c.sent();
-                _c.label = 11;
-            case 11:
-                if (!siteVisit) return [3 /*break*/, 13];
-                if (!conversation) return [3 /*break*/, 13];
-                return [4 /*yield*/, messages_schema_1.MessageModel.create({
-                        conversation: conversation.id,
-                        sender: contractorId,
-                        receiver: customer.id,
-                        message: "Contractor requested for site visit",
-                        messageType: messages_schema_1.MessageType.ALERT,
-                    })];
-            case 12:
-                _c.sent();
-                _c.label = 13;
-            case 13:
+                // DO OTHER THINGS HERE
+                if (estimates) {
+                    html = (0, jobQoutationTemplate_1.htmlJobQoutationTemplate)(customer.firstName, contractor.name);
+                    services_1.EmailService.send(customer.email, 'Job quotation from contractor', html);
+                    // if (conversation) {
+                    //   // send push notification
+                    // }
+                }
+                if (siteVisit) {
+                    //send message alert indicating that contractor has requested for site visit
+                    // if (conversation) {
+                    //  // send notification
+                    // }
+                }
                 res.json({
                     success: true,
                     message: "job quotation sucessfully sent",
                     data: jobQuotation
                 });
-                return [3 /*break*/, 15];
-            case 14:
+                return [3 /*break*/, 8];
+            case 7:
                 err_1 = _c.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', err_1))];
-            case 15: return [2 /*return*/];
+            case 8: return [2 /*return*/];
         }
     });
 }); };
@@ -606,7 +579,7 @@ var updateJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
                     { memberType: 'customers', member: job.customer },
                     { memberType: 'contractors', member: contractorId }
                 ];
-                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({ members: { $elemMatch: { $or: [{ member: job.customer }, { member: contractorId }] } } }, {
+                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({ members: { $elemMatch: { $and: [{ member: job.customer }, { member: contractorId }] } } }, {
                         members: conversationMembers
                     }, { new: true, upsert: true })];
             case 5:
