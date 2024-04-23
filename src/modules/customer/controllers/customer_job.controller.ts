@@ -98,7 +98,12 @@ export const createJobRequest = async (
         ];
 
         const conversation = await ConversationModel.findOneAndUpdate(
-            { members: { $elemMatch: { $and: [{ member: customer.id }, { member: contractorId }] }}
+            // { members: { $elemMatch: { $and: [{ member: customer.id }, { member: contractorId }] }}},
+            {
+                $and: [
+                    { members: { $elemMatch: { member: customerId,  } } }, // memberType: 'customers'
+                    { members: { $elemMatch: { member: contractorId, } } } // memberType: 'contractors'
+                ]
             },
 
             {
@@ -359,12 +364,20 @@ export const acceptJobQuotation = async (req: any, res: Response, next: NextFunc
         // create conversation here
 
         // Create a new conversation between the customer and the contractor
+
+        
         const conversationMembers = [
             { memberType: 'customers', member: customerId },
             { memberType: 'contractors', member: quotation.contractor }
         ];
         const conversation = await ConversationModel.findOneAndUpdate(
-            { members: { $elemMatch: { $and: [{ member: customerId }, { member: quotation.contractor }] }}},
+            // { members: { $elemMatch: { $and: [{ member: customerId }, { member: quotation.contractor }] }}},
+            {
+                $and: [
+                    { members: { $elemMatch: { member: customerId,  } } }, // memberType: 'customers'
+                    { members: { $elemMatch: { member: quotation.contractor, } } } // memberType: 'contractors'
+                ]
+            },
             {
                 members: conversationMembers,
                 lastMessage: 'I have accepted your qoutation for the Job', // Set the last message to the job description

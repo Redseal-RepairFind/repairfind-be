@@ -124,7 +124,13 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                     { memberType: 'customers', member: customerId },
                     { memberType: 'contractors', member: contractorId }
                 ];
-                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({ members: { $elemMatch: { $and: [{ member: customer.id }, { member: contractorId }] } }
+                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate(
+                    // { members: { $elemMatch: { $and: [{ member: customer.id }, { member: contractorId }] }}},
+                    {
+                        $and: [
+                            { members: { $elemMatch: { member: customerId, } } }, // memberType: 'customers'
+                            { members: { $elemMatch: { member: contractorId, } } } // memberType: 'contractors'
+                        ]
                     }, {
                         members: conversationMembers,
                         lastMessage: "New job request: ".concat(description), // Set the last message to the job description
@@ -406,7 +412,14 @@ var acceptJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
                     { memberType: 'customers', member: customerId },
                     { memberType: 'contractors', member: quotation.contractor }
                 ];
-                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({ members: { $elemMatch: { $and: [{ member: customerId }, { member: quotation.contractor }] } } }, {
+                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate(
+                    // { members: { $elemMatch: { $and: [{ member: customerId }, { member: quotation.contractor }] }}},
+                    {
+                        $and: [
+                            { members: { $elemMatch: { member: customerId, } } }, // memberType: 'customers'
+                            { members: { $elemMatch: { member: quotation.contractor, } } } // memberType: 'contractors'
+                        ]
+                    }, {
                         members: conversationMembers,
                         lastMessage: 'I have accepted your qoutation for the Job', // Set the last message to the job description
                         lastMessageAt: new Date() // Set the last message timestamp to now
