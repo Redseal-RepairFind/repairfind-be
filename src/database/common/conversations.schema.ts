@@ -98,6 +98,9 @@ ConversationSchema.methods.getHeading = async function(loggedInUserId: string) {
 
 
 
+ 
+
+
 export const ConversationModel = model<IConversation>('conversations', ConversationSchema);
 
 

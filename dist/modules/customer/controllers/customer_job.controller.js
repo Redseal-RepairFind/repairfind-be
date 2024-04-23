@@ -126,7 +126,9 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 ];
                 return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({ members: { $elemMatch: { $and: [{ member: customer.id }, { member: contractorId }] } }
                     }, {
-                        members: conversationMembers
+                        members: conversationMembers,
+                        lastMessage: "New job request: ".concat(description), // Set the last message to the job description
+                        lastMessageAt: new Date() // Set the last message timestamp to now
                     }, { new: true, upsert: true })];
             case 5:
                 conversation = _b.sent();

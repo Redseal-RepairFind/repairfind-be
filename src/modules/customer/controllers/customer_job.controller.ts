@@ -102,7 +102,9 @@ export const createJobRequest = async (
             },
 
             {
-                members: conversationMembers
+                members: conversationMembers,
+                lastMessage: `New job request: ${description}`, // Set the last message to the job description
+                lastMessageAt: new Date() // Set the last message timestamp to now
             },
             { new: true, upsert: true }
         );
