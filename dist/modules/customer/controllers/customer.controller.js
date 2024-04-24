@@ -131,10 +131,12 @@ var getAccount = function (req, res) { return __awaiter(void 0, void 0, void 0, 
             case 5:
                 _a.sent();
                 _a.label = 6;
-            case 6: return [4 /*yield*/, stripe_1.StripeService.payment.listPaymentMethods({ customer: customer.stripeCustomer.id })];
+            case 6: return [4 /*yield*/, stripe_1.StripeService.payment.listPaymentMethods({ customer: customer.stripeCustomer.id })
+                // console.log(paymentMethods)
+            ];
             case 7:
                 paymentMethods = _a.sent();
-                console.log(paymentMethods);
+                // console.log(paymentMethods)
                 if (paymentMethods) {
                     //@ts-ignore
                     customer.stripePaymentMethods = paymentMethods.data;

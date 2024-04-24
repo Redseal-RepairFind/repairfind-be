@@ -420,7 +420,7 @@ export const sendJobQuotation = async (
 
 
     let jobQuotation = await JobQoutationModel.findOneAndUpdate({ job: jobId, contractor: contractorId }, {
-      startDate: new Date(startDate),
+      startDate: startDate ? new Date(startDate) : null,
       endDate: endDate ? new Date(startDate) : null,
       siteVisit: siteVisit ? new Date(siteVisit) : null,
       estimates,
