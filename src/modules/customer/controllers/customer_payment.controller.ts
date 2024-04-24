@@ -412,6 +412,20 @@ export const captureJobPayment = async (
 
 }
 
+export const getTransactions = async (
+    req: any,
+    res: Response,
+    next: NextFunction
+) => {
+
+    try {
+        
+    } catch (err: any) {
+        return next(new BadRequestError(err.message, err))
+    }
+
+}
+
 
 // //customer get job qoutation payment and open /////////////
 // export const customerGetJobQoutationPaymentOpenController = async (

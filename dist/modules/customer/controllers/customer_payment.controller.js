@@ -62,7 +62,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerPaymentController = exports.captureJobPayment = exports.makeJobPayment = void 0;
+exports.CustomerPaymentController = exports.getTransactions = exports.captureJobPayment = exports.makeJobPayment = void 0;
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
@@ -417,6 +417,17 @@ var captureJobPayment = function (req, res, next) { return __awaiter(void 0, voi
     });
 }); };
 exports.captureJobPayment = captureJobPayment;
+var getTransactions = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    return __generator(this, function (_a) {
+        try {
+        }
+        catch (err) {
+            return [2 /*return*/, next(new custom_errors_1.BadRequestError(err.message, err))];
+        }
+        return [2 /*return*/];
+    });
+}); };
+exports.getTransactions = getTransactions;
 // //customer get job qoutation payment and open /////////////
 // export const customerGetJobQoutationPaymentOpenController = async (
 //     req: any,

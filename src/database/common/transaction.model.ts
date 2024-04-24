@@ -38,6 +38,8 @@ export interface ITransaction extends Document {
   payment?: string;
   createdAt: Date;
   updatedAt: Date;
+  isCredit: boolean;
+  getIsCredit: (userId: any) =>  boolean
 }
 
 const TransactionSchema = new Schema<ITransaction>(
@@ -117,6 +119,10 @@ const TransactionSchema = new Schema<ITransaction>(
         type: Date, 
         default: Date.now,
       },
+      isCredit: {
+        type: Boolean, 
+        default: false,
+      }
     
     },
     {
@@ -124,6 +130,14 @@ const TransactionSchema = new Schema<ITransaction>(
     }
   );
   
+
+  TransactionSchema.methods.getIsCredit = async function (userId: string) {
+      return this.toUser == userId
+  };
+
+  TransactionSchema.set('toObject', { virtuals: true });
+  TransactionSchema.set('toJSON', { virtuals: true });
+
   const TransactionModel = model<ITransaction>("Transaction", TransactionSchema);
   
   export default TransactionModel; 

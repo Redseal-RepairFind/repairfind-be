@@ -13,7 +13,6 @@ import CustomerModel from "../../../database/customer/models/customer.model";
 import mongoose, { Document, PipelineStage as MongoosePipelineStage } from 'mongoose'; // Import Document type from mongoose
 import { ConversationEntityType, ConversationModel } from "../../../database/common/conversations.schema";
 import { MessageModel, MessageType } from "../../../database/common/messages.schema";
-import { error } from "console";
 import { EmailService } from "../../../services";
 import { ContractorProfileModel } from "../../../database/contractor/models/contractor_profile.model";
 

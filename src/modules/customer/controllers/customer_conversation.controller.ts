@@ -147,12 +147,16 @@ export const sendMessage = async (req: any, res: Response, next: NextFunction) =
             createdAt: new Date()
         });
 
-        if(newMessage){
-            ConversationModel.updateOne(conversationId, {
-                lastMessage: newMessage.message,
-                lastMessageAt: newMessage.createdAt,
-            })
-            
+        if (newMessage) {
+            await ConversationModel.updateOne(
+                { _id: conversationId }, // Filter criteria to find the conversation document
+                {
+                    $set: { // Use $set to update specific fields
+                        lastMessage: newMessage.message,
+                        lastMessageAt: newMessage.createdAt,
+                    }
+                }
+            );
         }
 
         ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })

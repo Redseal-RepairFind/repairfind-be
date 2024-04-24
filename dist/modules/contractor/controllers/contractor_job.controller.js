@@ -65,7 +65,7 @@ var messages_schema_1 = require("../../../database/common/messages.schema");
 var services_1 = require("../../../services");
 var contractor_profile_model_1 = require("../../../database/contractor/models/contractor_profile.model");
 var getJobRequests = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, customerId, status_1, startDate, endDate, date, contractorId, filter, start, end, selectedDate, startOfDay, endOfDay, jobRequests, _b, data, error_2, error_1;
+    var errors, _a, customerId, status_1, startDate, endDate, date, contractorId, filter, start, end, selectedDate, startOfDay, endOfDay, jobRequests, _b, data, error, error_1;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
@@ -105,7 +105,7 @@ var getJobRequests = function (req, res) { return __awaiter(void 0, void 0, void
                 jobRequests = job_model_1.JobModel.find(filter);
                 return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(jobRequests, req.query)];
             case 1:
-                _b = _c.sent(), data = _b.data, error_2 = _b.error;
+                _b = _c.sent(), data = _b.data, error = _b.error;
                 res.status(200).json({
                     success: true, message: "Job requests retrieved",
                     data: data
@@ -122,7 +122,7 @@ var getJobRequests = function (req, res) { return __awaiter(void 0, void 0, void
 }); };
 exports.getJobRequests = getJobRequests;
 var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, jobId, contractorId, job, customer, jobEvent, quotation, conversationMembers, conversation, message, error_3;
+    var errors, jobId, contractorId, job, customer, jobEvent, quotation, conversationMembers, conversation, message, error_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -218,15 +218,15 @@ var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 res.json({ success: true, message: 'Job request accepted successfully' });
                 return [3 /*break*/, 8];
             case 7:
-                error_3 = _a.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('Something went wrong', error_3))];
+                error_2 = _a.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('Something went wrong', error_2))];
             case 8: return [2 /*return*/];
         }
     });
 }); };
 exports.acceptJobRequest = acceptJobRequest;
 var rejectJobRequest = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, jobId, rejectionReason, contractorId, job, jobEvent, conversationMembers, conversation, message, error_4;
+    var errors, jobId, rejectionReason, contractorId, job, jobEvent, conversationMembers, conversation, message, error_3;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -292,8 +292,8 @@ var rejectJobRequest = function (req, res) { return __awaiter(void 0, void 0, vo
                 res.json({ success: true, message: 'Job request rejected successfully' });
                 return [3 /*break*/, 5];
             case 4:
-                error_4 = _a.sent();
-                console.error('Error rejecting job request:', error_4);
+                error_3 = _a.sent();
+                console.error('Error rejecting job request:', error_3);
                 res.status(500).json({ success: false, message: 'Internal Server Error' });
                 return [3 /*break*/, 5];
             case 5: return [2 /*return*/];
@@ -302,7 +302,7 @@ var rejectJobRequest = function (req, res) { return __awaiter(void 0, void 0, vo
 }); };
 exports.rejectJobRequest = rejectJobRequest;
 var getJobRequestById = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, jobId, contractorId, options_1, job, _a, error_5;
+    var errors, jobId, contractorId, options_1, job, _a, error_4;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -337,8 +337,8 @@ var getJobRequestById = function (req, res, next) { return __awaiter(void 0, voi
                 res.json({ success: true, data: job });
                 return [3 /*break*/, 4];
             case 3:
-                error_5 = _b.sent();
-                console.error('Error retrieving job request:', error_5);
+                error_4 = _b.sent();
+                console.error('Error retrieving job request:', error_4);
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('Bad Request'))];
             case 4: return [2 /*return*/];
         }
@@ -346,7 +346,7 @@ var getJobRequestById = function (req, res, next) { return __awaiter(void 0, voi
 }); };
 exports.getJobRequestById = getJobRequestById;
 var getJobListingById = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, jobId, contractorId, options_2, job, _a, error_6;
+    var errors, jobId, contractorId, options_2, job, _a, error_5;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -381,8 +381,8 @@ var getJobListingById = function (req, res, next) { return __awaiter(void 0, voi
                 res.json({ success: true, data: job });
                 return [3 /*break*/, 4];
             case 3:
-                error_6 = _b.sent();
-                console.error('Error retrieving job listing:', error_6);
+                error_5 = _b.sent();
+                console.error('Error retrieving job listing:', error_5);
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('Bad Request'))];
             case 4: return [2 /*return*/];
         }
@@ -500,7 +500,7 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
 }); };
 exports.sendJobQuotation = sendJobQuotation;
 var getQuotationForJob = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var jobId, contractorId, jobQuotation, _a, error_7;
+    var jobId, contractorId, jobQuotation, _a, error_6;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -525,15 +525,15 @@ var getQuotationForJob = function (req, res, next) { return __awaiter(void 0, vo
                 res.status(200).json({ success: true, message: 'Job quotation retrieved successfully', data: jobQuotation });
                 return [3 /*break*/, 4];
             case 3:
-                error_7 = _b.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_7))];
+                error_6 = _b.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_6))];
             case 4: return [2 /*return*/];
         }
     });
 }); };
 exports.getQuotationForJob = getQuotationForJob;
 var updateJobQuotation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var jobId, contractorId, _a, startDate, endDate, siteVisit, estimates, errors, job, jobQuotation, _b, conversationMembers, conversation, message, error_8;
+    var jobId, contractorId, _a, startDate, endDate, siteVisit, estimates, errors, job, jobQuotation, _b, conversationMembers, conversation, message, error_7;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
@@ -603,8 +603,8 @@ var updateJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
                 res.status(200).json({ success: true, message: 'Job application updated successfully', data: jobQuotation });
                 return [3 /*break*/, 7];
             case 6:
-                error_8 = _c.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_8))];
+                error_7 = _c.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_7))];
             case 7: return [2 /*return*/];
         }
     });
@@ -612,7 +612,7 @@ var updateJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
 exports.updateJobQuotation = updateJobQuotation;
 var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, contractorId, contractor, profile, _a, distance, latitude, longitude, emergency, _b, category, city, country, address, startDate, endDate, _c, page, _d, limit, sort // Sort field and order (-fieldName or fieldName)
-    , pipeline, _e, sortField, sortOrder, sortStage, skip, result, jobs, metadata, error_9;
+    , pipeline, _e, sortField, sortOrder, sortStage, skip, result, jobs, metadata, error_8;
     var _f;
     return __generator(this, function (_g) {
         switch (_g.label) {
@@ -741,15 +741,15 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                 res.status(200).json({ success: true, data: __assign(__assign({}, metadata), { data: jobs }) });
                 return [3 /*break*/, 8];
             case 7:
-                error_9 = _g.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_9))];
+                error_8 = _g.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_8))];
             case 8: return [2 /*return*/];
         }
     });
 }); };
 exports.getJobListings = getJobListings;
 var getMyJobs = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var contractorId, _a, type, _b, page, _c, limit, sort, customerId, quotations, jobIds, _d, data, error_11, error_10;
+    var contractorId, _a, type, _b, page, _c, limit, sort, customerId, quotations, jobIds, _d, data, error, error_9;
     return __generator(this, function (_e) {
         switch (_e.label) {
             case 0:
@@ -776,7 +776,7 @@ var getMyJobs = function (req, res, next) { return __awaiter(void 0, void 0, voi
                         ]
                     }).distinct('_id'), req.query)];
             case 3:
-                _d = _e.sent(), data = _d.data, error_11 = _d.error;
+                _d = _e.sent(), data = _d.data, error = _d.error;
                 if (!data) return [3 /*break*/, 5];
                 // Map through each job and attach myQuotation if contractor has applied 
                 return [4 /*yield*/, Promise.all(data.data.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
@@ -797,15 +797,15 @@ var getMyJobs = function (req, res, next) { return __awaiter(void 0, void 0, voi
                 _e.sent();
                 _e.label = 5;
             case 5:
-                if (error_11) {
+                if (error) {
                     return [2 /*return*/, next(new custom_errors_1.BadRequestError('Unkowon error occured'))];
                 }
                 // Send response with job listings data
                 res.status(200).json({ success: true, data: data });
                 return [3 /*break*/, 7];
             case 6:
-                error_10 = _e.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_10))];
+                error_9 = _e.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_9))];
             case 7: return [2 /*return*/];
         }
     });

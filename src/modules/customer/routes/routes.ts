@@ -11,6 +11,7 @@ import { CustomerNotificationController } from "../controllers/customer_notifica
 import { CustomerConversationController } from "../controllers/customer_conversation.controller";
 import { CustomerTripDayController } from "../controllers/customer_tripDay.controller";
 import { CustomerPaymentController } from "../controllers/customer_payment.controller";
+import { CustomerTransactionController } from "../controllers/customer_transaction.controller";
 
 const express = require("express");
 const router = express.Router();
@@ -62,6 +63,10 @@ router.post("/jobs/:jobId/quotations/:quotationId/accept", checkCustomerRole, Cu
 router.post("/jobs/:jobId/quotations/:quotationId/decline", checkCustomerRole, CustomerJobController.declineJobQuotation ); 
 router.post("/jobs/:jobId/pay", checkCustomerRole, CustomerPaymentController.makeJobPayment ); 
 router.post("/jobs/:jobId/payment-capture", checkCustomerRole, CustomerPaymentController.captureJobPayment ); 
+
+
+// Transactions
+router.get("/transactions", checkCustomerRole, CustomerTransactionController.getTransactions ); 
 
 
 // Notifications

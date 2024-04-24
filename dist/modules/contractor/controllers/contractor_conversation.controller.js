@@ -194,7 +194,7 @@ var sendMessage = function (req, res, next) { return __awaiter(void 0, void 0, v
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 3, , 4]);
+                _b.trys.push([0, 5, , 6]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -224,19 +224,25 @@ var sendMessage = function (req, res, next) { return __awaiter(void 0, void 0, v
                     })];
             case 2:
                 newMessage = _b.sent();
-                if (newMessage) {
-                    conversations_schema_1.ConversationModel.updateOne(conversationId, {
-                        lastMessage: newMessage.message,
-                        lastMessageAt: newMessage.createdAt,
-                    });
-                }
+                if (!newMessage) return [3 /*break*/, 4];
+                return [4 /*yield*/, conversations_schema_1.ConversationModel.updateOne({ _id: conversationId }, // Filter criteria to find the conversation document
+                    {
+                        $set: {
+                            lastMessage: newMessage.message,
+                            lastMessageAt: newMessage.createdAt,
+                        }
+                    })];
+            case 3:
+                _b.sent();
+                _b.label = 4;
+            case 4:
                 events_1.ConversationEvent.emit('NEW_MESSAGE', { message: newMessage });
                 res.status(201).json({ success: true, message: 'Message sent successfully', data: newMessage });
-                return [3 /*break*/, 4];
-            case 3:
+                return [3 /*break*/, 6];
+            case 5:
                 error_4 = _b.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('Error sending message', error_4))];
-            case 4: return [2 /*return*/];
+            case 6: return [2 /*return*/];
         }
     });
 }); };

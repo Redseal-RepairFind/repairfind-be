@@ -11,6 +11,7 @@ var customer_notification_controller_1 = require("../controllers/customer_notifi
 var customer_conversation_controller_1 = require("../controllers/customer_conversation.controller");
 var customer_tripDay_controller_1 = require("../controllers/customer_tripDay.controller");
 var customer_payment_controller_1 = require("../controllers/customer_payment.controller");
+var customer_transaction_controller_1 = require("../controllers/customer_transaction.controller");
 var express = require("express");
 var router = express.Router();
 // Auth
@@ -50,6 +51,8 @@ router.post("/jobs/:jobId/quotations/:quotationId/accept", customerRoleChecker_m
 router.post("/jobs/:jobId/quotations/:quotationId/decline", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.declineJobQuotation);
 router.post("/jobs/:jobId/pay", customerRoleChecker_middleware_1.checkCustomerRole, customer_payment_controller_1.CustomerPaymentController.makeJobPayment);
 router.post("/jobs/:jobId/payment-capture", customerRoleChecker_middleware_1.checkCustomerRole, customer_payment_controller_1.CustomerPaymentController.captureJobPayment);
+// Transactions
+router.get("/transactions", customerRoleChecker_middleware_1.checkCustomerRole, customer_transaction_controller_1.CustomerTransactionController.getTransactions);
 // Notifications
 router.get('/notifications', customerRoleChecker_middleware_1.checkCustomerRole, customer_notification_controller_1.CustomerNotificationController.getNotifications);
 router.get('/notifications/:notificationId', customerRoleChecker_middleware_1.checkCustomerRole, customer_notification_controller_1.CustomerNotificationController.getSingleNotification);
