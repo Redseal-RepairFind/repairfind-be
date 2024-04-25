@@ -128,9 +128,7 @@ ConversationSchema.methods.getHeading = function (loggedInUserId) {
                     return [4 /*yield*/, UserModel.findById(otherMember.member)];
                 case 1:
                     otherMemberUser = _c.sent();
-                    return [4 /*yield*/, messages_schema_1.MessageModel.findOne({ conversation: this._id })
-                        // get messages in which  read by loggedInUserId does not exist in the array
-                    ];
+                    return [4 /*yield*/, messages_schema_1.MessageModel.findOne({ conversation: this._id, messageType: messages_schema_1.MessageType.TEXT }).sort({ createdAt: -1 })];
                 case 2:
                     lastMessage = _c.sent();
                     return [4 /*yield*/, messages_schema_1.MessageModel.countDocuments({ conversation: this._id, readBy: { $ne: loggedInUserId } })];

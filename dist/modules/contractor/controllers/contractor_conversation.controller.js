@@ -36,7 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorConversationController = exports.sendMessage = exports.getConversationMessages = exports.getSingleConversation = exports.getConversations = void 0;
+exports.ContractorConversationController = exports.markAllMessagesAsRead = exports.sendMessage = exports.getConversationMessages = exports.getSingleConversation = exports.getConversations = void 0;
 var api_feature_1 = require("../../../utils/api.feature");
 var conversations_schema_1 = require("../../../database/common/conversations.schema");
 var messages_schema_1 = require("../../../database/common/messages.schema");
@@ -92,7 +92,7 @@ var getConversations = function (req, res, next) { return __awaiter(void 0, void
                 return [3 /*break*/, 5];
             case 4:
                 error_1 = _c.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_1))];
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occured ', error_1))];
             case 5: return [2 /*return*/];
         }
     });
@@ -128,7 +128,7 @@ var getSingleConversation = function (req, res, next) { return __awaiter(void 0,
                 return [3 /*break*/, 6];
             case 5:
                 error_2 = _c.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_2))];
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occured ', error_2))];
             case 6: return [2 /*return*/];
         }
     });
@@ -183,7 +183,7 @@ var getConversationMessages = function (req, res, next) { return __awaiter(void 
                 return [3 /*break*/, 6];
             case 5:
                 error_3 = _b.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_3))];
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occured ', error_3))];
             case 6: return [2 /*return*/];
         }
     });
@@ -247,9 +247,33 @@ var sendMessage = function (req, res, next) { return __awaiter(void 0, void 0, v
     });
 }); };
 exports.sendMessage = sendMessage;
+var markAllMessagesAsRead = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var conversationId, contractorId, result, error_5;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                conversationId = req.params.conversationId;
+                contractorId = req.contractor.id;
+                return [4 /*yield*/, messages_schema_1.MessageModel.updateMany({ conversation: conversationId, readBy: { $ne: contractorId } }, // Assuming req.contractor.id contains the ID of the logged-in user
+                    { $addToSet: { readBy: contractorId } } // Add the logged-in user to the readBy array if not already present
+                    )];
+            case 1:
+                result = _a.sent();
+                res.status(200).json({ success: true, message: 'All messages marked as read.' });
+                return [3 /*break*/, 3];
+            case 2:
+                error_5 = _a.sent();
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred while marking messages as read.', error_5))];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.markAllMessagesAsRead = markAllMessagesAsRead;
 exports.ContractorConversationController = {
     getConversations: exports.getConversations,
     getSingleConversation: exports.getSingleConversation,
     getConversationMessages: exports.getConversationMessages,
-    sendMessage: exports.sendMessage
+    sendMessage: exports.sendMessage,
+    markAllMessagesAsRead: exports.markAllMessagesAsRead
 };

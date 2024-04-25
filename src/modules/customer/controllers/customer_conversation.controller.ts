@@ -4,7 +4,7 @@ import { applyAPIFeature } from "../../../utils/api.feature";
 import { ConversationModel } from "../../../database/common/conversations.schema";
 import { MessageModel, MessageType } from "../../../database/common/messages.schema";
 import { ConversationEvent } from "../../../events";
-import { BadRequestError } from "../../../utils/custom.errors";
+import { BadRequestError, InternalServerError } from "../../../utils/custom.errors";
 
  
 export const getConversations = async (req: any, res: Response): Promise<void> => {
@@ -169,9 +169,26 @@ export const sendMessage = async (req: any, res: Response, next: NextFunction) =
 };
 
 
+export const markAllMessagesAsRead = async (req: any, res: Response, next: NextFunction) => {
+    try {
+        // Update all messages where the conversation matches and the logged-in user is in the readBy array
+        const conversationId = req.params.conversationId
+        const customerId = req.customer.id
+        
+        const result = await MessageModel.updateMany(
+            { conversation: conversationId, readBy: { $ne: customerId } }, // Assuming req.contractor.id contains the ID of the logged-in user
+            { $addToSet: { readBy: customerId } } // Add the logged-in user to the readBy array if not already present
+        );
+        res.status(200).json({ success: true, message: 'All messages marked as read.' });
+    } catch (error: any) {
+        return next(new InternalServerError('An error occurred while marking messages as read.', error) )
+    }
+};
+
 export const CustomerConversationController = {
     getConversations,
     getSingleConversation,
     getConversationMessages,
-    sendMessage
+    sendMessage,
+    markAllMessagesAsRead
 }

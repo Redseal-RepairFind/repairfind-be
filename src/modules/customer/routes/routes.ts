@@ -83,6 +83,7 @@ router.get('/conversations', checkCustomerRole, CustomerConversationController.g
 router.get('/conversations/:conversationId', checkCustomerRole, CustomerConversationController.getSingleConversation)
 router.get('/conversations/:conversationId/messages', checkCustomerRole, CustomerConversationController.getConversationMessages)
 router.post('/conversations/:conversationId/messages', checkCustomerRole, CustomerHttpRequest.sendMessageParams, CustomerConversationController.sendMessage)
+router.post('/conversations/:conversationId/mark-all-read', checkCustomerRole, CustomerConversationController.markAllMessagesAsRead)
 
 // trips day
 router.post('/trip/:tripDayId/comfirm/arrival', checkCustomerRole, CustomerHttpRequest.tripArrivalComfirmParams, CustomerTripDayController.customerverifiedContractorSiteArrivalController)

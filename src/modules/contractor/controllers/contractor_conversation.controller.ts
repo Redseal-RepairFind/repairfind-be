@@ -3,7 +3,7 @@ import { applyAPIFeature } from "../../../utils/api.feature";
 import { ConversationModel } from "../../../database/common/conversations.schema";
 import { MessageModel, MessageType } from "../../../database/common/messages.schema";
 import { ConversationEvent } from "../../../events";
-import { BadRequestError } from "../../../utils/custom.errors";
+import { BadRequestError, InternalServerError } from "../../../utils/custom.errors";
 import { validationResult } from "express-validator";
 
 export const getConversations = async (req: any, res: Response, next: NextFunction) => {
@@ -33,7 +33,7 @@ export const getConversations = async (req: any, res: Response, next: NextFuncti
             data: data
         });
     } catch (error: any) {
-        return next(new BadRequestError('An error occured ', error))
+        return next(new InternalServerError('An error occured ', error))
     }
 };
 
@@ -54,7 +54,7 @@ export const getSingleConversation = async (req: any, res: Response, next: NextF
         }
         res.status(200).json({ success: true, message: "Conversation retrieved", data: conversation });
     } catch (error: any) {
-        return next(new BadRequestError('An error occured ', error))
+        return next(new InternalServerError('An error occured ', error))
     }
 };
 
@@ -95,7 +95,7 @@ export const getConversationMessages = async (req: any, res: Response, next: Nex
 
         res.status(200).json({ success: true, message: 'Conversation messages retrieved', data:  data  });
     } catch (error: any) {
-        return next(new BadRequestError('An error occured ', error))
+        return next(new InternalServerError('An error occured ', error))
     }
 };
 
@@ -157,9 +157,27 @@ export const sendMessage = async (req: any, res: Response, next: NextFunction) =
     }
 };
 
+
+export const markAllMessagesAsRead = async (req: any, res: Response, next: NextFunction) => {
+    try {
+        // Update all messages where the conversation matches and the logged-in user is in the readBy array
+        const conversationId = req.params.conversationId
+        const contractorId = req.contractor.id
+        
+        const result = await MessageModel.updateMany(
+            { conversation: conversationId, readBy: { $ne: contractorId } }, // Assuming req.contractor.id contains the ID of the logged-in user
+            { $addToSet: { readBy: contractorId } } // Add the logged-in user to the readBy array if not already present
+        );
+        res.status(200).json({ success: true, message: 'All messages marked as read.' });
+    } catch (error: any) {
+        return next(new InternalServerError('An error occurred while marking messages as read.', error) )
+    }
+};
+
 export const ContractorConversationController = {
     getConversations,
     getSingleConversation,
     getConversationMessages,
-    sendMessage
+    sendMessage,
+    markAllMessagesAsRead
 };

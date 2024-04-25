@@ -174,6 +174,7 @@ router.get('/conversations', checkContractorRole, ContractorConversationControll
 router.get('/conversations/:conversationId', checkContractorRole, ContractorConversationController.getSingleConversation)
 router.get('/conversations/:conversationId/messages', checkContractorRole, ContractorConversationController.getConversationMessages)
 router.post('/conversations/:conversationId/messages', checkContractorRole, ContractorHttpRequest.sendMessageParams,  ContractorConversationController.sendMessage)
+router.post('/conversations/:conversationId/mark-all-read', checkContractorRole,  ContractorConversationController.markAllMessagesAsRead)
 
 
 

@@ -1,6 +1,6 @@
 import mongoose, {Document, ObjectId, Schema, model} from 'mongoose';
 import {v4 as uuidv4} from 'uuid';
-import { MessageModel } from './messages.schema';
+import { MessageModel, MessageType } from './messages.schema';
 
 export enum ConversationEntityType {
     BOOKING = 'bookings',
@@ -88,7 +88,8 @@ ConversationSchema.methods.getHeading = async function(loggedInUserId: string) {
             UserModel = mongoose.model('customers'); // Assuming your user model is named 'User'
         }
         const otherMemberUser = await UserModel.findById(otherMember.member);
-        const lastMessage = await MessageModel.findOne({conversation: this._id})
+        const lastMessage = await MessageModel.findOne({ conversation: this._id, messageType: MessageType.TEXT }).sort({ createdAt: -1 });
+
 
         // get messages in which  read by loggedInUserId does not exist in the array
         const unreadCount = await MessageModel.countDocuments({ conversation: this._id, readBy: { $ne: loggedInUserId } });

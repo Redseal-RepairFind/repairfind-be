@@ -63,6 +63,7 @@ router.get('/conversations', customerRoleChecker_middleware_1.checkCustomerRole,
 router.get('/conversations/:conversationId', customerRoleChecker_middleware_1.checkCustomerRole, customer_conversation_controller_1.CustomerConversationController.getSingleConversation);
 router.get('/conversations/:conversationId/messages', customerRoleChecker_middleware_1.checkCustomerRole, customer_conversation_controller_1.CustomerConversationController.getConversationMessages);
 router.post('/conversations/:conversationId/messages', customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.sendMessageParams, customer_conversation_controller_1.CustomerConversationController.sendMessage);
+router.post('/conversations/:conversationId/mark-all-read', customerRoleChecker_middleware_1.checkCustomerRole, customer_conversation_controller_1.CustomerConversationController.markAllMessagesAsRead);
 // trips day
 router.post('/trip/:tripDayId/comfirm/arrival', customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.tripArrivalComfirmParams, customer_tripDay_controller_1.CustomerTripDayController.customerverifiedContractorSiteArrivalController);
 // router.get("/get_popular_contractor", checkCustomerRole, customerGetPopularContractorController ); // customer get popular contractor

@@ -36,7 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerConversationController = exports.sendMessage = exports.getConversationMessages = exports.getSingleConversation = exports.getConversations = void 0;
+exports.CustomerConversationController = exports.markAllMessagesAsRead = exports.sendMessage = exports.getConversationMessages = exports.getSingleConversation = exports.getConversations = void 0;
 var express_validator_1 = require("express-validator");
 var api_feature_1 = require("../../../utils/api.feature");
 var conversations_schema_1 = require("../../../database/common/conversations.schema");
@@ -248,9 +248,33 @@ var sendMessage = function (req, res, next) { return __awaiter(void 0, void 0, v
     });
 }); };
 exports.sendMessage = sendMessage;
+var markAllMessagesAsRead = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var conversationId, customerId, result, error_5;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                conversationId = req.params.conversationId;
+                customerId = req.customer.id;
+                return [4 /*yield*/, messages_schema_1.MessageModel.updateMany({ conversation: conversationId, readBy: { $ne: customerId } }, // Assuming req.contractor.id contains the ID of the logged-in user
+                    { $addToSet: { readBy: customerId } } // Add the logged-in user to the readBy array if not already present
+                    )];
+            case 1:
+                result = _a.sent();
+                res.status(200).json({ success: true, message: 'All messages marked as read.' });
+                return [3 /*break*/, 3];
+            case 2:
+                error_5 = _a.sent();
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred while marking messages as read.', error_5))];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.markAllMessagesAsRead = markAllMessagesAsRead;
 exports.CustomerConversationController = {
     getConversations: exports.getConversations,
     getSingleConversation: exports.getSingleConversation,
     getConversationMessages: exports.getConversationMessages,
-    sendMessage: exports.sendMessage
+    sendMessage: exports.sendMessage,
+    markAllMessagesAsRead: exports.markAllMessagesAsRead
 };

@@ -93,11 +93,11 @@ var getTransactions = function (req, res, next) { return __awaiter(void 0, void 
 }); };
 exports.getTransactions = getTransactions;
 var getSingleTransaction = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, transactionId, transaction, _a, error_2;
+    var contractorId, transactionId, transaction, _a, error_2;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                customerId = req.contrator.id;
+                contractorId = req.contractor.id;
                 transactionId = req.params.transactionId;
                 _b.label = 1;
             case 1:
@@ -107,7 +107,7 @@ var getSingleTransaction = function (req, res, next) { return __awaiter(void 0, 
                 transaction = _b.sent();
                 if (!transaction) return [3 /*break*/, 4];
                 _a = transaction;
-                return [4 /*yield*/, transaction.getIsCredit(customerId)];
+                return [4 /*yield*/, transaction.getIsCredit(contractorId)];
             case 3:
                 _a.isCredit = _b.sent();
                 _b.label = 4;
