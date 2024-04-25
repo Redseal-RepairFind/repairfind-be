@@ -221,8 +221,8 @@ exports.CreateGstDetailsRequest = [
         .custom(function (value) { return value === true; }).withMessage('You must consent to us running a background check'),
 ];
 exports.CreateCompanyDetailsRequest = [
-    (0, express_validator_1.body)("companyLogo").notEmpty(),
-    (0, express_validator_1.body)("companyStaffId").notEmpty(),
+    (0, express_validator_1.body)("companyLogo").optional(),
+    (0, express_validator_1.body)("companyStaffId").optional(),
 ];
 exports.InviteToTeam = [
     (0, express_validator_1.body)("memberId").notEmpty(),

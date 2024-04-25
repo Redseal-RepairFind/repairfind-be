@@ -166,8 +166,8 @@ export const EmailVerificationRequest = [
   ];
 
   export const CreateCompanyDetailsRequest = [
-    body("companyLogo").notEmpty(),
-    body("companyStaffId").notEmpty(),
+    body("companyLogo").optional(),
+    body("companyStaffId").optional(),
   ];
 
 
