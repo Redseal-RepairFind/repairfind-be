@@ -81,7 +81,7 @@ var JobQoutationSchema = new mongoose_1.Schema({
 // Define the static method to calculate charges
 JobQoutationSchema.methods.calculateCharges = function () {
     return __awaiter(this, void 0, void 0, function () {
-        var totalEstimateAmount, processingFee, gst, subtotal, totalAmount, contractorAmount;
+        var totalEstimateAmount, processingFee, gst, siteVisitAmount, subtotal, totalAmount, contractorAmount;
         return __generator(this, function (_a) {
             totalEstimateAmount = 0;
             // Calculate total estimate amount from rate * quantity for each estimate
@@ -90,6 +90,11 @@ JobQoutationSchema.methods.calculateCharges = function () {
             });
             processingFee = 0;
             gst = 0;
+            siteVisitAmount = 0;
+            if (this.siteVisit) {
+                siteVisitAmount = 100;
+                totalEstimateAmount += siteVisitAmount;
+            }
             if (totalEstimateAmount <= 1000) {
                 processingFee = parseFloat(((20 / 100) * totalEstimateAmount).toFixed(2));
             }
@@ -103,7 +108,7 @@ JobQoutationSchema.methods.calculateCharges = function () {
             subtotal = totalEstimateAmount;
             totalAmount = (subtotal + processingFee + gst).toFixed(2);
             contractorAmount = (subtotal + gst).toFixed(2);
-            return [2 /*return*/, { subtotal: subtotal, processingFee: processingFee, gst: gst, totalAmount: totalAmount, contractorAmount: contractorAmount }];
+            return [2 /*return*/, { subtotal: subtotal, processingFee: processingFee, gst: gst, totalAmount: totalAmount, contractorAmount: contractorAmount, siteVisitAmount: siteVisitAmount }];
         });
     });
 };
@@ -116,6 +121,11 @@ JobQoutationSchema.virtual('charges').get(function () {
         });
         var processingFee = 0;
         var gst = 0;
+        var siteVisitAmount = 0;
+        if (this.siteVisit) {
+            siteVisitAmount = 100;
+            totalEstimateAmount += siteVisitAmount;
+        }
         if (totalEstimateAmount <= 1000) {
             processingFee = parseFloat(((20 / 100) * totalEstimateAmount).toFixed(2));
         }
@@ -131,9 +141,9 @@ JobQoutationSchema.virtual('charges').get(function () {
         // Calculate total amounts for customer and contractor
         var totalAmount = (subtotal + processingFee + gst).toFixed(2);
         var contractorAmount = (subtotal + gst).toFixed(2);
-        return { subtotal: subtotal, processingFee: processingFee, gst: gst, totalAmount: totalAmount, contractorAmount: contractorAmount };
+        return { subtotal: subtotal, processingFee: processingFee, gst: gst, totalAmount: totalAmount, contractorAmount: contractorAmount, siteVisitAmount: siteVisitAmount };
     }
-    return { subtotal: 0, processingFee: 0, gst: 0, totalAmount: 0, contractorAmount: 0 };
+    return { subtotal: 0, processingFee: 0, gst: 0, totalAmount: 0, contractorAmount: 0, siteVisitAmount: 0 };
 });
 JobQoutationSchema.set('toObject', { virtuals: true });
 JobQoutationSchema.set('toJSON', { virtuals: true });

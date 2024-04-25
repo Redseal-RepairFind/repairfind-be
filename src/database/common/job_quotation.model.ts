@@ -94,6 +94,11 @@ JobQoutationSchema.methods.calculateCharges = async function () {
 
     let processingFee = 0;
     let gst = 0;
+    let siteVisitAmount = 0;
+    if(this.siteVisit){
+        siteVisitAmount = 100;
+        totalEstimateAmount += siteVisitAmount
+    }
 
     if (totalEstimateAmount <= 1000) {
         processingFee = parseFloat(((20 / 100) * totalEstimateAmount).toFixed(2));
@@ -112,7 +117,7 @@ JobQoutationSchema.methods.calculateCharges = async function () {
     const totalAmount =  (subtotal + processingFee + gst).toFixed(2);
     const contractorAmount = (subtotal + gst).toFixed(2);
 
-    return { subtotal, processingFee, gst, totalAmount, contractorAmount };
+    return { subtotal, processingFee, gst, totalAmount, contractorAmount, siteVisitAmount };
 };
 
 JobQoutationSchema.virtual('charges').get(function () {
@@ -126,6 +131,11 @@ JobQoutationSchema.virtual('charges').get(function () {
     
         let processingFee = 0;
         let gst = 0;
+        let siteVisitAmount = 0;
+        if(this.siteVisit){
+            siteVisitAmount = 100;
+            totalEstimateAmount += siteVisitAmount
+        }
     
         if (totalEstimateAmount <= 1000) {
             processingFee = parseFloat(((20 / 100) * totalEstimateAmount).toFixed(2));
@@ -144,9 +154,9 @@ JobQoutationSchema.virtual('charges').get(function () {
         const totalAmount =  (subtotal + processingFee + gst).toFixed(2);
         const contractorAmount = (subtotal + gst).toFixed(2);
     
-        return { subtotal, processingFee, gst, totalAmount, contractorAmount };
+        return { subtotal, processingFee, gst, totalAmount, contractorAmount, siteVisitAmount };
     }
-    return { subtotal: 0, processingFee: 0, gst: 0, totalAmount: 0, contractorAmount: 0 }
+    return { subtotal: 0, processingFee: 0, gst: 0, totalAmount: 0, contractorAmount: 0, siteVisitAmount: 0}
     
 });
 
