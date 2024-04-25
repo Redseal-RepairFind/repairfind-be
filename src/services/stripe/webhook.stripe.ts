@@ -18,6 +18,7 @@ import { PAYMENT_CAPTURE_STATUS, IPaymentCapture, PaymentCaptureModel } from '..
 import { JobModel, JOB_STATUS, JOB_SCHEDULE_TYPE } from '../../database/common/job.model';
 import { IJobQuotation, JobQoutationModel, JOB_QUOTATION_STATUS } from '../../database/common/job_quotation.model';
 import { ObjectId } from 'mongoose';
+import { NotificationService } from '../notifications';
 
 
 const STRIPE_SECRET_KEY = <string>process.env.STRIPE_SECRET_KEY;
@@ -352,26 +353,44 @@ export const identityVerificationRequiresInput = async (payload: any) => {
         user.save()
 
 
+         
+        // sendPushNotifications(deviceTokens, {
+        //     title: 'Identity Verification',
+        //     icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
+        //     body: message,
+        //     data: {
+        //         event: 'identity.verification_session.requires_input',
+        //         user: {
+        //             email: user.email,
+        //             profilePhoto: user.profilePhoto,
+        //         },
+        //         payload: {
+        //             status: payload.status,
+        //             type: payload.type,
+        //             reason: payload.last_error.reason,
+        //             code: payload.last_error.code,
+        //             options: payload.options
+        //         }
+        //     },
+        // })
 
-        sendPushNotifications(deviceTokens, {
-            title: 'Identity Verification',
-            icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
-            body: message,
-            data: {
+        NotificationService.sendNotification({
+            user: user.id.toString(),
+            userType: userType,
+            title: 'Stripe Identity Verification',
+            type: 'STRIPE_IDENTITY', 
+            message: message,
+            heading: { name: `${user.name}`, image: user.profilePhoto?.url },
+            payload: {
+                status: payload.status,
+                type: payload.type,
+                reason: payload.last_error.reason,
+                code: payload.last_error.code,
+                options: payload.options,
+                message: message,
                 event: 'identity.verification_session.requires_input',
-                user: {
-                    email: user.email,
-                    profilePhoto: user.profilePhoto,
-                },
-                payload: {
-                    status: payload.status,
-                    type: payload.type,
-                    reason: payload.last_error.reason,
-                    code: payload.last_error.code,
-                    options: payload.options
-                }
-            },
-        })
+            }
+        }, { socket: true })
 
 
 
@@ -391,17 +410,11 @@ export const identityVerificationVerified = async (payload: any) => {
         const userId = payload?.metadata?.userId
 
         let user = null
-        let deviceTokens: string[] = []
-        let devices = []
 
         if (userType == 'contractors') {
             user = await ContractorModel.findById(userId)
-            devices = await ContractorDeviceModel.find({ contractor: user?.id }).select('deviceToken')
-            deviceTokens = devices.map(device => device.deviceToken);
         } else {
             user = await CustomerModel.findById(userId)
-            devices = await ContractorDeviceModel.find({ contractor: user?.id }).select('deviceToken')
-            deviceTokens = devices.map(device => device.deviceToken);
         }
 
         if (!user) return
@@ -422,36 +435,50 @@ export const identityVerificationVerified = async (payload: any) => {
         console.log('fileLink from stripe', fileLink)
         console.log('s3fileUrl of file uploaded to s3', s3fileUrl)
 
-
         user.stripeIdentity = verification
-        //@ts-ignore
-        user.profilePhoto ? user.profilePhoto.url = s3fileUrl  : user.profilePhoto = { url: s3fileUrl }
+        user.profilePhoto = { url: s3fileUrl };
         user.save()
 
-        sendPushNotifications(deviceTokens, {
-            title: 'Identity Verification',
-            icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
-            body: 'Identity verification session verified',
-            data: {
+
+        // sendPushNotifications(deviceTokens, {
+        //     title: 'Identity Verification',
+        //     icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
+        //     body: 'Identity verification session verified',
+        //     data: {
+        //         event: 'identity.verification_session.verified',
+        //         user: {
+        //             email: user.email,
+        //             profilePhoto: user.profilePhoto,
+        //         },
+        //         payload: {
+        //             status: payload.status,
+        //             type: payload.type,
+        //             options: payload.options
+        //         }
+        //     },
+        // })
+        const message ='Identity verification verified'
+        NotificationService.sendNotification({
+            user: user.id.toString(),
+            userType: userType,
+            title: 'Stripe Identity Verification',
+            type: 'STRIPE_IDENTITY', 
+            message: message,
+            heading: { name: `${user.name}`, image: user.profilePhoto?.url },
+            payload: {
+                status: payload.status,
+                type: payload.type,
+                options: payload.options,
+                message: message,
                 event: 'identity.verification_session.verified',
-                user: {
-                    email: user.email,
-                    profilePhoto: user.profilePhoto,
-                },
-                payload: {
-                    status: payload.status,
-                    type: payload.type,
-                    options: payload.options
-                }
-            },
-        })
+            }
+        }, { socket: true })
 
 
     } catch (error: any) {
-        // throw new BadRequestError(error.message || "Something went wrong");
+        console.error(error.message, error)
     }
 };
-
 
 
 export const accountUpdated = async (payload: any) => {

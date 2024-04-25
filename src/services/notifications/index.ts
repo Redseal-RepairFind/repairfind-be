@@ -40,7 +40,6 @@ export class NotificationService  {
         params.payload.user = params.user
         params.payload.heading = params.heading
         
-
         if(params.userType == 'contractors'){
             user  = await ContractorModel.findById(params.user)
             devices = await ContractorDeviceModel.find({contractor: user?.id}).select('deviceToken')

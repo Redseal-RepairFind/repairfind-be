@@ -45,13 +45,13 @@ var custom_errors_1 = require("../../utils/custom.errors");
 var _1 = require(".");
 var contractor_model_1 = require("../../database/contractor/models/contractor.model");
 var customer_model_1 = __importDefault(require("../../database/customer/models/customer.model"));
-var expo_1 = require("../expo");
 var contractor_devices_model_1 = __importDefault(require("../../database/contractor/models/contractor_devices.model"));
 var interface_dto_util_1 = require("../../utils/interface_dto.util");
 var payment_schema_1 = require("../../database/common/payment.schema");
 var payment_captures_schema_1 = require("../../database/common/payment_captures.schema");
 var job_model_1 = require("../../database/common/job.model");
 var job_quotation_model_1 = require("../../database/common/job_quotation.model");
+var notifications_1 = require("../notifications");
 var STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 var STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
 var stripeClient = new stripe_1.default(STRIPE_SECRET_KEY);
@@ -406,11 +406,11 @@ var identityVerificationCreated = function (payload) { return __awaiter(void 0, 
 exports.identityVerificationCreated = identityVerificationCreated;
 var identityVerificationRequiresInput = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
     var userType, userId, user, deviceTokens, devices, message, verification, _a, fileLink, s3fileUrl, error_7;
-    var _b, _c, _d, _e;
-    return __generator(this, function (_f) {
-        switch (_f.label) {
+    var _b, _c, _d, _e, _f;
+    return __generator(this, function (_g) {
+        switch (_g.label) {
             case 0:
-                _f.trys.push([0, 9, , 10]);
+                _g.trys.push([0, 9, , 10]);
                 console.log('Verification check failed: ' + payload.last_error.reason);
                 userType = (_b = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _b === void 0 ? void 0 : _b.userType;
                 userId = (_c = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _c === void 0 ? void 0 : _c.userId;
@@ -420,20 +420,20 @@ var identityVerificationRequiresInput = function (payload) { return __awaiter(vo
                 if (!(userType == 'contractors')) return [3 /*break*/, 3];
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(userId)];
             case 1:
-                user = _f.sent();
+                user = _g.sent();
                 return [4 /*yield*/, contractor_devices_model_1.default.find({ contractor: user === null || user === void 0 ? void 0 : user.id }).select('deviceToken')];
             case 2:
-                devices = _f.sent();
+                devices = _g.sent();
                 deviceTokens = devices.map(function (device) { return device.deviceToken; });
                 return [3 /*break*/, 6];
             case 3: return [4 /*yield*/, customer_model_1.default.findById(userId)];
             case 4:
-                user = _f.sent();
+                user = _g.sent();
                 return [4 /*yield*/, contractor_devices_model_1.default.find({ contractor: user === null || user === void 0 ? void 0 : user.id }).select('deviceToken')];
             case 5:
-                devices = _f.sent();
+                devices = _g.sent();
                 deviceTokens = devices.map(function (device) { return device.deviceToken; });
-                _f.label = 6;
+                _g.label = 6;
             case 6:
                 if (!user)
                     return [2 /*return*/];
@@ -460,7 +460,7 @@ var identityVerificationRequiresInput = function (payload) { return __awaiter(vo
                     return [2 /*return*/];
                 return [4 /*yield*/, _1.StripeService.identity.retrieveVerificationSession(payload.id)];
             case 7:
-                verification = _f.sent();
+                verification = _g.sent();
                 console.log(verification);
                 return [4 /*yield*/, _1.StripeService.file.createFileLink({
                         //@ts-ignore
@@ -468,34 +468,51 @@ var identityVerificationRequiresInput = function (payload) { return __awaiter(vo
                         expires_at: Math.floor(Date.now() / 1000) + 30, // link expires in 30 seconds
                     }, true)];
             case 8:
-                _a = _f.sent(), fileLink = _a.fileLink, s3fileUrl = _a.s3fileUrl;
+                _a = _g.sent(), fileLink = _a.fileLink, s3fileUrl = _a.s3fileUrl;
                 console.log('fileLink from stripe', fileLink);
                 console.log('s3fileUrl of file uploaded to s3', s3fileUrl);
                 user.stripeIdentity = verification;
                 user.profilePhoto ? user.profilePhoto.url = s3fileUrl : user.profilePhoto = { url: s3fileUrl };
                 user.save();
-                (0, expo_1.sendPushNotifications)(deviceTokens, {
-                    title: 'Identity Verification',
-                    icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
-                    body: message,
-                    data: {
+                // sendPushNotifications(deviceTokens, {
+                //     title: 'Identity Verification',
+                //     icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
+                //     body: message,
+                //     data: {
+                //         event: 'identity.verification_session.requires_input',
+                //         user: {
+                //             email: user.email,
+                //             profilePhoto: user.profilePhoto,
+                //         },
+                //         payload: {
+                //             status: payload.status,
+                //             type: payload.type,
+                //             reason: payload.last_error.reason,
+                //             code: payload.last_error.code,
+                //             options: payload.options
+                //         }
+                //     },
+                // })
+                notifications_1.NotificationService.sendNotification({
+                    user: user.id.toString(),
+                    userType: userType,
+                    title: 'Stripe Identity Verification',
+                    type: 'STRIPE_IDENTITY',
+                    message: message,
+                    heading: { name: "".concat(user.name), image: (_f = user.profilePhoto) === null || _f === void 0 ? void 0 : _f.url },
+                    payload: {
+                        status: payload.status,
+                        type: payload.type,
+                        reason: payload.last_error.reason,
+                        code: payload.last_error.code,
+                        options: payload.options,
+                        message: message,
                         event: 'identity.verification_session.requires_input',
-                        user: {
-                            email: user.email,
-                            profilePhoto: user.profilePhoto,
-                        },
-                        payload: {
-                            status: payload.status,
-                            type: payload.type,
-                            reason: payload.last_error.reason,
-                            code: payload.last_error.code,
-                            options: payload.options
-                        }
-                    },
-                });
+                    }
+                }, { socket: true });
                 return [3 /*break*/, 10];
             case 9:
-                error_7 = _f.sent();
+                error_7 = _g.sent();
                 new custom_errors_1.BadRequestError(error_7.message || "Something went wrong");
                 return [3 /*break*/, 10];
             case 10: return [2 /*return*/];
@@ -504,12 +521,12 @@ var identityVerificationRequiresInput = function (payload) { return __awaiter(vo
 }); };
 exports.identityVerificationRequiresInput = identityVerificationRequiresInput;
 var identityVerificationVerified = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var userType, userId, user, deviceTokens, devices, verification, _a, fileLink, s3fileUrl, error_8;
-    var _b, _c, _d, _e;
-    return __generator(this, function (_f) {
-        switch (_f.label) {
+    var userType, userId, user, verification, _a, fileLink, s3fileUrl, message, error_8;
+    var _b, _c, _d, _e, _f;
+    return __generator(this, function (_g) {
+        switch (_g.label) {
             case 0:
-                _f.trys.push([0, 9, , 10]);
+                _g.trys.push([0, 7, , 8]);
                 console.log('Verification session verified: ' + payload.status);
                 console.log(payload);
                 if (payload.object != 'identity.verification_session')
@@ -517,67 +534,56 @@ var identityVerificationVerified = function (payload) { return __awaiter(void 0,
                 userType = (_b = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _b === void 0 ? void 0 : _b.userType;
                 userId = (_c = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _c === void 0 ? void 0 : _c.userId;
                 user = null;
-                deviceTokens = [];
-                devices = [];
-                if (!(userType == 'contractors')) return [3 /*break*/, 3];
+                if (!(userType == 'contractors')) return [3 /*break*/, 2];
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(userId)];
             case 1:
-                user = _f.sent();
-                return [4 /*yield*/, contractor_devices_model_1.default.find({ contractor: user === null || user === void 0 ? void 0 : user.id }).select('deviceToken')];
-            case 2:
-                devices = _f.sent();
-                deviceTokens = devices.map(function (device) { return device.deviceToken; });
-                return [3 /*break*/, 6];
-            case 3: return [4 /*yield*/, customer_model_1.default.findById(userId)];
+                user = _g.sent();
+                return [3 /*break*/, 4];
+            case 2: return [4 /*yield*/, customer_model_1.default.findById(userId)];
+            case 3:
+                user = _g.sent();
+                _g.label = 4;
             case 4:
-                user = _f.sent();
-                return [4 /*yield*/, contractor_devices_model_1.default.find({ contractor: user === null || user === void 0 ? void 0 : user.id }).select('deviceToken')];
-            case 5:
-                devices = _f.sent();
-                deviceTokens = devices.map(function (device) { return device.deviceToken; });
-                _f.label = 6;
-            case 6:
                 if (!user)
                     return [2 /*return*/];
                 return [4 /*yield*/, _1.StripeService.identity.retrieveVerificationSession(payload.id)];
-            case 7:
-                verification = _f.sent();
+            case 5:
+                verification = _g.sent();
                 console.log(verification);
                 return [4 /*yield*/, _1.StripeService.file.createFileLink({
                         //@ts-ignore
                         file: (_e = (_d = verification === null || verification === void 0 ? void 0 : verification.last_verification_report) === null || _d === void 0 ? void 0 : _d.selfie) === null || _e === void 0 ? void 0 : _e.document,
                         expires_at: Math.floor(Date.now() / 1000) + 30, // link expires in 30 seconds
                     }, true)];
-            case 8:
-                _a = _f.sent(), fileLink = _a.fileLink, s3fileUrl = _a.s3fileUrl;
+            case 6:
+                _a = _g.sent(), fileLink = _a.fileLink, s3fileUrl = _a.s3fileUrl;
                 console.log('fileLink from stripe', fileLink);
                 console.log('s3fileUrl of file uploaded to s3', s3fileUrl);
                 user.stripeIdentity = verification;
-                //@ts-ignore
-                user.profilePhoto ? user.profilePhoto.url = s3fileUrl : user.profilePhoto = { url: s3fileUrl };
+                user.profilePhoto = { url: s3fileUrl };
                 user.save();
-                (0, expo_1.sendPushNotifications)(deviceTokens, {
-                    title: 'Identity Verification',
-                    icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
-                    body: 'Identity verification session verified',
-                    data: {
+                message = 'Identity verification verified';
+                notifications_1.NotificationService.sendNotification({
+                    user: user.id.toString(),
+                    userType: userType,
+                    title: 'Stripe Identity Verification',
+                    type: 'STRIPE_IDENTITY',
+                    message: message,
+                    heading: { name: "".concat(user.name), image: (_f = user.profilePhoto) === null || _f === void 0 ? void 0 : _f.url },
+                    payload: {
+                        status: payload.status,
+                        type: payload.type,
+                        options: payload.options,
+                        message: message,
                         event: 'identity.verification_session.verified',
-                        user: {
-                            email: user.email,
-                            profilePhoto: user.profilePhoto,
-                        },
-                        payload: {
-                            status: payload.status,
-                            type: payload.type,
-                            options: payload.options
-                        }
-                    },
-                });
-                return [3 /*break*/, 10];
-            case 9:
-                error_8 = _f.sent();
-                return [3 /*break*/, 10];
-            case 10: return [2 /*return*/];
+                    }
+                }, { socket: true });
+                return [3 /*break*/, 8];
+            case 7:
+                error_8 = _g.sent();
+                console.error(error_8.message, error_8);
+                return [3 /*break*/, 8];
+            case 8: return [2 /*return*/];
         }
     });
 }); };
