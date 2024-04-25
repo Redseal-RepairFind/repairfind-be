@@ -33,14 +33,26 @@ export interface ITransaction extends Document {
   description?: string;
   status: TRANSACTION_STATUS;
   remark?: string;
-  invoice?: object;
+  invoice?: {
+    items: any,
+    charges: Object
+    id: ObjectId
+  };
   job?: ObjectId;
   payment?: string;
   createdAt: Date;
   updatedAt: Date;
   isCredit: boolean;
+  paymentMethod: Object;
   getIsCredit: (userId: any) =>  boolean
 }
+
+// Define the main schema for the invoice
+const InvoiceSchema = new Schema({
+  items: [], // Array of invoice items
+  charges: { type: Object }, // Charges object
+  id: { type: Schema.Types.ObjectId }, // Invoice ID
+});
 
 const TransactionSchema = new Schema<ITransaction>(
     {
@@ -97,7 +109,7 @@ const TransactionSchema = new Schema<ITransaction>(
       },
 
       invoice: {
-        type: Object,
+        type: InvoiceSchema,
         default: null,
       }, // tranfer the quotation and charges object her
 
@@ -108,6 +120,11 @@ const TransactionSchema = new Schema<ITransaction>(
 
       payment: {
         type: Schema.Types.ObjectId,
+      },
+
+      paymentMethod: {
+        type: Object,
+        default: null
       },
 
       createdAt: {

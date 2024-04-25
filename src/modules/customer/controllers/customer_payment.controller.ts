@@ -245,6 +245,18 @@ export const captureJobPayment = async (
                 .json({ success:false,  message: "Job quotation not found" });
         }
 
+        // const paymentMethod = customer.stripePaymentMethods.filter(pm =>  pm.id == paymentMethodId)
+
+        let paymentMethod = customer.stripePaymentMethods.find((method) => method.id == paymentMethodId)
+        if (!paymentMethod) {
+            paymentMethod = customer.stripePaymentMethods[0]
+        };
+
+        if (!paymentMethod) throw new Error("No such payment method")
+
+
+
+
         const contractor = await ContractorModel.findOne({ _id: quotation.contractor });
         if(!contractor){
             return res
@@ -310,6 +322,7 @@ export const captureJobPayment = async (
                 items: quotation.estimates,
                 charges: quotation.charges
             },
+            paymentMethod: paymentMethod ,
             job: jobId
         })
 
@@ -356,13 +369,7 @@ export const captureJobPayment = async (
         // The number of days that a pending balance is held before being paid out depends on the delay_days setting on the connected account.
 
 
-        let paymentMethod = customer.stripePaymentMethods.find((method) => method.id == paymentMethodId)
-        if (!paymentMethod) {
-            paymentMethod = customer.stripePaymentMethods[0]
-        };
-
-        if (!paymentMethod) throw new Error("No such payment method")
-
+       
 
 
         let payload: Stripe.PaymentIntentCreateParams = {

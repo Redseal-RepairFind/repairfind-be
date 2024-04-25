@@ -61,6 +61,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ConversationModel = exports.ConversationEntityType = void 0;
 var mongoose_1 = __importStar(require("mongoose"));
+var messages_schema_1 = require("./messages.schema");
 var ConversationEntityType;
 (function (ConversationEntityType) {
     ConversationEntityType["BOOKING"] = "bookings";
@@ -111,12 +112,12 @@ var ConversationSchema = new mongoose_1.default.Schema({
 ConversationSchema.methods.getHeading = function (loggedInUserId) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var otherMember, UserModel, otherMemberUser;
+        var otherMember, UserModel, otherMemberUser, lastMessage, unreadCount;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
                     otherMember = this.members.find(function (member) { return member.member.toString() !== loggedInUserId; });
-                    if (!otherMember) return [3 /*break*/, 2];
+                    if (!otherMember) return [3 /*break*/, 4];
                     UserModel = mongoose_1.default.model('contractors');
                     if (otherMember.memberType == 'contractors') {
                         UserModel = mongoose_1.default.model('contractors'); // Assuming your user model is named 'User'
@@ -127,14 +128,25 @@ ConversationSchema.methods.getHeading = function (loggedInUserId) {
                     return [4 /*yield*/, UserModel.findById(otherMember.member)];
                 case 1:
                     otherMemberUser = _c.sent();
+                    return [4 /*yield*/, messages_schema_1.MessageModel.findOne({ conversation: this._id })
+                        // get messages in which  read by loggedInUserId does not exist in the array
+                    ];
+                case 2:
+                    lastMessage = _c.sent();
+                    return [4 /*yield*/, messages_schema_1.MessageModel.countDocuments({ conversation: this._id, readBy: { $ne: loggedInUserId } })];
+                case 3:
+                    unreadCount = _c.sent();
                     if (otherMemberUser) {
                         return [2 /*return*/, {
                                 name: otherMemberUser.name,
                                 image: (_b = (_a = otherMemberUser.profilePhoto) === null || _a === void 0 ? void 0 : _a.url) !== null && _b !== void 0 ? _b : otherMemberUser.profilePhoto,
+                                lastMessage: lastMessage === null || lastMessage === void 0 ? void 0 : lastMessage.message,
+                                lastMessageAt: lastMessage === null || lastMessage === void 0 ? void 0 : lastMessage.createdAt,
+                                unreadCount: unreadCount,
                             }];
                     }
-                    _c.label = 2;
-                case 2: return [2 /*return*/];
+                    _c.label = 4;
+                case 4: return [2 /*return*/];
             }
         });
     });

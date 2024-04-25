@@ -67,6 +67,9 @@ router.post("/jobs/:jobId/payment-capture", checkCustomerRole, CustomerPaymentCo
 
 // Transactions
 router.get("/transactions", checkCustomerRole, CustomerTransactionController.getTransactions ); 
+router.get("/transactions/:transactionId", checkCustomerRole, CustomerTransactionController.getSingleTransaction
+
+); 
 
 
 // Notifications

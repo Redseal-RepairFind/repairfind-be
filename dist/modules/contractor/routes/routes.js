@@ -13,6 +13,7 @@ var contractor_job_controller_1 = require("../controllers/contractor_job.control
 var contractor_notification_controller_1 = require("../controllers/contractor_notification.controller");
 var contractor_conversation_controller_1 = require("../controllers/contractor_conversation.controller");
 var contractor_tripDay_controller_1 = require("../controllers/contractor_tripDay.controller");
+var contractor_transaction_controller_1 = require("../controllers/contractor_transaction.controller");
 var express = require("express");
 var router = express.Router();
 //  AUTH
@@ -132,6 +133,9 @@ router.get('/conversations', contractorRoleCheck_middleware_1.checkContractorRol
 router.get('/conversations/:conversationId', contractorRoleCheck_middleware_1.checkContractorRole, contractor_conversation_controller_1.ContractorConversationController.getSingleConversation);
 router.get('/conversations/:conversationId/messages', contractorRoleCheck_middleware_1.checkContractorRole, contractor_conversation_controller_1.ContractorConversationController.getConversationMessages);
 router.post('/conversations/:conversationId/messages', contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.sendMessageParams, contractor_conversation_controller_1.ContractorConversationController.sendMessage);
+// Transactions
+router.get("/transactions", contractorRoleCheck_middleware_1.checkContractorRole, contractor_transaction_controller_1.ContractorTransactionController.getTransactions);
+router.get("/transactions/:transactionId", contractorRoleCheck_middleware_1.checkContractorRole, contractor_transaction_controller_1.ContractorTransactionController.getSingleTransaction);
 // trips day
 router.post('/trip/:jobId/start', contractorRoleCheck_middleware_1.checkContractorRole, contractor_tripDay_controller_1.ContractorTripDayController.contractorStartTripController);
 router.post('/trip/:tripDayId/arrive', contractorRoleCheck_middleware_1.checkContractorRole, contractor_tripDay_controller_1.ContractorTripDayController.contractorArrivedSiteController);

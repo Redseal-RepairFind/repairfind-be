@@ -231,7 +231,7 @@ var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0
 }); };
 exports.makeJobPayment = makeJobPayment;
 var captureJobPayment = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, quotationId, paymentMethodId_2, jobId, errors, customerId, customer, job, quotation, contractor, account, stripeAccount, charges, transaction, paymentMethod, payload, stripePayment, err_2;
+    var _a, quotationId, paymentMethodId_2, jobId, errors, customerId, customer, job, quotation, paymentMethod, contractor, account, stripeAccount, charges, transaction, payload, stripePayment, err_2;
     var _b, _c, _d;
     return __generator(this, function (_e) {
         switch (_e.label) {
@@ -268,6 +268,13 @@ var captureJobPayment = function (req, res, next) { return __awaiter(void 0, voi
                             .status(401)
                             .json({ success: false, message: "Job quotation not found" })];
                 }
+                paymentMethod = customer.stripePaymentMethods.find(function (method) { return method.id == paymentMethodId_2; });
+                if (!paymentMethod) {
+                    paymentMethod = customer.stripePaymentMethods[0];
+                }
+                ;
+                if (!paymentMethod)
+                    throw new Error("No such payment method");
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: quotation.contractor })];
             case 4:
                 contractor = _e.sent();
@@ -322,6 +329,7 @@ var captureJobPayment = function (req, res, next) { return __awaiter(void 0, voi
                             items: quotation.estimates,
                             charges: quotation.charges
                         },
+                        paymentMethod: paymentMethod,
                         job: jobId
                     })
                     //  Direct CHARGES
@@ -361,13 +369,6 @@ var captureJobPayment = function (req, res, next) { return __awaiter(void 0, voi
                 ];
             case 10:
                 transaction = _e.sent();
-                paymentMethod = customer.stripePaymentMethods.find(function (method) { return method.id == paymentMethodId_2; });
-                if (!paymentMethod) {
-                    paymentMethod = customer.stripePaymentMethods[0];
-                }
-                ;
-                if (!paymentMethod)
-                    throw new Error("No such payment method");
                 payload = {
                     payment_method_types: ['card'],
                     payment_method_options: {

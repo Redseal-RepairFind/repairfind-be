@@ -13,6 +13,7 @@ import { ContractorJobController } from "../controllers/contractor_job.controlle
 import { ContractorNotificationController } from "../controllers/contractor_notification.controller";
 import { ContractorConversationController } from "../controllers/contractor_conversation.controller";
 import { ContractorTripDayController } from "../controllers/contractor_tripDay.controller";
+import { ContractorTransactionController } from "../controllers/contractor_transaction.controller";
 
 const express = require("express");
 const router = express.Router();
@@ -173,6 +174,13 @@ router.get('/conversations', checkContractorRole, ContractorConversationControll
 router.get('/conversations/:conversationId', checkContractorRole, ContractorConversationController.getSingleConversation)
 router.get('/conversations/:conversationId/messages', checkContractorRole, ContractorConversationController.getConversationMessages)
 router.post('/conversations/:conversationId/messages', checkContractorRole, ContractorHttpRequest.sendMessageParams,  ContractorConversationController.sendMessage)
+
+
+
+// Transactions
+router.get("/transactions", checkContractorRole, ContractorTransactionController.getTransactions ); 
+router.get("/transactions/:transactionId", checkContractorRole, ContractorTransactionController.getSingleTransaction);
+
 
 // trips day
 router.post('/trip/:jobId/start', checkContractorRole, ContractorTripDayController.contractorStartTripController)

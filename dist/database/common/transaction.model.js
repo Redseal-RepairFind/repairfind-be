@@ -55,6 +55,12 @@ var TRANSACTION_TYPE;
     TRANSACTION_TYPE["PAYOUT"] = "PAYOUT";
     TRANSACTION_TYPE["INSPECTION_PAYMENT"] = "INSPECTION_PAYMENT";
 })(TRANSACTION_TYPE || (exports.TRANSACTION_TYPE = TRANSACTION_TYPE = {}));
+// Define the main schema for the invoice
+var InvoiceSchema = new mongoose_1.Schema({
+    items: [], // Array of invoice items
+    charges: { type: Object }, // Charges object
+    id: { type: mongoose_1.Schema.Types.ObjectId }, // Invoice ID
+});
 var TransactionSchema = new mongoose_1.Schema({
     type: {
         type: String,
@@ -102,7 +108,7 @@ var TransactionSchema = new mongoose_1.Schema({
         type: String,
     },
     invoice: {
-        type: Object,
+        type: InvoiceSchema,
         default: null,
     }, // tranfer the quotation and charges object her
     job: {
@@ -111,6 +117,10 @@ var TransactionSchema = new mongoose_1.Schema({
     },
     payment: {
         type: mongoose_1.Schema.Types.ObjectId,
+    },
+    paymentMethod: {
+        type: Object,
+        default: null
     },
     createdAt: {
         type: Date,

@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerTransactionController = exports.getSingleTransaction = exports.getTransactions = void 0;
+exports.ContractorTransactionController = exports.getSingleTransaction = exports.getTransactions = void 0;
 var custom_errors_1 = require("../../../utils/custom.errors");
 var transaction_model_1 = __importDefault(require("../../../database/common/transaction.model"));
 var api_feature_1 = require("../../../utils/api.feature");
@@ -49,14 +49,14 @@ var getTransactions = function (req, res, next) { return __awaiter(void 0, void 
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                customerId = req.customer.id;
+                customerId = req.contractor.id;
                 _b.label = 1;
             case 1:
                 _b.trys.push([1, 5, , 6]);
                 filter = {
                     $or: [
-                        { fromUser: customerId, fromUserType: 'customers' },
-                        { toUser: customerId, toUserType: 'customers' }
+                        { fromUser: customerId, fromUserType: 'contractors' },
+                        { toUser: customerId, toUserType: 'contractors' }
                     ]
                 };
                 return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(transaction_model_1.default.find(filter).populate([{ path: 'fromUser' }, { path: 'toUser' }]), req.query)];
@@ -97,7 +97,7 @@ var getSingleTransaction = function (req, res, next) { return __awaiter(void 0, 
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                customerId = req.customer.id;
+                customerId = req.contrator.id;
                 transactionId = req.params.transactionId;
                 _b.label = 1;
             case 1:
@@ -123,7 +123,7 @@ var getSingleTransaction = function (req, res, next) { return __awaiter(void 0, 
     });
 }); };
 exports.getSingleTransaction = getSingleTransaction;
-exports.CustomerTransactionController = {
+exports.ContractorTransactionController = {
     getTransactions: exports.getTransactions,
     getSingleTransaction: exports.getSingleTransaction
 };

@@ -8,14 +8,14 @@ import { applyAPIFeature } from "../../../utils/api.feature";
 
 // Controller method to fetch customer transactions
 export const getTransactions = async (req: any, res: Response, next: NextFunction) => {
-    const customerId = req.customer.id; // Assuming customerId is passed in the request params
+    const customerId = req.contractor.id; // Assuming customerId is passed in the request params
 
     try {
 
         let filter: any = { 
             $or: [
-                { fromUser: customerId, fromUserType: 'customers'},
-                { toUser: customerId, toUserType: 'customers'}
+                { fromUser: customerId, fromUserType: 'contractors'},
+                { toUser: customerId, toUserType: 'contractors'}
             ]
         }
 
@@ -37,7 +37,7 @@ export const getTransactions = async (req: any, res: Response, next: NextFunctio
 
 
 export const getSingleTransaction = async (req: any, res: Response, next: NextFunction) => {
-    const customerId = req.customer.id; 
+    const customerId = req.contrator.id; 
     const transactionId = req.params.transactionId;
 
     try {
@@ -55,7 +55,7 @@ export const getSingleTransaction = async (req: any, res: Response, next: NextFu
 
 
 
-export const CustomerTransactionController = {
+export const ContractorTransactionController = {
     getTransactions,
     getSingleTransaction
 
