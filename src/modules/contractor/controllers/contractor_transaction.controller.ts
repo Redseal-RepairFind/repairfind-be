@@ -37,14 +37,14 @@ export const getTransactions = async (req: any, res: Response, next: NextFunctio
 
 
 export const getSingleTransaction = async (req: any, res: Response, next: NextFunction) => {
-    const customerId = req.contrator.id; 
+    const contractorId = req.contractor.id; 
     const transactionId = req.params.transactionId;
 
     try {
 
        const transaction =  await TransactionModel.findById(transactionId).populate([{path:'fromUser'}, {path:'toUser'}]);
         if(transaction){
-            transaction.isCredit = await transaction.getIsCredit(customerId)
+            transaction.isCredit = await transaction.getIsCredit(contractorId)
         }
 
         res.status(200).json({message: 'transaction retrieved successfully', success: true, data: transaction });
