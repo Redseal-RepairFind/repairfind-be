@@ -18,7 +18,7 @@ export async function getUserInfo(googleAccessToken: string): Promise<any> {
     return providerUser.data
   } catch (error) {
     console.error('Error getting google user :', error);
-    throw error; // You might want to handle or log the error accordingly
+    // throw error; // You might want to handle or log the error accordingly
   }
 }
 export const GoogleServiceProvider = {

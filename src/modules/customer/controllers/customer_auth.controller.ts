@@ -528,7 +528,7 @@ export const googleSignon = async (
           firstName,
           lastName,
           provider: CustomerAuthProviders.GOOGLE,
-          profileImg: picture,
+          profilePhoto: {url:picture},
           emailOtp: {
             otp: sub,
             createdTime: new Date(),

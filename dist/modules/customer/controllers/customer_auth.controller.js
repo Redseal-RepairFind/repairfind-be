@@ -471,7 +471,7 @@ var googleSignon = function (req, res) { return __awaiter(void 0, void 0, void 0
                             firstName: firstName,
                             lastName: lastName,
                             provider: customer_interface_1.CustomerAuthProviders.GOOGLE,
-                            profileImg: picture,
+                            profilePhoto: { url: picture },
                             emailOtp: {
                                 otp: sub,
                                 createdTime: new Date(),

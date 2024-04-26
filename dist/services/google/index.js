@@ -63,7 +63,7 @@ function getUserInfo(googleAccessToken) {
                 case 2:
                     error_1 = _a.sent();
                     console.error('Error getting google user :', error_1);
-                    throw error_1; // You might want to handle or log the error accordingly
+                    return [3 /*break*/, 3];
                 case 3: return [2 /*return*/];
             }
         });
