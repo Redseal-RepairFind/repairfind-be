@@ -19,7 +19,8 @@ export const createSession = async (payload: any) => {
     
       return session;
   } catch (error:any) {
-        throw new BadRequestError(error.message || "Something went wrong");
+      console.log(error)
+        // throw new BadRequestError(error.message || "Something went wrong");
   }
 };
 
@@ -31,7 +32,8 @@ export const createEphemeralKey = async (payload: any) => {
     
       return ephemeralKey;
   } catch (error:any) {
-      throw new BadRequestError(error.message || "Something went wrong");
+      console.log(error)
+      // throw new BadRequestError(error.message || "Something went wrong");
   }
 };
 

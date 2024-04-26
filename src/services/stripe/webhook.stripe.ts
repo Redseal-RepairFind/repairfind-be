@@ -348,6 +348,7 @@ export const identityVerificationRequiresInput = async (payload: any) => {
         console.log('s3fileUrl of file uploaded to s3', s3fileUrl)
 
 
+        //@ts-ignore
         user.stripeIdentity = verification
         user.profilePhoto ? user.profilePhoto.url = s3fileUrl  : user.profilePhoto = { url: s3fileUrl }
         user.save()
@@ -395,7 +396,8 @@ export const identityVerificationRequiresInput = async (payload: any) => {
 
 
     } catch (error: any) {
-        new BadRequestError(error.message || "Something went wrong");
+        console.log(error)
+        // new BadRequestError(error.message || "Something went wrong");
     }
 };
 
@@ -435,6 +437,7 @@ export const identityVerificationVerified = async (payload: any) => {
         console.log('fileLink from stripe', fileLink)
         console.log('s3fileUrl of file uploaded to s3', s3fileUrl)
 
+         //@ts-ignore
         user.stripeIdentity = verification
         user.profilePhoto = { url: s3fileUrl };
         user.save()

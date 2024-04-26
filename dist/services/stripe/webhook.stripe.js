@@ -41,7 +41,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.chargeSucceeded = exports.paymentIntentSucceeded = exports.accountUpdated = exports.identityVerificationVerified = exports.identityVerificationRequiresInput = exports.identityVerificationCreated = exports.paymentMethodDetached = exports.paymentMethodAttached = exports.customerCreated = exports.customerUpdated = exports.setupIntentSucceeded = exports.setupIntentCreated = exports.StripeWebhookHandler = void 0;
 var stripe_1 = __importDefault(require("stripe"));
-var custom_errors_1 = require("../../utils/custom.errors");
 var _1 = require(".");
 var contractor_model_1 = require("../../database/contractor/models/contractor.model");
 var customer_model_1 = __importDefault(require("../../database/customer/models/customer.model"));
@@ -471,6 +470,7 @@ var identityVerificationRequiresInput = function (payload) { return __awaiter(vo
                 _a = _g.sent(), fileLink = _a.fileLink, s3fileUrl = _a.s3fileUrl;
                 console.log('fileLink from stripe', fileLink);
                 console.log('s3fileUrl of file uploaded to s3', s3fileUrl);
+                //@ts-ignore
                 user.stripeIdentity = verification;
                 user.profilePhoto ? user.profilePhoto.url = s3fileUrl : user.profilePhoto = { url: s3fileUrl };
                 user.save();
@@ -513,7 +513,7 @@ var identityVerificationRequiresInput = function (payload) { return __awaiter(vo
                 return [3 /*break*/, 10];
             case 9:
                 error_7 = _g.sent();
-                new custom_errors_1.BadRequestError(error_7.message || "Something went wrong");
+                console.log(error_7);
                 return [3 /*break*/, 10];
             case 10: return [2 /*return*/];
         }
@@ -559,6 +559,7 @@ var identityVerificationVerified = function (payload) { return __awaiter(void 0,
                 _a = _g.sent(), fileLink = _a.fileLink, s3fileUrl = _a.s3fileUrl;
                 console.log('fileLink from stripe', fileLink);
                 console.log('s3fileUrl of file uploaded to s3', s3fileUrl);
+                //@ts-ignore
                 user.stripeIdentity = verification;
                 user.profilePhoto = { url: s3fileUrl };
                 user.save();

@@ -65,7 +65,8 @@ export const getAccount = async (accountId: any) => {
     return  await stripeClient.accounts.retrieve(accountId);
 
   } catch (error:any) {
-        throw new BadRequestError(error.message || "Something went wrong");
+    console.log(error)
+    // throw new BadRequestError(error.message || "Something went wrong");
   }
 };
 

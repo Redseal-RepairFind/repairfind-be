@@ -126,7 +126,8 @@ var getAccount = function (accountId) { return __awaiter(void 0, void 0, void 0,
             case 1: return [2 /*return*/, _a.sent()];
             case 2:
                 error_4 = _a.sent();
-                throw new custom_errors_1.BadRequestError(error_4.message || "Something went wrong");
+                console.log(error_4);
+                return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
         }
     });
