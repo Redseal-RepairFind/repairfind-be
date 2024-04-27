@@ -18,23 +18,7 @@ JobEvent.on('NEW_JOB_REQUEST', async function (payload) {
         const conversation = await ConversationModel.findById(payload.conversationId)
 
         if(job && contractor && customer){
-            NotificationService.sendNotification({
-                user: contractor.id,
-                userType: 'contractors',
-                title: 'New Job Request',
-                type: 'Conversation',
-                message: `You've received a job request from ${customer.firstName}`,
-                heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
-                payload: {
-                    entity: job.id,
-                    entityType: 'jobs',
-                    message: `You've received a job request from ${customer.firstName}`,
-                    contractor: contractor.id,
-                    event: 'NEW_JOB_REQUEST',
-                    conversation: conversation?.id
-                }
-            }, { socket: true })
-
+            
             NotificationService.sendNotification({
                 user: contractor.id,
                 userType: 'contractors',
@@ -50,27 +34,6 @@ JobEvent.on('NEW_JOB_REQUEST', async function (payload) {
                     event: 'NEW_JOB_REQUEST',
                 }
             }, { database: true, push: true, socket: true })
-
-            NotificationService.sendNotification({
-                user: customer.id,
-                userType: 'customers',
-                title: 'New Job Request',
-                type: 'Conversation', // Conversation, Conversation_Notification
-                //@ts-ignore
-                message: `You've  sent a job request to ${contractor.name}`,
-                //@ts-ignore
-                heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
-                payload: {
-                    entity: job.id,
-                    entityType: 'jobs',
-                    //@ts-ignore
-                    message: `You've sent a job request to ${contractor.name}`,
-                    customer: customer.id,
-                    event: 'NEW_JOB_REQUEST',
-                    conversation: conversation?.id
-                }
-            }, { socket:true})
-
 
             NotificationService.sendNotification({
                 user: customer.id,

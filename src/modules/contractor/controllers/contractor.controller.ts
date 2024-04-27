@@ -16,6 +16,7 @@ import ContractorDeviceModel from "../../../database/contractor/models/contracto
 import { IStripeAccount } from "../../../database/common/stripe_account.schema";
 import { COMPANY_STATUS, CONTRACTOR_TYPES, GST_STATUS, IContractorCompanyDetails, IContractorGstDetails } from "../../../database/contractor/interface/contractor.interface";
 import { BadRequestError } from "../../../utils/custom.errors";
+import { castPayloadToDTO } from "../../../utils/interface_dto.util";
 
 
 class ProfileHandler extends Base {

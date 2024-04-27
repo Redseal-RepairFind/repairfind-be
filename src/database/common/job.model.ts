@@ -1,5 +1,5 @@
 import { Document, ObjectId, Schema, model } from "mongoose";
-import { IJobQuotation, JOB_QUOTATION_STATUS, JobQoutationModel } from "./job_quotation.model";
+import { IJobQuotation, JOB_QUOTATION_STATUS, JobQuotationModel } from "./job_quotation.model";
 
 export interface IJobLocation extends Document {
     address?: string;
@@ -184,7 +184,7 @@ JobSchema.virtual('totalQuotations').get(function () {
 
 
 JobSchema.methods.getMyQoutation = async function (contractor: any) {
-    const contractorQuotation = await JobQoutationModel.findOne({job:this.id, contractor})
+    const contractorQuotation = await JobQuotationModel.findOne({job:this.id, contractor})
     if(contractorQuotation){
         return contractorQuotation
     }else{

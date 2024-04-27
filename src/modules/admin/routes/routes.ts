@@ -8,6 +8,7 @@ import { adminGetNotificationrController, adminUnseenNotificationrController, ad
 import { AdminSignInController, SuperAdminGetAllAdminController, SuperAdminValidateOtherAdminController, adminResendEmailController, adminSignUpController, adminUpdateBioController, adminVerifiedEmailController } from "../controllers/adminReg.controller";
 import { AdminGetAppDetailController } from "../controllers/appDetails.Controller";
 import { AdminGetRevenueAnalysisControlleer, AdminsendEmailsControlleer } from "../controllers/averageRevenue.controller";
+import { AdminContractorController } from "../controllers/contractor.controller";
 import { AdminGetJobsrDetailController, AdminGetSingleJobsrDetailController, AdminGetTotalJobsrController } from "../controllers/job.controller";
 import { AdminGetCompletedPayoutDetailController, AdminGetPendingPayoutDetailController, AdminGetSinglePayoutDetailController, AdminPayContractorController } from "../controllers/payout.controller";
 import { AdminQuizController } from "../controllers/quiz.controller";
@@ -54,9 +55,6 @@ router.get("/admin_get_transaction_detail", checkAdminRole, AdminGetTransactionD
 router.get("/admin_get_single_transaction_detail", validateTRansactionIdValidationParams, checkAdminRole, AdminGetSingleTransactionDetailController ); // admin get single transaction detail
 
 router.post("/admin_add_question", validateAddQuestionParams, checkAdminRole, AdminQuizController.AddQuestion ); // admin add question
-router.post("/quizzes", createQuizParams, checkAdminRole, AdminQuizController.CreateQuiz ); // admin create quiz
-router.get("/quizzes", checkAdminRole, AdminQuizController.getAllQuizzes ); // admin get quizes
-router.get("/random-quiz", checkAdminRole, AdminQuizController.getRandomQuiz ); // admin add question
 router.get("/admin_get_all_question", checkAdminRole, AdminQuizController.GetAllQuestions ); // admin get all question
 
 
@@ -82,5 +80,18 @@ router.post("/pay_contractor", validatePayoutIDPayContractorParams, checkAdminRo
 //no work just testing email
 router.post("/send_email", AdminsendEmailsControlleer ); // admin get total number of unseen notification
 
+
+
+// //////// //// ///// //// //// //// //// //// //// ///// //
+
+// QUIZ
+router.post("/quizzes", createQuizParams, checkAdminRole, AdminQuizController.CreateQuiz ); // admin create quiz
+router.get("/quizzes", checkAdminRole, AdminQuizController.getAllQuizzes ); // admin get quizes
+router.get("/random-quiz", checkAdminRole, AdminQuizController.getRandomQuiz ); // admin add question
+
+
+// CONTRACTOR
+router.post("/contractors/:contractorId/attach-stripe-account",  AdminContractorController.attachStripeAccount ); //
+router.post("/contractors/:contractorId/remove-stripe-account",  AdminContractorController.removeStripeAccount ); //
 
 export default router;

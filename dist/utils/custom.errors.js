@@ -26,9 +26,7 @@ var CustomError = /** @class */ (function (_super) {
         _this.isOperational = true;
         _this.message = message;
         _this.name = name || 'error';
-        if (error) {
-            logger_1.Logger.error(error);
-        }
+        _this.error = error || new Error;
         return _this;
     }
     return CustomError;
@@ -83,14 +81,10 @@ var InternalServerError = /** @class */ (function (_super) {
 }(CustomError));
 exports.InternalServerError = InternalServerError;
 function errorHandler(err, req, res, next) {
-    logger_1.Logger.error(err.message);
+    logger_1.Logger.error(err.stack, err.error);
     // Default status code and error message
     var statusCode = err.code || 500;
     var errorMessage = err.message || 'Internal Server Error';
-    if (err.name === 'InternalServerError') {
-        statusCode = 500;
-        errorMessage = 'Internal Server Error';
-    }
     // Send JSON response with error details
     return res.status(statusCode).json({ success: false, message: errorMessage });
 }

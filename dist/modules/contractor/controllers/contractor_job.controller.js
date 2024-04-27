@@ -64,6 +64,8 @@ var conversations_schema_1 = require("../../../database/common/conversations.sch
 var messages_schema_1 = require("../../../database/common/messages.schema");
 var services_1 = require("../../../services");
 var contractor_profile_model_1 = require("../../../database/contractor/models/contractor_profile.model");
+var interface_dto_util_1 = require("../../../utils/interface_dto.util");
+var stripe_1 = require("../../../services/stripe");
 var getJobRequests = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, customerId, status_1, startDate, endDate, date, contractorId, filter, start, end, selectedDate, startOfDay, endOfDay, jobRequests, _b, data, error, error_1;
     return __generator(this, function (_c) {
@@ -122,27 +124,34 @@ var getJobRequests = function (req, res) { return __awaiter(void 0, void 0, void
 }); };
 exports.getJobRequests = getJobRequests;
 var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, jobId, contractorId, job, customer, jobEvent, quotation, conversationMembers, conversation, message, error_2;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var errors, jobId, contractorId, contractor, job, customer, account, stripeAccount, jobEvent, quotation, conversationMembers, conversation, message, error_2;
+    var _a, _b;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
             case 0:
-                _a.trys.push([0, 7, , 8]);
+                _c.trys.push([0, 12, , 13]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
                 jobId = req.params.jobId;
                 contractorId = req.contractor.id;
-                return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobId, contractor: contractorId, type: job_model_1.JobType.REQUEST })];
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
             case 1:
-                job = _a.sent();
+                contractor = _c.sent();
+                if (!contractor) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor not found' })];
+                }
+                return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobId, contractor: contractorId, type: job_model_1.JobType.REQUEST })];
+            case 2:
+                job = _c.sent();
                 // Check if the job request exists
                 if (!job) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Job request not found' })];
                 }
                 return [4 /*yield*/, customer_model_1.default.findById(job.customer)];
-            case 2:
-                customer = _a.sent();
+            case 3:
+                customer = _c.sent();
                 // Check if the customer request exists
                 if (!customer) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Customer not found' })];
@@ -155,6 +164,25 @@ var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 if (job.status !== job_model_1.JOB_STATUS.PENDING) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'Job request is not pending' })];
                 }
+                if (!contractor.onboarding.hasStripeAccount) return [3 /*break*/, 6];
+                return [4 /*yield*/, stripe_1.StripeService.account.getAccount(contractor.stripeAccount.id)];
+            case 4:
+                account = _c.sent();
+                stripeAccount = (0, interface_dto_util_1.castPayloadToDTO)(account, account);
+                contractor.stripeAccount = stripeAccount;
+                return [4 /*yield*/, contractor.save()];
+            case 5:
+                _c.sent();
+                if (!(((_a = contractor.stripeAccountStatus) === null || _a === void 0 ? void 0 : _a.card_payments_enabled) && ((_b = contractor.stripeAccountStatus) === null || _b === void 0 ? void 0 : _b.transfers_enabled))) {
+                    return [2 /*return*/, res
+                            .status(400)
+                            .json({ success: false, message: "You can not send quotation for a job, since stripe account is not setup" })];
+                }
+                return [3 /*break*/, 7];
+            case 6: return [2 /*return*/, res
+                    .status(400)
+                    .json({ success: false, message: "You can not send quotation for a job, since stripe account is not setup" })];
+            case 7:
                 // Update the status of the job request to "Accepted"
                 job.status = job_model_1.JOB_STATUS.ACCEPTED;
                 jobEvent = {
@@ -166,7 +194,7 @@ var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 };
                 // Push the rejection event to the job history array
                 job.jobHistory.push(jobEvent);
-                quotation = new job_quotation_model_1.JobQoutationModel({
+                quotation = new job_quotation_model_1.JobQuotationModel({
                     contractor: contractorId,
                     job: jobId,
                     status: job_quotation_model_1.JOB_QUOTATION_STATUS.PENDING, // Assuming initial status is pending
@@ -178,16 +206,16 @@ var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 });
                 // Save the initial job application
                 return [4 /*yield*/, quotation.save()];
-            case 3:
+            case 8:
                 // Save the initial job application
-                _a.sent();
+                _c.sent();
                 // Associate the job application with the job request
                 if (!job.quotations.includes(quotation.id)) {
                     job.quotations.push(quotation.id);
                 }
                 return [4 /*yield*/, job.save()];
-            case 4:
-                _a.sent();
+            case 9:
+                _c.sent();
                 conversationMembers = [
                     { memberType: 'customers', member: job.customer },
                     { memberType: 'contractors', member: quotation.contractor }
@@ -202,8 +230,8 @@ var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void
                         lastMessage: 'I have accepted your Job request', // Set the last message to the job description
                         lastMessageAt: new Date() // Set the last message timestamp to now
                     }, { new: true, upsert: true })];
-            case 5:
-                conversation = _a.sent();
+            case 10:
+                conversation = _c.sent();
                 message = new messages_schema_1.MessageModel({
                     conversation: conversation === null || conversation === void 0 ? void 0 : conversation._id,
                     sender: contractorId,
@@ -212,15 +240,15 @@ var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void
                     messageType: messages_schema_1.MessageType.ALERT,
                 });
                 return [4 /*yield*/, message.save()];
-            case 6:
-                _a.sent();
+            case 11:
+                _c.sent();
                 // Return success response
                 res.json({ success: true, message: 'Job request accepted successfully' });
-                return [3 /*break*/, 8];
-            case 7:
-                error_2 = _a.sent();
+                return [3 /*break*/, 13];
+            case 12:
+                error_2 = _c.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('Something went wrong', error_2))];
-            case 8: return [2 /*return*/];
+            case 13: return [2 /*return*/];
         }
     });
 }); };
@@ -389,89 +417,229 @@ var getJobListingById = function (req, res, next) { return __awaiter(void 0, voi
     });
 }); };
 exports.getJobListingById = getJobListingById;
+// export const sendJobQuotation = async (
+//   req: any,
+//   res: Response,
+//   next: NextFunction
+// ) => {
+//   try {
+//     let {
+//       startDate,
+//       endDate,
+//       siteVisit,
+//       estimates,
+//     } = req.body;
+//     const { jobId } = req.params
+//     const contractorId = req.contractor.id
+//     // Check for validation errors
+//     const errors = validationResult(req);
+//     if (!errors.isEmpty()) {
+//       return res.status(400).json({ errors: errors.array() });
+//     }
+//     const contractor = await ContractorModel.findOne({ _id: contractorId });
+//     if (!contractor) {
+//       return res
+//         .status(401)
+//         .json({ message: "invalid credential" });
+//     }
+//     const job = await JobModel.findOne({ _id: jobId }).sort({ createdAt: -1 })
+//     if (!job) {
+//       return res
+//         .status(401)
+//         .json({ message: "job does not exist" });
+//     }
+//     // Check if more than three contractors have already applied with the quotation status not declined
+//     const appliedQuotationsCount = await JobQuotationModel.countDocuments({
+//       job: jobId,
+//       status: { $ne: JOB_QUOTATION_STATUS.DECLINED }
+//     });
+//     if (appliedQuotationsCount >= 3) {
+//       return res.status(400).json({ success: false, message: "Maximum number of contractors already applied for this job" });
+//     }
+//     // ensure contractor has a verified connected account
+//     if (contractor.onboarding.hasStripeAccount) {
+//       //fetch and update contractor stripeaccount here
+//       // TODO: If this impacts the response time so much we can prevent this request - doing this because stripe seems no to be sending account related events
+//       const account: unknown = await StripeService.account.getAccount(contractor.stripeAccount.id); //acct_1P4N6NRdmDaBvbML ,acct_1P7XvFRZlKifQSOs
+//       const stripeAccount = castPayloadToDTO(account, account as IStripeAccount)
+//       contractor.stripeAccount = stripeAccount
+//       await contractor.save()
+//       if (!(contractor.stripeAccountStatus?.card_payments_enabled && contractor.stripeAccountStatus?.transfers_enabled)) {
+//         return res
+//           .status(400)
+//           .json({ success: false, message: "You can not send quotation for a job, since stripe account is not  setup" });
+//       }
+//     } else {
+//       return res
+//         .status(400)
+//         .json({ success: false, message: "You can not send quotation for a job, since stripe account is not  setup" });
+//     }
+//     // Check if the contractor has already submitted a quotation for this job
+//     const existingQuotation = await JobQuotationModel.findOne({ job: jobId, contractor: contractorId });
+//     if (existingQuotation) {
+//       return res.status(400).json({ success: false, message: "You have already submitted a quotation for this job" });
+//     }
+//     if (estimates && estimates.length < 1) {
+//       return res
+//         .status(401)
+//         .json({ message: "invalid estimate format" });
+//     }
+//     const customer = await CustomerModel.findOne({ _id: job.customer })
+//     if (!customer) {
+//       return res
+//         .status(401)
+//         .json({ message: "invalid customer Id" });
+//     }
+//     if (siteVisit) {
+//       estimates = []
+//       estimates.push({
+//         description: 'Site Visit',
+//         amount: 100,
+//         rate: 100,
+//         quantity: 1,
+//       })
+//     }
+//     let jobQuotation = await JobQuotationModel.findOneAndUpdate({ job: jobId, contractor: contractorId }, {
+//       startDate: startDate ? new Date(startDate) : null,
+//       endDate: endDate ? new Date(startDate) : null,
+//       siteVisit: siteVisit ? new Date(siteVisit) : null,
+//       estimates,
+//       jobId,
+//       contractorId
+//     }, { new: true, upsert: true })
+//     jobQuotation.charges = await jobQuotation.calculateCharges();
+//     if (!job.quotations.includes(jobQuotation.id)) {
+//       job.quotations.push({
+//         id: jobQuotation.id,
+//         status: jobQuotation.status
+//       });
+//     }
+//     if (job.type == JobType.REQUEST) {
+//       // Update the status of the job request to "Accepted"
+//       job.status = JOB_STATUS.ACCEPTED;
+//       // Define the acceptance event to be stored in the job history
+//       const jobEvent = {
+//         eventType: JOB_STATUS.ACCEPTED,
+//         timestamp: new Date(),
+//         details: {
+//           message: 'Contactor accepted this job'
+//         },
+//       };
+//       // Push the acceptance event to the job history array
+//       if (!job.jobHistory.some(jobEvent => jobEvent.eventType == JOB_STATUS.ACCEPTED)) {
+//         job.jobHistory.push(jobEvent);
+//       }
+//     }
+//     await job.save()
+//     // DO OTHER THINGS HERE
+//     if (estimates) {
+//       const html = htmlJobQoutationTemplate(customer.firstName, contractor.name)
+//       EmailService.send(customer.email, 'Job quotation from contractor', html)
+//       // if (conversation) {
+//       //   // send push notification
+//       // }
+//     }
+//     if (siteVisit) {
+//       //send message alert indicating that contractor has requested for site visit
+//       // if (conversation) {
+//       //  // send notification
+//       // }
+//     }
+//     res.json({
+//       success: true,
+//       message: "job quotation sucessfully sent",
+//       data: jobQuotation
+//     });
+//   } catch (err: any) {
+//     return next(new BadRequestError('An error occured ', err))
+//   }
+// }
 var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, startDate, endDate, siteVisit, estimates, jobId, contractorId, errors, contractor, job, customer, jobQuotation, _b, jobEvent, html, err_1;
-    return __generator(this, function (_c) {
-        switch (_c.label) {
+    var jobId, contractorId, _a, startDate, endDate, siteVisit, _b, estimates, errors, _c, contractor, job, customer, previousQuotation, appliedQuotationsCount, existingQuotation, jobQuotation_1, _d, html, err_1;
+    var _e, _f;
+    return __generator(this, function (_g) {
+        switch (_g.label) {
             case 0:
-                _c.trys.push([0, 7, , 8]);
-                _a = req.body, startDate = _a.startDate, endDate = _a.endDate, siteVisit = _a.siteVisit, estimates = _a.estimates;
+                _g.trys.push([0, 9, , 10]);
                 jobId = req.params.jobId;
                 contractorId = req.contractor.id;
+                _a = req.body, startDate = _a.startDate, endDate = _a.endDate, siteVisit = _a.siteVisit, _b = _a.estimates, estimates = _b === void 0 ? [] : _b;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: contractorId })];
+                return [4 /*yield*/, Promise.all([
+                        contractor_model_1.ContractorModel.findById(contractorId),
+                        job_model_1.JobModel.findById(jobId).sort({ createdAt: -1 })
+                    ])];
             case 1:
-                contractor = _c.sent();
-                if (!contractor) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ message: "invalid credential" })];
-                }
-                return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobId }).sort({ createdAt: -1 })];
-            case 2:
-                job = _c.sent();
-                if (!job) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ message: "job does not exist" })];
-                }
-                if (estimates && estimates.length < 1) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ message: "invalid estimate format" })];
+                _c = _g.sent(), contractor = _c[0], job = _c[1];
+                if (!contractor || !job) {
+                    return [2 /*return*/, res.status(401).json({ message: "Invalid credential or job does not exist" })];
                 }
                 return [4 /*yield*/, customer_model_1.default.findOne({ _id: job.customer })];
-            case 3:
-                customer = _c.sent();
+            case 2:
+                customer = _g.sent();
                 if (!customer) {
                     return [2 /*return*/, res
                             .status(401)
                             .json({ message: "invalid customer Id" })];
                 }
-                return [4 /*yield*/, job_quotation_model_1.JobQoutationModel.findOneAndUpdate({ job: jobId, contractor: contractorId }, {
-                        startDate: startDate ? new Date(startDate) : null,
-                        endDate: endDate ? new Date(startDate) : null,
-                        siteVisit: siteVisit ? new Date(siteVisit) : null,
-                        estimates: estimates,
-                        jobId: jobId,
-                        contractorId: contractorId
-                    }, { new: true, upsert: true })];
-            case 4:
-                jobQuotation = _c.sent();
-                _b = jobQuotation;
-                return [4 /*yield*/, jobQuotation.calculateCharges()];
-            case 5:
-                _b.charges = _c.sent();
-                if (!job.quotations.includes(jobQuotation.id)) {
-                    job.quotations.push({
-                        id: jobQuotation.id,
-                        status: jobQuotation.status
-                    });
+                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne({ job: jobId, contractor: contractorId })];
+            case 3:
+                previousQuotation = _g.sent();
+                if (previousQuotation && previousQuotation.status === job_quotation_model_1.JOB_QUOTATION_STATUS.DECLINED) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "You cannot apply again since your previous quotation was declined" })];
                 }
-                if (job.type == job_model_1.JobType.REQUEST) {
-                    // Update the status of the job request to "Accepted"
+                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.countDocuments({
+                        job: jobId,
+                        status: { $ne: job_quotation_model_1.JOB_QUOTATION_STATUS.DECLINED }
+                    })];
+            case 4:
+                appliedQuotationsCount = _g.sent();
+                if (appliedQuotationsCount >= 3) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "Maximum number of contractors already applied for this job" })];
+                }
+                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne({ job: jobId, contractor: contractorId })];
+            case 5:
+                existingQuotation = _g.sent();
+                if (existingQuotation) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "You have already submitted a quotation for this job" })];
+                }
+                // Check if contractor has a verified connected account
+                if (!contractor.onboarding.hasStripeAccount || !(((_e = contractor.stripeAccountStatus) === null || _e === void 0 ? void 0 : _e.card_payments_enabled) && ((_f = contractor.stripeAccountStatus) === null || _f === void 0 ? void 0 : _f.transfers_enabled))) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "You cannot send a quotation for this job because your Stripe account is not set up" })];
+                }
+                // Prepare estimates
+                if (siteVisit) {
+                    estimates.push({ description: 'Site Visit', amount: 100, rate: 100, quantity: 1 });
+                }
+                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOneAndUpdate({ job: jobId, contractor: contractorId }, { startDate: startDate ? new Date(startDate) : null, endDate: endDate ? new Date(startDate) : null, siteVisit: siteVisit ? new Date(siteVisit) : null, estimates: estimates, jobId: jobId, contractorId: contractorId }, { new: true, upsert: true })];
+            case 6:
+                jobQuotation_1 = _g.sent();
+                // Calculate charges for the job quotation
+                _d = jobQuotation_1;
+                return [4 /*yield*/, jobQuotation_1.calculateCharges()];
+            case 7:
+                // Calculate charges for the job quotation
+                _d.charges = _g.sent();
+                // Add job quotation to job's list of quotations
+                if (!job.quotations.some(function (quotation) { return quotation.id === jobQuotation_1.id; })) {
+                    job.quotations.push({ id: jobQuotation_1.id, status: jobQuotation_1.status });
+                }
+                // Update job status and history if needed
+                if (job.type === job_model_1.JobType.REQUEST) {
                     job.status = job_model_1.JOB_STATUS.ACCEPTED;
-                    jobEvent = {
-                        eventType: job_model_1.JOB_STATUS.ACCEPTED,
-                        timestamp: new Date(),
-                        details: {
-                            message: 'Contactor accepted this job'
-                        },
-                    };
-                    // Push the acceptance event to the job history array
-                    if (!job.jobHistory.some(function (jobEvent) { return jobEvent.eventType == job_model_1.JOB_STATUS.ACCEPTED; })) {
-                        job.jobHistory.push(jobEvent);
+                    if (!job.jobHistory.some(function (jobEvent) { return jobEvent.eventType === job_model_1.JOB_STATUS.ACCEPTED; })) {
+                        job.jobHistory.push({ eventType: job_model_1.JOB_STATUS.ACCEPTED, timestamp: new Date(), details: { message: 'Contractor accepted this job' } });
                     }
                 }
-                return [4 /*yield*/, job.save()
-                    // DO OTHER THINGS HERE
-                ];
-            case 6:
-                _c.sent();
-                // DO OTHER THINGS HERE
+                // Save changes to the job
+                return [4 /*yield*/, job.save()];
+            case 8:
+                // Save changes to the job
+                _g.sent();
+                // Do other actions such as sending emails or notifications...
                 if (estimates) {
                     html = (0, jobQoutationTemplate_1.htmlJobQoutationTemplate)(customer.firstName, contractor.name);
                     services_1.EmailService.send(customer.email, 'Job quotation from contractor', html);
@@ -487,14 +655,14 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                 }
                 res.json({
                     success: true,
-                    message: "job quotation sucessfully sent",
-                    data: jobQuotation
+                    message: "Job quotation successfully sent",
+                    data: jobQuotation_1
                 });
-                return [3 /*break*/, 8];
-            case 7:
-                err_1 = _c.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', err_1))];
-            case 8: return [2 /*return*/];
+                return [3 /*break*/, 10];
+            case 9:
+                err_1 = _g.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', err_1))];
+            case 10: return [2 /*return*/];
         }
     });
 }); };
@@ -511,7 +679,7 @@ var getQuotationForJob = function (req, res, next) { return __awaiter(void 0, vo
                 if (!jobId) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Job ID  are required' })];
                 }
-                return [4 /*yield*/, job_quotation_model_1.JobQoutationModel.findOne({ job: jobId, contractor: contractorId })];
+                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne({ job: jobId, contractor: contractorId })];
             case 1:
                 jobQuotation = _b.sent();
                 // Check if the job application exists
@@ -556,7 +724,7 @@ var updateJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
                 if (!job) {
                     return [2 /*return*/, res.status(400).json({ status: false, message: 'Job not found' })];
                 }
-                return [4 /*yield*/, job_quotation_model_1.JobQoutationModel.findOne({ job: jobId, contractor: contractorId })];
+                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne({ job: jobId, contractor: contractorId })];
             case 2:
                 jobQuotation = _c.sent();
                 // If the job application does not exist, create a new one
@@ -612,7 +780,7 @@ var updateJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
 exports.updateJobQuotation = updateJobQuotation;
 var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, contractorId, contractor, profile, _a, distance, latitude, longitude, emergency, _b, category, city, country, address, startDate, endDate, _c, page, _d, limit, sort // Sort field and order (-fieldName or fieldName)
-    , pipeline, _e, sortField, sortOrder, sortStage, skip, result, jobs, metadata, error_8;
+    , pipeline, contractor_1, quotations, jobIdsWithQuotations, _e, sortField, sortOrder, sortStage, skip, result, jobs, metadata, error_8;
     var _f;
     return __generator(this, function (_g) {
         switch (_g.label) {
@@ -646,9 +814,16 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                         $addFields: {
                             totalQuotations: { $size: "$totalQuotations" }
                         }
-                    }
+                    },
                 ];
-                // Match job listings based on query parameters
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
+            case 4:
+                contractor_1 = _g.sent();
+                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.find({ contractor: contractorId }, { job: 1 })];
+            case 5:
+                quotations = _g.sent();
+                jobIdsWithQuotations = quotations.map(function (quotation) { return quotation.job; });
+                pipeline.push({ $match: { _id: { $nin: jobIdsWithQuotations } } });
                 pipeline.push({ $match: { type: job_model_1.JobType.LISTING } });
                 pipeline.push({ $match: { category: category } });
                 pipeline.push({ $match: { status: job_model_1.JOB_STATUS.PENDING } });
@@ -713,29 +888,16 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                     }
                 });
                 return [4 /*yield*/, job_model_1.JobModel.aggregate(pipeline)];
-            case 4:
+            case 6:
                 result = _g.sent();
                 jobs = result[0].data;
-                if (!jobs) return [3 /*break*/, 6];
-                // Map through each job and attach myQuotation if contractor has applied 
-                return [4 /*yield*/, Promise.all(jobs.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
-                        var _a;
-                        return __generator(this, function (_b) {
-                            switch (_b.label) {
-                                case 0:
-                                    _a = job;
-                                    return [4 /*yield*/, job_quotation_model_1.JobQoutationModel.findOne({ job: job.id, contractor: contractorId })];
-                                case 1:
-                                    _a.myQuotation = _b.sent();
-                                    return [2 /*return*/];
-                            }
-                        });
-                    }); }))];
-            case 5:
-                // Map through each job and attach myQuotation if contractor has applied 
-                _g.sent();
-                _g.label = 6;
-            case 6:
+                if (jobs) {
+                    //NO longer neccessary since applied jobs don't show up again
+                    // Map through each job and attach myQuotation if contractor has applied 
+                    // await Promise.all(jobs.map(async (job: any) => {
+                    //    job.myQuotation = await JobQuotationModel.findOne({ job: job._id, contractor: contractorId })
+                    // }));
+                }
                 metadata = result[0].metadata[0];
                 // Send response with job listings data
                 res.status(200).json({ success: true, data: __assign(__assign({}, metadata), { data: jobs }) });
@@ -758,7 +920,7 @@ var getMyJobs = function (req, res, next) { return __awaiter(void 0, void 0, voi
             case 1:
                 _e.trys.push([1, 6, , 7]);
                 _a = req.query, type = _a.type, _b = _a.page, page = _b === void 0 ? 1 : _b, _c = _a.limit, limit = _c === void 0 ? 10 : _c, sort = _a.sort, customerId = _a.customerId;
-                return [4 /*yield*/, job_quotation_model_1.JobQoutationModel.find({ contractor: contractorId }).select('job').lean()];
+                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.find({ contractor: contractorId }).select('job').lean()];
             case 2:
                 quotations = _e.sent();
                 jobIds = quotations.map(function (quotation) { return quotation.job; });

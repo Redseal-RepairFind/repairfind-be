@@ -36,7 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.JobQoutationModel = exports.JOB_QUOTATION_STATUS = void 0;
+exports.JobQuotationModel = exports.JOB_QUOTATION_STATUS = void 0;
 var mongoose_1 = require("mongoose");
 var JOB_QUOTATION_STATUS;
 (function (JOB_QUOTATION_STATUS) {
@@ -121,11 +121,6 @@ JobQoutationSchema.virtual('charges').get(function () {
         });
         var processingFee = 0;
         var gst = 0;
-        var siteVisitAmount = 0;
-        if (this.siteVisit) {
-            siteVisitAmount = 100;
-            totalEstimateAmount += siteVisitAmount;
-        }
         if (totalEstimateAmount <= 1000) {
             processingFee = parseFloat(((20 / 100) * totalEstimateAmount).toFixed(2));
         }
@@ -141,11 +136,11 @@ JobQoutationSchema.virtual('charges').get(function () {
         // Calculate total amounts for customer and contractor
         var totalAmount = (subtotal + processingFee + gst).toFixed(2);
         var contractorAmount = (subtotal + gst).toFixed(2);
-        return { subtotal: subtotal, processingFee: processingFee, gst: gst, totalAmount: totalAmount, contractorAmount: contractorAmount, siteVisitAmount: siteVisitAmount };
+        return { subtotal: subtotal, processingFee: processingFee, gst: gst, totalAmount: totalAmount, contractorAmount: contractorAmount };
     }
     return { subtotal: 0, processingFee: 0, gst: 0, totalAmount: 0, contractorAmount: 0, siteVisitAmount: 0 };
 });
 JobQoutationSchema.set('toObject', { virtuals: true });
 JobQoutationSchema.set('toJSON', { virtuals: true });
-var JobQoutationModel = (0, mongoose_1.model)('job_quotations', JobQoutationSchema);
-exports.JobQoutationModel = JobQoutationModel;
+var JobQuotationModel = (0, mongoose_1.model)('job_quotations', JobQoutationSchema);
+exports.JobQuotationModel = JobQuotationModel;

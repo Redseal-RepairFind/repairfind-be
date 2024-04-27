@@ -71,15 +71,14 @@ var custom_errors_1 = require("../../../utils/custom.errors");
 var transaction_model_1 = __importStar(require("../../../database/common/transaction.model"));
 var stripe_1 = require("../../../services/stripe");
 var job_quotation_model_1 = require("../../../database/common/job_quotation.model");
-var interface_dto_util_1 = require("../../../utils/interface_dto.util");
 //customer accept and pay for the work /////////////
 var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, quotationId, paymentMethodId_1, jobId, errors, customerId, customer, job, quotation, contractor, generateInvoce, invoiceId, charges, transaction, paymentMethod, payload, stripePayment, err_1;
-    var _b;
-    return __generator(this, function (_c) {
-        switch (_c.label) {
+    var _a, quotationId, paymentMethodId_1, jobId, errors, customerId, customer, job, quotation, contractor, paymentMethod, generateInvoce, invoiceId, charges, transaction, payload, stripePayment, err_1;
+    var _b, _c, _d;
+    return __generator(this, function (_e) {
+        switch (_e.label) {
             case 0:
-                _c.trys.push([0, 9, , 10]);
+                _e.trys.push([0, 9, , 10]);
                 _a = req.body, quotationId = _a.quotationId, paymentMethodId_1 = _a.paymentMethodId;
                 jobId = req.params.jobId;
                 errors = (0, express_validator_1.validationResult)(req);
@@ -89,7 +88,7 @@ var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0
                 customerId = req.customer.id;
                 return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
             case 1:
-                customer = _c.sent();
+                customer = _e.sent();
                 if (!customer) {
                     return [2 /*return*/, res
                             .status(401)
@@ -97,15 +96,15 @@ var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0
                 }
                 return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobId })];
             case 2:
-                job = _c.sent();
+                job = _e.sent();
                 if (!job) {
                     return [2 /*return*/, res
                             .status(401)
                             .json({ message: "job do not exist" })];
                 }
-                return [4 /*yield*/, job_quotation_model_1.JobQoutationModel.findOne({ _id: quotationId })];
+                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne({ _id: quotationId })];
             case 3:
-                quotation = _c.sent();
+                quotation = _e.sent();
                 if (!quotation) {
                     return [2 /*return*/, res
                             .status(404)
@@ -113,17 +112,28 @@ var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0
                 }
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: quotation.contractor })];
             case 4:
-                contractor = _c.sent();
+                contractor = _e.sent();
                 if (!contractor) {
                     return [2 /*return*/, res
                             .status(404)
                             .json({ success: false, message: "Contractor not found" })];
                 }
+                // Check if contractor has a verified connected account
+                if (!contractor.onboarding.hasStripeAccount || !(((_b = contractor.stripeAccountStatus) === null || _b === void 0 ? void 0 : _b.card_payments_enabled) && ((_c = contractor.stripeAccountStatus) === null || _c === void 0 ? void 0 : _c.transfers_enabled))) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "You cannot make payment to this contractor because his/her Stripe connect account is not set up" })];
+                }
+                paymentMethod = customer.stripePaymentMethods.find(function (method) { return method.id == paymentMethodId_1; });
+                if (!paymentMethod) {
+                    paymentMethod = customer.stripePaymentMethods[0];
+                }
+                ;
+                if (!paymentMethod)
+                    throw new Error("No such payment method");
                 generateInvoce = new Date().getTime().toString();
                 invoiceId = generateInvoce.substring(generateInvoce.length - 5);
                 return [4 /*yield*/, quotation.calculateCharges()];
             case 5:
-                charges = _c.sent();
+                charges = _e.sent();
                 return [4 /*yield*/, transaction_model_1.default.create({
                         type: transaction_model_1.TRANSACTION_TYPE.JOB_PAYMENT,
                         amount: charges.totalAmount,
@@ -179,14 +189,7 @@ var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0
                     // The number of days that a pending balance is held before being paid out depends on the delay_days setting on the connected account.
                 ];
             case 6:
-                transaction = _c.sent();
-                paymentMethod = customer.stripePaymentMethods.find(function (method) { return method.id == paymentMethodId_1; });
-                if (!paymentMethod) {
-                    paymentMethod = customer.stripePaymentMethods[0];
-                }
-                ;
-                if (!paymentMethod)
-                    throw new Error("No such payment method");
+                transaction = _e.sent();
                 payload = {
                     payment_method_types: ['card'],
                     payment_method: paymentMethod.id,
@@ -195,7 +198,7 @@ var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0
                     application_fee_amount: (charges.processingFee) * 100, // send everthing to connected account and  application_fee_amount will be transfered back
                     transfer_data: {
                         // amount: (charges.contractorAmount) * 100, // transfer to connected account
-                        destination: (_b = contractor === null || contractor === void 0 ? void 0 : contractor.stripeAccount.id) !== null && _b !== void 0 ? _b : '' // mostimes only work with same region example us, user
+                        destination: (_d = contractor === null || contractor === void 0 ? void 0 : contractor.stripeAccount.id) !== null && _d !== void 0 ? _d : '' // mostimes only work with same region example us, user
                         // https://docs.stripe.com/connect/destination-charges
                     },
                     on_behalf_of: contractor === null || contractor === void 0 ? void 0 : contractor.stripeAccount.id,
@@ -215,15 +218,15 @@ var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0
                 };
                 return [4 /*yield*/, stripe_1.StripeService.payment.chargeCustomer(paymentMethod.customer, paymentMethod.id, payload)];
             case 7:
-                stripePayment = _c.sent();
+                stripePayment = _e.sent();
                 job.status = job_model_1.JOB_STATUS.BOOKED;
                 return [4 /*yield*/, job.save()];
             case 8:
-                _c.sent();
+                _e.sent();
                 res.json({ success: true, message: 'Payment intent created', data: stripePayment });
                 return [3 /*break*/, 10];
             case 9:
-                err_1 = _c.sent();
+                err_1 = _e.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError(err_1.message, err_1))];
             case 10: return [2 /*return*/];
         }
@@ -231,12 +234,12 @@ var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0
 }); };
 exports.makeJobPayment = makeJobPayment;
 var captureJobPayment = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, quotationId, paymentMethodId_2, jobId, errors, customerId, customer, job, quotation, paymentMethod, contractor, account, stripeAccount, charges, transaction, payload, stripePayment, err_2;
+    var _a, quotationId, paymentMethodId_2, jobId, errors, customerId, customer, job, quotation, paymentMethod, contractor, charges, transaction, payload, stripePayment, err_2;
     var _b, _c, _d;
     return __generator(this, function (_e) {
         switch (_e.label) {
             case 0:
-                _e.trys.push([0, 13, , 14]);
+                _e.trys.push([0, 9, , 10]);
                 _a = req.body, quotationId = _a.quotationId, paymentMethodId_2 = _a.paymentMethodId;
                 jobId = req.params.jobId;
                 errors = (0, express_validator_1.validationResult)(req);
@@ -260,7 +263,7 @@ var captureJobPayment = function (req, res, next) { return __awaiter(void 0, voi
                             .status(401)
                             .json({ success: false, message: "job do not exist" })];
                 }
-                return [4 /*yield*/, job_quotation_model_1.JobQoutationModel.findOne({ _id: quotationId })];
+                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne({ _id: quotationId })];
             case 3:
                 quotation = _e.sent();
                 if (!quotation) {
@@ -283,27 +286,10 @@ var captureJobPayment = function (req, res, next) { return __awaiter(void 0, voi
                             .status(404)
                             .json({ success: false, message: "Contractor not found" })];
                 }
-                if (!contractor.onboarding.hasStripeAccount) return [3 /*break*/, 7];
-                return [4 /*yield*/, stripe_1.StripeService.account.getAccount('acct_1P4N6NRdmDaBvbML')];
-            case 5:
-                account = _e.sent();
-                stripeAccount = (0, interface_dto_util_1.castPayloadToDTO)(account, account);
-                contractor.stripeAccount = stripeAccount;
-                return [4 /*yield*/, contractor.save()];
-            case 6:
-                _e.sent();
-                console.log(contractor.stripeAccountStatus);
-                if (!(((_b = contractor.stripeAccountStatus) === null || _b === void 0 ? void 0 : _b.card_payments_enabled) && ((_c = contractor.stripeAccountStatus) === null || _c === void 0 ? void 0 : _c.transfers_enabled))) {
-                    return [2 /*return*/, res
-                            .status(400)
-                            .json({ success: false, message: "Contractor is not capable of receiving payment" })];
+                // Check if contractor has a verified connected account
+                if (!contractor.onboarding.hasStripeAccount || !(((_b = contractor.stripeAccountStatus) === null || _b === void 0 ? void 0 : _b.card_payments_enabled) && ((_c = contractor.stripeAccountStatus) === null || _c === void 0 ? void 0 : _c.transfers_enabled))) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "You cannot make payment to this contractor because his/her Stripe connect account is not set up" })];
                 }
-                return [3 /*break*/, 8];
-            case 7: return [2 /*return*/, res
-                    .status(400)
-                    .json({ success: false, message: "Contractor is not capable of receiving payment" })];
-            case 8:
-                //ensure customer has a valid payment method or create a setup that will require payment on the fly 
                 //check if job is already booked
                 if (job.status == job_model_1.JOB_STATUS.BOOKED) {
                     return [2 /*return*/, res
@@ -311,7 +297,7 @@ var captureJobPayment = function (req, res, next) { return __awaiter(void 0, voi
                             .json({ success: false, message: "This job is not pending, so new payment is not possible" })];
                 }
                 return [4 /*yield*/, quotation.calculateCharges()];
-            case 9:
+            case 5:
                 charges = _e.sent();
                 return [4 /*yield*/, transaction_model_1.default.create({
                         type: transaction_model_1.TRANSACTION_TYPE.JOB_PAYMENT,
@@ -367,7 +353,7 @@ var captureJobPayment = function (req, res, next) { return __awaiter(void 0, voi
                     // If the connected account is in a different country than the platform, the connected account’s address and phone number are displayed on the customer’s credit card statement.
                     // The number of days that a pending balance is held before being paid out depends on the delay_days setting on the connected account.
                 ];
-            case 10:
+            case 6:
                 transaction = _e.sent();
                 payload = {
                     payment_method_types: ['card'],
@@ -402,18 +388,18 @@ var captureJobPayment = function (req, res, next) { return __awaiter(void 0, voi
                     capture_method: 'manual'
                 };
                 return [4 /*yield*/, stripe_1.StripeService.payment.chargeCustomer(paymentMethod.customer, paymentMethod.id, payload)];
-            case 11:
+            case 7:
                 stripePayment = _e.sent();
                 job.status = job_model_1.JOB_STATUS.BOOKED;
                 return [4 /*yield*/, job.save()];
-            case 12:
+            case 8:
                 _e.sent();
                 res.json({ success: true, message: 'Payment intent created', data: stripePayment });
-                return [3 /*break*/, 14];
-            case 13:
+                return [3 /*break*/, 10];
+            case 9:
                 err_2 = _e.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError(err_2.message, err_2))];
-            case 14: return [2 /*return*/];
+            case 10: return [2 /*return*/];
         }
     });
 }); };

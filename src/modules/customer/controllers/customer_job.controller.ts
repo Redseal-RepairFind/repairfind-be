@@ -4,13 +4,13 @@ import { ContractorModel } from "../../../database/contractor/models/contractor.
 import { htmlJobRequestTemplate } from "../../../templates/contractorEmail/jobRequestTemplate";
 import CustomerModel from "../../../database/customer/models/customer.model";
 import { EmailService, NotificationService } from "../../../services";
-import { addHours,isFuture,isValid, startOfDay } from "date-fns";
+import { addHours, isFuture, isValid, startOfDay } from "date-fns";
 import { IJob, JobModel, JOB_STATUS, JobType } from "../../../database/common/job.model";
 import { BadRequestError } from "../../../utils/custom.errors";
 import { applyAPIFeature } from "../../../utils/api.feature";
 import { ConversationModel } from "../../../database/common/conversations.schema";
 import { IMessage, MessageModel, MessageType } from "../../../database/common/messages.schema";
-import { JOB_QUOTATION_STATUS, JobQoutationModel } from "../../../database/common/job_quotation.model";
+import { JOB_QUOTATION_STATUS, JobQuotationModel } from "../../../database/common/job_quotation.model";
 import { JobEvent } from "../../../events";
 import { htmlJobQuotationAcceptedContractorEmailTemplate } from "../../../templates/contractorEmail/job_quotation_accepted.template";
 import { htmlJobQuotationDeclinedContractorEmailTemplate } from "../../../templates/contractorEmail/job_quotation_declined.template";
@@ -45,6 +45,12 @@ export const createJobRequest = async (
         if (!contractor) {
             return res.status(400).json({ success: false, message: "Contractor not found" })
         }
+
+        // Check if contractor has a verified connected account
+        if (!contractor.onboarding.hasStripeAccount || !(contractor.stripeAccountStatus?.card_payments_enabled && contractor.stripeAccountStatus?.transfers_enabled)) {
+            return res.status(400).json({ success: false, message: "You cannot send a job request to this contractor because  stripe account is not set up" });
+        }
+
 
         // Get the end of the current day (11:59:59 PM)
         const startOfToday = startOfDay(new Date());
@@ -100,10 +106,10 @@ export const createJobRequest = async (
         const conversation = await ConversationModel.findOneAndUpdate(
             {
                 $and: [
-                      { members: { $elemMatch: { member: customer.id} } }, // memberType: 'customers'
-                      { members: { $elemMatch: { member: contractorId} } } // memberType: 'contractors'
-                  ]
-              },
+                    { members: { $elemMatch: { member: customer.id } } }, // memberType: 'customers'
+                    { members: { $elemMatch: { member: contractorId } } } // memberType: 'contractors'
+                ]
+            },
 
             {
                 members: conversationMembers,
@@ -182,12 +188,12 @@ export const createJobListing = async (
 
         let dateTimeString = `${new Date(date).toISOString().split('T')[0]}T${'00:00:00.000Z'}`; // Combine date and time
         let jobTime = new Date(dateTimeString);
-        
-        if(time){
+
+        if (time) {
             let dateTimeString = `${new Date(date).toISOString().split('T')[0]}T${time}`; // Combine date and time
             let jobTime = new Date(dateTimeString);
         }
-       
+
 
         // Create a new job document
         const newJob: IJob = new JobModel({
@@ -233,11 +239,11 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
         // Construct filter object based on query parameters
         let filter: any = { customer: customerId };
 
-       
+
         // TODO: when contractor is specified, ensure the contractor quotation is attached
         if (contractorId) {
-            if( !mongoose.Types.ObjectId.isValid(contractorId) ){
-                return res.status(400).json({success:false, message: 'Invalid contractor id'});
+            if (!mongoose.Types.ObjectId.isValid(contractorId)) {
+                return res.status(400).json({ success: false, message: 'Invalid contractor id' });
             }
             req.query.contractor = contractorId;
             delete req.query.contractorId
@@ -269,10 +275,10 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
         // Execute query
         const { data, error } = await applyAPIFeature(JobModel.find(filter), req.query);
 
-        if(data){
+        if (data) {
 
             await Promise.all(data.data.map(async (job: any) => {
-                if(contractorId){
+                if (contractorId) {
                     job.myQuotation = await job.getMyQoutation(contractorId)
                 }
             }));
@@ -317,7 +323,7 @@ export const getJobQuotations = async (req: any, res: Response, next: NextFuncti
         if (!job) {
             return res.status(404).json({ success: false, message: 'Job not found or does not belong to customer' });
         }
-        const quotations = await JobQoutationModel.find({ job: jobId, status: { $ne: JOB_QUOTATION_STATUS.DECLINED } }).populate([{ path: 'contractor' }])
+        const quotations = await JobQuotationModel.find({ job: jobId, status: { $ne: JOB_QUOTATION_STATUS.DECLINED } }).populate([{ path: 'contractor' }])
 
 
         // If the job exists, return its quo as a response
@@ -332,7 +338,7 @@ export const getSingleQuotation = async (req: any, res: Response, next: NextFunc
         const customerId = req.customer.id;
         const { jobId, quotationId } = req.params;
 
-        const quotation = await JobQoutationModel.findOne({ _id: quotationId, job: jobId }).populate('contractor');
+        const quotation = await JobQuotationModel.findOne({ _id: quotationId, job: jobId }).populate('contractor');
 
         // Check if the job exists
         if (!quotation) {
@@ -352,7 +358,7 @@ export const acceptJobQuotation = async (req: any, res: Response, next: NextFunc
         const customerId = req.customer.id;
         const { jobId, quotationId } = req.params;
 
-        const quotation = await JobQoutationModel.findOne({ _id: quotationId, job: jobId });
+        const quotation = await JobQuotationModel.findOne({ _id: quotationId, job: jobId });
         const job = await JobModel.findById(jobId);
 
 
@@ -370,7 +376,7 @@ export const acceptJobQuotation = async (req: any, res: Response, next: NextFunc
 
         // Create a new conversation between the customer and the contractor
 
-        
+
         const conversationMembers = [
             { memberType: 'customers', member: customerId },
             { memberType: 'contractors', member: quotation.contractor }
@@ -378,9 +384,9 @@ export const acceptJobQuotation = async (req: any, res: Response, next: NextFunc
         const conversation = await ConversationModel.findOneAndUpdate(
             {
                 $and: [
-                      { members: { $elemMatch: { member: customerId} } }, // memberType: 'customers'
-                      { members: { $elemMatch: { member: quotation.contractor} } } // memberType: 'contractors'
-                  ]
+                    { members: { $elemMatch: { member: customerId } } }, // memberType: 'customers'
+                    { members: { $elemMatch: { member: quotation.contractor } } } // memberType: 'contractors'
+                ]
             },
             {
                 members: conversationMembers,
@@ -399,9 +405,10 @@ export const acceptJobQuotation = async (req: any, res: Response, next: NextFunc
             createdAt: new Date()
         });
 
-        job.quotation = quotation.id
-        job.contractor = quotation.contractor
-        job.status = JOB_STATUS.ACCEPTED
+        // Accepting does not mean
+        // job.quotation = quotation.id
+        // job.contractor = quotation.contractor
+        // job.status = JOB_STATUS.ACCEPTED // no need of moving status to Accepted again - 
 
         await quotation.save()
 
@@ -437,7 +444,7 @@ export const declineJobQuotation = async (req: any, res: Response, next: NextFun
         const customerId = req.customer.id;
         const { jobId, quotationId } = req.params;
 
-        const quotation = await JobQoutationModel.findOne({ _id: quotationId, job: jobId });
+        const quotation = await JobQuotationModel.findOne({ _id: quotationId, job: jobId });
         const job = await JobModel.findById(jobId);
 
 

@@ -8,7 +8,7 @@ import TransactionModel, { ITransaction, TRANSACTION_STATUS, TRANSACTION_TYPE } 
 import { StripeService } from "../../../services/stripe";
 import Stripe from 'stripe';
 import { QueueService } from "../../../services/bullmq";
-import { JobQoutationModel } from "../../../database/common/job_quotation.model";
+import { JobQuotationModel } from "../../../database/common/job_quotation.model";
 import { castPayloadToDTO } from "../../../utils/interface_dto.util";
 import { IStripeAccount } from "../../../database/common/stripe_account.schema";
 
@@ -56,22 +56,32 @@ export const makeJobPayment = async (
         }
 
 
-        const quotation = await JobQoutationModel.findOne({ _id: quotationId })
+        const quotation = await JobQuotationModel.findOne({ _id: quotationId })
         if (!quotation) {
             return res
                 .status(404)
-                .json({success:false, message: "Job quotation not found" });
+                .json({ success: false, message: "Job quotation not found" });
         }
 
         const contractor = await ContractorModel.findOne({ _id: quotation.contractor });
-        if(!contractor){
+        if (!contractor) {
             return res
                 .status(404)
-                .json({ success:false,  message: "Contractor not found" });
+                .json({ success: false, message: "Contractor not found" });
         }
-        // make checks here 
-        // ensure contractor has a verified connected account
-        //ensure customer has a valid payment method or create a setup that will require payment on the fly 
+       
+        // Check if contractor has a verified connected account
+        if (!contractor.onboarding.hasStripeAccount || !(contractor.stripeAccountStatus?.card_payments_enabled && contractor.stripeAccountStatus?.transfers_enabled)) {
+            return res.status(400).json({ success: false, message: "You cannot make payment to this contractor because his/her Stripe connect account is not set up" });
+        }
+
+        let paymentMethod = customer.stripePaymentMethods.find((method) => method.id == paymentMethodId)
+        if (!paymentMethod) {
+            paymentMethod = customer.stripePaymentMethods[0]
+        };
+        if (!paymentMethod) throw new Error("No such payment method")
+
+
 
         const generateInvoce = new Date().getTime().toString()
 
@@ -146,14 +156,6 @@ export const makeJobPayment = async (
         // The number of days that a pending balance is held before being paid out depends on the delay_days setting on the connected account.
 
 
-        let paymentMethod = customer.stripePaymentMethods.find((method) => method.id == paymentMethodId)
-        if (!paymentMethod) {
-            paymentMethod = customer.stripePaymentMethods[0]
-        };
-
-        if (!paymentMethod) throw new Error("No such payment method")
-
-
 
         let payload: Stripe.PaymentIntentCreateParams = {
             payment_method_types: ['card'],
@@ -226,7 +228,7 @@ export const captureJobPayment = async (
         if (!customer) {
             return res
                 .status(401)
-                .json({ success:false,  message: "incorrect Customer ID" });
+                .json({ success: false, message: "incorrect Customer ID" });
         }
 
         //const job = await JobModel.findOne({_id: jobId, customerId, status: 'sent qoutation'})
@@ -234,15 +236,15 @@ export const captureJobPayment = async (
         if (!job) {
             return res
                 .status(401)
-                .json({ success:false,  message: "job do not exist" });
+                .json({ success: false, message: "job do not exist" });
         }
 
 
-        const quotation = await JobQoutationModel.findOne({ _id: quotationId })
+        const quotation = await JobQuotationModel.findOne({ _id: quotationId })
         if (!quotation) {
             return res
                 .status(401)
-                .json({ success:false,  message: "Job quotation not found" });
+                .json({ success: false, message: "Job quotation not found" });
         }
 
         // const paymentMethod = customer.stripePaymentMethods.filter(pm =>  pm.id == paymentMethodId)
@@ -255,53 +257,26 @@ export const captureJobPayment = async (
         if (!paymentMethod) throw new Error("No such payment method")
 
 
-
-
         const contractor = await ContractorModel.findOne({ _id: quotation.contractor });
-        if(!contractor){
+        if (!contractor) {
             return res
                 .status(404)
-                .json({ success:false,  message: "Contractor not found" });
+                .json({ success: false, message: "Contractor not found" });
         }
 
-        // make checks here 
-        // ensure contractor has a verified connected account
-        if(contractor.onboarding.hasStripeAccount){
-
-            //fetch and update contractor stripeaccount here
-            const account: unknown = await StripeService.account.getAccount('acct_1P4N6NRdmDaBvbML'); //acct_1P4N6NRdmDaBvbML ,acct_1P7XvFRZlKifQSOs
-            // console.log(account)
-            // console.log(contractor.stripeAccount.id)
-
-            const stripeAccount =castPayloadToDTO(account, account as IStripeAccount)
-            contractor.stripeAccount = stripeAccount
-            await contractor.save()
-
-            console.log(contractor.stripeAccountStatus)
-            if(! (contractor.stripeAccountStatus?.card_payments_enabled && contractor.stripeAccountStatus?.transfers_enabled) ){
-                return res
-                .status(400)
-                .json({ success:false,  message: "Contractor is not capable of receiving payment" });
-            }
-        }else{
-            return res
-                .status(400)
-                .json({ success:false,  message: "Contractor is not capable of receiving payment" });
+        // Check if contractor has a verified connected account
+        if (!contractor.onboarding.hasStripeAccount || !(contractor.stripeAccountStatus?.card_payments_enabled && contractor.stripeAccountStatus?.transfers_enabled)) {
+            return res.status(400).json({ success: false, message: "You cannot make payment to this contractor because his/her Stripe connect account is not set up" });
         }
-
-
-        //ensure customer has a valid payment method or create a setup that will require payment on the fly 
-        
 
         //check if job is already booked
-        if(job.status == JOB_STATUS.BOOKED){
+        if (job.status == JOB_STATUS.BOOKED) {
             return res
                 .status(400)
-                .json({ success:false,  message: "This job is not pending, so new payment is not possible" });
+                .json({ success: false, message: "This job is not pending, so new payment is not possible" });
         }
-  
-        const charges = await quotation.calculateCharges()
 
+        const charges = await quotation.calculateCharges()
         const transaction: ITransaction = await TransactionModel.create({
             type: TRANSACTION_TYPE.JOB_PAYMENT,
             amount: charges.totalAmount,
@@ -322,7 +297,7 @@ export const captureJobPayment = async (
                 items: quotation.estimates,
                 charges: quotation.charges
             },
-            paymentMethod: paymentMethod ,
+            paymentMethod: paymentMethod,
             job: jobId
         })
 
@@ -369,7 +344,7 @@ export const captureJobPayment = async (
         // The number of days that a pending balance is held before being paid out depends on the delay_days setting on the connected account.
 
 
-       
+
 
 
         let payload: Stripe.PaymentIntentCreateParams = {
@@ -426,7 +401,7 @@ export const getTransactions = async (
 ) => {
 
     try {
-        
+
     } catch (err: any) {
         return next(new BadRequestError(err.message, err))
     }

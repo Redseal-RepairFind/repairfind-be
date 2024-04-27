@@ -138,7 +138,7 @@ JobSchema.methods.getMyQoutation = function (contractor) {
         var contractorQuotation;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, job_quotation_model_1.JobQoutationModel.findOne({ job: this.id, contractor: contractor })];
+                case 0: return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne({ job: this.id, contractor: contractor })];
                 case 1:
                     contractorQuotation = _a.sent();
                     if (contractorQuotation) {

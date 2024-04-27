@@ -771,7 +771,7 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                 if (!job)
                     return [2 /*return*/];
                 quotationId = metadata.quotationId;
-                return [4 /*yield*/, job_quotation_model_1.JobQoutationModel.findById(quotationId)];
+                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findById(quotationId)];
             case 13:
                 quotation_1 = _d.sent();
                 if (!quotation_1)

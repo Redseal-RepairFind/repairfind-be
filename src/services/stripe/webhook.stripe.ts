@@ -16,7 +16,7 @@ import { IStripeAccount } from '../../database/common/stripe_account.schema';
 import { IPayment, PaymentModel } from '../../database/common/payment.schema';
 import { PAYMENT_CAPTURE_STATUS, IPaymentCapture, PaymentCaptureModel } from '../../database/common/payment_captures.schema';
 import { JobModel, JOB_STATUS, JOB_SCHEDULE_TYPE } from '../../database/common/job.model';
-import { IJobQuotation, JobQoutationModel, JOB_QUOTATION_STATUS } from '../../database/common/job_quotation.model';
+import { IJobQuotation, JobQuotationModel, JOB_QUOTATION_STATUS } from '../../database/common/job_quotation.model';
 import { ObjectId } from 'mongoose';
 import { NotificationService } from '../notifications';
 
@@ -605,7 +605,7 @@ export const chargeSucceeded = async (payload: any) => {
                 let job = await JobModel.findById(jobId)
                 if (!job) return
                 const quotationId = metadata.quotationId
-                let quotation = await JobQoutationModel.findById(quotationId)
+                let quotation = await JobQuotationModel.findById(quotationId)
                 if (!quotation) return
 
                 if (metadata.remark == 'initial_job_payment') {

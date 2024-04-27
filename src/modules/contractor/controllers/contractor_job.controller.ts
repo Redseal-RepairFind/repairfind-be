@@ -8,13 +8,16 @@ import AdminNoficationModel from "../../../database/admin/models/admin_notificat
 import { JobModel, JOB_STATUS, JobType, IJob } from "../../../database/common/job.model";
 import { applyAPIFeature } from "../../../utils/api.feature";
 import { BadRequestError, InternalServerError, NotFoundError } from "../../../utils/custom.errors";
-import { JobQoutationModel, JOB_QUOTATION_STATUS } from "../../../database/common/job_quotation.model";
+import { JobQuotationModel, JOB_QUOTATION_STATUS } from "../../../database/common/job_quotation.model";
 import CustomerModel from "../../../database/customer/models/customer.model";
 import mongoose, { Document, PipelineStage as MongoosePipelineStage } from 'mongoose'; // Import Document type from mongoose
 import { ConversationEntityType, ConversationModel } from "../../../database/common/conversations.schema";
 import { MessageModel, MessageType } from "../../../database/common/messages.schema";
 import { EmailService } from "../../../services";
 import { ContractorProfileModel } from "../../../database/contractor/models/contractor_profile.model";
+import { castPayloadToDTO } from "../../../utils/interface_dto.util";
+import { StripeService } from "../../../services/stripe";
+import { IStripeAccount } from "../../../database/common/stripe_account.schema";
 
 
 export const getJobRequests = async (req: any, res: Response) => {
@@ -89,6 +92,10 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
     // Extract job request ID from request parameters
     const { jobId } = req.params;
     const contractorId = req.contractor.id;
+    const contractor = await ContractorModel.findById(contractorId);
+    if (!contractor) {
+      return res.status(404).json({ success: false, message: 'Contractor not found' });
+    }
 
     // Find the job request by ID
     const job = await JobModel.findOne({ _id: jobId, contractor: contractorId, type: JobType.REQUEST });
@@ -118,6 +125,29 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
       return res.status(403).json({ success: false, message: 'Job request is not pending' });
     }
 
+
+    // ensure contractor has a verified connected account
+    if (contractor.onboarding.hasStripeAccount) {
+
+      //fetch and update contractor stripeaccount here
+      // TODO: If this impacts the response time so much we can prevent this request - doing this because stripe seems no to be sending account related events
+      const account: unknown = await StripeService.account.getAccount(contractor.stripeAccount.id); //acct_1P4N6NRdmDaBvbML ,acct_1P7XvFRZlKifQSOs
+      const stripeAccount = castPayloadToDTO(account, account as IStripeAccount)
+      contractor.stripeAccount = stripeAccount
+      await contractor.save()
+
+      if (!(contractor.stripeAccountStatus?.card_payments_enabled && contractor.stripeAccountStatus?.transfers_enabled)) {
+        return res
+          .status(400)
+          .json({ success: false, message: "You can not send quotation for a job, since stripe account is not setup" });
+      }
+    } else {
+      return res
+        .status(400)
+        .json({ success: false, message: "You can not send quotation for a job, since stripe account is not setup" });
+    }
+
+
     // Update the status of the job request to "Accepted"
     job.status = JOB_STATUS.ACCEPTED;
 
@@ -136,7 +166,7 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
 
 
     // Create the initial job application
-    const quotation = new JobQoutationModel({
+    const quotation = new JobQuotationModel({
       contractor: contractorId,
       job: jobId,
       status: JOB_QUOTATION_STATUS.PENDING, // Assuming initial status is pending
@@ -167,11 +197,11 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
     const conversation = await ConversationModel.findOneAndUpdate(
       {
         $and: [
-              { members: { $elemMatch: { member: job.customer} } }, // memberType: 'customers'
-              { members: { $elemMatch: { member: quotation.contractor} } } // memberType: 'contractors'
-          ]
+          { members: { $elemMatch: { member: job.customer } } }, // memberType: 'customers'
+          { members: { $elemMatch: { member: quotation.contractor } } } // memberType: 'contractors'
+        ]
       },
-      
+
       {
         members: conversationMembers,
         lastMessage: 'I have accepted your Job request', // Set the last message to the job description
@@ -255,9 +285,9 @@ export const rejectJobRequest = async (req: any, res: Response) => {
     const conversation = await ConversationModel.findOneAndUpdate(
       {
         $and: [
-              { members: { $elemMatch: { member: job.customer} } }, // memberType: 'customers'
-              { members: { $elemMatch: { member: contractorId} } } // memberType: 'contractors'
-          ]
+          { members: { $elemMatch: { member: job.customer } } }, // memberType: 'customers'
+          { members: { $elemMatch: { member: contractorId } } } // memberType: 'contractors'
+        ]
       },
 
       {
@@ -364,50 +394,211 @@ export const getJobListingById = async (req: any, res: Response, next: NextFunct
   }
 };
 
+// export const sendJobQuotation = async (
+//   req: any,
+//   res: Response,
+//   next: NextFunction
+// ) => {
+
+//   try {
+//     let {
+//       startDate,
+//       endDate,
+//       siteVisit,
+//       estimates,
+//     } = req.body;
+
+//     const { jobId } = req.params
+//     const contractorId = req.contractor.id
+
+
+//     // Check for validation errors
+//     const errors = validationResult(req);
+
+//     if (!errors.isEmpty()) {
+//       return res.status(400).json({ errors: errors.array() });
+//     }
+
+
+//     const contractor = await ContractorModel.findOne({ _id: contractorId });
+//     if (!contractor) {
+//       return res
+//         .status(401)
+//         .json({ message: "invalid credential" });
+//     }
+
+//     const job = await JobModel.findOne({ _id: jobId }).sort({ createdAt: -1 })
+//     if (!job) {
+//       return res
+//         .status(401)
+//         .json({ message: "job does not exist" });
+//     }
+
+//     // Check if more than three contractors have already applied with the quotation status not declined
+//     const appliedQuotationsCount = await JobQuotationModel.countDocuments({
+//       job: jobId,
+//       status: { $ne: JOB_QUOTATION_STATUS.DECLINED }
+//     });
+//     if (appliedQuotationsCount >= 3) {
+//       return res.status(400).json({ success: false, message: "Maximum number of contractors already applied for this job" });
+//     }
+
+
+//     // ensure contractor has a verified connected account
+//     if (contractor.onboarding.hasStripeAccount) {
+
+//       //fetch and update contractor stripeaccount here
+//       // TODO: If this impacts the response time so much we can prevent this request - doing this because stripe seems no to be sending account related events
+//       const account: unknown = await StripeService.account.getAccount(contractor.stripeAccount.id); //acct_1P4N6NRdmDaBvbML ,acct_1P7XvFRZlKifQSOs
+//       const stripeAccount = castPayloadToDTO(account, account as IStripeAccount)
+//       contractor.stripeAccount = stripeAccount
+//       await contractor.save()
+
+//       if (!(contractor.stripeAccountStatus?.card_payments_enabled && contractor.stripeAccountStatus?.transfers_enabled)) {
+//         return res
+//           .status(400)
+//           .json({ success: false, message: "You can not send quotation for a job, since stripe account is not  setup" });
+//       }
+//     } else {
+//       return res
+//         .status(400)
+//         .json({ success: false, message: "You can not send quotation for a job, since stripe account is not  setup" });
+//     }
+
+
+
+//     // Check if the contractor has already submitted a quotation for this job
+//     const existingQuotation = await JobQuotationModel.findOne({ job: jobId, contractor: contractorId });
+//     if (existingQuotation) {
+//       return res.status(400).json({ success: false, message: "You have already submitted a quotation for this job" });
+//     }
+
+
+
+
+//     if (estimates && estimates.length < 1) {
+//       return res
+//         .status(401)
+//         .json({ message: "invalid estimate format" });
+//     }
+
+//     const customer = await CustomerModel.findOne({ _id: job.customer })
+//     if (!customer) {
+//       return res
+//         .status(401)
+//         .json({ message: "invalid customer Id" });
+//     }
+
+
+//     if (siteVisit) {
+//       estimates = []
+//       estimates.push({
+//         description: 'Site Visit',
+//         amount: 100,
+//         rate: 100,
+//         quantity: 1,
+//       })
+//     }
+
+//     let jobQuotation = await JobQuotationModel.findOneAndUpdate({ job: jobId, contractor: contractorId }, {
+//       startDate: startDate ? new Date(startDate) : null,
+//       endDate: endDate ? new Date(startDate) : null,
+//       siteVisit: siteVisit ? new Date(siteVisit) : null,
+//       estimates,
+//       jobId,
+//       contractorId
+//     }, { new: true, upsert: true })
+
+
+//     jobQuotation.charges = await jobQuotation.calculateCharges();
+
+//     if (!job.quotations.includes(jobQuotation.id)) {
+//       job.quotations.push({
+//         id: jobQuotation.id,
+//         status: jobQuotation.status
+//       });
+//     }
+
+
+//     if (job.type == JobType.REQUEST) {
+//       // Update the status of the job request to "Accepted"
+//       job.status = JOB_STATUS.ACCEPTED;
+
+//       // Define the acceptance event to be stored in the job history
+//       const jobEvent = {
+//         eventType: JOB_STATUS.ACCEPTED,
+//         timestamp: new Date(),
+//         details: {
+//           message: 'Contactor accepted this job'
+//         },
+//       };
+//       // Push the acceptance event to the job history array
+//       if (!job.jobHistory.some(jobEvent => jobEvent.eventType == JOB_STATUS.ACCEPTED)) {
+//         job.jobHistory.push(jobEvent);
+//       }
+
+//     }
+
+
+//     await job.save()
+
+
+
+//     // DO OTHER THINGS HERE
+//     if (estimates) {
+//       const html = htmlJobQoutationTemplate(customer.firstName, contractor.name)
+//       EmailService.send(customer.email, 'Job quotation from contractor', html)
+//       // if (conversation) {
+//       //   // send push notification
+
+//       // }
+
+//     }
+
+//     if (siteVisit) {
+//       //send message alert indicating that contractor has requested for site visit
+//       // if (conversation) {
+//       //  // send notification
+//       // }
+
+//     }
+
+//     res.json({
+//       success: true,
+//       message: "job quotation sucessfully sent",
+//       data: jobQuotation
+//     });
+
+//   } catch (err: any) {
+//     return next(new BadRequestError('An error occured ', err))
+//   }
+
+// }
+
 export const sendJobQuotation = async (
   req: any,
   res: Response,
   next: NextFunction
 ) => {
-
   try {
-    const {
-      startDate,
-      endDate,
-      siteVisit,
-      estimates,
-    } = req.body;
+    const { jobId } = req.params;
+    const contractorId = req.contractor.id;
+    let { startDate, endDate, siteVisit, estimates =[] } = req.body;
 
-    const { jobId } = req.params
-    const contractorId = req.contractor.id
-
-
-    // Check for validation errors
+    // Validate request body
     const errors = validationResult(req);
-
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
+    // Retrieve contractor and job details
+    const [contractor, job] = await Promise.all([
+      ContractorModel.findById(contractorId),
+      JobModel.findById(jobId).sort({ createdAt: -1 })
+    ]);
 
-    const contractor = await ContractorModel.findOne({ _id: contractorId });
-    if (!contractor) {
-      return res
-        .status(401)
-        .json({ message: "invalid credential" });
-    }
-
-    const job = await JobModel.findOne({ _id: jobId }).sort({ createdAt: -1 })
-    if (!job) {
-      return res
-        .status(401)
-        .json({ message: "job does not exist" });
-    }
-
-    if (estimates && estimates.length < 1) {
-      return res
-        .status(401)
-        .json({ message: "invalid estimate format" });
+    if (!contractor || !job) {
+      return res.status(401).json({ message: "Invalid credential or job does not exist" });
     }
 
     const customer = await CustomerModel.findOne({ _id: job.customer })
@@ -418,51 +609,65 @@ export const sendJobQuotation = async (
     }
 
 
-    let jobQuotation = await JobQoutationModel.findOneAndUpdate({ job: jobId, contractor: contractorId }, {
-      startDate: startDate ? new Date(startDate) : null,
-      endDate: endDate ? new Date(startDate) : null,
-      siteVisit: siteVisit ? new Date(siteVisit) : null,
-      estimates,
-      jobId,
-      contractorId
-    }, { new: true, upsert: true })
+    // Check if previous quotation was declined
+    const previousQuotation = await JobQuotationModel.findOne({ job: jobId, contractor: contractorId });
+    if (previousQuotation && previousQuotation.status === JOB_QUOTATION_STATUS.DECLINED) {
+      return res.status(400).json({ success: false, message: "You cannot apply again since your previous quotation was declined" });
+    }
 
 
+    // Check maximum number of applied quotations
+    const appliedQuotationsCount = await JobQuotationModel.countDocuments({
+      job: jobId,
+      status: { $ne: JOB_QUOTATION_STATUS.DECLINED }
+    });
+    if (appliedQuotationsCount >= 3) {
+      return res.status(400).json({ success: false, message: "Maximum number of contractors already applied for this job" });
+    }
+
+    // Check if contractor already submitted a quotation for this job
+    const existingQuotation = await JobQuotationModel.findOne({ job: jobId, contractor: contractorId });
+    if (existingQuotation) {
+      return res.status(400).json({ success: false, message: "You have already submitted a quotation for this job" });
+    }
+
+    // Check if contractor has a verified connected account
+    if (!contractor.onboarding.hasStripeAccount || !(contractor.stripeAccountStatus?.card_payments_enabled && contractor.stripeAccountStatus?.transfers_enabled)) {
+      return res.status(400).json({ success: false, message: "You cannot send a quotation for this job because your Stripe account is not set up" });
+    }
+
+    // Prepare estimates
+    if (siteVisit) {
+      estimates.push({ description: 'Site Visit', amount: 100, rate: 100, quantity: 1 });
+    }
+
+    // Create or update job quotation
+    let jobQuotation = await JobQuotationModel.findOneAndUpdate(
+      { job: jobId, contractor: contractorId },
+      { startDate: startDate ? new Date(startDate) : null, endDate: endDate ? new Date(startDate) : null, siteVisit: siteVisit ? new Date(siteVisit) : null, estimates, jobId, contractorId },
+      { new: true, upsert: true }
+    );
+
+    // Calculate charges for the job quotation
     jobQuotation.charges = await jobQuotation.calculateCharges();
 
-    if (!job.quotations.includes(jobQuotation.id)) {
-      job.quotations.push({
-        id: jobQuotation.id,
-        status: jobQuotation.status
-      });
+    // Add job quotation to job's list of quotations
+    if (!job.quotations.some(quotation => quotation.id === jobQuotation.id)) {
+      job.quotations.push({ id: jobQuotation.id, status: jobQuotation.status });
     }
 
-
-    if (job.type == JobType.REQUEST) {
-      // Update the status of the job request to "Accepted"
+    // Update job status and history if needed
+    if (job.type === JobType.REQUEST) {
       job.status = JOB_STATUS.ACCEPTED;
-
-      // Define the acceptance event to be stored in the job history
-      const jobEvent = {
-        eventType: JOB_STATUS.ACCEPTED,
-        timestamp: new Date(),
-        details: {
-          message: 'Contactor accepted this job'
-        },
-      };
-      // Push the acceptance event to the job history array
-      if (!job.jobHistory.some(jobEvent => jobEvent.eventType == JOB_STATUS.ACCEPTED)) {
-        job.jobHistory.push(jobEvent);
+      if (!job.jobHistory.some(jobEvent => jobEvent.eventType === JOB_STATUS.ACCEPTED)) {
+        job.jobHistory.push({ eventType: JOB_STATUS.ACCEPTED, timestamp: new Date(), details: { message: 'Contractor accepted this job' } });
       }
-
     }
 
+    // Save changes to the job
+    await job.save();
 
-    await job.save()
-
-
-
-    // DO OTHER THINGS HERE
+    // Do other actions such as sending emails or notifications...
     if (estimates) {
       const html = htmlJobQoutationTemplate(customer.firstName, contractor.name)
       EmailService.send(customer.email, 'Job quotation from contractor', html)
@@ -483,15 +688,14 @@ export const sendJobQuotation = async (
 
     res.json({
       success: true,
-      message: "job quotation sucessfully sent",
+      message: "Job quotation successfully sent",
       data: jobQuotation
     });
 
   } catch (err: any) {
-    return next(new BadRequestError('An error occured ', err))
+    return next(new BadRequestError('An error occurred', err));
   }
-
-}
+};
 
 
 export const getQuotationForJob = async (req: any, res: Response, next: NextFunction) => {
@@ -505,7 +709,7 @@ export const getQuotationForJob = async (req: any, res: Response, next: NextFunc
     }
 
     // Find the job application for the specified job and contractor
-    const jobQuotation = await JobQoutationModel.findOne({ job: jobId, contractor: contractorId });
+    const jobQuotation = await JobQuotationModel.findOne({ job: jobId, contractor: contractorId });
 
     // Check if the job application exists
     if (!jobQuotation) {
@@ -549,7 +753,7 @@ export const updateJobQuotation = async (req: any, res: Response, next: NextFunc
 
 
     // Find the job application for the specified job and contractor
-    let jobQuotation = await JobQoutationModel.findOne({ job: jobId, contractor: contractorId });
+    let jobQuotation = await JobQuotationModel.findOne({ job: jobId, contractor: contractorId });
 
 
     // If the job application does not exist, create a new one
@@ -579,9 +783,9 @@ export const updateJobQuotation = async (req: any, res: Response, next: NextFunc
     const conversation = await ConversationModel.findOneAndUpdate(
       {
         $and: [
-              { members: { $elemMatch: { member: job.customer} } }, // memberType: 'customers'
-              { members: { $elemMatch: { member: contractorId} } } // memberType: 'contractors'
-          ]
+          { members: { $elemMatch: { member: job.customer } } }, // memberType: 'customers'
+          { members: { $elemMatch: { member: contractorId } } } // memberType: 'contractors'
+        ]
       },
 
       {
@@ -663,10 +867,16 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
         $addFields: {
           totalQuotations: { $size: "$totalQuotations" }
         }
-      }
+      },
     ];
 
-    // Match job listings based on query parameters
+
+
+    // THis logic is to remove jobs that the contractor has already submitted quotation for 
+    const contractor = await ContractorModel.findById(contractorId);
+    const quotations = await JobQuotationModel.find({ contractor: contractorId }, { job: 1 });
+    const jobIdsWithQuotations = quotations.map(quotation => quotation.job);
+    pipeline.push({ $match: { _id: { $nin: jobIdsWithQuotations } } });
 
     pipeline.push({ $match: { type: JobType.LISTING } });
     pipeline.push({ $match: { category: category } });
@@ -748,10 +958,13 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
     const jobs = result[0].data;
 
     if (jobs) {
+
+      //NO longer neccessary since applied jobs don't show up again
       // Map through each job and attach myQuotation if contractor has applied 
-      await Promise.all(jobs.map(async (job: any) => {
-        job.myQuotation = await JobQoutationModel.findOne({ job: job.id, contractor: contractorId })
-      }));
+      // await Promise.all(jobs.map(async (job: any) => {
+      //    job.myQuotation = await JobQuotationModel.findOne({ job: job._id, contractor: contractorId })
+      // }));
+
     }
 
     const metadata = result[0].metadata[0];
@@ -778,7 +991,7 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
 
 
     // Retrieve the quotations for the current contractor and extract job IDs
-    const quotations = await JobQoutationModel.find({ contractor: contractorId }).select('job').lean();
+    const quotations = await JobQuotationModel.find({ contractor: contractorId }).select('job').lean();
 
     // Extract job IDs from the quotations
     const jobIds = quotations.map((quotation: any) => quotation.job);
