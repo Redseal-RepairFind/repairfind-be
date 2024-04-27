@@ -2,6 +2,7 @@ import { NextFunction, Response } from "express";
 import { BadRequestError, InternalServerError } from "../../../utils/custom.errors";
 import TransactionModel, { ITransaction, TRANSACTION_STATUS, TRANSACTION_TYPE } from "../../../database/common/transaction.model";
 import { applyAPIFeature } from "../../../utils/api.feature";
+import { ContractorModel } from "../../../database/contractor/models/contractor.model";
 
 
 
@@ -42,7 +43,7 @@ export const getSingleTransaction = async (req: any, res: Response, next: NextFu
 
     try {
 
-       const transaction =  await TransactionModel.findById(transactionId).populate([{path:'fromUser'}, {path:'toUser'}]);
+       const transaction =  await TransactionModel.findById(transactionId).populate([{path:'fromUser'}, {path:'toUser'}]) as ITransaction;
         if(transaction){
             transaction.isCredit = await transaction.getIsCredit(contractorId)
         }
@@ -54,10 +55,50 @@ export const getSingleTransaction = async (req: any, res: Response, next: NextFu
 };
 
 
+export const getTransactionSummary = async (req: any, res: Response, next: NextFunction) => {
+    try {
+        
+        
+        const contractorId = req.contractor.id; // Assuming customerId is passed in the request params
+
+        const contractor = await ContractorModel.findById(contractorId);
+        if (!contractor) {
+            return res.status(400).json({ success: false, message: 'Customer not found' })
+        }
+
+        
+
+        // Calculate amount in holding from TransactionModel
+        const transactions: ITransaction[] = await TransactionModel.find({
+            $or: [
+                  { toUser: contractorId, status: TRANSACTION_STATUS.REQUIRES_CAPTURE },
+            ]
+        });
+        const amountInHoldingFromTransactions: number = transactions.reduce((total, transaction) => {
+            if (transaction.fromUser.toString() === contractorId && !transaction.getIsCredit(contractorId)) {
+                return total + transaction.amount;
+            }
+            return total;
+        }, 0);
+
+        // Calculate total amount in holding
+        const totalAmountInHolding: number =  amountInHoldingFromTransactions;
+
+        res.json({
+            success: true,
+            message: 'Transaction summary retrieved',
+            data: { amountInHolding: totalAmountInHolding }
+        });
+    } catch (error: any) {
+        next(new InternalServerError('Error retrieving transaction summary', error));
+    }
+};
+
 
 export const ContractorTransactionController = {
     getTransactions,
-    getSingleTransaction
+    getSingleTransaction,
+    getTransactionSummary
 
 }
 

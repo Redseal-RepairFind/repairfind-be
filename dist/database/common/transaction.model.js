@@ -38,15 +38,15 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TRANSACTION_TYPE = exports.TRANSACTION_STATUS = void 0;
 var mongoose_1 = require("mongoose");
-// Define enum for transaction status
 var TRANSACTION_STATUS;
 (function (TRANSACTION_STATUS) {
     TRANSACTION_STATUS["PENDING"] = "PENDING";
     TRANSACTION_STATUS["SUCCESSFUL"] = "SUCCESSFUL";
     TRANSACTION_STATUS["FAILED"] = "FAILED";
     TRANSACTION_STATUS["REFUNDED"] = "REFUNDED";
+    TRANSACTION_STATUS["REQUIRES_CAPTURE"] = "REQUIRES_CAPTURE";
+    TRANSACTION_STATUS["CANCELLED"] = "CANCELLED";
 })(TRANSACTION_STATUS || (exports.TRANSACTION_STATUS = TRANSACTION_STATUS = {}));
-// Define enum for transaction type
 var TRANSACTION_TYPE;
 (function (TRANSACTION_TYPE) {
     TRANSACTION_TYPE["TRANSFER"] = "TRANSFER";
@@ -55,11 +55,49 @@ var TRANSACTION_TYPE;
     TRANSACTION_TYPE["PAYOUT"] = "PAYOUT";
     TRANSACTION_TYPE["INSPECTION_PAYMENT"] = "INSPECTION_PAYMENT";
 })(TRANSACTION_TYPE || (exports.TRANSACTION_TYPE = TRANSACTION_TYPE = {}));
-// Define the main schema for the invoice
-var InvoiceSchema = new mongoose_1.Schema({
-    items: [], // Array of invoice items
-    charges: { type: Object }, // Charges object
-    id: { type: mongoose_1.Schema.Types.ObjectId }, // Invoice ID
+var CaptureDetailsShema = new mongoose_1.Schema({
+    payment: { type: mongoose_1.Schema.Types.ObjectId, required: true },
+    payment_method: { type: String, required: true },
+    payment_intent: { type: String, required: true },
+    amount_authorized: { type: Number, required: true },
+    currency: { type: String, required: true },
+    brand: { type: String },
+    capture_before: { type: Number },
+    country: { type: String },
+    exp_month: { type: Number },
+    exp_year: { type: Number },
+    extended_authorization: {
+        status: { type: String }
+    },
+    fingerprint: { type: String },
+    funding: { type: String },
+    incremental_authorization: {
+        status: { type: String }
+    },
+    installments: { type: Number },
+    last4: { type: String },
+    mandate: { type: mongoose_1.Schema.Types.Mixed },
+    multicapture: {
+        status: { type: String }
+    },
+    network: { type: String },
+    network_token: {
+        used: { type: Boolean }
+    },
+    overcapture: {
+        maximum_amount_capturable: { type: Number },
+        status: { type: String }
+    },
+    three_d_secure: { type: String },
+    wallet: { type: mongoose_1.Schema.Types.Mixed },
+    status: { type: String, required: true },
+    captured: { type: Boolean, required: true },
+    canceled_at: { type: String },
+    captured_at: { type: String },
+    cancellation_reason: { type: String },
+    capture_method: { type: String }
+}, {
+    timestamps: true,
 });
 var TransactionSchema = new mongoose_1.Schema({
     type: {
@@ -83,7 +121,7 @@ var TransactionSchema = new mongoose_1.Schema({
         required: true,
     },
     fromUserType: {
-        type: String, // ["admins", "customers", "contractors"],
+        type: String,
         required: true,
     },
     toUser: {
@@ -92,7 +130,7 @@ var TransactionSchema = new mongoose_1.Schema({
         required: true,
     },
     toUserType: {
-        type: String, // ["admins", "customers", "contractors"],
+        type: String,
         required: true,
     },
     description: {
@@ -108,20 +146,21 @@ var TransactionSchema = new mongoose_1.Schema({
         type: String,
     },
     invoice: {
-        type: InvoiceSchema,
+        type: {
+            items: [],
+            charges: mongoose_1.Schema.Types.Mixed,
+            id: mongoose_1.Schema.Types.ObjectId,
+        },
         default: null,
-    }, // tranfer the quotation and charges object her
+    },
     job: {
         type: mongoose_1.Schema.Types.ObjectId,
-        default: "",
+        default: null,
     },
     payment: {
         type: mongoose_1.Schema.Types.ObjectId,
     },
-    paymentMethod: {
-        type: Object,
-        default: null
-    },
+    captureDetails: CaptureDetailsShema,
     createdAt: {
         type: Date,
         default: Date.now,
@@ -129,10 +168,6 @@ var TransactionSchema = new mongoose_1.Schema({
     updatedAt: {
         type: Date,
         default: Date.now,
-    },
-    isCredit: {
-        type: Boolean,
-        default: false,
     }
 }, {
     timestamps: true,
@@ -144,7 +179,5 @@ TransactionSchema.methods.getIsCredit = function (userId) {
         });
     });
 };
-TransactionSchema.set('toObject', { virtuals: true });
-TransactionSchema.set('toJSON', { virtuals: true });
 var TransactionModel = (0, mongoose_1.model)("Transaction", TransactionSchema);
 exports.default = TransactionModel;

@@ -180,6 +180,7 @@ router.post('/conversations/:conversationId/mark-all-read', checkContractorRole,
 
 // Transactions
 router.get("/transactions", checkContractorRole, ContractorTransactionController.getTransactions ); 
+router.get("/transactions/summary", checkContractorRole, ContractorTransactionController.getTransactionSummary ); 
 router.get("/transactions/:transactionId", checkContractorRole, ContractorTransactionController.getSingleTransaction);
 
 

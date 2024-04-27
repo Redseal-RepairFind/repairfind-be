@@ -136,6 +136,7 @@ router.post('/conversations/:conversationId/messages', contractorRoleCheck_middl
 router.post('/conversations/:conversationId/mark-all-read', contractorRoleCheck_middleware_1.checkContractorRole, contractor_conversation_controller_1.ContractorConversationController.markAllMessagesAsRead);
 // Transactions
 router.get("/transactions", contractorRoleCheck_middleware_1.checkContractorRole, contractor_transaction_controller_1.ContractorTransactionController.getTransactions);
+router.get("/transactions/summary", contractorRoleCheck_middleware_1.checkContractorRole, contractor_transaction_controller_1.ContractorTransactionController.getTransactionSummary);
 router.get("/transactions/:transactionId", contractorRoleCheck_middleware_1.checkContractorRole, contractor_transaction_controller_1.ContractorTransactionController.getSingleTransaction);
 // trips day
 router.post('/trip/:jobId/start', contractorRoleCheck_middleware_1.checkContractorRole, contractor_tripDay_controller_1.ContractorTripDayController.contractorStartTripController);

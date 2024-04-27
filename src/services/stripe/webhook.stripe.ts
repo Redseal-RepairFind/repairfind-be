@@ -14,11 +14,11 @@ import ContractorDeviceModel from '../../database/contractor/models/contractor_d
 import { castPayloadToDTO } from '../../utils/interface_dto.util';
 import { IStripeAccount } from '../../database/common/stripe_account.schema';
 import { IPayment, PaymentModel } from '../../database/common/payment.schema';
-import { PAYMENT_CAPTURE_STATUS, IPaymentCapture, PaymentCaptureModel } from '../../database/common/payment_captures.schema';
 import { JobModel, JOB_STATUS, JOB_SCHEDULE_TYPE } from '../../database/common/job.model';
 import { IJobQuotation, JobQuotationModel, JOB_QUOTATION_STATUS } from '../../database/common/job_quotation.model';
 import { ObjectId } from 'mongoose';
 import { NotificationService } from '../notifications';
+import TransactionModel, { ICaptureDetails, ITransaction, TRANSACTION_STATUS } from '../../database/common/transaction.model';
 
 
 const STRIPE_SECRET_KEY = <string>process.env.STRIPE_SECRET_KEY;
@@ -543,6 +543,7 @@ export const chargeSucceeded = async (payload: any) => {
         const customer: any = await StripeService.customer.getCustomerById(payload.customer)
         const userType = customer?.metadata?.userType
         const userId = customer?.metadata?.userId
+       
 
         if (!userType || !userId) return // Ensure userType and userId are valid
 
@@ -562,39 +563,44 @@ export const chargeSucceeded = async (payload: any) => {
 
         // handle things here
         //1 handle transfer payment method options if it requires future capturing to another model ?
-        if (!payment.captured) {
-            const captureDetails = payload.payment_method_details.card
-            //save payment capture here
-            let paymentCaptureDto: IPaymentCapture = castPayloadToDTO(captureDetails, captureDetails as IPaymentCapture);
-            paymentCaptureDto.payment_intent = payload.payment_intent
-            paymentCaptureDto.payment_method = payload.payment_method
-            paymentCaptureDto.user = userId
-            paymentCaptureDto.userType = userType
-            paymentCaptureDto.payment = payment.id
-            paymentCaptureDto.status = PAYMENT_CAPTURE_STATUS.REQUIRES_CAPTURE
-            paymentCaptureDto.captured = false
-            paymentCaptureDto.currency = payment.currency
+        //@ts-ignore
+        const transactionId = payment?.metadata?.transactionId
+        let paymentTransaction = await TransactionModel.findById(transactionId)
 
-            let paymentCapture = await PaymentCaptureModel.findOneAndUpdate({ payment: payment.id }, paymentCaptureDto, {
-                new: true, upsert: true
-            })
-        } else {
-            const captureDetails = payload.payment_method_details.card
-            //save payment capture here
-            let paymentCaptureDto: IPaymentCapture = castPayloadToDTO(captureDetails, captureDetails as IPaymentCapture);
-            paymentCaptureDto.payment_intent = payload.payment_intent
-            paymentCaptureDto.payment_method = payload.payment_method
-            paymentCaptureDto.user = userId
-            paymentCaptureDto.userType = userType
-            paymentCaptureDto.payment = payment.id
-            paymentCaptureDto.status = PAYMENT_CAPTURE_STATUS.CAPTURED
-            paymentCaptureDto.captured = payment.captured
-            paymentCaptureDto.captured_at = payment.created
-            paymentCaptureDto.currency = payment.currency
+        if(paymentTransaction){
+            if (!payment.captured) {
+            
+                const captureDetails = payload.payment_method_details.card
+                let capturableTransactionDto: ICaptureDetails = castPayloadToDTO(captureDetails, captureDetails as ICaptureDetails);
+                capturableTransactionDto.payment_intent = payload.payment_intent
+                capturableTransactionDto.payment_method = payload.payment_method
+                capturableTransactionDto.payment = payment.id
+                capturableTransactionDto.status = TRANSACTION_STATUS.REQUIRES_CAPTURE
+                capturableTransactionDto.captured = false
+                capturableTransactionDto.currency = payment.currency
 
-            let paymentCapture = await PaymentCaptureModel.findOneAndUpdate({ payment: payment.id }, paymentCaptureDto, {
-                new: true, upsert: true
-            })
+                if(paymentTransaction){
+                    paymentTransaction.captureDetails = capturableTransactionDto
+                    paymentTransaction.save()
+                }
+
+            } else {
+                const captureDetails = payload.payment_method_details.card
+                //save payment capture here
+                let capturableTransactionDto: ICaptureDetails = castPayloadToDTO(captureDetails, captureDetails as ICaptureDetails);
+                capturableTransactionDto.payment_intent = payload.payment_intent
+                capturableTransactionDto.payment_method = payload.payment_method
+                capturableTransactionDto.payment = payment.id
+                capturableTransactionDto.status = TRANSACTION_STATUS.SUCCESSFUL
+                capturableTransactionDto.captured = payment.captured
+                capturableTransactionDto.captured_at = payment.created
+                capturableTransactionDto.currency = payment.currency
+                if(paymentTransaction){
+                    paymentTransaction.captureDetails = capturableTransactionDto
+                    paymentTransaction.status = TRANSACTION_STATUS.SUCCESSFUL
+                    paymentTransaction.save()
+                }
+            }
         }
 
         // handle job booking creating here ?

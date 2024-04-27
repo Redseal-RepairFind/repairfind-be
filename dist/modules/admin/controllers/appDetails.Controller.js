@@ -111,7 +111,9 @@ var AdminGetAppDetailController = function (req, res) { return __awaiter(void 0,
                 transactions = _b.sent();
                 for (i = 0; i < transactions.length; i++) {
                     transaction = transactions[i];
-                    totalRevenue = totalRevenue + transaction.amount;
+                    if (transaction.amount) {
+                        totalRevenue = totalRevenue + transaction.amount;
+                    }
                 }
                 res.json({
                     totalCustomer: totalCustomer,

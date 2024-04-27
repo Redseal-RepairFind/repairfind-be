@@ -309,14 +309,14 @@ var captureJobPayment = function (req, res, next) { return __awaiter(void 0, voi
                         toUser: contractor.id,
                         toUserType: 'contractors',
                         description: "qoutation from ".concat(contractor === null || contractor === void 0 ? void 0 : contractor.firstName, " payment"),
-                        status: transaction_model_1.TRANSACTION_STATUS.PENDING,
                         remark: 'qoutation',
                         invoice: {
                             items: quotation.estimates,
                             charges: quotation.charges
                         },
                         paymentMethod: paymentMethod,
-                        job: jobId
+                        job: jobId,
+                        status: transaction_model_1.TRANSACTION_STATUS.REQUIRES_CAPTURE
                     })
                     //  Direct CHARGES
                     // With Connect, you can make charges directly to the connected account and take fees in the process.

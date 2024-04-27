@@ -1,4 +1,27 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -35,14 +58,12 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorTransactionController = exports.getSingleTransaction = exports.getTransactions = void 0;
+exports.ContractorTransactionController = exports.getTransactionSummary = exports.getSingleTransaction = exports.getTransactions = void 0;
 var custom_errors_1 = require("../../../utils/custom.errors");
-var transaction_model_1 = __importDefault(require("../../../database/common/transaction.model"));
+var transaction_model_1 = __importStar(require("../../../database/common/transaction.model"));
 var api_feature_1 = require("../../../utils/api.feature");
+var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 // Controller method to fetch customer transactions
 var getTransactions = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var customerId, filter, _a, data, error, error_1;
@@ -123,7 +144,50 @@ var getSingleTransaction = function (req, res, next) { return __awaiter(void 0, 
     });
 }); };
 exports.getSingleTransaction = getSingleTransaction;
+var getTransactionSummary = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var contractorId_1, contractor, transactions, amountInHoldingFromTransactions, totalAmountInHolding, error_3;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 3, , 4]);
+                contractorId_1 = req.contractor.id;
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId_1)];
+            case 1:
+                contractor = _a.sent();
+                if (!contractor) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Customer not found' })];
+                }
+                return [4 /*yield*/, transaction_model_1.default.find({
+                        $or: [
+                            { toUser: contractorId_1, status: transaction_model_1.TRANSACTION_STATUS.REQUIRES_CAPTURE },
+                        ]
+                    })];
+            case 2:
+                transactions = _a.sent();
+                amountInHoldingFromTransactions = transactions.reduce(function (total, transaction) {
+                    if (transaction.fromUser.toString() === contractorId_1 && !transaction.getIsCredit(contractorId_1)) {
+                        return total + transaction.amount;
+                    }
+                    return total;
+                }, 0);
+                totalAmountInHolding = amountInHoldingFromTransactions;
+                res.json({
+                    success: true,
+                    message: 'Transaction summary retrieved',
+                    data: { amountInHolding: totalAmountInHolding }
+                });
+                return [3 /*break*/, 4];
+            case 3:
+                error_3 = _a.sent();
+                next(new custom_errors_1.InternalServerError('Error retrieving transaction summary', error_3));
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getTransactionSummary = getTransactionSummary;
 exports.ContractorTransactionController = {
     getTransactions: exports.getTransactions,
-    getSingleTransaction: exports.getSingleTransaction
+    getSingleTransaction: exports.getSingleTransaction,
+    getTransactionSummary: exports.getTransactionSummary
 };

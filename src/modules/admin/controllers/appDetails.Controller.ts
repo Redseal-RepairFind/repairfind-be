@@ -66,8 +66,10 @@ export const AdminGetAppDetailController = async (
 
         for (let i = 0; i < transactions.length; i++) {
             const transaction = transactions[i];
+            if(transaction.amount){
+              totalRevenue = totalRevenue + transaction.amount
+            }
             
-            totalRevenue = totalRevenue + transaction.amount
         }
 
         

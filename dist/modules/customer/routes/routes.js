@@ -53,6 +53,7 @@ router.post("/jobs/:jobId/pay", customerRoleChecker_middleware_1.checkCustomerRo
 router.post("/jobs/:jobId/payment-capture", customerRoleChecker_middleware_1.checkCustomerRole, customer_payment_controller_1.CustomerPaymentController.captureJobPayment);
 // Transactions
 router.get("/transactions", customerRoleChecker_middleware_1.checkCustomerRole, customer_transaction_controller_1.CustomerTransactionController.getTransactions);
+router.get("/transactions/summary", customerRoleChecker_middleware_1.checkCustomerRole, customer_transaction_controller_1.CustomerTransactionController.getTransactionSummary);
 router.get("/transactions/:transactionId", customerRoleChecker_middleware_1.checkCustomerRole, customer_transaction_controller_1.CustomerTransactionController.getSingleTransaction);
 // Notifications
 router.get('/notifications', customerRoleChecker_middleware_1.checkCustomerRole, customer_notification_controller_1.CustomerNotificationController.getNotifications);

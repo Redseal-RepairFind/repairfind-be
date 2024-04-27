@@ -1,4 +1,27 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -37,21 +60,22 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.captureStripePayments = void 0;
-var payment_captures_schema_1 = require("../../../database/common/payment_captures.schema");
+var transaction_model_1 = __importStar(require("../../../database/common/transaction.model"));
 var logger_1 = require("../../../utils/logger");
 var stripe_1 = require("../../stripe");
 var captureStripePayments = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var oneDayInMillis, daysBeforeNow, dayFromNow, paymentCaptures, _i, paymentCaptures_1, paymentCapture, error_1, error_2;
+    var oneDayInMillis, daysBeforeNow, dayFromNow, paymentCaptures, _i, paymentCaptures_1, transaction, error_1, error_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 9, , 10]);
+                _a.trys.push([0, 8, , 9]);
                 oneDayInMillis = 24 * 60 * 60;
                 daysBeforeNow = Math.floor(Date.now() / 1000) - (1 * oneDayInMillis);
                 dayFromNow = Math.floor(Date.now() / 1000) + (2 * oneDayInMillis);
-                return [4 /*yield*/, payment_captures_schema_1.PaymentCaptureModel.find({
-                        captured: false,
-                        capture_before: {
+                return [4 /*yield*/, transaction_model_1.default.find({
+                        status: transaction_model_1.TRANSACTION_STATUS.REQUIRES_CAPTURE,
+                        'captureDetails.captured': false,
+                        'captureDetails.capture_before': {
                             $gte: daysBeforeNow,
                             $lte: dayFromNow
                         }
@@ -61,33 +85,33 @@ var captureStripePayments = function () { return __awaiter(void 0, void 0, void 
                 _i = 0, paymentCaptures_1 = paymentCaptures;
                 _a.label = 2;
             case 2:
-                if (!(_i < paymentCaptures_1.length)) return [3 /*break*/, 8];
-                paymentCapture = paymentCaptures_1[_i];
+                if (!(_i < paymentCaptures_1.length)) return [3 /*break*/, 7];
+                transaction = paymentCaptures_1[_i];
                 _a.label = 3;
             case 3:
-                _a.trys.push([3, 6, , 7]);
-                return [4 /*yield*/, stripe_1.StripeService.payment.capturePayment(paymentCapture.payment_intent)];
+                _a.trys.push([3, 5, , 6]);
+                return [4 /*yield*/, stripe_1.StripeService.payment.capturePayment(transaction.captureDetails.payment_intent)];
             case 4:
                 _a.sent();
-                paymentCapture.captured = true;
-                return [4 /*yield*/, paymentCapture.save()];
+                // I should wait for webhook before updating transaction
+                // transaction.captureDetails.captured = true;
+                // transaction.status = TRANSACTION_STATUS.SUCCESSFUL
+                // await transaction.save();
+                logger_1.Logger.info("Successfully captured payment for payment ID: ".concat(transaction._id));
+                return [3 /*break*/, 6];
             case 5:
-                _a.sent();
-                logger_1.Logger.info("Successfully captured payment for payment ID: ".concat(paymentCapture._id));
-                return [3 /*break*/, 7];
-            case 6:
                 error_1 = _a.sent();
-                logger_1.Logger.error("Error capturing payment for payment ID: ".concat(paymentCapture._id), error_1);
-                return [3 /*break*/, 7];
-            case 7:
+                logger_1.Logger.error("Error capturing payment for payment ID: ".concat(transaction._id), error_1);
+                return [3 /*break*/, 6];
+            case 6:
                 _i++;
                 return [3 /*break*/, 2];
-            case 8: return [3 /*break*/, 10];
-            case 9:
+            case 7: return [3 /*break*/, 9];
+            case 8:
                 error_2 = _a.sent();
                 logger_1.Logger.error('Error occurred while capturing payments:', error_2);
-                return [3 /*break*/, 10];
-            case 10: return [2 /*return*/];
+                return [3 /*break*/, 9];
+            case 9: return [2 /*return*/];
         }
     });
 }); };

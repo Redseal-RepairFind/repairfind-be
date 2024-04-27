@@ -1,4 +1,27 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -47,10 +70,10 @@ var customer_model_1 = __importDefault(require("../../database/customer/models/c
 var contractor_devices_model_1 = __importDefault(require("../../database/contractor/models/contractor_devices.model"));
 var interface_dto_util_1 = require("../../utils/interface_dto.util");
 var payment_schema_1 = require("../../database/common/payment.schema");
-var payment_captures_schema_1 = require("../../database/common/payment_captures.schema");
 var job_model_1 = require("../../database/common/job.model");
 var job_quotation_model_1 = require("../../database/common/job_quotation.model");
 var notifications_1 = require("../notifications");
+var transaction_model_1 = __importStar(require("../../database/common/transaction.model"));
 var STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 var STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
 var stripeClient = new stripe_1.default(STRIPE_SECRET_KEY);
@@ -681,20 +704,20 @@ var paymentIntentSucceeded = function (payload) { return __awaiter(void 0, void 
 }); };
 exports.paymentIntentSucceeded = paymentIntentSucceeded;
 var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var customer, userType, userId, user, _a, stripeChargeDTO, payment, captureDetails, paymentCaptureDto, paymentCapture, captureDetails, paymentCaptureDto, paymentCapture, metadata, jobId, job, quotationId, quotation_1, error_11;
-    var _b, _c;
-    return __generator(this, function (_d) {
-        switch (_d.label) {
+    var customer, userType, userId, user, _a, stripeChargeDTO, payment, transactionId, paymentTransaction, captureDetails, capturableTransactionDto, captureDetails, capturableTransactionDto, metadata, jobId, job, quotationId, quotation_1, error_11;
+    var _b, _c, _d;
+    return __generator(this, function (_e) {
+        switch (_e.label) {
             case 0:
                 console.log('Stripe Event Handler: chargeSucceeded', payload);
-                _d.label = 1;
+                _e.label = 1;
             case 1:
-                _d.trys.push([1, 17, , 18]);
+                _e.trys.push([1, 14, , 15]);
                 if (payload.object != 'charge')
                     return [2 /*return*/];
                 return [4 /*yield*/, _1.StripeService.customer.getCustomerById(payload.customer)];
             case 2:
-                customer = _d.sent();
+                customer = _e.sent();
                 userType = (_b = customer === null || customer === void 0 ? void 0 : customer.metadata) === null || _b === void 0 ? void 0 : _b.userType;
                 userId = (_c = customer === null || customer === void 0 ? void 0 : customer.metadata) === null || _c === void 0 ? void 0 : _c.userId;
                 if (!userType || !userId)
@@ -702,12 +725,12 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                 if (!(userType === 'contractors')) return [3 /*break*/, 4];
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(userId)];
             case 3:
-                _a = _d.sent();
+                _a = _e.sent();
                 return [3 /*break*/, 6];
             case 4: return [4 /*yield*/, customer_model_1.default.findById(userId)];
             case 5:
-                _a = _d.sent();
-                _d.label = 6;
+                _a = _e.sent();
+                _e.label = 6;
             case 6:
                 user = _a;
                 if (!user)
@@ -722,58 +745,59 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                     })
                     // handle things here
                     //1 handle transfer payment method options if it requires future capturing to another model ?
+                    //@ts-ignore
                 ];
             case 7:
-                payment = _d.sent();
-                if (!!payment.captured) return [3 /*break*/, 9];
-                captureDetails = payload.payment_method_details.card;
-                paymentCaptureDto = (0, interface_dto_util_1.castPayloadToDTO)(captureDetails, captureDetails);
-                paymentCaptureDto.payment_intent = payload.payment_intent;
-                paymentCaptureDto.payment_method = payload.payment_method;
-                paymentCaptureDto.user = userId;
-                paymentCaptureDto.userType = userType;
-                paymentCaptureDto.payment = payment.id;
-                paymentCaptureDto.status = payment_captures_schema_1.PAYMENT_CAPTURE_STATUS.REQUIRES_CAPTURE;
-                paymentCaptureDto.captured = false;
-                paymentCaptureDto.currency = payment.currency;
-                return [4 /*yield*/, payment_captures_schema_1.PaymentCaptureModel.findOneAndUpdate({ payment: payment.id }, paymentCaptureDto, {
-                        new: true, upsert: true
-                    })];
+                payment = _e.sent();
+                transactionId = (_d = payment === null || payment === void 0 ? void 0 : payment.metadata) === null || _d === void 0 ? void 0 : _d.transactionId;
+                return [4 /*yield*/, transaction_model_1.default.findById(transactionId)];
             case 8:
-                paymentCapture = _d.sent();
-                return [3 /*break*/, 11];
-            case 9:
-                captureDetails = payload.payment_method_details.card;
-                paymentCaptureDto = (0, interface_dto_util_1.castPayloadToDTO)(captureDetails, captureDetails);
-                paymentCaptureDto.payment_intent = payload.payment_intent;
-                paymentCaptureDto.payment_method = payload.payment_method;
-                paymentCaptureDto.user = userId;
-                paymentCaptureDto.userType = userType;
-                paymentCaptureDto.payment = payment.id;
-                paymentCaptureDto.status = payment_captures_schema_1.PAYMENT_CAPTURE_STATUS.CAPTURED;
-                paymentCaptureDto.captured = payment.captured;
-                paymentCaptureDto.captured_at = payment.created;
-                paymentCaptureDto.currency = payment.currency;
-                return [4 /*yield*/, payment_captures_schema_1.PaymentCaptureModel.findOneAndUpdate({ payment: payment.id }, paymentCaptureDto, {
-                        new: true, upsert: true
-                    })];
-            case 10:
-                paymentCapture = _d.sent();
-                _d.label = 11;
-            case 11:
+                paymentTransaction = _e.sent();
+                if (paymentTransaction) {
+                    if (!payment.captured) {
+                        captureDetails = payload.payment_method_details.card;
+                        capturableTransactionDto = (0, interface_dto_util_1.castPayloadToDTO)(captureDetails, captureDetails);
+                        capturableTransactionDto.payment_intent = payload.payment_intent;
+                        capturableTransactionDto.payment_method = payload.payment_method;
+                        capturableTransactionDto.payment = payment.id;
+                        capturableTransactionDto.status = transaction_model_1.TRANSACTION_STATUS.REQUIRES_CAPTURE;
+                        capturableTransactionDto.captured = false;
+                        capturableTransactionDto.currency = payment.currency;
+                        if (paymentTransaction) {
+                            paymentTransaction.captureDetails = capturableTransactionDto;
+                            paymentTransaction.save();
+                        }
+                    }
+                    else {
+                        captureDetails = payload.payment_method_details.card;
+                        capturableTransactionDto = (0, interface_dto_util_1.castPayloadToDTO)(captureDetails, captureDetails);
+                        capturableTransactionDto.payment_intent = payload.payment_intent;
+                        capturableTransactionDto.payment_method = payload.payment_method;
+                        capturableTransactionDto.payment = payment.id;
+                        capturableTransactionDto.status = transaction_model_1.TRANSACTION_STATUS.SUCCESSFUL;
+                        capturableTransactionDto.captured = payment.captured;
+                        capturableTransactionDto.captured_at = payment.created;
+                        capturableTransactionDto.currency = payment.currency;
+                        if (paymentTransaction) {
+                            paymentTransaction.captureDetails = capturableTransactionDto;
+                            paymentTransaction.status = transaction_model_1.TRANSACTION_STATUS.SUCCESSFUL;
+                            paymentTransaction.save();
+                        }
+                    }
+                }
                 metadata = payment.metadata;
-                if (!(metadata.type == 'job_payment')) return [3 /*break*/, 16];
+                if (!(metadata.type == 'job_payment')) return [3 /*break*/, 13];
                 jobId = metadata.jobId;
-                if (!jobId) return [3 /*break*/, 16];
+                if (!jobId) return [3 /*break*/, 13];
                 return [4 /*yield*/, job_model_1.JobModel.findById(jobId)];
-            case 12:
-                job = _d.sent();
+            case 9:
+                job = _e.sent();
                 if (!job)
                     return [2 /*return*/];
                 quotationId = metadata.quotationId;
                 return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findById(quotationId)];
-            case 13:
-                quotation_1 = _d.sent();
+            case 10:
+                quotation_1 = _e.sent();
                 if (!quotation_1)
                     return [2 /*return*/];
                 if (metadata.remark == 'initial_job_payment') {
@@ -818,20 +842,20 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                     job.payments.push(payment.id);
                 // create schedule here ?
                 return [4 /*yield*/, quotation_1.save()];
-            case 14:
+            case 11:
                 // create schedule here ?
-                _d.sent();
+                _e.sent();
                 return [4 /*yield*/, job.save()];
-            case 15:
-                _d.sent();
-                _d.label = 16;
-            case 16: return [3 /*break*/, 18];
-            case 17:
-                error_11 = _d.sent();
+            case 12:
+                _e.sent();
+                _e.label = 13;
+            case 13: return [3 /*break*/, 15];
+            case 14:
+                error_11 = _e.sent();
                 // throw new BadRequestError(error.message || "Something went wrong");
                 console.log('Error handling chargeSucceeded stripe webhook event', error_11);
-                return [3 /*break*/, 18];
-            case 18: return [2 /*return*/];
+                return [3 /*break*/, 15];
+            case 15: return [2 /*return*/];
         }
     });
 }); };

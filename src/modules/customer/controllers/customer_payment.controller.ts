@@ -88,7 +88,7 @@ export const makeJobPayment = async (
         const invoiceId = generateInvoce.substring(generateInvoce.length - 5)
         const charges = await quotation.calculateCharges()
 
-        const transaction: ITransaction = await TransactionModel.create({
+        const transaction = await TransactionModel.create({
             type: TRANSACTION_TYPE.JOB_PAYMENT,
             amount: charges.totalAmount,
 
@@ -277,7 +277,7 @@ export const captureJobPayment = async (
         }
 
         const charges = await quotation.calculateCharges()
-        const transaction: ITransaction = await TransactionModel.create({
+        const transaction = await TransactionModel.create({
             type: TRANSACTION_TYPE.JOB_PAYMENT,
             amount: charges.totalAmount,
 
@@ -291,14 +291,14 @@ export const captureJobPayment = async (
             toUserType: 'contractors',
 
             description: `qoutation from ${contractor?.firstName} payment`,
-            status: TRANSACTION_STATUS.PENDING,
             remark: 'qoutation',
             invoice: {
                 items: quotation.estimates,
                 charges: quotation.charges
             },
             paymentMethod: paymentMethod,
-            job: jobId
+            job: jobId,
+            status: TRANSACTION_STATUS.REQUIRES_CAPTURE
         })
 
 
