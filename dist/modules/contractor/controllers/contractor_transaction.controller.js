@@ -157,15 +157,11 @@ var getTransactionSummary = function (req, res, next) { return __awaiter(void 0,
                 if (!contractor) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Customer not found' })];
                 }
-                return [4 /*yield*/, transaction_model_1.default.find({
-                        $or: [
-                            { toUser: contractorId_1, status: transaction_model_1.TRANSACTION_STATUS.REQUIRES_CAPTURE },
-                        ]
-                    })];
+                return [4 /*yield*/, transaction_model_1.default.find({ toUser: contractorId_1, status: transaction_model_1.TRANSACTION_STATUS.REQUIRES_CAPTURE })];
             case 2:
                 transactions = _a.sent();
                 amountInHoldingFromTransactions = transactions.reduce(function (total, transaction) {
-                    if (transaction.fromUser.toString() === contractorId_1 && !transaction.getIsCredit(contractorId_1)) {
+                    if (transaction.toUser.toString() === contractorId_1 && transaction.getIsCredit(contractorId_1)) {
                         return total + transaction.amount;
                     }
                     return total;

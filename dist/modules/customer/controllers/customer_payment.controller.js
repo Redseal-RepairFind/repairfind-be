@@ -302,6 +302,7 @@ var captureJobPayment = function (req, res, next) { return __awaiter(void 0, voi
                 return [4 /*yield*/, transaction_model_1.default.create({
                         type: transaction_model_1.TRANSACTION_TYPE.JOB_PAYMENT,
                         amount: charges.totalAmount,
+                        currency: 'USD',
                         initiatorUser: customerId,
                         initiatorUserType: 'customers',
                         fromUser: customerId,

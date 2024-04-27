@@ -69,12 +69,7 @@ export const getTransactionSummary = async (req: any, res: Response, next: NextF
        
 
         // Calculate amount in holding from TransactionModel
-        const transactions: ITransaction[] = await TransactionModel.find({
-            $or: [
-                { fromUser: customerId, status: TRANSACTION_STATUS.REQUIRES_CAPTURE },
-                //   { toUser: userId, status: TRANSACTION_STATUS.PENDING },
-            ]
-        });
+        const transactions: ITransaction[] = await TransactionModel.find({ fromUser: customerId, status: TRANSACTION_STATUS.REQUIRES_CAPTURE });
         const amountInHoldingFromTransactions: number = transactions.reduce((total, transaction) => {
             if (transaction.fromUser.toString() === customerId && !transaction.getIsCredit(customerId)) {
                 return total + transaction.amount;

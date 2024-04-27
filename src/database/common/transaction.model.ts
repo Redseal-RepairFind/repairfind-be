@@ -216,7 +216,7 @@ const TransactionSchema = new Schema(
 );
 
 
-TransactionSchema.methods.getIsCredit = async function (userId: string) {
+TransactionSchema.methods.getIsCredit =  function (userId: string) {
   return this.toUser == userId
 };
 const TransactionModel = model("Transaction", TransactionSchema);

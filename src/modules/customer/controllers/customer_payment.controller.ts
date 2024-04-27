@@ -280,6 +280,7 @@ export const captureJobPayment = async (
         const transaction = await TransactionModel.create({
             type: TRANSACTION_TYPE.JOB_PAYMENT,
             amount: charges.totalAmount,
+            currency: 'USD',
 
             initiatorUser: customerId,
             initiatorUserType: 'customers',
