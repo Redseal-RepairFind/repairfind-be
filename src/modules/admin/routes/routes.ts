@@ -9,7 +9,7 @@ import { AdminSignInController, SuperAdminGetAllAdminController, SuperAdminValid
 import { AdminGetAppDetailController } from "../controllers/appDetails.Controller";
 import { AdminGetRevenueAnalysisControlleer, AdminsendEmailsControlleer } from "../controllers/averageRevenue.controller";
 import { AdminContractorController } from "../controllers/contractor.controller";
-import { AdminGetJobsrDetailController, AdminGetSingleJobsrDetailController, AdminGetTotalJobsrController } from "../controllers/job.controller";
+import {  AdminJobController, } from "../controllers/job.controller";
 import { AdminGetCompletedPayoutDetailController, AdminGetPendingPayoutDetailController, AdminGetSinglePayoutDetailController, AdminPayContractorController } from "../controllers/payout.controller";
 import { AdminQuizController } from "../controllers/quiz.controller";
 import { AdminGetSingleTransactionDetailController, AdminGetTransactionDetailController } from "../controllers/transaction.controller";
@@ -19,14 +19,14 @@ import { createQuizParams, validatAdminEmailverificationParams, validateAddQuest
 const express = require("express");
 const router = express.Router();
 
-router.post("/admin_signup", validateSignupParams, adminSignUpController ); // admin signup
-router.post("/admin_email_verification", validatAdminEmailverificationParams, adminVerifiedEmailController ); // admin email verification
-router.post("/admin_resend_email", validateAdminForgotPasswordParams, adminResendEmailController ); // admin resend email
-router.post("/admin_signin", validateAdminLoginParams, AdminSignInController ); // admin login
-router.post("/admin_forgot_password", validateAdminForgotPasswordParams, AdminEmailForgotPasswordController ); // admin forgot password
-router.post("/admin_reset_password", validateAdminResetPasswprdParams, AdminEmailResetPasswordController ); // admin reset password
-router.get("/super_admin_get_list_of_admin", checkAdminRole, SuperAdminGetAllAdminController ); // super get the list of admin
-router.post("/super_admin_validate_other_admin", validateSuperAdminValidationParams, checkAdminRole, SuperAdminValidateOtherAdminController ); // super admin validate other admin
+router.post("/signup", validateSignupParams, adminSignUpController ); // admin signup
+router.post("/email/verification", validatAdminEmailverificationParams, adminVerifiedEmailController ); // admin email verification
+router.post("/resend/email", validateAdminForgotPasswordParams, adminResendEmailController ); // admin resend email
+router.post("/signin", validateAdminLoginParams, AdminSignInController ); // admin login
+router.post("/forgot/password", validateAdminForgotPasswordParams, AdminEmailForgotPasswordController ); // admin forgot password
+router.post("/reset/password", validateAdminResetPasswprdParams, AdminEmailResetPasswordController ); // admin reset password
+router.get("/super/admin/get_list_of_admin", checkAdminRole, SuperAdminGetAllAdminController ); // super get the list of admin
+router.post("/super/admin/validate/other_admin", validateSuperAdminValidationParams, checkAdminRole, SuperAdminValidateOtherAdminController ); // super admin validate other admin
 
 
 
@@ -46,9 +46,10 @@ router.post("/admin_validate_contractor_document", validateContractoDocumentIdVa
 router.post("/admin_add_skill", validateAddSkillParams, checkAdminRole, AdminAddNewSkillController ); // admin add skilll
 router.get("/admin_get_skill", checkAdminRole, AdminGetSkillController ); // admin get all skill
 
-router.get("/admin_get_jobs_detail", checkAdminRole, AdminGetJobsrDetailController ); // admin get job detail
-router.get("/admin_get_single_job_detail", validateJobIdValidationParams, checkAdminRole, AdminGetSingleJobsrDetailController ); // admin get single job detail
-router.get("/admin_get_total_job", checkAdminRole, AdminGetTotalJobsrController    ); // admin get total job
+// done
+router.get("/jobs/detail", checkAdminRole, AdminJobController.AdminGetJobsrDetailController ); // admin get job detail
+router.get("/jobs/detail/:jobId", checkAdminRole, AdminJobController.AdminGetSingleJobsrDetailController ); // admin get single job detail
+router.get("/total_job", checkAdminRole, AdminJobController.AdminGetTotalJobsrController); // admin get total job
 
 
 router.get("/admin_get_transaction_detail", checkAdminRole, AdminGetTransactionDetailController ); // admin get transaction detail

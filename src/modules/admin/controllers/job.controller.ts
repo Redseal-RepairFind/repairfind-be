@@ -1,7 +1,7 @@
 import { validationResult } from "express-validator";
 import { Request, Response } from "express";
 import {ContractorModel} from "../../../database/contractor/models/contractor.model";
-import JobModel from "../../../database/contractor/models/job.model";
+import { JobModel } from "../../../database/common/job.model";
 import CustomerRegModel from "../../../database/customer/models/customer.model";
 
 
@@ -36,32 +36,35 @@ export const AdminGetJobsrDetailController = async (
         const jobsDetails = await JobModel.find()
         .sort({ createdAt: -1 })
         .skip(skip)
-        .limit(limit);
+        .limit(limit)
+        .populate(['customer', 'contractor', 'quotation']);
 
         const totalJob = await JobModel.countDocuments()
 
         let jobs = [];
 
-        for (let i = 0; i < jobsDetails.length; i++) {
-            const jobsDetail = jobsDetails[i];
+        // for (let i = 0; i < jobsDetails.length; i++) {
+        //     const jobsDetail = jobsDetails[i];
 
-            const customer = await CustomerRegModel.findOne({_id: jobsDetail.customerId});
-            const contractor = await ContractorModel.findOne({_id: jobsDetail.contractorId})
+        //     const customer = await CustomerRegModel.findOne({_id: jobsDetail.customerId});
+        //     const contractor = await ContractorModel.findOne({_id: jobsDetail.contractorId})
 
-            if (!customer || !contractor) continue;
+        //     if (!customer || !contractor) continue;
 
-            const obj = {
-                job: jobsDetail,
-                contractor,
-                customer
-            }
+        //     const obj = {
+        //         job: jobsDetail,
+        //         contractor,
+        //         customer
+        //     }
 
-            jobs.push(obj)
-        }
+        //     jobs.push(obj)
+        // }
 
       res.json({
+        currentPage: page,
+        totalPages: Math.ceil(totalJob / limit),
         totalJob,  
-        jobs
+        jobsDetails
       });
       
     } catch (err: any) {
@@ -80,46 +83,42 @@ export const AdminGetSingleJobsrDetailController = async (
   ) => {
   
     try {
-      let {  
-        jobId
-      } = req.query;
+      const { jobId } = req.params;
   
-        // Check for validation errors
-        const errors = validationResult(req);
+      // Check for validation errors
+      const errors = validationResult(req);
+  
+      if (!errors.isEmpty()) {
+          return res.status(400).json({ errors: errors.array() });
+      }
+  
+      const admin =  req.admin;
+      const adminId = admin.id
+
+      const jobsDetail = await JobModel.findOne({_id: jobId}).populate(['customer', 'contractor', 'quotation'])
     
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        }
-    
-        const admin =  req.admin;
-        const adminId = admin.id
+      if (!jobsDetail) {
+          return res
+          .status(401)
+          .json({ message: "invalid job ID" });
+      }
 
-        const jobsDetail = await JobModel.findOne({_id: jobId})
-      
-        if (!jobsDetail) {
-            return res
-            .status(401)
-            .json({ message: "invalid job ID" });
-        }
+      // const customer = await CustomerRegModel.findOne({_id: jobsDetail.customerId});
+      // const contractor = await ContractorModel.findOne({_id: jobsDetail.contractorId})
 
-        const customer = await CustomerRegModel.findOne({_id: jobsDetail.customerId});
-        const contractor = await ContractorModel.findOne({_id: jobsDetail.contractorId})
+      // if (!customer || !contractor) {
+      //     return res
+      //     .status(401)
+      //     .json({ message: "no customer or contractor" });
+      // }
 
-        if (!customer || !contractor) {
-            return res
-            .status(401)
-            .json({ message: "no customer or contractor" });
-        }
+      const obj = {
+          job: jobsDetail,
+      }  
 
-        const obj = {
-            job: jobsDetail,
-            contractor,
-            customer
-        }  
-
-        res.json({  
-            job: obj
-        });
+      res.json({  
+          job: obj
+      });
       
     } catch (err: any) {
       // signup error
@@ -162,6 +161,12 @@ export const AdminGetTotalJobsrController = async (
       res.status(500).json({ message: err.message });
     }
   
+}
+
+export const AdminJobController = {
+  AdminGetJobsrDetailController,
+  AdminGetSingleJobsrDetailController,
+  AdminGetTotalJobsrController
 }
 
 
