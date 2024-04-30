@@ -19,14 +19,14 @@ var adminRoleChecker_middleware_1 = require("../middlewares/adminRoleChecker.mid
 var adminValidate_middleware_1 = require("../middlewares/adminValidate.middleware");
 var express = require("express");
 var router = express.Router();
-router.post("/admin_signup", adminValidate_middleware_1.validateSignupParams, adminReg_controller_1.adminSignUpController); // admin signup
-router.post("/admin_email_verification", adminValidate_middleware_1.validatAdminEmailverificationParams, adminReg_controller_1.adminVerifiedEmailController); // admin email verification
-router.post("/admin_resend_email", adminValidate_middleware_1.validateAdminForgotPasswordParams, adminReg_controller_1.adminResendEmailController); // admin resend email
-router.post("/admin_signin", adminValidate_middleware_1.validateAdminLoginParams, adminReg_controller_1.AdminSignInController); // admin login
-router.post("/admin_forgot_password", adminValidate_middleware_1.validateAdminForgotPasswordParams, adminForgotPassword_1.AdminEmailForgotPasswordController); // admin forgot password
-router.post("/admin_reset_password", adminValidate_middleware_1.validateAdminResetPasswprdParams, adminForgotPassword_1.AdminEmailResetPasswordController); // admin reset password
-router.get("/super_admin_get_list_of_admin", adminRoleChecker_middleware_1.checkAdminRole, adminReg_controller_1.SuperAdminGetAllAdminController); // super get the list of admin
-router.post("/super_admin_validate_other_admin", adminValidate_middleware_1.validateSuperAdminValidationParams, adminRoleChecker_middleware_1.checkAdminRole, adminReg_controller_1.SuperAdminValidateOtherAdminController); // super admin validate other admin
+router.post("/signup", adminValidate_middleware_1.validateSignupParams, adminReg_controller_1.adminSignUpController); // admin signup
+router.post("/email/verification", adminValidate_middleware_1.validatAdminEmailverificationParams, adminReg_controller_1.adminVerifiedEmailController); // admin email verification
+router.post("/resend/email", adminValidate_middleware_1.validateAdminForgotPasswordParams, adminReg_controller_1.adminResendEmailController); // admin resend email
+router.post("/signin", adminValidate_middleware_1.validateAdminLoginParams, adminReg_controller_1.AdminSignInController); // admin login
+router.post("/forgot/password", adminValidate_middleware_1.validateAdminForgotPasswordParams, adminForgotPassword_1.AdminEmailForgotPasswordController); // admin forgot password
+router.post("/reset/password", adminValidate_middleware_1.validateAdminResetPasswprdParams, adminForgotPassword_1.AdminEmailResetPasswordController); // admin reset password
+router.get("/super/admin/get_list_of_admin", adminRoleChecker_middleware_1.checkAdminRole, adminReg_controller_1.SuperAdminGetAllAdminController); // super get the list of admin
+router.post("/super/admin/validate/other_admin", adminValidate_middleware_1.validateSuperAdminValidationParams, adminRoleChecker_middleware_1.checkAdminRole, adminReg_controller_1.SuperAdminValidateOtherAdminController); // super admin validate other admin
 router.get("/admin_get_contractor_detail", adminRoleChecker_middleware_1.checkAdminRole, adminGetContractorDetail_controller_1.AdminGetContractorDetailController); // admin get contractor detail
 router.get("/admin_get_single_contractor_detail", adminValidate_middleware_1.validateContractorIdValidationParams, adminRoleChecker_middleware_1.checkAdminRole, adminGetContractorDetail_controller_1.AdminGetSingleContractorDetailController); // admin get single contractor detail
 router.post("/admin_change_contractor_status", adminValidate_middleware_1.validateContractorChangeStatusValidationParams, adminRoleChecker_middleware_1.checkAdminRole, adminGetContractorDetail_controller_1.AdminChangeContractorContractorDetailController); // admin change contractor status
@@ -37,9 +37,10 @@ router.get("/admin_get_single_contractor_document", adminValidate_middleware_1.v
 router.post("/admin_validate_contractor_document", adminValidate_middleware_1.validateContractoDocumentIdValidationParams, adminRoleChecker_middleware_1.checkAdminRole, adminContractorDocVal_controller_1.AdminValidateContractorDocsController); // admin get validate contractor document 
 router.post("/admin_add_skill", adminValidate_middleware_1.validateAddSkillParams, adminRoleChecker_middleware_1.checkAdminRole, adminAddSkill_controller_1.AdminAddNewSkillController); // admin add skilll
 router.get("/admin_get_skill", adminRoleChecker_middleware_1.checkAdminRole, adminAddSkill_controller_1.AdminGetSkillController); // admin get all skill
-router.get("/admin_get_jobs_detail", adminRoleChecker_middleware_1.checkAdminRole, job_controller_1.AdminGetJobsrDetailController); // admin get job detail
-router.get("/admin_get_single_job_detail", adminValidate_middleware_1.validateJobIdValidationParams, adminRoleChecker_middleware_1.checkAdminRole, job_controller_1.AdminGetSingleJobsrDetailController); // admin get single job detail
-router.get("/admin_get_total_job", adminRoleChecker_middleware_1.checkAdminRole, job_controller_1.AdminGetTotalJobsrController); // admin get total job
+// done
+router.get("/jobs/detail", adminRoleChecker_middleware_1.checkAdminRole, job_controller_1.AdminJobController.AdminGetJobsrDetailController); // admin get job detail
+router.get("/jobs/detail/:jobId", adminRoleChecker_middleware_1.checkAdminRole, job_controller_1.AdminJobController.AdminGetSingleJobsrDetailController); // admin get single job detail
+router.get("/total_job", adminRoleChecker_middleware_1.checkAdminRole, job_controller_1.AdminJobController.AdminGetTotalJobsrController); // admin get total job
 router.get("/admin_get_transaction_detail", adminRoleChecker_middleware_1.checkAdminRole, transaction_controller_1.AdminGetTransactionDetailController); // admin get transaction detail
 router.get("/admin_get_single_transaction_detail", adminValidate_middleware_1.validateTRansactionIdValidationParams, adminRoleChecker_middleware_1.checkAdminRole, transaction_controller_1.AdminGetSingleTransactionDetailController); // admin get single transaction detail
 router.post("/admin_add_question", adminValidate_middleware_1.validateAddQuestionParams, adminRoleChecker_middleware_1.checkAdminRole, quiz_controller_1.AdminQuizController.AddQuestion); // admin add question

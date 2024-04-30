@@ -23,22 +23,23 @@ var SocketIOService = /** @class */ (function () {
             jsonwebtoken_1.default.verify(token, secret, function (err, decoded) {
                 if (err) {
                     // Authentication failed
-                    console.log('Authentication failed:', err.message);
+                    // console.log('Authentication failed:', err.message);
                     return next(new custom_errors_1.BadRequestError("Authentication error"));
                 }
                 // Authentication successful, attach user information to the socket
-                console.log('Token decoded successfully:', decoded);
+                // console.log('Token decoded successfully:', decoded);
                 socket.user = decoded;
                 next();
             });
         });
         this.io.on("connection", function (socket) {
-            console.log("A user connected to socket here");
-            console.log(socket.user);
+            // console.log("A user connected to socket here");
+            // console.log(socket.user)
             if (socket.user && socket.user.email) {
                 console.log("user joined a channel ".concat(socket.user.email));
                 socket.join(socket.user.email);
                 socket.join('alerts'); // also join alerts channel
+                console.log("User ".concat(socket.user.email, " joined channels: ").concat(Object.keys(socket.rooms).join(', ')));
             }
             // Handle notification events from client here
             socket.on("joinChannel", function (channel) {
