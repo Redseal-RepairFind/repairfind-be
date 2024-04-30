@@ -5,6 +5,7 @@ import CustomerModel from '../database/customer/models/customer.model';
 import { ContractorModel } from '../database/contractor/models/contractor.model';
 import { JobModel } from '../database/common/job.model';
 import { ConversationModel } from '../database/common/conversations.schema';
+import { SocketService } from '../services/socket';
 
 export const JobEvent: EventEmitter = new EventEmitter();
 
@@ -54,6 +55,28 @@ JobEvent.on('NEW_JOB_REQUEST', async function (payload) {
                 }
             }, { database: true, push: true, socket:true})
 
+         }
+
+
+    } catch (error) {
+        console.error(`Error handling NEW_JOB_REQUEST event: ${error}`);
+    }
+});
+
+
+JobEvent.on('NEW_JOB_LISTING', async function (payload) {
+    try {
+        console.log('handling alert NEW_JOB_LISTING event')
+        const job = await JobModel.findById(payload.jobId)
+
+        if(job){
+
+            SocketService.broadcastChannel('alerts', 'NEW_JOB_LISTING', {
+                type: 'NEW_JOB_LISTING', 
+                message: 'A new Job listing has been added', 
+                data: job
+            });
+          
          }
 
 

@@ -223,6 +223,7 @@ var createJobListing = function (req, res, next) { return __awaiter(void 0, void
             case 3:
                 // Save the job document to the database
                 _b.sent();
+                events_1.JobEvent.emit('NEW_JOB_LISTING', { jobId: newJob.id });
                 res.status(201).json({ success: true, message: 'Job listing submitted successfully', data: newJob });
                 return [3 /*break*/, 5];
             case 4:

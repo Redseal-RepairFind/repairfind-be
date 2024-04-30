@@ -131,7 +131,6 @@ export const createJobRequest = async (
 
 
         JobEvent.emit('NEW_JOB_REQUEST', { jobId: newJob.id, contractorId, customerId, conversationId: conversation.id })
-
         const html = htmlJobRequestTemplate(customer.firstName, customer.firstName, `${date} ${time}`, description)
         EmailService.send(contractor.email, 'Job request from customer', html)
 
@@ -215,6 +214,9 @@ export const createJobListing = async (
 
         // Save the job document to the database
         await newJob.save();
+
+        JobEvent.emit('NEW_JOB_LISTING', { jobId: newJob.id })
+        
 
         res.status(201).json({ success: true, message: 'Job listing submitted successfully', data: newJob });
     } catch (error: any) {

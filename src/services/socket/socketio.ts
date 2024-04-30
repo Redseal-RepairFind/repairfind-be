@@ -42,6 +42,7 @@ class SocketIOService {
             if (socket.user && socket.user.email) {
                 console.log(`user joined a channel ${socket.user.email}`)
                 socket.join(socket.user.email);
+                socket.join('alerts'); // also join alerts channel
             }
 
             // Handle notification events from client here
@@ -54,13 +55,21 @@ class SocketIOService {
 
     static sendNotification(channels: string | string[], type: string, payload: object) {
         const channelArray = typeof channels === 'string' ? [channels] : channels;
-        console.log('socket notification is fired inside socketio', payload, channels)
+        console.log('sendNotification socket event is fired inside socketio', payload, channels)
         for (const channel of channelArray) {
             this.io.to(channel).emit(type, { payload });
         }
     }
     static broadcastMessage(type: string, payload: object) {
         this.io.emit(type, payload);
+    }
+
+    // defind broadcast channels = alerts
+    static broadcastChannel(channel:string, type: string, payload: object) {
+        // type example NEW_JOB_LISTING
+        // channel example alerts
+        console.log(' broadcastChannel socket event is fired inside socketio', payload, channel)
+        this.io.to(channel).emit(type, payload);
     }
 }
 

@@ -65,6 +65,7 @@ export class NotificationService  {
                 data: params.payload
             });
         }
+
         if ('push' in options) {
             sendPushNotifications( deviceTokens , {
                 title: 'Identity Verification',
@@ -83,8 +84,7 @@ export class NotificationService  {
             await notification.save();
         }
 
-       
-
+    
         return;
     }
 }
