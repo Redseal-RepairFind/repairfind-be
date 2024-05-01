@@ -228,7 +228,6 @@ export const requestBookingReschedule = async (req: any, res: Response, next: Ne
         // Update job schedule with new dates and set flags
         const updatedSchedule: IJobSchedule = {
             date, // Assuming the rescheduled date replaces the previous one
-            previousDate: job?.schedule?.date, // Storing the previous date for reference
             awaitingConfirmation: true, // Flag for indicating rescheduling request
             isCustomerAccept: true, // Assume the customer has has already confirmed the rescheduling
             isContractorAccept: false, // The contractor has to confirm the rescheduling
@@ -237,11 +236,18 @@ export const requestBookingReschedule = async (req: any, res: Response, next: Ne
             remark: remark // Adding a remark for the rescheduling
         };
 
+        // Update the previous date based on the last accepted schedule
+        const previousDate = findPreviousAcceptedScheduleDate(job.jobHistory);
+        if (previousDate) {
+            job.schedule.previousDate = previousDate;
+        }
+
+
         // Save rescheduling history in job history
         job.jobHistory.push({
             eventType: 'RESCHEDULE_REQUEST', // Custom event type identifier
             timestamp: new Date(), // Timestamp of the event
-            details: { remark, initiatedBy: 'customer', previousSchedule: job.schedule } // Additional details specific to the event
+            details: {updatedSchedule, previousSchedule: job.schedule } // Additional details specific to the event
         });
 
         job.schedule = updatedSchedule;
@@ -270,18 +276,36 @@ export const acceptOrDeclineReschedule = async (req: any, res: Response, next: N
             return res.status(403).json({ success: false, message: 'You are not authorized to perform this action' });
         }
 
+        
 
         // Check if the job has a rescheduling request
         if (!job.schedule.awaitingConfirmation) {
             return res.status(400).json({ success: false, message: 'No rescheduling request found for this job' });
         }
 
+        // Ensure that the rescheduling was initiated by the contractor
+        if (job.schedule.createdBy !== 'contractor') {
+            return res.status(403).json({ success: false, message: 'You are not authorized to confirm this rescheduling request' });
+        }
+
         // Update rescheduling flags based on customer's choice
         if (action == 'accept') {
             job.schedule.isCustomerAccept = true;
-        } else {
             job.schedule.awaitingConfirmation = false;
+
+             // Save rescheduling history in job history
+            job.jobHistory.push({
+                eventType: 'SCHEDULE_ACCEPTED', // Custom event type identifier
+                timestamp: new Date(), // Timestamp of the event
+                details: { ...job.schedule } // Additional details specific to the event
+            });
+
+        } else {
+            job.schedule.awaitingConfirmation = true;
         }
+
+       
+
 
         await job.save();
 
@@ -291,6 +315,16 @@ export const acceptOrDeclineReschedule = async (req: any, res: Response, next: N
     }
 };
 
+// Helper function to find the previous accepted schedule date from job history
+const findPreviousAcceptedScheduleDate = (jobHistory: IJob['jobHistory']): Date | undefined => {
+    for (let i = jobHistory.length - 1; i >= 0; i--) {
+        const event = jobHistory[i];
+        if ( (event.eventType === 'SCHEDULE_ACCEPTED' || event.eventType === 'SCHEDULE_CREATED') && event.details?.previousSchedule?.isCustomerAccept && event.details?.previousSchedule?.isContractorAccept) {
+            return event.details?.previousSchedule?.date;
+        }
+    }
+    return undefined;
+};
 
 export const CustomerBookingController = {
     getMyBookings,
