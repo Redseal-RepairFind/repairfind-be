@@ -12,6 +12,7 @@ import { CustomerConversationController } from "../controllers/customer_conversa
 import { CustomerTripDayController } from "../controllers/customer_tripDay.controller";
 import { CustomerPaymentController } from "../controllers/customer_payment.controller";
 import { CustomerTransactionController } from "../controllers/customer_transaction.controller";
+import { CustomerBookingController } from "../controllers/customer_booking.controller";
 
 const express = require("express");
 const router = express.Router();
@@ -56,6 +57,7 @@ router.get("/explore/contractors/:contractorId/schedules", checkCustomerRole, Cu
 router.post("/jobs/requests", checkCustomerRole, CustomerHttpRequest.createJobRequestParams, CustomerJobController.createJobRequest ); 
 router.post("/jobs/listings", checkCustomerRole, CustomerHttpRequest.createJoListingParams, CustomerJobController.createJobListing ); 
 router.get("/jobs", checkCustomerRole, CustomerJobController.getMyJobs ); 
+router.get("/jobs/history", checkCustomerRole, CustomerJobController.getJobHistory ); 
 router.get("/jobs/:jobId", checkCustomerRole, CustomerJobController.getSingleJob ); 
 router.get("/jobs/:jobId/quotations", checkCustomerRole, CustomerJobController.getJobQuotations ); 
 router.get("/jobs/:jobId/quotations/:quotationId", checkCustomerRole, CustomerJobController.getSingleQuotation ); 
@@ -63,6 +65,14 @@ router.post("/jobs/:jobId/quotations/:quotationId/accept", checkCustomerRole, Cu
 router.post("/jobs/:jobId/quotations/:quotationId/decline", checkCustomerRole, CustomerJobController.declineJobQuotation ); 
 router.post("/jobs/:jobId/pay", checkCustomerRole, CustomerPaymentController.makeJobPayment ); 
 router.post("/jobs/:jobId/payment-capture", checkCustomerRole, CustomerPaymentController.captureJobPayment ); 
+
+
+// BOOKING
+router.get("/bookings", checkCustomerRole, CustomerBookingController.getMyBookings ); 
+router.get("/bookings/history", checkCustomerRole, CustomerBookingController.getBookingHistory ); 
+router.get("/bookings/:bookingId", checkCustomerRole, CustomerBookingController.getSingleBooking ); 
+router.post("/bookings/:bookingId/reschedule", checkCustomerRole, CustomerBookingController.requestBookingReschedule ); 
+router.post("/bookings/:bookingId/reschedule/:action", checkCustomerRole, CustomerBookingController.acceptOrDeclineReschedule ); 
 
 
 // Transactions

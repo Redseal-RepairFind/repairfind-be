@@ -40,14 +40,14 @@ export enum JobType {
 
 
 export interface IJobSchedule {
-    startDate: Date;
-    endDate?: Date;
-    isCurrent?: boolean;
-    isRescheduled?: boolean;
+    date: Date;
+    previousDate?: Date;
+    awaitingConfirmation?: boolean; // if there is a pending rescheduling request that has not been accepted by contractor and customer
     isCustomerAccept?: boolean;
     isContractorAccept?: boolean;
     createdBy?: 'customer' | 'contractor'
     type: JOB_SCHEDULE_TYPE
+    remark: string
 }
 
 interface IVoiceDescription {
@@ -84,7 +84,7 @@ export interface IJob extends Document {
     quotations: [{id: ObjectId, status: string}];
     jobHistory: IJobHistory[];
     payments: ObjectId[];
-    schedules: [IJobSchedule];
+    schedule: IJobSchedule;
     emergency: boolean;
     myQuotation: Object | null
     getMyQoutation: (contractorId: ObjectId) => {
@@ -109,14 +109,14 @@ const VoiceDescriptionSchema = new Schema<IVoiceDescription>({
 
 
 const ScheduleSchema = new Schema<IJobSchedule>({
-    startDate: { type: Date, required: true },
-    endDate: { type: Date},
-    isCurrent: { type: Boolean, default: true },
-    isRescheduled: { type: Boolean, default: false },
+    date: { type: Date, required: true },
+    previousDate: { type: Date},
+    awaitingConfirmation: { type: Boolean, default: false },
     isCustomerAccept: { type: Boolean, default: false },
     isContractorAccept: { type: Boolean, default: false },
     createdBy: String,
     type: { type: String, enum: Object.values(JOB_SCHEDULE_TYPE) },
+    remark: String,
 });
 
 
@@ -160,7 +160,7 @@ const JobSchema = new Schema<IJob>({
     tags: { type: [String] },
     experience: { type: String },
     jobHistory: [JobHistorySchema], // Array of job history entries
-    schedules: [ScheduleSchema],
+    schedule: ScheduleSchema,
     quotations: [{
         id: { type: Schema.Types.ObjectId, ref: 'job_quotations' },
         status: { type: String, enum: Object.values(JOB_QUOTATION_STATUS) }

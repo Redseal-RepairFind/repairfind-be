@@ -621,31 +621,22 @@ export const chargeSucceeded = async (payload: any) => {
 
                     quotation.isPaid = true
                     quotation.status = JOB_QUOTATION_STATUS.ACCEPTED
-
-                    // Check if quotation.startDate is valid and not null or undefined
                     if (quotation.startDate) {
-                        // Check if job.schedules does not contain a similar schedule with the same startDate and type JOB_DAY
-                        if (!job.schedules.some(schedule => schedule.startDate.getTime() === quotation?.startDate.getTime() && schedule.type === JOB_SCHEDULE_TYPE.JOB_DAY)) {
-                            // Push the new schedule with type JOB_DAY
-                            job.schedules.push({
-                                startDate: quotation.startDate,
-                                endDate: quotation.endDate,
-                                type: JOB_SCHEDULE_TYPE.JOB_DAY
-                            });
-                        }
+                        job.schedule ={
+                            date: quotation.startDate,
+                            type: JOB_SCHEDULE_TYPE.JOB_DAY,
+                            remark: 'Initial job schedule'
+                        };
+
                     } else if (quotation.siteVisit) {
                         // Check if quotation.siteVisit.date is a valid Date object
                         if (quotation.siteVisit instanceof Date) {
-                            // Check if job.schedules does not contain a similar schedule with the same startDate and type SITE_VISIT
-                            if (!job.schedules.some(schedule => schedule.startDate.getTime() === quotation?.siteVisit.getTime() && schedule.type === JOB_SCHEDULE_TYPE.SITE_VISIT)) {
-                                // Push the new schedule with type SITE_VISIT
-                                job.schedules.push({
-                                    startDate: quotation.siteVisit,
-                                    type: JOB_SCHEDULE_TYPE.SITE_VISIT
-                                });
-                            }
+                            job.schedule ={
+                                date: quotation.startDate,
+                                type: JOB_SCHEDULE_TYPE.SITE_VISIT,
+                                remark: 'Initial site visit schedule'
+                            };
                         } else {
-                            // Handle case where quotation.siteVisit.date is not a valid Date object
                             console.log('quotation.siteVisit.date is not a valid Date object.');
                         }
                     }
@@ -654,7 +645,7 @@ export const chargeSucceeded = async (payload: any) => {
 
                 if (metadata.remark == 'extra_job_payment') {
 
-
+                    // TODO:
                 }
 
                 if (!job.payments.includes(payment.id)) job.payments.push(payment.id)
