@@ -12,6 +12,7 @@ var customer_conversation_controller_1 = require("../controllers/customer_conver
 var customer_tripDay_controller_1 = require("../controllers/customer_tripDay.controller");
 var customer_payment_controller_1 = require("../controllers/customer_payment.controller");
 var customer_transaction_controller_1 = require("../controllers/customer_transaction.controller");
+var customer_booking_controller_1 = require("../controllers/customer_booking.controller");
 var express = require("express");
 var router = express.Router();
 // Auth
@@ -44,6 +45,7 @@ router.get("/explore/contractors/:contractorId/schedules", customerRoleChecker_m
 router.post("/jobs/requests", customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.createJobRequestParams, customer_job_controller_1.CustomerJobController.createJobRequest);
 router.post("/jobs/listings", customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.createJoListingParams, customer_job_controller_1.CustomerJobController.createJobListing);
 router.get("/jobs", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.getMyJobs);
+router.get("/jobs/history", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.getJobHistory);
 router.get("/jobs/:jobId", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.getSingleJob);
 router.get("/jobs/:jobId/quotations", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.getJobQuotations);
 router.get("/jobs/:jobId/quotations/:quotationId", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.getSingleQuotation);
@@ -51,6 +53,12 @@ router.post("/jobs/:jobId/quotations/:quotationId/accept", customerRoleChecker_m
 router.post("/jobs/:jobId/quotations/:quotationId/decline", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.declineJobQuotation);
 router.post("/jobs/:jobId/pay", customerRoleChecker_middleware_1.checkCustomerRole, customer_payment_controller_1.CustomerPaymentController.makeJobPayment);
 router.post("/jobs/:jobId/payment-capture", customerRoleChecker_middleware_1.checkCustomerRole, customer_payment_controller_1.CustomerPaymentController.captureJobPayment);
+// BOOKING
+router.get("/bookings", customerRoleChecker_middleware_1.checkCustomerRole, customer_booking_controller_1.CustomerBookingController.getMyBookings);
+router.get("/bookings/history", customerRoleChecker_middleware_1.checkCustomerRole, customer_booking_controller_1.CustomerBookingController.getBookingHistory);
+router.get("/bookings/:bookingId", customerRoleChecker_middleware_1.checkCustomerRole, customer_booking_controller_1.CustomerBookingController.getSingleBooking);
+router.post("/bookings/:bookingId/reschedule", customerRoleChecker_middleware_1.checkCustomerRole, customer_booking_controller_1.CustomerBookingController.requestBookingReschedule);
+router.post("/bookings/:bookingId/reschedule/:action", customerRoleChecker_middleware_1.checkCustomerRole, customer_booking_controller_1.CustomerBookingController.acceptOrDeclineReschedule);
 // Transactions
 router.get("/transactions", customerRoleChecker_middleware_1.checkCustomerRole, customer_transaction_controller_1.CustomerTransactionController.getTransactions);
 router.get("/transactions/summary", customerRoleChecker_middleware_1.checkCustomerRole, customer_transaction_controller_1.CustomerTransactionController.getTransactionSummary);

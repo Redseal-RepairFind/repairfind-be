@@ -33,17 +33,15 @@ var SocketIOService = /** @class */ (function () {
             });
         });
         this.io.on("connection", function (socket) {
-            // console.log("A user connected to socket here");
-            // console.log(socket.user)
             if (socket.user && socket.user.email) {
-                console.log("user joined a channel ".concat(socket.user.email));
                 socket.join(socket.user.email);
                 socket.join('alerts'); // also join alerts channel
-                console.log("User ".concat(socket.user.email, " joined channels: ").concat(Object.keys(socket.rooms).join(', ')));
+                console.log("User ".concat(socket.user.email, " joined channels:"));
+                console.log(socket.rooms);
             }
             // Handle notification events from client here
             socket.on("joinChannel", function (channel) {
-                console.log("user joined a channel here ".concat(channel));
+                console.log("user explicitly joined a channel here ".concat(channel));
                 socket.join(channel); // Join a room based on user email to enable private notifications
             });
         });
