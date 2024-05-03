@@ -41,9 +41,9 @@ export const validateCustomerIdValidationParams = [
 
 export const validateContractorChangeStatusValidationParams = [
     body("contractorId").notEmpty(),
-    body("status")
-    .isIn(["suspend", "in-review", "active", "closed"])
-    .withMessage("status must be suspend, in-review, active, or closed"),
+    body("gstStatus")
+    .isIn(["PENDING", "REVIEWING", "APPROVED", "DECLINED"])
+    .withMessage("gstStatus must be PENDING, REVIEWING, APPROVED, or DECLINED"),
 ];
 
 export const validateContractoDocumentIdValidationParams = [

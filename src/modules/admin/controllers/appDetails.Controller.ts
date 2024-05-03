@@ -1,7 +1,7 @@
 import { validationResult } from "express-validator";
 import { Request, Response } from "express";
 import {ContractorModel} from "../../../database/contractor/models/contractor.model";
-import JobModel from "../../../database/contractor/models/job.model";
+import { JobModel } from "../../../database/common/job.model";
 import CustomerRegModel from "../../../database/customer/models/customer.model";
 import TransactionModel from "../../../database/common/transaction.model";
 
@@ -41,36 +41,55 @@ export const AdminGetAppDetailController = async (
 
         //get total pending job detail
         let totalPendingJob = 0
-        const totalPendingJobOne = await JobModel.countDocuments({status: "sent request"})
-        const totalPendingJobTwo = await JobModel.countDocuments({status: "sent qoutation"})
-        const totalPendingJobTre = await JobModel.countDocuments({status: "qoutation payment open"})
-        const totalPendingJobFor = await JobModel.countDocuments({status: "inspection payment open"})
-        totalPendingJob = totalPendingJobOne + totalPendingJobTwo + totalPendingJobTre + totalPendingJobFor;
+        const totalPendingJobOne = await JobModel.countDocuments({status: "PENDING"})
+        const totalPendingJobTwo = await JobModel.countDocuments({status: "DECLINED"})
+        const totalPendingJobTre = await JobModel.countDocuments({status: "ACCEPTED"})
+        const totalPendingJobFor = await JobModel.countDocuments({status: "EXPIRED"})
+        const totalPendingJobfiv = await JobModel.countDocuments({status: "BOOKED"})
+        
+        totalPendingJob = totalPendingJobOne + totalPendingJobTwo + totalPendingJobTre + totalPendingJobFor + totalPendingJobfiv;
 
         //get total progress work
         let totalProgressJob = 0
-        const totalProgressJobOne = await JobModel.countDocuments({status: "qoutation payment confirm and job in progress"})
-        const totalProgressJobTwo = await JobModel.countDocuments({status: "completed"})
+        const totalProgressJobOne = await JobModel.countDocuments({status: "BOOKED"})
+        const totalProgressJobTwo = await JobModel.countDocuments({status: "ACCEPTED"})
         totalProgressJob = totalProgressJobOne + totalProgressJobTwo
 
         //get total completed job detail
-        const totalCompletedJob = await JobModel.countDocuments({status: "comfirmed"})
+        const totalCompletedJob = await JobModel.countDocuments({status: "COMPLETED"})
 
 
         //get total complain job detail
-        const totalComplainedJob = await JobModel.countDocuments({status: "complain"})
+        const totalComplainedJob = await JobModel.countDocuments({status: "DISPUTED"})
 
         // get total revenue
         let totalRevenue = 0;
-        const transactions = await TransactionModel.find({type: "credit"})
+       
+        // const result = await Transaction.aggregate([
+        //   {
+        //     $match: {
+        //       transactionType: "credit" // Assuming 'transactionType' is the field name for transaction type
+        //     }
+        //   },
+        //   {
+        //     $group: {
+        //       _id: null,
+        //       totalAmount: { $sum: '$amount' }
+        //     }
+        //   }
+        // ]);
+        
 
-        for (let i = 0; i < transactions.length; i++) {
-            const transaction = transactions[i];
-            if(transaction.amount){
-              totalRevenue = totalRevenue + transaction.amount
+        const transactions = await TransactionModel.aggregate([
+          {
+            $group: {
+              _id: null,
+              totalAmount: { $sum: '$amount' }
             }
-            
-        }
+          }
+        ]);
+
+        totalRevenue = transactions[0].totalAmount
 
         
       res.json({  

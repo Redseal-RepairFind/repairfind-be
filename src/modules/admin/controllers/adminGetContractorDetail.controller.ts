@@ -44,54 +44,59 @@ export const AdminGetContractorDetailController = async (
 
       const totalContractor = await ContractorModel.countDocuments()
   
-      const artisans = [];
+      // const artisans = [];
       
-      for (let i = 0; i < contractors.length; i++) {
-        const contractor = contractors[i];
+      // for (let i = 0; i < contractors.length; i++) {
+      //   const contractor = contractors[i];
 
-        const document = await ContractorDocumentValidateModel.findOne({contractorId: contractor._id});
+      //   const document = await ContractorDocumentValidateModel.findOne({contractorId: contractor._id});
 
-        const availability = await ContractorAvailabilityModel.find({contractorId: contractor._id});
+      //   const availability = await ContractorAvailabilityModel.find({contractorId: contractor._id});
 
-        const jobRequests = await JobModel.find({contractorId: contractor._id}).sort({ createdAt: -1 })
+      //   const jobRequests = await JobModel.find({contractorId: contractor._id}).sort({ createdAt: -1 })
 
-        let rating = null;
+      //   let rating = null;
         
-        const contractorRating = await ContractorRatingModel.findOne({contractorId: contractor._id})
-        if (contractorRating) {
-          rating = contractorRating
-        }
+      //   const contractorRating = await ContractorRatingModel.findOne({contractorId: contractor._id})
+      //   if (contractorRating) {
+      //     rating = contractorRating
+      //   }
 
-        let jobRequested = []
+      //   let jobRequested = []
 
-        for (let i = 0; i < jobRequests.length; i++) {
-          const jobRequest = jobRequests[i];
+      //   for (let i = 0; i < jobRequests.length; i++) {
+      //     const jobRequest = jobRequests[i];
           
-          const customer = await CustomerRegModel.findOne({_id: jobRequest.customerId}).select('-password');
+      //     const customer = await CustomerRegModel.findOne({_id: jobRequest.customerId}).select('-password');
 
-          const obj = {
-            job: jobRequest,
-            customer
-          }
+      //     const obj = {
+      //       job: jobRequest,
+      //       customer
+      //     }
 
-          jobRequested.push(obj)
+      //     jobRequested.push(obj)
           
-        }
+      //   }
 
-        const objTwo = {
-            contractorProfile: contractor,
-            rating,
-            document,
-            availability,
-            jobHistory: jobRequested
-        };
+      //   const objTwo = {
 
-        artisans.push(objTwo)
-      }
+      //       contractorProfile: contractor,
+      //       rating,
+      //       document,
+      //       availability,
+      //       jobHistory: jobRequested
+      //   };
+
+      //   artisans.push(objTwo)
+      // }
   
       res.json({ 
-        totalContractor, 
-        artisans
+        currentPage: page,
+        totalContractor,
+        totalPages: Math.ceil(totalContractor / limit),
+        contractors,
+        // totalContractor, 
+        // artisans
       });
       
     } catch (err: any) {
@@ -111,9 +116,7 @@ export const AdminGetSingleContractorDetailController = async (
 ) => {
 
   try {
-    let {  
-     contractorId
-    } = req.body;
+    const { contractorId } = req.params;
 
     // Check for validation errors
     const errors = validationResult(req);
@@ -134,45 +137,46 @@ export const AdminGetSingleContractorDetailController = async (
         .json({ message: "invalid artisan ID" });
     }
 
-    const document = await ContractorDocumentValidateModel.findOne({contractorId: contractor._id});
+    // const document = await ContractorDocumentValidateModel.findOne({contractorId: contractor._id});
 
-    const availability = await ContractorAvailabilityModel.find({contractorId: contractor._id});
+    // const availability = await ContractorAvailabilityModel.find({contractorId: contractor._id});
 
-    const jobRequests = await JobModel.find({contractorId: contractor._id}).sort({ createdAt: -1 })
+    // const jobRequests = await JobModel.find({contractorId: contractor._id}).sort({ createdAt: -1 })
 
-    let rating = null;
+    // let rating = null;
         
-    const contractorRating = await ContractorRatingModel.findOne({contractorId: contractor._id})
-    if (contractorRating) {
-      rating = contractorRating
-    }
+    // const contractorRating = await ContractorRatingModel.findOne({contractorId: contractor._id})
+    // if (contractorRating) {
+    //   rating = contractorRating
+    // }
 
-    let jobRequested = []
+    // let jobRequested = []
 
-    for (let i = 0; i < jobRequests.length; i++) {
-      const jobRequest = jobRequests[i];
+    // for (let i = 0; i < jobRequests.length; i++) {
+    //   const jobRequest = jobRequests[i];
       
-      const customer = await CustomerRegModel.findOne({_id: jobRequest.customerId}).select('-password');
+    //   const customer = await CustomerRegModel.findOne({_id: jobRequest.customerId}).select('-password');
 
-      const obj = {
-        job: jobRequest,
-        customer
-      }
+    //   const obj = {
+    //     job: jobRequest,
+    //     customer
+    //   }
 
-      jobRequested.push(obj)
+    //   jobRequested.push(obj)
       
-    }
+    // }
 
-    const objTwo = {
-        contractorProfile: contractor,
-        rating,
-        document,
-        availability,
-        jobHistory: jobRequested
-    };
+    // const objTwo = {
+    //     contractorProfile: contractor,
+    //     rating,
+    //     document,
+    //     availability,
+    //     jobHistory: jobRequested
+    // };
 
-    res.json({  
-      artisan: objTwo
+    res.json({ 
+      contractor, 
+      // artisan: objTwo
     });
     
   } catch (err: any) {
@@ -190,8 +194,62 @@ export const AdminChangeContractorContractorDetailController = async (
 
   try {
     let {  
-     status,
+     gstStatus,
      contractorId
+    } = req.body;
+
+    console.log(1)
+
+    // Check for validation errors
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    console.log(2)
+
+    const admin =  req.admin;
+    const adminId = admin.id
+
+    const contractor = await ContractorModel.findOne({_id: contractorId})
+
+    console.log(3)
+
+    if (!contractor) {
+      return res
+        .status(401)
+        .json({ message: "invalid contractor ID" });
+    }
+
+    console.log(4)
+
+    contractor.gstDetails.status = gstStatus;
+    console.log(5)
+    await contractor.save()
+
+    console.log(6)
+
+    res.json({  
+      message: `contractor GST status successfully change to ${gstStatus}.`
+    });
+    
+  } catch (err: any) {
+    // signup error
+    res.status(500).json({ message: err.message });
+  }
+}
+
+
+//admin get contractor gst that is pending /////////////
+export const AdminGetContractorGstPendingController = async (
+  req: any,
+  res: Response,
+) => {
+
+  try {
+    let {  
+     
     } = req.body;
 
     // Check for validation errors
@@ -204,23 +262,26 @@ export const AdminChangeContractorContractorDetailController = async (
     const admin =  req.admin;
     const adminId = admin.id
 
-    const contractor = await ContractorModel.findOne({_id: contractorId})
-
-    if (!contractor) {
-      return res
-        .status(401)
-        .json({ message: "invalid artisan ID" });
-    }
-
-    contractor.status = status;
-    await contractor.save()
-
+    const contractor = await ContractorModel.find({
+      "gstDetails": {
+          "status": "PENDING"
+        }
+      
+    })
+  
     res.json({  
-      message: `artisan status successfully change to ${status}.`
+      contractor
     });
     
   } catch (err: any) {
     // signup error
     res.status(500).json({ message: err.message });
   }
+}
+
+export const AdminContractorDetail = {
+  AdminGetContractorDetailController,
+  AdminGetSingleContractorDetailController,
+  AdminChangeContractorContractorDetailController,
+  AdminGetContractorGstPendingController
 }
