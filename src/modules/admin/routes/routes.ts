@@ -2,7 +2,7 @@ import { memoryUpload } from "../../../utils/upload.utility";
 import { AdminAddNewSkillController, AdminGetSkillController } from "../controllers/adminAddSkill.controller";
 import { AdminGetContractorDocForValController, AdminGetSingleContractorDocForValController, AdminValidateContractorDocsController } from "../controllers/adminContractorDocVal.controller";
 import { AdminEmailForgotPasswordController, AdminEmailResetPasswordController } from "../controllers/adminForgotPassword";
-import { AdminChangeContractorContractorDetailController, AdminGetContractorDetailController, AdminGetSingleContractorDetailController } from "../controllers/adminGetContractorDetail.controller";
+import { AdminContractorDetail } from "../controllers/adminGetContractorDetail.controller";
 import { AdminGetCustomerDetailController, AdminGetSingleCustomerDetailController } from "../controllers/adminGetCustomerDetail.contractor";
 import { adminGetNotificationrController, adminUnseenNotificationrController, adminViewNotificationrController } from "../controllers/adminNotification.controller";
 import { AdminSignInController, SuperAdminGetAllAdminController, SuperAdminValidateOtherAdminController, adminResendEmailController, adminSignUpController, adminUpdateBioController, adminVerifiedEmailController } from "../controllers/adminReg.controller";
@@ -29,10 +29,11 @@ router.get("/super/admin/get_list_of_admin", checkAdminRole, SuperAdminGetAllAdm
 router.post("/super/admin/validate/other_admin", validateSuperAdminValidationParams, checkAdminRole, SuperAdminValidateOtherAdminController ); // super admin validate other admin
 
 
-
-router.get("/admin_get_contractor_detail", checkAdminRole, AdminGetContractorDetailController ); // admin get contractor detail
-router.get("/admin_get_single_contractor_detail", validateContractorIdValidationParams, checkAdminRole, AdminGetSingleContractorDetailController ); // admin get single contractor detail
-router.post("/admin_change_contractor_status", validateContractorChangeStatusValidationParams, checkAdminRole, AdminChangeContractorContractorDetailController ); // admin change contractor status
+//don
+router.get("/contractor/detail", checkAdminRole, AdminContractorDetail.AdminGetContractorDetailController ); // admin get contractor detail
+router.get("/contractor/detail/:contractorId", checkAdminRole, AdminContractorDetail.AdminGetSingleContractorDetailController ); // admin get single contractor detail
+router.post("/validate/contractor/gst", validateContractorChangeStatusValidationParams, checkAdminRole, AdminContractorDetail.AdminChangeContractorContractorDetailController ); // admin change contractor gst status
+router.get("/contractor/detail/pending/gst", checkAdminRole, AdminContractorDetail.AdminGetContractorGstPendingController ); // admin get contractor detail with gst status pending
 
 router.get("/admin_get_customer_detail", checkAdminRole, AdminGetCustomerDetailController ); // admin get customer detail
 router.get("/admin_get_single_customer_detail", validateCustomerIdValidationParams, checkAdminRole, AdminGetSingleCustomerDetailController ); // admin get single customer detail
