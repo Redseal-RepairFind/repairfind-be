@@ -81,6 +81,10 @@ exports.config = {
         authToken: process.env.TWILIO_AUTH_TOKEN,
         twilioPhoneNumber: process.env.TWILIO_PHONE_NUMBER
     },
+    agora: {
+        appId: process.env.AGORA_APP_ID,
+        appCertificate: process.env.AGORA_APP_CERTIFICATE,
+    },
     port: process.env.PORT,
     environment: process.env.APN_ENV,
 };

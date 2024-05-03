@@ -131,7 +131,6 @@ export const createJobRequest = async (
 
 
         JobEvent.emit('NEW_JOB_REQUEST', { jobId: newJob.id, contractorId, customerId, conversationId: conversation.id })
-
         const html = htmlJobRequestTemplate(customer.firstName, customer.firstName, `${date} ${time}`, description)
         EmailService.send(contractor.email, 'Job request from customer', html)
 
@@ -216,6 +215,9 @@ export const createJobListing = async (
         // Save the job document to the database
         await newJob.save();
 
+        JobEvent.emit('NEW_JOB_LISTING', { jobId: newJob.id })
+        
+
         res.status(201).json({ success: true, message: 'Job listing submitted successfully', data: newJob });
     } catch (error: any) {
         return next(new BadRequestError('An error occured ', error))
@@ -233,7 +235,12 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
         }
 
         // Extract query parameters
-        const { contractorId, status, startDate, endDate, date, type } = req.query;
+        const {limit = 10, page=1, sort='-createdAt',  contractorId, status, startDate, endDate, date, type } = req.query;
+        
+        req.query.page = page
+        req.query.limit = limit
+        req.query.sort = sort
+    
         const customerId = req.customer.id;
 
         // Construct filter object based on query parameters
@@ -273,7 +280,7 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
         }
 
         // Execute query
-        const { data, error } = await applyAPIFeature(JobModel.find(filter), req.query);
+        const { data, error } = await applyAPIFeature(JobModel.find(filter).populate(['contractor', 'quotation']), req.query);
 
         if (data) {
 
@@ -291,6 +298,66 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
         return next(new BadRequestError('An error occured ', error))
     }
 };
+
+export const getJobHistory = async (req: any, res: Response, next: NextFunction) => {
+    const customerId = req.contractor.id;
+  
+    try {
+      let {
+        page = 1, // Default to page 1
+        limit = 10, // Default to 10 items per page
+        sort = '-createdAt', // Sort field and order (-fieldName or fieldName)
+        contractorId,
+        status = 'COMPLETED, CANCELLED',
+      } = req.query;
+  
+  
+      req.query.page = page
+      req.query.limit = limit
+      req.query.sort = sort
+      delete req.query.status
+      // Retrieve the quotations for the current contractor and extract job IDs
+      const quotations = await JobQuotationModel.find({ contractor: contractorId }).select('job').lean();
+  
+      // Extract job IDs from the quotations
+      const jobIds = quotations.map((quotation: any) => quotation.job);
+  
+      if (contractorId) {
+        if (!mongoose.Types.ObjectId.isValid(contractorId)) {
+          return res.status(400).json({ success: false, message: 'Invalid customer id' });
+        }
+        req.query.contractor = contractorId
+        delete req.query.contractorId
+      }
+  
+      // Query JobModel to find jobs that have IDs present in the extracted jobIds
+      const statusArray = status.split(',').map((s: any) => s.trim()); // Convert the comma-separated string to an array of statuses
+      const { data, error } = await applyAPIFeature(
+        JobModel.find({
+            status: {$in: statusArray},
+            $or: [
+                { _id: { $in: jobIds } }, // Match jobs specified in jobIds
+                { contractor: contractorId } // Match jobs with contractorId
+            ]
+        }).distinct('_id'),
+        req.query);
+      if (data) {
+        // Map through each job and attach myQuotation if contractor has applied 
+        await Promise.all(data.data.map(async (job: any) => {
+          job.myQuotation = await job.getMyQoutation(contractorId)
+        }));
+      }
+  
+      if (error) {
+        return next(new BadRequestError('Unkowon error occured'));
+      }
+  
+      // Send response with job listings data
+      res.status(200).json({ success: true, data: data });
+    } catch (error: any) {
+      return next(new BadRequestError('An error occurred', error));
+    }
+  };
 
 export const getSingleJob = async (req: any, res: Response, next: NextFunction) => {
     try {
@@ -1294,6 +1361,7 @@ export const declineJobQuotation = async (req: any, res: Response, next: NextFun
 export const CustomerJobController = {
     createJobRequest,
     getMyJobs,
+    getJobHistory,
     createJobListing,
     getSingleJob,
     getJobQuotations,

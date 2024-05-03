@@ -74,14 +74,14 @@ var VoiceDescriptionSchema = new mongoose_1.Schema({
     }
 });
 var ScheduleSchema = new mongoose_1.Schema({
-    startDate: { type: Date, required: true },
-    endDate: { type: Date },
-    isCurrent: { type: Boolean, default: true },
-    isRescheduled: { type: Boolean, default: false },
+    date: { type: Date, required: true },
+    previousDate: { type: Date },
+    awaitingConfirmation: { type: Boolean, default: false },
     isCustomerAccept: { type: Boolean, default: false },
     isContractorAccept: { type: Boolean, default: false },
     createdBy: String,
     type: { type: String, enum: Object.values(JOB_SCHEDULE_TYPE) },
+    remark: String,
 });
 var JobLocationSchema = new mongoose_1.Schema({
     address: { type: String },
@@ -117,7 +117,7 @@ var JobSchema = new mongoose_1.Schema({
     tags: { type: [String] },
     experience: { type: String },
     jobHistory: [JobHistorySchema], // Array of job history entries
-    schedules: [ScheduleSchema],
+    schedule: ScheduleSchema,
     quotations: [{
             id: { type: mongoose_1.Schema.Types.ObjectId, ref: 'job_quotations' },
             status: { type: String, enum: Object.values(job_quotation_model_1.JOB_QUOTATION_STATUS) }

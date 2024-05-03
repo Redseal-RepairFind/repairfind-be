@@ -55,7 +55,7 @@ export class InternalServerError extends CustomError {
 }
 
 export function errorHandler(err: CustomError, req: Request, res: Response, next: NextFunction) {
-   Logger.error(err.stack, err.error);
+   Logger.error(err);
 
    // Default status code and error message
    let statusCode = err.code || 500;

@@ -46,6 +46,7 @@ var customer_model_1 = __importDefault(require("../database/customer/models/cust
 var contractor_model_1 = require("../database/contractor/models/contractor.model");
 var job_model_1 = require("../database/common/job.model");
 var conversations_schema_1 = require("../database/common/conversations.schema");
+var socket_1 = require("../services/socket");
 exports.JobEvent = new events_1.EventEmitter();
 exports.JobEvent.on('NEW_JOB_REQUEST', function (payload) {
     var _a, _b;
@@ -109,6 +110,34 @@ exports.JobEvent.on('NEW_JOB_REQUEST', function (payload) {
                     console.error("Error handling NEW_JOB_REQUEST event: ".concat(error_1));
                     return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
+            }
+        });
+    });
+});
+exports.JobEvent.on('NEW_JOB_LISTING', function (payload) {
+    return __awaiter(this, void 0, void 0, function () {
+        var job, error_2;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 2, , 3]);
+                    console.log('handling alert NEW_JOB_LISTING event');
+                    return [4 /*yield*/, job_model_1.JobModel.findById(payload.jobId)];
+                case 1:
+                    job = _a.sent();
+                    if (job) {
+                        socket_1.SocketService.broadcastChannel('alerts', 'NEW_JOB_LISTING', {
+                            type: 'NEW_JOB_LISTING',
+                            message: 'A new Job listing has been added',
+                            data: job
+                        });
+                    }
+                    return [3 /*break*/, 3];
+                case 2:
+                    error_2 = _a.sent();
+                    console.error("Error handling NEW_JOB_REQUEST event: ".concat(error_2));
+                    return [3 /*break*/, 3];
+                case 3: return [2 /*return*/];
             }
         });
     });

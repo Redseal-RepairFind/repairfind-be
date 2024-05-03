@@ -81,7 +81,7 @@ var InternalServerError = /** @class */ (function (_super) {
 }(CustomError));
 exports.InternalServerError = InternalServerError;
 function errorHandler(err, req, res, next) {
-    logger_1.Logger.error(err.stack, err.error);
+    logger_1.Logger.error(err);
     // Default status code and error message
     var statusCode = err.code || 500;
     var errorMessage = err.message || 'Internal Server Error';
