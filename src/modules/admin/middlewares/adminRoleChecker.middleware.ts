@@ -20,6 +20,7 @@ export const checkAdminRole = async (
 
     let secret = process.env.JWT_ADMIN_SECRET_KEY;
   // Get JWT from Authorization header
+  
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(" ")[1];
 
@@ -28,6 +29,9 @@ export const checkAdminRole = async (
   }
 
   try {
+    console.log('heafe', req.headers)
+    console.log('token', token);
+    console.log('secret', secret)
     // Verify JWT and extract payload
     const payload = jwt.verify(token, secret!) as unknown as JwtPayload;
    

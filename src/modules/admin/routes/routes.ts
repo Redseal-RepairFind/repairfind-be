@@ -50,6 +50,7 @@ router.get("/admin_get_skill", checkAdminRole, AdminGetSkillController ); // adm
 router.get("/jobs/detail", checkAdminRole, AdminJobController.AdminGetJobsrDetailController ); // admin get job detail
 router.get("/jobs/detail/:jobId", checkAdminRole, AdminJobController.AdminGetSingleJobsrDetailController ); // admin get single job detail
 router.get("/total_job", checkAdminRole, AdminJobController.AdminGetTotalJobsrController); // admin get total job
+router.get("/app_detail", checkAdminRole, AdminGetAppDetailController ); // admin get app detail
 
 
 router.get("/admin_get_transaction_detail", checkAdminRole, AdminGetTransactionDetailController ); // admin get transaction detail
@@ -63,7 +64,6 @@ router.get("/admin_get_single_question", validateQuestionIdValidationParams, che
 router.post("/admin_edit_question", validateEditQuestionParams, checkAdminRole, AdminQuizController.EditQuestion ); // admin edit question
 router.post("/admin_delete_question", validateDeleteQuestionValidationParams, checkAdminRole, AdminQuizController.DeleteQuestion ); // admin delete question
 
-router.get("/app_detail", checkAdminRole, AdminGetAppDetailController ); // admin get app detail
 router.post("/update_profile", checkAdminRole, memoryUpload.single('profileImg'), adminUpdateBioController ); // admin update profile
 
 router.get("/get_all_notification", checkAdminRole,  adminGetNotificationrController ); // admin get all notification
