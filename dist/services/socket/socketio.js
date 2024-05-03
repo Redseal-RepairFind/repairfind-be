@@ -41,8 +41,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 var custom_errors_1 = require("../../utils/custom.errors");
-var contractor_model_1 = require("../../database/contractor/models/contractor.model");
-var customer_model_1 = __importDefault(require("../../database/customer/models/customer.model"));
 var SocketIOService = /** @class */ (function () {
     function SocketIOService() {
     }
@@ -75,7 +73,6 @@ var SocketIOService = /** @class */ (function () {
             if (socket.user && socket.user.email) {
                 socket.join(socket.user.email);
                 socket.join('alerts'); // also join alerts channel
-                socket.join('customer@repairfind.com'); // to test call - remove
                 console.log("User ".concat(socket.user.email, " joined channels:"));
                 console.log(socket.rooms);
             }
@@ -86,31 +83,8 @@ var SocketIOService = /** @class */ (function () {
             });
             // Handle notification events from client here
             socket.on("start_call", function (payload) { return __awaiter(_this, void 0, void 0, function () {
-                var toUser, toUserType, user, _a;
-                return __generator(this, function (_b) {
-                    switch (_b.label) {
-                        case 0:
-                            console.log("user started a call ", payload);
-                            toUser = payload.toUser, toUserType = payload.toUserType;
-                            if (!toUserType || !toUser)
-                                return [2 /*return*/]; // Ensure userType and userId are valid
-                            if (!(toUserType === 'contractors')) return [3 /*break*/, 2];
-                            return [4 /*yield*/, contractor_model_1.ContractorModel.findById(toUser)];
-                        case 1:
-                            _a = _b.sent();
-                            return [3 /*break*/, 4];
-                        case 2: return [4 /*yield*/, customer_model_1.default.findById(toUser)];
-                        case 3:
-                            _a = _b.sent();
-                            _b.label = 4;
-                        case 4:
-                            user = _a;
-                            if (!user)
-                                return [2 /*return*/]; // Ensure user exists
-                            this.io.to(socket.user.email).emit('OUTGOING_CALL', payload);
-                            this.io.to(user.email).emit('INCOMING_CALL', { name: 'Aaron', image: 'asdasd', channel: '234324234', });
-                            return [2 /*return*/];
-                    }
+                return __generator(this, function (_a) {
+                    return [2 /*return*/];
                 });
             }); });
         });
