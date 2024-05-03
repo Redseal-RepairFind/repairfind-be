@@ -14,6 +14,7 @@ import { ContractorNotificationController } from "../controllers/contractor_noti
 import { ContractorConversationController } from "../controllers/contractor_conversation.controller";
 import { ContractorTripDayController } from "../controllers/contractor_tripDay.controller";
 import { ContractorTransactionController } from "../controllers/contractor_transaction.controller";
+import { ContractorCallController } from "../controllers/contractor_call.controller";
 
 const express = require("express");
 const router = express.Router();
@@ -187,5 +188,10 @@ router.get("/transactions/:transactionId", checkContractorRole, ContractorTransa
 // trips day
 router.post('/trip/:jobId/start', checkContractorRole, ContractorTripDayController.contractorStartTripController)
 router.post('/trip/:tripDayId/arrive', checkContractorRole, ContractorTripDayController.contractorArrivedSiteController)
+
+
+// Call
+router.post("/voicecall/agora-rtc", checkContractorRole,  ContractorCallController.createRtcToken );
+router.post("/voicecall", checkContractorRole,  ContractorCallController.startCall );
 
 export default router;

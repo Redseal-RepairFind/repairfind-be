@@ -1,6 +1,8 @@
 import jwt from "jsonwebtoken";
 import { Server, Socket } from "socket.io";
 import { BadRequestError } from "../../utils/custom.errors";
+import { ContractorModel } from "../../database/contractor/models/contractor.model";
+import CustomerModel from "../../database/customer/models/customer.model";
 
 interface CustomSocket extends Socket {
     user?: any; // Define a custom property to store user information
@@ -40,14 +42,29 @@ class SocketIOService {
             if (socket.user && socket.user.email) {
                 socket.join(socket.user.email);
                 socket.join('alerts'); // also join alerts channel
+                socket.join('customer@repairfind.com'); // to test call - remove
                 console.log(`User ${socket.user.email} joined channels:`);
                 console.log(socket.rooms)
             }
 
             // Handle notification events from client here
-            socket.on("joinChannel", (channel: string) => {
+            socket.on("join_channel", (channel: string) => {
                 console.log(`user explicitly joined a channel here ${channel}`)
                 socket.join(channel); // Join a room based on user email to enable private notifications
+            });
+
+            // Handle notification events from client here
+            socket.on("start_call", async (payload: any) => {
+                
+                console.log(`user started a call `, payload)
+                const { toUser, toUserType } = payload
+                if (!toUserType || !toUser) return // Ensure userType and userId are valid
+                const user = toUserType === 'contractors' ? await ContractorModel.findById(toUser) : await CustomerModel.findById(toUser)
+                if (!user) return // Ensure user exists
+                
+                this.io.to(socket.user.email).emit('OUTGOING_CALL', payload);
+                this.io.to(user.email).emit('INCOMING_CALL', {name: 'Aaron', image: 'asdasd', channel: '234324234', });
+
             });
         });
     }

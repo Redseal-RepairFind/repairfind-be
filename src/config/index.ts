@@ -65,6 +65,11 @@ export const config = {
         twilioPhoneNumber: <string>process.env.TWILIO_PHONE_NUMBER
     },
 
+    agora: {
+        appId: <string>process.env.AGORA_APP_ID,
+        appCertificate: <string>process.env.AGORA_APP_CERTIFICATE,
+    },
+
 
     port: process.env.PORT as unknown as number,
     environment: <string>process.env.APN_ENV,

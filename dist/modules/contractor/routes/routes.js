@@ -14,6 +14,7 @@ var contractor_notification_controller_1 = require("../controllers/contractor_no
 var contractor_conversation_controller_1 = require("../controllers/contractor_conversation.controller");
 var contractor_tripDay_controller_1 = require("../controllers/contractor_tripDay.controller");
 var contractor_transaction_controller_1 = require("../controllers/contractor_transaction.controller");
+var contractor_call_controller_1 = require("../controllers/contractor_call.controller");
 var express = require("express");
 var router = express.Router();
 //  AUTH
@@ -141,4 +142,7 @@ router.get("/transactions/:transactionId", contractorRoleCheck_middleware_1.chec
 // trips day
 router.post('/trip/:jobId/start', contractorRoleCheck_middleware_1.checkContractorRole, contractor_tripDay_controller_1.ContractorTripDayController.contractorStartTripController);
 router.post('/trip/:tripDayId/arrive', contractorRoleCheck_middleware_1.checkContractorRole, contractor_tripDay_controller_1.ContractorTripDayController.contractorArrivedSiteController);
+// Call
+router.post("/voicecall/agora-rtc", contractorRoleCheck_middleware_1.checkContractorRole, contractor_call_controller_1.ContractorCallController.createRtcToken);
+router.post("/voicecall", contractorRoleCheck_middleware_1.checkContractorRole, contractor_call_controller_1.ContractorCallController.startCall);
 exports.default = router;
