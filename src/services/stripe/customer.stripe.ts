@@ -28,7 +28,7 @@ export const updateCustomer = async (customerId: string, params: Stripe.Customer
     const customer: Stripe.Customer = await stripe.customers.update(customerId, params);
     return customer
   }catch (error: any) {
-    throw new BadRequestError('error updating customer on stripe', error);
+    // throw new BadRequestError('error updating customer on stripe', error);
   }
 };
 
