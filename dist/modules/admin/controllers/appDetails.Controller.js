@@ -42,16 +42,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AdminGetAppDetailController = void 0;
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
-var job_model_1 = __importDefault(require("../../../database/contractor/models/job.model"));
+var job_model_1 = require("../../../database/common/job.model");
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var transaction_model_1 = __importDefault(require("../../../database/common/transaction.model"));
 //get app detail /////////////
 var AdminGetAppDetailController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, errors, admin, adminId, totalCustomer, totalContractor, totalJob, totalRequestRejectedJobByContrator, totalPendingJob, totalPendingJobOne, totalPendingJobTwo, totalPendingJobTre, totalPendingJobFor, totalProgressJob, totalProgressJobOne, totalProgressJobTwo, totalCompletedJob, totalComplainedJob, totalRevenue, transactions, i, transaction, err_1;
+    var _a, errors, admin, adminId, totalCustomer, totalContractor, totalJob, totalRequestRejectedJobByContrator, totalPendingJob, totalPendingJobOne, totalPendingJobTwo, totalPendingJobTre, totalPendingJobFor, totalPendingJobfiv, totalProgressJob, totalProgressJobOne, totalProgressJobTwo, totalCompletedJob, totalComplainedJob, totalRevenue, transactions, err_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 14, , 15]);
+                _b.trys.push([0, 15, , 16]);
                 _a = req.query;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
@@ -65,56 +65,61 @@ var AdminGetAppDetailController = function (req, res) { return __awaiter(void 0,
                 return [4 /*yield*/, contractor_model_1.ContractorModel.countDocuments()];
             case 2:
                 totalContractor = _b.sent();
-                return [4 /*yield*/, job_model_1.default.countDocuments()];
+                return [4 /*yield*/, job_model_1.JobModel.countDocuments()];
             case 3:
                 totalJob = _b.sent();
-                return [4 /*yield*/, job_model_1.default.countDocuments({ status: "job reject" })
+                return [4 /*yield*/, job_model_1.JobModel.countDocuments({ status: "job reject" })
                     //get total pending job detail
                 ];
             case 4:
                 totalRequestRejectedJobByContrator = _b.sent();
                 totalPendingJob = 0;
-                return [4 /*yield*/, job_model_1.default.countDocuments({ status: "sent request" })];
+                return [4 /*yield*/, job_model_1.JobModel.countDocuments({ status: "PENDING" })];
             case 5:
                 totalPendingJobOne = _b.sent();
-                return [4 /*yield*/, job_model_1.default.countDocuments({ status: "sent qoutation" })];
+                return [4 /*yield*/, job_model_1.JobModel.countDocuments({ status: "DECLINED" })];
             case 6:
                 totalPendingJobTwo = _b.sent();
-                return [4 /*yield*/, job_model_1.default.countDocuments({ status: "qoutation payment open" })];
+                return [4 /*yield*/, job_model_1.JobModel.countDocuments({ status: "ACCEPTED" })];
             case 7:
                 totalPendingJobTre = _b.sent();
-                return [4 /*yield*/, job_model_1.default.countDocuments({ status: "inspection payment open" })];
+                return [4 /*yield*/, job_model_1.JobModel.countDocuments({ status: "EXPIRED" })];
             case 8:
                 totalPendingJobFor = _b.sent();
-                totalPendingJob = totalPendingJobOne + totalPendingJobTwo + totalPendingJobTre + totalPendingJobFor;
-                totalProgressJob = 0;
-                return [4 /*yield*/, job_model_1.default.countDocuments({ status: "qoutation payment confirm and job in progress" })];
+                return [4 /*yield*/, job_model_1.JobModel.countDocuments({ status: "BOOKED" })];
             case 9:
-                totalProgressJobOne = _b.sent();
-                return [4 /*yield*/, job_model_1.default.countDocuments({ status: "completed" })];
+                totalPendingJobfiv = _b.sent();
+                totalPendingJob = totalPendingJobOne + totalPendingJobTwo + totalPendingJobTre + totalPendingJobFor + totalPendingJobfiv;
+                totalProgressJob = 0;
+                return [4 /*yield*/, job_model_1.JobModel.countDocuments({ status: "BOOKED" })];
             case 10:
+                totalProgressJobOne = _b.sent();
+                return [4 /*yield*/, job_model_1.JobModel.countDocuments({ status: "ACCEPTED" })];
+            case 11:
                 totalProgressJobTwo = _b.sent();
                 totalProgressJob = totalProgressJobOne + totalProgressJobTwo;
-                return [4 /*yield*/, job_model_1.default.countDocuments({ status: "comfirmed" })
+                return [4 /*yield*/, job_model_1.JobModel.countDocuments({ status: "COMPLETED" })
                     //get total complain job detail
                 ];
-            case 11:
+            case 12:
                 totalCompletedJob = _b.sent();
-                return [4 /*yield*/, job_model_1.default.countDocuments({ status: "complain" })
+                return [4 /*yield*/, job_model_1.JobModel.countDocuments({ status: "DISPUTED" })
                     // get total revenue
                 ];
-            case 12:
+            case 13:
                 totalComplainedJob = _b.sent();
                 totalRevenue = 0;
-                return [4 /*yield*/, transaction_model_1.default.find({ type: "credit" })];
-            case 13:
+                return [4 /*yield*/, transaction_model_1.default.aggregate([
+                        {
+                            $group: {
+                                _id: null,
+                                totalAmount: { $sum: '$amount' }
+                            }
+                        }
+                    ])];
+            case 14:
                 transactions = _b.sent();
-                for (i = 0; i < transactions.length; i++) {
-                    transaction = transactions[i];
-                    if (transaction.amount) {
-                        totalRevenue = totalRevenue + transaction.amount;
-                    }
-                }
+                totalRevenue = transactions[0].totalAmount;
                 res.json({
                     totalCustomer: totalCustomer,
                     totalContractor: totalContractor,
@@ -126,13 +131,13 @@ var AdminGetAppDetailController = function (req, res) { return __awaiter(void 0,
                     totalComplainedJob: totalComplainedJob,
                     totalRevenue: totalRevenue,
                 });
-                return [3 /*break*/, 15];
-            case 14:
+                return [3 /*break*/, 16];
+            case 15:
                 err_1 = _b.sent();
                 // signup error
                 res.status(500).json({ message: err_1.message });
-                return [3 /*break*/, 15];
-            case 15: return [2 /*return*/];
+                return [3 /*break*/, 16];
+            case 16: return [2 /*return*/];
         }
     });
 }); };

@@ -35,9 +35,9 @@ exports.validateCustomerIdValidationParams = [
 ];
 exports.validateContractorChangeStatusValidationParams = [
     (0, express_validator_1.body)("contractorId").notEmpty(),
-    (0, express_validator_1.body)("status")
-        .isIn(["suspend", "in-review", "active", "closed"])
-        .withMessage("status must be suspend, in-review, active, or closed"),
+    (0, express_validator_1.body)("gstStatus")
+        .isIn(["PENDING", "REVIEWING", "APPROVED", "DECLINED"])
+        .withMessage("gstStatus must be PENDING, REVIEWING, APPROVED, or DECLINED"),
 ];
 exports.validateContractoDocumentIdValidationParams = [
     (0, express_validator_1.body)("contractorDocsId").notEmpty(),

@@ -35,25 +35,17 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AdminChangeContractorContractorDetailController = exports.AdminGetSingleContractorDetailController = exports.AdminGetContractorDetailController = void 0;
+exports.AdminContractorDetail = exports.AdminGetContractorGstPendingController = exports.AdminChangeContractorContractorDetailController = exports.AdminGetSingleContractorDetailController = exports.AdminGetContractorDetailController = void 0;
 var express_validator_1 = require("express-validator");
-var contractorDocumentValidate_model_1 = __importDefault(require("../../../database/contractor/models/contractorDocumentValidate.model"));
-var contractorAvaliability_model_1 = __importDefault(require("../../../database/contractor/models/contractorAvaliability.model"));
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
-var job_model_1 = __importDefault(require("../../../database/contractor/models/job.model"));
-var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
-var contractorRating_model_1 = __importDefault(require("../../../database/contractor/models/contractorRating.model"));
 //get contractor detail /////////////
 var AdminGetContractorDetailController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, page, limit, errors, admin, adminId, skip, contractors, totalContractor, artisans, i, contractor, document_1, availability, jobRequests, rating, contractorRating, jobRequested, i_1, jobRequest, customer, obj, objTwo, err_1;
+    var _a, page, limit, errors, admin, adminId, skip, contractors, totalContractor, err_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 14, , 15]);
+                _b.trys.push([0, 3, , 4]);
                 _a = req.body, page = _a.page, limit = _a.limit;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
@@ -71,86 +63,97 @@ var AdminGetContractorDetailController = function (req, res) { return __awaiter(
                         .limit(limit)];
             case 1:
                 contractors = _b.sent();
-                return [4 /*yield*/, contractor_model_1.ContractorModel.countDocuments()];
+                return [4 /*yield*/, contractor_model_1.ContractorModel.countDocuments()
+                    // const artisans = [];
+                    // for (let i = 0; i < contractors.length; i++) {
+                    //   const contractor = contractors[i];
+                    //   const document = await ContractorDocumentValidateModel.findOne({contractorId: contractor._id});
+                    //   const availability = await ContractorAvailabilityModel.find({contractorId: contractor._id});
+                    //   const jobRequests = await JobModel.find({contractorId: contractor._id}).sort({ createdAt: -1 })
+                    //   let rating = null;
+                    //   const contractorRating = await ContractorRatingModel.findOne({contractorId: contractor._id})
+                    //   if (contractorRating) {
+                    //     rating = contractorRating
+                    //   }
+                    //   let jobRequested = []
+                    //   for (let i = 0; i < jobRequests.length; i++) {
+                    //     const jobRequest = jobRequests[i];
+                    //     const customer = await CustomerRegModel.findOne({_id: jobRequest.customerId}).select('-password');
+                    //     const obj = {
+                    //       job: jobRequest,
+                    //       customer
+                    //     }
+                    //     jobRequested.push(obj)
+                    //   }
+                    //   const objTwo = {
+                    //       contractorProfile: contractor,
+                    //       rating,
+                    //       document,
+                    //       availability,
+                    //       jobHistory: jobRequested
+                    //   };
+                    //   artisans.push(objTwo)
+                    // }
+                ];
             case 2:
                 totalContractor = _b.sent();
-                artisans = [];
-                i = 0;
-                _b.label = 3;
-            case 3:
-                if (!(i < contractors.length)) return [3 /*break*/, 13];
-                contractor = contractors[i];
-                return [4 /*yield*/, contractorDocumentValidate_model_1.default.findOne({ contractorId: contractor._id })];
-            case 4:
-                document_1 = _b.sent();
-                return [4 /*yield*/, contractorAvaliability_model_1.default.find({ contractorId: contractor._id })];
-            case 5:
-                availability = _b.sent();
-                return [4 /*yield*/, job_model_1.default.find({ contractorId: contractor._id }).sort({ createdAt: -1 })];
-            case 6:
-                jobRequests = _b.sent();
-                rating = null;
-                return [4 /*yield*/, contractorRating_model_1.default.findOne({ contractorId: contractor._id })];
-            case 7:
-                contractorRating = _b.sent();
-                if (contractorRating) {
-                    rating = contractorRating;
-                }
-                jobRequested = [];
-                i_1 = 0;
-                _b.label = 8;
-            case 8:
-                if (!(i_1 < jobRequests.length)) return [3 /*break*/, 11];
-                jobRequest = jobRequests[i_1];
-                return [4 /*yield*/, customer_model_1.default.findOne({ _id: jobRequest.customerId }).select('-password')];
-            case 9:
-                customer = _b.sent();
-                obj = {
-                    job: jobRequest,
-                    customer: customer
-                };
-                jobRequested.push(obj);
-                _b.label = 10;
-            case 10:
-                i_1++;
-                return [3 /*break*/, 8];
-            case 11:
-                objTwo = {
-                    contractorProfile: contractor,
-                    rating: rating,
-                    document: document_1,
-                    availability: availability,
-                    jobHistory: jobRequested
-                };
-                artisans.push(objTwo);
-                _b.label = 12;
-            case 12:
-                i++;
-                return [3 /*break*/, 3];
-            case 13:
+                // const artisans = [];
+                // for (let i = 0; i < contractors.length; i++) {
+                //   const contractor = contractors[i];
+                //   const document = await ContractorDocumentValidateModel.findOne({contractorId: contractor._id});
+                //   const availability = await ContractorAvailabilityModel.find({contractorId: contractor._id});
+                //   const jobRequests = await JobModel.find({contractorId: contractor._id}).sort({ createdAt: -1 })
+                //   let rating = null;
+                //   const contractorRating = await ContractorRatingModel.findOne({contractorId: contractor._id})
+                //   if (contractorRating) {
+                //     rating = contractorRating
+                //   }
+                //   let jobRequested = []
+                //   for (let i = 0; i < jobRequests.length; i++) {
+                //     const jobRequest = jobRequests[i];
+                //     const customer = await CustomerRegModel.findOne({_id: jobRequest.customerId}).select('-password');
+                //     const obj = {
+                //       job: jobRequest,
+                //       customer
+                //     }
+                //     jobRequested.push(obj)
+                //   }
+                //   const objTwo = {
+                //       contractorProfile: contractor,
+                //       rating,
+                //       document,
+                //       availability,
+                //       jobHistory: jobRequested
+                //   };
+                //   artisans.push(objTwo)
+                // }
                 res.json({
+                    currentPage: page,
                     totalContractor: totalContractor,
-                    artisans: artisans
+                    totalPages: Math.ceil(totalContractor / limit),
+                    contractors: contractors,
+                    // totalContractor, 
+                    // artisans
                 });
-                return [3 /*break*/, 15];
-            case 14:
+                return [3 /*break*/, 4];
+            case 3:
                 err_1 = _b.sent();
                 // signup error
                 res.status(500).json({ message: err_1.message });
-                return [3 /*break*/, 15];
-            case 15: return [2 /*return*/];
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
         }
     });
 }); };
 exports.AdminGetContractorDetailController = AdminGetContractorDetailController;
 //get  single contractor detail /////////////
 var AdminGetSingleContractorDetailController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var contractorId, errors, admin, adminId, contractor, document_2, availability, jobRequests, rating, contractorRating, jobRequested, i, jobRequest, customer, obj, objTwo, err_2;
+    var contractorId, errors, admin, adminId, contractor, err_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 10, , 11]);
-                contractorId = req.body.contractorId;
+                _a.trys.push([0, 2, , 3]);
+                contractorId = req.params.contractorId;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -166,90 +169,80 @@ var AdminGetSingleContractorDetailController = function (req, res) { return __aw
                             .status(401)
                             .json({ message: "invalid artisan ID" })];
                 }
-                return [4 /*yield*/, contractorDocumentValidate_model_1.default.findOne({ contractorId: contractor._id })];
-            case 2:
-                document_2 = _a.sent();
-                return [4 /*yield*/, contractorAvaliability_model_1.default.find({ contractorId: contractor._id })];
-            case 3:
-                availability = _a.sent();
-                return [4 /*yield*/, job_model_1.default.find({ contractorId: contractor._id }).sort({ createdAt: -1 })];
-            case 4:
-                jobRequests = _a.sent();
-                rating = null;
-                return [4 /*yield*/, contractorRating_model_1.default.findOne({ contractorId: contractor._id })];
-            case 5:
-                contractorRating = _a.sent();
-                if (contractorRating) {
-                    rating = contractorRating;
-                }
-                jobRequested = [];
-                i = 0;
-                _a.label = 6;
-            case 6:
-                if (!(i < jobRequests.length)) return [3 /*break*/, 9];
-                jobRequest = jobRequests[i];
-                return [4 /*yield*/, customer_model_1.default.findOne({ _id: jobRequest.customerId }).select('-password')];
-            case 7:
-                customer = _a.sent();
-                obj = {
-                    job: jobRequest,
-                    customer: customer
-                };
-                jobRequested.push(obj);
-                _a.label = 8;
-            case 8:
-                i++;
-                return [3 /*break*/, 6];
-            case 9:
-                objTwo = {
-                    contractorProfile: contractor,
-                    rating: rating,
-                    document: document_2,
-                    availability: availability,
-                    jobHistory: jobRequested
-                };
+                // const document = await ContractorDocumentValidateModel.findOne({contractorId: contractor._id});
+                // const availability = await ContractorAvailabilityModel.find({contractorId: contractor._id});
+                // const jobRequests = await JobModel.find({contractorId: contractor._id}).sort({ createdAt: -1 })
+                // let rating = null;
+                // const contractorRating = await ContractorRatingModel.findOne({contractorId: contractor._id})
+                // if (contractorRating) {
+                //   rating = contractorRating
+                // }
+                // let jobRequested = []
+                // for (let i = 0; i < jobRequests.length; i++) {
+                //   const jobRequest = jobRequests[i];
+                //   const customer = await CustomerRegModel.findOne({_id: jobRequest.customerId}).select('-password');
+                //   const obj = {
+                //     job: jobRequest,
+                //     customer
+                //   }
+                //   jobRequested.push(obj)
+                // }
+                // const objTwo = {
+                //     contractorProfile: contractor,
+                //     rating,
+                //     document,
+                //     availability,
+                //     jobHistory: jobRequested
+                // };
                 res.json({
-                    artisan: objTwo
+                    contractor: contractor,
+                    // artisan: objTwo
                 });
-                return [3 /*break*/, 11];
-            case 10:
+                return [3 /*break*/, 3];
+            case 2:
                 err_2 = _a.sent();
                 // signup error
                 res.status(500).json({ message: err_2.message });
-                return [3 /*break*/, 11];
-            case 11: return [2 /*return*/];
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
         }
     });
 }); };
 exports.AdminGetSingleContractorDetailController = AdminGetSingleContractorDetailController;
 //change contractor status /////////////
 var AdminChangeContractorContractorDetailController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, status_1, contractorId, errors, admin, adminId, contractor, err_3;
+    var _a, gstStatus, contractorId, errors, admin, adminId, contractor, err_3;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
                 _b.trys.push([0, 3, , 4]);
-                _a = req.body, status_1 = _a.status, contractorId = _a.contractorId;
+                _a = req.body, gstStatus = _a.gstStatus, contractorId = _a.contractorId;
+                console.log(1);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
+                console.log(2);
                 admin = req.admin;
                 adminId = admin.id;
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: contractorId })];
             case 1:
                 contractor = _b.sent();
+                console.log(3);
                 if (!contractor) {
                     return [2 /*return*/, res
                             .status(401)
-                            .json({ message: "invalid artisan ID" })];
+                            .json({ message: "invalid contractor ID" })];
                 }
-                contractor.status = status_1;
+                console.log(4);
+                contractor.gstDetails.status = gstStatus;
+                console.log(5);
                 return [4 /*yield*/, contractor.save()];
             case 2:
                 _b.sent();
+                console.log(6);
                 res.json({
-                    message: "artisan status successfully change to ".concat(status_1, ".")
+                    message: "contractor GST status successfully change to ".concat(gstStatus, ".")
                 });
                 return [3 /*break*/, 4];
             case 3:
@@ -262,3 +255,44 @@ var AdminChangeContractorContractorDetailController = function (req, res) { retu
     });
 }); };
 exports.AdminChangeContractorContractorDetailController = AdminChangeContractorContractorDetailController;
+//admin get contractor gst that is pending /////////////
+var AdminGetContractorGstPendingController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, errors, admin, adminId, contractor, err_4;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 2, , 3]);
+                _a = req.body;
+                errors = (0, express_validator_1.validationResult)(req);
+                if (!errors.isEmpty()) {
+                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                }
+                admin = req.admin;
+                adminId = admin.id;
+                return [4 /*yield*/, contractor_model_1.ContractorModel.find({
+                        "gstDetails": {
+                            "status": "PENDING"
+                        }
+                    })];
+            case 1:
+                contractor = _b.sent();
+                res.json({
+                    contractor: contractor
+                });
+                return [3 /*break*/, 3];
+            case 2:
+                err_4 = _b.sent();
+                // signup error
+                res.status(500).json({ message: err_4.message });
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.AdminGetContractorGstPendingController = AdminGetContractorGstPendingController;
+exports.AdminContractorDetail = {
+    AdminGetContractorDetailController: exports.AdminGetContractorDetailController,
+    AdminGetSingleContractorDetailController: exports.AdminGetSingleContractorDetailController,
+    AdminChangeContractorContractorDetailController: exports.AdminChangeContractorContractorDetailController,
+    AdminGetContractorGstPendingController: exports.AdminGetContractorGstPendingController
+};

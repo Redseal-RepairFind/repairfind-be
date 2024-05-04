@@ -35,56 +35,52 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.RepairFindQueueWorker = void 0;
-var bullmq_1 = require("bullmq");
-var config_1 = require("../../config");
-var ioredis_1 = __importDefault(require("ioredis"));
-var capture_stripe_payments_1 = require("./jobs/capture_stripe_payments");
-var logger_1 = require("../../utils/logger");
-var sync_certn_applications_1 = require("./jobs/sync_certn_applications");
-var redisConfig = {
-    port: Number(config_1.config.redis.port),
-    host: config_1.config.redis.host,
-    password: config_1.config.redis.password,
-    username: config_1.config.redis.username,
-    maxRetriesPerRequest: null,
-    // uri: config.redis.uri,
-};
-// console.log(config)
-// @ts-ignore
-if (!(config_1.config.environment == 'development')) {
-    console.log('not developement');
-    redisConfig.tls = {};
-}
-;
-// const redisConnection = createClient(redisConfig); // Create Redis client
-// this.repairFindQueue = new Queue('RepairFindQueue', { connection: redisConfig });
-var redisConnection = new ioredis_1.default(redisConfig);
-exports.RepairFindQueueWorker = new bullmq_1.Worker('RepairFindQueue', function (job) { return __awaiter(void 0, void 0, void 0, function () {
+exports.syncCertnApplications = void 0;
+var __1 = require("../..");
+var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
+var interface_dto_util_1 = require("../../../utils/interface_dto.util");
+var logger_1 = require("../../../utils/logger");
+var syncCertnApplications = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var contractors, _i, contractors_1, contractor, res, error_1, error_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                // Job processing logic here
-                logger_1.Logger.info("Job Processing: ".concat(job.name, " - ").concat(job.id));
-                if (!(job.name == 'CapturePayments')) return [3 /*break*/, 2];
-                return [4 /*yield*/, (0, capture_stripe_payments_1.captureStripePayments)()];
+                _a.trys.push([0, 8, , 9]);
+                return [4 /*yield*/, contractor_model_1.ContractorModel.find({
+                        certnId: { $ne: null }
+                    })];
             case 1:
-                _a.sent();
+                contractors = _a.sent();
+                _i = 0, contractors_1 = contractors;
                 _a.label = 2;
             case 2:
-                if (!(job.name == 'syncCertnApplications')) return [3 /*break*/, 4];
-                return [4 /*yield*/, (0, sync_certn_applications_1.syncCertnApplications)()];
+                if (!(_i < contractors_1.length)) return [3 /*break*/, 7];
+                contractor = contractors_1[_i];
+                _a.label = 3;
             case 3:
-                _a.sent();
-                _a.label = 4;
-            case 4: return [2 /*return*/];
+                _a.trys.push([3, 5, , 6]);
+                return [4 /*yield*/, __1.CertnService.retrieveApplicant(contractor.certnId)];
+            case 4:
+                res = _a.sent();
+                contractor.certnDetails = (0, interface_dto_util_1.castPayloadToDTO)(res, res);
+                contractor.save();
+                logger_1.Logger.info("Successfully synced certn profile for: ".concat(contractor.email));
+                return [3 /*break*/, 6];
+            case 5:
+                error_1 = _a.sent();
+                logger_1.Logger.error("Error syncing  certn profile for: ".concat(contractor.email), error_1);
+                return [3 /*break*/, 6];
+            case 6:
+                _i++;
+                return [3 /*break*/, 2];
+            case 7: return [3 /*break*/, 9];
+            case 8:
+                error_2 = _a.sent();
+                logger_1.Logger.error('Error occurred while syncing certn:', error_2);
+                return [3 /*break*/, 9];
+            case 9: return [2 /*return*/];
         }
     });
-}); }, { connection: redisConnection });
-exports.RepairFindQueueWorker.on('completed', function (job) {
-    logger_1.Logger.info("Job Completed: ".concat(job.name, " - ").concat(job.id, " has completed!"));
-});
+}); };
+exports.syncCertnApplications = syncCertnApplications;

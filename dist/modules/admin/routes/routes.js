@@ -27,9 +27,11 @@ router.post("/forgot/password", adminValidate_middleware_1.validateAdminForgotPa
 router.post("/reset/password", adminValidate_middleware_1.validateAdminResetPasswprdParams, adminForgotPassword_1.AdminEmailResetPasswordController); // admin reset password
 router.get("/super/admin/get_list_of_admin", adminRoleChecker_middleware_1.checkAdminRole, adminReg_controller_1.SuperAdminGetAllAdminController); // super get the list of admin
 router.post("/super/admin/validate/other_admin", adminValidate_middleware_1.validateSuperAdminValidationParams, adminRoleChecker_middleware_1.checkAdminRole, adminReg_controller_1.SuperAdminValidateOtherAdminController); // super admin validate other admin
-router.get("/admin_get_contractor_detail", adminRoleChecker_middleware_1.checkAdminRole, adminGetContractorDetail_controller_1.AdminGetContractorDetailController); // admin get contractor detail
-router.get("/admin_get_single_contractor_detail", adminValidate_middleware_1.validateContractorIdValidationParams, adminRoleChecker_middleware_1.checkAdminRole, adminGetContractorDetail_controller_1.AdminGetSingleContractorDetailController); // admin get single contractor detail
-router.post("/admin_change_contractor_status", adminValidate_middleware_1.validateContractorChangeStatusValidationParams, adminRoleChecker_middleware_1.checkAdminRole, adminGetContractorDetail_controller_1.AdminChangeContractorContractorDetailController); // admin change contractor status
+//don
+router.get("/contractor/detail", adminRoleChecker_middleware_1.checkAdminRole, adminGetContractorDetail_controller_1.AdminContractorDetail.AdminGetContractorDetailController); // admin get contractor detail
+router.get("/contractor/detail/:contractorId", adminRoleChecker_middleware_1.checkAdminRole, adminGetContractorDetail_controller_1.AdminContractorDetail.AdminGetSingleContractorDetailController); // admin get single contractor detail
+router.post("/validate/contractor/gst", adminValidate_middleware_1.validateContractorChangeStatusValidationParams, adminRoleChecker_middleware_1.checkAdminRole, adminGetContractorDetail_controller_1.AdminContractorDetail.AdminChangeContractorContractorDetailController); // admin change contractor gst status
+router.get("/contractor/detail/pending/gst", adminRoleChecker_middleware_1.checkAdminRole, adminGetContractorDetail_controller_1.AdminContractorDetail.AdminGetContractorGstPendingController); // admin get contractor detail with gst status pending
 router.get("/admin_get_customer_detail", adminRoleChecker_middleware_1.checkAdminRole, adminGetCustomerDetail_contractor_1.AdminGetCustomerDetailController); // admin get customer detail
 router.get("/admin_get_single_customer_detail", adminValidate_middleware_1.validateCustomerIdValidationParams, adminRoleChecker_middleware_1.checkAdminRole, adminGetCustomerDetail_contractor_1.AdminGetSingleCustomerDetailController); // admin get single customer detail
 router.get("/admin_get_contractor_document", adminRoleChecker_middleware_1.checkAdminRole, adminContractorDocVal_controller_1.AdminGetContractorDocForValController); // admin get contractor pending document for validation
@@ -41,6 +43,7 @@ router.get("/admin_get_skill", adminRoleChecker_middleware_1.checkAdminRole, adm
 router.get("/jobs/detail", adminRoleChecker_middleware_1.checkAdminRole, job_controller_1.AdminJobController.AdminGetJobsrDetailController); // admin get job detail
 router.get("/jobs/detail/:jobId", adminRoleChecker_middleware_1.checkAdminRole, job_controller_1.AdminJobController.AdminGetSingleJobsrDetailController); // admin get single job detail
 router.get("/total_job", adminRoleChecker_middleware_1.checkAdminRole, job_controller_1.AdminJobController.AdminGetTotalJobsrController); // admin get total job
+router.get("/app_detail", adminRoleChecker_middleware_1.checkAdminRole, appDetails_Controller_1.AdminGetAppDetailController); // admin get app detail
 router.get("/admin_get_transaction_detail", adminRoleChecker_middleware_1.checkAdminRole, transaction_controller_1.AdminGetTransactionDetailController); // admin get transaction detail
 router.get("/admin_get_single_transaction_detail", adminValidate_middleware_1.validateTRansactionIdValidationParams, adminRoleChecker_middleware_1.checkAdminRole, transaction_controller_1.AdminGetSingleTransactionDetailController); // admin get single transaction detail
 router.post("/admin_add_question", adminValidate_middleware_1.validateAddQuestionParams, adminRoleChecker_middleware_1.checkAdminRole, quiz_controller_1.AdminQuizController.AddQuestion); // admin add question
@@ -48,7 +51,6 @@ router.get("/admin_get_all_question", adminRoleChecker_middleware_1.checkAdminRo
 router.get("/admin_get_single_question", adminValidate_middleware_1.validateQuestionIdValidationParams, adminRoleChecker_middleware_1.checkAdminRole, quiz_controller_1.AdminQuizController.GetSingleQuestion); // admin get single question
 router.post("/admin_edit_question", adminValidate_middleware_1.validateEditQuestionParams, adminRoleChecker_middleware_1.checkAdminRole, quiz_controller_1.AdminQuizController.EditQuestion); // admin edit question
 router.post("/admin_delete_question", adminValidate_middleware_1.validateDeleteQuestionValidationParams, adminRoleChecker_middleware_1.checkAdminRole, quiz_controller_1.AdminQuizController.DeleteQuestion); // admin delete question
-router.get("/app_detail", adminRoleChecker_middleware_1.checkAdminRole, appDetails_Controller_1.AdminGetAppDetailController); // admin get app detail
 router.post("/update_profile", adminRoleChecker_middleware_1.checkAdminRole, upload_utility_1.memoryUpload.single('profileImg'), adminReg_controller_1.adminUpdateBioController); // admin update profile
 router.get("/get_all_notification", adminRoleChecker_middleware_1.checkAdminRole, adminNotification_controller_1.adminGetNotificationrController); // admin get all notification
 router.post("/view_unseen_notification", adminRoleChecker_middleware_1.checkAdminRole, adminNotification_controller_1.adminViewNotificationrController); // admin view unseen notification

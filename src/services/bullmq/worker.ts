@@ -3,6 +3,7 @@ import { config } from '../../config';
 import Redis from 'ioredis';
 import { captureStripePayments } from './jobs/capture_stripe_payments';
 import { Logger } from '../../utils/logger';
+import { syncCertnApplications } from './jobs/sync_certn_applications';
 
 const redisConfig = {
     port: Number(config.redis.port),
@@ -33,6 +34,9 @@ export const RepairFindQueueWorker = new Worker('RepairFindQueue', async job => 
     // CapturePayments
     if(job.name =='CapturePayments'){
         await captureStripePayments()
+    }
+    if(job.name =='syncCertnApplications'){
+        await syncCertnApplications()
     }
 }, { connection: redisConnection });
 

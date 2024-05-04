@@ -81,6 +81,17 @@ class JobQueue {
       },
     })
 
+    QueueService.addJob('syncCertnApplications', {}, {
+      repeat: {
+        // pattern: '* * * * *',
+        // cron: '*/5 * * * * *', // Every 5 seconds
+        // offset: new Date().getTimezoneOffset(), 
+        // tz: 'Europe/Berlin',
+        // limit: 1,
+        every: 600000, // 600000 mili = 10 minutes
+      },
+    })
+
     app.use('/queues', this.serverAdapter.getRouter());
   }
 
