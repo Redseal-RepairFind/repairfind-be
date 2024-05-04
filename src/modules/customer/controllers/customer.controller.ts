@@ -93,7 +93,7 @@ export const getAccount = async (req: any, res: Response) => {
 
       const stripe_customer =  castPayloadToDTO(stripeCustomer, stripeCustomer as IStripeCustomer)
       console.log(stripe_customer)
-      customer.save()
+      // customer.save()
       
     } else {
      

@@ -107,6 +107,7 @@ export const StripeWebhookHandler = async (req: Request) => {
     } catch (error: any) {
         // throw new BadRequestError(error.message || "Something went wrong");
         console.log(error.message || "Something went wrong inside stripe webhook")
+        return
     }
 };
 

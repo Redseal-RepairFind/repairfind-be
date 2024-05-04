@@ -147,6 +147,7 @@ var StripeWebhookHandler = function (req) { return __awaiter(void 0, void 0, voi
         catch (error) {
             // throw new BadRequestError(error.message || "Something went wrong");
             console.log(error.message || "Something went wrong inside stripe webhook");
+            return [2 /*return*/];
         }
         return [2 /*return*/];
     });

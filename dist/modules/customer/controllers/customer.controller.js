@@ -116,7 +116,6 @@ var getAccount = function (req, res) { return __awaiter(void 0, void 0, void 0, 
                 });
                 stripe_customer = (0, interface_dto_util_1.castPayloadToDTO)(stripeCustomer, stripeCustomer);
                 console.log(stripe_customer);
-                customer.save();
                 return [3 /*break*/, 5];
             case 3: return [4 /*yield*/, stripe_1.StripeService.customer.createCustomer({
                     email: customer.email,
