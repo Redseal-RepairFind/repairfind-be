@@ -135,7 +135,7 @@ var startCall = function (req, res, next) { return __awaiter(void 0, void 0, voi
                     user: user.id,
                     userType: toUserType,
                     title: 'New Incoming Call',
-                    type: 'NEW_INCOMMING_CALL', //
+                    type: 'NEW_INCOMING_CALL', //
                     message: "You've an incomming call from ".concat(fromUser.name),
                     heading: { name: "".concat(fromUser.name), image: (_c = fromUser.profilePhoto) === null || _c === void 0 ? void 0 : _c.url },
                     payload: {
@@ -145,7 +145,7 @@ var startCall = function (req, res, next) { return __awaiter(void 0, void 0, voi
                         message: "You've an incomming call from ".concat(fromUser.name),
                         name: "".concat(fromUser.name),
                         image: (_d = fromUser.profilePhoto) === null || _d === void 0 ? void 0 : _d.url,
-                        event: 'NEW_INCOMMING_CALL',
+                        event: 'NEW_INCOMING_CALL',
                     }
                 }, { database: true, push: true, socket: true });
                 res.status(200).json({ message: 'Token generated', data: { token: token, channelName: channelName, call: call } });

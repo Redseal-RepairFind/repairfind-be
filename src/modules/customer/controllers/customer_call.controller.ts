@@ -74,7 +74,7 @@ export const startCall = async (
             user: user.id,
             userType: toUserType,
             title: 'New Incoming Call',
-            type: 'NEW_INCOMMING_CALL', //
+            type: 'NEW_INCOMING_CALL', //
             message: `You've an incomming call from ${fromUser.name}`,
             heading: { name: `${fromUser.name}`, image: fromUser.profilePhoto?.url },
             payload: {
@@ -84,7 +84,7 @@ export const startCall = async (
                 message: `You've an incomming call from ${fromUser.name}`,
                 name: `${fromUser.name}`,
                 image: fromUser.profilePhoto?.url,
-                event: 'NEW_INCOMMING_CALL',
+                event: 'NEW_INCOMING_CALL',
             }
         }, { database: true, push: true, socket: true })
         
