@@ -30,14 +30,13 @@ exports.CallSchema = new mongoose_1.Schema({
     fromUserType: { type: String, required: true },
     toUser: { type: String, required: true },
     toUserType: { type: String, required: true },
-    startTime: { type: Date, required: true },
-    endTime: { type: Date, required: true },
-    durationSeconds: { type: Number, required: true },
-    callType: { type: String, enum: ['incoming', 'outgoing'], required: true },
+    startTime: { type: Date, required: false },
+    endTime: { type: Date, required: false },
+    durationSeconds: { type: Number, required: false },
     callStatus: {
         type: String,
         enum: ['answered', 'missed', 'rejected', 'ended'],
-        required: true,
+        required: false,
     },
     recordingUrl: { type: String },
     // Add any other relevant fields here

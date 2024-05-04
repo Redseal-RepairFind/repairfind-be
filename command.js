@@ -1,6 +1,6 @@
 // cli.js
 
-const { QueueService } = require("./src/services/bullmq");
+const { QueueService } = require("./dist/services/bullmq");
 
 // Example command to obliterate a queue
 async function obliterateQueue(queueName) {
