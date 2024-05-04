@@ -84,7 +84,7 @@ var updateAccount = function (req, res) { return __awaiter(void 0, void 0, void 
 }); };
 exports.updateAccount = updateAccount;
 var getAccount = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, includeStripeIdentity, includeStripeCustomer, includeStripePaymentMethods, includedFields, customer, stripeCustomer, paymentMethods, customerResponse, err_2;
+    var customerId, includeStripeIdentity, includeStripeCustomer, includeStripePaymentMethods, includedFields, customer, stripeCustomer, stripe_customer, paymentMethods, customerResponse, err_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -114,7 +114,8 @@ var getAccount = function (req, res) { return __awaiter(void 0, void 0, void 0, 
                 stripe_1.StripeService.customer.updateCustomer(customer.stripeCustomer.id, {
                     metadata: { userType: 'customers', userId: customerId }
                 });
-                customer.stripeCustomer = (0, interface_dto_util_1.castPayloadToDTO)(stripeCustomer, stripeCustomer);
+                stripe_customer = (0, interface_dto_util_1.castPayloadToDTO)(stripeCustomer, stripeCustomer);
+                console.log(stripe_customer);
                 customer.save();
                 return [3 /*break*/, 5];
             case 3: return [4 /*yield*/, stripe_1.StripeService.customer.createCustomer({

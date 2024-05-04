@@ -91,7 +91,8 @@ export const getAccount = async (req: any, res: Response) => {
         metadata: { userType: 'customers', userId: customerId }
       })
 
-      customer.stripeCustomer =  castPayloadToDTO(stripeCustomer, stripeCustomer as IStripeCustomer)
+      const stripe_customer =  castPayloadToDTO(stripeCustomer, stripeCustomer as IStripeCustomer)
+      console.log(stripe_customer)
       customer.save()
       
     } else {
