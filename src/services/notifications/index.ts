@@ -1,3 +1,4 @@
+import { title } from 'process';
 import NotificationModel from '../../database/common/notification.model';
 import { ContractorModel } from '../../database/contractor/models/contractor.model';
 import ContractorDeviceModel from '../../database/contractor/models/contractor_devices.model';
@@ -68,12 +69,12 @@ export class NotificationService  {
 
         if ('push' in options) {
             sendPushNotifications( deviceTokens , {
-                title: 'Identity Verification',
+                title: params.title, 
+                type: params.type, 
                 icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
                 body: 'Identity verification session created',
                 data: { 
-                    event: 'identity.verification_session.created',
-                    payload: params.payload
+                    ...params.payload
                 },
             })
 
