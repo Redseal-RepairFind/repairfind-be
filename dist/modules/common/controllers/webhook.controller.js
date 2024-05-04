@@ -36,7 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.WebhookController = exports.stripeWebook = void 0;
+exports.WebhookController = exports.certnWebook = exports.stripeWebook = void 0;
 var stripe_1 = require("../../../services/stripe");
 var stripeWebook = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var sig, payload;
@@ -55,6 +55,24 @@ var stripeWebook = function (req, res) { return __awaiter(void 0, void 0, void 0
     });
 }); };
 exports.stripeWebook = stripeWebook;
+var certnWebook = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    return __generator(this, function (_a) {
+        try {
+            // const sig = <string>req.headers['stripe-signature'];
+            // const payload = req.body;
+            // Log.info([sig, payload])
+            // StripeService.webhook.StripeWebhookHandler(req)
+            console.log(req);
+            res.status(200).end();
+        }
+        catch (err) {
+            res.status(500).json({ success: false, message: err.message });
+        }
+        return [2 /*return*/];
+    });
+}); };
+exports.certnWebook = certnWebook;
 exports.WebhookController = {
     stripeWebook: exports.stripeWebook,
+    certnWebook: exports.certnWebook
 };

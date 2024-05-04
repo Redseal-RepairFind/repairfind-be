@@ -9,7 +9,6 @@ import { Base } from "../../../abstracts/base.abstract";
 import { handleAsyncError } from "../../../abstracts/decorators.abstract";
 import { ContractorProfileModel } from "../../../database/contractor/models/contractor_profile.model";
 import { IContractorBankDetails, IContractorProfile } from "../../../database/contractor/interface/contractor_profile.interface";
-import { initiateCertnInvite } from "../../../services/certn";
 import { CertnService, EmailService } from "../../../services";
 import { StripeService } from "../../../services/stripe";
 import ContractorDeviceModel from "../../../database/contractor/models/contractor_devices.model";
@@ -59,7 +58,7 @@ class ProfileHandler extends Base {
 
       let payload = {}
       console.log(contractor.accountType)
-      if ( (contractor.accountType == CONTRACTOR_TYPES.Company) || (contractor.accountType == CONTRACTOR_TYPES.Individual) ) {
+      if ((contractor.accountType == CONTRACTOR_TYPES.Company) || (contractor.accountType == CONTRACTOR_TYPES.Individual)) {
         payload = {
           contractor: contractorId,
           location,
@@ -111,11 +110,14 @@ class ProfileHandler extends Base {
           email: contractor.email
         };
 
-        CertnService.initiateCertnInvite(data).then(res => {
-          profile.certnId = res.applicant.id
-          profile.save()
-          console.log('Certn invitation sent', profile.certnId)
-        })
+        if (!contractor.certnId) {
+          CertnService.initiateCertnInvite(data).then(res => {
+            contractor.certnId = res.applicant.id
+            contractor.save()
+            console.log('Certn invitation sent', contractor.certnId)
+          })
+        }
+
       }
 
 
@@ -296,12 +298,12 @@ class ProfileHandler extends Base {
         skill
       } = req.body;
 
-     
-       // Check for validation errors
-       const errors = validationResult(req);
-       if (!errors.isEmpty()) {
-         return res.status(400).json({ errors: errors.array() });
-       }
+
+      // Check for validation errors
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
 
       const profile = await ContractorProfileModel.findOneAndUpdate(
         { contractor: contractorId },
@@ -340,7 +342,7 @@ class ProfileHandler extends Base {
     } catch (err: any) {
       console.log('error', err);
       res.status(500).json({ success: false, message: err.message });
-      next( new BadRequestError('An error occured', err))
+      next(new BadRequestError('An error occured', err))
     }
   }
 

@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.initiateCertnInvite = void 0;
+exports.retrieveApplicant = exports.initiateDemo = exports.initiateCertnInvite = void 0;
 var node_fetch_1 = __importDefault(require("node-fetch"));
 var config_1 = require("../../config");
 function initiateCertnInvite(data) {
@@ -75,3 +75,68 @@ function initiateCertnInvite(data) {
     });
 }
 exports.initiateCertnInvite = initiateCertnInvite;
+function initiateDemo(data) {
+    return __awaiter(this, void 0, void 0, function () {
+        var certnToken, options, certn, certnData, error_2;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 3, , 4]);
+                    certnToken = config_1.config.certn.certnKey;
+                    options = {
+                        method: "POST",
+                        headers: {
+                            'Authorization': "Bearer ".concat(certnToken),
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify(data),
+                    };
+                    return [4 /*yield*/, (0, node_fetch_1.default)("https://api.certn.co/hr/v1/applications/quick/", options)];
+                case 1:
+                    certn = _a.sent();
+                    return [4 /*yield*/, certn.json()];
+                case 2:
+                    certnData = _a.sent();
+                    return [2 /*return*/, certnData];
+                case 3:
+                    error_2 = _a.sent();
+                    console.error('Error initiating Certn invite:', error_2);
+                    return [3 /*break*/, 4];
+                case 4: return [2 /*return*/];
+            }
+        });
+    });
+}
+exports.initiateDemo = initiateDemo;
+function retrieveApplicant(id) {
+    return __awaiter(this, void 0, void 0, function () {
+        var certnToken, options, certn, certnData, error_3;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 3, , 4]);
+                    certnToken = config_1.config.certn.certnKey;
+                    options = {
+                        method: "GET",
+                        headers: {
+                            'Authorization': "Bearer ".concat(certnToken),
+                            "Content-Type": "application/json",
+                        },
+                    };
+                    return [4 /*yield*/, (0, node_fetch_1.default)("https://api.certn.co/hr/v1/applicants/".concat(id), options)];
+                case 1:
+                    certn = _a.sent();
+                    return [4 /*yield*/, certn.json()];
+                case 2:
+                    certnData = _a.sent();
+                    return [2 /*return*/, certnData];
+                case 3:
+                    error_3 = _a.sent();
+                    console.error('Error initiating Certn invite:', error_3);
+                    return [3 /*break*/, 4];
+                case 4: return [2 /*return*/];
+            }
+        });
+    });
+}
+exports.retrieveApplicant = retrieveApplicant;

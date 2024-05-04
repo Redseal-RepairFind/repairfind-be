@@ -105,7 +105,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     }
     ProfileHandler.prototype.createProfile = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _a, location_1, backgroundCheckConsent, skill, website, experienceYear, about, email, phoneNumber, emergencyJobs, availableDays, profilePhoto, previousJobPhotos, previousJobVideos, contractorId, contractor, errors, payload, profile_1, contractorResponse, data, htmlCon, html, adminsWithEmails, adminEmails, err_1;
+            var req, res, _a, location_1, backgroundCheckConsent, skill, website, experienceYear, about, email, phoneNumber, emergencyJobs, availableDays, profilePhoto, previousJobPhotos, previousJobVideos, contractorId, contractor_1, errors, payload, profile, contractorResponse, data, htmlCon, html, adminsWithEmails, adminEmails, err_1;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -118,8 +118,8 @@ var ProfileHandler = /** @class */ (function (_super) {
                         contractorId = req.contractor.id;
                         return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
                     case 2:
-                        contractor = _b.sent();
-                        if (!contractor) {
+                        contractor_1 = _b.sent();
+                        if (!contractor_1) {
                             return [2 /*return*/, res.status(404).json({ message: "Contractor account not found" })];
                         }
                         errors = (0, express_validator_1.validationResult)(req);
@@ -127,8 +127,8 @@ var ProfileHandler = /** @class */ (function (_super) {
                             return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                         }
                         payload = {};
-                        console.log(contractor.accountType);
-                        if ((contractor.accountType == contractor_interface_1.CONTRACTOR_TYPES.Company) || (contractor.accountType == contractor_interface_1.CONTRACTOR_TYPES.Individual)) {
+                        console.log(contractor_1.accountType);
+                        if ((contractor_1.accountType == contractor_interface_1.CONTRACTOR_TYPES.Company) || (contractor_1.accountType == contractor_interface_1.CONTRACTOR_TYPES.Individual)) {
                             payload = {
                                 contractor: contractorId,
                                 location: location_1,
@@ -146,7 +146,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                                 backgroundCheckConsent: backgroundCheckConsent,
                             };
                         }
-                        if (contractor.accountType == contractor_interface_1.CONTRACTOR_TYPES.Employee) {
+                        if (contractor_1.accountType == contractor_interface_1.CONTRACTOR_TYPES.Employee) {
                             payload = {
                                 contractor: contractorId,
                                 location: location_1,
@@ -157,31 +157,33 @@ var ProfileHandler = /** @class */ (function (_super) {
                             // Update the ContractorModel with the profile ID
                         ];
                     case 3:
-                        profile_1 = _b.sent();
+                        profile = _b.sent();
                         // Update the ContractorModel with the profile ID
-                        contractor.profile = profile_1._id;
-                        contractor.profilePhoto = profilePhoto;
-                        return [4 /*yield*/, contractor.save()];
+                        contractor_1.profile = profile._id;
+                        contractor_1.profilePhoto = profilePhoto;
+                        return [4 /*yield*/, contractor_1.save()];
                     case 4:
                         _b.sent();
-                        contractorResponse = __assign(__assign({}, contractor.toJSON()), { profile: profile_1 });
-                        if (contractor.accountType == contractor_interface_1.CONTRACTOR_TYPES.Individual) {
+                        contractorResponse = __assign(__assign({}, contractor_1.toJSON()), { profile: profile });
+                        if (contractor_1.accountType == contractor_interface_1.CONTRACTOR_TYPES.Individual) {
                             data = {
                                 request_enhanced_identity_verification: true,
                                 request_enhanced_criminal_record_check: true,
-                                email: contractor.email
+                                email: contractor_1.email
                             };
-                            services_1.CertnService.initiateCertnInvite(data).then(function (res) {
-                                profile_1.certnId = res.applicant.id;
-                                profile_1.save();
-                                console.log('Certn invitation sent', profile_1.certnId);
-                            });
+                            if (!contractor_1.certnId) {
+                                services_1.CertnService.initiateCertnInvite(data).then(function (res) {
+                                    contractor_1.certnId = res.applicant.id;
+                                    contractor_1.save();
+                                    console.log('Certn invitation sent', contractor_1.certnId);
+                                });
+                            }
                         }
-                        htmlCon = (0, contractorDocumentTemplate_1.htmlContractorDocumentValidatinTemplate)(contractor.firstName);
-                        services_1.EmailService.send(contractor.email, 'New Profile', htmlCon)
+                        htmlCon = (0, contractorDocumentTemplate_1.htmlContractorDocumentValidatinTemplate)(contractor_1.firstName);
+                        services_1.EmailService.send(contractor_1.email, 'New Profile', htmlCon)
                             .then(function () { return console.log('Email sent successfully'); })
                             .catch(function (error) { return console.error('Error sending email:', error); });
-                        html = (0, adminContractorDocumentTemplate_1.htmlContractorDocumentValidatinToAdminTemplate)(contractor.firstName);
+                        html = (0, adminContractorDocumentTemplate_1.htmlContractorDocumentValidatinToAdminTemplate)(contractor_1.firstName);
                         return [4 /*yield*/, admin_model_1.default.find().select('email')];
                     case 5:
                         adminsWithEmails = _b.sent();

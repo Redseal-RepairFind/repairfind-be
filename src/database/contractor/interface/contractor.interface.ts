@@ -26,6 +26,55 @@ export interface IContractorCompanyDetails  extends Document  {
 }
 
 
+export interface IContractorCertnDetails {
+  id: string;
+  created: string;
+  modified: string;
+  is_submitted: boolean;
+  applicant_type: string;
+  check_executions: {
+    id: string;
+    check_name: string;
+    status: string;
+  }[];
+  result: string;
+  result_label: string;
+  report_status: string;
+  applicant_account: {
+    id: string;
+    email: string;
+    email_verified: boolean;
+    phone_number: string | null;
+  };
+  application: {
+    created: string;
+    modified: string;
+    id: string;
+    applicant: {
+      id: string;
+      status: string;
+      email: string;
+      phone_number: string | null;
+    };
+    owner: {
+      id: string;
+      email: string;
+    };
+  };
+  adjudication_status: string;
+  adjudication_status_label: string;
+  is_favourite: boolean;
+  reliability_risk: string | null;
+  workplace_misconduct: string | null;
+  early_termination: string | null;
+  applicant_result_summary: string;
+  social_result_summary: string;
+  identity_verified_summary: string;
+  status: string;
+  status_label: string;
+}
+
+
 export interface IContractorCertnDetails  extends Document  {
   status: string,
   approvedAt: Date,
@@ -96,6 +145,7 @@ export interface IContractor extends Document {
   stripePaymentMethods: Array<object>,
   gstDetails: IContractorGstDetails
   companyDetails: IContractorCompanyDetails
+  certnDetails: IContractorCertnDetails
   createdAt: Date;
   updatedAt: Date;
   quiz: any;
@@ -115,4 +165,5 @@ export interface IContractor extends Document {
     hasGstDetails:boolean,
     hasCompanyDetails:boolean
   };
+  certnId: string;
 }

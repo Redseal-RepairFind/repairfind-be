@@ -98,7 +98,6 @@ const CompanyProfileSchema = new Schema<IContractorProfile>(
         type: BankDetailsSchema, // Embed the BankDetails subdocument
       },
 
-
       certnId: {
         type: String,
       },

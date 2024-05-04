@@ -31,8 +31,55 @@ const CompanyDetailSchema = new Schema<IContractorCompanyDetails>({
   recentRemark: String,
 });
 
+
+
 const CertnDetailSchema = new Schema<IContractorCertnDetails>({
-  status: { type: String },
+  created: String,
+  modified: String,
+  is_submitted: Boolean,
+  applicant_type: String,
+  check_executions: [
+    {
+      id: String,
+      check_name: String,
+      status: String,
+    },
+  ],
+  result: String,
+  result_label: String,
+  report_status: String,
+  applicant_account: {
+    id: String,
+    email: String,
+    email_verified: Boolean,
+    phone_number: String,
+  },
+  application: {
+    created: String,
+    modified: String,
+    id: String,
+    applicant: {
+      id: String,
+      status: String,
+      email: String,
+      phone_number: String,
+    },
+    owner: {
+      id: String,
+      email: String,
+    },
+  },
+  adjudication_status: String,
+  adjudication_status_label: String,
+  is_favourite: Boolean,
+  reliability_risk: String,
+  workplace_misconduct: String,
+  early_termination: String,
+  applicant_result_summary: String,
+  social_result_summary: String,
+  identity_verified_summary: String,
+  status: String,
+  status_label: String,
 });
 
 
@@ -151,6 +198,12 @@ const ContractorSchema = new Schema<IContractor>(
     },
     companyDetails: {
       type: CompanyDetailSchema
+    },
+    certnId: {
+      type: String,
+    },
+    certnDetails: {
+      type: CertnDetailSchema
     },
 
   },

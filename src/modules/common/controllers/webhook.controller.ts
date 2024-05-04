@@ -22,6 +22,27 @@ export const stripeWebook = async (
 
 }
 
+export const certnWebook = async (
+  req: Request,
+  res: Response,
+) => {
+
+  try {
+    // const sig = <string>req.headers['stripe-signature'];
+    // const payload = req.body;
+    // Log.info([sig, payload])
+    
+    // StripeService.webhook.StripeWebhookHandler(req)
+    console.log(req)
+    res.status(200).end() 
+
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+
+}
+
 export const WebhookController = {
     stripeWebook,
+    certnWebook
 }
