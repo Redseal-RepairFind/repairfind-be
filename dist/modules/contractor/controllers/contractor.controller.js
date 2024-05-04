@@ -431,7 +431,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     ProfileHandler.prototype.getAccount = function () {
         var _a;
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, contractorId, includeStripeIdentity, includeStripeCustomer, includeStripePaymentMethods, includeStripeAccount, includedFields, contractor_2, quiz, contractorResponse, stripeAccount, data, err_6;
+            var req, res, contractorId, includeStripeIdentity, includeStripeCustomer, includeStripePaymentMethods, includeStripeAccount, includedFields, contractor_2, quiz, contractorResponse, data, err_6;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -439,7 +439,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         res = this.res;
                         _b.label = 1;
                     case 1:
-                        _b.trys.push([1, 7, , 8]);
+                        _b.trys.push([1, 5, , 6]);
                         contractorId = req.contractor.id;
                         includeStripeIdentity = false;
                         includeStripeCustomer = false;
@@ -467,24 +467,24 @@ var ProfileHandler = /** @class */ (function (_super) {
                         if (!contractor_2) {
                             return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor not found' })];
                         }
-                        if (!!contractor_2.stripeAccount) return [3 /*break*/, 6];
-                        return [4 /*yield*/, stripe_1.StripeService.account.createAccount({
-                                userType: 'contractors',
-                                userId: contractorId,
-                                email: contractor_2.email
-                            })];
-                    case 4:
-                        stripeAccount = _b.sent();
-                        contractor_2.stripeAccount = {
-                            id: stripeAccount.id,
-                            type: stripeAccount.type,
-                            details_submitted: stripeAccount.details_submitted,
-                            tos_acceptance: stripeAccount.tos_acceptance,
-                            payouts_enabled: stripeAccount.payouts_enabled,
-                            charges_enabled: stripeAccount.charges_enabled,
-                            country: stripeAccount.country,
-                            external_accounts: stripeAccount.external_accounts,
-                        };
+                        // check if connected account
+                        if (!contractor_2.stripeAccount) {
+                            // const stripeAccount = await StripeService.account.createAccount({
+                            //   userType: 'contractors',
+                            //   userId: contractorId,
+                            //   email: contractor.email
+                            // })
+                            // contractor.stripeAccount = {
+                            //   id: stripeAccount.id,
+                            //   type: stripeAccount.type,
+                            //   details_submitted: stripeAccount.details_submitted,
+                            //   tos_acceptance: stripeAccount.tos_acceptance,
+                            //   payouts_enabled: stripeAccount.payouts_enabled,
+                            //   charges_enabled: stripeAccount.charges_enabled,
+                            //   country: stripeAccount.country,
+                            //   external_accounts: stripeAccount.external_accounts,
+                            // } as IStripeAccount;
+                        }
                         if (contractor_2.accountType == contractor_interface_1.CONTRACTOR_TYPES.Individual) {
                             data = {
                                 request_enhanced_identity_verification: true,
@@ -498,11 +498,6 @@ var ProfileHandler = /** @class */ (function (_super) {
                                 });
                             }
                         }
-                        return [4 /*yield*/, contractor_2.save()];
-                    case 5:
-                        _b.sent();
-                        _b.label = 6;
-                    case 6:
                         //TODO: for now always update the meta data of stripe customer with this email address
                         if (contractor_2.stripeCustomer) {
                             stripe_1.StripeService.customer.updateCustomer(contractor_2.stripeCustomer.id, {
@@ -521,18 +516,21 @@ var ProfileHandler = /** @class */ (function (_super) {
                                 phone: "".concat(contractor_2.phoneNumber.code).concat(contractor_2.phoneNumber.number, " "),
                             });
                         }
+                        return [4 /*yield*/, contractor_2.save()];
+                    case 4:
+                        _b.sent();
                         res.json({
                             success: true,
                             message: 'Account fetched successfully',
                             data: contractorResponse,
                         });
-                        return [3 /*break*/, 8];
-                    case 7:
+                        return [3 /*break*/, 6];
+                    case 5:
                         err_6 = _b.sent();
                         console.log('error', err_6);
                         res.status(500).json({ success: false, message: err_6.message });
-                        return [3 /*break*/, 8];
-                    case 8: return [2 /*return*/];
+                        return [3 /*break*/, 6];
+                    case 6: return [2 /*return*/];
                 }
             });
         });

@@ -442,44 +442,43 @@ class ProfileHandler extends Base {
 
       // check if connected account
       if (!contractor.stripeAccount) {
-        const stripeAccount = await StripeService.account.createAccount({
-          userType: 'contractors',
-          userId: contractorId,
-          email: contractor.email
-        })
+        // const stripeAccount = await StripeService.account.createAccount({
+        //   userType: 'contractors',
+        //   userId: contractorId,
+        //   email: contractor.email
+        // })
 
-        contractor.stripeAccount = {
-          id: stripeAccount.id,
-          type: stripeAccount.type,
-          details_submitted: stripeAccount.details_submitted,
-          tos_acceptance: stripeAccount.tos_acceptance,
-          payouts_enabled: stripeAccount.payouts_enabled,
-          charges_enabled: stripeAccount.charges_enabled,
-          country: stripeAccount.country,
-          external_accounts: stripeAccount.external_accounts,
-        } as IStripeAccount;
-
-
-        if (contractor.accountType == CONTRACTOR_TYPES.Individual) {
-          const data = {
-            request_enhanced_identity_verification: true,
-            request_enhanced_criminal_record_check: true,
-            email: contractor.email
-          };
-  
-          if (!contractor.certnId) {
-            CertnService.initiateCertnInvite(data).then(res => {
-              contractor.certnId = res.applicant.id
-              console.log('Certn invitation sent', contractor.certnId)
-            })
-          }
-  
-        }
-
-        
-        await contractor.save()
+        // contractor.stripeAccount = {
+        //   id: stripeAccount.id,
+        //   type: stripeAccount.type,
+        //   details_submitted: stripeAccount.details_submitted,
+        //   tos_acceptance: stripeAccount.tos_acceptance,
+        //   payouts_enabled: stripeAccount.payouts_enabled,
+        //   charges_enabled: stripeAccount.charges_enabled,
+        //   country: stripeAccount.country,
+        //   external_accounts: stripeAccount.external_accounts,
+        // } as IStripeAccount;
+    
 
       }
+
+      if (contractor.accountType == CONTRACTOR_TYPES.Individual) {
+        const data = {
+          request_enhanced_identity_verification: true,
+          request_enhanced_criminal_record_check: true,
+          email: contractor.email
+        };
+
+        if (!contractor.certnId) {
+          CertnService.initiateCertnInvite(data).then(res => {
+            contractor.certnId = res.applicant.id
+            console.log('Certn invitation sent', contractor.certnId)
+          })
+        }
+
+      }
+
+
 
 
       //TODO: for now always update the meta data of stripe customer with this email address
@@ -500,6 +499,8 @@ class ProfileHandler extends Base {
         })
       }
 
+
+      await contractor.save()
 
       res.json({
         success: true,
