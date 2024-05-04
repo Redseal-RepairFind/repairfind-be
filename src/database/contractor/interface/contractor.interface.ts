@@ -55,6 +55,8 @@ export interface IContractorCertnDetails {
       status: string;
       email: string;
       phone_number: string | null;
+      application_url: string,
+      report_url: string,
     };
     owner: {
       id: string;
@@ -74,11 +76,6 @@ export interface IContractorCertnDetails {
   status_label: string;
 }
 
-
-export interface IContractorCertnDetails  extends Document  {
-  status: string,
-  approvedAt: Date,
-}
 
 export enum GST_STATUS {
   PENDING= "PENDING",

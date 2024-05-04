@@ -243,7 +243,7 @@ var AuthHandler = /** @class */ (function (_super) {
                         // return access token
                         return [2 /*return*/, res.json({
                                 success: true,
-                                message: "Login successful",
+                                message: "Email verified successful",
                                 accessToken: accessToken,
                                 user: contractorResponse
                             })];

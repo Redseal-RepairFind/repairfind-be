@@ -72,7 +72,7 @@ export class NotificationService  {
                 title: params.title, 
                 type: params.type, 
                 icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
-                body: 'Identity verification session created',
+                body: params.message,
                 data: { 
                     ...params.payload
                 },

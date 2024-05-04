@@ -96,6 +96,8 @@ var CertnDetailSchema = new mongoose_1.Schema({
             status: String,
             email: String,
             phone_number: String,
+            application_url: String,
+            report_url: String,
         },
         owner: {
             id: String,
@@ -234,6 +236,22 @@ ContractorSchema.virtual('stripeAccountStatus').get(function () {
         charges_enabled: stripeAccount.charges_enabled,
         transfers_enabled: (_b = (_a = stripeAccount === null || stripeAccount === void 0 ? void 0 : stripeAccount.capabilities) === null || _a === void 0 ? void 0 : _a.transfers) !== null && _b !== void 0 ? _b : 'inactive',
         card_payments_enabled: (_d = (_c = stripeAccount === null || stripeAccount === void 0 ? void 0 : stripeAccount.capabilities) === null || _c === void 0 ? void 0 : _c.card_payments) !== null && _d !== void 0 ? _d : 'inactive',
+    } : null;
+});
+ContractorSchema.virtual('certnStatus').get(function () {
+    var certnDetails = this.certnDetails;
+    return certnDetails ? {
+        result: certnDetails.result,
+        report_status: certnDetails.report_status,
+        adjudication_status: certnDetails.adjudication_status,
+        check_executions: certnDetails.check_executions,
+        is_submitted: certnDetails.is_submitted,
+        application_url: certnDetails.application.applicant.application_url,
+        report_url: certnDetails.application.applicant.report_url,
+        modified: certnDetails.modified,
+        identity_verified_summary: certnDetails.identity_verified_summary,
+        status: certnDetails.status,
+        status_label: certnDetails.status_label,
     } : null;
 });
 ContractorSchema.virtual('onboarding').get(function () {

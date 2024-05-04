@@ -168,7 +168,7 @@ class AuthHandler extends Base {
             // return access token
             return res.json({
                 success: true,
-                message: "Login successful",
+                message: "Email verified successful",
                 accessToken: accessToken,
                 user: contractorResponse
             });

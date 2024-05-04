@@ -63,6 +63,8 @@ const CertnDetailSchema = new Schema<IContractorCertnDetails>({
       status: String,
       email: String,
       phone_number: String,
+      application_url: String,
+      report_url: String,
     },
     owner: {
       id: String,
@@ -225,8 +227,27 @@ ContractorSchema.virtual('stripeAccountStatus').get(function (this: IContractor)
     details_submitted: stripeAccount.details_submitted,
     payouts_enabled: stripeAccount.payouts_enabled,
     charges_enabled: stripeAccount.charges_enabled,
-    transfers_enabled : stripeAccount?.capabilities?.transfers ?? 'inactive',
-    card_payments_enabled : stripeAccount?.capabilities?.card_payments ?? 'inactive',
+    transfers_enabled: stripeAccount?.capabilities?.transfers ?? 'inactive',
+    card_payments_enabled: stripeAccount?.capabilities?.card_payments ?? 'inactive',
+  } : null;
+});
+
+ContractorSchema.virtual('certnStatus').get(function (this: IContractor) {
+  const certnDetails: IContractorCertnDetails = this.certnDetails;
+  return certnDetails ? {
+    result: certnDetails.result,
+    report_status: certnDetails.report_status,
+    adjudication_status: certnDetails.adjudication_status,
+    check_executions: certnDetails.check_executions,
+    is_submitted: certnDetails.is_submitted,
+
+    application_url: certnDetails.application.applicant.application_url,
+    report_url: certnDetails.application.applicant.report_url,
+
+    modified: certnDetails.modified,
+    identity_verified_summary: certnDetails.identity_verified_summary,
+    status: certnDetails.status,
+    status_label: certnDetails.status_label,
   } : null;
 });
 
