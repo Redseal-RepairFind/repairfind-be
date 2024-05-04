@@ -88,7 +88,7 @@ var getAccount = function (req, res) { return __awaiter(void 0, void 0, void 0, 
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 8, , 9]);
+                _a.trys.push([0, 7, , 8]);
                 customerId = req.customer.id;
                 includeStripeIdentity = false;
                 includeStripeCustomer = false;
@@ -107,19 +107,17 @@ var getAccount = function (req, res) { return __awaiter(void 0, void 0, void 0, 
                 if (!customer) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Customer account not found' })];
                 }
-                if (!customer.stripeCustomer) return [3 /*break*/, 2];
+                return [4 /*yield*/, stripe_1.StripeService.customer.getCustomer({ email: customer.email })];
+            case 2:
+                stripeCustomer = _a.sent();
+                if (!(customer.stripeCustomer && stripeCustomer)) return [3 /*break*/, 3];
                 stripe_1.StripeService.customer.updateCustomer(customer.stripeCustomer.id, {
                     metadata: { userType: 'customers', userId: customerId }
                 });
-                return [3 /*break*/, 6];
-            case 2: return [4 /*yield*/, stripe_1.StripeService.customer.getCustomer({ email: customer.email })];
-            case 3:
-                stripeCustomer = _a.sent();
-                if (!stripeCustomer) return [3 /*break*/, 4];
                 customer.stripeCustomer = (0, interface_dto_util_1.castPayloadToDTO)(stripeCustomer, stripeCustomer);
                 customer.save();
-                return [3 /*break*/, 6];
-            case 4: return [4 /*yield*/, stripe_1.StripeService.customer.createCustomer({
+                return [3 /*break*/, 5];
+            case 3: return [4 /*yield*/, stripe_1.StripeService.customer.createCustomer({
                     email: customer.email,
                     metadata: {
                         userType: 'customers',
@@ -128,13 +126,13 @@ var getAccount = function (req, res) { return __awaiter(void 0, void 0, void 0, 
                     name: "".concat(customer.firstName, " ").concat(customer.lastName, " "),
                     phone: "".concat(customer.phoneNumber.code).concat(customer.phoneNumber.number, " "),
                 })];
-            case 5:
+            case 4:
                 _a.sent();
-                _a.label = 6;
-            case 6: return [4 /*yield*/, stripe_1.StripeService.payment.listPaymentMethods({ customer: customer.stripeCustomer.id })
+                _a.label = 5;
+            case 5: return [4 /*yield*/, stripe_1.StripeService.payment.listPaymentMethods({ customer: customer.stripeCustomer.id })
                 // console.log(paymentMethods)
             ];
-            case 7:
+            case 6:
                 paymentMethods = _a.sent();
                 // console.log(paymentMethods)
                 if (paymentMethods) {
@@ -143,12 +141,11 @@ var getAccount = function (req, res) { return __awaiter(void 0, void 0, void 0, 
                 }
                 customerResponse = customer.toJSON({ includeStripeIdentity: true, includeStripeCustomer: true, includeStripePaymentMethods: true });
                 return [2 /*return*/, res.status(200).json({ success: true, message: 'Customer account retrieved successfully', data: customerResponse })];
-            case 8:
+            case 7:
                 err_2 = _a.sent();
                 // Handle errors
-                console.error('Error fetching customer account:', err_2);
                 return [2 /*return*/, res.status(500).json({ success: false, message: 'Internal Server Error' })];
-            case 9: return [2 /*return*/];
+            case 8: return [2 /*return*/];
         }
     });
 }); };

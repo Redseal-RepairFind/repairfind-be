@@ -85,29 +85,26 @@ export const getAccount = async (req: any, res: Response) => {
 
     //TODO: for now always update the meta data of stripe customer with this email address
     
-    if (customer.stripeCustomer) {
+    const stripeCustomer = await StripeService.customer.getCustomer({email: customer.email});
+    if (customer.stripeCustomer && stripeCustomer) {
       StripeService.customer.updateCustomer(customer.stripeCustomer.id, {
         metadata: { userType: 'customers', userId: customerId }
       })
+
+      customer.stripeCustomer =  castPayloadToDTO(stripeCustomer, stripeCustomer as IStripeCustomer)
+      customer.save()
       
     } else {
-      // try to find account first
-      const stripeCustomer = await StripeService.customer.getCustomer({email: customer.email});
-      
-      if(stripeCustomer){
-        customer.stripeCustomer =  castPayloadToDTO(stripeCustomer, stripeCustomer as IStripeCustomer)
-        customer.save()
-      }else{
-        await StripeService.customer.createCustomer({
-          email: customer.email,
-          metadata: {
-            userType: 'customers',
-            userId: customer.id,
-          },
-          name: `${customer.firstName} ${customer.lastName} `,
-          phone: `${customer.phoneNumber.code}${customer.phoneNumber.number} `,
-        })
-      }
+     
+      await StripeService.customer.createCustomer({
+        email: customer.email,
+        metadata: {
+          userType: 'customers',
+          userId: customer.id,
+        },
+        name: `${customer.firstName} ${customer.lastName} `,
+        phone: `${customer.phoneNumber.code}${customer.phoneNumber.number} `,
+      })
     }
 
     //TODO: retrieve existing customer payment methods from stripe here - will move all this to scheduler jobs
@@ -126,7 +123,6 @@ export const getAccount = async (req: any, res: Response) => {
     return res.status(200).json({ success: true, message: 'Customer account retrieved successfully', data: customerResponse });
   } catch (err: any) {
     // Handle errors
-    console.error('Error fetching customer account:', err);
     return res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 };
