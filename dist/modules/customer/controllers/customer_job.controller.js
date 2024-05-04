@@ -69,6 +69,9 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 }
                 _a = req.body, contractorId = _a.contractorId, category = _a.category, description = _a.description, location_1 = _a.location, date = _a.date, expiresIn = _a.expiresIn, emergency = _a.emergency, media = _a.media, voiceDescription = _a.voiceDescription, time = _a.time;
                 customerId = req.customer.id;
+                if (!mongoose_1.default.Types.ObjectId.isValid(contractorId)) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid contractor format' })];
+                }
                 return [4 /*yield*/, customer_model_1.default.findById(customerId)];
             case 1:
                 customer = _d.sent();

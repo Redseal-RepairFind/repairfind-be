@@ -36,6 +36,9 @@ export const createJobRequest = async (
         const { contractorId, category, description, location, date, expiresIn, emergency, media, voiceDescription, time } = req.body;
         const customerId = req.customer.id
 
+        if (!mongoose.Types.ObjectId.isValid(contractorId)) {
+            return res.status(400).json({ success: false, message: 'Invalid contractor format' });
+        }
         const customer = await CustomerModel.findById(customerId)
 
         if (!customer) {
