@@ -431,7 +431,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     ProfileHandler.prototype.getAccount = function () {
         var _a;
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, contractorId, includeStripeIdentity, includeStripeCustomer, includeStripePaymentMethods, includeStripeAccount, includedFields, contractor, quiz, contractorResponse, stripeAccount, err_6;
+            var req, res, contractorId, includeStripeIdentity, includeStripeCustomer, includeStripePaymentMethods, includeStripeAccount, includedFields, contractor_2, quiz, contractorResponse, stripeAccount, data, err_6;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -455,27 +455,27 @@ var ProfileHandler = /** @class */ (function (_super) {
                         }
                         return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId).populate('profile')];
                     case 2:
-                        contractor = _b.sent();
-                        if (!contractor) {
+                        contractor_2 = _b.sent();
+                        if (!contractor_2) {
                             return [2 /*return*/, res.status(404).json({ success: false, message: 'Account not found' })];
                         }
-                        return [4 /*yield*/, contractor.quiz];
+                        return [4 /*yield*/, contractor_2.quiz];
                     case 3:
                         quiz = (_a = _b.sent()) !== null && _a !== void 0 ? _a : null;
-                        contractorResponse = __assign(__assign({}, contractor.toJSON({ includeStripeIdentity: true, includeStripeCustomer: true, includeStripePaymentMethods: true, includeStripeAccount: true })), { // Convert to plain JSON object
+                        contractorResponse = __assign(__assign({}, contractor_2.toJSON({ includeStripeIdentity: true, includeStripeCustomer: true, includeStripePaymentMethods: true, includeStripeAccount: true })), { // Convert to plain JSON object
                             quiz: quiz });
-                        if (!contractor) {
+                        if (!contractor_2) {
                             return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor not found' })];
                         }
-                        if (!!contractor.stripeAccount) return [3 /*break*/, 6];
+                        if (!!contractor_2.stripeAccount) return [3 /*break*/, 6];
                         return [4 /*yield*/, stripe_1.StripeService.account.createAccount({
                                 userType: 'contractors',
                                 userId: contractorId,
-                                email: contractor.email
+                                email: contractor_2.email
                             })];
                     case 4:
                         stripeAccount = _b.sent();
-                        contractor.stripeAccount = {
+                        contractor_2.stripeAccount = {
                             id: stripeAccount.id,
                             type: stripeAccount.type,
                             details_submitted: stripeAccount.details_submitted,
@@ -485,27 +485,40 @@ var ProfileHandler = /** @class */ (function (_super) {
                             country: stripeAccount.country,
                             external_accounts: stripeAccount.external_accounts,
                         };
-                        return [4 /*yield*/, contractor.save()];
+                        if (contractor_2.accountType == contractor_interface_1.CONTRACTOR_TYPES.Individual) {
+                            data = {
+                                request_enhanced_identity_verification: true,
+                                request_enhanced_criminal_record_check: true,
+                                email: contractor_2.email
+                            };
+                            if (!contractor_2.certnId) {
+                                services_1.CertnService.initiateCertnInvite(data).then(function (res) {
+                                    contractor_2.certnId = res.applicant.id;
+                                    console.log('Certn invitation sent', contractor_2.certnId);
+                                });
+                            }
+                        }
+                        return [4 /*yield*/, contractor_2.save()];
                     case 5:
                         _b.sent();
                         _b.label = 6;
                     case 6:
                         //TODO: for now always update the meta data of stripe customer with this email address
-                        if (contractor.stripeCustomer) {
-                            stripe_1.StripeService.customer.updateCustomer(contractor.stripeCustomer.id, {
-                                metadata: { userType: 'contractors', userId: contractor.id }
+                        if (contractor_2.stripeCustomer) {
+                            stripe_1.StripeService.customer.updateCustomer(contractor_2.stripeCustomer.id, {
+                                metadata: { userType: 'contractors', userId: contractor_2.id }
                             });
                         }
                         else {
                             stripe_1.StripeService.customer.createCustomer({
-                                email: contractor.email,
+                                email: contractor_2.email,
                                 metadata: {
                                     userType: 'contractors',
-                                    userId: contractor.id,
+                                    userId: contractor_2.id,
                                 },
                                 //@ts-ignore
-                                name: "".concat(contractor.name, " "),
-                                phone: "".concat(contractor.phoneNumber.code).concat(contractor.phoneNumber.number, " "),
+                                name: "".concat(contractor_2.name, " "),
+                                phone: "".concat(contractor_2.phoneNumber.code).concat(contractor_2.phoneNumber.number, " "),
                             });
                         }
                         res.json({

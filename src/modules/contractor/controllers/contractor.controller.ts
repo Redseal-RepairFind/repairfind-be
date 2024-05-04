@@ -460,6 +460,23 @@ class ProfileHandler extends Base {
         } as IStripeAccount;
 
 
+        if (contractor.accountType == CONTRACTOR_TYPES.Individual) {
+          const data = {
+            request_enhanced_identity_verification: true,
+            request_enhanced_criminal_record_check: true,
+            email: contractor.email
+          };
+  
+          if (!contractor.certnId) {
+            CertnService.initiateCertnInvite(data).then(res => {
+              contractor.certnId = res.applicant.id
+              console.log('Certn invitation sent', contractor.certnId)
+            })
+          }
+  
+        }
+
+        
         await contractor.save()
 
       }
