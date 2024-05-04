@@ -103,6 +103,7 @@ router.post('/trip/:tripDayId/comfirm/arrival', checkCustomerRole, CustomerHttpR
 // Call
 router.post("/voicecall/agora-rtc", checkCustomerRole,  CustomerCallController.createRtcToken );
 router.post("/voicecall", checkCustomerRole,  CustomerCallController.startCall );
+router.post("/voicecall/:callId/end", checkCustomerRole,  CustomerCallController.endCall );
 
 
 // router.get("/get_popular_contractor", checkCustomerRole, customerGetPopularContractorController ); // customer get popular contractor

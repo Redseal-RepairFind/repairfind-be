@@ -193,5 +193,6 @@ router.post('/trip/:tripDayId/arrive', checkContractorRole, ContractorTripDayCon
 // Call
 router.post("/voicecall/agora-rtc", checkContractorRole,  ContractorCallController.createRtcToken );
 router.post("/voicecall", checkContractorRole,  ContractorCallController.startCall );
+router.post("/voicecall/:callId/end", checkContractorRole,  ContractorCallController.endCall );
 
 export default router;

@@ -145,4 +145,5 @@ router.post('/trip/:tripDayId/arrive', contractorRoleCheck_middleware_1.checkCon
 // Call
 router.post("/voicecall/agora-rtc", contractorRoleCheck_middleware_1.checkContractorRole, contractor_call_controller_1.ContractorCallController.createRtcToken);
 router.post("/voicecall", contractorRoleCheck_middleware_1.checkContractorRole, contractor_call_controller_1.ContractorCallController.startCall);
+router.post("/voicecall/:callId/end", contractorRoleCheck_middleware_1.checkContractorRole, contractor_call_controller_1.ContractorCallController.endCall);
 exports.default = router;

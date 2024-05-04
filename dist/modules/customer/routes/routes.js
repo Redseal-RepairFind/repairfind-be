@@ -79,6 +79,7 @@ router.post('/trip/:tripDayId/comfirm/arrival', customerRoleChecker_middleware_1
 // Call
 router.post("/voicecall/agora-rtc", customerRoleChecker_middleware_1.checkCustomerRole, customer_call_controller_1.CustomerCallController.createRtcToken);
 router.post("/voicecall", customerRoleChecker_middleware_1.checkCustomerRole, customer_call_controller_1.CustomerCallController.startCall);
+router.post("/voicecall/:callId/end", customerRoleChecker_middleware_1.checkCustomerRole, customer_call_controller_1.CustomerCallController.endCall);
 // router.get("/get_popular_contractor", checkCustomerRole, customerGetPopularContractorController ); // customer get popular contractor
 // router.get("/search_contractor", checkCustomerRole, customerSearchForContractorController ); // customer search contractor
 // router.get("/get_all_contractor_on_skill", validateContractorSearckParams, checkCustomerRole, customerGetAllContractorOnSkillController ); // customer get all contractor on a skill
