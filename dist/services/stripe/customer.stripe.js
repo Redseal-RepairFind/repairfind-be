@@ -77,21 +77,27 @@ var getCustomer = function (query) { return __awaiter(void 0, void 0, void 0, fu
 }); };
 exports.getCustomer = getCustomer;
 var updateCustomer = function (customerId, params) { return __awaiter(void 0, void 0, void 0, function () {
-    var customer;
+    var customer, error_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
+                _a.trys.push([0, 2, , 3]);
                 console.log('updating customer on stripe', customerId);
                 return [4 /*yield*/, stripe.customers.update(customerId, params)];
             case 1:
                 customer = _a.sent();
                 return [2 /*return*/, customer];
+            case 2:
+                error_2 = _a.sent();
+                console.log('error updating customer on stripe', error_2);
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
         }
     });
 }); };
 exports.updateCustomer = updateCustomer;
 var getCustomerById = function (customerId) { return __awaiter(void 0, void 0, void 0, function () {
-    var customer, error_2;
+    var customer, error_3;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -101,7 +107,7 @@ var getCustomerById = function (customerId) { return __awaiter(void 0, void 0, v
                 customer = _a.sent();
                 return [2 /*return*/, customer];
             case 2:
-                error_2 = _a.sent();
+                error_3 = _a.sent();
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
         }

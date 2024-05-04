@@ -23,9 +23,13 @@ export const getCustomer = async (query: any) => {
 };
 
 export const updateCustomer = async (customerId: string, params: Stripe.CustomerUpdateParams) => {
-  console.log('updating customer on stripe', customerId)
-  const customer: Stripe.Customer = await stripe.customers.update(customerId, params);
-  return customer
+  try { 
+    console.log('updating customer on stripe', customerId)
+    const customer: Stripe.Customer = await stripe.customers.update(customerId, params);
+    return customer
+  }catch (error: any) {
+    console.log('error updating customer on stripe', error)
+  }
 };
 
 export const getCustomerById = async (customerId: any) => {
