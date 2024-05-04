@@ -44,8 +44,6 @@ var express_validator_1 = require("express-validator");
 var bcrypt_1 = __importDefault(require("bcrypt"));
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var customer_devices_model_1 = __importDefault(require("../../../database/customer/models/customer_devices.model"));
-var stripe_1 = require("../../../services/stripe");
-var interface_dto_util_1 = require("../../../utils/interface_dto.util");
 var updateAccount = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, firstName, lastName, location_1, phoneNumber, profilePhoto, errors, customerId, customer, updatedCustomer, err_1;
     return __generator(this, function (_b) {
@@ -84,11 +82,11 @@ var updateAccount = function (req, res) { return __awaiter(void 0, void 0, void 
 }); };
 exports.updateAccount = updateAccount;
 var getAccount = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, includeStripeIdentity, includeStripeCustomer, includeStripePaymentMethods, includedFields, customer, stripeCustomer, stripe_customer, paymentMethods, customerResponse, err_2;
+    var customerId, includeStripeIdentity, includeStripeCustomer, includeStripePaymentMethods, includedFields, customer, customerResponse, err_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 7, , 8]);
+                _a.trys.push([0, 2, , 3]);
                 customerId = req.customer.id;
                 includeStripeIdentity = false;
                 includeStripeCustomer = false;
@@ -107,45 +105,13 @@ var getAccount = function (req, res) { return __awaiter(void 0, void 0, void 0, 
                 if (!customer) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Customer account not found' })];
                 }
-                return [4 /*yield*/, stripe_1.StripeService.customer.getCustomer({ email: customer.email })];
-            case 2:
-                stripeCustomer = _a.sent();
-                if (!(customer.stripeCustomer && stripeCustomer)) return [3 /*break*/, 3];
-                stripe_1.StripeService.customer.updateCustomer(customer.stripeCustomer.id, {
-                    metadata: { userType: 'customers', userId: customerId }
-                });
-                stripe_customer = (0, interface_dto_util_1.castPayloadToDTO)(stripeCustomer, stripeCustomer);
-                console.log(stripe_customer);
-                return [3 /*break*/, 5];
-            case 3: return [4 /*yield*/, stripe_1.StripeService.customer.createCustomer({
-                    email: customer.email,
-                    metadata: {
-                        userType: 'customers',
-                        userId: customer.id,
-                    },
-                    name: "".concat(customer.firstName, " ").concat(customer.lastName, " "),
-                    phone: "".concat(customer.phoneNumber.code).concat(customer.phoneNumber.number, " "),
-                })];
-            case 4:
-                _a.sent();
-                _a.label = 5;
-            case 5: return [4 /*yield*/, stripe_1.StripeService.payment.listPaymentMethods({ customer: customer.stripeCustomer.id })
-                // console.log(paymentMethods)
-            ];
-            case 6:
-                paymentMethods = _a.sent();
-                // console.log(paymentMethods)
-                if (paymentMethods) {
-                    //@ts-ignore
-                    customer.stripePaymentMethods = paymentMethods.data;
-                }
                 customerResponse = customer.toJSON({ includeStripeIdentity: true, includeStripeCustomer: true, includeStripePaymentMethods: true });
                 return [2 /*return*/, res.status(200).json({ success: true, message: 'Customer account retrieved successfully', data: customerResponse })];
-            case 7:
+            case 2:
                 err_2 = _a.sent();
                 // Handle errors
                 return [2 /*return*/, res.status(500).json({ success: false, message: 'Internal Server Error' })];
-            case 8: return [2 /*return*/];
+            case 3: return [2 /*return*/];
         }
     });
 }); };
