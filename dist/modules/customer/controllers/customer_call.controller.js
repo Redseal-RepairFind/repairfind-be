@@ -118,7 +118,7 @@ var startCall = function (req, res, next) { return __awaiter(void 0, void 0, voi
                 user = _b;
                 if (!user)
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'User not found' })]; // Ensure user exists
-                return [4 /*yield*/, agora_1.default.generateRtcToken(channelName, 'publisher')];
+                return [4 /*yield*/, agora_1.default.generateRtcToken(channelName, 'publisher', 1)];
             case 6:
                 token = _e.sent();
                 callData = {

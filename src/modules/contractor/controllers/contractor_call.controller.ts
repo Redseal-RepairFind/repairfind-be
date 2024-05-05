@@ -35,7 +35,7 @@ export const createRtcToken = async (
     try {
         const { channelName, role } = req.body;
         const uid = req.contractor.id
-        const rtcToken = await AgoraTokenService.generateRtcToken(channelName, uid, role);
+        const rtcToken = await AgoraTokenService.generateRtcToken(channelName, role, 1);
         res.status(200).json({message:'Token generated', token: rtcToken });
     } catch (err: any) {
         res.status(500).json({ message: err.message });
@@ -59,7 +59,7 @@ export const startCall = async (
         const user = toUserType === 'contractors' ? await ContractorModel.findById(toUser) : await CustomerModel.findById(toUser)
         if (!user)  return res.status(404).json({ success:false, message:'User not found' }); // Ensure user exists
        
-        const token = await AgoraTokenService.generateRtcToken(channelName, 'publisher');
+        const token = await AgoraTokenService.generateRtcToken(channelName, 'publisher', 1);
 
         
         // Create a new call document

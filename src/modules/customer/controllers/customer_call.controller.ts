@@ -58,8 +58,9 @@ export const startCall = async (
         if (!toUserType || !toUser) return res.status(400).json({ success:false, message:'To user not provided' }) 
         const user = toUserType === 'contractors' ? await ContractorModel.findById(toUser) : await CustomerModel.findById(toUser)
         if (!user)  return res.status(404).json({ success:false, message:'User not found' }); // Ensure user exists
-        const token = await AgoraTokenService.generateRtcToken(channelName, 'publisher');
+        const token = await AgoraTokenService.generateRtcToken(channelName, 'publisher', 1);
 
+        
          // Create a new call document
          const callData = {
             fromUser: fromUserId,

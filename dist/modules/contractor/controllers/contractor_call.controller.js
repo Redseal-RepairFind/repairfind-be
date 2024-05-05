@@ -74,7 +74,7 @@ var createRtcToken = function (req, res, next) { return __awaiter(void 0, void 0
                 _b.trys.push([0, 2, , 3]);
                 _a = req.body, channelName = _a.channelName, role = _a.role;
                 uid = req.contractor.id;
-                return [4 /*yield*/, agora_1.default.generateRtcToken(channelName, uid, role)];
+                return [4 /*yield*/, agora_1.default.generateRtcToken(channelName, role, 1)];
             case 1:
                 rtcToken = _b.sent();
                 res.status(200).json({ message: 'Token generated', token: rtcToken });
@@ -118,7 +118,7 @@ var startCall = function (req, res, next) { return __awaiter(void 0, void 0, voi
                 user = _b;
                 if (!user)
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'User not found' })]; // Ensure user exists
-                return [4 /*yield*/, agora_1.default.generateRtcToken(channelName, 'publisher')];
+                return [4 /*yield*/, agora_1.default.generateRtcToken(channelName, 'publisher', 1)];
             case 6:
                 token = _e.sent();
                 callData = {
