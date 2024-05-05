@@ -263,25 +263,28 @@ ContractorSchema.virtual('onboarding').get(function (this: IContractor) {
   const hasGstDetails = !!this.gstDetails;
   const hasCompanyDetails = !!this.companyDetails;
 
-  let nextStage: any = 1;
-  if(this) nextStage = 2
-  if(hasStripeIdentity) nextStage = 3 // if hasstripaccount and hasidentity the next stage for profile to be created = 3
+  let nextStage: any = 'account';
+  if(this) nextStage = 'stripeIdentity'
+  
   
   if(this.accountType == 'Company'){
-    if(hasCompanyDetails) nextStage = 4 // 
-    if(hasProfile) nextStage = 5
+    if(hasStripeIdentity) nextStage = 'companyDetails' 
+    if(hasCompanyDetails) nextStage = 'profile' // 
+    if(hasProfile) nextStage = 'gstDetails'
     if(hasGstDetails) nextStage = null
   
   }
 
   if(this.accountType == 'Individual'){
-    if(hasProfile) nextStage = 4
+    if(hasStripeIdentity) nextStage = 'profile' 
+    if(hasProfile) nextStage = 'gstDetails'
     if(hasGstDetails) nextStage = null
   }
 
 
   if(this.accountType == 'Employee'){
-    if(this.updatedAt) nextStage = null
+    if(hasStripeIdentity) nextStage = 'profile' 
+    if(hasProfile) nextStage = null
   }
  
 

@@ -262,27 +262,31 @@ ContractorSchema.virtual('onboarding').get(function () {
     var hasProfile = !!this.profile;
     var hasGstDetails = !!this.gstDetails;
     var hasCompanyDetails = !!this.companyDetails;
-    var nextStage = 1;
+    var nextStage = 'account';
     if (this)
-        nextStage = 2;
-    if (hasStripeIdentity)
-        nextStage = 3; // if hasstripaccount and hasidentity the next stage for profile to be created = 3
+        nextStage = 'stripeIdentity';
     if (this.accountType == 'Company') {
+        if (hasStripeIdentity)
+            nextStage = 'companyDetails';
         if (hasCompanyDetails)
-            nextStage = 4; // 
+            nextStage = 'profile'; // 
         if (hasProfile)
-            nextStage = 5;
+            nextStage = 'gstDetails';
         if (hasGstDetails)
             nextStage = null;
     }
     if (this.accountType == 'Individual') {
+        if (hasStripeIdentity)
+            nextStage = 'profile';
         if (hasProfile)
-            nextStage = 4;
+            nextStage = 'gstDetails';
         if (hasGstDetails)
             nextStage = null;
     }
     if (this.accountType == 'Employee') {
-        if (this.updatedAt)
+        if (hasStripeIdentity)
+            nextStage = 'profile';
+        if (hasProfile)
             nextStage = null;
     }
     return {
