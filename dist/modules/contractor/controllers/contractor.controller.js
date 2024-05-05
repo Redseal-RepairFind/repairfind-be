@@ -431,15 +431,15 @@ var ProfileHandler = /** @class */ (function (_super) {
     ProfileHandler.prototype.getAccount = function () {
         var _a;
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, contractorId, includeStripeIdentity, includeStripeCustomer, includeStripePaymentMethods, includeStripeAccount, includedFields, contractor_2, quiz, contractorResponse, data, err_6;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var req, res, contractorId, includeStripeIdentity, includeStripeCustomer, includeStripePaymentMethods, includeStripeAccount, includedFields, contractor_2, _b, quiz, contractorResponse, data, err_6;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
                         req = this.req;
                         res = this.res;
-                        _b.label = 1;
+                        _c.label = 1;
                     case 1:
-                        _b.trys.push([1, 5, , 6]);
+                        _c.trys.push([1, 6, , 7]);
                         contractorId = req.contractor.id;
                         includeStripeIdentity = false;
                         includeStripeCustomer = false;
@@ -455,13 +455,17 @@ var ProfileHandler = /** @class */ (function (_super) {
                         }
                         return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId).populate('profile')];
                     case 2:
-                        contractor_2 = _b.sent();
+                        contractor_2 = _c.sent();
                         if (!contractor_2) {
                             return [2 /*return*/, res.status(404).json({ success: false, message: 'Account not found' })];
                         }
-                        return [4 /*yield*/, contractor_2.quiz];
+                        _b = contractor_2;
+                        return [4 /*yield*/, contractor_2.getOnboarding()];
                     case 3:
-                        quiz = (_a = _b.sent()) !== null && _a !== void 0 ? _a : null;
+                        _b.onboarding = _c.sent();
+                        return [4 /*yield*/, contractor_2.quiz];
+                    case 4:
+                        quiz = (_a = _c.sent()) !== null && _a !== void 0 ? _a : null;
                         contractorResponse = __assign(__assign({}, contractor_2.toJSON({ includeStripeIdentity: true, includeStripeCustomer: true, includeStripePaymentMethods: true, includeStripeAccount: true })), { // Convert to plain JSON object
                             quiz: quiz });
                         if (!contractor_2) {
@@ -517,20 +521,20 @@ var ProfileHandler = /** @class */ (function (_super) {
                             });
                         }
                         return [4 /*yield*/, contractor_2.save()];
-                    case 4:
-                        _b.sent();
+                    case 5:
+                        _c.sent();
                         res.json({
                             success: true,
                             message: 'Account fetched successfully',
                             data: contractorResponse,
                         });
-                        return [3 /*break*/, 6];
-                    case 5:
-                        err_6 = _b.sent();
+                        return [3 /*break*/, 7];
+                    case 6:
+                        err_6 = _c.sent();
                         console.log('error', err_6);
                         res.status(500).json({ success: false, message: err_6.message });
-                        return [3 /*break*/, 6];
-                    case 6: return [2 /*return*/];
+                        return [3 /*break*/, 7];
+                    case 7: return [2 /*return*/];
                 }
             });
         });

@@ -161,6 +161,20 @@ export interface IContractor extends Document {
     hasProfile:boolean,
     hasGstDetails:boolean,
     hasCompanyDetails:boolean
+    hasPassedQuiz:boolean
+    stage: number
   };
   certnId: string;
+  getOnboarding: () => {
+    hasStripeAccount: boolean,
+    hasStripeIdentity: boolean,
+    hasStripePaymentMethods: boolean,
+    hasStripeCustomer: boolean,
+    hasProfile:boolean,
+    hasGstDetails:boolean,
+    hasCompanyDetails:boolean
+    hasPassedQuiz:boolean
+    stage: number
+};
+  
 }

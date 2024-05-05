@@ -47,6 +47,7 @@ var contractor_quiz_model_1 = __importDefault(require("./contractor_quiz.model")
 var stripe_customer_schema_1 = require("../../common/stripe_customer.schema");
 var stripe_account_schema_1 = require("../../common/stripe_account.schema");
 var stripe_paymentmethod_schema_1 = require("../../common/stripe_paymentmethod.schema");
+var question_model_1 = __importDefault(require("../../admin/models/question.model"));
 var GstDetailSchema = new mongoose_1.Schema({
     gstName: String,
     gstNumber: String,
@@ -220,6 +221,17 @@ var ContractorSchema = new mongoose_1.Schema({
     certnDetails: {
         type: CertnDetailSchema
     },
+    onboarding: {
+        hasStripeAccount: { default: false, type: Boolean },
+        hasStripeIdentity: { default: false, type: Boolean },
+        hasStripePaymentMethods: { default: false, type: Boolean },
+        hasStripeCustomer: { default: false, type: Boolean },
+        hasProfile: { default: false, type: Boolean },
+        hasGstDetails: { default: false, type: Boolean },
+        hasCompanyDetails: { default: false, type: Boolean },
+        hasPassedQuiz: { default: false, type: Boolean },
+        stage: { default: 1, type: Number },
+    }
 }, {
     timestamps: true,
 });
@@ -240,66 +252,141 @@ ContractorSchema.virtual('stripeAccountStatus').get(function () {
 });
 ContractorSchema.virtual('certnStatus').get(function () {
     var certnDetails = this.certnDetails;
-    return certnDetails ? {
-        result: certnDetails.result,
-        report_status: certnDetails.report_status,
-        adjudication_status: certnDetails.adjudication_status,
-        check_executions: certnDetails.check_executions,
-        is_submitted: certnDetails.is_submitted,
-        application_url: certnDetails.application.applicant.application_url,
-        report_url: certnDetails.application.applicant.report_url,
-        modified: certnDetails.modified,
-        identity_verified_summary: certnDetails.identity_verified_summary,
-        status: certnDetails.status,
-        status_label: certnDetails.status_label,
-    } : null;
+    var status = 'NOT_STARTED';
+    if (certnDetails) {
+        if (!certnDetails.is_submitted) {
+            status = 'NOT_SUBMITTED';
+        }
+        else {
+            status = certnDetails.status;
+        }
+    }
+    return status;
+    // return certnDetails ? {
+    //   result: certnDetails.result,
+    //   report_status: certnDetails.report_status,
+    //   adjudication_status: certnDetails.adjudication_status,
+    //   check_executions: certnDetails.check_executions,
+    //   is_submitted: certnDetails.is_submitted,
+    //   application_url: certnDetails.application.applicant.application_url,
+    //   report_url: certnDetails.application.applicant.report_url,
+    //   modified: certnDetails.modified,
+    //   identity_verified_summary: certnDetails.identity_verified_summary,
+    //   status: certnDetails.status,
+    //   status_label: certnDetails.status_label,
 });
-ContractorSchema.virtual('onboarding').get(function () {
-    var hasStripeAccount = !!this.stripeAccount;
-    var hasStripeCustomer = !!this.stripeCustomer;
-    var hasStripePaymentMethods = Array.isArray(this.stripePaymentMethods) && this.stripePaymentMethods.length > 0;
-    var hasStripeIdentity = !!this.stripeIdentity;
-    var hasProfile = !!this.profile;
-    var hasGstDetails = !!this.gstDetails;
-    var hasCompanyDetails = !!this.companyDetails;
-    var nextStage = 'account';
-    if (this)
-        nextStage = 'stripeIdentity';
-    if (this.accountType == 'Company') {
-        if (hasStripeIdentity)
-            nextStage = 'companyDetails';
-        if (hasCompanyDetails)
-            nextStage = 'profile'; // 
-        if (hasProfile)
-            nextStage = 'gstDetails';
-        if (hasGstDetails)
-            nextStage = null;
-    }
-    if (this.accountType == 'Individual') {
-        if (hasStripeIdentity)
-            nextStage = 'profile';
-        if (hasProfile)
-            nextStage = 'gstDetails';
-        if (hasGstDetails)
-            nextStage = null;
-    }
-    if (this.accountType == 'Employee') {
-        if (hasStripeIdentity)
-            nextStage = 'profile';
-        if (hasProfile)
-            nextStage = null;
-    }
-    return {
-        hasStripeAccount: hasStripeAccount,
-        hasStripeIdentity: hasStripeIdentity,
-        hasStripePaymentMethods: hasStripePaymentMethods,
-        hasStripeCustomer: hasStripeCustomer,
-        hasProfile: hasProfile,
-        hasGstDetails: hasGstDetails,
-        hasCompanyDetails: hasCompanyDetails,
-        nextStage: nextStage
-    };
-});
+ContractorSchema.methods.getOnboarding = function () {
+    return __awaiter(this, void 0, void 0, function () {
+        var hasStripeAccount, hasStripeCustomer, hasStripePaymentMethods, hasStripeIdentity, hasProfile, hasGstDetails, hasCompanyDetails, hasPassedQuiz, latestQuiz, questions, totalQuestions, totalCorrect, percentageCorrect, stage;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    hasStripeAccount = !!this.stripeAccount;
+                    hasStripeCustomer = !!this.stripeCustomer;
+                    hasStripePaymentMethods = Array.isArray(this.stripePaymentMethods) && this.stripePaymentMethods.length > 0;
+                    hasStripeIdentity = !!this.stripeIdentity;
+                    hasProfile = !!this.profile;
+                    hasGstDetails = !!this.gstDetails;
+                    hasCompanyDetails = !!this.companyDetails;
+                    hasPassedQuiz = false;
+                    return [4 /*yield*/, contractor_quiz_model_1.default.findOne({ contractor: this._id }).sort({ createdAt: -1 })];
+                case 1:
+                    latestQuiz = _a.sent();
+                    if (!latestQuiz) return [3 /*break*/, 3];
+                    return [4 /*yield*/, question_model_1.default.find({ quiz: latestQuiz.quiz })];
+                case 2:
+                    questions = _a.sent();
+                    totalQuestions = questions.length;
+                    totalCorrect = latestQuiz.response.filter(function (response) { return response.correct; }).length;
+                    percentageCorrect = (totalCorrect / totalQuestions) * 100;
+                    hasPassedQuiz = (percentageCorrect >= 70);
+                    _a.label = 3;
+                case 3:
+                    stage = 1 //{status: 1, label: 'stripeIdentity'};
+                    ;
+                    if (this.accountType == 'Company') {
+                        if (stage == 1 && hasStripeIdentity)
+                            stage = 2; // {status: 2, label: 'companyDetails'} 
+                        if (stage == 2 && hasCompanyDetails)
+                            stage = 3; //{status: 3, label: 'profile'} // 
+                        if (stage == 3 && hasProfile)
+                            stage = 4; //{status: 4, label: 'gstDetails'}
+                        if (stage == 4 && hasGstDetails)
+                            stage = 5; //{status: 5, label: 'quiz'}
+                        if (stage == 5 && hasPassedQuiz)
+                            stage = 6; //{status: 5, label: 'done'}
+                    }
+                    if (this.accountType == 'Individual') {
+                        if (stage == 1 && hasStripeIdentity)
+                            stage = 2; //{status: 2, label: 'profle'} 
+                        if (stage == 2 && hasProfile)
+                            stage = 3; //{status: 3, label: 'gstDetails'} 
+                        if (stage == 3 && hasGstDetails)
+                            stage = 4; //{status: 4, label: 'quiz'} 
+                        if (stage == 4 && hasPassedQuiz)
+                            stage = 5; //{status: 5, label: 'done'}
+                    }
+                    if (this.accountType == 'Employee') {
+                        if (stage == 1 && hasStripeIdentity)
+                            stage = 2; //{status: 2, label: 'profle'} 
+                        if (stage == 2 && hasProfile)
+                            stage = 3; //{status: 3, label: 'quiz'} 
+                        if (stage == 3 && hasPassedQuiz)
+                            stage = 4; //{status: 3, label: 'done'} 
+                    }
+                    return [2 /*return*/, {
+                            hasStripeAccount: hasStripeAccount,
+                            hasStripeIdentity: hasStripeIdentity,
+                            hasStripePaymentMethods: hasStripePaymentMethods,
+                            hasStripeCustomer: hasStripeCustomer,
+                            hasProfile: hasProfile,
+                            hasGstDetails: hasGstDetails,
+                            hasCompanyDetails: hasCompanyDetails,
+                            hasPassedQuiz: hasPassedQuiz,
+                            stage: stage,
+                        }];
+            }
+        });
+    });
+};
+// ContractorSchema.virtual('onboarding').get(function (this: IContractor) {
+//   const hasStripeAccount = !!this.stripeAccount;
+//   const hasStripeCustomer = !!this.stripeCustomer;
+//   const hasStripePaymentMethods = Array.isArray(this.stripePaymentMethods) && this.stripePaymentMethods.length > 0
+//   const hasStripeIdentity = !!this.stripeIdentity;
+//   const hasProfile = !!this.profile;
+//   const hasGstDetails = !!this.gstDetails;
+//   const hasCompanyDetails = !!this.companyDetails;
+//   const latestQuiz: any =  ContractorQuizModel.findOne({ contractor: this._id }).sort({ createdAt: -1 });
+//   const hasPassedQuiz = latestQuiz?.result
+//   let stage: any = {status: 0, label: 'account'};
+//   if(this) stage = {status: 1, label: 'stripeIdentity'}
+//   if(this.accountType == 'Company'){
+//     if(hasStripeIdentity) stage = {status: 2, label: 'companyDetails'} 
+//     if(hasCompanyDetails) stage = {status: 3, label: 'profile'} // 
+//     if(hasProfile) stage =  {status: 4, label: 'gstDetails'}
+//     if(hasGstDetails) stage = {status: 5, label: 'done'}
+//   }
+//   if(this.accountType == 'Individual'){
+//     if(hasStripeIdentity) stage = {status: 2, label: 'profle'} 
+//     if(hasProfile) stage = {status: 3, label: 'gstDetails'} 
+//     if(hasGstDetails) stage = {status: 4, label: 'done'} 
+//   }
+//   if(this.accountType == 'Employee'){
+//     if(hasStripeIdentity) stage = {status: 2, label: 'profle'} 
+//     if(hasProfile) stage = {status: 3, label: 'done'} 
+//   }
+//   return {
+//     hasStripeAccount,
+//     hasStripeIdentity,
+//     hasStripePaymentMethods,
+//     hasStripeCustomer,
+//     hasProfile,
+//     hasGstDetails,
+//     hasCompanyDetails,
+//     stage
+//   }
+// });
 ContractorSchema.virtual('quiz').get(function () {
     return __awaiter(this, void 0, void 0, function () {
         var latestQuiz;

@@ -6,6 +6,7 @@ import ContractorQuizModel from "./contractor_quiz.model";
 import { StripeCustomerSchema } from "../../common/stripe_customer.schema";
 import { StripeAccountSchema } from "../../common/stripe_account.schema";
 import { StripePaymentMethodSchema } from "../../common/stripe_paymentmethod.schema";
+import QuestionModel, { IQuestion } from "../../admin/models/question.model";
 
 
 
@@ -207,6 +208,17 @@ const ContractorSchema = new Schema<IContractor>(
     certnDetails: {
       type: CertnDetailSchema
     },
+    onboarding: {
+      hasStripeAccount: { default: false, type: Boolean },
+      hasStripeIdentity: { default: false, type: Boolean },
+      hasStripePaymentMethods: { default: false, type: Boolean },
+      hasStripeCustomer: { default: false, type: Boolean },
+      hasProfile: { default: false, type: Boolean },
+      hasGstDetails: { default: false, type: Boolean },
+      hasCompanyDetails: { default: false, type: Boolean },
+      hasPassedQuiz: { default: false, type: Boolean },
+      stage: { default: 1, type: Number },
+    }
 
   },
   {
@@ -221,6 +233,7 @@ ContractorSchema.virtual('stripeIdentityStatus').get(function (this: IContractor
   return this.stripeIdentity ? this.stripeIdentity.status : 'unverified';
 });
 
+
 ContractorSchema.virtual('stripeAccountStatus').get(function (this: IContractor) {
   const stripeAccount = this.stripeAccount;
   return stripeAccount ? {
@@ -232,61 +245,86 @@ ContractorSchema.virtual('stripeAccountStatus').get(function (this: IContractor)
   } : null;
 });
 
+
 ContractorSchema.virtual('certnStatus').get(function (this: IContractor) {
   const certnDetails: IContractorCertnDetails = this.certnDetails;
-  return certnDetails ? {
-    result: certnDetails.result,
-    report_status: certnDetails.report_status,
-    adjudication_status: certnDetails.adjudication_status,
-    check_executions: certnDetails.check_executions,
-    is_submitted: certnDetails.is_submitted,
 
-    application_url: certnDetails.application.applicant.application_url,
-    report_url: certnDetails.application.applicant.report_url,
+  let status = 'NOT_STARTED'
+  if (certnDetails) {
+    if (!certnDetails.is_submitted) {
+      status=  'NOT_SUBMITTED'
+    } else {
+      status= certnDetails.status
+    }
+  }
 
-    modified: certnDetails.modified,
-    identity_verified_summary: certnDetails.identity_verified_summary,
-    status: certnDetails.status,
-    status_label: certnDetails.status_label,
-  } : null;
+  return status
+
+
+  // return certnDetails ? {
+  //   result: certnDetails.result,
+  //   report_status: certnDetails.report_status,
+  //   adjudication_status: certnDetails.adjudication_status,
+  //   check_executions: certnDetails.check_executions,
+  //   is_submitted: certnDetails.is_submitted,
+
+  //   application_url: certnDetails.application.applicant.application_url,
+  //   report_url: certnDetails.application.applicant.report_url,
+
+  //   modified: certnDetails.modified,
+  //   identity_verified_summary: certnDetails.identity_verified_summary,
+  //   status: certnDetails.status,
+  //   status_label: certnDetails.status_label,
 });
 
 
-ContractorSchema.virtual('onboarding').get(function (this: IContractor) {
-
+ContractorSchema.methods.getOnboarding = async function () {
   const hasStripeAccount = !!this.stripeAccount;
   const hasStripeCustomer = !!this.stripeCustomer;
   const hasStripePaymentMethods = Array.isArray(this.stripePaymentMethods) && this.stripePaymentMethods.length > 0
-  
+
   const hasStripeIdentity = !!this.stripeIdentity;
   const hasProfile = !!this.profile;
   const hasGstDetails = !!this.gstDetails;
   const hasCompanyDetails = !!this.companyDetails;
 
-  let nextStage: any = 'account';
-  if(this) nextStage = 'stripeIdentity'
-  
-  
-  if(this.accountType == 'Company'){
-    if(hasStripeIdentity) nextStage = 'companyDetails' 
-    if(hasCompanyDetails) nextStage = 'profile' // 
-    if(hasProfile) nextStage = 'gstDetails'
-    if(hasGstDetails) nextStage = null
-  
+  let hasPassedQuiz = false
+  const latestQuiz: any = await ContractorQuizModel.findOne({ contractor: this._id }).sort({ createdAt: -1 });
+  if (latestQuiz) {
+    // hasPassedQuiz = await latestQuiz.result.passed
+    const questions: IQuestion[] = await QuestionModel.find({ quiz: latestQuiz.quiz });
+    const totalQuestions = questions.length;
+    const totalCorrect: number = latestQuiz.response.filter((response: any) => response.correct).length;
+    const percentageCorrect: number = (totalCorrect / totalQuestions) * 100;
+    hasPassedQuiz = (percentageCorrect >= 70);
+
   }
 
-  if(this.accountType == 'Individual'){
-    if(hasStripeIdentity) nextStage = 'profile' 
-    if(hasProfile) nextStage = 'gstDetails'
-    if(hasGstDetails) nextStage = null
+  let stage: any = 1 //{status: 1, label: 'stripeIdentity'};
+
+  if (this.accountType == 'Company') {
+    if (stage == 1 && hasStripeIdentity) stage = 2// {status: 2, label: 'companyDetails'} 
+    if (stage == 2 && hasCompanyDetails) stage = 3 //{status: 3, label: 'profile'} // 
+    if (stage == 3 && hasProfile) stage = 4//{status: 4, label: 'gstDetails'}
+    if (stage == 4 && hasGstDetails) stage = 5//{status: 5, label: 'quiz'}
+    if (stage == 5 && hasPassedQuiz) stage = 6//{status: 5, label: 'done'}
+
+  }
+
+  if (this.accountType == 'Individual') {
+    if (stage == 1 && hasStripeIdentity) stage = 2//{status: 2, label: 'profle'} 
+    if (stage == 2 && hasProfile) stage = 3 //{status: 3, label: 'gstDetails'} 
+    if (stage == 3 && hasGstDetails) stage = 4//{status: 4, label: 'quiz'} 
+    if (stage == 4 && hasPassedQuiz) stage = 5 //{status: 5, label: 'done'}
   }
 
 
-  if(this.accountType == 'Employee'){
-    if(hasStripeIdentity) nextStage = 'profile' 
-    if(hasProfile) nextStage = null
+  if (this.accountType == 'Employee') {
+    if (stage == 1 && hasStripeIdentity) stage = 2//{status: 2, label: 'profle'} 
+    if (stage == 2 && hasProfile) stage = 3//{status: 3, label: 'quiz'} 
+    if (stage == 3 && hasPassedQuiz) stage = 4//{status: 3, label: 'done'} 
   }
- 
+
 
 
   return {
@@ -297,9 +335,65 @@ ContractorSchema.virtual('onboarding').get(function (this: IContractor) {
     hasProfile,
     hasGstDetails,
     hasCompanyDetails,
-    nextStage
+    hasPassedQuiz,
+    stage,
+
   }
-});
+
+};
+
+
+// ContractorSchema.virtual('onboarding').get(function (this: IContractor) {
+
+//   const hasStripeAccount = !!this.stripeAccount;
+//   const hasStripeCustomer = !!this.stripeCustomer;
+//   const hasStripePaymentMethods = Array.isArray(this.stripePaymentMethods) && this.stripePaymentMethods.length > 0
+
+//   const hasStripeIdentity = !!this.stripeIdentity;
+//   const hasProfile = !!this.profile;
+//   const hasGstDetails = !!this.gstDetails;
+//   const hasCompanyDetails = !!this.companyDetails;
+
+//   const latestQuiz: any =  ContractorQuizModel.findOne({ contractor: this._id }).sort({ createdAt: -1 });
+//   const hasPassedQuiz = latestQuiz?.result
+
+//   let stage: any = {status: 0, label: 'account'};
+//   if(this) stage = {status: 1, label: 'stripeIdentity'}
+
+
+//   if(this.accountType == 'Company'){
+//     if(hasStripeIdentity) stage = {status: 2, label: 'companyDetails'} 
+//     if(hasCompanyDetails) stage = {status: 3, label: 'profile'} // 
+//     if(hasProfile) stage =  {status: 4, label: 'gstDetails'}
+//     if(hasGstDetails) stage = {status: 5, label: 'done'}
+
+//   }
+
+//   if(this.accountType == 'Individual'){
+//     if(hasStripeIdentity) stage = {status: 2, label: 'profle'} 
+//     if(hasProfile) stage = {status: 3, label: 'gstDetails'} 
+//     if(hasGstDetails) stage = {status: 4, label: 'done'} 
+//   }
+
+
+//   if(this.accountType == 'Employee'){
+//     if(hasStripeIdentity) stage = {status: 2, label: 'profle'} 
+//     if(hasProfile) stage = {status: 3, label: 'done'} 
+//   }
+
+
+
+//   return {
+//     hasStripeAccount,
+//     hasStripeIdentity,
+//     hasStripePaymentMethods,
+//     hasStripeCustomer,
+//     hasProfile,
+//     hasGstDetails,
+//     hasCompanyDetails,
+//     stage
+//   }
+// });
 
 
 ContractorSchema.virtual('quiz').get(async function () {

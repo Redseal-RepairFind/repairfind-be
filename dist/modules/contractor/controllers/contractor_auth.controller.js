@@ -290,6 +290,7 @@ var AuthHandler = /** @class */ (function (_super) {
                         if (!contractor.emailOtp.verified) {
                             return [2 /*return*/, res.status(401).json({ success: false, message: "email not verified." })];
                         }
+                        contractor.onboarding = contractor.getOnboarding();
                         return [4 /*yield*/, (contractor === null || contractor === void 0 ? void 0 : contractor.quiz)];
                     case 4:
                         quiz = (_a = _c.sent()) !== null && _a !== void 0 ? _a : null;

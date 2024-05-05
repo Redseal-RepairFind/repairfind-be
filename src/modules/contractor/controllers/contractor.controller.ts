@@ -426,6 +426,8 @@ class ProfileHandler extends Base {
       if (!contractor) {
         return res.status(404).json({ success: false, message: 'Account not found' });
       }
+
+      contractor.onboarding = await contractor.getOnboarding()
       const quiz = await contractor.quiz ?? null;
 
       const contractorResponse = {

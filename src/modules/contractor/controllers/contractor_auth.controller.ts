@@ -220,6 +220,7 @@ class AuthHandler extends Base {
             }
 
 
+            contractor.onboarding = contractor.getOnboarding()
             const quiz = await contractor?.quiz ?? null
             const contractorResponse = {
               ...contractor.toJSON(), // Convert to plain JSON object
