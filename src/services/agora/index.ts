@@ -2,7 +2,7 @@ import { RtcTokenBuilder, RtcRole, RtmTokenBuilder, RtmRole } from 'agora-access
 import { config } from '../../config';
 
 class AgoraTokenService {
-  static async generateRtcToken(channelName: string, uid: number, role: string,  privilegeExpiredTs: number = 0): Promise<string> {
+  static async generateRtcToken(channelName: string, role: string, uid: number = 0,   expireTime: number = 86400): Promise<string> {
     try {
 
         console.log(channelName, uid, role)
@@ -13,6 +13,14 @@ class AgoraTokenService {
         if(role == 'audience'){
             rtcRole = RtcRole.SUBSCRIBER
         };
+
+        if (!expireTime || expireTime == 0) {
+          expireTime = 86400;
+        }
+        const currentTime = Math.floor(Date.now() / 1000);
+        const privilegeExpiredTs = currentTime + expireTime;
+
+
       const token = RtcTokenBuilder.buildTokenWithUid(
         config.agora.appId,
         config.agora.appCertificate,
@@ -29,8 +37,16 @@ class AgoraTokenService {
     }
   }
 
-  static async generateRtmToken(uid: number, privilegeExpiredTs: number = 0): Promise<string> {
+  static async generateRtmToken(uid: number = 0, expireTime: number = 86400): Promise<string> {
     try {
+
+      if (!expireTime || expireTime == 0) {
+        expireTime = 86400;
+      }
+      const currentTime = Math.floor(Date.now() / 1000);
+      const privilegeExpiredTs = currentTime + expireTime;
+
+
       const token = RtmTokenBuilder.buildToken(
         config.agora.appId,
         config.agora.appCertificate,

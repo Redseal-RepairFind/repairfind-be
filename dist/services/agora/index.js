@@ -41,10 +41,11 @@ var config_1 = require("../../config");
 var AgoraTokenService = /** @class */ (function () {
     function AgoraTokenService() {
     }
-    AgoraTokenService.generateRtcToken = function (channelName, uid, role, privilegeExpiredTs) {
-        if (privilegeExpiredTs === void 0) { privilegeExpiredTs = 0; }
+    AgoraTokenService.generateRtcToken = function (channelName, role, uid, expireTime) {
+        if (uid === void 0) { uid = 0; }
+        if (expireTime === void 0) { expireTime = 86400; }
         return __awaiter(this, void 0, void 0, function () {
-            var rtcRole, token;
+            var rtcRole, currentTime, privilegeExpiredTs, token;
             return __generator(this, function (_a) {
                 try {
                     console.log(channelName, uid, role);
@@ -57,6 +58,11 @@ var AgoraTokenService = /** @class */ (function () {
                         rtcRole = agora_access_token_1.RtcRole.SUBSCRIBER;
                     }
                     ;
+                    if (!expireTime || expireTime == 0) {
+                        expireTime = 86400;
+                    }
+                    currentTime = Math.floor(Date.now() / 1000);
+                    privilegeExpiredTs = currentTime + expireTime;
                     token = agora_access_token_1.RtcTokenBuilder.buildTokenWithUid(config_1.config.agora.appId, config_1.config.agora.appCertificate, channelName, uid, rtcRole, // Adjust role according to your requirements
                     privilegeExpiredTs);
                     console.log('RTC Token generated successfully');
@@ -70,12 +76,18 @@ var AgoraTokenService = /** @class */ (function () {
             });
         });
     };
-    AgoraTokenService.generateRtmToken = function (uid, privilegeExpiredTs) {
-        if (privilegeExpiredTs === void 0) { privilegeExpiredTs = 0; }
+    AgoraTokenService.generateRtmToken = function (uid, expireTime) {
+        if (uid === void 0) { uid = 0; }
+        if (expireTime === void 0) { expireTime = 86400; }
         return __awaiter(this, void 0, void 0, function () {
-            var token;
+            var currentTime, privilegeExpiredTs, token;
             return __generator(this, function (_a) {
                 try {
+                    if (!expireTime || expireTime == 0) {
+                        expireTime = 86400;
+                    }
+                    currentTime = Math.floor(Date.now() / 1000);
+                    privilegeExpiredTs = currentTime + expireTime;
                     token = agora_access_token_1.RtmTokenBuilder.buildToken(config_1.config.agora.appId, config_1.config.agora.appCertificate, uid, agora_access_token_1.RtmRole.Rtm_User, // Adjust role according to your requirements
                     privilegeExpiredTs);
                     console.log('RTM Token generated successfully');

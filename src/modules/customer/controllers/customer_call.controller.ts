@@ -53,12 +53,12 @@ export const startCall = async (
         const fromUserId = req.customer.id
         const fromUser =  await CustomerModel.findById(fromUserId)
         if(!fromUser)return res.status(404).json({ success:false, message:'From user not provided' }) 
-        const channelName =  `${fromUserId}:${toUser}`
+        const channelName =  `${fromUserId}`
        
         if (!toUserType || !toUser) return res.status(400).json({ success:false, message:'To user not provided' }) 
         const user = toUserType === 'contractors' ? await ContractorModel.findById(toUser) : await CustomerModel.findById(toUser)
         if (!user)  return res.status(404).json({ success:false, message:'User not found' }); // Ensure user exists
-        const token = await AgoraTokenService.generateRtcToken(channelName, fromUserId, 'publisher');
+        const token = await AgoraTokenService.generateRtcToken(channelName, 'publisher');
 
          // Create a new call document
          const callData = {

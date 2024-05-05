@@ -102,7 +102,7 @@ var startCall = function (req, res, next) { return __awaiter(void 0, void 0, voi
                 fromUser = _e.sent();
                 if (!fromUser)
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'From user not provided' })];
-                channelName = "".concat(fromUserId, ":").concat(toUser);
+                channelName = "".concat(fromUserId);
                 if (!toUserType || !toUser)
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'To user not provided' })];
                 if (!(toUserType === 'contractors')) return [3 /*break*/, 3];
@@ -118,7 +118,7 @@ var startCall = function (req, res, next) { return __awaiter(void 0, void 0, voi
                 user = _b;
                 if (!user)
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'User not found' })]; // Ensure user exists
-                return [4 /*yield*/, agora_1.default.generateRtcToken(channelName, fromUserId, 'publisher')];
+                return [4 /*yield*/, agora_1.default.generateRtcToken(channelName, 'publisher')];
             case 6:
                 token = _e.sent();
                 callData = {
