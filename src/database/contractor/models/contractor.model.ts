@@ -257,10 +257,35 @@ ContractorSchema.virtual('onboarding').get(function (this: IContractor) {
   const hasStripeAccount = !!this.stripeAccount;
   const hasStripeCustomer = !!this.stripeCustomer;
   const hasStripePaymentMethods = Array.isArray(this.stripePaymentMethods) && this.stripePaymentMethods.length > 0
+  
   const hasStripeIdentity = !!this.stripeIdentity;
   const hasProfile = !!this.profile;
   const hasGstDetails = !!this.gstDetails;
   const hasCompanyDetails = !!this.companyDetails;
+
+  let nextStage: any = 1;
+  if(this) nextStage = 2
+  if(hasStripeIdentity) nextStage = 3 // if hasstripaccount and hasidentity the next stage for profile to be created = 3
+  
+  if(this.accountType == 'Company'){
+    if(hasCompanyDetails) nextStage = 4 // 
+    if(hasProfile) nextStage = 5
+    if(hasGstDetails) nextStage = null
+  
+  }
+
+  if(this.accountType == 'Individual'){
+    if(hasProfile) nextStage = 4
+    if(hasGstDetails) nextStage = null
+  }
+
+
+  if(this.accountType == 'Employee'){
+    if(this.updatedAt) nextStage = null
+  }
+ 
+
+
   return {
     hasStripeAccount,
     hasStripeIdentity,
@@ -268,7 +293,8 @@ ContractorSchema.virtual('onboarding').get(function (this: IContractor) {
     hasStripeCustomer,
     hasProfile,
     hasGstDetails,
-    hasCompanyDetails
+    hasCompanyDetails,
+    nextStage
   }
 });
 

@@ -262,6 +262,29 @@ ContractorSchema.virtual('onboarding').get(function () {
     var hasProfile = !!this.profile;
     var hasGstDetails = !!this.gstDetails;
     var hasCompanyDetails = !!this.companyDetails;
+    var nextStage = 1;
+    if (this)
+        nextStage = 2;
+    if (hasStripeIdentity)
+        nextStage = 3; // if hasstripaccount and hasidentity the next stage for profile to be created = 3
+    if (this.accountType == 'Company') {
+        if (hasCompanyDetails)
+            nextStage = 4; // 
+        if (hasProfile)
+            nextStage = 5;
+        if (hasGstDetails)
+            nextStage = null;
+    }
+    if (this.accountType == 'Individual') {
+        if (hasProfile)
+            nextStage = 4;
+        if (hasGstDetails)
+            nextStage = null;
+    }
+    if (this.accountType == 'Employee') {
+        if (this.updatedAt)
+            nextStage = null;
+    }
     return {
         hasStripeAccount: hasStripeAccount,
         hasStripeIdentity: hasStripeIdentity,
@@ -269,7 +292,8 @@ ContractorSchema.virtual('onboarding').get(function () {
         hasStripeCustomer: hasStripeCustomer,
         hasProfile: hasProfile,
         hasGstDetails: hasGstDetails,
-        hasCompanyDetails: hasCompanyDetails
+        hasCompanyDetails: hasCompanyDetails,
+        nextStage: nextStage
     };
 });
 ContractorSchema.virtual('quiz').get(function () {
