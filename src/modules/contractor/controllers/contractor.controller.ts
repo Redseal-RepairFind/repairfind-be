@@ -93,7 +93,7 @@ class ProfileHandler extends Base {
       contractor.profile = profile._id;
       contractor.profilePhoto = profilePhoto;
       await contractor.save();
-
+      contractor.onboarding = await contractor.getOnboarding()
 
       const contractorResponse = {
         ...contractor.toJSON(),
@@ -255,7 +255,7 @@ class ProfileHandler extends Base {
       );
 
       await contractor.save();
-
+      contractor.onboarding = await contractor.getOnboarding()
       const contractorResponse = {
         //@ts-ignore
         ...contractor.toJSON(), // Convert to plain JSON object
@@ -327,7 +327,8 @@ class ProfileHandler extends Base {
       contractor.accountType = CONTRACTOR_TYPES.Individual;
       contractor.gstDetails = gstDetails;
       await contractor.save();
-
+      contractor.onboarding = await contractor.getOnboarding()
+      
       const contractorResponse = {
         ...contractor.toJSON(), // Convert to plain JSON object
         profile
@@ -388,6 +389,7 @@ class ProfileHandler extends Base {
       );
 
 
+      account.onboarding = await account.getOnboarding()
       res.json({
         success: true,
         message: 'Account updated successfully',
@@ -735,7 +737,7 @@ class ProfileHandler extends Base {
 
       // Save the updated contractor profile
       await contractor.save();
-
+      contractor.onboarding = await contractor.getOnboarding()
       res.json({
         success: true,
         message: 'Contractor Gst  details added successfully',
@@ -790,6 +792,7 @@ class ProfileHandler extends Base {
 
       // Save the updated contractor profile
       await contractor.save();
+      contractor.onboarding = await contractor.getOnboarding()
 
       res.json({
         success: true,
@@ -839,6 +842,7 @@ class ProfileHandler extends Base {
       // Update the user's password
       contractor.password = hashedPassword;
       await contractor.save();
+      contractor.onboarding = await contractor.getOnboarding()
 
       return res.json({ success: true, message: 'Password changed successfully' });
     } catch (error) {
@@ -879,6 +883,7 @@ class ProfileHandler extends Base {
       // Update the user's password
       // contractor.password = 'hashedPassword';
       await contractor.save();
+      contractor.onboarding = await contractor.getOnboarding()
 
       return res.json({ success: true, message: 'Verification session created', data: verificationSession });
     } catch (error: any) {

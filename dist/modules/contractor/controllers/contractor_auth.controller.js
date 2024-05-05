@@ -258,15 +258,15 @@ var AuthHandler = /** @class */ (function (_super) {
     AuthHandler.prototype.signin = function () {
         var _a;
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _b, email, password, errors, contractor, isPasswordMatch, quiz, contractorResponse, accessToken, err_3;
-            return __generator(this, function (_c) {
-                switch (_c.label) {
+            var req, res, _b, email, password, errors, contractor, isPasswordMatch, _c, quiz, contractorResponse, accessToken, err_3;
+            return __generator(this, function (_d) {
+                switch (_d.label) {
                     case 0:
                         req = this.req;
                         res = this.res;
-                        _c.label = 1;
+                        _d.label = 1;
                     case 1:
-                        _c.trys.push([1, 5, , 6]);
+                        _d.trys.push([1, 6, , 7]);
                         _b = req.body, email = _b.email, password = _b.password;
                         errors = (0, express_validator_1.validationResult)(req);
                         if (!errors.isEmpty()) {
@@ -274,7 +274,7 @@ var AuthHandler = /** @class */ (function (_super) {
                         }
                         return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ email: email }).populate('profile')];
                     case 2:
-                        contractor = _c.sent();
+                        contractor = _d.sent();
                         // check if user exists
                         if (!contractor) {
                             return [2 /*return*/, res
@@ -283,17 +283,20 @@ var AuthHandler = /** @class */ (function (_super) {
                         }
                         return [4 /*yield*/, bcrypt_1.default.compare(password, contractor.password)];
                     case 3:
-                        isPasswordMatch = _c.sent();
+                        isPasswordMatch = _d.sent();
                         if (!isPasswordMatch) {
                             return [2 /*return*/, res.status(401).json({ success: false, message: "incorrect credential." })];
                         }
                         if (!contractor.emailOtp.verified) {
                             return [2 /*return*/, res.status(401).json({ success: false, message: "email not verified." })];
                         }
-                        contractor.onboarding = contractor.getOnboarding();
-                        return [4 /*yield*/, (contractor === null || contractor === void 0 ? void 0 : contractor.quiz)];
+                        _c = contractor;
+                        return [4 /*yield*/, contractor.getOnboarding()];
                     case 4:
-                        quiz = (_a = _c.sent()) !== null && _a !== void 0 ? _a : null;
+                        _c.onboarding = _d.sent();
+                        return [4 /*yield*/, (contractor === null || contractor === void 0 ? void 0 : contractor.quiz)];
+                    case 5:
+                        quiz = (_a = _d.sent()) !== null && _a !== void 0 ? _a : null;
                         contractorResponse = __assign(__assign({}, contractor.toJSON()), { // Convert to plain JSON object
                             quiz: quiz });
                         accessToken = jsonwebtoken_1.default.sign({
@@ -308,10 +311,10 @@ var AuthHandler = /** @class */ (function (_super) {
                                 accessToken: accessToken,
                                 user: contractorResponse
                             })];
-                    case 5:
-                        err_3 = _c.sent();
+                    case 6:
+                        err_3 = _d.sent();
                         return [2 /*return*/, res.status(500).json({ success: false, message: err_3.message })];
-                    case 6: return [2 /*return*/];
+                    case 7: return [2 /*return*/];
                 }
             });
         });

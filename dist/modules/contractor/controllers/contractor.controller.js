@@ -105,20 +105,20 @@ var ProfileHandler = /** @class */ (function (_super) {
     }
     ProfileHandler.prototype.createProfile = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _a, location_1, backgroundCheckConsent, skill, website, experienceYear, about, email, phoneNumber, emergencyJobs, availableDays, profilePhoto, previousJobPhotos, previousJobVideos, contractorId, contractor_1, errors, payload, profile, contractorResponse, data, htmlCon, html, adminsWithEmails, adminEmails, err_1;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var req, res, _a, location_1, backgroundCheckConsent, skill, website, experienceYear, about, email, phoneNumber, emergencyJobs, availableDays, profilePhoto, previousJobPhotos, previousJobVideos, contractorId, contractor_1, errors, payload, profile, _b, contractorResponse, data, htmlCon, html, adminsWithEmails, adminEmails, err_1;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
                         req = this.req;
                         res = this.res;
-                        _b.label = 1;
+                        _c.label = 1;
                     case 1:
-                        _b.trys.push([1, 6, , 7]);
+                        _c.trys.push([1, 7, , 8]);
                         _a = req.body, location_1 = _a.location, backgroundCheckConsent = _a.backgroundCheckConsent, skill = _a.skill, website = _a.website, experienceYear = _a.experienceYear, about = _a.about, email = _a.email, phoneNumber = _a.phoneNumber, emergencyJobs = _a.emergencyJobs, availableDays = _a.availableDays, profilePhoto = _a.profilePhoto, previousJobPhotos = _a.previousJobPhotos, previousJobVideos = _a.previousJobVideos;
                         contractorId = req.contractor.id;
                         return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
                     case 2:
-                        contractor_1 = _b.sent();
+                        contractor_1 = _c.sent();
                         if (!contractor_1) {
                             return [2 /*return*/, res.status(404).json({ message: "Contractor account not found" })];
                         }
@@ -157,13 +157,17 @@ var ProfileHandler = /** @class */ (function (_super) {
                             // Update the ContractorModel with the profile ID
                         ];
                     case 3:
-                        profile = _b.sent();
+                        profile = _c.sent();
                         // Update the ContractorModel with the profile ID
                         contractor_1.profile = profile._id;
                         contractor_1.profilePhoto = profilePhoto;
                         return [4 /*yield*/, contractor_1.save()];
                     case 4:
-                        _b.sent();
+                        _c.sent();
+                        _b = contractor_1;
+                        return [4 /*yield*/, contractor_1.getOnboarding()];
+                    case 5:
+                        _b.onboarding = _c.sent();
                         contractorResponse = __assign(__assign({}, contractor_1.toJSON()), { profile: profile });
                         if (contractor_1.accountType == contractor_interface_1.CONTRACTOR_TYPES.Individual) {
                             data = {
@@ -185,8 +189,8 @@ var ProfileHandler = /** @class */ (function (_super) {
                             .catch(function (error) { return console.error('Error sending email:', error); });
                         html = (0, adminContractorDocumentTemplate_1.htmlContractorDocumentValidatinToAdminTemplate)(contractor_1.firstName);
                         return [4 /*yield*/, admin_model_1.default.find().select('email')];
-                    case 5:
-                        adminsWithEmails = _b.sent();
+                    case 6:
+                        adminsWithEmails = _c.sent();
                         adminEmails = adminsWithEmails.map(function (admin) { return admin.email; });
                         services_1.EmailService.send(adminEmails, 'New Profile Registered', html, adminEmails)
                             .then(function () { return console.log('Emails sent successfully with CC'); })
@@ -196,13 +200,13 @@ var ProfileHandler = /** @class */ (function (_super) {
                             message: "Profile created successfully",
                             data: contractorResponse
                         });
-                        return [3 /*break*/, 7];
-                    case 6:
-                        err_1 = _b.sent();
+                        return [3 /*break*/, 8];
+                    case 7:
+                        err_1 = _c.sent();
                         console.log("error", err_1);
                         res.status(500).json({ success: false, message: err_1.message });
-                        return [3 /*break*/, 7];
-                    case 7: return [2 /*return*/];
+                        return [3 /*break*/, 8];
+                    case 8: return [2 /*return*/];
                 }
             });
         });
@@ -249,15 +253,15 @@ var ProfileHandler = /** @class */ (function (_super) {
     };
     ProfileHandler.prototype.updateProfile = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, contractor, contractorId, _a, website, experienceYear, about, email, location_2, phoneNumber, emergencyJobs, availableDays, previousJobPhotos, previousJobVideos, profilePhoto, backgroundCheckConsent, skill, errors, profile, payload, contractorResponse, err_3;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var req, res, contractor, contractorId, _a, website, experienceYear, about, email, location_2, phoneNumber, emergencyJobs, availableDays, previousJobPhotos, previousJobVideos, profilePhoto, backgroundCheckConsent, skill, errors, profile, payload, _b, contractorResponse, err_3;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
                         req = this.req;
                         res = this.res;
-                        _b.label = 1;
+                        _c.label = 1;
                     case 1:
-                        _b.trys.push([1, 5, , 6]);
+                        _c.trys.push([1, 6, , 7]);
                         contractor = req.contractor;
                         contractorId = contractor.id;
                         _a = req.body, website = _a.website, experienceYear = _a.experienceYear, about = _a.about, email = _a.email, location_2 = _a.location, phoneNumber = _a.phoneNumber, emergencyJobs = _a.emergencyJobs, availableDays = _a.availableDays, previousJobPhotos = _a.previousJobPhotos, previousJobVideos = _a.previousJobVideos, profilePhoto = _a.profilePhoto, backgroundCheckConsent = _a.backgroundCheckConsent, skill = _a.skill;
@@ -267,7 +271,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         }
                         return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.find({ contractor: contractorId })];
                     case 2:
-                        profile = _b.sent();
+                        profile = _c.sent();
                         if (!profile) {
                             return [2 /*return*/, res.status(404).json({ success: false, message: 'Profile not found' })];
                         }
@@ -299,10 +303,14 @@ var ProfileHandler = /** @class */ (function (_super) {
                         }
                         return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOneAndUpdate({ contractor: contractorId }, __assign({}, payload), { new: true })];
                     case 3:
-                        _b.sent();
+                        _c.sent();
                         return [4 /*yield*/, contractor.save()];
                     case 4:
-                        _b.sent();
+                        _c.sent();
+                        _b = contractor;
+                        return [4 /*yield*/, contractor.getOnboarding()];
+                    case 5:
+                        _b.onboarding = _c.sent();
                         contractorResponse = __assign(__assign({}, contractor.toJSON()), { // Convert to plain JSON object
                             profile: profile });
                         res.json({
@@ -310,29 +318,29 @@ var ProfileHandler = /** @class */ (function (_super) {
                             message: 'Profile updated successfully',
                             data: contractorResponse,
                         });
-                        return [3 /*break*/, 6];
-                    case 5:
-                        err_3 = _b.sent();
+                        return [3 /*break*/, 7];
+                    case 6:
+                        err_3 = _c.sent();
                         console.log('error', err_3);
                         res.status(500).json({ success: false, message: err_3.message });
-                        return [3 /*break*/, 6];
-                    case 6: return [2 /*return*/];
+                        return [3 /*break*/, 7];
+                    case 7: return [2 /*return*/];
                 }
             });
         });
     };
     ProfileHandler.prototype.upgradeEmployeeProfile = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, next, contractor, contractorId, _a, gstDetails, website, experienceYear, about, email, location_3, phoneNumber, emergencyJobs, availableDays, previousJobPhotos, previousJobVideos, skill, errors, profile, contractorResponse, err_4;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var req, res, next, contractor, contractorId, _a, gstDetails, website, experienceYear, about, email, location_3, phoneNumber, emergencyJobs, availableDays, previousJobPhotos, previousJobVideos, skill, errors, profile, _b, contractorResponse, err_4;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
                         req = this.req;
                         res = this.res;
                         next = this.next;
-                        _b.label = 1;
+                        _c.label = 1;
                     case 1:
-                        _b.trys.push([1, 4, , 5]);
+                        _c.trys.push([1, 5, , 6]);
                         contractor = req.contractor;
                         contractorId = contractor.id;
                         _a = req.body, gstDetails = _a.gstDetails, website = _a.website, experienceYear = _a.experienceYear, about = _a.about, email = _a.email, location_3 = _a.location, phoneNumber = _a.phoneNumber, emergencyJobs = _a.emergencyJobs, availableDays = _a.availableDays, previousJobPhotos = _a.previousJobPhotos, previousJobVideos = _a.previousJobVideos, skill = _a.skill;
@@ -354,12 +362,16 @@ var ProfileHandler = /** @class */ (function (_super) {
                                 skill: skill,
                             }, { new: true })];
                     case 2:
-                        profile = _b.sent();
+                        profile = _c.sent();
                         contractor.accountType = contractor_interface_1.CONTRACTOR_TYPES.Individual;
                         contractor.gstDetails = gstDetails;
                         return [4 /*yield*/, contractor.save()];
                     case 3:
-                        _b.sent();
+                        _c.sent();
+                        _b = contractor;
+                        return [4 /*yield*/, contractor.getOnboarding()];
+                    case 4:
+                        _b.onboarding = _c.sent();
                         contractorResponse = __assign(__assign({}, contractor.toJSON()), { // Convert to plain JSON object
                             profile: profile });
                         res.json({
@@ -367,34 +379,34 @@ var ProfileHandler = /** @class */ (function (_super) {
                             message: 'Profile upgraded successfully',
                             data: contractorResponse,
                         });
-                        return [3 /*break*/, 5];
-                    case 4:
-                        err_4 = _b.sent();
+                        return [3 /*break*/, 6];
+                    case 5:
+                        err_4 = _c.sent();
                         console.log('error', err_4);
                         res.status(500).json({ success: false, message: err_4.message });
                         next(new custom_errors_1.BadRequestError('An error occured', err_4));
-                        return [3 /*break*/, 5];
-                    case 5: return [2 /*return*/];
+                        return [3 /*break*/, 6];
+                    case 6: return [2 /*return*/];
                 }
             });
         });
     };
     ProfileHandler.prototype.updateAccount = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, contractor, contractorId, account, _a, firstName, lastName, companyName, profilePhoto, phoneNumber, dateOfBirth, payload, err_5;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var req, res, contractor, contractorId, account, _a, firstName, lastName, companyName, profilePhoto, phoneNumber, dateOfBirth, payload, _b, err_5;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
                         req = this.req;
                         res = this.res;
-                        _b.label = 1;
+                        _c.label = 1;
                     case 1:
-                        _b.trys.push([1, 4, , 5]);
+                        _c.trys.push([1, 5, , 6]);
                         contractor = req.contractor;
                         contractorId = contractor.id;
                         return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
                     case 2:
-                        account = _b.sent();
+                        account = _c.sent();
                         if (!account) {
                             return [2 /*return*/, res.status(404).json({ success: false, message: 'Account not found' })];
                         }
@@ -411,19 +423,23 @@ var ProfileHandler = /** @class */ (function (_super) {
                         }
                         return [4 /*yield*/, contractor_model_1.ContractorModel.findOneAndUpdate({ _id: contractorId }, payload, { new: true })];
                     case 3:
-                        _b.sent();
+                        _c.sent();
+                        _b = account;
+                        return [4 /*yield*/, account.getOnboarding()];
+                    case 4:
+                        _b.onboarding = _c.sent();
                         res.json({
                             success: true,
                             message: 'Account updated successfully',
                             data: account,
                         });
-                        return [3 /*break*/, 5];
-                    case 4:
-                        err_5 = _b.sent();
+                        return [3 /*break*/, 6];
+                    case 5:
+                        err_5 = _c.sent();
                         console.log('error', err_5);
                         res.status(500).json({ success: false, message: err_5.message });
-                        return [3 /*break*/, 5];
-                    case 5: return [2 /*return*/];
+                        return [3 /*break*/, 6];
+                    case 6: return [2 /*return*/];
                 }
             });
         });
@@ -747,15 +763,15 @@ var ProfileHandler = /** @class */ (function (_super) {
     };
     ProfileHandler.prototype.addGstDetails = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _a, gstName, gstNumber, gstType, backgroundCheckConsent, gstCertificate, errors, contractorId, contractor, err_10;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var req, res, _a, gstName, gstNumber, gstType, backgroundCheckConsent, gstCertificate, errors, contractorId, contractor, _b, err_10;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
                         req = this.req;
                         res = this.res;
-                        _b.label = 1;
+                        _c.label = 1;
                     case 1:
-                        _b.trys.push([1, 4, , 5]);
+                        _c.trys.push([1, 5, , 6]);
                         _a = req.body, gstName = _a.gstName, gstNumber = _a.gstNumber, gstType = _a.gstType, backgroundCheckConsent = _a.backgroundCheckConsent, gstCertificate = _a.gstCertificate;
                         errors = (0, express_validator_1.validationResult)(req);
                         if (!errors.isEmpty()) {
@@ -764,7 +780,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         contractorId = req.contractor.id;
                         return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
                     case 2:
-                        contractor = _b.sent();
+                        contractor = _c.sent();
                         if (!contractor) {
                             return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor  not found' })];
                         }
@@ -790,33 +806,37 @@ var ProfileHandler = /** @class */ (function (_super) {
                         return [4 /*yield*/, contractor.save()];
                     case 3:
                         // Save the updated contractor profile
-                        _b.sent();
+                        _c.sent();
+                        _b = contractor;
+                        return [4 /*yield*/, contractor.getOnboarding()];
+                    case 4:
+                        _b.onboarding = _c.sent();
                         res.json({
                             success: true,
                             message: 'Contractor Gst  details added successfully',
                             data: contractor,
                         });
-                        return [3 /*break*/, 5];
-                    case 4:
-                        err_10 = _b.sent();
+                        return [3 /*break*/, 6];
+                    case 5:
+                        err_10 = _c.sent();
                         res.status(500).json({ success: false, message: err_10.message });
-                        return [3 /*break*/, 5];
-                    case 5: return [2 /*return*/];
+                        return [3 /*break*/, 6];
+                    case 6: return [2 /*return*/];
                 }
             });
         });
     };
     ProfileHandler.prototype.addCompanyDetails = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _a, companyLogo, companyStaffId, errors, contractorId, contractor, err_11;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var req, res, _a, companyLogo, companyStaffId, errors, contractorId, contractor, _b, err_11;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
                         req = this.req;
                         res = this.res;
-                        _b.label = 1;
+                        _c.label = 1;
                     case 1:
-                        _b.trys.push([1, 4, , 5]);
+                        _c.trys.push([1, 5, , 6]);
                         _a = req.body, companyLogo = _a.companyLogo, companyStaffId = _a.companyStaffId;
                         errors = (0, express_validator_1.validationResult)(req);
                         if (!errors.isEmpty()) {
@@ -825,7 +845,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         contractorId = req.contractor.id;
                         return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
                     case 2:
-                        contractor = _b.sent();
+                        contractor = _c.sent();
                         if (!contractor) {
                             return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor  not found' })];
                         }
@@ -848,33 +868,37 @@ var ProfileHandler = /** @class */ (function (_super) {
                         return [4 /*yield*/, contractor.save()];
                     case 3:
                         // Save the updated contractor profile
-                        _b.sent();
+                        _c.sent();
+                        _b = contractor;
+                        return [4 /*yield*/, contractor.getOnboarding()];
+                    case 4:
+                        _b.onboarding = _c.sent();
                         res.json({
                             success: true,
                             message: 'Contractor company details added successfully',
                             data: contractor,
                         });
-                        return [3 /*break*/, 5];
-                    case 4:
-                        err_11 = _b.sent();
+                        return [3 /*break*/, 6];
+                    case 5:
+                        err_11 = _c.sent();
                         res.status(500).json({ success: false, message: err_11.message });
-                        return [3 /*break*/, 5];
-                    case 5: return [2 /*return*/];
+                        return [3 /*break*/, 6];
+                    case 6: return [2 /*return*/];
                 }
             });
         });
     };
     ProfileHandler.prototype.changePassword = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, errors, _a, currentPassword, newPassword, contractorId, contractor, isPasswordValid, hashedPassword, error_1;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var req, res, errors, _a, currentPassword, newPassword, contractorId, contractor, isPasswordValid, hashedPassword, _b, error_1;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
                         req = this.req;
                         res = this.res;
-                        _b.label = 1;
+                        _c.label = 1;
                     case 1:
-                        _b.trys.push([1, 6, , 7]);
+                        _c.trys.push([1, 7, , 8]);
                         errors = (0, express_validator_1.validationResult)(req);
                         if (!errors.isEmpty()) {
                             return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -883,31 +907,35 @@ var ProfileHandler = /** @class */ (function (_super) {
                         contractorId = req.contractor.id;
                         return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
                     case 2:
-                        contractor = _b.sent();
+                        contractor = _c.sent();
                         // Check if the user exists
                         if (!contractor) {
                             return [2 /*return*/, res.status(404).json({ success: false, message: 'User not found' })];
                         }
                         return [4 /*yield*/, bcrypt_1.default.compare(currentPassword, contractor.password)];
                     case 3:
-                        isPasswordValid = _b.sent();
+                        isPasswordValid = _c.sent();
                         if (!isPasswordValid) {
                             return [2 /*return*/, res.status(401).json({ success: false, message: 'Current password is incorrect' })];
                         }
                         return [4 /*yield*/, bcrypt_1.default.hash(newPassword, 10)];
                     case 4:
-                        hashedPassword = _b.sent();
+                        hashedPassword = _c.sent();
                         // Update the user's password
                         contractor.password = hashedPassword;
                         return [4 /*yield*/, contractor.save()];
                     case 5:
-                        _b.sent();
-                        return [2 /*return*/, res.json({ success: true, message: 'Password changed successfully' })];
+                        _c.sent();
+                        _b = contractor;
+                        return [4 /*yield*/, contractor.getOnboarding()];
                     case 6:
-                        error_1 = _b.sent();
+                        _b.onboarding = _c.sent();
+                        return [2 /*return*/, res.json({ success: true, message: 'Password changed successfully' })];
+                    case 7:
+                        error_1 = _c.sent();
                         console.error('Error changing password:', error_1);
                         return [2 /*return*/, res.status(500).json({ success: false, message: 'Internal Server Error' })];
-                    case 7: return [2 /*return*/];
+                    case 8: return [2 /*return*/];
                 }
             });
         });
@@ -915,15 +943,15 @@ var ProfileHandler = /** @class */ (function (_super) {
     ProfileHandler.prototype.createIdentitySession = function () {
         var _a, _b;
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, errors, _c, currentPassword, newPassword, contractorId, contractor, verificationSession, error_2;
-            return __generator(this, function (_d) {
-                switch (_d.label) {
+            var req, res, errors, _c, currentPassword, newPassword, contractorId, contractor, verificationSession, _d, error_2;
+            return __generator(this, function (_e) {
+                switch (_e.label) {
                     case 0:
                         req = this.req;
                         res = this.res;
-                        _d.label = 1;
+                        _e.label = 1;
                     case 1:
-                        _d.trys.push([1, 5, , 6]);
+                        _e.trys.push([1, 6, , 7]);
                         errors = (0, express_validator_1.validationResult)(req);
                         if (!errors.isEmpty()) {
                             return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -932,7 +960,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         contractorId = req.contractor.id;
                         return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
                     case 2:
-                        contractor = _d.sent();
+                        contractor = _e.sent();
                         // Check if the user exists
                         if (!contractor) {
                             return [2 /*return*/, res.status(404).json({ success: false, message: 'User not found' })];
@@ -946,20 +974,24 @@ var ProfileHandler = /** @class */ (function (_super) {
                             // contractor.password = 'hashedPassword';
                         ];
                     case 3:
-                        verificationSession = _d.sent();
+                        verificationSession = _e.sent();
                         // Update the user's password
                         // contractor.password = 'hashedPassword';
                         return [4 /*yield*/, contractor.save()];
                     case 4:
                         // Update the user's password
                         // contractor.password = 'hashedPassword';
-                        _d.sent();
-                        return [2 /*return*/, res.json({ success: true, message: 'Verification session created', data: verificationSession })];
+                        _e.sent();
+                        _d = contractor;
+                        return [4 /*yield*/, contractor.getOnboarding()];
                     case 5:
-                        error_2 = _d.sent();
+                        _d.onboarding = _e.sent();
+                        return [2 /*return*/, res.json({ success: true, message: 'Verification session created', data: verificationSession })];
+                    case 6:
+                        error_2 = _e.sent();
                         console.error('Error creating stripe verification session:', error_2);
                         return [2 /*return*/, res.status((_a = error_2.code) !== null && _a !== void 0 ? _a : 500).json({ success: false, message: (_b = error_2.message) !== null && _b !== void 0 ? _b : 'Internal Server Error' })];
-                    case 6: return [2 /*return*/];
+                    case 7: return [2 /*return*/];
                 }
             });
         });
