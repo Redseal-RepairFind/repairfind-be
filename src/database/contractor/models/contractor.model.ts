@@ -20,6 +20,7 @@ const GstDetailSchema = new Schema<IContractorGstDetails>({
   approvedAt: Date,
   recentRemark: String,
   gstCertificate: String,
+  statusReason: String,
 });
 
 

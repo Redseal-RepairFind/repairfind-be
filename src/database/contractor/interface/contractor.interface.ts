@@ -14,6 +14,7 @@ export interface IContractorGstDetails  extends Document  {
   approvedAt: Date
   recentRemark: string
   gstCertificate: string
+  statusReason: string
 }
 
 export interface IContractorCompanyDetails  extends Document  {

@@ -199,7 +199,8 @@ export const AdminChangeContractorGstStatusController = async (
   try {
     let {  
      gstStatus,
-     contractorId
+     contractorId,
+     reason
     } = req.body;
 
     // Check for validation errors
@@ -208,6 +209,8 @@ export const AdminChangeContractorGstStatusController = async (
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
+
+    reason = reason || '';
 
     // const admin =  req.admin;
     const adminId = req.admin.id
@@ -243,11 +246,18 @@ export const AdminChangeContractorGstStatusController = async (
     // contractor.gstDetails.gstOtpRquestBy = admin._id;
     // contractor.gstDetails.gstOtpRquestType = gstStatus;
 
+    if (reason === '' && gstStatus === GST_STATUS.DECLINED) {
+      return res
+        .status(401)
+        .json({ message: "please provide reason for declinig contractor" });
+    }
+
     const createdTime = new Date()
 
     contractor.gstDetails.status = gstStatus;
     contractor.gstDetails.approvedBy = adminId;
     contractor.gstDetails.approvedAt = createdTime;
+    contractor.gstDetails.statusReason = reason;
     await contractor.save()
 
     // const html = htmlAdminRquestGstStatuChangeTemplate(admin.firstName, contractor.firstName, contractor.email, otp, gstStatus);
