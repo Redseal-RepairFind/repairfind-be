@@ -296,7 +296,7 @@ ContractorSchema.methods.getOnboarding = function () {
                     return [4 /*yield*/, question_model_1.default.find({ quiz: latestQuiz.quiz })];
                 case 2:
                     questions = _a.sent();
-                    totalQuestions = questions.length;
+                    totalQuestions = 10;
                     totalCorrect = latestQuiz.response.filter(function (response) { return response.correct; }).length;
                     percentageCorrect = (totalCorrect / totalQuestions) * 100;
                     hasPassedQuiz = (percentageCorrect >= 70);

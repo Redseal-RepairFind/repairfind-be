@@ -258,7 +258,7 @@ var AuthHandler = /** @class */ (function (_super) {
     AuthHandler.prototype.signin = function () {
         var _a;
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _b, email, password, errors, contractor, isPasswordMatch, _c, quiz, contractorResponse, accessToken, err_3;
+            var req, res, _b, email, password, errors, contractor, isPasswordMatch, quiz, _c, contractorResponse, accessToken, err_3;
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
@@ -290,13 +290,13 @@ var AuthHandler = /** @class */ (function (_super) {
                         if (!contractor.emailOtp.verified) {
                             return [2 /*return*/, res.status(401).json({ success: false, message: "email not verified." })];
                         }
+                        return [4 /*yield*/, (contractor === null || contractor === void 0 ? void 0 : contractor.quiz)];
+                    case 4:
+                        quiz = (_a = _d.sent()) !== null && _a !== void 0 ? _a : null;
                         _c = contractor;
                         return [4 /*yield*/, contractor.getOnboarding()];
-                    case 4:
-                        _c.onboarding = _d.sent();
-                        return [4 /*yield*/, (contractor === null || contractor === void 0 ? void 0 : contractor.quiz)];
                     case 5:
-                        quiz = (_a = _d.sent()) !== null && _a !== void 0 ? _a : null;
+                        _c.onboarding = _d.sent();
                         contractorResponse = __assign(__assign({}, contractor.toJSON()), { // Convert to plain JSON object
                             quiz: quiz });
                         accessToken = jsonwebtoken_1.default.sign({

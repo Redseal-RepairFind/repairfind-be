@@ -58,8 +58,9 @@ export const startCall = async (
         if (!toUserType || !toUser) return res.status(400).json({ success:false, message:'To user not provided' }) 
         const user = toUserType === 'contractors' ? await ContractorModel.findById(toUser) : await CustomerModel.findById(toUser)
         if (!user)  return res.status(404).json({ success:false, message:'User not found' }); // Ensure user exists
-        const token = await AgoraTokenService.generateRtcToken(channelName, 'publisher', 1);
 
+        const toUserToken = await AgoraTokenService.generateRtcToken(channelName, 'publisher',  Number(toUser));
+        const fromUserToken = await AgoraTokenService.generateRtcToken(channelName, 'publisher',  Number(fromUserId));
         
          // Create a new call document
          const callData = {
@@ -81,7 +82,7 @@ export const startCall = async (
             payload: {
                 channel: channelName,
                 callId: call.id,
-                token: token,
+                token: toUserToken,
                 message: `You've an incomming call from ${fromUser.name}`,
                 name: `${fromUser.name}`,
                 image: fromUser.profilePhoto?.url,
@@ -89,7 +90,7 @@ export const startCall = async (
             }
         }, { database: true, push: true, socket: true })
         
-        res.status(200).json({message:'Token generated', data: {token, channelName, call} });
+        res.status(200).json({message:'Token generated', data: {fromUserToken, channelName, call} });
     } catch (err: any) {
         res.status(500).json({ message: err.message });
     }

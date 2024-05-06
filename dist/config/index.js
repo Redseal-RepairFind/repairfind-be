@@ -25,6 +25,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
+var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.s3 = exports.config = void 0;
 var AWS = __importStar(require("aws-sdk"));
@@ -54,7 +55,8 @@ exports.config = {
         host: process.env.REDIS_HOST,
         port: Number(process.env.REDIS_PORT),
         password: process.env.REDIS_PASSWORD,
-        username: process.env.REDIS_USERNAME
+        username: process.env.REDIS_USERNAME,
+        queueName: (_a = process.env.REDIS_QUEUE_NAME) !== null && _a !== void 0 ? _a : 'RepairFindQueue'
     },
     aws: {
         secretAccessKey: process.env.AWS_SECRET_KEY,

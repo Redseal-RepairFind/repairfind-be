@@ -42,7 +42,6 @@ var AgoraTokenService = /** @class */ (function () {
     function AgoraTokenService() {
     }
     AgoraTokenService.generateRtcToken = function (channelName, role, uid, expireTime) {
-        if (uid === void 0) { uid = 0; }
         if (expireTime === void 0) { expireTime = 86400; }
         return __awaiter(this, void 0, void 0, function () {
             var rtcRole, currentTime, privilegeExpiredTs, token;

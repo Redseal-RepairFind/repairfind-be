@@ -67,7 +67,7 @@ const ContractorQuizSchema = new Schema<IContractorQuiz>(
 
 ContractorQuizSchema.virtual('result').get(async function () {
   const questions: IQuestion[] = await QuestionModel.find({ quiz: this.quiz });
-  const totalQuestions = questions.length;
+  const totalQuestions = 10; //total questions sent to contractor  //questions.length;
   const totalCorrect = this.response.filter((response) => response.correct).length;
   const totalWrong = totalQuestions - totalCorrect;
   const totalAnswered = this.response.length;

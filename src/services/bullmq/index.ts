@@ -34,7 +34,7 @@ class JobQueue {
 
 
     const redisConnection = new Redis(redisConfig);
-    this.repairFindQueue = new Queue('RepairFindQueue', { connection: redisConnection });
+    this.repairFindQueue = new Queue(config.redis.queueName, { connection: redisConnection });
 
 
     // TODO: Make the obliterate to used via a cli command

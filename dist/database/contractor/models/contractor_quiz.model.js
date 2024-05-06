@@ -86,7 +86,7 @@ ContractorQuizSchema.virtual('result').get(function () {
                 case 0: return [4 /*yield*/, question_model_1.default.find({ quiz: this.quiz })];
                 case 1:
                     questions = _a.sent();
-                    totalQuestions = questions.length;
+                    totalQuestions = 10;
                     totalCorrect = this.response.filter(function (response) { return response.correct; }).length;
                     totalWrong = totalQuestions - totalCorrect;
                     totalAnswered = this.response.length;

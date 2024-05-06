@@ -33,7 +33,9 @@ export const config = {
         host: <string>process.env.REDIS_HOST,
         port: Number(process.env.REDIS_PORT),
         password: <string>process.env.REDIS_PASSWORD,
-        username: <string>process.env.REDIS_USERNAME
+        username: <string>process.env.REDIS_USERNAME,
+        queueName: <string>process.env.REDIS_QUEUE_NAME ?? 'RepairFindQueue'
+
     },
 
     aws: {

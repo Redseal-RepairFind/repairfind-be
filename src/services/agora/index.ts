@@ -2,11 +2,12 @@ import { RtcTokenBuilder, RtcRole, RtmTokenBuilder, RtmRole } from 'agora-access
 import { config } from '../../config';
 
 class AgoraTokenService {
-  static async generateRtcToken(channelName: string, role: string, uid: number = 0,   expireTime: number = 86400): Promise<string> {
+  static async generateRtcToken(channelName: string, role: string, uid: number,   expireTime: number = 86400): Promise<string> {
     try {
 
         console.log(channelName, uid, role)
         let rtcRole = RtcRole.PUBLISHER
+        
         if(role == 'publisher'){
             rtcRole = RtcRole.PUBLISHER
         };

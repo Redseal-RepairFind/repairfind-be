@@ -89,12 +89,12 @@ var createRtcToken = function (req, res, next) { return __awaiter(void 0, void 0
 }); };
 exports.createRtcToken = createRtcToken;
 var startCall = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, toUser, toUserType, fromUserId, fromUser, channelName, user, _b, token, callData, call, err_3;
+    var _a, toUser, toUserType, fromUserId, fromUser, channelName, user, _b, toUserToken, fromUserToken, callData, call, err_3;
     var _c, _d;
     return __generator(this, function (_e) {
         switch (_e.label) {
             case 0:
-                _e.trys.push([0, 8, , 9]);
+                _e.trys.push([0, 9, , 10]);
                 _a = req.body, toUser = _a.toUser, toUserType = _a.toUserType;
                 fromUserId = req.contractor.id;
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(fromUserId)];
@@ -118,9 +118,12 @@ var startCall = function (req, res, next) { return __awaiter(void 0, void 0, voi
                 user = _b;
                 if (!user)
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'User not found' })]; // Ensure user exists
-                return [4 /*yield*/, agora_1.default.generateRtcToken(channelName, 'publisher', 1)];
+                return [4 /*yield*/, agora_1.default.generateRtcToken(channelName, 'publisher', Number(toUser))];
             case 6:
-                token = _e.sent();
+                toUserToken = _e.sent();
+                return [4 /*yield*/, agora_1.default.generateRtcToken(channelName, 'publisher', Number(fromUserId))];
+            case 7:
+                fromUserToken = _e.sent();
                 callData = {
                     fromUser: fromUserId,
                     fromUserType: 'contractors', // Assuming fromUser is always a contractor
@@ -129,7 +132,7 @@ var startCall = function (req, res, next) { return __awaiter(void 0, void 0, voi
                     startTime: new Date(),
                 };
                 return [4 /*yield*/, call_schema_1.CallModel.create(callData)];
-            case 7:
+            case 8:
                 call = _e.sent();
                 services_1.NotificationService.sendNotification({
                     user: user.id,
@@ -141,20 +144,20 @@ var startCall = function (req, res, next) { return __awaiter(void 0, void 0, voi
                     payload: {
                         channel: channelName,
                         callId: call.id,
-                        token: token,
+                        token: toUserToken,
                         message: "You've an incomming call from ".concat(fromUser.name),
                         name: "".concat(fromUser.name),
                         image: (_d = fromUser.profilePhoto) === null || _d === void 0 ? void 0 : _d.url,
                         event: 'NEW_INCOMING_CALL',
                     }
                 }, { database: true, push: true, socket: true });
-                res.status(200).json({ message: 'Token generated', data: { token: token, channelName: channelName, call: call } });
-                return [3 /*break*/, 9];
-            case 8:
+                res.status(200).json({ message: 'Token generated', data: { fromUserToken: fromUserToken, channelName: channelName, call: call } });
+                return [3 /*break*/, 10];
+            case 9:
                 err_3 = _e.sent();
                 res.status(500).json({ message: err_3.message });
-                return [3 /*break*/, 9];
-            case 9: return [2 /*return*/];
+                return [3 /*break*/, 10];
+            case 10: return [2 /*return*/];
         }
     });
 }); };

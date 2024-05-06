@@ -31,7 +31,7 @@ var JobQueue = /** @class */ (function () {
         // const redisConnection = createClient(redisConfig); // Create Redis client
         // this.repairFindQueue = new Queue('RepairFindQueue', { connection: redisConfig });
         var redisConnection = new ioredis_1.default(redisConfig);
-        this.repairFindQueue = new bullmq_1.Queue('RepairFindQueue', { connection: redisConnection });
+        this.repairFindQueue = new bullmq_1.Queue(config_1.config.redis.queueName, { connection: redisConnection });
         // TODO: Make the obliterate to used via a cli command
         // this.repairFindQueue.obliterate()
         this.serverAdapter = new express_1.ExpressAdapter();

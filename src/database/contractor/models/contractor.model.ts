@@ -293,7 +293,7 @@ ContractorSchema.methods.getOnboarding = async function () {
   if (latestQuiz) {
     // hasPassedQuiz = await latestQuiz.result.passed
     const questions: IQuestion[] = await QuestionModel.find({ quiz: latestQuiz.quiz });
-    const totalQuestions = questions.length;
+    const totalQuestions = 10; //total questions sent to contractor  //questions.length;
     const totalCorrect: number = latestQuiz.response.filter((response: any) => response.correct).length;
     const percentageCorrect: number = (totalCorrect / totalQuestions) * 100;
     hasPassedQuiz = (percentageCorrect >= 70);
