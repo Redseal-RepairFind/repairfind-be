@@ -314,7 +314,9 @@ ContractorSchema.methods.getOnboarding = function () {
                         if (stage == 4 && hasGstDetails)
                             stage = 5; //{status: 5, label: 'quiz'}
                         if (stage == 5 && hasPassedQuiz)
-                            stage = 6; //{status: 5, label: 'done'}
+                            stage = 6; //{status: 5, label: 'stripeAccount'}
+                        if (stage == 6 && hasStripeAccount)
+                            stage = 7; //{status: 5, label: 'done'}
                     }
                     if (this.accountType == 'Individual') {
                         if (stage == 1 && hasStripeIdentity)
@@ -324,7 +326,9 @@ ContractorSchema.methods.getOnboarding = function () {
                         if (stage == 3 && hasGstDetails)
                             stage = 4; //{status: 4, label: 'quiz'} 
                         if (stage == 4 && hasPassedQuiz)
-                            stage = 5; //{status: 5, label: 'done'}
+                            stage = 5; //{status: 5, label: 'stripeAccount'}
+                        if (stage == 5 && hasStripeAccount)
+                            stage = 6; //{status: 5, label: 'done'}
                     }
                     if (this.accountType == 'Employee') {
                         if (stage == 1 && hasStripeIdentity)
@@ -349,44 +353,6 @@ ContractorSchema.methods.getOnboarding = function () {
         });
     });
 };
-// ContractorSchema.virtual('onboarding').get(function (this: IContractor) {
-//   const hasStripeAccount = !!this.stripeAccount;
-//   const hasStripeCustomer = !!this.stripeCustomer;
-//   const hasStripePaymentMethods = Array.isArray(this.stripePaymentMethods) && this.stripePaymentMethods.length > 0
-//   const hasStripeIdentity = !!this.stripeIdentity;
-//   const hasProfile = !!this.profile;
-//   const hasGstDetails = !!this.gstDetails;
-//   const hasCompanyDetails = !!this.companyDetails;
-//   const latestQuiz: any =  ContractorQuizModel.findOne({ contractor: this._id }).sort({ createdAt: -1 });
-//   const hasPassedQuiz = latestQuiz?.result
-//   let stage: any = {status: 0, label: 'account'};
-//   if(this) stage = {status: 1, label: 'stripeIdentity'}
-//   if(this.accountType == 'Company'){
-//     if(hasStripeIdentity) stage = {status: 2, label: 'companyDetails'} 
-//     if(hasCompanyDetails) stage = {status: 3, label: 'profile'} // 
-//     if(hasProfile) stage =  {status: 4, label: 'gstDetails'}
-//     if(hasGstDetails) stage = {status: 5, label: 'done'}
-//   }
-//   if(this.accountType == 'Individual'){
-//     if(hasStripeIdentity) stage = {status: 2, label: 'profle'} 
-//     if(hasProfile) stage = {status: 3, label: 'gstDetails'} 
-//     if(hasGstDetails) stage = {status: 4, label: 'done'} 
-//   }
-//   if(this.accountType == 'Employee'){
-//     if(hasStripeIdentity) stage = {status: 2, label: 'profle'} 
-//     if(hasProfile) stage = {status: 3, label: 'done'} 
-//   }
-//   return {
-//     hasStripeAccount,
-//     hasStripeIdentity,
-//     hasStripePaymentMethods,
-//     hasStripeCustomer,
-//     hasProfile,
-//     hasGstDetails,
-//     hasCompanyDetails,
-//     stage
-//   }
-// });
 ContractorSchema.virtual('quiz').get(function () {
     return __awaiter(this, void 0, void 0, function () {
         var latestQuiz;
