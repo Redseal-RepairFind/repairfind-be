@@ -29,9 +29,7 @@ export const checkAdminRole = async (
   }
 
   try {
-    console.log('heafe', req.headers)
-    console.log('token', token);
-    console.log('secret', secret)
+    
     // Verify JWT and extract payload
     const payload = jwt.verify(token, secret!) as unknown as JwtPayload;
    
