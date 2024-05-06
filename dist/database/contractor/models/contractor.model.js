@@ -58,6 +58,7 @@ var GstDetailSchema = new mongoose_1.Schema({
     approvedAt: Date,
     recentRemark: String,
     gstCertificate: String,
+    statusReason: String,
 });
 var CompanyDetailSchema = new mongoose_1.Schema({
     companyLogo: String,

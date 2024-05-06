@@ -35,10 +35,15 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AdminContractorDetail = exports.AdminGetContractorGstPendingController = exports.AdminChangeContractorContractorDetailController = exports.AdminGetSingleContractorDetailController = exports.AdminGetContractorDetailController = void 0;
+exports.AdminContractorDetail = exports.AdminGetContractorGstPendingController = exports.AdminChangeContractorGstStatusController = exports.AdminGetSingleContractorDetailController = exports.AdminGetContractorDetailController = void 0;
 var express_validator_1 = require("express-validator");
+var admin_model_1 = __importDefault(require("../../../database/admin/models/admin.model"));
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
+var contractor_interface_1 = require("../../../database/contractor/interface/contractor.interface");
 //get contractor detail /////////////
 var AdminGetContractorDetailController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, page, limit, errors, admin, adminId, skip, contractors, totalContractor, err_1;
@@ -209,52 +214,89 @@ var AdminGetSingleContractorDetailController = function (req, res) { return __aw
     });
 }); };
 exports.AdminGetSingleContractorDetailController = AdminGetSingleContractorDetailController;
-//change contractor status /////////////
-var AdminChangeContractorContractorDetailController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, gstStatus, contractorId, errors, admin, adminId, contractor, err_3;
+//admin change contractor gst status  /////////////
+var AdminChangeContractorGstStatusController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, gstStatus, contractorId, reason, errors, adminId, admin, contractor, createdTime, err_3;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 3, , 4]);
-                _a = req.body, gstStatus = _a.gstStatus, contractorId = _a.contractorId;
-                console.log(1);
+                _b.trys.push([0, 4, , 5]);
+                _a = req.body, gstStatus = _a.gstStatus, contractorId = _a.contractorId, reason = _a.reason;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
-                console.log(2);
-                admin = req.admin;
-                adminId = admin.id;
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: contractorId })];
+                reason = reason || '';
+                adminId = req.admin.id;
+                return [4 /*yield*/, admin_model_1.default.findOne({ _id: adminId })];
             case 1:
+                admin = _b.sent();
+                if (!admin) {
+                    return [2 /*return*/, res
+                            .status(401)
+                            .json({ message: "invalid admin ID" })];
+                }
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: contractorId })];
+            case 2:
                 contractor = _b.sent();
-                console.log(3);
                 if (!contractor) {
                     return [2 /*return*/, res
                             .status(401)
                             .json({ message: "invalid contractor ID" })];
                 }
-                console.log(4);
+                // const superAdmin = await AdminRegModel.findOne({superAdmin: true})
+                // if (!superAdmin) {
+                //   return res
+                //     .status(401)
+                //     .json({ message: "no super admin found" });
+                // }
+                // contractor.gstDetails.gstOtp = otp;
+                // contractor.gstDetails.gstOtpStatus = GST_OTP_STATUS.REQUEST;
+                // contractor.gstDetails.gstOtpTime = createdTime;
+                // contractor.gstDetails.gstOtpRquestBy = admin._id;
+                // contractor.gstDetails.gstOtpRquestType = gstStatus;
+                if (reason === '' && gstStatus === contractor_interface_1.GST_STATUS.DECLINED) {
+                    return [2 /*return*/, res
+                            .status(401)
+                            .json({ message: "please provide reason for declinig contractor" })];
+                }
+                createdTime = new Date();
                 contractor.gstDetails.status = gstStatus;
-                console.log(5);
-                return [4 /*yield*/, contractor.save()];
-            case 2:
-                _b.sent();
-                console.log(6);
-                res.json({
-                    message: "contractor GST status successfully change to ".concat(gstStatus, ".")
-                });
-                return [3 /*break*/, 4];
+                contractor.gstDetails.approvedBy = adminId;
+                contractor.gstDetails.approvedAt = createdTime;
+                contractor.gstDetails.statusReason = reason;
+                return [4 /*yield*/, contractor.save()
+                    // const html = htmlAdminRquestGstStatuChangeTemplate(admin.firstName, contractor.firstName, contractor.email, otp, gstStatus);
+                    // let emailData = {
+                    //     emailTo: superAdmin.email,
+                    //     subject: "GST Status Change Requst",
+                    //     html
+                    // };
+                    // sendEmail(emailData);
+                ];
             case 3:
+                _b.sent();
+                // const html = htmlAdminRquestGstStatuChangeTemplate(admin.firstName, contractor.firstName, contractor.email, otp, gstStatus);
+                // let emailData = {
+                //     emailTo: superAdmin.email,
+                //     subject: "GST Status Change Requst",
+                //     html
+                // };
+                // sendEmail(emailData);
+                res.json({
+                    message: "contractor gst status successfully change to ".concat(gstStatus)
+                });
+                return [3 /*break*/, 5];
+            case 4:
                 err_3 = _b.sent();
                 // signup error
                 res.status(500).json({ message: err_3.message });
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/];
+                return [3 /*break*/, 5];
+            case 5: return [2 /*return*/];
         }
     });
 }); };
-exports.AdminChangeContractorContractorDetailController = AdminChangeContractorContractorDetailController;
+exports.AdminChangeContractorGstStatusController = AdminChangeContractorGstStatusController;
 //admin get contractor gst that is pending /////////////
 var AdminGetContractorGstPendingController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, errors, admin, adminId, contractor, err_4;
@@ -270,9 +312,7 @@ var AdminGetContractorGstPendingController = function (req, res) { return __awai
                 admin = req.admin;
                 adminId = admin.id;
                 return [4 /*yield*/, contractor_model_1.ContractorModel.find({
-                        "gstDetails": {
-                            "status": "PENDING"
-                        }
+                        "gstDetails.status": "PENDING"
                     })];
             case 1:
                 contractor = _b.sent();
@@ -293,6 +333,6 @@ exports.AdminGetContractorGstPendingController = AdminGetContractorGstPendingCon
 exports.AdminContractorDetail = {
     AdminGetContractorDetailController: exports.AdminGetContractorDetailController,
     AdminGetSingleContractorDetailController: exports.AdminGetSingleContractorDetailController,
-    AdminChangeContractorContractorDetailController: exports.AdminChangeContractorContractorDetailController,
-    AdminGetContractorGstPendingController: exports.AdminGetContractorGstPendingController
+    AdminChangeContractorGstStatusController: exports.AdminChangeContractorGstStatusController,
+    AdminGetContractorGstPendingController: exports.AdminGetContractorGstPendingController,
 };

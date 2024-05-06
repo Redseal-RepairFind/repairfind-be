@@ -142,11 +142,11 @@ var GetQuizResult = function (req, res) { return __awaiter(void 0, void 0, void 
 }); };
 exports.GetQuizResult = GetQuizResult;
 var SubmitQuiz = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, quizId, response, errors, contractor, contractorId, contractorExist, quiz, questions_1, quizResults, contractorQuiz, result, err_2;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+    var _a, quizId, response, errors, contractor, contractorId, contractorExist, quiz, questions_1, quizResults, contractorQuiz, result, _b, err_2;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
             case 0:
-                _b.trys.push([0, 6, , 7]);
+                _c.trys.push([0, 7, , 8]);
                 _a = req.body, quizId = _a.quizId, response = _a.response;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
@@ -156,19 +156,19 @@ var SubmitQuiz = function (req, res) { return __awaiter(void 0, void 0, void 0, 
                 contractorId = contractor.id;
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: contractorId })];
             case 1:
-                contractorExist = _b.sent();
+                contractorExist = _c.sent();
                 if (!contractorExist) {
                     return [2 /*return*/, res.status(401).json({ message: 'Invalid credentials' })];
                 }
                 return [4 /*yield*/, quiz_model_1.default.findOne({ _id: quizId })];
             case 2:
-                quiz = _b.sent();
+                quiz = _c.sent();
                 if (!quiz) {
                     return [2 /*return*/, res.status(401).json({ message: 'Incorrect quiz ID' })];
                 }
                 return [4 /*yield*/, question_model_1.default.find({ quiz: quizId })];
             case 3:
-                questions_1 = _b.sent();
+                questions_1 = _c.sent();
                 quizResults = response.map(function (userReponse) {
                     var question = questions_1.find(function (q) { return q.question === userReponse.question; });
                     if (!question) {
@@ -188,24 +188,28 @@ var SubmitQuiz = function (req, res) { return __awaiter(void 0, void 0, void 0, 
                 });
                 return [4 /*yield*/, contractor_quiz_model_1.default.findOneAndUpdate({ contractor: contractorId, quiz: quizId }, { $set: { response: quizResults } }, { new: true, upsert: true })];
             case 4:
-                contractorQuiz = _b.sent();
+                contractorQuiz = _c.sent();
                 if (!contractorQuiz) {
                     return [2 /*return*/, res.status(500).json({ success: false, message: 'Failed to update or create ContractorQuiz' })];
                 }
                 return [4 /*yield*/, contractorQuiz.result];
             case 5:
-                result = _b.sent();
+                result = _c.sent();
+                _b = contractor;
+                return [4 /*yield*/, contractor.getOnboarding()];
+            case 6:
+                _b.onboarding = _c.sent();
                 res.json({
                     success: true,
-                    message: 'Quiz results submitted successfully',
-                    data: __assign(__assign({}, contractorQuiz.toJSON()), { result: result }),
+                    message: 'Quiz submitted successfully',
+                    data: __assign(__assign({}, contractorQuiz.toJSON()), { result: result, contractor: contractor }),
                 });
-                return [3 /*break*/, 7];
-            case 6:
-                err_2 = _b.sent();
+                return [3 /*break*/, 8];
+            case 7:
+                err_2 = _c.sent();
                 res.status(500).json({ success: false, message: err_2.message });
-                return [3 /*break*/, 7];
-            case 7: return [2 /*return*/];
+                return [3 /*break*/, 8];
+            case 8: return [2 /*return*/];
         }
     });
 }); };

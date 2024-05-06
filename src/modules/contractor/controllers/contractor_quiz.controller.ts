@@ -173,12 +173,14 @@ export const SubmitQuiz = async (
     }
 
     const result = await contractorQuiz.result
+    contractor.onboarding = await contractor.getOnboarding()
     res.json({
       success: true,
-      message: 'Quiz results submitted successfully',
+      message: 'Quiz submitted successfully',
       data: {
         ...contractorQuiz.toJSON(),
         result,
+        contractor
       },
     });
   } catch (err: any) {

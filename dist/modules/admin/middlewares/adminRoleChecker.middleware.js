@@ -56,9 +56,6 @@ var checkAdminRole = function (req, res, next) { return __awaiter(void 0, void 0
                 _a.label = 1;
             case 1:
                 _a.trys.push([1, 3, , 4]);
-                console.log('heafe', req.headers);
-                console.log('token', token);
-                console.log('secret', secret);
                 payload = jsonwebtoken_1.default.verify(token, secret);
                 return [4 /*yield*/, admin_model_1.default.findOne({
                         email: payload.email
