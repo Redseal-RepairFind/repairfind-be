@@ -217,7 +217,7 @@ const ContractorSchema = new Schema<IContractor>(
       hasGstDetails: { default: false, type: Boolean },
       hasCompanyDetails: { default: false, type: Boolean },
       hasPassedQuiz: { default: false, type: Boolean },
-      stage: { default: 1, type: Number },
+      stage: { default: {status: 1, label: 'stripeIdentity'}, type: Object },
     }
 
   },
@@ -300,31 +300,31 @@ ContractorSchema.methods.getOnboarding = async function () {
 
   }
 
-  let stage: any = 1 //{status: 1, label: 'stripeIdentity'};
+  let stage: any = {status: 1, label: 'stripeIdentity'};
 
   if (this.accountType == 'Company') {
-    if (stage == 1 && hasStripeIdentity) stage = 2// {status: 2, label: 'companyDetails'} 
-    if (stage == 2 && hasCompanyDetails) stage = 3 //{status: 3, label: 'profile'} // 
-    if (stage == 3 && hasProfile) stage = 4//{status: 4, label: 'gstDetails'}
-    if (stage == 4 && hasGstDetails) stage = 5//{status: 5, label: 'quiz'}
-    if (stage == 5 && hasPassedQuiz) stage = 6//{status: 5, label: 'stripeAccount'}
-    if (stage == 6 && hasStripeAccount) stage = 7//{status: 5, label: 'done'}
+    if (stage.status == 1 && hasStripeIdentity) stage =  {status: 2, label: 'companyDetails'} 
+    if (stage.status == 2 && hasCompanyDetails) stage = {status: 3, label: 'profile'} // 
+    if (stage.status == 3 && hasProfile) stage = {status: 4, label: 'gstDetails'}
+    if (stage.status == 4 && hasGstDetails) stage = {status: 5, label: 'quiz'}
+    if (stage.status == 5 && hasPassedQuiz) stage = {status: 6, label: 'stripeAccount'}
+    if (stage.status == 6 && hasStripeAccount) stage = {status: 7, label: 'done'}
 
   }
 
   if (this.accountType == 'Individual') {
-    if (stage == 1 && hasStripeIdentity) stage = 2//{status: 2, label: 'profle'} 
-    if (stage == 2 && hasProfile) stage = 3 //{status: 3, label: 'gstDetails'} 
-    if (stage == 3 && hasGstDetails) stage = 4//{status: 4, label: 'quiz'} 
-    if (stage == 4 && hasPassedQuiz) stage = 5 //{status: 5, label: 'stripeAccount'}
-    if (stage == 5 && hasStripeAccount) stage = 6 //{status: 5, label: 'done'}
+    if (stage.status == 1 && hasStripeIdentity) stage = {status: 2, label: 'profle'} 
+    if (stage.status == 2 && hasProfile) stage = {status: 3, label: 'gstDetails'} 
+    if (stage.status == 3 && hasGstDetails) stage = {status: 4, label: 'quiz'} 
+    if (stage.status == 4 && hasPassedQuiz) stage = {status: 5, label: 'stripeAccount'}
+    if (stage.status == 5 && hasStripeAccount) stage = {status: 6, label: 'done'}
   }
 
 
   if (this.accountType == 'Employee') {
-    if (stage == 1 && hasStripeIdentity) stage = 2//{status: 2, label: 'profle'} 
-    if (stage == 2 && hasProfile) stage = 3//{status: 3, label: 'quiz'} 
-    if (stage == 3 && hasPassedQuiz) stage = 4//{status: 3, label: 'done'} 
+    if (stage.status == 1 && hasStripeIdentity) stage = {status: 2, label: 'profle'} 
+    if (stage.status == 2 && hasProfile) stage = {status: 3, label: 'quiz'} 
+    if (stage.status == 3 && hasPassedQuiz) stage = {status: 4, label: 'done'} 
   }
 
 

@@ -162,7 +162,7 @@ export interface IContractor extends Document {
     hasGstDetails:boolean,
     hasCompanyDetails:boolean
     hasPassedQuiz:boolean
-    stage: number
+    stage: Object
   };
   certnId: string;
   getOnboarding: () => {
