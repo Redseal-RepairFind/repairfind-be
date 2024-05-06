@@ -98,7 +98,6 @@ export enum COMPANY_STATUS {
 }
 
 
-
 export interface IContractor extends Document {
   _id: ObjectId;
   profile: ObjectId;

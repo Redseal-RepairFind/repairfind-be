@@ -7,6 +7,10 @@ import {ContractorModel} from "../../../database/contractor/models/contractor.mo
 import JobModel from "../../../database/contractor/models/job.model";
 import CustomerRegModel from "../../../database/customer/models/customer.model";
 import ContractorRatingModel from "../../../database/contractor/models/contractorRating.model";
+import { sendEmail } from "../../../utils/send_email_utility";
+import { htmlAdminRquestGstStatuChangeTemplate } from "../../../templates/adminEmail/adminRequestGstStatusTemplate";
+import { OTP_EXPIRY_TIME, generateOTP } from "../../../utils/otpGenerator";
+import { GST_STATUS} from "../../../database/contractor/interface/contractor.interface";
 
 
 //get contractor detail /////////////
@@ -186,8 +190,8 @@ export const AdminGetSingleContractorDetailController = async (
 }
 
 
-//change contractor status /////////////
-export const AdminChangeContractorContractorDetailController = async (
+//admin change contractor gst status  /////////////
+export const AdminChangeContractorGstStatusController = async (
   req: any,
   res: Response,
 ) => {
@@ -198,8 +202,6 @@ export const AdminChangeContractorContractorDetailController = async (
      contractorId
     } = req.body;
 
-    console.log(1)
-
     // Check for validation errors
     const errors = validationResult(req);
 
@@ -207,14 +209,18 @@ export const AdminChangeContractorContractorDetailController = async (
       return res.status(400).json({ errors: errors.array() });
     }
 
-    console.log(2)
+    // const admin =  req.admin;
+    const adminId = req.admin.id
 
-    const admin =  req.admin;
-    const adminId = admin.id
+    const admin = await AdminRegModel.findOne({_id: adminId})
+
+    if (!admin) {
+      return res
+        .status(401)
+        .json({ message: "invalid admin ID" });
+    }
 
     const contractor = await ContractorModel.findOne({_id: contractorId})
-
-    console.log(3)
 
     if (!contractor) {
       return res
@@ -222,16 +228,40 @@ export const AdminChangeContractorContractorDetailController = async (
         .json({ message: "invalid contractor ID" });
     }
 
-    console.log(4)
+    // const superAdmin = await AdminRegModel.findOne({superAdmin: true})
+
+    // if (!superAdmin) {
+    //   return res
+    //     .status(401)
+    //     .json({ message: "no super admin found" });
+    // }
+
+
+    // contractor.gstDetails.gstOtp = otp;
+    // contractor.gstDetails.gstOtpStatus = GST_OTP_STATUS.REQUEST;
+    // contractor.gstDetails.gstOtpTime = createdTime;
+    // contractor.gstDetails.gstOtpRquestBy = admin._id;
+    // contractor.gstDetails.gstOtpRquestType = gstStatus;
+
+    const createdTime = new Date()
 
     contractor.gstDetails.status = gstStatus;
-    console.log(5)
+    contractor.gstDetails.approvedBy = adminId;
+    contractor.gstDetails.approvedAt = createdTime;
     await contractor.save()
 
-    console.log(6)
+    // const html = htmlAdminRquestGstStatuChangeTemplate(admin.firstName, contractor.firstName, contractor.email, otp, gstStatus);
+
+    // let emailData = {
+    //     emailTo: superAdmin.email,
+    //     subject: "GST Status Change Requst",
+    //     html
+    // };
+
+    // sendEmail(emailData);
 
     res.json({  
-      message: `contractor GST status successfully change to ${gstStatus}.`
+      message: `contractor gst status successfully change to ${gstStatus}`
     });
     
   } catch (err: any) {
@@ -263,10 +293,7 @@ export const AdminGetContractorGstPendingController = async (
     const adminId = admin.id
 
     const contractor = await ContractorModel.find({
-      "gstDetails": {
-          "status": "PENDING"
-        }
-      
+      "gstDetails.status": "PENDING"
     })
   
     res.json({  
@@ -282,6 +309,6 @@ export const AdminGetContractorGstPendingController = async (
 export const AdminContractorDetail = {
   AdminGetContractorDetailController,
   AdminGetSingleContractorDetailController,
-  AdminChangeContractorContractorDetailController,
-  AdminGetContractorGstPendingController
+  AdminChangeContractorGstStatusController,
+  AdminGetContractorGstPendingController,
 }
