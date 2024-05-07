@@ -278,7 +278,7 @@ ContractorSchema.virtual('certnStatus').get(function () {
 });
 ContractorSchema.methods.getOnboarding = function () {
     return __awaiter(this, void 0, void 0, function () {
-        var hasStripeAccount, hasStripeCustomer, hasStripePaymentMethods, hasStripeIdentity, hasProfile, hasGstDetails, hasCompanyDetails, hasPassedQuiz, latestQuiz, questions, totalQuestions, totalCorrect, percentageCorrect, stage;
+        var hasStripeAccount, hasStripeCustomer, hasStripePaymentMethods, hasStripeIdentity, stripeIdentityStatus, hasProfile, hasGstDetails, hasCompanyDetails, hasPassedQuiz, latestQuiz, questions, totalQuestions, totalCorrect, percentageCorrect, stage;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -286,6 +286,7 @@ ContractorSchema.methods.getOnboarding = function () {
                     hasStripeCustomer = !!this.stripeCustomer;
                     hasStripePaymentMethods = Array.isArray(this.stripePaymentMethods) && this.stripePaymentMethods.length > 0;
                     hasStripeIdentity = !!this.stripeIdentity;
+                    stripeIdentityStatus = this.stripeIdentity ? this.stripeIdentity.status : 'requires_input';
                     hasProfile = !!this.profile;
                     hasGstDetails = !!this.gstDetails;
                     hasCompanyDetails = !!this.companyDetails;
@@ -305,7 +306,7 @@ ContractorSchema.methods.getOnboarding = function () {
                 case 3:
                     stage = { status: 1, label: 'stripeIdentity' };
                     if (this.accountType == 'Company') {
-                        if (stage.status == 1 && hasStripeIdentity)
+                        if (stage.status == 1 && hasStripeIdentity && stripeIdentityStatus.status == 'verified')
                             stage = { status: 2, label: 'companyDetails' };
                         if (stage.status == 2 && hasCompanyDetails)
                             stage = { status: 3, label: 'profile' }; // 
@@ -319,7 +320,7 @@ ContractorSchema.methods.getOnboarding = function () {
                             stage = { status: 7, label: 'done' };
                     }
                     if (this.accountType == 'Individual') {
-                        if (stage.status == 1 && hasStripeIdentity)
+                        if (stage.status == 1 && hasStripeIdentity && stripeIdentityStatus.status == 'verified')
                             stage = { status: 2, label: 'profle' };
                         if (stage.status == 2 && hasProfile)
                             stage = { status: 3, label: 'gstDetails' };
@@ -331,7 +332,7 @@ ContractorSchema.methods.getOnboarding = function () {
                             stage = { status: 6, label: 'done' };
                     }
                     if (this.accountType == 'Employee') {
-                        if (stage.status == 1 && hasStripeIdentity)
+                        if (stage.status == 1 && hasStripeIdentity && stripeIdentityStatus.status == 'verified')
                             stage = { status: 2, label: 'profle' };
                         if (stage.status == 2 && hasProfile)
                             stage = { status: 3, label: 'quiz' };
@@ -341,6 +342,7 @@ ContractorSchema.methods.getOnboarding = function () {
                     return [2 /*return*/, {
                             hasStripeAccount: hasStripeAccount,
                             hasStripeIdentity: hasStripeIdentity,
+                            stripeIdentityStatus: stripeIdentityStatus,
                             hasStripePaymentMethods: hasStripePaymentMethods,
                             hasStripeCustomer: hasStripeCustomer,
                             hasProfile: hasProfile,

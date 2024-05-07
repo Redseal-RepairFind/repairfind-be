@@ -285,6 +285,7 @@ ContractorSchema.methods.getOnboarding = async function () {
   const hasStripePaymentMethods = Array.isArray(this.stripePaymentMethods) && this.stripePaymentMethods.length > 0
 
   const hasStripeIdentity = !!this.stripeIdentity;
+  const stripeIdentityStatus = this.stripeIdentity ? this.stripeIdentity.status : 'requires_input';
   const hasProfile = !!this.profile;
   const hasGstDetails = !!this.gstDetails;
   const hasCompanyDetails = !!this.companyDetails;
@@ -304,7 +305,7 @@ ContractorSchema.methods.getOnboarding = async function () {
   let stage: any = {status: 1, label: 'stripeIdentity'};
 
   if (this.accountType == 'Company') {
-    if (stage.status == 1 && hasStripeIdentity) stage =  {status: 2, label: 'companyDetails'} 
+    if (stage.status == 1 && hasStripeIdentity && stripeIdentityStatus.status == 'verified') stage =  {status: 2, label: 'companyDetails'} 
     if (stage.status == 2 && hasCompanyDetails) stage = {status: 3, label: 'profile'} // 
     if (stage.status == 3 && hasProfile) stage = {status: 4, label: 'gstDetails'}
     if (stage.status == 4 && hasGstDetails) stage = {status: 5, label: 'quiz'}
@@ -314,7 +315,7 @@ ContractorSchema.methods.getOnboarding = async function () {
   }
 
   if (this.accountType == 'Individual') {
-    if (stage.status == 1 && hasStripeIdentity) stage = {status: 2, label: 'profle'} 
+    if (stage.status == 1 && hasStripeIdentity && stripeIdentityStatus.status == 'verified') stage = {status: 2, label: 'profle'} 
     if (stage.status == 2 && hasProfile) stage = {status: 3, label: 'gstDetails'} 
     if (stage.status == 3 && hasGstDetails) stage = {status: 4, label: 'quiz'} 
     if (stage.status == 4 && hasPassedQuiz) stage = {status: 5, label: 'stripeAccount'}
@@ -323,7 +324,7 @@ ContractorSchema.methods.getOnboarding = async function () {
 
 
   if (this.accountType == 'Employee') {
-    if (stage.status == 1 && hasStripeIdentity) stage = {status: 2, label: 'profle'} 
+    if (stage.status == 1 && hasStripeIdentity && stripeIdentityStatus.status == 'verified') stage = {status: 2, label: 'profle'} 
     if (stage.status == 2 && hasProfile) stage = {status: 3, label: 'quiz'} 
     if (stage.status == 3 && hasPassedQuiz) stage = {status: 4, label: 'done'} 
   }
@@ -333,6 +334,7 @@ ContractorSchema.methods.getOnboarding = async function () {
   return {
     hasStripeAccount,
     hasStripeIdentity,
+    stripeIdentityStatus,
     hasStripePaymentMethods,
     hasStripeCustomer,
     hasProfile,
