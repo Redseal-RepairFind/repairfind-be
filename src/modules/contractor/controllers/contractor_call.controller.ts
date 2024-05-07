@@ -8,6 +8,7 @@ import { ContractorModel } from "../../../database/contractor/models/contractor.
 import CustomerModel from "../../../database/customer/models/customer.model";
 import { NotificationService } from "../../../services";
 import { CallModel } from "../../../database/common/call.schema";
+import { v4 as uuid } from 'uuid';
 
 
 export const createRtmToken = async (
@@ -59,8 +60,12 @@ export const startCall = async (
         const user = toUserType === 'contractors' ? await ContractorModel.findById(toUser) : await CustomerModel.findById(toUser)
         if (!user)  return res.status(404).json({ success:false, message:'User not found' }); // Ensure user exists
        
-        const toUserToken = await AgoraTokenService.generateRtcToken(channelName, 'publisher',  Number(toUser));
-        const fromUserToken = await AgoraTokenService.generateRtcToken(channelName, 'publisher',  Number(fromUserId));
+
+        const toUserUid = Math.floor(Math. random() * (9999999 -1000000 + 1)) + 1000000;
+        const fromUserUid = Math.floor(Math. random() * (9999999 -1000000 + 1)) + 1000000;
+
+        const toUserToken = await AgoraTokenService.generateRtcToken(channelName, 'publisher',  toUserUid);
+        const fromUserToken = await AgoraTokenService.generateRtcToken(channelName, 'publisher',  fromUserUid);
 
         
         // Create a new call document
@@ -84,6 +89,7 @@ export const startCall = async (
             payload: {
                 channel: channelName,
                 callId: call.id,
+                uid: toUserUid,
                 token: toUserToken,
                 message: `You've an incomming call from ${fromUser.name}`,
                 name: `${fromUser.name}`,
@@ -92,7 +98,7 @@ export const startCall = async (
             }
         }, { database: true, push: true, socket: true })
         
-        res.status(200).json({message:'Token generated', data: {fromUserToken, channelName, call} });
+        res.status(200).json({message:'Token generated', data: {token: fromUserToken, uid: fromUserUid, channelName, call } });
     } catch (err: any) {
         res.status(500).json({ message: err.message });
     }

@@ -89,7 +89,7 @@ var createRtcToken = function (req, res, next) { return __awaiter(void 0, void 0
 }); };
 exports.createRtcToken = createRtcToken;
 var startCall = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, toUser, toUserType, fromUserId, fromUser, channelName, user, _b, toUserToken, fromUserToken, callData, call, err_3;
+    var _a, toUser, toUserType, fromUserId, fromUser, channelName, user, _b, toUserUid, fromUserUid, toUserToken, fromUserToken, callData, call, err_3;
     var _c, _d;
     return __generator(this, function (_e) {
         switch (_e.label) {
@@ -118,10 +118,12 @@ var startCall = function (req, res, next) { return __awaiter(void 0, void 0, voi
                 user = _b;
                 if (!user)
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'User not found' })]; // Ensure user exists
-                return [4 /*yield*/, agora_1.default.generateRtcToken(channelName, 'publisher', Number(toUser))];
+                toUserUid = Math.floor(Math.random() * (9999999 - 1000000 + 1)) + 1000000;
+                fromUserUid = Math.floor(Math.random() * (9999999 - 1000000 + 1)) + 1000000;
+                return [4 /*yield*/, agora_1.default.generateRtcToken(channelName, 'publisher', toUserUid)];
             case 6:
                 toUserToken = _e.sent();
-                return [4 /*yield*/, agora_1.default.generateRtcToken(channelName, 'publisher', Number(fromUserId))];
+                return [4 /*yield*/, agora_1.default.generateRtcToken(channelName, 'publisher', fromUserUid)];
             case 7:
                 fromUserToken = _e.sent();
                 callData = {
@@ -145,13 +147,14 @@ var startCall = function (req, res, next) { return __awaiter(void 0, void 0, voi
                         channel: channelName,
                         callId: call.id,
                         token: toUserToken,
+                        uid: toUserUid,
                         message: "You've an incomming call from ".concat(fromUser.name),
                         name: "".concat(fromUser.name),
                         image: (_d = fromUser.profilePhoto) === null || _d === void 0 ? void 0 : _d.url,
                         event: 'NEW_INCOMING_CALL',
                     }
                 }, { database: true, push: true, socket: true });
-                res.status(200).json({ message: 'Token generated', data: { fromUserToken: fromUserToken, channelName: channelName, call: call } });
+                res.status(200).json({ message: 'Token generated', data: { token: fromUserToken, uid: fromUserUid, channelName: channelName, call: call } });
                 return [3 /*break*/, 10];
             case 9:
                 err_3 = _e.sent();

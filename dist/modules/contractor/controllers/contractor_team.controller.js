@@ -356,7 +356,7 @@ var getTeamMemberships = function (req, res) { return __awaiter(void 0, void 0, 
                                     contractor = _a.sent();
                                     formattedContractor = {
                                         id: contractor._id,
-                                        name: contractor.firstName,
+                                        name: contractor.name,
                                         email: contractor.email,
                                         profilePhoto: contractor.profilePhoto,
                                     };

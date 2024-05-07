@@ -303,7 +303,7 @@ export const getTeamMemberships = async (req: any, res: Response) => {
         // Extract contractor details
         const formattedContractor = {
           id: contractor._id,
-          name: contractor.firstName,
+          name: contractor.name,
           email: contractor.email,
           profilePhoto: contractor.profilePhoto,
         };
