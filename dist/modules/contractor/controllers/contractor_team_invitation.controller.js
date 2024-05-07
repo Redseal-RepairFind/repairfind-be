@@ -1,4 +1,15 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     var desc = Object.getOwnPropertyDescriptor(m, k);
@@ -211,48 +222,62 @@ var getInvitations = function (req, res) { return __awaiter(void 0, void 0, void
 }); };
 exports.getInvitations = getInvitations;
 // Controller method to accept an invitation
+// Controller method to accept an invitation
 var acceptInvitation = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var invitationId, invitation, team, error_3;
+    var invitationId, invitation_1, team, existingMemberIndex, update, error_3;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 5, , 6]);
+                _a.trys.push([0, 4, , 5]);
                 invitationId = req.params.invitationId;
                 return [4 /*yield*/, contractor_team_invitation_model_1.default.findById(invitationId)];
             case 1:
-                invitation = _a.sent();
-                if (!invitation) {
+                invitation_1 = _a.sent();
+                if (!invitation_1) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Invitation not found' })];
                 }
-                if (invitation.status == contractor_team_invitation_model_1.TeamInvitationStatus.ACCEPTED) {
-                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Invitation is  is already accepted' })];
+                if (invitation_1.status === contractor_team_invitation_model_1.TeamInvitationStatus.ACCEPTED) {
+                    // Optionally return a message here if the invitation is already accepted
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Invitation is already accepted' })];
                 }
-                if (invitation.status == contractor_team_invitation_model_1.TeamInvitationStatus.REJECTED) {
-                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Invitation is  is already rejected' })];
+                if (invitation_1.status === contractor_team_invitation_model_1.TeamInvitationStatus.REJECTED) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Invitation is already rejected' })];
                 }
-                invitation.status = contractor_team_invitation_model_1.TeamInvitationStatus.ACCEPTED;
-                return [4 /*yield*/, contractor_team_model_1.default.findById(invitation.team)];
+                invitation_1.status = contractor_team_invitation_model_1.TeamInvitationStatus.ACCEPTED;
+                return [4 /*yield*/, contractor_team_model_1.default.findById(invitation_1.team)];
             case 2:
                 team = _a.sent();
                 if (!team) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Team not found' })];
                 }
-                // Add contractor to team members
-                team.members.push({ contractor: invitation.contractor, role: invitation.role, status: contractor_team_model_1.TeamMemberStatus.ACTIVE });
-                return [4 /*yield*/, team.save()];
+                existingMemberIndex = team.members.findIndex(function (member) { return member.contractor.equals(invitation_1.contractor); });
+                // If contractor doesn't exist in the array, add a new member; otherwise, update the existing member
+                if (existingMemberIndex === -1) {
+                    team.members.push({ contractor: invitation_1.contractor, role: invitation_1.role, status: contractor_team_model_1.TeamMemberStatus.ACTIVE, dateJoined: new Date() });
+                }
+                else {
+                    update = {
+                        contractor: invitation_1.contractor,
+                        role: invitation_1.role,
+                        status: contractor_team_model_1.TeamMemberStatus.ACTIVE,
+                        dateJoined: new Date()
+                    };
+                    // Update the existing member in the array
+                    team.members[existingMemberIndex] = __assign(__assign({}, team.members[existingMemberIndex]), update);
+                }
+                // Save changes to the team and the invitation
+                return [4 /*yield*/, Promise.all([team.save(), invitation_1.save()])];
             case 3:
+                // Save changes to the team and the invitation
                 _a.sent();
-                return [4 /*yield*/, invitation.save()];
+                res.json({ success: true, message: 'Invitation accepted successfully', data: invitation_1 });
+                return [3 /*break*/, 5];
             case 4:
-                _a.sent();
-                res.json({ success: true, message: 'Invitation accepted successfully', data: invitation });
-                return [3 /*break*/, 6];
-            case 5:
                 error_3 = _a.sent();
                 console.error('Error accepting invitation:', error_3);
                 res.status(500).json({ success: false, message: 'Internal Server Error' });
-                return [3 /*break*/, 6];
-            case 6: return [2 /*return*/];
+                return [3 /*break*/, 5];
+            case 5: return [2 /*return*/];
         }
     });
 }); };

@@ -1,19 +1,19 @@
 import { Schema, model, Document, Types } from 'mongoose';
 
-interface ITeamMember {
+interface IContractorTeamMember {
   contractor: Types.ObjectId;
   role: string; // 'admin', 'member', etc.
-  // status: TeamMemberStatus; // 'PENDING', 'ACTIVE', SUSPENDED.
   status: 'PENDING' | 'ACTIVE' | 'SUSPENDED';
+  dateJoined: Date;
 }
 
 export interface IContractorTeam extends Document {
   name: string;
-  members: ITeamMember[];
+  members: IContractorTeamMember[];
   contractor: Types.ObjectId; // Reference to the contractor who owns the team
 }
 
-export enum TeamMemberStatus {
+enum TeamMemberStatus {
   PENDING = 'PENDING',
   ACTIVE = 'ACTIVE',
   SUSPENDED = 'SUSPENDED',
@@ -40,6 +40,10 @@ const TeamSchema = new Schema<IContractorTeam>(
           enum: Object.values(TeamMemberStatus),
           default: TeamMemberStatus.PENDING,
         },
+        dateJoined: {
+          type: Date,
+          default: Date.now,
+        },
       },
     ],
     contractor: {
@@ -55,4 +59,4 @@ const TeamSchema = new Schema<IContractorTeam>(
 
 const ContractorTeamModel = model<IContractorTeam>('contractor_teams', TeamSchema);
 
-export default ContractorTeamModel;
+export { ContractorTeamModel as default, TeamMemberStatus };

@@ -366,6 +366,7 @@ var getTeamMemberships = function (req, res) { return __awaiter(void 0, void 0, 
                                             contractor: formattedContractor,
                                             role: (userMembership === null || userMembership === void 0 ? void 0 : userMembership.role) || 'Member',
                                             status: (userMembership === null || userMembership === void 0 ? void 0 : userMembership.status) || 'ACTIVE', // Assuming default status is ACTIVE
+                                            dateJoined: userMembership === null || userMembership === void 0 ? void 0 : userMembership.dateJoined, // Assuming default status is ACTIVE
                                         }];
                             }
                         });

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TeamMemberStatus = void 0;
+exports.TeamMemberStatus = exports.default = void 0;
 var mongoose_1 = require("mongoose");
 var TeamMemberStatus;
 (function (TeamMemberStatus) {
@@ -27,6 +27,10 @@ var TeamSchema = new mongoose_1.Schema({
                 type: String,
                 enum: Object.values(TeamMemberStatus),
                 default: TeamMemberStatus.PENDING,
+            },
+            dateJoined: {
+                type: Date,
+                default: Date.now,
             },
         },
     ],

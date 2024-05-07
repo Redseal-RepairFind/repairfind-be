@@ -143,6 +143,7 @@ export const getInvitations = async (req: any, res: Response) => {
 };
 
 // Controller method to accept an invitation
+// Controller method to accept an invitation
 export const acceptInvitation = async (req: Request, res: Response) => {
     try {
         const invitationId = req.params.invitationId;
@@ -153,27 +154,43 @@ export const acceptInvitation = async (req: Request, res: Response) => {
             return res.status(404).json({ success: false, message: 'Invitation not found' });
         }
 
-        if (invitation.status == TeamInvitationStatus.ACCEPTED) {
-            return res.status(404).json({ success: false, message: 'Invitation is  is already accepted' });
+        if (invitation.status === TeamInvitationStatus.ACCEPTED) {
+            // Optionally return a message here if the invitation is already accepted
+            return res.status(400).json({ success: false, message: 'Invitation is already accepted' });
         }
 
-        if (invitation.status == TeamInvitationStatus.REJECTED) {
-            return res.status(404).json({ success: false, message: 'Invitation is  is already rejected' });
+        if (invitation.status === TeamInvitationStatus.REJECTED) {
+            return res.status(400).json({ success: false, message: 'Invitation is already rejected' });
         }
 
         invitation.status = TeamInvitationStatus.ACCEPTED;
 
-         // Find the team
-         const team = await ContractorTeamModel.findById(invitation.team );
-         if (!team) {
-             return res.status(404).json({ success: false, message: 'Team not found' });
-         }
+        // Find the team
+        const team = await ContractorTeamModel.findById(invitation.team);
+        if (!team) {
+            return res.status(404).json({ success: false, message: 'Team not found' });
+        }
 
-        // Add contractor to team members
-        team.members.push({ contractor: invitation.contractor, role: invitation.role, status: TeamMemberStatus.ACTIVE });
-        await team.save();
+        // Check if the contractor is already a member of the team
+        const existingMemberIndex = team.members.findIndex(member => member.contractor.equals(invitation.contractor));
 
-        await invitation.save();
+        // If contractor doesn't exist in the array, add a new member; otherwise, update the existing member
+        if (existingMemberIndex === -1) {
+            team.members.push({ contractor: invitation.contractor, role: invitation.role, status: TeamMemberStatus.ACTIVE, dateJoined: new Date() });
+        } else {
+            const update = {
+                contractor: invitation.contractor,
+                role: invitation.role,
+                status: TeamMemberStatus.ACTIVE,
+                dateJoined: new Date()
+            };
+
+            // Update the existing member in the array
+            team.members[existingMemberIndex] = { ...team.members[existingMemberIndex], ...update };
+        }
+
+        // Save changes to the team and the invitation
+        await Promise.all([team.save(), invitation.save()]);
 
         res.json({ success: true, message: 'Invitation accepted successfully', data: invitation });
     } catch (error) {

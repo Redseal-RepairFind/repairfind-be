@@ -314,6 +314,7 @@ export const getTeamMemberships = async (req: any, res: Response) => {
           contractor: formattedContractor,
           role: userMembership?.role || 'Member',
           status: userMembership?.status || 'ACTIVE', // Assuming default status is ACTIVE
+          dateJoined: userMembership?.dateJoined, // Assuming default status is ACTIVE
         };
       }));
   
