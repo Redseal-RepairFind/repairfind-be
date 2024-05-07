@@ -201,7 +201,7 @@ export const AdminGetInvoiceSingleJobsrDetailController = async (
     if (!invoice) {
         return res
         .status(401)
-        .json({ message: "invalid job ID" });
+        .json({ message: "invalid job ID or no invoice for this job yet" });
     }
 
     // const customer = await CustomerRegModel.findOne({_id: jobsDetail.customerId});
