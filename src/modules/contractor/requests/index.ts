@@ -125,7 +125,7 @@ export const EmailVerificationRequest = [
   ];
   
   export const LoginRequest = [
-    body("email").isEmail(),
+    body("email").notEmpty(),
     body("password").notEmpty(),
   ];
   

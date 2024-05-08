@@ -183,7 +183,7 @@ exports.EmailVerificationRequest = [
     (0, express_validator_1.body)("otp").notEmpty(),
 ];
 exports.LoginRequest = [
-    (0, express_validator_1.body)("email").isEmail(),
+    (0, express_validator_1.body)("email").notEmpty(),
     (0, express_validator_1.body)("password").notEmpty(),
 ];
 exports.ResendEmailRequest = [

@@ -258,7 +258,7 @@ var AuthHandler = /** @class */ (function (_super) {
     AuthHandler.prototype.signin = function () {
         var _a;
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _b, email, password, errors, contractor, isPasswordMatch, quiz, _c, contractorResponse, accessToken, err_3;
+            var req, res, _b, email, password, phoneNumber, errors, contractor, isPasswordMatch, quiz, _c, contractorResponse, accessToken, err_3;
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
@@ -267,12 +267,17 @@ var AuthHandler = /** @class */ (function (_super) {
                         _d.label = 1;
                     case 1:
                         _d.trys.push([1, 6, , 7]);
-                        _b = req.body, email = _b.email, password = _b.password;
+                        _b = req.body, email = _b.email, password = _b.password, phoneNumber = _b.phoneNumber;
                         errors = (0, express_validator_1.validationResult)(req);
                         if (!errors.isEmpty()) {
                             return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation errors', errors: errors.array() })];
                         }
-                        return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ email: email }).populate('profile')];
+                        return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({
+                                $or: [
+                                    { email: email },
+                                    { 'phoneNumber.number': phoneNumber }
+                                ]
+                            }).populate('profile')];
                     case 2:
                         contractor = _d.sent();
                         // check if user exists

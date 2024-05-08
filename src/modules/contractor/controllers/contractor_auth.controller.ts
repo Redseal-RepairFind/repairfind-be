@@ -191,6 +191,7 @@ class AuthHandler extends Base {
             const {
                 email,
                 password,
+                phoneNumber,
             } = req.body;
             // Check for validation errors
             const errors = validationResult(req);
@@ -200,7 +201,12 @@ class AuthHandler extends Base {
             }
 
             // try find user with the same email
-            let contractor = await ContractorModel.findOne({ email }).populate('profile');
+            let contractor = await ContractorModel.findOne({
+                $or: [
+                    { email: email },
+                    { 'phoneNumber.number': phoneNumber }
+                ]
+            }).populate('profile');
 
             // check if user exists
             if (!contractor) {
