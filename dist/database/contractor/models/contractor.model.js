@@ -293,37 +293,37 @@ ContractorSchema.virtual('certnReport').get(function () {
     return { status: status, action: action };
 });
 ContractorSchema.methods.getOnboarding = function () {
-    var _a, _b, _c, _d, _e, _f;
+    var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function () {
         var hasStripeAccount, hasStripeCustomer, hasStripePaymentMethods, hasStripeIdentity, stripeIdentityStatus, hasProfile, hasGstDetails, hasCompanyDetails, hasPassedQuiz, latestQuiz, questions, totalQuestions, totalCorrect, percentageCorrect, stage;
-        return __generator(this, function (_g) {
-            switch (_g.label) {
+        return __generator(this, function (_d) {
+            switch (_d.label) {
                 case 0:
                     hasStripeAccount = !!this.stripeAccount;
                     hasStripeCustomer = !!this.stripeCustomer;
                     hasStripePaymentMethods = Array.isArray(this.stripePaymentMethods) && this.stripePaymentMethods.length > 0;
                     hasStripeIdentity = !!this.stripeIdentity;
-                    stripeIdentityStatus = this.stripeIdentity ? this.stripeIdentity.status : 'requires_input';
+                    stripeIdentityStatus = this.stripeIdentity ? (_c = (_b = (_a = this.stripeIdentity) === null || _a === void 0 ? void 0 : _a.last_verification_report) === null || _b === void 0 ? void 0 : _b.document) === null || _c === void 0 ? void 0 : _c.status : 'requires_input';
                     hasProfile = !!this.profile;
                     hasGstDetails = !!this.gstDetails;
                     hasCompanyDetails = !!this.companyDetails;
                     hasPassedQuiz = false;
                     return [4 /*yield*/, contractor_quiz_model_1.default.findOne({ contractor: this._id }).sort({ createdAt: -1 })];
                 case 1:
-                    latestQuiz = _g.sent();
+                    latestQuiz = _d.sent();
                     if (!latestQuiz) return [3 /*break*/, 3];
                     return [4 /*yield*/, question_model_1.default.find({ quiz: latestQuiz.quiz })];
                 case 2:
-                    questions = _g.sent();
+                    questions = _d.sent();
                     totalQuestions = 10;
                     totalCorrect = latestQuiz.response.filter(function (response) { return response.correct; }).length;
                     percentageCorrect = (totalCorrect / totalQuestions) * 100;
                     hasPassedQuiz = (percentageCorrect >= 70);
-                    _g.label = 3;
+                    _d.label = 3;
                 case 3:
                     stage = { status: 1, label: 'stripeIdentity' };
                     if (this.accountType == 'Company') {
-                        if (stage.status == 1 && hasStripeIdentity && ((_b = (_a = stripeIdentityStatus === null || stripeIdentityStatus === void 0 ? void 0 : stripeIdentityStatus.last_verification_report) === null || _a === void 0 ? void 0 : _a.document) === null || _b === void 0 ? void 0 : _b.status) == 'verified')
+                        if (stage.status == 1 && hasStripeIdentity && stripeIdentityStatus == 'verified')
                             stage = { status: 2, label: 'companyDetails' };
                         if (stage.status == 2 && hasCompanyDetails)
                             stage = { status: 3, label: 'profile' }; // 
@@ -337,7 +337,7 @@ ContractorSchema.methods.getOnboarding = function () {
                             stage = { status: 7, label: 'done' };
                     }
                     if (this.accountType == 'Individual') {
-                        if (stage.status == 1 && hasStripeIdentity && ((_d = (_c = stripeIdentityStatus === null || stripeIdentityStatus === void 0 ? void 0 : stripeIdentityStatus.last_verification_report) === null || _c === void 0 ? void 0 : _c.document) === null || _d === void 0 ? void 0 : _d.status) == 'verified')
+                        if (stage.status == 1 && hasStripeIdentity && (stripeIdentityStatus === null || stripeIdentityStatus === void 0 ? void 0 : stripeIdentityStatus.status) == 'verified')
                             stage = { status: 2, label: 'profle' };
                         if (stage.status == 2 && hasProfile)
                             stage = { status: 3, label: 'quiz' };
@@ -348,7 +348,7 @@ ContractorSchema.methods.getOnboarding = function () {
                             stage = { status: 5, label: 'done' };
                     }
                     if (this.accountType == 'Employee') {
-                        if (stage.status == 1 && hasStripeIdentity && ((_f = (_e = stripeIdentityStatus === null || stripeIdentityStatus === void 0 ? void 0 : stripeIdentityStatus.last_verification_report) === null || _e === void 0 ? void 0 : _e.document) === null || _f === void 0 ? void 0 : _f.status) == 'verified')
+                        if (stage.status == 1 && hasStripeIdentity && (stripeIdentityStatus === null || stripeIdentityStatus === void 0 ? void 0 : stripeIdentityStatus.status) == 'verified')
                             stage = { status: 2, label: 'profle' };
                         if (stage.status == 2 && hasProfile)
                             stage = { status: 3, label: 'quiz' };
