@@ -303,7 +303,10 @@ ContractorSchema.methods.getOnboarding = function () {
                     hasStripeCustomer = !!this.stripeCustomer;
                     hasStripePaymentMethods = Array.isArray(this.stripePaymentMethods) && this.stripePaymentMethods.length > 0;
                     hasStripeIdentity = !!this.stripeIdentity;
-                    stripeIdentityStatus = this.stripeIdentity ? (_c = (_b = (_a = this.stripeIdentity) === null || _a === void 0 ? void 0 : _a.last_verification_report) === null || _b === void 0 ? void 0 : _b.document) === null || _c === void 0 ? void 0 : _c.status : 'requires_input';
+                    stripeIdentityStatus = 'requires_input';
+                    if (hasStripeIdentity && this.stripeIdentity.last_verification_report) {
+                        stripeIdentityStatus = (_c = (_b = (_a = this.stripeIdentity) === null || _a === void 0 ? void 0 : _a.last_verification_report) === null || _b === void 0 ? void 0 : _b.document) === null || _c === void 0 ? void 0 : _c.status;
+                    }
                     hasProfile = !!this.profile;
                     hasGstDetails = !!this.gstDetails;
                     hasCompanyDetails = !!this.companyDetails;
@@ -337,7 +340,7 @@ ContractorSchema.methods.getOnboarding = function () {
                             stage = { status: 7, label: 'done' };
                     }
                     if (this.accountType == 'Individual') {
-                        if (stage.status == 1 && hasStripeIdentity && (stripeIdentityStatus === null || stripeIdentityStatus === void 0 ? void 0 : stripeIdentityStatus.status) == 'verified')
+                        if (stage.status == 1 && hasStripeIdentity && stripeIdentityStatus == 'verified')
                             stage = { status: 2, label: 'profle' };
                         if (stage.status == 2 && hasProfile)
                             stage = { status: 3, label: 'quiz' };
@@ -348,7 +351,7 @@ ContractorSchema.methods.getOnboarding = function () {
                             stage = { status: 5, label: 'done' };
                     }
                     if (this.accountType == 'Employee') {
-                        if (stage.status == 1 && hasStripeIdentity && (stripeIdentityStatus === null || stripeIdentityStatus === void 0 ? void 0 : stripeIdentityStatus.status) == 'verified')
+                        if (stage.status == 1 && hasStripeIdentity && stripeIdentityStatus == 'verified')
                             stage = { status: 2, label: 'profle' };
                         if (stage.status == 2 && hasProfile)
                             stage = { status: 3, label: 'quiz' };

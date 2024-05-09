@@ -298,7 +298,10 @@ ContractorSchema.methods.getOnboarding = async function () {
   const hasStripePaymentMethods = Array.isArray(this.stripePaymentMethods) && this.stripePaymentMethods.length > 0
 
   const hasStripeIdentity = !!this.stripeIdentity;
-  const stripeIdentityStatus = this.stripeIdentity ? this.stripeIdentity?.last_verification_report?.document?.status : 'requires_input';
+  let stripeIdentityStatus = 'requires_input'
+  if(hasStripeIdentity && this.stripeIdentity.last_verification_report){
+      stripeIdentityStatus = this.stripeIdentity?.last_verification_report?.document?.status
+  }
   const hasProfile = !!this.profile;
   const hasGstDetails = !!this.gstDetails;
   const hasCompanyDetails = !!this.companyDetails;
@@ -328,7 +331,7 @@ ContractorSchema.methods.getOnboarding = async function () {
   }
 
   if (this.accountType == 'Individual') {
-    if (stage.status == 1 && hasStripeIdentity && stripeIdentityStatus?.status == 'verified') stage = {status: 2, label: 'profle'} 
+    if (stage.status == 1 && hasStripeIdentity && stripeIdentityStatus == 'verified') stage = {status: 2, label: 'profle'} 
     if (stage.status == 2 && hasProfile) stage = {status: 3, label: 'quiz'} 
     // if (stage.status == 3 && hasGstDetails) stage = {status: 4, label: 'quiz'} 
     if (stage.status == 4 && hasPassedQuiz) stage = {status: 4, label: 'stripeAccount'}
@@ -337,7 +340,7 @@ ContractorSchema.methods.getOnboarding = async function () {
 
 
   if (this.accountType == 'Employee') {
-    if (stage.status == 1 && hasStripeIdentity && stripeIdentityStatus?.status == 'verified') stage = {status: 2, label: 'profle'} 
+    if (stage.status == 1 && hasStripeIdentity && stripeIdentityStatus == 'verified') stage = {status: 2, label: 'profle'} 
     if (stage.status == 2 && hasProfile) stage = {status: 3, label: 'quiz'} 
     if (stage.status == 3 && hasPassedQuiz) stage = {status: 4, label: 'done'} 
   }
