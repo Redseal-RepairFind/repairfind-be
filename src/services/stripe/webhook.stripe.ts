@@ -618,6 +618,7 @@ export const chargeSucceeded = async (payload: any) => {
                 if (metadata.remark == 'initial_job_payment') {
                     job.status = JOB_STATUS.BOOKED
                     job.quotation = quotation.id
+                    job.contract = quotation.id
                     job.contractor = quotation.contractor
 
                     quotation.isPaid = true
