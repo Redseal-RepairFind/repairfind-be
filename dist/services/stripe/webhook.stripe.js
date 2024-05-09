@@ -804,6 +804,7 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                 if (metadata.remark == 'initial_job_payment') {
                     job.status = job_model_1.JOB_STATUS.BOOKED;
                     job.quotation = quotation.id;
+                    job.contract = quotation.id;
                     job.contractor = quotation.contractor;
                     quotation.isPaid = true;
                     quotation.status = job_quotation_model_1.JOB_QUOTATION_STATUS.ACCEPTED;

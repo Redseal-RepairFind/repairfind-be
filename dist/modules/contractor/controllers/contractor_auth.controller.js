@@ -273,12 +273,7 @@ var AuthHandler = /** @class */ (function (_super) {
                         if (!errors.isEmpty()) {
                             return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation errors', errors: errors.array() })];
                         }
-                        return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({
-                                $or: [
-                                    { email: email },
-                                    { 'phoneNumber.number': phoneNumber }
-                                ]
-                            }).populate('profile')];
+                        return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ email: email }).populate('profile')];
                     case 2:
                         contractor = _d.sent();
                         // check if user exists
