@@ -9,153 +9,56 @@ import { NewTeamInvitationEmail } from '../../../templates/contractorEmail/team_
 import { IContractor } from '../../../database/contractor/interface/contractor.interface';
 
 
-export const inviteToTeam = async (req: any, res: Response) => {
-    try {
-        const { memberId, role } = req.body;
-        const contractorId = req.contractor.id;
-
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ success: false, message: "Validation errors", errors: errors.array() });
-        }
-
-        // Check if the contractor is valid and is a Company Type
-        const contractor = await ContractorModel.findById(contractorId);
-        if (!contractor || contractor.accountType !== 'Company') {
-            return res.status(400).json({ success: false, message: 'Only Company can create and manage teams' });
-        }
-
-
-        // Ensure that the member being invited has an Individual or Employee account type
-        const member = await ContractorModel.findById(memberId);
-        if (!member || member.accountType !== 'Individual' && member.accountType !== 'Employee') {
-            return res.status(400).json({ success: false, message: 'Invalid contractor or contractor type. Only Individual and Employee types can be invited to a team.' });
-        }
-
-
-        // Check if the contractor already has a team
-        const existingTeamForContractor = await ContractorTeamModel.findOne({
-            'contractor': contractorId
-        });
-
-        let teamId;
-        if (existingTeamForContractor) {
-            // If the contractor already has a team, use the existing team
-            teamId = existingTeamForContractor._id;
-        } else {
-            // If the contractor doesn't have a team, create a new team
-            const newTeam: IContractorTeam = await ContractorTeamModel.create({
-                contractor: contractorId,
-                name: contractor.firstName
-            });
-
-            teamId = newTeam._id;
-        }
-
-        // Check if the member is already part of any team with 'PENDING' or 'ACTIVE' status
-        const existingTeamMember = await ContractorTeamModel.findOne({
-            'members.contractor': memberId,
-            'members.status': { $in: ['PENDING', 'ACTIVE'] },
-        });
-
-        
-        if (existingTeamMember) {
-            // Check if any member in the team has 'ACTIVE' status
-            const isActiveMember = existingTeamMember.members.some(member => member.status === 'ACTIVE');
-
-            if (isActiveMember) {
-                return res.json({ success: true, message: 'Contractor is already part of an active team'});
-            } else {
-                
-                // Resend the invitation email to all existing team members
-                const resendInvitations = existingTeamMember.members.map(async (teamMember) => {
-                    const htmlContent = NewTeamInvitationEmail(member.firstName, contractor.companyName);
-                    await EmailService.send(member.email, 'Team Invitation Reminder', htmlContent);
-                });
-                console.log(member, contractor)
-                await Promise.all(resendInvitations);
-                return res.json({ success: true, message: 'Invitations resent successfully'});
-            }
-        }
-
-
-        // Add the contractor to the team
-        const updatedTeam: IContractorTeam | null = await ContractorTeamModel.findByIdAndUpdate(
-            teamId,
-            {
-                $addToSet: {
-                    members: { contractor: member.id, role, status: 'PENDING' },
-                },
-            },
-            { new: true }
-        );
-
-        if (!updatedTeam) {
-            return res.status(500).json({ success: false, message: 'Failed to update team' });
-        }
-
-        // Send mail to the invited user
-        const htmlContent = NewTeamInvitationEmail(member.firstName, contractor.companyName);
-        EmailService.send(member.email, 'New Team Invitation', htmlContent)
-            .then(() => console.log('Email sent successfully'))
-            .catch(error => console.error('Error sending email:', error));
-
-        res.json({ success: true, message: 'Invitation sent successfully' });
-    } catch (error) {
-        console.error('Error inviting to team:', error);
-        res.status(500).json({ success: false, message: 'Internal Server Error' });
-    }
-};
 
 
 export const getTeam = async (req: any, res: Response) => {
     try {
-      const contractorId = req.contractor.id;
-  
-      // Check if the contractor is valid and is a Company Type
-      const contractor = await ContractorModel.findById(contractorId);
-      if (!contractor || contractor.accountType !== "Company") {
-        return res.status(400).json({ success: false, message: "Only Company can retrieve team information" });
-      }
-  
-      // Check if the company has a team
-      let companyTeam = await ContractorTeamModel.findOne({
-        contractor: contractorId,
-      })
-        .populate({
-            path: "members.contractor",
-            // select: "id firstName lastName email name profilePhoto ",
-        })
-        .exec();
-  
-      if (!companyTeam) {
-         companyTeam = await ContractorTeamModel.create({
+        const contractorId = req.contractor.id;
+
+        // Check if the contractor is valid and is a Company Type
+        const contractor = await ContractorModel.findById(contractorId);
+        if (!contractor || contractor.accountType !== "Company") {
+            return res.status(400).json({ success: false, message: "Only Company can retrieve team information" });
+        }
+
+        // Check if the company has a team
+        let companyTeam = await ContractorTeamModel.findOne({
             contractor: contractorId,
-            name: contractor.firstName
+        })
+            .populate({
+                path: "members.contractor",
+                // select: "id firstName lastName email name profilePhoto ",
+            })
+            .exec();
+
+        if (!companyTeam) {
+            companyTeam = await ContractorTeamModel.create({
+                contractor: contractorId,
+                name: contractor.firstName
+            });
+        }
+
+        res.json({
+            success: true,
+            message: "Team information retrieved successfully",
+            data: {
+                id: companyTeam.id,
+                name: companyTeam.name,
+                members: companyTeam.members.map((member: any) => ({
+                    id: member.contractor.id,
+                    firstName: member.contractor.firstName, // deprecate
+                    lastName: member.contractor.lastName,
+                    name: member.contractor.name,
+                    profilePhoto: member.contractor.profilePhoto,
+                    email: member.contractor.email,
+                    role: member.role,
+                    status: member.status,
+                })),
+            },
         });
-      }
-  
-      res.json({
-        success: true,
-        message: "Team information retrieved successfully",
-        data: {
-            id: companyTeam.id,
-            name: companyTeam.name,
-            members: companyTeam.members.map((member: any) => ({
-              id: member.contractor.id,
-              firstName: member.contractor.firstName, // deprecate
-              lastName: member.contractor.lastName,
-              name: member.contractor.name,
-              profilePhoto: member.contractor.profilePhoto,
-              email: member.contractor.email,
-              role: member.role,
-              status: member.status,
-            })),
-          },
-      });
     } catch (error) {
-      console.error("Error retrieving team information:", error);
-      res.status(500).json({ success: false, message: "Internal Server Error" });
+        console.error("Error retrieving team information:", error);
+        res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 };
 
@@ -217,44 +120,6 @@ export const searchContractorsNotInTeam = async (req: any, res: Response) => {
 
 
 
-export const acceptTeamInvitation = async (req: any, res: Response) => {
-    try {
-        const memberId = req.contractor.id;
-
-        // Find the team that the member is invited to
-        const team = await ContractorTeamModel.findOne({
-            'members.contractor': memberId,
-            'members.status': 'PENDING'
-        });
-
-        if (!team) {
-            return res.status(404).json({ success: false, message: 'Invitation not found' });
-        }
-
-        // Update the status of the member to 'ACTIVE'
-        const updatedTeam = await ContractorTeamModel.findOneAndUpdate(
-            {
-                'members.contractor': memberId,
-                'members.status': 'PENDING'
-            },
-            {
-                $set: { 'members.$.status': 'ACTIVE' }
-            },
-            { new: true }
-        );
-
-        if (!updatedTeam) {
-            return res.status(500).json({ success: false, message: 'Failed to accept invitation' });
-        }
-
-        res.json({ success: true, message: 'Invitation accepted successfully' });
-    } catch (error) {
-        console.error('Error accepting team invitation:', error);
-        res.status(500).json({ success: false, message: 'Internal Server Error' });
-    }
-};
-
-
 export const getInvitations = async (req: any, res: Response) => {
     try {
         const memberId = req.contractor.id;
@@ -291,46 +156,77 @@ export const getInvitations = async (req: any, res: Response) => {
 
 export const getTeamMemberships = async (req: any, res: Response) => {
     try {
-      const userId = req.contractor.id;
-  
-      // Find all teams where the user is a member
-      const teams = await ContractorTeamModel.find({ 'members.contractor': userId });
-  
-      const formattedTeams = await Promise.all(teams.map(async (team: IContractorTeam) => {
-        const userMembership = team.members.find(member => String(member.contractor) === userId);
-          const contractor = <IContractor> await ContractorModel.findById(team.contractor);
+        const userId = req.contractor.id;
 
-        // Extract contractor details
-        const formattedContractor = {
-          id: contractor._id,
-          name: contractor.name,
-          email: contractor.email,
-          profilePhoto: contractor.profilePhoto,
-        };
-  
-        return {
-          id: team._id,
-          team: team.name,
-          contractor: formattedContractor,
-          role: userMembership?.role || 'Member',
-          status: userMembership?.status || 'ACTIVE', // Assuming default status is ACTIVE
-          dateJoined: userMembership?.dateJoined, // Assuming default status is ACTIVE
-        };
-      }));
-  
-      res.json({ success: true, message: 'Team memberships retrieved successfully', data: formattedTeams });
+        // Find all teams where the user is a member
+        const teams = await ContractorTeamModel.find({ 'members.contractor': userId });
+
+        const formattedTeams = await Promise.all(teams.map(async (team: IContractorTeam) => {
+            const userMembership = team.members.find(member => String(member.contractor) === userId);
+            const contractor = <IContractor>await ContractorModel.findById(team.contractor);
+
+            // Extract contractor details
+            const formattedContractor = {
+                id: contractor._id,
+                name: contractor.name,
+                email: contractor.email,
+                profilePhoto: contractor.profilePhoto,
+            };
+
+            return {
+                id: team._id,
+                team: team.name,
+                contractor: formattedContractor,
+                role: userMembership?.role || 'Member',
+                status: userMembership?.status || 'ACTIVE', // Assuming default status is ACTIVE
+                dateJoined: userMembership?.dateJoined, // Assuming default status is ACTIVE
+            };
+        }));
+
+        res.json({ success: true, message: 'Team memberships retrieved successfully', data: formattedTeams });
     } catch (error) {
-      console.error('Error retrieving team memberships:', error);
-      res.status(500).json({ success: false, message: 'Internal Server Error' });
+        console.error('Error retrieving team memberships:', error);
+        res.status(500).json({ success: false, message: 'Internal Server Error' });
     }
-  };
+};
+
+
+
+export const leaveTeam = async (req: any, res: Response) => {
+    try {
+        const contractorId = req.contractor.id;
+        const teamId = req.params.teamId;
+
+        // Find the team
+        const team = await ContractorTeamModel.findById(teamId);
+        if (!team) {
+            return res.status(404).json({ success: false, message: 'Team not found' });
+        }
+
+        // Find the index of the member in the team's members array
+        const memberIndex = team.members.findIndex(member => member.contractor.equals(contractorId));
+        if (memberIndex === -1) {
+            return res.status(404).json({ success: false, message: 'Member not found in the team' });
+        }
+
+        // Remove the member from the team
+        team.members.splice(memberIndex, 1);
+
+        // Save the updated team
+        await team.save();
+
+        res.json({ success: true, message: 'Contractor successfully left the team' });
+    } catch (error) {
+        console.error('Error leaving team:', error);
+        res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+};
 
 
 export const TeamController = {
-    inviteToTeam,
     getTeam,
     searchContractorsNotInTeam,
-    acceptTeamInvitation,
-    getTeamMemberships
+    getTeamMemberships,
+    leaveTeam
 }
 

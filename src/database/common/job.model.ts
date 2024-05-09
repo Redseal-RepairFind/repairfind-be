@@ -25,6 +25,7 @@ export enum JOB_STATUS {
     BOOKED = 'BOOKED',
     COMPLETED = 'COMPLETED',
     DISPUTED = 'DISPUTED',
+    CANCELED = 'CANCELED',
 }
 
 export enum JOB_SCHEDULE_TYPE {
@@ -50,6 +51,12 @@ export interface IJobSchedule {
     remark: string
 }
 
+export interface IJobAssignment {
+    contractor: ObjectId
+    confirmed?: boolean;
+    date?: Date;
+}
+
 interface IVoiceDescription {
     url: string;
     metrics?: [];
@@ -63,6 +70,7 @@ export interface IJob extends Document {
     customer: ObjectId;
     contractor: ObjectId; // contractor that has been engaged
     quotation: ObjectId; // application or estimate or quatation that has been paid for
+    contract: ObjectId; // TODO: replace quotation with this
     contractorType: String;
     status: JOB_STATUS;
     type: JobType;
@@ -85,6 +93,7 @@ export interface IJob extends Document {
     jobHistory: IJobHistory[];
     payments: ObjectId[];
     schedule: IJobSchedule;
+    assignment: IJobAssignment;
     emergency: boolean;
     myQuotation: Object | null
     getMyQoutation: (contractorId: ObjectId) => {
@@ -119,6 +128,11 @@ const ScheduleSchema = new Schema<IJobSchedule>({
     remark: String,
 });
 
+const JobAssignmentSchema = new Schema<IJobAssignment>({
+    contractor: { type: Schema.Types.ObjectId, ref: 'contractors' },
+    date: { type: Date, required: true },
+    confirmed: { type: Boolean, default: false },
+});
 
 
 const JobLocationSchema = new Schema<IJobLocation>({
@@ -143,6 +157,7 @@ const JobSchema = new Schema<IJob>({
     customer: { type: Schema.Types.ObjectId, ref: 'customers', required: true },
     contractor: { type: Schema.Types.ObjectId, ref: 'contractors' },
     quotation: { type: Schema.Types.ObjectId, ref: 'job_quotations' },
+    contract: { type: Schema.Types.ObjectId, ref: 'job_quotations' }, // TODO: replace quotation with this
     contractorType: { type: String },
     status: { type: String, enum: Object.values(JOB_STATUS), default: JOB_STATUS.PENDING },
     type: { type: String, enum: Object.values(JobType), default: JobType.LISTING },
@@ -170,6 +185,7 @@ const JobSchema = new Schema<IJob>({
         ref: 'payments'
     },
     myQuotation: Object,
+    assignment: JobAssignmentSchema,
     emergency: {type: Boolean, default:false},
 }, { timestamps: true });
 

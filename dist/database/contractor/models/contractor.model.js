@@ -259,22 +259,38 @@ ContractorSchema.virtual('certnStatus').get(function () {
             status = 'NOT_SUBMITTED';
         }
         else {
-            status = certnDetails.status;
+            for (var _i = 0, _a = certnDetails.check_executions; _i < _a.length; _i++) {
+                var execution = _a[_i];
+                if (execution.status !== 'COMPLETED') {
+                    status = 'FAILED'; // If any check is not completed, status is failed
+                    break; // No need to continue, we already found a failed check
+                }
+            }
         }
     }
     return status;
-    // return certnDetails ? {
-    //   result: certnDetails.result,
-    //   report_status: certnDetails.report_status,
-    //   adjudication_status: certnDetails.adjudication_status,
-    //   check_executions: certnDetails.check_executions,
-    //   is_submitted: certnDetails.is_submitted,
-    //   application_url: certnDetails.application.applicant.application_url,
-    //   report_url: certnDetails.application.applicant.report_url,
-    //   modified: certnDetails.modified,
-    //   identity_verified_summary: certnDetails.identity_verified_summary,
-    //   status: certnDetails.status,
-    //   status_label: certnDetails.status_label,
+});
+ContractorSchema.virtual('certnReport').get(function () {
+    var certnDetails = this.certnDetails;
+    var status = 'NOT_STARTED';
+    var action = 'NONE';
+    if (certnDetails) {
+        if (!certnDetails.is_submitted) {
+            status = 'NOT_SUBMITTED';
+        }
+        else {
+            status = 'COMPLETED';
+            for (var _i = 0, _a = certnDetails.check_executions; _i < _a.length; _i++) {
+                var execution = _a[_i];
+                if (execution.status !== 'COMPLETED') {
+                    status = 'FAILED'; // If any check is not completed, status is failed
+                    break; // No need to continue, we already found a failed check
+                }
+            }
+        }
+        action = certnDetails.application.applicant.application_url;
+    }
+    return { status: status, action: action };
 });
 ContractorSchema.methods.getOnboarding = function () {
     return __awaiter(this, void 0, void 0, function () {

@@ -15,6 +15,7 @@ import { ContractorConversationController } from "../controllers/contractor_conv
 import { ContractorTripDayController } from "../controllers/contractor_tripDay.controller";
 import { ContractorTransactionController } from "../controllers/contractor_transaction.controller";
 import { ContractorCallController } from "../controllers/contractor_call.controller";
+import { ContractorBookingController } from "../controllers/contractor_booking.controller";
 
 const express = require("express");
 const router = express.Router();
@@ -105,17 +106,17 @@ router.post("/me/stripe-identity", checkContractorRole, (req: Request, res: Resp
 
 //  QUiz
 router.get("/quiz-start", checkContractorRole, QuizController.StartQuiz );
-router.get("/quiz-result", checkContractorRole, QuizController.GetQuizResult); // contractor get quiz result
-router.post("/quiz-submit", checkContractorRole, QuizController.SubmitQuiz); // contractor anser question 
+router.get("/quiz-result", checkContractorRole, QuizController.GetQuizResult); 
+router.post("/quiz-submit", checkContractorRole, QuizController.SubmitQuiz); 
 
 
 //  Company Team
-router.post("/teams/invite", checkContractorRole, ContractorHttpRequest.InviteToTeam, TeamController.inviteToTeam );
-router.get("/teams", checkContractorRole, TeamController.getTeam); // contractor get quiz result
-router.get("/teams/search-contractors", checkContractorRole, TeamController.searchContractorsNotInTeam); // contractor get quiz result
+router.post("/teams/invite", checkContractorRole, ContractorHttpRequest.InviteToTeam, TeamInvitationController.inviteToTeam );
+router.get("/teams", checkContractorRole, TeamController.getTeam); 
+router.get("/teams/search-contractors", checkContractorRole, TeamController.searchContractorsNotInTeam); 
 
-router.get("/teams/memberships", checkContractorRole, TeamController.getTeamMemberships); // contractor get quiz result
-// router.delete("/teams/:teamId/leave", checkContractorRole, QuizController.SubmitQuiz); // contractor anser question 
+router.get("/teams/memberships", checkContractorRole, TeamController.getTeamMemberships); 
+router.delete("/teams/:teamId/leave", checkContractorRole, TeamController.leaveTeam); 
 
 // Define routes for managing team invitations
 router.post("/teams/invitations", checkContractorRole, TeamInvitationController.inviteToTeam);
@@ -183,6 +184,16 @@ router.post('/conversations/:conversationId/mark-all-read', checkContractorRole,
 router.get("/transactions", checkContractorRole, ContractorTransactionController.getTransactions ); 
 router.get("/transactions/summary", checkContractorRole, ContractorTransactionController.getTransactionSummary ); 
 router.get("/transactions/:transactionId", checkContractorRole, ContractorTransactionController.getSingleTransaction);
+
+
+// BOOKING
+router.get("/bookings", checkContractorRole, ContractorBookingController.getMyBookings ); 
+router.get("/bookings/history", checkContractorRole, ContractorBookingController.getBookingHistory ); 
+router.get("/bookings/:bookingId", checkContractorRole, ContractorBookingController.getSingleBooking ); 
+router.post("/bookings/:bookingId/reschedule", checkContractorRole, ContractorBookingController.requestBookingReschedule ); 
+router.post("/bookings/:bookingId/reschedule/:action", checkContractorRole, ContractorBookingController.acceptOrDeclineReschedule ); 
+router.post("/bookings/:bookingId/assign", checkContractorRole, ContractorBookingController.assignJob ); 
+router.post("/bookings/:bookingId/cancel", checkContractorRole, ContractorBookingController.cancelBooking ); 
 
 
 // trips day

@@ -39,111 +39,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TeamController = exports.getTeamMemberships = exports.getInvitations = exports.acceptTeamInvitation = exports.searchContractorsNotInTeam = exports.getTeam = exports.inviteToTeam = void 0;
+exports.TeamController = exports.leaveTeam = exports.getTeamMemberships = exports.getInvitations = exports.searchContractorsNotInTeam = exports.getTeam = void 0;
 var contractor_team_model_1 = __importDefault(require("../../../database/contractor/models/contractor_team.model"));
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
-var express_validator_1 = require("express-validator");
-var services_1 = require("../../../services");
-var team_invitation_email_template_1 = require("../../../templates/contractorEmail/team_invitation_email.template");
-var inviteToTeam = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, memberId, role, contractorId, errors, contractor_1, member_1, existingTeamForContractor, teamId, newTeam, existingTeamMember, isActiveMember, resendInvitations, updatedTeam, htmlContent, error_1;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0:
-                _b.trys.push([0, 12, , 13]);
-                _a = req.body, memberId = _a.memberId, role = _a.role;
-                contractorId = req.contractor.id;
-                errors = (0, express_validator_1.validationResult)(req);
-                if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: "Validation errors", errors: errors.array() })];
-                }
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
-            case 1:
-                contractor_1 = _b.sent();
-                if (!contractor_1 || contractor_1.accountType !== 'Company') {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Only Company can create and manage teams' })];
-                }
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(memberId)];
-            case 2:
-                member_1 = _b.sent();
-                if (!member_1 || member_1.accountType !== 'Individual' && member_1.accountType !== 'Employee') {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid contractor or contractor type. Only Individual and Employee types can be invited to a team.' })];
-                }
-                return [4 /*yield*/, contractor_team_model_1.default.findOne({
-                        'contractor': contractorId
-                    })];
-            case 3:
-                existingTeamForContractor = _b.sent();
-                teamId = void 0;
-                if (!existingTeamForContractor) return [3 /*break*/, 4];
-                // If the contractor already has a team, use the existing team
-                teamId = existingTeamForContractor._id;
-                return [3 /*break*/, 6];
-            case 4: return [4 /*yield*/, contractor_team_model_1.default.create({
-                    contractor: contractorId,
-                    name: contractor_1.firstName
-                })];
-            case 5:
-                newTeam = _b.sent();
-                teamId = newTeam._id;
-                _b.label = 6;
-            case 6: return [4 /*yield*/, contractor_team_model_1.default.findOne({
-                    'members.contractor': memberId,
-                    'members.status': { $in: ['PENDING', 'ACTIVE'] },
-                })];
-            case 7:
-                existingTeamMember = _b.sent();
-                if (!existingTeamMember) return [3 /*break*/, 10];
-                isActiveMember = existingTeamMember.members.some(function (member) { return member.status === 'ACTIVE'; });
-                if (!isActiveMember) return [3 /*break*/, 8];
-                return [2 /*return*/, res.json({ success: true, message: 'Contractor is already part of an active team' })];
-            case 8:
-                resendInvitations = existingTeamMember.members.map(function (teamMember) { return __awaiter(void 0, void 0, void 0, function () {
-                    var htmlContent;
-                    return __generator(this, function (_a) {
-                        switch (_a.label) {
-                            case 0:
-                                htmlContent = (0, team_invitation_email_template_1.NewTeamInvitationEmail)(member_1.firstName, contractor_1.companyName);
-                                return [4 /*yield*/, services_1.EmailService.send(member_1.email, 'Team Invitation Reminder', htmlContent)];
-                            case 1:
-                                _a.sent();
-                                return [2 /*return*/];
-                        }
-                    });
-                }); });
-                console.log(member_1, contractor_1);
-                return [4 /*yield*/, Promise.all(resendInvitations)];
-            case 9:
-                _b.sent();
-                return [2 /*return*/, res.json({ success: true, message: 'Invitations resent successfully' })];
-            case 10: return [4 /*yield*/, contractor_team_model_1.default.findByIdAndUpdate(teamId, {
-                    $addToSet: {
-                        members: { contractor: member_1.id, role: role, status: 'PENDING' },
-                    },
-                }, { new: true })];
-            case 11:
-                updatedTeam = _b.sent();
-                if (!updatedTeam) {
-                    return [2 /*return*/, res.status(500).json({ success: false, message: 'Failed to update team' })];
-                }
-                htmlContent = (0, team_invitation_email_template_1.NewTeamInvitationEmail)(member_1.firstName, contractor_1.companyName);
-                services_1.EmailService.send(member_1.email, 'New Team Invitation', htmlContent)
-                    .then(function () { return console.log('Email sent successfully'); })
-                    .catch(function (error) { return console.error('Error sending email:', error); });
-                res.json({ success: true, message: 'Invitation sent successfully' });
-                return [3 /*break*/, 13];
-            case 12:
-                error_1 = _b.sent();
-                console.error('Error inviting to team:', error_1);
-                res.status(500).json({ success: false, message: 'Internal Server Error' });
-                return [3 /*break*/, 13];
-            case 13: return [2 /*return*/];
-        }
-    });
-}); };
-exports.inviteToTeam = inviteToTeam;
 var getTeam = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var contractorId, contractor, companyTeam, error_2;
+    var contractorId, contractor, companyTeam, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -194,8 +94,8 @@ var getTeam = function (req, res) { return __awaiter(void 0, void 0, void 0, fun
                 });
                 return [3 /*break*/, 6];
             case 5:
-                error_2 = _a.sent();
-                console.error("Error retrieving team information:", error_2);
+                error_1 = _a.sent();
+                console.error("Error retrieving team information:", error_1);
                 res.status(500).json({ success: false, message: "Internal Server Error" });
                 return [3 /*break*/, 6];
             case 6: return [2 /*return*/];
@@ -204,7 +104,7 @@ var getTeam = function (req, res) { return __awaiter(void 0, void 0, void 0, fun
 }); };
 exports.getTeam = getTeam;
 var searchContractorsNotInTeam = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var contractorId, contractor, companyTeam, _a, name_1, email, searchCriteria, contractorsNotInTeam, error_3;
+    var contractorId, contractor, companyTeam, _a, name_1, email, searchCriteria, contractorsNotInTeam, error_2;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -252,8 +152,8 @@ var searchContractorsNotInTeam = function (req, res) { return __awaiter(void 0, 
                 res.json({ success: true, message: 'Contractors not in any team retrieved successfully', data: contractorsNotInTeam });
                 return [3 /*break*/, 7];
             case 6:
-                error_3 = _b.sent();
-                console.error('Error searching for contractors not in any team:', error_3);
+                error_2 = _b.sent();
+                console.error('Error searching for contractors not in any team:', error_2);
                 res.status(500).json({ success: false, message: 'Internal Server Error' });
                 return [3 /*break*/, 7];
             case 7: return [2 /*return*/];
@@ -261,47 +161,8 @@ var searchContractorsNotInTeam = function (req, res) { return __awaiter(void 0, 
     });
 }); };
 exports.searchContractorsNotInTeam = searchContractorsNotInTeam;
-var acceptTeamInvitation = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var memberId, team, updatedTeam, error_4;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                _a.trys.push([0, 3, , 4]);
-                memberId = req.contractor.id;
-                return [4 /*yield*/, contractor_team_model_1.default.findOne({
-                        'members.contractor': memberId,
-                        'members.status': 'PENDING'
-                    })];
-            case 1:
-                team = _a.sent();
-                if (!team) {
-                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Invitation not found' })];
-                }
-                return [4 /*yield*/, contractor_team_model_1.default.findOneAndUpdate({
-                        'members.contractor': memberId,
-                        'members.status': 'PENDING'
-                    }, {
-                        $set: { 'members.$.status': 'ACTIVE' }
-                    }, { new: true })];
-            case 2:
-                updatedTeam = _a.sent();
-                if (!updatedTeam) {
-                    return [2 /*return*/, res.status(500).json({ success: false, message: 'Failed to accept invitation' })];
-                }
-                res.json({ success: true, message: 'Invitation accepted successfully' });
-                return [3 /*break*/, 4];
-            case 3:
-                error_4 = _a.sent();
-                console.error('Error accepting team invitation:', error_4);
-                res.status(500).json({ success: false, message: 'Internal Server Error' });
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/];
-        }
-    });
-}); };
-exports.acceptTeamInvitation = acceptTeamInvitation;
 var getInvitations = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var memberId, status_1, invitations, allInvitations_1, error_5;
+    var memberId, status_1, invitations, allInvitations_1, error_3;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -326,8 +187,8 @@ var getInvitations = function (req, res) { return __awaiter(void 0, void 0, void
                 res.json({ success: true, message: 'Invitations retrieved successfully', data: allInvitations_1 });
                 return [3 /*break*/, 3];
             case 2:
-                error_5 = _a.sent();
-                console.error('Error retrieving invitations:', error_5);
+                error_3 = _a.sent();
+                console.error('Error retrieving invitations:', error_3);
                 res.status(500).json({ success: false, message: 'Internal Server Error' });
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
@@ -336,7 +197,7 @@ var getInvitations = function (req, res) { return __awaiter(void 0, void 0, void
 }); };
 exports.getInvitations = getInvitations;
 var getTeamMemberships = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var userId_1, teams, formattedTeams, error_6;
+    var userId_1, teams, formattedTeams, error_4;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -376,8 +237,8 @@ var getTeamMemberships = function (req, res) { return __awaiter(void 0, void 0, 
                 res.json({ success: true, message: 'Team memberships retrieved successfully', data: formattedTeams });
                 return [3 /*break*/, 4];
             case 3:
-                error_6 = _a.sent();
-                console.error('Error retrieving team memberships:', error_6);
+                error_4 = _a.sent();
+                console.error('Error retrieving team memberships:', error_4);
                 res.status(500).json({ success: false, message: 'Internal Server Error' });
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
@@ -385,10 +246,46 @@ var getTeamMemberships = function (req, res) { return __awaiter(void 0, void 0, 
     });
 }); };
 exports.getTeamMemberships = getTeamMemberships;
+var leaveTeam = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var contractorId_1, teamId, team, memberIndex, error_5;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 3, , 4]);
+                contractorId_1 = req.contractor.id;
+                teamId = req.params.teamId;
+                return [4 /*yield*/, contractor_team_model_1.default.findById(teamId)];
+            case 1:
+                team = _a.sent();
+                if (!team) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Team not found' })];
+                }
+                memberIndex = team.members.findIndex(function (member) { return member.contractor.equals(contractorId_1); });
+                if (memberIndex === -1) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Member not found in the team' })];
+                }
+                // Remove the member from the team
+                team.members.splice(memberIndex, 1);
+                // Save the updated team
+                return [4 /*yield*/, team.save()];
+            case 2:
+                // Save the updated team
+                _a.sent();
+                res.json({ success: true, message: 'Contractor successfully left the team' });
+                return [3 /*break*/, 4];
+            case 3:
+                error_5 = _a.sent();
+                console.error('Error leaving team:', error_5);
+                res.status(500).json({ success: false, message: 'Internal Server Error' });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.leaveTeam = leaveTeam;
 exports.TeamController = {
-    inviteToTeam: exports.inviteToTeam,
     getTeam: exports.getTeam,
     searchContractorsNotInTeam: exports.searchContractorsNotInTeam,
-    acceptTeamInvitation: exports.acceptTeamInvitation,
-    getTeamMemberships: exports.getTeamMemberships
+    getTeamMemberships: exports.getTeamMemberships,
+    leaveTeam: exports.leaveTeam
 };

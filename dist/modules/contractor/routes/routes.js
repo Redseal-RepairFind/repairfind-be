@@ -15,6 +15,7 @@ var contractor_conversation_controller_1 = require("../controllers/contractor_co
 var contractor_tripDay_controller_1 = require("../controllers/contractor_tripDay.controller");
 var contractor_transaction_controller_1 = require("../controllers/contractor_transaction.controller");
 var contractor_call_controller_1 = require("../controllers/contractor_call.controller");
+var contractor_booking_controller_1 = require("../controllers/contractor_booking.controller");
 var express = require("express");
 var router = express.Router();
 //  AUTH
@@ -85,14 +86,14 @@ router.post("/me/stripe-identity", contractorRoleCheck_middleware_1.checkContrac
 });
 //  QUiz
 router.get("/quiz-start", contractorRoleCheck_middleware_1.checkContractorRole, contractor_quiz_controller_1.QuizController.StartQuiz);
-router.get("/quiz-result", contractorRoleCheck_middleware_1.checkContractorRole, contractor_quiz_controller_1.QuizController.GetQuizResult); // contractor get quiz result
-router.post("/quiz-submit", contractorRoleCheck_middleware_1.checkContractorRole, contractor_quiz_controller_1.QuizController.SubmitQuiz); // contractor anser question 
+router.get("/quiz-result", contractorRoleCheck_middleware_1.checkContractorRole, contractor_quiz_controller_1.QuizController.GetQuizResult);
+router.post("/quiz-submit", contractorRoleCheck_middleware_1.checkContractorRole, contractor_quiz_controller_1.QuizController.SubmitQuiz);
 //  Company Team
-router.post("/teams/invite", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.InviteToTeam, contractor_team_controller_1.TeamController.inviteToTeam);
-router.get("/teams", contractorRoleCheck_middleware_1.checkContractorRole, contractor_team_controller_1.TeamController.getTeam); // contractor get quiz result
-router.get("/teams/search-contractors", contractorRoleCheck_middleware_1.checkContractorRole, contractor_team_controller_1.TeamController.searchContractorsNotInTeam); // contractor get quiz result
-router.get("/teams/memberships", contractorRoleCheck_middleware_1.checkContractorRole, contractor_team_controller_1.TeamController.getTeamMemberships); // contractor get quiz result
-// router.delete("/teams/:teamId/leave", checkContractorRole, QuizController.SubmitQuiz); // contractor anser question 
+router.post("/teams/invite", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.InviteToTeam, contractor_team_invitation_controller_1.TeamInvitationController.inviteToTeam);
+router.get("/teams", contractorRoleCheck_middleware_1.checkContractorRole, contractor_team_controller_1.TeamController.getTeam);
+router.get("/teams/search-contractors", contractorRoleCheck_middleware_1.checkContractorRole, contractor_team_controller_1.TeamController.searchContractorsNotInTeam);
+router.get("/teams/memberships", contractorRoleCheck_middleware_1.checkContractorRole, contractor_team_controller_1.TeamController.getTeamMemberships);
+router.delete("/teams/:teamId/leave", contractorRoleCheck_middleware_1.checkContractorRole, contractor_team_controller_1.TeamController.leaveTeam);
 // Define routes for managing team invitations
 router.post("/teams/invitations", contractorRoleCheck_middleware_1.checkContractorRole, contractor_team_invitation_controller_1.TeamInvitationController.inviteToTeam);
 router.get("/teams/invitations", contractorRoleCheck_middleware_1.checkContractorRole, contractor_team_invitation_controller_1.TeamInvitationController.getInvitations);
@@ -139,6 +140,14 @@ router.post('/conversations/:conversationId/mark-all-read', contractorRoleCheck_
 router.get("/transactions", contractorRoleCheck_middleware_1.checkContractorRole, contractor_transaction_controller_1.ContractorTransactionController.getTransactions);
 router.get("/transactions/summary", contractorRoleCheck_middleware_1.checkContractorRole, contractor_transaction_controller_1.ContractorTransactionController.getTransactionSummary);
 router.get("/transactions/:transactionId", contractorRoleCheck_middleware_1.checkContractorRole, contractor_transaction_controller_1.ContractorTransactionController.getSingleTransaction);
+// BOOKING
+router.get("/bookings", contractorRoleCheck_middleware_1.checkContractorRole, contractor_booking_controller_1.ContractorBookingController.getMyBookings);
+router.get("/bookings/history", contractorRoleCheck_middleware_1.checkContractorRole, contractor_booking_controller_1.ContractorBookingController.getBookingHistory);
+router.get("/bookings/:bookingId", contractorRoleCheck_middleware_1.checkContractorRole, contractor_booking_controller_1.ContractorBookingController.getSingleBooking);
+router.post("/bookings/:bookingId/reschedule", contractorRoleCheck_middleware_1.checkContractorRole, contractor_booking_controller_1.ContractorBookingController.requestBookingReschedule);
+router.post("/bookings/:bookingId/reschedule/:action", contractorRoleCheck_middleware_1.checkContractorRole, contractor_booking_controller_1.ContractorBookingController.acceptOrDeclineReschedule);
+router.post("/bookings/:bookingId/assign", contractorRoleCheck_middleware_1.checkContractorRole, contractor_booking_controller_1.ContractorBookingController.assignJob);
+router.post("/bookings/:bookingId/cancel", contractorRoleCheck_middleware_1.checkContractorRole, contractor_booking_controller_1.ContractorBookingController.cancelBooking);
 // trips day
 router.post('/trip/:jobId/start', contractorRoleCheck_middleware_1.checkContractorRole, contractor_tripDay_controller_1.ContractorTripDayController.contractorStartTripController);
 router.post('/trip/:tripDayId/arrive', contractorRoleCheck_middleware_1.checkContractorRole, contractor_tripDay_controller_1.ContractorTripDayController.contractorArrivedSiteController);

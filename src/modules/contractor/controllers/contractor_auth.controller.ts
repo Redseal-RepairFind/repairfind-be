@@ -2,7 +2,7 @@ import { validationResult } from "express-validator";
 import bcrypt from "bcrypt";
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import {ContractorModel} from "../../../database/contractor/models/contractor.model";
+import { ContractorModel } from "../../../database/contractor/models/contractor.model";
 import { OTP_EXPIRY_TIME, generateOTP } from "../../../utils/otpGenerator";
 import { sendEmail } from "../../../utils/send_email_utility";
 import ContractorDocumentValidateModel from "../../../database/contractor/models/contractorDocumentValidate.model";
@@ -15,6 +15,7 @@ import JobModel from "../../../database/contractor/models/job.model";
 import AdminNoficationModel from "../../../database/admin/models/admin_notification.model";
 import { handleAsyncError } from "../../../abstracts/decorators.abstract";
 import { Base } from "../../../abstracts/base.abstract";
+import { EmailService } from "../../../services";
 
 class AuthHandler extends Base {
     @handleAsyncError()
@@ -22,17 +23,17 @@ class AuthHandler extends Base {
         let req = this.req
         let res = this.res
         try {
-            const { email, password,  firstName, dateOfBirth, lastName, phoneNumber, acceptTerms, accountType, companyName } = req.body;
+            const { email, password, firstName, dateOfBirth, lastName, phoneNumber, acceptTerms, accountType, companyName } = req.body;
             const errors = validationResult(req);
 
             if (!errors.isEmpty()) {
-                return res.status(400).json({success:false, message: "Validation errors", errors: errors.array() });
+                return res.status(400).json({ success: false, message: "Validation errors", errors: errors.array() });
             }
 
             const userEmailExists = await ContractorModel.findOne({ email });
 
             if (userEmailExists) {
-                return res.status(401).json({success:false, message: "Email exists already" });
+                return res.status(401).json({ success: false, message: "Email exists already" });
             }
 
             const otp = generateOTP();
@@ -65,7 +66,7 @@ class AuthHandler extends Base {
 
             const hashedPassword = await bcrypt.hash(password, 10);
 
-            
+
             const contractor = await ContractorModel.create({
                 email,
                 firstName,
@@ -73,9 +74,9 @@ class AuthHandler extends Base {
                 lastName,
                 password: hashedPassword,
                 emailOtp,
-                phoneNumber, 
-                acceptTerms, 
-                accountType, 
+                phoneNumber,
+                acceptTerms,
+                accountType,
                 companyName
             });
 
@@ -95,7 +96,7 @@ class AuthHandler extends Base {
             });
 
         } catch (err: any) {
-            return res.status(500).json({success:false,  message: err.message });
+            return res.status(500).json({ success: false, message: err.message });
         }
     }
 
@@ -159,10 +160,10 @@ class AuthHandler extends Base {
 
             const quiz = await contractor?.quiz ?? null
             const contractorResponse = {
-               //@ts-ignore
-              ...contractor.toJSON(), // Convert to plain JSON object
                 //@ts-ignore
-              quiz,
+                ...contractor.toJSON(), // Convert to plain JSON object
+                //@ts-ignore
+                quiz,
             };
 
             // return access token
@@ -197,7 +198,7 @@ class AuthHandler extends Base {
             const errors = validationResult(req);
 
             if (!errors.isEmpty()) {
-                return res.status(400).json({success: false, message: 'Validation errors', errors: errors.array() });
+                return res.status(400).json({ success: false, message: 'Validation errors', errors: errors.array() });
             }
 
             // try find user with the same email
@@ -212,29 +213,29 @@ class AuthHandler extends Base {
             if (!contractor) {
                 return res
                     .status(401)
-                    .json({success: false, message: "invalid credential" });
+                    .json({ success: false, message: "invalid credential" });
             }
 
             // compare password with hashed password in database
             const isPasswordMatch = await bcrypt.compare(password, contractor.password);
             if (!isPasswordMatch) {
-                return res.status(401).json({success: false,  message: "incorrect credential." });
+                return res.status(401).json({ success: false, message: "incorrect credential." });
             }
 
             if (!contractor.emailOtp.verified) {
-                return res.status(401).json({success: false, message: "email not verified." });
+                return res.status(401).json({ success: false, message: "email not verified." });
             }
 
 
-           
+
             const quiz = await contractor?.quiz ?? null
             contractor.onboarding = await contractor.getOnboarding()
             const contractorResponse = {
-              ...contractor.toJSON(), // Convert to plain JSON object
-              quiz,
+                ...contractor.toJSON(), // Convert to plain JSON object
+                quiz,
             };
 
-        
+
             // generate access token
             const accessToken = jwt.sign(
                 {
@@ -251,12 +252,12 @@ class AuthHandler extends Base {
                 success: true,
                 message: "Login successful",
                 accessToken: accessToken,
-                user:contractorResponse
+                user: contractorResponse
             });
 
 
         } catch (err: any) {
-            return res.status(500).json({success: false, message: err.message });
+            return res.status(500).json({ success: false, message: err.message });
         }
     }
 
@@ -270,54 +271,47 @@ class AuthHandler extends Base {
             } = req.body;
             // Check for validation errors
             const errors = validationResult(req);
-          
+
             if (!errors.isEmpty()) {
-              return res.status(400).json({success: false, message: 'Validation errors', errors: errors.array() });
+                return res.status(400).json({ success: false, message: 'Validation errors', errors: errors.array() });
             }
-          
+
             // try find customer with the same email
             const contractor = await ContractorModel.findOne({ email });
-            
+
             // check if contractor exists
             if (!contractor) {
-             return res
-               .status(401)
-               .json({ success:false,  message: "invalid email" });
+                return res
+                    .status(401)
+                    .json({ success: false, message: "invalid email" });
             }
-          
+
             if (contractor.emailOtp.verified) {
-              return res
-               .status(401)
-               .json({success: false, message: "email already verified" });
+                return res
+                    .status(401)
+                    .json({ success: false, message: "email already verified" });
             }
-          
-              const otp = generateOTP()
-          
-              const createdTime = new Date();
-          
-              contractor!.emailOtp = {
-                  otp,
-                  createdTime,
-                  verified : false
-              }
-          
-              await contractor?.save();
-          
-              const html = htmlMailTemplate(otp, contractor.firstName, "We have received a request to verify your email")
-          
-              let emailData = {
-                  emailTo: email,
-                  subject: "Email Verification",
-                  html
-              };
-          
-            sendEmail(emailData);
-          
-           return res.status(200).json({success: true,  message: "OTP sent successfully to your email." });
-            
-          } catch (err: any) {
-            return res.status(500).json({success: false, message: err.message });
-          }
+
+            const otp = generateOTP()
+
+            const createdTime = new Date();
+
+            contractor!.emailOtp = {
+                otp,
+                createdTime,
+                verified: false
+            }
+
+            await contractor?.save();
+
+            const html = htmlMailTemplate(otp, contractor.firstName, "We have received a request to verify your email")
+            EmailService.send(email, "Email Verification", html)
+
+            return res.status(200).json({ success: true, message: "OTP sent successfully to your email." });
+
+        } catch (err: any) {
+            return res.status(500).json({ success: false, message: err.message });
+        }
     }
 
     @handleAsyncError()
@@ -330,46 +324,46 @@ class AuthHandler extends Base {
             } = req.body;
             // Check for validation errors
             const errors = validationResult(req);
-        
+
             if (!errors.isEmpty()) {
-              return res.status(400).json({success:false, message: 'validation errors', errors: errors.array() });
+                return res.status(400).json({ success: false, message: 'validation errors', errors: errors.array() });
             }
-        
+
             // try find user with the same email
             const contractor = await ContractorModel.findOne({ email });
-        
-             // check if user exists
-             if (!contractor) {
-              return res
-                .status(401)
-                .json({success: false,  message: "invalid email" });
+
+            // check if user exists
+            if (!contractor) {
+                return res
+                    .status(401)
+                    .json({ success: false, message: "invalid email" });
             }
-    
+
             const otp = generateOTP()
-    
+
             const createdTime = new Date();
-    
+
             contractor!.passwordOtp = {
                 otp,
                 createdTime,
-                verified : true
+                verified: true
             }
-    
+
             await contractor?.save();
             const html = htmlMailTemplate(otp, contractor.firstName, "We have received a request to change your password")
-    
+
             let emailData = {
                 emailTo: email,
                 subject: "constractor password change",
                 html
             };
-          
+
             sendEmail(emailData);
-        
-            return res.status(200).json({success: true,  message: "OTP sent successfully to your email." });
-        
-          } catch (err: any) {
-            return res.status(500).json({success: false, message: err.message });
+
+            return res.status(200).json({ success: true, message: "OTP sent successfully to your email." });
+
+        } catch (err: any) {
+            return res.status(500).json({ success: false, message: err.message });
         }
     }
     @handleAsyncError()
@@ -384,44 +378,44 @@ class AuthHandler extends Base {
             } = req.body;
             // Check for validation errors
             const errors = validationResult(req);
-        
+
             if (!errors.isEmpty()) {
-              return res.status(400).json({success: false, message: "Validation errors",  errors: errors.array() });
+                return res.status(400).json({ success: false, message: "Validation errors", errors: errors.array() });
             }
-        
+
             // try find contractor with the same email
             const contractor = await ContractorModel.findOne({ email });
-        
-             // check if contractor exists
+
+            // check if contractor exists
             if (!contractor) {
-              return res
-                .status(401)
-                .json({success: false, message: "invalid email" });
+                return res
+                    .status(401)
+                    .json({ success: false, message: "invalid email" });
             }
-    
-            const {createdTime, verified} = contractor.passwordOtp
-    
+
+            const { createdTime, verified } = contractor.passwordOtp
+
             const timeDiff = new Date().getTime() - createdTime.getTime();
-    
+
             if (!verified || timeDiff > OTP_EXPIRY_TIME || otp !== contractor.passwordOtp.otp) {
                 return res
-                .status(401)
-                .json({sucess: false,  message: "unable to reset password" });
+                    .status(401)
+                    .json({ sucess: false, message: "unable to reset password" });
             }
-    
+
             // Hash password
-            const hashedPassword = await bcrypt.hash(password, 10); 
-    
+            const hashedPassword = await bcrypt.hash(password, 10);
+
             contractor.password = hashedPassword;
             contractor.passwordOtp.verified = false;
-    
+
             await contractor.save();
-    
-            return res.status(200).json({success: true,  message: "password successfully change" });
-        
-          } catch (err: any) {
+
+            return res.status(200).json({ success: true, message: "password successfully change" });
+
+        } catch (err: any) {
             // signup error
-            return res.status(500).json({success: false,  message: err.message });
+            return res.status(500).json({ success: false, message: err.message });
         }
     }
 
@@ -437,41 +431,41 @@ class AuthHandler extends Base {
             } = req.body;
             // Check for validation errors
             const errors = validationResult(req);
-        
+
             if (!errors.isEmpty()) {
-              return res.status(400).json({success: false, message: "Validation errors",  errors: errors.array() });
-            }
-        
-            // try find contractor with the same email
-            const contractor = await ContractorModel.findOne({ email });
-        
-             // check if contractor exists
-            if (!contractor) {
-              return res
-                .status(401)
-                .json({success: false, message: "invalid email" });
-            }
-    
-            const {createdTime} = contractor.passwordOtp
-            const timeDiff = new Date().getTime() - createdTime.getTime();
-    
-            if ( otp !== contractor.passwordOtp.otp) {
-                return res
-                .status(401)
-                .json({sucess: false,  message: "invalid password reset otp" });
+                return res.status(400).json({ success: false, message: "Validation errors", errors: errors.array() });
             }
 
-            if ( timeDiff > OTP_EXPIRY_TIME) {
+            // try find contractor with the same email
+            const contractor = await ContractorModel.findOne({ email });
+
+            // check if contractor exists
+            if (!contractor) {
                 return res
-                .status(401)
-                .json({sucess: false,  message: "reset password otp has expired" });
+                    .status(401)
+                    .json({ success: false, message: "invalid email" });
             }
-    
-            
-            return res.status(200).json({success: true,  message: "password reset otp verified" });
-        
-          } catch (err: any) {
-            return res.status(500).json({success: false,  message: err.message });
+
+            const { createdTime } = contractor.passwordOtp
+            const timeDiff = new Date().getTime() - createdTime.getTime();
+
+            if (otp !== contractor.passwordOtp.otp) {
+                return res
+                    .status(401)
+                    .json({ sucess: false, message: "invalid password reset otp" });
+            }
+
+            if (timeDiff > OTP_EXPIRY_TIME) {
+                return res
+                    .status(401)
+                    .json({ sucess: false, message: "reset password otp has expired" });
+            }
+
+
+            return res.status(200).json({ success: true, message: "password reset otp verified" });
+
+        } catch (err: any) {
+            return res.status(500).json({ success: false, message: err.message });
         }
     }
 }

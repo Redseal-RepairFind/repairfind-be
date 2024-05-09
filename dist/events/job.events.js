@@ -47,6 +47,7 @@ var contractor_model_1 = require("../database/contractor/models/contractor.model
 var job_model_1 = require("../database/common/job.model");
 var conversations_schema_1 = require("../database/common/conversations.schema");
 var socket_1 = require("../services/socket");
+var job_canceled_template_1 = require("../templates/contractorEmail/job_canceled.template");
 exports.JobEvent = new events_1.EventEmitter();
 exports.JobEvent.on('NEW_JOB_REQUEST', function (payload) {
     var _a, _b;
@@ -136,6 +137,41 @@ exports.JobEvent.on('NEW_JOB_LISTING', function (payload) {
                 case 2:
                     error_2 = _a.sent();
                     console.error("Error handling NEW_JOB_REQUEST event: ".concat(error_2));
+                    return [3 /*break*/, 3];
+                case 3: return [2 /*return*/];
+            }
+        });
+    });
+});
+exports.JobEvent.on('JOB_CANCELED', function (job, contractor, customer) {
+    return __awaiter(this, void 0, void 0, function () {
+        var customer_1, html, html, error_3;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 2, , 3]);
+                    console.log('handling alert JOB_CANCELED event');
+                    return [4 /*yield*/, customer_model_1.default.findById(job.customer)];
+                case 1:
+                    customer_1 = _a.sent();
+                    if (contractor) {
+                        console.log('job cancelled by contractor');
+                        if (customer_1) {
+                            html = (0, job_canceled_template_1.JobCanceledEmailTemplate)(customer_1.name, 'contractor', contractor.name, job);
+                            services_1.EmailService.send(customer_1.email, "Job Canceled", html);
+                        }
+                    }
+                    if (customer_1) {
+                        console.log('job cancelled by customer');
+                        if (contractor) {
+                            html = (0, job_canceled_template_1.JobCanceledEmailTemplate)(contractor.name, 'customer', customer_1.name, job);
+                            services_1.EmailService.send(contractor.email, "Job Canceled", html);
+                        }
+                    }
+                    return [3 /*break*/, 3];
+                case 2:
+                    error_3 = _a.sent();
+                    console.error("Error handling JOB_CANCELED event: ".concat(error_3));
                     return [3 /*break*/, 3];
                 case 3: return [2 /*return*/];
             }

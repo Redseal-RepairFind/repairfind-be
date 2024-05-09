@@ -95,6 +95,7 @@ var contractorWelcomeTemplate_1 = require("../../../templates/contractorEmail/co
 var admin_notification_model_1 = __importDefault(require("../../../database/admin/models/admin_notification.model"));
 var decorators_abstract_1 = require("../../../abstracts/decorators.abstract");
 var base_abstract_1 = require("../../../abstracts/base.abstract");
+var services_1 = require("../../../services");
 var AuthHandler = /** @class */ (function (_super) {
     __extends(AuthHandler, _super);
     function AuthHandler() {
@@ -326,7 +327,7 @@ var AuthHandler = /** @class */ (function (_super) {
     };
     AuthHandler.prototype.resendEmail = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, email, errors, contractor, otp, createdTime, html, emailData, err_4;
+            var req, res, email, errors, contractor, otp, createdTime, html, err_4;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -365,12 +366,7 @@ var AuthHandler = /** @class */ (function (_super) {
                     case 3:
                         _a.sent();
                         html = (0, sendEmailTemplate_1.htmlMailTemplate)(otp, contractor.firstName, "We have received a request to verify your email");
-                        emailData = {
-                            emailTo: email,
-                            subject: "Email Verification",
-                            html: html
-                        };
-                        (0, send_email_utility_1.sendEmail)(emailData);
+                        services_1.EmailService.send(email, "Email Verification", html);
                         return [2 /*return*/, res.status(200).json({ success: true, message: "OTP sent successfully to your email." })];
                     case 4:
                         err_4 = _a.sent();

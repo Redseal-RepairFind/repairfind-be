@@ -48,6 +48,7 @@ var JOB_STATUS;
     JOB_STATUS["BOOKED"] = "BOOKED";
     JOB_STATUS["COMPLETED"] = "COMPLETED";
     JOB_STATUS["DISPUTED"] = "DISPUTED";
+    JOB_STATUS["CANCELED"] = "CANCELED";
 })(JOB_STATUS || (exports.JOB_STATUS = JOB_STATUS = {}));
 var JOB_SCHEDULE_TYPE;
 (function (JOB_SCHEDULE_TYPE) {
@@ -83,6 +84,11 @@ var ScheduleSchema = new mongoose_1.Schema({
     type: { type: String, enum: Object.values(JOB_SCHEDULE_TYPE) },
     remark: String,
 });
+var JobAssignmentSchema = new mongoose_1.Schema({
+    contractor: { type: mongoose_1.Schema.Types.ObjectId, ref: 'contractors' },
+    date: { type: Date, required: true },
+    confirmed: { type: Boolean, default: false },
+});
 var JobLocationSchema = new mongoose_1.Schema({
     address: { type: String },
     city: { type: String },
@@ -100,6 +106,7 @@ var JobSchema = new mongoose_1.Schema({
     customer: { type: mongoose_1.Schema.Types.ObjectId, ref: 'customers', required: true },
     contractor: { type: mongoose_1.Schema.Types.ObjectId, ref: 'contractors' },
     quotation: { type: mongoose_1.Schema.Types.ObjectId, ref: 'job_quotations' },
+    contract: { type: mongoose_1.Schema.Types.ObjectId, ref: 'job_quotations' }, // TODO: replace quotation with this
     contractorType: { type: String },
     status: { type: String, enum: Object.values(JOB_STATUS), default: JOB_STATUS.PENDING },
     type: { type: String, enum: Object.values(JobType), default: JobType.LISTING },
@@ -127,6 +134,7 @@ var JobSchema = new mongoose_1.Schema({
         ref: 'payments'
     },
     myQuotation: Object,
+    assignment: JobAssignmentSchema,
     emergency: { type: Boolean, default: false },
 }, { timestamps: true });
 JobSchema.virtual('totalQuotations').get(function () {

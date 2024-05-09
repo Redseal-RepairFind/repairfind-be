@@ -7,6 +7,7 @@ import { StripeCustomerSchema } from "../../common/stripe_customer.schema";
 import { StripeAccountSchema } from "../../common/stripe_account.schema";
 import { StripePaymentMethodSchema } from "../../common/stripe_paymentmethod.schema";
 import QuestionModel, { IQuestion } from "../../admin/models/question.model";
+import { CertnService } from "../../../services";
 
 
 
@@ -255,27 +256,39 @@ ContractorSchema.virtual('certnStatus').get(function (this: IContractor) {
     if (!certnDetails.is_submitted) {
       status=  'NOT_SUBMITTED'
     } else {
-      status= certnDetails.status
+      for (const execution of certnDetails.check_executions) {
+          if (execution.status !== 'COMPLETED') {
+              status = 'FAILED'; // If any check is not completed, status is failed
+              break; // No need to continue, we already found a failed check
+          }
+      }
     }
   }
 
   return status
+});
 
+ContractorSchema.virtual('certnReport').get(function (this: IContractor) {
+  const certnDetails: IContractorCertnDetails = this.certnDetails;
 
-  // return certnDetails ? {
-  //   result: certnDetails.result,
-  //   report_status: certnDetails.report_status,
-  //   adjudication_status: certnDetails.adjudication_status,
-  //   check_executions: certnDetails.check_executions,
-  //   is_submitted: certnDetails.is_submitted,
+  let status = 'NOT_STARTED'
+  let action = 'NONE'
+  if (certnDetails) {
+    if (!certnDetails.is_submitted) {
+      status=  'NOT_SUBMITTED'
+    } else {
+      status = 'COMPLETED'
+      for (const execution of certnDetails.check_executions) {
+          if (execution.status !== 'COMPLETED') {
+              status = 'FAILED'; // If any check is not completed, status is failed
+              break; // No need to continue, we already found a failed check
+          }
+      }
+    }
+    action = certnDetails.application.applicant.application_url
+  }
 
-  //   application_url: certnDetails.application.applicant.application_url,
-  //   report_url: certnDetails.application.applicant.report_url,
-
-  //   modified: certnDetails.modified,
-  //   identity_verified_summary: certnDetails.identity_verified_summary,
-  //   status: certnDetails.status,
-  //   status_label: certnDetails.status_label,
+  return {status, action}
 });
 
 

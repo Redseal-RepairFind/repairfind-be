@@ -50,15 +50,20 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerBookingController = exports.acceptOrDeclineReschedule = exports.requestBookingReschedule = exports.rescheduleJob = exports.getSingleBooking = exports.getBookingHistory = exports.getMyBookings = void 0;
+exports.ContractorBookingController = exports.cancelBooking = exports.assignJob = exports.acceptOrDeclineReschedule = exports.requestBookingReschedule = exports.getSingleBooking = exports.getBookingHistory = exports.getMyBookings = void 0;
 var express_validator_1 = require("express-validator");
+var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
+var services_1 = require("../../../services");
 var job_model_1 = require("../../../database/common/job.model");
 var custom_errors_1 = require("../../../utils/custom.errors");
 var api_feature_1 = require("../../../utils/api.feature");
-var job_quotation_model_1 = require("../../../database/common/job_quotation.model");
+var events_1 = require("../../../events");
 var mongoose_1 = __importDefault(require("mongoose"));
+var contractor_interface_1 = require("../../../database/contractor/interface/contractor.interface");
+var contractor_team_model_1 = __importDefault(require("../../../database/contractor/models/contractor_team.model"));
+var job_assigned_template_1 = require("../../../templates/contractorEmail/job_assigned.template");
 var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, _b, limit, _c, page, _d, sort, contractorId_1, _e, status_1, startDate, endDate, date, type, customerId, filter, start, end, selectedDate, startOfDay_1, endOfDay, _f, data, error, error_1;
+    var errors, _a, _b, limit, _c, page, _d, sort, customerId, _e, status_1, startDate, endDate, date, type, contractorId_1, filter, start, end, selectedDate, startOfDay_1, endOfDay, _f, data, error, error_1;
     return __generator(this, function (_g) {
         switch (_g.label) {
             case 0:
@@ -67,19 +72,19 @@ var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0,
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
-                _a = req.query, _b = _a.limit, limit = _b === void 0 ? 10 : _b, _c = _a.page, page = _c === void 0 ? 1 : _c, _d = _a.sort, sort = _d === void 0 ? '-createdAt' : _d, contractorId_1 = _a.contractorId, _e = _a.status, status_1 = _e === void 0 ? 'BOOKED' : _e, startDate = _a.startDate, endDate = _a.endDate, date = _a.date, type = _a.type;
+                _a = req.query, _b = _a.limit, limit = _b === void 0 ? 10 : _b, _c = _a.page, page = _c === void 0 ? 1 : _c, _d = _a.sort, sort = _d === void 0 ? '-createdAt' : _d, customerId = _a.customerId, _e = _a.status, status_1 = _e === void 0 ? 'BOOKED' : _e, startDate = _a.startDate, endDate = _a.endDate, date = _a.date, type = _a.type;
                 req.query.page = page;
                 req.query.limit = limit;
                 req.query.sort = sort;
-                customerId = req.customer.id;
-                filter = { customer: customerId };
+                contractorId_1 = req.contractor.id;
+                filter = { contractor: contractorId_1 };
                 // TODO: when contractor is specified, ensure the contractor quotation is attached
-                if (contractorId_1) {
-                    if (!mongoose_1.default.Types.ObjectId.isValid(contractorId_1)) {
-                        return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid contractor id' })];
+                if (customerId) {
+                    if (!mongoose_1.default.Types.ObjectId.isValid(customerId)) {
+                        return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid customer id' })];
                     }
-                    req.query.contractor = contractorId_1;
-                    delete req.query.contractorId;
+                    req.query.customer = customerId;
+                    delete req.query.customerId;
                 }
                 if (status_1) {
                     req.query.status = status_1.toUpperCase();
@@ -100,7 +105,7 @@ var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0,
                     endOfDay.setDate(startOfDay_1.getUTCDate() + 1);
                     req.query.date = { $gte: startOfDay_1, $lt: endOfDay };
                 }
-                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_model_1.JobModel.find(filter).populate(['contractor', 'quotation']), req.query)];
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_model_1.JobModel.find(filter).populate(['customer', 'quotation']), req.query)];
             case 1:
                 _f = _g.sent(), data = _f.data, error = _f.error;
                 if (!data) return [3 /*break*/, 3];
@@ -134,39 +139,32 @@ var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0,
 }); };
 exports.getMyBookings = getMyBookings;
 var getBookingHistory = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, _a, _b, page, _c, limit, _d, sort, contractorId_2, _e, status_2, jobIds, statusArray, filter, quotations, _f, data, error, error_2;
+    var contractorId, _a, _b, page, _c, limit, _d, sort, customerId, _e, status_2, statusArray, filter, _f, data, error, error_2;
     return __generator(this, function (_g) {
         switch (_g.label) {
             case 0:
-                customerId = req.customer.id;
+                contractorId = req.contractor.id;
                 _g.label = 1;
             case 1:
-                _g.trys.push([1, 7, , 8]);
-                _a = req.query, _b = _a.page, page = _b === void 0 ? 1 : _b, _c = _a.limit, limit = _c === void 0 ? 10 : _c, _d = _a.sort, sort = _d === void 0 ? '-createdAt' : _d, contractorId_2 = _a.contractorId, _e = _a.status, status_2 = _e === void 0 ? 'COMPLETED, CANCELLED, DECLINED, ACCEPTED, EXPIRED, COMPLETED, DISPUTED' : _e;
+                _g.trys.push([1, 5, , 6]);
+                _a = req.query, _b = _a.page, page = _b === void 0 ? 1 : _b, _c = _a.limit, limit = _c === void 0 ? 10 : _c, _d = _a.sort, sort = _d === void 0 ? '-createdAt' : _d, customerId = _a.customerId, _e = _a.status, status_2 = _e === void 0 ? 'COMPLETED, CANCELLED, DECLINED, ACCEPTED, EXPIRED, COMPLETED, DISPUTED' : _e;
                 req.query.page = page;
                 req.query.limit = limit;
                 req.query.sort = sort;
                 delete req.query.status;
-                jobIds = [];
                 statusArray = status_2.split(',').map(function (s) { return s.trim(); });
-                filter = { status: { $in: statusArray, customer: customerId } };
-                if (!contractorId_2) return [3 /*break*/, 3];
-                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.find({ contractor: contractorId_2 }).select('job').lean()];
-            case 2:
-                quotations = _g.sent();
-                // Extract job IDs from the quotations
-                jobIds = quotations.map(function (quotation) { return quotation.job; });
-                filter._id = { $in: jobIds };
-                if (!mongoose_1.default.Types.ObjectId.isValid(contractorId_2)) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid customer id' })];
+                filter = { status: { $in: statusArray }, contractor: contractorId };
+                if (customerId) {
+                    if (!mongoose_1.default.Types.ObjectId.isValid(customerId)) {
+                        return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid customer id' })];
+                    }
+                    req.query.customer = customerId;
+                    delete req.query.customerId;
                 }
-                req.query.contractor = contractorId_2;
-                delete req.query.contractorId;
-                _g.label = 3;
-            case 3: return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_model_1.JobModel.find(filter).distinct('_id'), req.query)];
-            case 4:
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_model_1.JobModel.find(filter).distinct('_id'), req.query)];
+            case 2:
                 _f = _g.sent(), data = _f.data, error = _f.error;
-                if (!data) return [3 /*break*/, 6];
+                if (!data) return [3 /*break*/, 4];
                 // Map through each job and attach myQuotation if contractor has applied 
                 return [4 /*yield*/, Promise.all(data.data.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
                         var _a;
@@ -174,41 +172,41 @@ var getBookingHistory = function (req, res, next) { return __awaiter(void 0, voi
                             switch (_b.label) {
                                 case 0:
                                     _a = job;
-                                    return [4 /*yield*/, job.getMyQoutation(contractorId_2)];
+                                    return [4 /*yield*/, job.getMyQoutation(contractorId)];
                                 case 1:
                                     _a.myQuotation = _b.sent();
                                     return [2 /*return*/];
                             }
                         });
                     }); }))];
-            case 5:
+            case 3:
                 // Map through each job and attach myQuotation if contractor has applied 
                 _g.sent();
-                _g.label = 6;
-            case 6:
+                _g.label = 4;
+            case 4:
                 if (error) {
-                    return [2 /*return*/, next(new custom_errors_1.BadRequestError('Unkowon error occured'))];
+                    return [2 /*return*/, next(new custom_errors_1.BadRequestError('Unkowon error occured', error))];
                 }
                 // Send response with job listings data
                 res.status(200).json({ success: true, data: data });
-                return [3 /*break*/, 8];
-            case 7:
+                return [3 /*break*/, 6];
+            case 5:
                 error_2 = _g.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_2))];
-            case 8: return [2 /*return*/];
+            case 6: return [2 /*return*/];
         }
     });
 }); };
 exports.getBookingHistory = getBookingHistory;
 var getSingleBooking = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, bookingId, job, error_3;
+    var contractorId, bookingId, job, error_3;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
-                customerId = req.customer.id;
+                contractorId = req.contractor.id;
                 bookingId = req.params.bookingId;
-                return [4 /*yield*/, job_model_1.JobModel.findOne({ customer: customerId, _id: bookingId, status: job_model_1.JOB_STATUS.BOOKED }).populate(['contractor', 'quotation'])];
+                return [4 /*yield*/, job_model_1.JobModel.findOne({ contractor: contractorId, _id: bookingId, status: job_model_1.JOB_STATUS.BOOKED }).populate(['contractor', 'quotation'])];
             case 1:
                 job = _a.sent();
                 // Check if the job exists
@@ -226,39 +224,13 @@ var getSingleBooking = function (req, res, next) { return __awaiter(void 0, void
     });
 }); };
 exports.getSingleBooking = getSingleBooking;
-var rescheduleJob = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, jobId, job, error_4;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                _a.trys.push([0, 2, , 3]);
-                customerId = req.customer.id;
-                jobId = req.params.jobId;
-                return [4 /*yield*/, job_model_1.JobModel.findOne({ customer: customerId, _id: jobId }).exec()];
-            case 1:
-                job = _a.sent();
-                // Check if the job exists
-                if (!job) {
-                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found' })];
-                }
-                // If the job exists, return it as a response
-                res.json({ success: true, message: 'Job retrieved', data: job });
-                return [3 /*break*/, 3];
-            case 2:
-                error_4 = _a.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_4))];
-            case 3: return [2 /*return*/];
-        }
-    });
-}); };
-exports.rescheduleJob = rescheduleJob;
 var requestBookingReschedule = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, bookingId, job, _a, date, remark, updatedSchedule, previousDate, error_5;
+    var contractorId, bookingId, job, _a, date, remark, updatedSchedule, previousDate, error_4;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
                 _b.trys.push([0, 3, , 4]);
-                customerId = req.customer.id;
+                contractorId = req.contractor.id;
                 bookingId = req.params.bookingId;
                 return [4 /*yield*/, job_model_1.JobModel.findById(bookingId)];
             case 1:
@@ -268,16 +240,16 @@ var requestBookingReschedule = function (req, res, next) { return __awaiter(void
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found' })];
                 }
                 // Check if the customer is the owner of the job
-                if (job.customer.toString() !== customerId) {
+                if (job.contractor.toString() !== contractorId) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'You are not authorized to perform this action' })];
                 }
                 _a = req.body, date = _a.date, remark = _a.remark;
                 updatedSchedule = {
                     date: date, // Assuming the rescheduled date replaces the previous one
                     awaitingConfirmation: true, // Flag for indicating rescheduling request
-                    isCustomerAccept: true, // Assume the customer has has already confirmed the rescheduling
-                    isContractorAccept: false, // The contractor has to confirm the rescheduling
-                    createdBy: 'customer', // Assuming customer initiates the reschedule
+                    isCustomerAccept: false, // Assume the customer has has already confirmed the rescheduling
+                    isContractorAccept: true, // The contractor has to confirm the rescheduling
+                    createdBy: 'contractor', // Assuming customer initiates the reschedule
                     type: job_model_1.JOB_SCHEDULE_TYPE.JOB_DAY, // You might need to adjust this based on your business logic
                     remark: remark // Adding a remark for the rescheduling
                 };
@@ -298,20 +270,20 @@ var requestBookingReschedule = function (req, res, next) { return __awaiter(void
                 res.json({ success: true, message: 'Job reschedule request sent' });
                 return [3 /*break*/, 4];
             case 3:
-                error_5 = _b.sent();
-                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred', error_5))];
+                error_4 = _b.sent();
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred', error_4))];
             case 4: return [2 /*return*/];
         }
     });
 }); };
 exports.requestBookingReschedule = requestBookingReschedule;
 var acceptOrDeclineReschedule = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, _a, bookingId, action, job, error_6;
+    var contractorId, _a, bookingId, action, job, error_5;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
                 _b.trys.push([0, 3, , 4]);
-                customerId = req.customer.id;
+                contractorId = req.contractor.id;
                 _a = req.params, bookingId = _a.bookingId, action = _a.action;
                 return [4 /*yield*/, job_model_1.JobModel.findById(bookingId)];
             case 1:
@@ -321,7 +293,7 @@ var acceptOrDeclineReschedule = function (req, res, next) { return __awaiter(voi
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found' })];
                 }
                 // Check if the customer is the owner of the job
-                if (job.customer.toString() !== customerId) {
+                if (job.contractor.toString() !== contractorId) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'You are not authorized to perform this action' })];
                 }
                 // Check if the job has a rescheduling request
@@ -334,7 +306,7 @@ var acceptOrDeclineReschedule = function (req, res, next) { return __awaiter(voi
                 }
                 // Update rescheduling flags based on customer's choice
                 if (action == 'accept') {
-                    job.schedule.isCustomerAccept = true;
+                    job.schedule.isContractorAccept = true;
                     if (job.schedule.isContractorAccept && job.schedule.isCustomerAccept) {
                         job.schedule.awaitingConfirmation = false;
                     }
@@ -351,16 +323,137 @@ var acceptOrDeclineReschedule = function (req, res, next) { return __awaiter(voi
                 return [4 /*yield*/, job.save()];
             case 2:
                 _b.sent();
-                res.json({ success: true, message: "Rescheduling request has been ".concat(action) });
+                res.json({ success: true, message: "Rescheduling request has been ".concat(action, "d") });
                 return [3 /*break*/, 4];
             case 3:
-                error_6 = _b.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_6))];
+                error_5 = _b.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_5))];
             case 4: return [2 /*return*/];
         }
     });
 }); };
 exports.acceptOrDeclineReschedule = acceptOrDeclineReschedule;
+var assignJob = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var contractorId, bookingId, employeeId, job, contractor, employee, team, assignData, html, error_6;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 6, , 7]);
+                contractorId = req.contractor.id;
+                bookingId = req.params.bookingId;
+                employeeId = req.body.employeeId;
+                return [4 /*yield*/, job_model_1.JobModel.findById(bookingId)];
+            case 1:
+                job = _a.sent();
+                // Check if the job exists
+                if (!job) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found' })];
+                }
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
+            case 2:
+                contractor = _a.sent();
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(employeeId)];
+            case 3:
+                employee = _a.sent();
+                // Check if the contractor exists
+                if (!contractor || !employee) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor not found' })];
+                }
+                // Check if the customer is the owner of the job
+                if (job.contractor.toString() !== contractorId) {
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'You are not authorized to perform this action' })];
+                }
+                // Check if the contractor is a company
+                if (contractor.accountType !== contractor_interface_1.CONTRACTOR_TYPES.Company) {
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'Only companies can assign jobs' })];
+                }
+                console.log('employeeId', employeeId);
+                return [4 /*yield*/, contractor_team_model_1.default.findOne({ 'members.contractor': employeeId, contractor: contractorId })];
+            case 4:
+                team = _a.sent();
+                if (!team) {
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'Contractor is not a member of your team, kindly invite' })];
+                }
+                assignData = {
+                    contractor: employeeId,
+                    date: new Date,
+                    confirmed: true // true by default
+                };
+                job.assignment = assignData;
+                job.jobHistory.push({
+                    eventType: 'JOB_ASSIGNMENT',
+                    timestamp: new Date(),
+                    details: { new: assignData, previous: job.assignment }
+                });
+                return [4 /*yield*/, job.save()];
+            case 5:
+                _a.sent();
+                html = (0, job_assigned_template_1.NewJobAssignedEmailTemplate)(contractor, employee, job);
+                services_1.EmailService.send(employee.email, "New Job Assigned", html);
+                res.json({ success: true, message: "Job assigned successfully", data: job });
+                return [3 /*break*/, 7];
+            case 6:
+                error_6 = _a.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_6))];
+            case 7: return [2 /*return*/];
+        }
+    });
+}); };
+exports.assignJob = assignJob;
+var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var contractorId, bookingId, reason, job, contractor, error_7;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 4, , 5]);
+                contractorId = req.contractor.id;
+                bookingId = req.params.bookingId;
+                reason = req.body.reason;
+                return [4 /*yield*/, job_model_1.JobModel.findById(bookingId)];
+            case 1:
+                job = _a.sent();
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
+            case 2:
+                contractor = _a.sent();
+                // Check if the contractor exists
+                if (!contractor) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor not found' })];
+                }
+                // Check if the job exists
+                if (!job) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found' })];
+                }
+                // Check if the contractor is the owner of the job
+                if (job.contractor.toString() !== contractorId) {
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'You are not authorized to cancel this booking' })];
+                }
+                // Check if the job is already canceled
+                if (job.status === job_model_1.JOB_STATUS.CANCELED) {
+                    // return res.status(400).json({ success: false, message: 'The booking is already canceled' });
+                }
+                // Update the job status to canceled
+                job.status = job_model_1.JOB_STATUS.CANCELED;
+                job.jobHistory.push({
+                    eventType: 'JOB_CANCELED',
+                    timestamp: new Date(),
+                    details: { reason: reason }
+                });
+                // emit job cancelled event 
+                // inside the event take actions such as refund etc
+                events_1.JobEvent.emit('JOB_CANCELED', job, contractor);
+                return [4 /*yield*/, job.save()];
+            case 3:
+                _a.sent();
+                res.json({ success: true, message: 'Booking canceled successfully', data: job });
+                return [3 /*break*/, 5];
+            case 4:
+                error_7 = _a.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_7))];
+            case 5: return [2 /*return*/];
+        }
+    });
+}); };
+exports.cancelBooking = cancelBooking;
 // Helper function to find the previous accepted schedule date from job history
 var findPreviousAcceptedScheduleDate = function (jobHistory) {
     var _a, _b, _c, _d, _e, _f;
@@ -372,10 +465,12 @@ var findPreviousAcceptedScheduleDate = function (jobHistory) {
     }
     return undefined;
 };
-exports.CustomerBookingController = {
+exports.ContractorBookingController = {
     getMyBookings: exports.getMyBookings,
     getBookingHistory: exports.getBookingHistory,
     getSingleBooking: exports.getSingleBooking,
     requestBookingReschedule: exports.requestBookingReschedule,
-    acceptOrDeclineReschedule: exports.acceptOrDeclineReschedule
+    acceptOrDeclineReschedule: exports.acceptOrDeclineReschedule,
+    assignJob: exports.assignJob,
+    cancelBooking: exports.cancelBooking
 };

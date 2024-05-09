@@ -154,6 +154,7 @@ export const EmailVerificationRequest = [
     body("institutionNumber").notEmpty(),
     body("accountNumber").notEmpty(),
   ];
+  
   export const CreateGstDetailsRequest = [
     body("gstName").notEmpty(),
     body("gstNumber").notEmpty(),

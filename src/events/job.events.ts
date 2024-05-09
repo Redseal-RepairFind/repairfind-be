@@ -3,9 +3,13 @@ import { EmailService, NotificationService } from '../services';
 import { htmlJobRequestTemplate } from '../templates/contractorEmail/jobRequestTemplate';
 import CustomerModel from '../database/customer/models/customer.model';
 import { ContractorModel } from '../database/contractor/models/contractor.model';
-import { JobModel } from '../database/common/job.model';
+import { IJob, JobModel } from '../database/common/job.model';
 import { ConversationModel } from '../database/common/conversations.schema';
 import { SocketService } from '../services/socket';
+import { IContractor } from '../database/contractor/interface/contractor.interface';
+import { ICustomer } from '../database/customer/interface/customer.interface';
+import { NewJobAssignedEmailTemplate } from '../templates/contractorEmail/job_assigned.template';
+import { JobCanceledEmailTemplate } from '../templates/contractorEmail/job_canceled.template';
 
 export const JobEvent: EventEmitter = new EventEmitter();
 
@@ -82,5 +86,35 @@ JobEvent.on('NEW_JOB_LISTING', async function (payload) {
 
     } catch (error) {
         console.error(`Error handling NEW_JOB_REQUEST event: ${error}`);
+    }
+});
+
+JobEvent.on('JOB_CANCELED', async function (job: IJob, contractor: IContractor|null, customer: ICustomer|null) {
+    try {
+        console.log('handling alert JOB_CANCELED event')
+        const customer = await CustomerModel.findById(job.customer) as ICustomer
+        if(contractor){
+            console.log('job cancelled by contractor')
+
+            if(customer){
+                //send email to customer 
+                const html = JobCanceledEmailTemplate(customer.name, 'contractor', contractor.name,  job)
+                EmailService.send(customer.email, "Job Canceled", html)
+            }
+          
+
+        }
+        if(customer){
+            console.log('job cancelled by customer')
+            
+            if(contractor){
+                //send email to customer 
+                const html = JobCanceledEmailTemplate(contractor.name, 'customer', customer.name,  job)
+                EmailService.send(contractor.email, "Job Canceled", html)
+            }
+        }
+
+    } catch (error) {
+        console.error(`Error handling JOB_CANCELED event: ${error}`);
     }
 });
