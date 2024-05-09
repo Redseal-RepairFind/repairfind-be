@@ -293,10 +293,11 @@ ContractorSchema.virtual('certnReport').get(function () {
     return { status: status, action: action };
 });
 ContractorSchema.methods.getOnboarding = function () {
+    var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function () {
         var hasStripeAccount, hasStripeCustomer, hasStripePaymentMethods, hasStripeIdentity, stripeIdentityStatus, hasProfile, hasGstDetails, hasCompanyDetails, hasPassedQuiz, latestQuiz, questions, totalQuestions, totalCorrect, percentageCorrect, stage;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        return __generator(this, function (_d) {
+            switch (_d.label) {
                 case 0:
                     hasStripeAccount = !!this.stripeAccount;
                     hasStripeCustomer = !!this.stripeCustomer;
@@ -309,20 +310,20 @@ ContractorSchema.methods.getOnboarding = function () {
                     hasPassedQuiz = false;
                     return [4 /*yield*/, contractor_quiz_model_1.default.findOne({ contractor: this._id }).sort({ createdAt: -1 })];
                 case 1:
-                    latestQuiz = _a.sent();
+                    latestQuiz = _d.sent();
                     if (!latestQuiz) return [3 /*break*/, 3];
                     return [4 /*yield*/, question_model_1.default.find({ quiz: latestQuiz.quiz })];
                 case 2:
-                    questions = _a.sent();
+                    questions = _d.sent();
                     totalQuestions = 10;
                     totalCorrect = latestQuiz.response.filter(function (response) { return response.correct; }).length;
                     percentageCorrect = (totalCorrect / totalQuestions) * 100;
                     hasPassedQuiz = (percentageCorrect >= 70);
-                    _a.label = 3;
+                    _d.label = 3;
                 case 3:
                     stage = { status: 1, label: 'stripeIdentity' };
                     if (this.accountType == 'Company') {
-                        if (stage.status == 1 && hasStripeIdentity && stripeIdentityStatus.status == 'verified')
+                        if (stage.status == 1 && hasStripeIdentity && ((_a = stripeIdentityStatus === null || stripeIdentityStatus === void 0 ? void 0 : stripeIdentityStatus.document) === null || _a === void 0 ? void 0 : _a.status) == 'verified')
                             stage = { status: 2, label: 'companyDetails' };
                         if (stage.status == 2 && hasCompanyDetails)
                             stage = { status: 3, label: 'profile' }; // 
@@ -336,7 +337,7 @@ ContractorSchema.methods.getOnboarding = function () {
                             stage = { status: 7, label: 'done' };
                     }
                     if (this.accountType == 'Individual') {
-                        if (stage.status == 1 && hasStripeIdentity && stripeIdentityStatus.status == 'verified')
+                        if (stage.status == 1 && hasStripeIdentity && ((_b = stripeIdentityStatus === null || stripeIdentityStatus === void 0 ? void 0 : stripeIdentityStatus.document) === null || _b === void 0 ? void 0 : _b.status) == 'verified')
                             stage = { status: 2, label: 'profle' };
                         if (stage.status == 2 && hasProfile)
                             stage = { status: 3, label: 'quiz' };
@@ -347,7 +348,7 @@ ContractorSchema.methods.getOnboarding = function () {
                             stage = { status: 5, label: 'done' };
                     }
                     if (this.accountType == 'Employee') {
-                        if (stage.status == 1 && hasStripeIdentity && stripeIdentityStatus.status == 'verified')
+                        if (stage.status == 1 && hasStripeIdentity && ((_c = stripeIdentityStatus === null || stripeIdentityStatus === void 0 ? void 0 : stripeIdentityStatus.document) === null || _c === void 0 ? void 0 : _c.status) == 'verified')
                             stage = { status: 2, label: 'profle' };
                         if (stage.status == 2 && hasProfile)
                             stage = { status: 3, label: 'quiz' };
