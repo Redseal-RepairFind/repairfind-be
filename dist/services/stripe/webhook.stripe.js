@@ -433,7 +433,7 @@ var identityVerificationRequiresInput = function (payload) { return __awaiter(vo
     return __generator(this, function (_g) {
         switch (_g.label) {
             case 0:
-                _g.trys.push([0, 9, , 10]);
+                _g.trys.push([0, 10, , 11]);
                 console.log('Verification check failed: ' + payload.last_error.reason);
                 userType = (_b = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _b === void 0 ? void 0 : _b.userType;
                 userId = (_c = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _c === void 0 ? void 0 : _c.userId;
@@ -497,7 +497,29 @@ var identityVerificationRequiresInput = function (payload) { return __awaiter(vo
                 //@ts-ignore
                 user.stripeIdentity = verification;
                 user.profilePhoto ? user.profilePhoto.url = s3fileUrl : user.profilePhoto = { url: s3fileUrl };
-                user.save();
+                return [4 /*yield*/, user.save()
+                    // sendPushNotifications(deviceTokens, {
+                    //     title: 'Identity Verification',
+                    //     icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
+                    //     body: message,
+                    //     data: {
+                    //         event: 'identity.verification_session.requires_input',
+                    //         user: {
+                    //             email: user.email,
+                    //             profilePhoto: user.profilePhoto,
+                    //         },
+                    //         payload: {
+                    //             status: payload.status,
+                    //             type: payload.type,
+                    //             reason: payload.last_error.reason,
+                    //             code: payload.last_error.code,
+                    //             options: payload.options
+                    //         }
+                    //     },
+                    // })
+                ];
+            case 9:
+                _g.sent();
                 // sendPushNotifications(deviceTokens, {
                 //     title: 'Identity Verification',
                 //     icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
@@ -534,12 +556,12 @@ var identityVerificationRequiresInput = function (payload) { return __awaiter(vo
                         event: 'identity.verification_session.requires_input',
                     }
                 }, { socket: true });
-                return [3 /*break*/, 10];
-            case 9:
+                return [3 /*break*/, 11];
+            case 10:
                 error_7 = _g.sent();
                 console.log(error_7);
-                return [3 /*break*/, 10];
-            case 10: return [2 /*return*/];
+                return [3 /*break*/, 11];
+            case 11: return [2 /*return*/];
         }
     });
 }); };
