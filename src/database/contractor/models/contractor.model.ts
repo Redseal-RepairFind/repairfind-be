@@ -415,6 +415,12 @@ ContractorSchema.set('toJSON', {
       }
     }
 
+    if (ret.accountType  == CONTRACTOR_TYPES.Company && ret.companyDetails && ret.companyDetails.companyLogo) {
+      ret.profilePhoto = {
+        url: ret.companyDetails.companyLogo
+      }
+    }
+
     //@ts-ignore
     ret.name = doc.name;
     return ret;

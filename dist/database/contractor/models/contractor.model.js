@@ -424,6 +424,11 @@ ContractorSchema.set('toJSON', {
                 url: 'https://ipalas3bucket.s3.us-east-2.amazonaws.com/avatar.png'
             };
         }
+        if (ret.accountType == contractor_interface_1.CONTRACTOR_TYPES.Company && ret.companyDetails && ret.companyDetails.companyLogo) {
+            ret.profilePhoto = {
+                url: ret.companyDetails.companyLogo
+            };
+        }
         //@ts-ignore
         ret.name = doc.name;
         return ret;
