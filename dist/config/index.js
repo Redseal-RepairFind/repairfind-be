@@ -58,6 +58,9 @@ exports.config = {
         username: process.env.REDIS_USERNAME,
         queueName: (_a = process.env.REDIS_QUEUE_NAME) !== null && _a !== void 0 ? _a : 'RepairFindQueue'
     },
+    sentry: {
+        dsn: process.env.SENTRY_DSN,
+    },
     aws: {
         secretAccessKey: process.env.AWS_SECRET_KEY,
         accessKeyId: process.env.AWS_ACCESS_KEY_ID,

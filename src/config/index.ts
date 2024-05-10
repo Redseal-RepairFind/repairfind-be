@@ -38,6 +38,9 @@ export const config = {
 
     },
 
+    sentry:{
+        dsn: <string>process.env.SENTRY_DSN,
+    },
     aws: {
         secretAccessKey: <string>process.env.AWS_SECRET_KEY,
         accessKeyId: <string>process.env.AWS_ACCESS_KEY_ID,

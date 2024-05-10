@@ -550,7 +550,7 @@ var identityVerificationVerified = function (payload) { return __awaiter(void 0,
     return __generator(this, function (_g) {
         switch (_g.label) {
             case 0:
-                _g.trys.push([0, 7, , 8]);
+                _g.trys.push([0, 8, , 9]);
                 console.log('Verification session verified: ' + payload.status);
                 console.log(payload);
                 if (payload.object != 'identity.verification_session')
@@ -576,7 +576,7 @@ var identityVerificationVerified = function (payload) { return __awaiter(void 0,
                 console.log(verification);
                 return [4 /*yield*/, _1.StripeService.file.createFileLink({
                         //@ts-ignore
-                        file: (_e = (_d = verification === null || verification === void 0 ? void 0 : verification.last_verification_report) === null || _d === void 0 ? void 0 : _d.selfie) === null || _e === void 0 ? void 0 : _e.document,
+                        file: (_e = (_d = verification === null || verification === void 0 ? void 0 : verification.last_verification_report) === null || _d === void 0 ? void 0 : _d.selfie) === null || _e === void 0 ? void 0 : _e.selfie,
                         expires_at: Math.floor(Date.now() / 1000) + 30, // link expires in 30 seconds
                     }, true)];
             case 6:
@@ -586,7 +586,27 @@ var identityVerificationVerified = function (payload) { return __awaiter(void 0,
                 //@ts-ignore
                 user.stripeIdentity = verification;
                 user.profilePhoto = { url: s3fileUrl };
-                user.save();
+                return [4 /*yield*/, user.save()
+                    // sendPushNotifications(deviceTokens, {
+                    //     title: 'Identity Verification',
+                    //     icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
+                    //     body: 'Identity verification session verified',
+                    //     data: {
+                    //         event: 'identity.verification_session.verified',
+                    //         user: {
+                    //             email: user.email,
+                    //             profilePhoto: user.profilePhoto,
+                    //         },
+                    //         payload: {
+                    //             status: payload.status,
+                    //             type: payload.type,
+                    //             options: payload.options
+                    //         }
+                    //     },
+                    // })
+                ];
+            case 7:
+                _g.sent();
                 message = 'Identity verification verified';
                 notifications_1.NotificationService.sendNotification({
                     user: user.id.toString(),
@@ -603,12 +623,12 @@ var identityVerificationVerified = function (payload) { return __awaiter(void 0,
                         event: 'identity.verification_session.verified',
                     }
                 }, { socket: true });
-                return [3 /*break*/, 8];
-            case 7:
+                return [3 /*break*/, 9];
+            case 8:
                 error_8 = _g.sent();
                 console.error(error_8.message, error_8);
-                return [3 /*break*/, 8];
-            case 8: return [2 /*return*/];
+                return [3 /*break*/, 9];
+            case 9: return [2 /*return*/];
         }
     });
 }); };

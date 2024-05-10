@@ -22,6 +22,9 @@ import WebSocketService from "./services/socket/websocket";
 import { Server } from "socket.io";
 import SocketIOService from "./services/socket/socketio";
 import TwilioService from "./services/twillio";
+import * as Sentry from '@sentry/node';
+import { nodeProfilingIntegration } from "@sentry/profiling-node";
+import { config } from "./config";
 
 
 dotenv.config();
@@ -40,7 +43,29 @@ const server = http.createServer(app);
 const csrfProtection = csrf({ cookie: true });
 
 
+Sentry.init({
+  dsn: 'https://8225b8a1b7344717b059046c31def1ab@o4504391847116800.ingest.us.sentry.io/4507232502087680',
 
+  // We recommend adjusting this value in production, or using tracesSampler
+  // for finer control
+  tracesSampleRate: 1.0,
+});
+
+
+Sentry.init({
+  dsn: config.sentry.dsn,
+  integrations: [
+    // enable HTTP calls tracing
+    new Sentry.Integrations.Http({ tracing: true }),
+    // enable Express.js middleware tracing
+    new Sentry.Integrations.Express({ app }),
+    nodeProfilingIntegration(),
+  ],
+  // Performance Monitoring
+  tracesSampleRate: 1.0, //  Capture 100% of the transactions
+  // Set sampling rate for profiling - this is relative to tracesSampleRate
+  profilesSampleRate: 1.0,
+});
 
 
 
@@ -98,12 +123,14 @@ QueueService.attach(app); // Attach Bull Board middleware
 RepairFindQueueWorker
 
 
+
 // Middleware to handle non-existing pages (404)
 app.use((req, res, next) => {
   res.status(404).json({success:false, message: `Not found:  ${req.hostname}${req.originalUrl}` });
 });
 
 
+app.use(Sentry.Handlers.errorHandler());
 app.use(errorHandler)
 
 // Websocket here

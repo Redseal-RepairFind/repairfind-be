@@ -352,7 +352,7 @@ export const identityVerificationRequiresInput = async (payload: any) => {
         //@ts-ignore
         user.stripeIdentity = verification
         user.profilePhoto ? user.profilePhoto.url = s3fileUrl  : user.profilePhoto = { url: s3fileUrl }
-        user.save()
+        await user.save()
 
 
          
@@ -432,7 +432,7 @@ export const identityVerificationVerified = async (payload: any) => {
         //@ts-ignore
         const { fileLink, s3fileUrl } = await StripeService.file.createFileLink({
             //@ts-ignore
-            file: verification?.last_verification_report?.selfie?.document,
+            file: verification?.last_verification_report?.selfie?.selfie,
             expires_at: Math.floor(Date.now() / 1000) + 30,  // link expires in 30 seconds
         }, true)
         console.log('fileLink from stripe', fileLink)
@@ -441,7 +441,7 @@ export const identityVerificationVerified = async (payload: any) => {
          //@ts-ignore
         user.stripeIdentity = verification
         user.profilePhoto = { url: s3fileUrl };
-        user.save()
+       await  user.save()
 
 
         // sendPushNotifications(deviceTokens, {

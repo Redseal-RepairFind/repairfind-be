@@ -19,6 +19,8 @@
     "@aws-sdk/client-s3": "3.418.0",
     "@bull-board/api": "^5.15.3",
     "@bull-board/express": "^5.15.3",
+    "@sentry/node": "^7.114.0",
+    "@sentry/profiling-node": "^7.114.0",
     "@types/node-cron": "^3.0.11",
     "@types/ws": "^8.5.10",
     "@vonage/server-sdk": "3.2.0",

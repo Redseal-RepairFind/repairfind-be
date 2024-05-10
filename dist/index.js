@@ -1,4 +1,27 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -59,6 +82,9 @@ var bullmq_1 = require("./services/bullmq");
 var worker_1 = require("./services/bullmq/worker");
 var socket_io_1 = require("socket.io");
 var socketio_1 = __importDefault(require("./services/socket/socketio"));
+var Sentry = __importStar(require("@sentry/node"));
+var profiling_node_1 = require("@sentry/profiling-node");
+var config_1 = require("./config");
 dotenv_1.default.config();
 // console.debug = Logger.debug.bind(Logger);
 // console.log = Logger.info.bind(Logger);
@@ -68,6 +94,26 @@ console.trace = logger_1.Logger.trace.bind(logger_1.Logger);
 var app = (0, express_1.default)();
 var server = http_1.default.createServer(app);
 var csrfProtection = (0, csurf_1.default)({ cookie: true });
+Sentry.init({
+    dsn: 'https://8225b8a1b7344717b059046c31def1ab@o4504391847116800.ingest.us.sentry.io/4507232502087680',
+    // We recommend adjusting this value in production, or using tracesSampler
+    // for finer control
+    tracesSampleRate: 1.0,
+});
+Sentry.init({
+    dsn: config_1.config.sentry.dsn,
+    integrations: [
+        // enable HTTP calls tracing
+        new Sentry.Integrations.Http({ tracing: true }),
+        // enable Express.js middleware tracing
+        new Sentry.Integrations.Express({ app: app }),
+        (0, profiling_node_1.nodeProfilingIntegration)(),
+    ],
+    // Performance Monitoring
+    tracesSampleRate: 1.0, //  Capture 100% of the transactions
+    // Set sampling rate for profiling - this is relative to tracesSampleRate
+    profilesSampleRate: 1.0,
+});
 var limiter = (0, express_rate_limit_1.default)({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 1000, // limit each IP to 100 requests per windowMs
@@ -127,6 +173,7 @@ worker_1.RepairFindQueueWorker;
 app.use(function (req, res, next) {
     res.status(404).json({ success: false, message: "Not found:  ".concat(req.hostname).concat(req.originalUrl) });
 });
+app.use(Sentry.Handlers.errorHandler());
 app.use(custom_errors_1.errorHandler);
 // Websocket here
 // const wss = new WebSocket.Server({ server });
