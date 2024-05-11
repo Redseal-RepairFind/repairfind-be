@@ -479,15 +479,30 @@ var identityVerificationRequiresInput = function (payload) { return __awaiter(vo
                         // ...
                     }
                 }
-                if (!user)
-                    return [2 /*return*/];
+                notifications_1.NotificationService.sendNotification({
+                    user: user.id.toString(),
+                    userType: userType,
+                    title: 'Stripe Identity Verification',
+                    type: 'STRIPE_IDENTITY',
+                    message: message,
+                    heading: { name: "".concat(user.name), image: (_d = user.profilePhoto) === null || _d === void 0 ? void 0 : _d.url },
+                    payload: {
+                        status: payload.status,
+                        type: payload.type,
+                        reason: payload.last_error.reason,
+                        code: payload.last_error.code,
+                        options: payload.options,
+                        message: message,
+                        event: 'identity.verification_session.requires_input',
+                    }
+                }, { socket: true });
                 return [4 /*yield*/, _1.StripeService.identity.retrieveVerificationSession(payload.id)];
             case 7:
                 verification = _g.sent();
                 console.log(verification);
                 return [4 /*yield*/, _1.StripeService.file.createFileLink({
                         //@ts-ignore
-                        file: (_e = (_d = verification === null || verification === void 0 ? void 0 : verification.last_verification_report) === null || _d === void 0 ? void 0 : _d.selfie) === null || _e === void 0 ? void 0 : _e.selfie,
+                        file: (_f = (_e = verification === null || verification === void 0 ? void 0 : verification.last_verification_report) === null || _e === void 0 ? void 0 : _e.selfie) === null || _f === void 0 ? void 0 : _f.selfie,
                         expires_at: Math.floor(Date.now() / 1000) + 30, // link expires in 30 seconds
                     }, true)];
             case 8:
@@ -500,23 +515,6 @@ var identityVerificationRequiresInput = function (payload) { return __awaiter(vo
                 return [4 /*yield*/, user.save()];
             case 9:
                 _g.sent();
-                notifications_1.NotificationService.sendNotification({
-                    user: user.id.toString(),
-                    userType: userType,
-                    title: 'Stripe Identity Verification',
-                    type: 'STRIPE_IDENTITY',
-                    message: message,
-                    heading: { name: "".concat(user.name), image: (_f = user.profilePhoto) === null || _f === void 0 ? void 0 : _f.url },
-                    payload: {
-                        status: payload.status,
-                        type: payload.type,
-                        reason: payload.last_error.reason,
-                        code: payload.last_error.code,
-                        options: payload.options,
-                        message: message,
-                        event: 'identity.verification_session.requires_input',
-                    }
-                }, { socket: true });
                 return [3 /*break*/, 11];
             case 10:
                 error_7 = _g.sent();
@@ -528,7 +526,7 @@ var identityVerificationRequiresInput = function (payload) { return __awaiter(vo
 }); };
 exports.identityVerificationRequiresInput = identityVerificationRequiresInput;
 var identityVerificationVerified = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var userType, userId, user, verification, _a, fileLink, s3fileUrl, message, error_8;
+    var userType, userId, user, message, verification, _a, fileLink, s3fileUrl, error_8;
     var _b, _c, _d, _e, _f;
     return __generator(this, function (_g) {
         switch (_g.label) {
@@ -553,13 +551,29 @@ var identityVerificationVerified = function (payload) { return __awaiter(void 0,
             case 4:
                 if (!user)
                     return [2 /*return*/];
+                message = 'Identity verification successful';
+                notifications_1.NotificationService.sendNotification({
+                    user: user.id.toString(),
+                    userType: userType,
+                    title: 'Stripe Identity Verification',
+                    type: 'STRIPE_IDENTITY',
+                    message: message,
+                    heading: { name: "".concat(user.name), image: (_d = user.profilePhoto) === null || _d === void 0 ? void 0 : _d.url },
+                    payload: {
+                        status: payload.status,
+                        type: payload.type,
+                        options: payload.options,
+                        message: message,
+                        event: 'identity.verification_session.verified',
+                    }
+                }, { socket: true });
                 return [4 /*yield*/, _1.StripeService.identity.retrieveVerificationSession(payload.id)];
             case 5:
                 verification = _g.sent();
                 console.log(verification);
                 return [4 /*yield*/, _1.StripeService.file.createFileLink({
                         //@ts-ignore
-                        file: (_e = (_d = verification === null || verification === void 0 ? void 0 : verification.last_verification_report) === null || _d === void 0 ? void 0 : _d.selfie) === null || _e === void 0 ? void 0 : _e.selfie,
+                        file: (_f = (_e = verification === null || verification === void 0 ? void 0 : verification.last_verification_report) === null || _e === void 0 ? void 0 : _e.selfie) === null || _f === void 0 ? void 0 : _f.selfie,
                         expires_at: Math.floor(Date.now() / 1000) + 30, // link expires in 30 seconds
                     }, true)];
             case 6:
@@ -572,22 +586,6 @@ var identityVerificationVerified = function (payload) { return __awaiter(void 0,
                 return [4 /*yield*/, user.save()];
             case 7:
                 _g.sent();
-                message = 'Identity verification verified';
-                notifications_1.NotificationService.sendNotification({
-                    user: user.id.toString(),
-                    userType: userType,
-                    title: 'Stripe Identity Verification',
-                    type: 'STRIPE_IDENTITY',
-                    message: message,
-                    heading: { name: "".concat(user.name), image: (_f = user.profilePhoto) === null || _f === void 0 ? void 0 : _f.url },
-                    payload: {
-                        status: payload.status,
-                        type: payload.type,
-                        options: payload.options,
-                        message: message,
-                        event: 'identity.verification_session.verified',
-                    }
-                }, { socket: true });
                 return [3 /*break*/, 9];
             case 8:
                 error_8 = _g.sent();

@@ -309,6 +309,7 @@ export const identityVerificationRequiresInput = async (payload: any) => {
         if (!user) return
 
         let message = 'Verification check failed: ' + payload.last_error.reason
+        
 
         // Handle specific failure reasons
         switch (payload.last_error.code) {
@@ -331,30 +332,6 @@ export const identityVerificationRequiresInput = async (payload: any) => {
         }
 
 
-        if (!user) return
-
-        //fetch and expand
-        let verification = await StripeService.identity.retrieveVerificationSession(payload.id)
-        console.log(verification)
-
-
-        // update user profile picture here
-        //@ts-ignore
-        const { fileLink, s3fileUrl } = await StripeService.file.createFileLink({
-            //@ts-ignore
-            file: verification?.last_verification_report?.selfie?.selfie,
-            expires_at: Math.floor(Date.now() / 1000) + 30,  // link expires in 30 seconds
-        }, true)
-        console.log('fileLink from stripe', fileLink)
-        console.log('s3fileUrl of file uploaded to s3', s3fileUrl)
-
-
-        //@ts-ignore
-        user.stripeIdentity = verification
-        user.profilePhoto = { url: s3fileUrl };
-        await user.save()
-
-
         NotificationService.sendNotification({
             user: user.id.toString(),
             userType: userType,
@@ -373,6 +350,26 @@ export const identityVerificationRequiresInput = async (payload: any) => {
             }
         }, { socket: true })
 
+
+        //fetch and expand
+        let verification = await StripeService.identity.retrieveVerificationSession(payload.id)
+        console.log(verification)
+
+        // update user profile picture here
+        //@ts-ignore
+        const { fileLink, s3fileUrl } = await StripeService.file.createFileLink({
+            //@ts-ignore
+            file: verification?.last_verification_report?.selfie?.selfie,
+            expires_at: Math.floor(Date.now() / 1000) + 30,  // link expires in 30 seconds
+        }, true)
+        console.log('fileLink from stripe', fileLink)
+        console.log('s3fileUrl of file uploaded to s3', s3fileUrl)
+
+
+        //@ts-ignore
+        user.stripeIdentity = verification
+        user.profilePhoto = { url: s3fileUrl };
+        await user.save()
 
 
     } catch (error: any) {
@@ -401,6 +398,23 @@ export const identityVerificationVerified = async (payload: any) => {
 
         if (!user) return
 
+        const message = 'Identity verification successful'
+        NotificationService.sendNotification({
+            user: user.id.toString(),
+            userType: userType,
+            title: 'Stripe Identity Verification',
+            type: 'STRIPE_IDENTITY',
+            message: message,
+            heading: { name: `${user.name}`, image: user.profilePhoto?.url },
+            payload: {
+                status: payload.status,
+                type: payload.type,
+                options: payload.options,
+                message: message,
+                event: 'identity.verification_session.verified',
+            }
+        }, { socket: true })
+
 
         //fetch and expand
         let verification = await StripeService.identity.retrieveVerificationSession(payload.id)
@@ -422,23 +436,6 @@ export const identityVerificationVerified = async (payload: any) => {
         user.profilePhoto = { url: s3fileUrl };
         await user.save()
 
-
-        const message = 'Identity verification verified'
-        NotificationService.sendNotification({
-            user: user.id.toString(),
-            userType: userType,
-            title: 'Stripe Identity Verification',
-            type: 'STRIPE_IDENTITY',
-            message: message,
-            heading: { name: `${user.name}`, image: user.profilePhoto?.url },
-            payload: {
-                status: payload.status,
-                type: payload.type,
-                options: payload.options,
-                message: message,
-                event: 'identity.verification_session.verified',
-            }
-        }, { socket: true })
 
 
     } catch (error: any) {
