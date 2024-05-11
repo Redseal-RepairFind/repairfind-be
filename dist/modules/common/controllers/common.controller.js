@@ -3797,7 +3797,7 @@ var getSkills = function (req, res, next) { return __awaiter(void 0, void 0, voi
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, skill_model_1.default.find()];
+                return [4 /*yield*/, skill_model_1.default.find().sort('name').select('name -_id')];
             case 1:
                 skills = _a.sent();
                 res.json({ success: true, message: "Skills retrieved", data: skills });

@@ -3776,7 +3776,7 @@ export const getSkills = async (
 ) => {
 
   try {
-    const skills   = await SkillRegrModel.find();
+    const skills   = await SkillRegrModel.find().sort('name').select('name -_id');
     res.json({ success: true, message: "Skills retrieved", data: skills});
   } catch (err: any) {
     return next(new InternalServerError('Error fetching skills', err))

@@ -44,8 +44,8 @@ router.get("/admin_get_single_contractor_document", validateContractoDocumentIdV
 router.post("/admin_validate_contractor_document", validateContractoDocumentIdValidationParams, checkAdminRole, AdminValidateContractorDocsController ); // admin get validate contractor document 
 
 
-router.post("/admin_add_skill", validateAddSkillParams, checkAdminRole, AdminAddNewSkillController ); // admin add skilll
-router.get("/admin_get_skill", checkAdminRole, AdminGetSkillController ); // admin get all skill
+router.post("/skills", validateAddSkillParams, checkAdminRole, AdminAddNewSkillController ); // admin add skilll
+router.get("/skills", checkAdminRole, AdminGetSkillController ); // admin get all skill
 
 // done
 router.get("/jobs/detail", checkAdminRole, AdminJobController.AdminGetJobsrDetailController ); // admin get job detail
