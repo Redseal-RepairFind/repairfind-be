@@ -35,8 +35,13 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CommonController = exports.getCurrencies = exports.getCountries = exports.getBankList = void 0;
+exports.CommonController = exports.getSkills = exports.getCurrencies = exports.getCountries = exports.getBankList = void 0;
+var skill_model_1 = __importDefault(require("../../../database/admin/models/skill.model"));
+var custom_errors_1 = require("../../../utils/custom.errors");
 var getBankList = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
         try {
@@ -3786,6 +3791,26 @@ var getCurrencies = function (req, res) { return __awaiter(void 0, void 0, void 
     });
 }); };
 exports.getCurrencies = getCurrencies;
+var getSkills = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var skills, err_1;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                return [4 /*yield*/, skill_model_1.default.find()];
+            case 1:
+                skills = _a.sent();
+                res.json({ success: true, message: "Skills retrieved", data: skills });
+                return [3 /*break*/, 3];
+            case 2:
+                err_1 = _a.sent();
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError('Error fetching skills', err_1))];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getSkills = getSkills;
 exports.CommonController = {
     getBankList: exports.getBankList,
+    getSkills: exports.getSkills,
 };

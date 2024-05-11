@@ -36,14 +36,13 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorTripDayController = exports.contractorArrivedSiteController = exports.contractorStartTripController = void 0;
-var trip_day_model_1 = require("../../../database/common/trip_day.model");
+exports.ContractorTripController = exports.confirmArrival = exports.startTrip = void 0;
 var express_validator_1 = require("express-validator");
 var job_model_1 = require("../../../database/common/job.model");
 var otpGenerator_1 = require("../../../utils/otpGenerator");
 var index_1 = require("../../../services/notifications/index");
-//contractor start trip /////////////
-var contractorStartTripController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+var trip_model_1 = require("../../../database/common/trip.model");
+var startTrip = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var jobId, errors, contractorId, jobRequest, checkSiteVisited, newTripDay, saveNewTripDay, err_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -62,17 +61,17 @@ var contractorStartTripController = function (req, res) { return __awaiter(void 
                 if (!jobRequest) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'Job request not found' })];
                 }
-                return [4 /*yield*/, trip_day_model_1.TripDayModel.findOne({ job: jobId, verified: true })];
+                return [4 /*yield*/, trip_model_1.TripModel.findOne({ job: jobId, verified: true })];
             case 2:
                 checkSiteVisited = _a.sent();
                 if (checkSiteVisited) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'site already visited' })];
                 }
-                newTripDay = new trip_day_model_1.TripDayModel({
+                newTripDay = new trip_model_1.TripModel({
                     customer: jobRequest.customer,
                     contractor: contractorId,
                     job: jobId,
-                    status: trip_day_model_1.TripDayStatus.STARTED
+                    status: trip_model_1.TRIP_STATUS.STARTED
                 });
                 return [4 /*yield*/, newTripDay.save()
                     // send notification to  contractor
@@ -122,9 +121,8 @@ var contractorStartTripController = function (req, res) { return __awaiter(void 
         }
     });
 }); };
-exports.contractorStartTripController = contractorStartTripController;
-//contractor arrived site /////////////
-var contractorArrivedSiteController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+exports.startTrip = startTrip;
+var confirmArrival = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var tripDayId, errors, contractorId, tripDay, verificationCode, err_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -136,13 +134,13 @@ var contractorArrivedSiteController = function (req, res) { return __awaiter(voi
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
                 contractorId = req.contractor.id;
-                return [4 /*yield*/, trip_day_model_1.TripDayModel.findOne({ _id: tripDayId })];
+                return [4 /*yield*/, trip_model_1.TripModel.findOne({ _id: tripDayId })];
             case 1:
                 tripDay = _a.sent();
                 if (!tripDay) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'trip not found' })];
                 }
-                if (tripDay.status != trip_day_model_1.TripDayStatus.STARTED) {
+                if (tripDay.status != trip_model_1.TRIP_STATUS.STARTED) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'trip not started yet' })];
                 }
                 if (tripDay.verified) {
@@ -150,7 +148,7 @@ var contractorArrivedSiteController = function (req, res) { return __awaiter(voi
                 }
                 verificationCode = (0, otpGenerator_1.generateOTP)();
                 tripDay.verificationCode = parseInt(verificationCode);
-                tripDay.status = trip_day_model_1.TripDayStatus.ARRIVED;
+                tripDay.status = trip_model_1.TRIP_STATUS.ARRIVED;
                 return [4 /*yield*/, tripDay.save()
                     // send notification to  contractor
                 ];
@@ -199,8 +197,8 @@ var contractorArrivedSiteController = function (req, res) { return __awaiter(voi
         }
     });
 }); };
-exports.contractorArrivedSiteController = contractorArrivedSiteController;
-exports.ContractorTripDayController = {
-    contractorStartTripController: exports.contractorStartTripController,
-    contractorArrivedSiteController: exports.contractorArrivedSiteController
+exports.confirmArrival = confirmArrival;
+exports.ContractorTripController = {
+    startTrip: exports.startTrip,
+    confirmArrival: exports.confirmArrival
 };

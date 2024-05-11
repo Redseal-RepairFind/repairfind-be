@@ -12,10 +12,10 @@ import { TeamInvitationController } from "../controllers/contractor_team_invitat
 import { ContractorJobController } from "../controllers/contractor_job.controller";
 import { ContractorNotificationController } from "../controllers/contractor_notification.controller";
 import { ContractorConversationController } from "../controllers/contractor_conversation.controller";
-import { ContractorTripDayController } from "../controllers/contractor_tripDay.controller";
 import { ContractorTransactionController } from "../controllers/contractor_transaction.controller";
 import { ContractorCallController } from "../controllers/contractor_call.controller";
 import { ContractorBookingController } from "../controllers/contractor_booking.controller";
+import { ContractorTripController } from "../controllers/contractor_trip.controller";
 
 const express = require("express");
 const router = express.Router();
@@ -197,8 +197,8 @@ router.post("/bookings/:bookingId/cancel", checkContractorRole, ContractorBookin
 
 
 // trips day
-router.post('/trip/:jobId/start', checkContractorRole, ContractorTripDayController.contractorStartTripController)
-router.post('/trip/:tripDayId/arrive', checkContractorRole, ContractorTripDayController.contractorArrivedSiteController)
+router.post('/trip/:jobId/start', checkContractorRole, ContractorTripController.startTrip)
+router.post('/trip/:tripDayId/arrive', checkContractorRole, ContractorTripController.confirmArrival)
 
 
 // Call

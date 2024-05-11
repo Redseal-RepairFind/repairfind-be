@@ -1,15 +1,20 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.JobDayModel = exports.JobDaySchema = exports.JOB_DAY_STATUS = void 0;
+exports.TripModel = exports.TripSchema = exports.TRIP_TYPE = exports.TRIP_STATUS = void 0;
 var mongoose_1 = require("mongoose");
-var JOB_DAY_STATUS;
-(function (JOB_DAY_STATUS) {
-    JOB_DAY_STATUS["STARTED"] = "STARTED";
-    JOB_DAY_STATUS["ARRIVED"] = "ARRIVED";
-    JOB_DAY_STATUS["CONFIRMED"] = "CONFIRMED";
-    JOB_DAY_STATUS["COMPLETED"] = "COMPLETED";
-})(JOB_DAY_STATUS || (exports.JOB_DAY_STATUS = JOB_DAY_STATUS = {}));
-var JobDaySchema = new mongoose_1.Schema({
+var TRIP_STATUS;
+(function (TRIP_STATUS) {
+    TRIP_STATUS["STARTED"] = "STARTED";
+    TRIP_STATUS["ARRIVED"] = "ARRIVED";
+    TRIP_STATUS["CONFIRMED"] = "CONFIRMED";
+    TRIP_STATUS["COMPLETED"] = "COMPLETED";
+})(TRIP_STATUS || (exports.TRIP_STATUS = TRIP_STATUS = {}));
+var TRIP_TYPE;
+(function (TRIP_TYPE) {
+    TRIP_TYPE["JOB_DAY"] = "JOB_DAY";
+    TRIP_TYPE["SITE_VISIT"] = "SITE_VISIT";
+})(TRIP_TYPE || (exports.TRIP_TYPE = TRIP_TYPE = {}));
+var TripSchema = new mongoose_1.Schema({
     customer: {
         type: mongoose_1.Schema.Types.ObjectId,
         ref: 'customers',
@@ -27,8 +32,13 @@ var JobDaySchema = new mongoose_1.Schema({
     },
     status: {
         type: String,
-        enum: Object.values(JOB_DAY_STATUS),
-        default: JOB_DAY_STATUS.STARTED,
+        enum: Object.values(TRIP_STATUS),
+        default: TRIP_STATUS.STARTED,
+    },
+    type: {
+        type: String,
+        enum: Object.values(TRIP_TYPE),
+        default: TRIP_TYPE.JOB_DAY,
     },
     verificationCode: {
         type: Number,
@@ -37,19 +47,19 @@ var JobDaySchema = new mongoose_1.Schema({
         type: Boolean,
         default: false,
     },
-    contractorPreJobMedia: {
+    contractorPreTripMedia: {
         type: [String], // Array of contractor's pre-job media URLs or references
         default: [],
     },
-    contractorPostJobMedia: {
+    contractorPostTripMedia: {
         type: [String], // Array of contractor's post-job media URLs or references
         default: [],
     },
-    customerPreJobMedia: {
+    customerPreTripMedia: {
         type: [String], // Array of customer's pre-job media URLs or references
         default: [],
     },
-    customerPostJobMedia: {
+    customerPostTripMedia: {
         type: [String], // Array of customer's post-job media URLs or references
         default: [],
     },
@@ -64,6 +74,6 @@ var JobDaySchema = new mongoose_1.Schema({
 }, {
     timestamps: true,
 });
-exports.JobDaySchema = JobDaySchema;
-var JobDayModel = (0, mongoose_1.model)("job_day", JobDaySchema);
-exports.JobDayModel = JobDayModel;
+exports.TripSchema = TripSchema;
+var TripModel = (0, mongoose_1.model)("trips", TripSchema);
+exports.TripModel = TripModel;

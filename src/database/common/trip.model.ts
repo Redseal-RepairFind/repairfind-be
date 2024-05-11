@@ -1,29 +1,35 @@
 import { Document, ObjectId, Schema, model } from "mongoose";
 
-export enum JOB_DAY_STATUS {
+export enum TRIP_STATUS {
     STARTED = 'STARTED',
     ARRIVED = 'ARRIVED',
     CONFIRMED = 'CONFIRMED',
     COMPLETED = 'COMPLETED',
 }
 
-export interface IJobDay extends Document {
+export enum TRIP_TYPE {
+    JOB_DAY = 'JOB_DAY',
+    SITE_VISIT = 'SITE_VISIT'
+}
+
+export interface ITripDay extends Document {
     _id: ObjectId;
     customer: ObjectId;
     contractor: ObjectId;
     job: ObjectId;
-    status: string;
+    status: TRIP_STATUS;
+    type: TRIP_TYPE;
     verificationCode: number;
     verified: boolean;
     createdAt: Date;
     updatedAt: Date;
-    contractorPreJobMedia: string[]; // Array of contractor's pre-job media URLs or references
-    contractorPostJobMedia: string[]; // Array of contractor's post-job media URLs or references
-    customerPreJobMedia: string[]; // Array of customer's pre-job media URLs or references
-    customerPostJobMedia: string[]; // Array of customer's post-job media URLs or references
+    contractorPreTripMedia: string[]; // Array of contractor's pre-job media URLs or references
+    contractorPostTripMedia: string[]; // Array of contractor's post-job media URLs or references
+    customerPreTripMedia: string[]; // Array of customer's pre-job media URLs or references
+    customerPostTripMedia: string[]; // Array of customer's post-job media URLs or references
 }
 
-const JobDaySchema = new Schema(
+const TripSchema = new Schema(
     {
       customer: {
         type: Schema.Types.ObjectId, 
@@ -42,8 +48,13 @@ const JobDaySchema = new Schema(
       },
       status: {
         type: String,
-        enum: Object.values(JOB_DAY_STATUS),
-        default: JOB_DAY_STATUS.STARTED,  
+        enum: Object.values(TRIP_STATUS),
+        default: TRIP_STATUS.STARTED,  
+      }, 
+      type: {
+        type: String,
+        enum: Object.values(TRIP_TYPE),
+        default: TRIP_TYPE.JOB_DAY,  
       }, 
       verificationCode: {
         type: Number,
@@ -52,19 +63,19 @@ const JobDaySchema = new Schema(
         type: Boolean,
         default: false,  
       }, 
-      contractorPreJobMedia: {
+      contractorPreTripMedia: {
         type: [String], // Array of contractor's pre-job media URLs or references
         default: [],
       },
-      contractorPostJobMedia: {
+      contractorPostTripMedia: {
         type: [String], // Array of contractor's post-job media URLs or references
         default: [],
       },
-      customerPreJobMedia: {
+      customerPreTripMedia: {
         type: [String], // Array of customer's pre-job media URLs or references
         default: [],
       },
-      customerPostJobMedia: {
+      customerPostTripMedia: {
         type: [String], // Array of customer's post-job media URLs or references
         default: [],
       },
@@ -82,6 +93,6 @@ const JobDaySchema = new Schema(
     }
 );
 
-const JobDayModel = model<IJobDay>("job_day", JobDaySchema);
+const TripModel = model<ITripDay>("trips", TripSchema);
 
-export { JobDaySchema, JobDayModel };
+export { TripSchema, TripModel };

@@ -12,10 +12,10 @@ var contractor_team_invitation_controller_1 = require("../controllers/contractor
 var contractor_job_controller_1 = require("../controllers/contractor_job.controller");
 var contractor_notification_controller_1 = require("../controllers/contractor_notification.controller");
 var contractor_conversation_controller_1 = require("../controllers/contractor_conversation.controller");
-var contractor_tripDay_controller_1 = require("../controllers/contractor_tripDay.controller");
 var contractor_transaction_controller_1 = require("../controllers/contractor_transaction.controller");
 var contractor_call_controller_1 = require("../controllers/contractor_call.controller");
 var contractor_booking_controller_1 = require("../controllers/contractor_booking.controller");
+var contractor_trip_controller_1 = require("../controllers/contractor_trip.controller");
 var express = require("express");
 var router = express.Router();
 //  AUTH
@@ -149,8 +149,8 @@ router.post("/bookings/:bookingId/reschedule/:action", contractorRoleCheck_middl
 router.post("/bookings/:bookingId/assign", contractorRoleCheck_middleware_1.checkContractorRole, contractor_booking_controller_1.ContractorBookingController.assignJob);
 router.post("/bookings/:bookingId/cancel", contractorRoleCheck_middleware_1.checkContractorRole, contractor_booking_controller_1.ContractorBookingController.cancelBooking);
 // trips day
-router.post('/trip/:jobId/start', contractorRoleCheck_middleware_1.checkContractorRole, contractor_tripDay_controller_1.ContractorTripDayController.contractorStartTripController);
-router.post('/trip/:tripDayId/arrive', contractorRoleCheck_middleware_1.checkContractorRole, contractor_tripDay_controller_1.ContractorTripDayController.contractorArrivedSiteController);
+router.post('/trip/:jobId/start', contractorRoleCheck_middleware_1.checkContractorRole, contractor_trip_controller_1.ContractorTripController.startTrip);
+router.post('/trip/:tripDayId/arrive', contractorRoleCheck_middleware_1.checkContractorRole, contractor_trip_controller_1.ContractorTripController.confirmArrival);
 // Call
 router.post("/voicecall/agora-rtc", contractorRoleCheck_middleware_1.checkContractorRole, contractor_call_controller_1.ContractorCallController.createRtcToken);
 router.post("/voicecall", contractorRoleCheck_middleware_1.checkContractorRole, contractor_call_controller_1.ContractorCallController.startCall);

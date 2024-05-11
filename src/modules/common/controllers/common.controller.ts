@@ -1,5 +1,7 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
+import SkillRegrModel from "../../../database/admin/models/skill.model";
+import { InternalServerError } from "../../../utils/custom.errors";
 
 
 export const getBankList = async (
@@ -3767,8 +3769,24 @@ export const getCurrencies = async (
 
 }
 
+export const getSkills = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+
+  try {
+    const skills   = await SkillRegrModel.find();
+    res.json({ success: true, message: "Skills retrieved", data: skills});
+  } catch (err: any) {
+    return next(new InternalServerError('Error fetching skills', err))
+  }
+
+}
+
 
 
 export const CommonController = {
   getBankList,
+  getSkills,
 }

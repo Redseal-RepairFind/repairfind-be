@@ -1,12 +1,11 @@
 import { Request, Response } from "express";
-import { TripDayModel, TripDayStatus } from "../../../database/common/trip_day.model";
 import { validationResult } from "express-validator";
 import { JobModel, JOB_STATUS, JobType } from "../../../database/common/job.model";
 import { generateOTP } from "../../../utils/otpGenerator";
 import { NotificationService } from "../../../services/notifications/index";
+import { TRIP_STATUS, TripModel } from "../../../database/common/trip.model";
 
-//contractor start trip /////////////
-export const contractorStartTripController = async (
+export const startTrip = async (
     req: any,
     res: Response,
   ) => {
@@ -32,16 +31,16 @@ export const contractorStartTripController = async (
         }
 
         //check if site already visited
-        const checkSiteVisited = await TripDayModel.findOne({job: jobId, verified: true})
+        const checkSiteVisited = await TripModel.findOne({job: jobId, verified: true})
         if (checkSiteVisited) {
             return res.status(403).json({ success: false, message: 'site already visited' });
         }
 
-        const newTripDay = new TripDayModel({
+        const newTripDay = new TripModel({
             customer: jobRequest.customer,
             contractor: contractorId,
             job: jobId,
-            status: TripDayStatus.STARTED
+            status: TRIP_STATUS.STARTED
         })
 
         const saveNewTripDay = await newTripDay.save()
@@ -99,8 +98,7 @@ export const contractorStartTripController = async (
 }
 
 
-//contractor arrived site /////////////
-export const contractorArrivedSiteController = async (
+export const confirmArrival = async (
     req: any,
     res: Response,
   ) => {
@@ -117,12 +115,12 @@ export const contractorArrivedSiteController = async (
  
         const contractorId = req.contractor.id
 
-        const tripDay = await TripDayModel.findOne({_id: tripDayId})
+        const tripDay = await TripModel.findOne({_id: tripDayId})
         if (!tripDay) {
             return res.status(403).json({ success: false, message: 'trip not found' });
         }
 
-        if (tripDay.status != TripDayStatus.STARTED) {
+        if (tripDay.status != TRIP_STATUS.STARTED) {
             return res.status(403).json({ success: false, message: 'trip not started yet' });
         }
       
@@ -133,7 +131,7 @@ export const contractorArrivedSiteController = async (
         const verificationCode = generateOTP()
 
         tripDay.verificationCode = parseInt(verificationCode)
-        tripDay.status = TripDayStatus.ARRIVED
+        tripDay.status = TRIP_STATUS.ARRIVED
         await tripDay.save()
 
         // send notification to  contractor
@@ -186,7 +184,7 @@ export const contractorArrivedSiteController = async (
   
 }
 
-export const ContractorTripDayController = {
-    contractorStartTripController,
-    contractorArrivedSiteController
+export const ContractorTripController = {
+    startTrip,
+    confirmArrival
 };

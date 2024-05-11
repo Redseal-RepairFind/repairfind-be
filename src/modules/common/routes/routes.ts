@@ -8,6 +8,7 @@ const express = require("express");
 const router = express.Router();
 
 router.get("/bank-lists",  CommonController.getBankList ); // customer update is profile
+router.get("/skills",  CommonController.getSkills ); // customer update is profile
 router.post("/webhooks/stripe",  WebhookController.stripeWebook ); // customer update is profile
 router.post("/webhooks/certn",  WebhookController.certnWebook ); // customer update is profile
 router.post("/call", CustomerHttpRequest.callsParams,  callServiceController.callController ); //

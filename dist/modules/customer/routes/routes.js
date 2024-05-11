@@ -9,7 +9,7 @@ var customer_explore_controller_1 = require("../controllers/customer_explore.con
 var customer_job_controller_1 = require("../controllers/customer_job.controller");
 var customer_notification_controller_1 = require("../controllers/customer_notification.controller");
 var customer_conversation_controller_1 = require("../controllers/customer_conversation.controller");
-var customer_tripDay_controller_1 = require("../controllers/customer_tripDay.controller");
+var customer_trip_controller_1 = require("../controllers/customer_trip.controller");
 var customer_payment_controller_1 = require("../controllers/customer_payment.controller");
 var customer_transaction_controller_1 = require("../controllers/customer_transaction.controller");
 var customer_booking_controller_1 = require("../controllers/customer_booking.controller");
@@ -75,7 +75,7 @@ router.get('/conversations/:conversationId/messages', customerRoleChecker_middle
 router.post('/conversations/:conversationId/messages', customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.sendMessageParams, customer_conversation_controller_1.CustomerConversationController.sendMessage);
 router.post('/conversations/:conversationId/mark-all-read', customerRoleChecker_middleware_1.checkCustomerRole, customer_conversation_controller_1.CustomerConversationController.markAllMessagesAsRead);
 // trips day
-router.post('/trip/:tripDayId/comfirm/arrival', customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.tripArrivalComfirmParams, customer_tripDay_controller_1.CustomerTripDayController.customerverifiedContractorSiteArrivalController);
+router.post('/trips/:tripId/comfirm-arrival', customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.tripArrivalComfirmParams, customer_trip_controller_1.CustomerTripController.confirmTrip);
 // Call
 router.post("/voicecall/agora-rtc", customerRoleChecker_middleware_1.checkCustomerRole, customer_call_controller_1.CustomerCallController.createRtcToken);
 router.post("/voicecall", customerRoleChecker_middleware_1.checkCustomerRole, customer_call_controller_1.CustomerCallController.startCall);

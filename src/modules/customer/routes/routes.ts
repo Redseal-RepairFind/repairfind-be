@@ -9,7 +9,7 @@ import { CustomerExploreController } from "../controllers/customer_explore.contr
 import { CustomerJobController } from "../controllers/customer_job.controller";
 import { CustomerNotificationController } from "../controllers/customer_notification.controller";
 import { CustomerConversationController } from "../controllers/customer_conversation.controller";
-import { CustomerTripDayController } from "../controllers/customer_tripDay.controller";
+import { CustomerTripController } from "../controllers/customer_trip.controller";
 import { CustomerPaymentController } from "../controllers/customer_payment.controller";
 import { CustomerTransactionController } from "../controllers/customer_transaction.controller";
 import { CustomerBookingController } from "../controllers/customer_booking.controller";
@@ -98,7 +98,7 @@ router.post('/conversations/:conversationId/messages', checkCustomerRole, Custom
 router.post('/conversations/:conversationId/mark-all-read', checkCustomerRole, CustomerConversationController.markAllMessagesAsRead)
 
 // trips day
-router.post('/trip/:tripDayId/comfirm/arrival', checkCustomerRole, CustomerHttpRequest.tripArrivalComfirmParams, CustomerTripDayController.customerverifiedContractorSiteArrivalController)
+router.post('/trips/:tripId/comfirm-arrival', checkCustomerRole, CustomerHttpRequest.tripArrivalComfirmParams, CustomerTripController.confirmTrip)
 
 // Call
 router.post("/voicecall/agora-rtc", checkCustomerRole,  CustomerCallController.createRtcToken );

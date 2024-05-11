@@ -1,16 +1,16 @@
 import { Request, Response } from "express";
-import { TripDayModel, TripDayStatus } from "../../../database/common/trip_day.model";
 import { validationResult } from "express-validator";
 import { NotificationService } from "../../../services/notifications/index";
+import { TRIP_STATUS, TripModel } from "../../../database/common/trip.model";
 
-//customer comfirm contractor arriver /////////////
-export const customerverifiedContractorSiteArrivalController = async (
+
+export const confirmTrip = async (
     req: any,
     res: Response,
   ) => {
   
     try {
-      const { tripDayId } = req.params;
+      const { tripId } = req.params;
       const { verificationCode } = req.body;
     
         // Check for validation errors
@@ -22,37 +22,37 @@ export const customerverifiedContractorSiteArrivalController = async (
  
         const customerId = req.customer.id
 
-        const tripDay = await TripDayModel.findOne({_id: tripDayId})
-        if (!tripDay) {
+        const trip = await TripModel.findOne({_id: tripId})
+        if (!trip) {
             return res.status(403).json({ success: false, message: 'trip not found' });
         }
 
-        if (tripDay.status != TripDayStatus.ARRIVED) {
+        if (trip.status != TRIP_STATUS.ARRIVED) {
             return res.status(403).json({ success: false, message: 'contractor has not arrived yet' });
         }
       
-        if (tripDay.verified) {
+        if (trip.verified) {
             return res.status(403).json({ success: false, message: 'site already visited' });
         }
 
-        if (tripDay.verificationCode !== verificationCode) {
+        if (trip.verificationCode !== verificationCode) {
             return res.status(403).json({ success: false, message: 'incorrect verification code' });
         }
 
-        tripDay.status = TripDayStatus.COMFIRMED
-        tripDay.verified = true
-        await tripDay.save()
+        trip.status = TRIP_STATUS.CONFIRMED
+        trip.verified = true
+        await trip.save()
 
         // send notification to  contractor
         NotificationService.sendNotification(
             {
-                user: JSON.stringify(tripDay.contractor),
+                user: JSON.stringify(trip.contractor),
                 userType: 'contractors',
-                title: 'tripDay',
+                title: 'trip',
                 heading: {},
                 type: 'tripDayComfirmed',
                 message: 'Customer confirmed your arrival.',
-                payload: {tripId: tripDayId, verificationCode}
+                payload: {tripId: tripId, verificationCode}
             },
             {
                 push: true,
@@ -65,13 +65,13 @@ export const customerverifiedContractorSiteArrivalController = async (
         // send notification to  customer
         NotificationService.sendNotification(
             {
-                user: JSON.stringify(tripDay.customer),
+                user: JSON.stringify(trip.customer),
                 userType: 'customers',
-                title: 'tripDay',
+                title: 'trip',
                 heading: {},
                 type: 'tripDayComfirmed',
                 message: "You successfully confirmed the contractor's arrival.",
-                payload: {tripId: tripDayId, verificationCode}
+                payload: {tripId: tripId, verificationCode}
             },
             {
                 push: true,
@@ -83,7 +83,7 @@ export const customerverifiedContractorSiteArrivalController = async (
         res.json({  
             success: true,
             message: "contractor arrival successfully comfirmed",
-            data: tripDay
+            data: trip
         });
       
     } catch (err: any) {
@@ -93,6 +93,6 @@ export const customerverifiedContractorSiteArrivalController = async (
   
 }
 
-export const CustomerTripDayController = {
-    customerverifiedContractorSiteArrivalController
+export const CustomerTripController = {
+    confirmTrip
 };
