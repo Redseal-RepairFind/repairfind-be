@@ -4,57 +4,59 @@ import { JobModel, JOB_STATUS, JobType } from "../../../database/common/job.mode
 import { generateOTP } from "../../../utils/otpGenerator";
 import { NotificationService } from "../../../services/notifications/index";
 import { TRIP_STATUS, TripModel } from "../../../database/common/trip.model";
+import { ContractorModel } from "../../../database/contractor/models/contractor.model";
+
 
 export const startTrip = async (
     req: any,
     res: Response,
-  ) => {
-  
+) => {
+
     try {
-      const { jobId } = req.params;
-    
+        const { jobId } = req.body;
+
         // Check for validation errors
         const errors = validationResult(req);
-    
+
         if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
         }
- 
+
         const contractorId = req.contractor.id
 
         // Find the job request by ID
-        const jobRequest = await JobModel.findOne({ _id: jobId, contractor: contractorId, status: JOB_STATUS.ACCEPTED });
+        const job = await JobModel.findOne({ _id: jobId, contractor: contractorId, status: JOB_STATUS.BOOKED });
 
         // Check if the job request exists
-        if (!jobRequest) {
+        if (!job) {
             return res.status(403).json({ success: false, message: 'Job request not found' });
         }
 
-        //check if site already visited
-        const checkSiteVisited = await TripModel.findOne({job: jobId, verified: true})
-        if (checkSiteVisited) {
-            return res.status(403).json({ success: false, message: 'site already visited' });
+        // Check if an active trip already exists for the specified job
+        const activeTrip = await TripModel.findOne({ job: jobId, status: TRIP_STATUS.STARTED });
+
+        if (activeTrip) {
+            return res.status(400).json({ success: false, message: 'An active trip already exists for this job' });
         }
 
-        const newTripDay = new TripModel({
-            customer: jobRequest.customer,
+        const trip = await TripModel.create({
+            customer: job.customer,
             contractor: contractorId,
             job: jobId,
-            status: TRIP_STATUS.STARTED
+            status: TRIP_STATUS.STARTED,
+            type: job.type
         })
 
-        const saveNewTripDay = await newTripDay.save()
-
-        // send notification to  contractor
+        // send notification to contractor
         NotificationService.sendNotification(
             {
                 user: contractorId,
                 userType: 'contractors',
-                title: 'tripDay',
+                title: 'trip',
                 heading: {},
                 type: 'tripDayStart',
                 message: 'trip successfully started',
-                payload: {tripId: saveNewTripDay._id}
+                payload: { tripId: trip._id }
             },
             {
                 push: true,
@@ -63,17 +65,16 @@ export const startTrip = async (
             }
         )
 
-
-        // send notification to  customer
+        // send notification to customer
         NotificationService.sendNotification(
             {
-                user: JSON.stringify(jobRequest.customer),
+                user: job.customer.toString(),
                 userType: 'customers',
-                title: 'tripDay',
+                title: 'trip',
                 heading: {},
                 type: 'tripDayStart',
                 message: 'Contractor starts trip to your site.',
-                payload: {tripId: saveNewTripDay._id}
+                payload: { tripId: trip._id }
             },
             {
                 push: true,
@@ -82,73 +83,75 @@ export const startTrip = async (
             }
         )
 
-    
-
-        res.json({  
+        res.json({
             success: true,
             message: "trip successfully started",
-            data: {jobLocation: jobRequest.location, trip: saveNewTripDay}
+            data: { jobLocation: job.location, trip: trip }
         });
-      
+
     } catch (err: any) {
-      console.log("error", err)
-      res.status(500).json({ message: err.message });
+        console.log("error", err)
+        res.status(500).json({ message: err.message });
     }
-  
+
 }
+
 
 
 export const confirmArrival = async (
     req: any,
     res: Response,
-  ) => {
-  
+) => {
+
     try {
-      const { tripDayId } = req.params;
-    
+        const { tripId } = req.params;
+
         // Check for validation errors
         const errors = validationResult(req);
-    
+
         if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
         }
- 
-        const contractorId = req.contractor.id
 
-        const tripDay = await TripModel.findOne({_id: tripDayId})
-        if (!tripDay) {
+        const contractorId = req.contractor.id
+        const contractor = await ContractorModel.findById(contractorId)
+        if (contractor) {
+            return res.status(404).json({ success: false, message: 'Contractor not found' });
+        }
+
+        const trip = await TripModel.findOne({ _id: tripId })
+        if (!trip) {
             return res.status(403).json({ success: false, message: 'trip not found' });
         }
 
-        if (tripDay.status != TRIP_STATUS.STARTED) {
-            return res.status(403).json({ success: false, message: 'trip not started yet' });
+        if (!(trip.status === TRIP_STATUS.STARTED || trip.status === TRIP_STATUS.ARRIVED)) {
+            return res.status(403).json({ success: false, message: 'Trip not started yet' });
         }
-      
-        if (tripDay.verified) {
-            return res.status(403).json({ success: false, message: 'site already visited' });
+
+        if (trip.verified) {
+            return res.status(403).json({ success: false, message: 'Trio already visited' });
         }
 
         const verificationCode = generateOTP()
 
-        tripDay.verificationCode = parseInt(verificationCode)
-        tripDay.status = TRIP_STATUS.ARRIVED
-        await tripDay.save()
+        trip.verificationCode = parseInt(verificationCode)
+        trip.status = TRIP_STATUS.ARRIVED
+        await trip.save()
 
         // send notification to  contractor
         NotificationService.sendNotification(
             {
                 user: contractorId,
                 userType: 'contractors',
-                title: 'tripDay',
+                title: 'trip',
                 heading: {},
-                type: 'tripDayarrived',
+                type: 'JOB_DAY_ARRIVAL',
                 message: 'you successfully arrrived at site, wait for comfirmation from customer.',
-                payload: {tripId: tripDayId, verificationCode}
+                payload: { tripId: tripId, verificationCode }
             },
             {
                 push: true,
                 socket: true,
-                database: true
             }
         )
 
@@ -156,32 +159,31 @@ export const confirmArrival = async (
         // send notification to  customer
         NotificationService.sendNotification(
             {
-                user: JSON.stringify(tripDay.customer),
+                user: trip.customer.toString(),
                 userType: 'customers',
-                title: 'tripDay',
-                heading: {},
-                type: 'tripDayarrived',
+                title: 'trip',
+                heading: {name: contractorId, image: contractorId},
+                type: 'JOB_DAY_ARRIVAL',
                 message: 'Contractor is at your site.',
-                payload: {tripId: tripDayId, verificationCode}
+                payload: { tripId: tripId, verificationCode }
             },
             {
                 push: true,
                 socket: true,
-                database: true
             }
         )
 
-        res.json({  
+        res.json({
             success: true,
             message: "you successfully arrrived at site, wait for comfirmation from customer",
             data: verificationCode
         });
-      
+
     } catch (err: any) {
-      console.log("error", err)
-      res.status(500).json({ message: err.message });
+        console.log("error", err)
+        res.status(500).json({ message: err.message });
     }
-  
+
 }
 
 export const ContractorTripController = {

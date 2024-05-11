@@ -149,8 +149,8 @@ router.post("/bookings/:bookingId/reschedule/:action", contractorRoleCheck_middl
 router.post("/bookings/:bookingId/assign", contractorRoleCheck_middleware_1.checkContractorRole, contractor_booking_controller_1.ContractorBookingController.assignJob);
 router.post("/bookings/:bookingId/cancel", contractorRoleCheck_middleware_1.checkContractorRole, contractor_booking_controller_1.ContractorBookingController.cancelBooking);
 // trips day
-router.post('/trip/:jobId/start', contractorRoleCheck_middleware_1.checkContractorRole, contractor_trip_controller_1.ContractorTripController.startTrip);
-router.post('/trip/:tripDayId/arrive', contractorRoleCheck_middleware_1.checkContractorRole, contractor_trip_controller_1.ContractorTripController.confirmArrival);
+router.post('/trips/start', contractorRoleCheck_middleware_1.checkContractorRole, contractor_trip_controller_1.ContractorTripController.startTrip);
+router.post('/trips/:tripId/arrive', contractorRoleCheck_middleware_1.checkContractorRole, contractor_trip_controller_1.ContractorTripController.confirmArrival);
 // Call
 router.post("/voicecall/agora-rtc", contractorRoleCheck_middleware_1.checkContractorRole, contractor_call_controller_1.ContractorCallController.createRtcToken);
 router.post("/voicecall", contractorRoleCheck_middleware_1.checkContractorRole, contractor_call_controller_1.ContractorCallController.startCall);

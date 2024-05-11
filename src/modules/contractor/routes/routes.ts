@@ -197,8 +197,8 @@ router.post("/bookings/:bookingId/cancel", checkContractorRole, ContractorBookin
 
 
 // trips day
-router.post('/trip/:jobId/start', checkContractorRole, ContractorTripController.startTrip)
-router.post('/trip/:tripDayId/arrive', checkContractorRole, ContractorTripController.confirmArrival)
+router.post('/trips/start', checkContractorRole, ContractorTripController.startTrip)
+router.post('/trips/:tripId/arrive', checkContractorRole, ContractorTripController.confirmArrival)
 
 
 // Call

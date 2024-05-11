@@ -42,65 +42,66 @@ var job_model_1 = require("../../../database/common/job.model");
 var otpGenerator_1 = require("../../../utils/otpGenerator");
 var index_1 = require("../../../services/notifications/index");
 var trip_model_1 = require("../../../database/common/trip.model");
+var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var startTrip = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var jobId, errors, contractorId, jobRequest, checkSiteVisited, newTripDay, saveNewTripDay, err_1;
+    var jobId, errors, contractorId, job, activeTrip, trip, err_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 4, , 5]);
-                jobId = req.params.jobId;
+                jobId = req.body.jobId;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
                 contractorId = req.contractor.id;
-                return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobId, contractor: contractorId, status: job_model_1.JOB_STATUS.ACCEPTED })];
+                return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobId, contractor: contractorId, status: job_model_1.JOB_STATUS.BOOKED })];
             case 1:
-                jobRequest = _a.sent();
+                job = _a.sent();
                 // Check if the job request exists
-                if (!jobRequest) {
+                if (!job) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'Job request not found' })];
                 }
-                return [4 /*yield*/, trip_model_1.TripModel.findOne({ job: jobId, verified: true })];
+                return [4 /*yield*/, trip_model_1.TripModel.findOne({ job: jobId, status: trip_model_1.TRIP_STATUS.STARTED })];
             case 2:
-                checkSiteVisited = _a.sent();
-                if (checkSiteVisited) {
-                    return [2 /*return*/, res.status(403).json({ success: false, message: 'site already visited' })];
+                activeTrip = _a.sent();
+                if (activeTrip) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'An active trip already exists for this job' })];
                 }
-                newTripDay = new trip_model_1.TripModel({
-                    customer: jobRequest.customer,
-                    contractor: contractorId,
-                    job: jobId,
-                    status: trip_model_1.TRIP_STATUS.STARTED
-                });
-                return [4 /*yield*/, newTripDay.save()
-                    // send notification to  contractor
+                return [4 /*yield*/, trip_model_1.TripModel.create({
+                        customer: job.customer,
+                        contractor: contractorId,
+                        job: jobId,
+                        status: trip_model_1.TRIP_STATUS.STARTED,
+                        type: job.type
+                    })
+                    // send notification to contractor
                 ];
             case 3:
-                saveNewTripDay = _a.sent();
-                // send notification to  contractor
+                trip = _a.sent();
+                // send notification to contractor
                 index_1.NotificationService.sendNotification({
                     user: contractorId,
                     userType: 'contractors',
-                    title: 'tripDay',
+                    title: 'trip',
                     heading: {},
                     type: 'tripDayStart',
                     message: 'trip successfully started',
-                    payload: { tripId: saveNewTripDay._id }
+                    payload: { tripId: trip._id }
                 }, {
                     push: true,
                     socket: true,
                     database: true
                 });
-                // send notification to  customer
+                // send notification to customer
                 index_1.NotificationService.sendNotification({
-                    user: JSON.stringify(jobRequest.customer),
+                    user: job.customer.toString(),
                     userType: 'customers',
-                    title: 'tripDay',
+                    title: 'trip',
                     heading: {},
                     type: 'tripDayStart',
                     message: 'Contractor starts trip to your site.',
-                    payload: { tripId: saveNewTripDay._id }
+                    payload: { tripId: trip._id }
                 }, {
                     push: true,
                     socket: true,
@@ -109,7 +110,7 @@ var startTrip = function (req, res) { return __awaiter(void 0, void 0, void 0, f
                 res.json({
                     success: true,
                     message: "trip successfully started",
-                    data: { jobLocation: jobRequest.location, trip: saveNewTripDay }
+                    data: { jobLocation: job.location, trip: trip }
                 });
                 return [3 /*break*/, 5];
             case 4:
@@ -123,77 +124,81 @@ var startTrip = function (req, res) { return __awaiter(void 0, void 0, void 0, f
 }); };
 exports.startTrip = startTrip;
 var confirmArrival = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var tripDayId, errors, contractorId, tripDay, verificationCode, err_2;
+    var tripId, errors, contractorId, contractor, trip, verificationCode, err_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 3, , 4]);
-                tripDayId = req.params.tripDayId;
+                _a.trys.push([0, 4, , 5]);
+                tripId = req.params.tripId;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
                 contractorId = req.contractor.id;
-                return [4 /*yield*/, trip_model_1.TripModel.findOne({ _id: tripDayId })];
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
             case 1:
-                tripDay = _a.sent();
-                if (!tripDay) {
+                contractor = _a.sent();
+                if (contractor) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor not found' })];
+                }
+                return [4 /*yield*/, trip_model_1.TripModel.findOne({ _id: tripId })];
+            case 2:
+                trip = _a.sent();
+                if (!trip) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'trip not found' })];
                 }
-                if (tripDay.status != trip_model_1.TRIP_STATUS.STARTED) {
-                    return [2 /*return*/, res.status(403).json({ success: false, message: 'trip not started yet' })];
+                if (!(trip.status === trip_model_1.TRIP_STATUS.STARTED || trip.status === trip_model_1.TRIP_STATUS.ARRIVED)) {
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'Trip not started yet' })];
                 }
-                if (tripDay.verified) {
-                    return [2 /*return*/, res.status(403).json({ success: false, message: 'site already visited' })];
+                if (trip.verified) {
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'Trio already visited' })];
                 }
                 verificationCode = (0, otpGenerator_1.generateOTP)();
-                tripDay.verificationCode = parseInt(verificationCode);
-                tripDay.status = trip_model_1.TRIP_STATUS.ARRIVED;
-                return [4 /*yield*/, tripDay.save()
+                trip.verificationCode = parseInt(verificationCode);
+                trip.status = trip_model_1.TRIP_STATUS.ARRIVED;
+                return [4 /*yield*/, trip.save()
                     // send notification to  contractor
                 ];
-            case 2:
+            case 3:
                 _a.sent();
                 // send notification to  contractor
                 index_1.NotificationService.sendNotification({
                     user: contractorId,
                     userType: 'contractors',
-                    title: 'tripDay',
+                    title: 'trip',
                     heading: {},
-                    type: 'tripDayarrived',
+                    type: 'JOB_DAY_ARRIVAL',
                     message: 'you successfully arrrived at site, wait for comfirmation from customer.',
-                    payload: { tripId: tripDayId, verificationCode: verificationCode }
+                    payload: { tripId: tripId, verificationCode: verificationCode }
                 }, {
                     push: true,
                     socket: true,
-                    database: true
                 });
                 // send notification to  customer
                 index_1.NotificationService.sendNotification({
-                    user: JSON.stringify(tripDay.customer),
+                    user: trip.customer.toString(),
                     userType: 'customers',
-                    title: 'tripDay',
-                    heading: {},
-                    type: 'tripDayarrived',
+                    title: 'trip',
+                    heading: { name: contractorId, image: contractorId },
+                    type: 'JOB_DAY_ARRIVAL',
                     message: 'Contractor is at your site.',
-                    payload: { tripId: tripDayId, verificationCode: verificationCode }
+                    payload: { tripId: tripId, verificationCode: verificationCode }
                 }, {
                     push: true,
                     socket: true,
-                    database: true
                 });
                 res.json({
                     success: true,
                     message: "you successfully arrrived at site, wait for comfirmation from customer",
                     data: verificationCode
                 });
-                return [3 /*break*/, 4];
-            case 3:
+                return [3 /*break*/, 5];
+            case 4:
                 err_2 = _a.sent();
                 console.log("error", err_2);
                 res.status(500).json({ message: err_2.message });
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/];
+                return [3 /*break*/, 5];
+            case 5: return [2 /*return*/];
         }
     });
 }); };

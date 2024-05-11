@@ -496,49 +496,10 @@ var identityVerificationRequiresInput = function (payload) { return __awaiter(vo
                 console.log('s3fileUrl of file uploaded to s3', s3fileUrl);
                 //@ts-ignore
                 user.stripeIdentity = verification;
-                user.profilePhoto ? user.profilePhoto.url = s3fileUrl : user.profilePhoto = { url: s3fileUrl };
-                return [4 /*yield*/, user.save()
-                    // sendPushNotifications(deviceTokens, {
-                    //     title: 'Identity Verification',
-                    //     icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
-                    //     body: message,
-                    //     data: {
-                    //         event: 'identity.verification_session.requires_input',
-                    //         user: {
-                    //             email: user.email,
-                    //             profilePhoto: user.profilePhoto,
-                    //         },
-                    //         payload: {
-                    //             status: payload.status,
-                    //             type: payload.type,
-                    //             reason: payload.last_error.reason,
-                    //             code: payload.last_error.code,
-                    //             options: payload.options
-                    //         }
-                    //     },
-                    // })
-                ];
+                user.profilePhoto = { url: s3fileUrl };
+                return [4 /*yield*/, user.save()];
             case 9:
                 _g.sent();
-                // sendPushNotifications(deviceTokens, {
-                //     title: 'Identity Verification',
-                //     icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
-                //     body: message,
-                //     data: {
-                //         event: 'identity.verification_session.requires_input',
-                //         user: {
-                //             email: user.email,
-                //             profilePhoto: user.profilePhoto,
-                //         },
-                //         payload: {
-                //             status: payload.status,
-                //             type: payload.type,
-                //             reason: payload.last_error.reason,
-                //             code: payload.last_error.code,
-                //             options: payload.options
-                //         }
-                //     },
-                // })
                 notifications_1.NotificationService.sendNotification({
                     user: user.id.toString(),
                     userType: userType,
@@ -608,25 +569,7 @@ var identityVerificationVerified = function (payload) { return __awaiter(void 0,
                 //@ts-ignore
                 user.stripeIdentity = verification;
                 user.profilePhoto = { url: s3fileUrl };
-                return [4 /*yield*/, user.save()
-                    // sendPushNotifications(deviceTokens, {
-                    //     title: 'Identity Verification',
-                    //     icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
-                    //     body: 'Identity verification session verified',
-                    //     data: {
-                    //         event: 'identity.verification_session.verified',
-                    //         user: {
-                    //             email: user.email,
-                    //             profilePhoto: user.profilePhoto,
-                    //         },
-                    //         payload: {
-                    //             status: payload.status,
-                    //             type: payload.type,
-                    //             options: payload.options
-                    //         }
-                    //     },
-                    // })
-                ];
+                return [4 /*yield*/, user.save()];
             case 7:
                 _g.sent();
                 message = 'Identity verification verified';

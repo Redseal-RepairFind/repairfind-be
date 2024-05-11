@@ -10,8 +10,8 @@ import { SocketService } from '../socket';
 
 
 export interface SendNotificationData {
-    user: string // fcmTokens, expoDeviceTokens, userEmails
-    userType: string // fcmTokens, expoDeviceTokens, userEmails
+    user: string 
+    userType: string 
     title: string
     heading: object
     type: string
@@ -81,6 +81,7 @@ export class NotificationService  {
         }
        
         if (options.hasOwnProperty('database')) {
+            params.payload.message = params.message
             const notification = new NotificationModel(params.payload)
             await notification.save();
         }

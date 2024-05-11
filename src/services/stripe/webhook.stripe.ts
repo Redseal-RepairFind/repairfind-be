@@ -351,36 +351,15 @@ export const identityVerificationRequiresInput = async (payload: any) => {
 
         //@ts-ignore
         user.stripeIdentity = verification
-        user.profilePhoto ? user.profilePhoto.url = s3fileUrl  : user.profilePhoto = { url: s3fileUrl }
+        user.profilePhoto = { url: s3fileUrl };
         await user.save()
 
-
-         
-        // sendPushNotifications(deviceTokens, {
-        //     title: 'Identity Verification',
-        //     icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
-        //     body: message,
-        //     data: {
-        //         event: 'identity.verification_session.requires_input',
-        //         user: {
-        //             email: user.email,
-        //             profilePhoto: user.profilePhoto,
-        //         },
-        //         payload: {
-        //             status: payload.status,
-        //             type: payload.type,
-        //             reason: payload.last_error.reason,
-        //             code: payload.last_error.code,
-        //             options: payload.options
-        //         }
-        //     },
-        // })
 
         NotificationService.sendNotification({
             user: user.id.toString(),
             userType: userType,
             title: 'Stripe Identity Verification',
-            type: 'STRIPE_IDENTITY', 
+            type: 'STRIPE_IDENTITY',
             message: message,
             heading: { name: `${user.name}`, image: user.profilePhoto?.url },
             payload: {
@@ -438,35 +417,18 @@ export const identityVerificationVerified = async (payload: any) => {
         console.log('fileLink from stripe', fileLink)
         console.log('s3fileUrl of file uploaded to s3', s3fileUrl)
 
-         //@ts-ignore
+        //@ts-ignore
         user.stripeIdentity = verification
         user.profilePhoto = { url: s3fileUrl };
-       await  user.save()
+        await user.save()
 
 
-        // sendPushNotifications(deviceTokens, {
-        //     title: 'Identity Verification',
-        //     icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
-        //     body: 'Identity verification session verified',
-        //     data: {
-        //         event: 'identity.verification_session.verified',
-        //         user: {
-        //             email: user.email,
-        //             profilePhoto: user.profilePhoto,
-        //         },
-        //         payload: {
-        //             status: payload.status,
-        //             type: payload.type,
-        //             options: payload.options
-        //         }
-        //     },
-        // })
-        const message ='Identity verification verified'
+        const message = 'Identity verification verified'
         NotificationService.sendNotification({
             user: user.id.toString(),
             userType: userType,
             title: 'Stripe Identity Verification',
-            type: 'STRIPE_IDENTITY', 
+            type: 'STRIPE_IDENTITY',
             message: message,
             heading: { name: `${user.name}`, image: user.profilePhoto?.url },
             payload: {
@@ -544,7 +506,7 @@ export const chargeSucceeded = async (payload: any) => {
         const customer: any = await StripeService.customer.getCustomerById(payload.customer)
         const userType = customer?.metadata?.userType
         const userId = customer?.metadata?.userId
-       
+
 
         if (!userType || !userId) return // Ensure userType and userId are valid
 
@@ -568,9 +530,9 @@ export const chargeSucceeded = async (payload: any) => {
         const transactionId = payment?.metadata?.transactionId
         let paymentTransaction = await TransactionModel.findById(transactionId)
 
-        if(paymentTransaction){
+        if (paymentTransaction) {
             if (!payment.captured) {
-            
+
                 const captureDetails = payload.payment_method_details.card
                 let capturableTransactionDto: ICaptureDetails = castPayloadToDTO(captureDetails, captureDetails as ICaptureDetails);
                 capturableTransactionDto.payment_intent = payload.payment_intent
@@ -580,7 +542,7 @@ export const chargeSucceeded = async (payload: any) => {
                 capturableTransactionDto.captured = false
                 capturableTransactionDto.currency = payment.currency
 
-                if(paymentTransaction){
+                if (paymentTransaction) {
                     paymentTransaction.captureDetails = capturableTransactionDto
                     paymentTransaction.save()
                 }
@@ -596,7 +558,7 @@ export const chargeSucceeded = async (payload: any) => {
                 capturableTransactionDto.captured = payment.captured
                 capturableTransactionDto.captured_at = payment.created
                 capturableTransactionDto.currency = payment.currency
-                if(paymentTransaction){
+                if (paymentTransaction) {
                     paymentTransaction.captureDetails = capturableTransactionDto
                     paymentTransaction.status = TRANSACTION_STATUS.SUCCESSFUL
                     paymentTransaction.save()
@@ -624,7 +586,7 @@ export const chargeSucceeded = async (payload: any) => {
                     quotation.isPaid = true
                     quotation.status = JOB_QUOTATION_STATUS.ACCEPTED
                     if (quotation.startDate) {
-                        job.schedule ={
+                        job.schedule = {
                             date: quotation.startDate,
                             type: JOB_SCHEDULE_TYPE.JOB_DAY,
                             remark: 'Initial job schedule'
@@ -633,7 +595,7 @@ export const chargeSucceeded = async (payload: any) => {
                     } else if (quotation.siteVisit) {
                         // Check if quotation.siteVisit.date is a valid Date object
                         if (quotation.siteVisit instanceof Date) {
-                            job.schedule ={
+                            job.schedule = {
                                 date: quotation.startDate,
                                 type: JOB_SCHEDULE_TYPE.SITE_VISIT,
                                 remark: 'Initial site visit schedule'

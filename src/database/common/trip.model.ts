@@ -3,6 +3,7 @@ import { Document, ObjectId, Schema, model } from "mongoose";
 export enum TRIP_STATUS {
     STARTED = 'STARTED',
     ARRIVED = 'ARRIVED',
+    CANCELED = 'CANCELED',
     CONFIRMED = 'CONFIRMED',
     COMPLETED = 'COMPLETED',
 }
@@ -17,7 +18,7 @@ export interface ITripDay extends Document {
     customer: ObjectId;
     contractor: ObjectId;
     job: ObjectId;
-    status: TRIP_STATUS;
+    status: string;
     type: TRIP_TYPE;
     verificationCode: number;
     verified: boolean;

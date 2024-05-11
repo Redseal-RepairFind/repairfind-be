@@ -119,6 +119,7 @@ var NotificationService = /** @class */ (function () {
                             });
                         }
                         if (!options.hasOwnProperty('database')) return [3 /*break*/, 8];
+                        params.payload.message = params.message;
                         notification = new notification_model_1.default(params.payload);
                         return [4 /*yield*/, notification.save()];
                     case 7:
