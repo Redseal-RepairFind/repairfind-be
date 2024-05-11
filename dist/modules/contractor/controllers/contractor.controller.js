@@ -160,7 +160,6 @@ var ProfileHandler = /** @class */ (function (_super) {
                         profile = _c.sent();
                         // Update the ContractorModel with the profile ID
                         contractor_1.profile = profile._id;
-                        contractor_1.profilePhoto = profilePhoto;
                         return [4 /*yield*/, contractor_1.save()];
                     case 4:
                         _c.sent();

@@ -91,7 +91,6 @@ class ProfileHandler extends Base {
 
       // Update the ContractorModel with the profile ID
       contractor.profile = profile._id;
-      contractor.profilePhoto = profilePhoto;
       await contractor.save();
       contractor.onboarding = await contractor.getOnboarding()
 
