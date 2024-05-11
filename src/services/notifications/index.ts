@@ -6,11 +6,12 @@ import CustomerModel from '../../database/customer/models/customer.model';
 import CustomerDeviceModel from '../../database/customer/models/customer_devices.model';
 import { sendPushNotifications } from '../expo';
 import { SocketService } from '../socket';
+import { ObjectId } from 'mongoose';
 
 
 
 export interface SendNotificationData {
-    user: string 
+    user: string|ObjectId 
     userType: string 
     title: string
     heading: object

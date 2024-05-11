@@ -46,7 +46,7 @@ export const confirmTrip = async (
         // send notification to  contractor
         NotificationService.sendNotification(
             {
-                user: JSON.stringify(trip.contractor),
+                user: trip.contractor.toString(),
                 userType: 'contractors',
                 title: 'trip',
                 heading: {},
@@ -65,7 +65,7 @@ export const confirmTrip = async (
         // send notification to  customer
         NotificationService.sendNotification(
             {
-                user: JSON.stringify(trip.customer),
+                user: trip.customer,
                 userType: 'customers',
                 title: 'trip',
                 heading: {},

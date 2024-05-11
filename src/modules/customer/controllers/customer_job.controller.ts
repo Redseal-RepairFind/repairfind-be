@@ -368,7 +368,7 @@ export const getSingleJob = async (req: any, res: Response, next: NextFunction) 
         const customerId = req.customer.id
         const jobId = req.params.jobId;
 
-        const job = await JobModel.findOne({ customer: customerId, _id: jobId }).exec();
+        const job = await JobModel.findOne({ customer: customerId, _id: jobId }).populate('contract');
 
         // Check if the job exists
         if (!job) {

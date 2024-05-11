@@ -71,6 +71,7 @@ export const listPaymentMethods = async (query: any) => {
     const paymentMethods = await stripeClient.paymentMethods.list(query);
     return paymentMethods;
 };
+
 export const detachPaymentMethod = async (paymentMethodId: any) => {
     return await stripeClient.paymentMethods.detach(paymentMethodId);
 };

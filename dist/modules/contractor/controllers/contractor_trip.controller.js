@@ -73,7 +73,7 @@ var startTrip = function (req, res) { return __awaiter(void 0, void 0, void 0, f
                         contractor: contractorId,
                         job: jobId,
                         status: trip_model_1.TRIP_STATUS.STARTED,
-                        type: job.type
+                        type: job.schedule.type
                     })
                     // send notification to contractor
                 ];
@@ -138,7 +138,7 @@ var confirmArrival = function (req, res) { return __awaiter(void 0, void 0, void
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
             case 1:
                 contractor = _a.sent();
-                if (contractor) {
+                if (!contractor) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor not found' })];
                 }
                 return [4 /*yield*/, trip_model_1.TripModel.findOne({ _id: tripId })];
@@ -190,7 +190,7 @@ var confirmArrival = function (req, res) { return __awaiter(void 0, void 0, void
                 res.json({
                     success: true,
                     message: "you successfully arrrived at site, wait for comfirmation from customer",
-                    data: verificationCode
+                    data: { verificationCode: verificationCode }
                 });
                 return [3 /*break*/, 5];
             case 4:

@@ -44,7 +44,7 @@ export const startTrip = async (
             contractor: contractorId,
             job: jobId,
             status: TRIP_STATUS.STARTED,
-            type: job.type
+            type: job.schedule.type
         })
 
         // send notification to contractor
@@ -115,7 +115,7 @@ export const confirmArrival = async (
 
         const contractorId = req.contractor.id
         const contractor = await ContractorModel.findById(contractorId)
-        if (contractor) {
+        if (!contractor) {
             return res.status(404).json({ success: false, message: 'Contractor not found' });
         }
 
@@ -176,7 +176,7 @@ export const confirmArrival = async (
         res.json({
             success: true,
             message: "you successfully arrrived at site, wait for comfirmation from customer",
-            data: verificationCode
+            data: {verificationCode}
         });
 
     } catch (err: any) {

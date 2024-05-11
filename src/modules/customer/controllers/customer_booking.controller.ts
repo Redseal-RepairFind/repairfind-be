@@ -82,7 +82,7 @@ export const getMyBookings = async (req: any, res: Response, next: NextFunction)
         }
 
         // Execute query
-        const { data, error } = await applyAPIFeature(JobModel.find(filter).populate(['contractor', 'quotation']), req.query);
+        const { data, error } = await applyAPIFeature(JobModel.find(filter).populate(['contractor', 'contract']), req.query);
 
         if (data) {
 
@@ -168,7 +168,7 @@ export const getSingleBooking = async (req: any, res: Response, next: NextFuncti
         const customerId = req.customer.id
         const bookingId = req.params.bookingId;
 
-        const job = await JobModel.findOne({ customer: customerId, _id: bookingId, status: JOB_STATUS.BOOKED }).populate(['contractor', 'quotation']);
+        const job = await JobModel.findOne({ customer: customerId, _id: bookingId, status: JOB_STATUS.BOOKED }).populate(['contractor', 'contract']);
 
         // Check if the job exists
         if (!job) {

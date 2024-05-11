@@ -77,7 +77,7 @@ var confirmTrip = function (req, res) { return __awaiter(void 0, void 0, void 0,
                 _a.sent();
                 // send notification to  contractor
                 index_1.NotificationService.sendNotification({
-                    user: JSON.stringify(trip.contractor),
+                    user: trip.contractor.toString(),
                     userType: 'contractors',
                     title: 'trip',
                     heading: {},
@@ -91,7 +91,7 @@ var confirmTrip = function (req, res) { return __awaiter(void 0, void 0, void 0,
                 });
                 // send notification to  customer
                 index_1.NotificationService.sendNotification({
-                    user: JSON.stringify(trip.customer),
+                    user: trip.customer,
                     userType: 'customers',
                     title: 'trip',
                     heading: {},

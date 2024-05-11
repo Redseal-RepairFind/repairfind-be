@@ -390,7 +390,7 @@ var getSingleJob = function (req, res, next) { return __awaiter(void 0, void 0, 
                 _a.trys.push([0, 2, , 3]);
                 customerId = req.customer.id;
                 jobId = req.params.jobId;
-                return [4 /*yield*/, job_model_1.JobModel.findOne({ customer: customerId, _id: jobId }).exec()];
+                return [4 /*yield*/, job_model_1.JobModel.findOne({ customer: customerId, _id: jobId }).populate('contract')];
             case 1:
                 job = _a.sent();
                 // Check if the job exists

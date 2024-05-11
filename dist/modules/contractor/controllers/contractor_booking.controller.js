@@ -105,7 +105,7 @@ var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0,
                     endOfDay.setDate(startOfDay_1.getUTCDate() + 1);
                     req.query.date = { $gte: startOfDay_1, $lt: endOfDay };
                 }
-                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_model_1.JobModel.find(filter).populate(['customer', 'quotation']), req.query)];
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_model_1.JobModel.find(filter).populate(['customer', 'contract']), req.query)];
             case 1:
                 _f = _g.sent(), data = _f.data, error = _f.error;
                 if (!data) return [3 /*break*/, 3];
@@ -206,7 +206,7 @@ var getSingleBooking = function (req, res, next) { return __awaiter(void 0, void
                 _a.trys.push([0, 2, , 3]);
                 contractorId = req.contractor.id;
                 bookingId = req.params.bookingId;
-                return [4 /*yield*/, job_model_1.JobModel.findOne({ contractor: contractorId, _id: bookingId, status: job_model_1.JOB_STATUS.BOOKED }).populate(['contractor', 'quotation'])];
+                return [4 /*yield*/, job_model_1.JobModel.findOne({ contractor: contractorId, _id: bookingId, status: job_model_1.JOB_STATUS.BOOKED }).populate(['contractor', 'contract'])];
             case 1:
                 job = _a.sent();
                 // Check if the job exists
