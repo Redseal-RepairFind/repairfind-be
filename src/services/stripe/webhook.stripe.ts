@@ -501,13 +501,15 @@ export const chargeSucceeded = async (payload: any) => {
         if (payload.object != 'charge') return
 
         const customer: any = await StripeService.customer.getCustomerById(payload.customer)
-        const userType = customer?.metadata?.userType
-        const userId = customer?.metadata?.userId
+        // const userType = customer?.metadata?.userType
+        // const userId = customer?.metadata?.userId
+        const userType = 'customers'
+        const userId = payload?.metadata?.customerId
 
 
         if (!userType || !userId) return // Ensure userType and userId are valid
 
-        const user = userType === 'contractors' ? await ContractorModel.findById(userId) : await CustomerModel.findById(userId)
+        const user =  await CustomerModel.findById(userId)
         if (!user) return // Ensure user exists
 
         let stripeChargeDTO: IPayment = castPayloadToDTO(payload, payload as IPayment);

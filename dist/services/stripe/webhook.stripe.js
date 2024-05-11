@@ -688,35 +688,30 @@ var paymentIntentSucceeded = function (payload) { return __awaiter(void 0, void 
 }); };
 exports.paymentIntentSucceeded = paymentIntentSucceeded;
 var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var customer, userType, userId, user, _a, stripeChargeDTO, payment, transactionId, paymentTransaction, captureDetails, capturableTransactionDto, captureDetails, capturableTransactionDto, metadata, jobId, job, quotationId, quotation, error_11;
-    var _b, _c, _d;
-    return __generator(this, function (_e) {
-        switch (_e.label) {
+    var customer, userType, userId, user, stripeChargeDTO, payment, transactionId, paymentTransaction, captureDetails, capturableTransactionDto, captureDetails, capturableTransactionDto, metadata, jobId, job, quotationId, quotation, error_11;
+    var _a, _b;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
             case 0:
                 console.log('Stripe Event Handler: chargeSucceeded', payload);
-                _e.label = 1;
+                _c.label = 1;
             case 1:
-                _e.trys.push([1, 14, , 15]);
+                _c.trys.push([1, 11, , 12]);
                 if (payload.object != 'charge')
                     return [2 /*return*/];
-                return [4 /*yield*/, _1.StripeService.customer.getCustomerById(payload.customer)];
+                return [4 /*yield*/, _1.StripeService.customer.getCustomerById(payload.customer)
+                    // const userType = customer?.metadata?.userType
+                    // const userId = customer?.metadata?.userId
+                ];
             case 2:
-                customer = _e.sent();
-                userType = (_b = customer === null || customer === void 0 ? void 0 : customer.metadata) === null || _b === void 0 ? void 0 : _b.userType;
-                userId = (_c = customer === null || customer === void 0 ? void 0 : customer.metadata) === null || _c === void 0 ? void 0 : _c.userId;
+                customer = _c.sent();
+                userType = 'customers';
+                userId = (_a = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _a === void 0 ? void 0 : _a.customerId;
                 if (!userType || !userId)
                     return [2 /*return*/]; // Ensure userType and userId are valid
-                if (!(userType === 'contractors')) return [3 /*break*/, 4];
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(userId)];
+                return [4 /*yield*/, customer_model_1.default.findById(userId)];
             case 3:
-                _a = _e.sent();
-                return [3 /*break*/, 6];
-            case 4: return [4 /*yield*/, customer_model_1.default.findById(userId)];
-            case 5:
-                _a = _e.sent();
-                _e.label = 6;
-            case 6:
-                user = _a;
+                user = _c.sent();
                 if (!user)
                     return [2 /*return*/]; // Ensure user exists
                 stripeChargeDTO = (0, interface_dto_util_1.castPayloadToDTO)(payload, payload);
@@ -731,12 +726,12 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                     //1 handle transfer payment method options if it requires future capturing to another model ?
                     //@ts-ignore
                 ];
-            case 7:
-                payment = _e.sent();
-                transactionId = (_d = payment === null || payment === void 0 ? void 0 : payment.metadata) === null || _d === void 0 ? void 0 : _d.transactionId;
+            case 4:
+                payment = _c.sent();
+                transactionId = (_b = payment === null || payment === void 0 ? void 0 : payment.metadata) === null || _b === void 0 ? void 0 : _b.transactionId;
                 return [4 /*yield*/, transaction_model_1.default.findById(transactionId)];
-            case 8:
-                paymentTransaction = _e.sent();
+            case 5:
+                paymentTransaction = _c.sent();
                 if (paymentTransaction) {
                     if (!payment.captured) {
                         captureDetails = payload.payment_method_details.card;
@@ -770,18 +765,18 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                     }
                 }
                 metadata = payment.metadata;
-                if (!(metadata.type == 'job_payment')) return [3 /*break*/, 13];
+                if (!(metadata.type == 'job_payment')) return [3 /*break*/, 10];
                 jobId = metadata.jobId;
-                if (!jobId) return [3 /*break*/, 13];
+                if (!jobId) return [3 /*break*/, 10];
                 return [4 /*yield*/, job_model_1.JobModel.findById(jobId)];
-            case 9:
-                job = _e.sent();
+            case 6:
+                job = _c.sent();
                 if (!job)
                     return [2 /*return*/];
                 quotationId = metadata.quotationId;
                 return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findById(quotationId)];
-            case 10:
-                quotation = _e.sent();
+            case 7:
+                quotation = _c.sent();
                 if (!quotation)
                     return [2 /*return*/];
                 if (metadata.remark == 'initial_job_payment') {
@@ -819,20 +814,20 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                     job.payments.push(payment.id);
                 // create schedule here ?
                 return [4 /*yield*/, quotation.save()];
-            case 11:
+            case 8:
                 // create schedule here ?
-                _e.sent();
+                _c.sent();
                 return [4 /*yield*/, job.save()];
-            case 12:
-                _e.sent();
-                _e.label = 13;
-            case 13: return [3 /*break*/, 15];
-            case 14:
-                error_11 = _e.sent();
+            case 9:
+                _c.sent();
+                _c.label = 10;
+            case 10: return [3 /*break*/, 12];
+            case 11:
+                error_11 = _c.sent();
                 // throw new BadRequestError(error.message || "Something went wrong");
                 console.log('Error handling chargeSucceeded stripe webhook event', error_11);
-                return [3 /*break*/, 15];
-            case 15: return [2 /*return*/];
+                return [3 /*break*/, 12];
+            case 12: return [2 /*return*/];
         }
     });
 }); };
