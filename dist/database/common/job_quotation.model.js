@@ -50,7 +50,7 @@ var JobQuotationEstimateSchema = new mongoose_1.Schema({
     description: { type: String, required: true },
     quantity: { type: Number, required: true },
     rate: { type: Number, required: true },
-    amount: { type: Number, required: true }
+    amount: { type: Number }
 });
 // Define schema for extra estimates
 var ExtraEstimatesSchema = new mongoose_1.Schema({

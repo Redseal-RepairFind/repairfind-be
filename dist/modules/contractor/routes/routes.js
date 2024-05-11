@@ -143,6 +143,7 @@ router.get("/transactions/:transactionId", contractorRoleCheck_middleware_1.chec
 // BOOKING
 router.get("/bookings", contractorRoleCheck_middleware_1.checkContractorRole, contractor_booking_controller_1.ContractorBookingController.getMyBookings);
 router.get("/bookings/history", contractorRoleCheck_middleware_1.checkContractorRole, contractor_booking_controller_1.ContractorBookingController.getBookingHistory);
+router.get("/bookings/disputes", contractorRoleCheck_middleware_1.checkContractorRole, contractor_booking_controller_1.ContractorBookingController.getBookingHistory);
 router.get("/bookings/:bookingId", contractorRoleCheck_middleware_1.checkContractorRole, contractor_booking_controller_1.ContractorBookingController.getSingleBooking);
 router.post("/bookings/:bookingId/reschedule", contractorRoleCheck_middleware_1.checkContractorRole, contractor_booking_controller_1.ContractorBookingController.requestBookingReschedule);
 router.post("/bookings/:bookingId/reschedule/:action", contractorRoleCheck_middleware_1.checkContractorRole, contractor_booking_controller_1.ContractorBookingController.acceptOrDeclineReschedule);

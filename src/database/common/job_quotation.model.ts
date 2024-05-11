@@ -11,7 +11,7 @@ export interface IJobQuotationEstimate {
     description: string;
     quantity: number;
     rate: number;
-    amount: number;
+    amount?: number;
 }
 
 
@@ -49,7 +49,7 @@ const JobQuotationEstimateSchema = new Schema<IJobQuotationEstimate>({
     description: { type: String, required: true },
     quantity: { type: Number, required: true },
     rate: { type: Number, required: true },
-    amount: { type: Number, required: true }
+    amount: { type: Number}
 });
 
 // Define schema for extra estimates

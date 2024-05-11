@@ -189,6 +189,7 @@ router.get("/transactions/:transactionId", checkContractorRole, ContractorTransa
 // BOOKING
 router.get("/bookings", checkContractorRole, ContractorBookingController.getMyBookings ); 
 router.get("/bookings/history", checkContractorRole, ContractorBookingController.getBookingHistory ); 
+router.get("/bookings/disputes", checkContractorRole, ContractorBookingController.getBookingHistory ); 
 router.get("/bookings/:bookingId", checkContractorRole, ContractorBookingController.getSingleBooking ); 
 router.post("/bookings/:bookingId/reschedule", checkContractorRole, ContractorBookingController.requestBookingReschedule ); 
 router.post("/bookings/:bookingId/reschedule/:action", checkContractorRole, ContractorBookingController.acceptOrDeclineReschedule ); 

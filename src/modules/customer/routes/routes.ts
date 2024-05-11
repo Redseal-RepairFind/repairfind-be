@@ -98,7 +98,7 @@ router.post('/conversations/:conversationId/messages', checkCustomerRole, Custom
 router.post('/conversations/:conversationId/mark-all-read', checkCustomerRole, CustomerConversationController.markAllMessagesAsRead)
 
 // trips day
-router.post('/trip/:tripId/confirm-arrival', checkCustomerRole, CustomerHttpRequest.tripArrivalComfirmParams, CustomerTripController.confirmTrip)
+router.post('/trips/:tripId/confirm-arrival', checkCustomerRole, CustomerHttpRequest.tripArrivalComfirmParams, CustomerTripController.confirmTrip)
 
 // Call
 router.post("/voicecall/agora-rtc", checkCustomerRole,  CustomerCallController.createRtcToken );

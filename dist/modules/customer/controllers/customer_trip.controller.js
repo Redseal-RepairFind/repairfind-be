@@ -36,7 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerTripController = exports.confirmTrip = void 0;
+exports.CustomerTripController = exports.uploadQualityAssurancePhotos = exports.confirmTrip = void 0;
 var express_validator_1 = require("express-validator");
 var index_1 = require("../../../services/notifications/index");
 var trip_model_1 = require("../../../database/common/trip.model");
@@ -119,6 +119,86 @@ var confirmTrip = function (req, res) { return __awaiter(void 0, void 0, void 0,
     });
 }); };
 exports.confirmTrip = confirmTrip;
+var uploadQualityAssurancePhotos = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var tripId, verificationCode, errors, customerId, trip, err_2;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 3, , 4]);
+                tripId = req.params.tripId;
+                verificationCode = req.body.verificationCode;
+                errors = (0, express_validator_1.validationResult)(req);
+                if (!errors.isEmpty()) {
+                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                }
+                customerId = req.customer.id;
+                return [4 /*yield*/, trip_model_1.TripModel.findOne({ _id: tripId })];
+            case 1:
+                trip = _a.sent();
+                if (!trip) {
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'trip not found' })];
+                }
+                if (trip.status != trip_model_1.TRIP_STATUS.ARRIVED) {
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'contractor has not arrived yet' })];
+                }
+                if (trip.verified) {
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'site already visited' })];
+                }
+                if (trip.verificationCode !== verificationCode) {
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'incorrect verification code' })];
+                }
+                trip.status = trip_model_1.TRIP_STATUS.CONFIRMED;
+                trip.verified = true;
+                return [4 /*yield*/, trip.save()
+                    // send notification to  contractor
+                ];
+            case 2:
+                _a.sent();
+                // send notification to  contractor
+                index_1.NotificationService.sendNotification({
+                    user: trip.contractor.toString(),
+                    userType: 'contractors',
+                    title: 'trip',
+                    heading: {},
+                    type: 'tripDayComfirmed',
+                    message: 'Customer confirmed your arrival.',
+                    payload: { tripId: tripId, verificationCode: verificationCode }
+                }, {
+                    push: true,
+                    socket: true,
+                    database: true
+                });
+                // send notification to  customer
+                index_1.NotificationService.sendNotification({
+                    user: trip.customer,
+                    userType: 'customers',
+                    title: 'trip',
+                    heading: {},
+                    type: 'tripDayComfirmed',
+                    message: "You successfully confirmed the contractor's arrival.",
+                    payload: { tripId: tripId, verificationCode: verificationCode }
+                }, {
+                    push: true,
+                    socket: true,
+                    database: true
+                });
+                res.json({
+                    success: true,
+                    message: "contractor arrival successfully comfirmed",
+                    data: trip
+                });
+                return [3 /*break*/, 4];
+            case 3:
+                err_2 = _a.sent();
+                console.log("error", err_2);
+                res.status(500).json({ message: err_2.message });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.uploadQualityAssurancePhotos = uploadQualityAssurancePhotos;
 exports.CustomerTripController = {
-    confirmTrip: exports.confirmTrip
+    confirmTrip: exports.confirmTrip,
+    uploadQualityAssurancePhotos: exports.uploadQualityAssurancePhotos
 };
