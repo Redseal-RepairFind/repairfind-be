@@ -6,6 +6,7 @@ import { StripeService } from '../../../services/stripe';
 import CustomerModel from '../../../database/customer/models/customer.model';
 import { IStripeCustomer } from '../../../database/customer/interface/customer.interface';
 import { BadRequestError } from '../../../utils/custom.errors';
+import { config } from '../../../config';
 
 
 export const createSession = async (req: any, res: Response) => {
@@ -47,6 +48,18 @@ export const createSession = async (req: any, res: Response) => {
                 currency: 'usd',
                 customer: stripeCustomer.id,
                 setup_intent_data: {
+                    metadata: {
+                        userType: 'customers',
+                        userId: customer.id,
+                        environment: config.environment,
+                    }
+                },
+                metadata: {
+                    userType: 'customers',
+                    userId: customer.id,
+                    environment: config.environment,
+                },
+                payment_intent_data: {
                     metadata: {
                         userType: 'customers',
                         userId: customer.id,

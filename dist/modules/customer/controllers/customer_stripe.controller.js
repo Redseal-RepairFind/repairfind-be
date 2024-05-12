@@ -44,6 +44,7 @@ var express_validator_1 = require("express-validator");
 var stripe_1 = require("../../../services/stripe");
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var custom_errors_1 = require("../../../utils/custom.errors");
+var config_1 = require("../../../config");
 var createSession = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var mode, customerId, errors, customer, stripeCustomer, stripeSession, error_1;
     return __generator(this, function (_a) {
@@ -88,6 +89,18 @@ var createSession = function (req, res) { return __awaiter(void 0, void 0, void 
                         currency: 'usd',
                         customer: stripeCustomer.id,
                         setup_intent_data: {
+                            metadata: {
+                                userType: 'customers',
+                                userId: customer.id,
+                                environment: config_1.config.environment,
+                            }
+                        },
+                        metadata: {
+                            userType: 'customers',
+                            userId: customer.id,
+                            environment: config_1.config.environment,
+                        },
+                        payment_intent_data: {
                             metadata: {
                                 userType: 'customers',
                                 userId: customer.id,

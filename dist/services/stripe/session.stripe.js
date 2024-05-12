@@ -49,10 +49,13 @@ var createSession = function (payload) { return __awaiter(void 0, void 0, void 0
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
+                console.log(payload);
                 return [4 /*yield*/, stripeClient.checkout.sessions.create({
                         mode: payload.mode, // 'setup
                         currency: payload.currency, // usd
                         customer: payload.customer,
+                        metadata: payload.metadata,
+                        setup_intent_data: payload.setup_intent_data,
                         success_url: 'https://repairfind.ca/payment-successful',
                         cancel_url: 'https://repairfind.ca/payment-cancelled/',
                     })];

@@ -9,14 +9,18 @@ const stripeClient = new Stripe(STRIPE_SECRET_KEY);
 
 export const createSession = async (payload: any) => {
   try {
+    console.log(payload)
     const session = await stripeClient.checkout.sessions.create({
         mode: payload.mode, // 'setup
         currency: payload.currency, // usd
         customer: payload.customer,
+        metadata: payload.metadata,
+        setup_intent_data: payload.setup_intent_data,
         success_url: 'https://repairfind.ca/payment-successful',
         cancel_url: 'https://repairfind.ca/payment-cancelled/',
       });
     
+      
       return session;
   } catch (error:any) {
       console.log(error)
