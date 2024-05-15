@@ -214,6 +214,12 @@ exports.JobEvent.on('JOB_DAY_EMERGENCY', function (payload) {
                                 services_1.EmailService.send(contractor.email, "Job Emergency", html);
                             }
                         }
+                        // send socket notification to general admins alert channel
+                        socket_1.SocketService.broadcastChannel('admin_alerts', 'NEW_JOB_EMERGENCY', {
+                            type: 'NEW_JOB_EMERGENCY',
+                            message: 'A new Job emergenc has been reported',
+                            data: { emergency: payload.jobEmergency, job: job, customer: customer, contractor: contractor }
+                        });
                     }
                     return [3 /*break*/, 5];
                 case 4:

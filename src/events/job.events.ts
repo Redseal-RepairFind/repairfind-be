@@ -1,4 +1,4 @@
-import {EventEmitter} from 'events';
+import { EventEmitter } from 'events';
 import { EmailService, NotificationService } from '../services';
 import { htmlJobRequestTemplate } from '../templates/contractorEmail/jobRequestTemplate';
 import CustomerModel from '../database/customer/models/customer.model';
@@ -19,14 +19,14 @@ export const JobEvent: EventEmitter = new EventEmitter();
 JobEvent.on('NEW_JOB_REQUEST', async function (payload) {
     try {
         console.log('handling NEW_JOB_REQUEST event')
-        
+
         const customer = await CustomerModel.findById(payload.customerId)
         const contractor = await ContractorModel.findById(payload.contractorId)
         const job = await JobModel.findById(payload.jobId)
         const conversation = await ConversationModel.findById(payload.conversationId)
 
-        if(job && contractor && customer){
-            
+        if (job && contractor && customer) {
+
             NotificationService.sendNotification({
                 user: contractor.id,
                 userType: 'contractors',
@@ -60,9 +60,9 @@ JobEvent.on('NEW_JOB_REQUEST', async function (payload) {
                     customer: customer.id,
                     event: 'NEW_JOB_REQUEST',
                 }
-            }, { database: true, push: true, socket:true})
+            }, { database: true, push: true, socket: true })
 
-         }
+        }
 
 
     } catch (error) {
@@ -76,15 +76,15 @@ JobEvent.on('NEW_JOB_LISTING', async function (payload) {
         console.log('handling alert NEW_JOB_LISTING event')
         const job = await JobModel.findById(payload.jobId)
 
-        if(job){
+        if (job) {
 
             SocketService.broadcastChannel('alerts', 'NEW_JOB_LISTING', {
-                type: 'NEW_JOB_LISTING', 
-                message: 'A new Job listing has been added', 
+                type: 'NEW_JOB_LISTING',
+                message: 'A new Job listing has been added',
                 data: job
             });
-          
-         }
+
+        }
 
 
     } catch (error) {
@@ -92,29 +92,29 @@ JobEvent.on('NEW_JOB_LISTING', async function (payload) {
     }
 });
 
-JobEvent.on('JOB_CANCELED', async function (payload: {job: IJob, canceledBy: string}) {
+JobEvent.on('JOB_CANCELED', async function (payload: { job: IJob, canceledBy: string }) {
     try {
         console.log('handling alert JOB_CANCELED event')
         const customer = await CustomerModel.findById(payload.job.customer) as ICustomer
         const contractor = await ContractorModel.findById(payload.job.contractor) as IContractor
-        
-        if(payload.canceledBy == 'contractor'){
+
+        if (payload.canceledBy == 'contractor') {
             console.log('job cancelled by contractor')
 
-            if(customer){
+            if (customer) {
                 //send email to customer 
-                const html = JobCanceledEmailTemplate({name: customer.name,   canceledBy: 'contractor',   job:payload.job})
+                const html = JobCanceledEmailTemplate({ name: customer.name, canceledBy: 'contractor', job: payload.job })
                 EmailService.send(customer.email, "Job Canceled", html)
             }
-          
+
 
         }
-        if(payload.canceledBy == 'customer'){
+        if (payload.canceledBy == 'customer') {
             console.log('job cancelled by customer')
-            
-            if(contractor){
+
+            if (contractor) {
                 //send email to customer 
-                const html = JobCanceledEmailTemplate({name: contractor.name,   canceledBy: 'customer',   job:payload.job})
+                const html = JobCanceledEmailTemplate({ name: contractor.name, canceledBy: 'customer', job: payload.job })
                 EmailService.send(contractor.email, "Job Canceled", html)
             }
         }
@@ -124,7 +124,7 @@ JobEvent.on('JOB_CANCELED', async function (payload: {job: IJob, canceledBy: str
     }
 });
 
-JobEvent.on('JOB_DAY_EMERGENCY', async function (payload: {jobEmergency: IJobEmergency}) {
+JobEvent.on('JOB_DAY_EMERGENCY', async function (payload: { jobEmergency: IJobEmergency }) {
     try {
         console.log('handling alert JOB_DAY_EMERGENCY event')
 
@@ -139,23 +139,31 @@ JobEvent.on('JOB_DAY_EMERGENCY', async function (payload: {jobEmergency: IJobEme
         const job = await JobModel.findById(payload.jobEmergency.job) as IJob
 
 
-        if(job){
-            if(payload.jobEmergency.triggeredBy == 'contractor'){
-            console.log('job emergency triggered by contractor')
-            if(customer){
-                const html = JobEmergencyEmailTemplate({name: customer.name,  emergency: payload.jobEmergency, job})
-                EmailService.send(customer.email, "Job Emergency", html)
+        if (job) {
+            if (payload.jobEmergency.triggeredBy == 'contractor') {
+                console.log('job emergency triggered by contractor')
+                if (customer) {
+                    const html = JobEmergencyEmailTemplate({ name: customer.name, emergency: payload.jobEmergency, job })
+                    EmailService.send(customer.email, "Job Emergency", html)
+                }
             }
-        }
-        if(payload.jobEmergency.triggeredBy == 'customer'){
-            console.log('job emergency triggered by customer')
-            if(contractor){
-                const html = JobEmergencyEmailTemplate({name: contractor.name,   emergency:payload.jobEmergency, job})
-                EmailService.send(contractor.email, "Job Emergency", html)
+            if (payload.jobEmergency.triggeredBy == 'customer') {
+                console.log('job emergency triggered by customer')
+                if (contractor) {
+                    const html = JobEmergencyEmailTemplate({ name: contractor.name, emergency: payload.jobEmergency, job })
+                    EmailService.send(contractor.email, "Job Emergency", html)
+                }
             }
+
+            // send socket notification to general admins alert channel
+            SocketService.broadcastChannel('admin_alerts', 'NEW_JOB_EMERGENCY', {
+                type: 'NEW_JOB_EMERGENCY',
+                message: 'A new Job emergenc has been reported',
+                data: {emergency: payload.jobEmergency, job, customer, contractor}
+            });
+
         }
-        }
-        
+
 
     } catch (error) {
         console.error(`Error handling JOB_DAY_EMERGENCY event: ${error}`);
