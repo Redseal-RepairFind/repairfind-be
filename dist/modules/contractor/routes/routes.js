@@ -15,7 +15,7 @@ var contractor_conversation_controller_1 = require("../controllers/contractor_co
 var contractor_transaction_controller_1 = require("../controllers/contractor_transaction.controller");
 var contractor_call_controller_1 = require("../controllers/contractor_call.controller");
 var contractor_booking_controller_1 = require("../controllers/contractor_booking.controller");
-var contractor_trip_controller_1 = require("../controllers/contractor_trip.controller");
+var contractor_jobday_controller_1 = require("../controllers/contractor_jobday.controller");
 var express = require("express");
 var router = express.Router();
 //  AUTH
@@ -150,9 +150,10 @@ router.post("/bookings/:bookingId/reschedule", contractorRoleCheck_middleware_1.
 router.post("/bookings/:bookingId/reschedule/:action", contractorRoleCheck_middleware_1.checkContractorRole, contractor_booking_controller_1.ContractorBookingController.acceptOrDeclineReschedule);
 router.post("/bookings/:bookingId/assign", contractorRoleCheck_middleware_1.checkContractorRole, contractor_booking_controller_1.ContractorBookingController.assignJob);
 router.post("/bookings/:bookingId/cancel", contractorRoleCheck_middleware_1.checkContractorRole, contractor_booking_controller_1.ContractorBookingController.cancelBooking);
-// trips day
-router.post('/trips/start', contractorRoleCheck_middleware_1.checkContractorRole, contractor_trip_controller_1.ContractorTripController.startTrip);
-router.post('/trips/:tripId/arrive', contractorRoleCheck_middleware_1.checkContractorRole, contractor_trip_controller_1.ContractorTripController.confirmArrival);
+// jobdays day
+router.post('/jobdays/trip-start', contractorRoleCheck_middleware_1.checkContractorRole, contractor_jobday_controller_1.ContractorJobDayController.startTrip);
+router.post('/jobdays/:jobDayId/trip-arrival', contractorRoleCheck_middleware_1.checkContractorRole, contractor_jobday_controller_1.ContractorJobDayController.confirmArrival);
+router.post('/jobdays/:jobDayId/emergency', contractorRoleCheck_middleware_1.checkContractorRole, contractor_jobday_controller_1.ContractorJobDayController.createJobEmergency);
 // Call
 router.post("/voicecall/agora-rtc", contractorRoleCheck_middleware_1.checkContractorRole, contractor_call_controller_1.ContractorCallController.createRtcToken);
 router.post("/voicecall", contractorRoleCheck_middleware_1.checkContractorRole, contractor_call_controller_1.ContractorCallController.startCall);

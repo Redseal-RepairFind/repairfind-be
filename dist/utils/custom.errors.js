@@ -14,6 +14,17 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.errorHandler = exports.InternalServerError = exports.NotFoundError = exports.ServiceUnavailableError = exports.ForbiddenError = exports.UnAuthorizedError = exports.BadRequestError = void 0;
 var logger_1 = require("./logger");
@@ -88,16 +99,16 @@ function errorHandler(err, req, res, next) {
     var errorMessage = err.message || 'Internal Server Error';
     // Send JSON response with error details
     if (process.env.APN_ENV === "development") {
-        return res.status(statusCode).json({ success: false, message: errorMessage, error: err.error, stack: err.stack, });
+        return res.status(statusCode).json(__assign(__assign({ success: false, message: errorMessage }, err.error), { stack: err.stack }));
     }
-    else if (process.env.APN_ENV === "development") {
+    else {
         if (err.error.name === "CastError")
             errorMessage = "Invalid ".concat(err.error.path, ": ").concat(JSON.stringify(err.error.value), ".");
         if (err.error.code === 11000) {
             var value = err.error.message.match(/(["'])(\\?.)*?\1/)[0];
             errorMessage = "field value:".concat(value, " aleady exist. please use another");
         }
-        if (err.name === "ValidationError") {
+        if (err.error.name === "ValidationError") {
             var errors = Object.values(err.error.errors).map(function (el) { return el.message; });
             errorMessage = "Invalid input data. ".concat(errors.join(". "));
         }

@@ -9,7 +9,7 @@ var customer_explore_controller_1 = require("../controllers/customer_explore.con
 var customer_job_controller_1 = require("../controllers/customer_job.controller");
 var customer_notification_controller_1 = require("../controllers/customer_notification.controller");
 var customer_conversation_controller_1 = require("../controllers/customer_conversation.controller");
-var customer_trip_controller_1 = require("../controllers/customer_trip.controller");
+var customer_jobday_controller_1 = require("../controllers/customer_jobday.controller");
 var customer_payment_controller_1 = require("../controllers/customer_payment.controller");
 var customer_transaction_controller_1 = require("../controllers/customer_transaction.controller");
 var customer_booking_controller_1 = require("../controllers/customer_booking.controller");
@@ -75,8 +75,9 @@ router.get('/conversations/:conversationId', customerRoleChecker_middleware_1.ch
 router.get('/conversations/:conversationId/messages', customerRoleChecker_middleware_1.checkCustomerRole, customer_conversation_controller_1.CustomerConversationController.getConversationMessages);
 router.post('/conversations/:conversationId/messages', customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.sendMessageParams, customer_conversation_controller_1.CustomerConversationController.sendMessage);
 router.post('/conversations/:conversationId/mark-all-read', customerRoleChecker_middleware_1.checkCustomerRole, customer_conversation_controller_1.CustomerConversationController.markAllMessagesAsRead);
-// trips day
-router.post('/trips/:tripId/confirm-arrival', customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.tripArrivalComfirmParams, customer_trip_controller_1.CustomerTripController.confirmTrip);
+// jobdays day
+router.post('/jobdays/:jobDayId/confirm-arrival', customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.tripArrivalComfirmParams, customer_jobday_controller_1.CustomerJobDayController.confirmTrip);
+router.post('/jobdays/:jobDayId/emergency', customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.tripArrivalComfirmParams, customer_jobday_controller_1.CustomerJobDayController.createJobEmergency);
 // Call
 router.post("/voicecall/agora-rtc", customerRoleChecker_middleware_1.checkCustomerRole, customer_call_controller_1.CustomerCallController.createRtcToken);
 router.post("/voicecall", customerRoleChecker_middleware_1.checkCustomerRole, customer_call_controller_1.CustomerCallController.startCall);

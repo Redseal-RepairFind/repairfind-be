@@ -36,13 +36,16 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorTripController = exports.confirmArrival = exports.startTrip = void 0;
+exports.ContractorJobDayController = exports.createJobEmergency = exports.confirmArrival = exports.startTrip = void 0;
 var express_validator_1 = require("express-validator");
 var job_model_1 = require("../../../database/common/job.model");
 var otpGenerator_1 = require("../../../utils/otpGenerator");
 var index_1 = require("../../../services/notifications/index");
-var trip_model_1 = require("../../../database/common/trip.model");
+var job_day_model_1 = require("../../../database/common/job_day.model");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
+var custom_errors_1 = require("../../../utils/custom.errors");
+var events_1 = require("../../../events");
+var job_emergency_model_1 = require("../../../database/common/job_emergency.model");
 var startTrip = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var jobId, errors, contractorId, job, activeTrip, trip, err_1;
     return __generator(this, function (_a) {
@@ -62,17 +65,17 @@ var startTrip = function (req, res) { return __awaiter(void 0, void 0, void 0, f
                 if (!job) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'Job request not found' })];
                 }
-                return [4 /*yield*/, trip_model_1.TripModel.findOne({ job: jobId, status: trip_model_1.TRIP_STATUS.STARTED })];
+                return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ job: jobId, status: job_day_model_1.JOB_DAY_STATUS.STARTED })];
             case 2:
                 activeTrip = _a.sent();
                 if (activeTrip) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'An active trip already exists for this job' })];
                 }
-                return [4 /*yield*/, trip_model_1.TripModel.create({
+                return [4 /*yield*/, job_day_model_1.JobDayModel.create({
                         customer: job.customer,
                         contractor: contractorId,
                         job: jobId,
-                        status: trip_model_1.TRIP_STATUS.STARTED,
+                        status: job_day_model_1.JOB_DAY_STATUS.STARTED,
                         type: job.schedule.type
                     })
                     // send notification to contractor
@@ -87,7 +90,7 @@ var startTrip = function (req, res) { return __awaiter(void 0, void 0, void 0, f
                     heading: {},
                     type: 'tripDayStart',
                     message: 'trip successfully started',
-                    payload: { tripId: trip._id }
+                    payload: { jobDayId: trip._id }
                 }, {
                     push: true,
                     socket: true,
@@ -101,7 +104,7 @@ var startTrip = function (req, res) { return __awaiter(void 0, void 0, void 0, f
                     heading: {},
                     type: 'tripDayStart',
                     message: 'Contractor starts trip to your site.',
-                    payload: { tripId: trip._id }
+                    payload: { jobDayId: trip._id }
                 }, {
                     push: true,
                     socket: true,
@@ -124,12 +127,12 @@ var startTrip = function (req, res) { return __awaiter(void 0, void 0, void 0, f
 }); };
 exports.startTrip = startTrip;
 var confirmArrival = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var tripId, errors, contractorId, contractor, trip, verificationCode, err_2;
+    var jobDayId, errors, contractorId, contractor, trip, verificationCode, err_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 4, , 5]);
-                tripId = req.params.tripId;
+                jobDayId = req.params.jobDayId;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -141,13 +144,13 @@ var confirmArrival = function (req, res) { return __awaiter(void 0, void 0, void
                 if (!contractor) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor not found' })];
                 }
-                return [4 /*yield*/, trip_model_1.TripModel.findOne({ _id: tripId })];
+                return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ _id: jobDayId })];
             case 2:
                 trip = _a.sent();
                 if (!trip) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'trip not found' })];
                 }
-                if (!(trip.status === trip_model_1.TRIP_STATUS.STARTED || trip.status === trip_model_1.TRIP_STATUS.ARRIVED)) {
+                if (!(trip.status === job_day_model_1.JOB_DAY_STATUS.STARTED || trip.status === job_day_model_1.JOB_DAY_STATUS.ARRIVED)) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'Trip not started yet' })];
                 }
                 if (trip.verified) {
@@ -155,7 +158,7 @@ var confirmArrival = function (req, res) { return __awaiter(void 0, void 0, void
                 }
                 verificationCode = (0, otpGenerator_1.generateOTP)();
                 trip.verificationCode = parseInt(verificationCode);
-                trip.status = trip_model_1.TRIP_STATUS.ARRIVED;
+                trip.status = job_day_model_1.JOB_DAY_STATUS.ARRIVED;
                 return [4 /*yield*/, trip.save()
                     // send notification to  contractor
                 ];
@@ -169,7 +172,7 @@ var confirmArrival = function (req, res) { return __awaiter(void 0, void 0, void
                     heading: {},
                     type: 'JOB_DAY_ARRIVAL',
                     message: 'you successfully arrrived at site, wait for comfirmation from customer.',
-                    payload: { tripId: tripId, verificationCode: verificationCode }
+                    payload: { jobDayId: jobDayId, verificationCode: verificationCode }
                 }, {
                     push: true,
                     socket: true,
@@ -182,7 +185,7 @@ var confirmArrival = function (req, res) { return __awaiter(void 0, void 0, void
                     heading: { name: contractorId, image: contractorId },
                     type: 'JOB_DAY_ARRIVAL',
                     message: 'Contractor is at your site.',
-                    payload: { tripId: tripId, verificationCode: verificationCode }
+                    payload: { jobDayId: jobDayId, verificationCode: verificationCode }
                 }, {
                     push: true,
                     socket: true,
@@ -203,7 +206,47 @@ var confirmArrival = function (req, res) { return __awaiter(void 0, void 0, void
     });
 }); };
 exports.confirmArrival = confirmArrival;
-exports.ContractorTripController = {
+var createJobEmergency = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, description, priority, date, media, contractorId, triggeredBy, jobDayId, jobDay, jobEmergency, error_1;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 3, , 4]);
+                _a = req.body, description = _a.description, priority = _a.priority, date = _a.date, media = _a.media;
+                contractorId = req.contractor.id;
+                triggeredBy = 'contractor';
+                jobDayId = req.params.jobDayId;
+                return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ _id: jobDayId })];
+            case 1:
+                jobDay = _b.sent();
+                if (!jobDay) {
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'jobDay not found' })];
+                }
+                return [4 /*yield*/, job_emergency_model_1.JobEmergencyModel.create({
+                        job: jobDay.job,
+                        customer: jobDay.customer,
+                        contractor: jobDay.contractor,
+                        description: description,
+                        priority: priority,
+                        date: new Date,
+                        triggeredBy: triggeredBy,
+                        media: media,
+                    })];
+            case 2:
+                jobEmergency = _b.sent();
+                events_1.JobEvent.emit('JOB_DAY_EMERGENCY', { jobEmergency: jobEmergency });
+                return [2 /*return*/, res.status(201).json({ success: true, message: 'Job emergency created successfully', data: jobEmergency })];
+            case 3:
+                error_1 = _b.sent();
+                next(new custom_errors_1.InternalServerError('Error creating job emergency:', error_1));
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.createJobEmergency = createJobEmergency;
+exports.ContractorJobDayController = {
     startTrip: exports.startTrip,
-    confirmArrival: exports.confirmArrival
+    confirmArrival: exports.confirmArrival,
+    createJobEmergency: exports.createJobEmergency
 };

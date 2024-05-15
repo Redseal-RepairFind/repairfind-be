@@ -9,7 +9,10 @@ import { SocketService } from '../services/socket';
 import { IContractor } from '../database/contractor/interface/contractor.interface';
 import { ICustomer } from '../database/customer/interface/customer.interface';
 import { NewJobAssignedEmailTemplate } from '../templates/contractorEmail/job_assigned.template';
-import { JobCanceledEmailTemplate } from '../templates/contractorEmail/job_canceled.template';
+import { JobCanceledEmailTemplate } from '../templates/common/job_canceled.template';
+import { IJobDay } from '../database/common/job_day.model';
+import { IJobEmergency } from '../database/common/job_emergency.model';
+import { JobEmergencyEmailTemplate } from '../templates/common/job_emergency_email';
 
 export const JobEvent: EventEmitter = new EventEmitter();
 
@@ -118,5 +121,43 @@ JobEvent.on('JOB_CANCELED', async function (payload: {job: IJob, canceledBy: str
 
     } catch (error) {
         console.error(`Error handling JOB_CANCELED event: ${error}`);
+    }
+});
+
+JobEvent.on('JOB_DAY_EMERGENCY', async function (payload: {jobEmergency: IJobEmergency}) {
+    try {
+        console.log('handling alert JOB_DAY_EMERGENCY event')
+
+        // const [customer, contractor, job] = await Promise.all([
+        //     CustomerModel.findById(payload.jobEmergency.customer).exec(),
+        //     ContractorModel.findById(payload.jobEmergency.contractor).exec(),
+        //     JobModel.findById(payload.jobEmergency.job).exec()
+        // ])
+
+        const customer = await CustomerModel.findById(payload.jobEmergency.customer) as ICustomer
+        const contractor = await ContractorModel.findById(payload.jobEmergency.contractor) as IContractor
+        const job = await JobModel.findById(payload.jobEmergency.job) as IJob
+
+
+        if(job){
+            if(payload.jobEmergency.triggeredBy == 'contractor'){
+            console.log('job emergency triggered by contractor')
+            if(customer){
+                const html = JobEmergencyEmailTemplate({name: customer.name,  emergency: payload.jobEmergency, job})
+                EmailService.send(customer.email, "Job Emergency", html)
+            }
+        }
+        if(payload.jobEmergency.triggeredBy == 'customer'){
+            console.log('job emergency triggered by customer')
+            if(contractor){
+                const html = JobEmergencyEmailTemplate({name: contractor.name,   emergency:payload.jobEmergency, job})
+                EmailService.send(contractor.email, "Job Emergency", html)
+            }
+        }
+        }
+        
+
+    } catch (error) {
+        console.error(`Error handling JOB_DAY_EMERGENCY event: ${error}`);
     }
 });

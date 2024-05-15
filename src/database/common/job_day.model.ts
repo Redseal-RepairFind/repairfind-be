@@ -1,6 +1,6 @@
 import { Document, ObjectId, Schema, model } from "mongoose";
 
-export enum TRIP_STATUS {
+export enum JOB_DAY_STATUS {
     STARTED = 'STARTED',
     ARRIVED = 'ARRIVED',
     CANCELED = 'CANCELED',
@@ -8,18 +8,18 @@ export enum TRIP_STATUS {
     COMPLETED = 'COMPLETED',
 }
 
-export enum TRIP_TYPE {
+export enum JOB_DAY_TYPE {
     JOB_DAY = 'JOB_DAY',
     SITE_VISIT = 'SITE_VISIT'
 }
 
-export interface ITripDay extends Document {
+export interface IJobDay extends Document {
     _id: ObjectId;
     customer: ObjectId;
     contractor: ObjectId;
     job: ObjectId;
     status: string;
-    type: TRIP_TYPE;
+    type: JOB_DAY_TYPE;
     verificationCode: number;
     verified: boolean;
     createdAt: Date;
@@ -30,7 +30,7 @@ export interface ITripDay extends Document {
     customerPostTripMedia: string[]; // Array of customer's post-job media URLs or references
 }
 
-const TripSchema = new Schema(
+const JobDayShema = new Schema(
     {
       customer: {
         type: Schema.Types.ObjectId, 
@@ -49,13 +49,13 @@ const TripSchema = new Schema(
       },
       status: {
         type: String,
-        enum: Object.values(TRIP_STATUS),
-        default: TRIP_STATUS.STARTED,  
+        enum: Object.values(JOB_DAY_STATUS),
+        default: JOB_DAY_STATUS.STARTED,  
       }, 
       type: {
         type: String,
-        enum: Object.values(TRIP_TYPE),
-        default: TRIP_TYPE.JOB_DAY,  
+        enum: Object.values(JOB_DAY_TYPE),
+        default: JOB_DAY_TYPE.JOB_DAY,  
       }, 
       verificationCode: {
         type: Number,
@@ -94,6 +94,6 @@ const TripSchema = new Schema(
     }
 );
 
-const TripModel = model<ITripDay>("trips", TripSchema);
+const JobDayModel = model<IJobDay>("job_days", JobDayShema);
 
-export { TripSchema, TripModel };
+export { JobDayShema, JobDayModel };

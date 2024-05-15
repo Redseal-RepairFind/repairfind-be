@@ -66,19 +66,22 @@ export function errorHandler(err: CustomError, req: Request, res: Response, next
    // Send JSON response with error details
    if (process.env.APN_ENV === "development") {
 
-      return res.status(statusCode).json({ success: false, message: errorMessage, error: err.error,  stack: err.stack, });
+      return res.status(statusCode).json({ success: false, message: errorMessage, ...err.error,  stack: err.stack, });
 
-   } else if (process.env.APN_ENV === "development") {
+   } else {
       if (err.error.name === "CastError") errorMessage = `Invalid ${err.error.path}: ${ JSON.stringify(err.error.value)}.`
       
       if(err.error.code === 11000){
          const value = err.error.message.match(/(["'])(\\?.)*?\1/)[0];
           errorMessage = `field value:${value} aleady exist. please use another`;
       }
-      if (err. name === "ValidationError"){
+
+      if (err.error.name === "ValidationError"){
          const errors = Object.values(err.error.errors).map((el:any) => el.message);
          errorMessage = `Invalid input data. ${errors.join(". ")}`;
       }
+
+     
 
       return res.status(statusCode).json({ success: false, message: errorMessage });
 

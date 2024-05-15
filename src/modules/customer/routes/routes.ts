@@ -9,7 +9,7 @@ import { CustomerExploreController } from "../controllers/customer_explore.contr
 import { CustomerJobController } from "../controllers/customer_job.controller";
 import { CustomerNotificationController } from "../controllers/customer_notification.controller";
 import { CustomerConversationController } from "../controllers/customer_conversation.controller";
-import { CustomerTripController } from "../controllers/customer_trip.controller";
+import { CustomerJobDayController } from "../controllers/customer_jobday.controller";
 import { CustomerPaymentController } from "../controllers/customer_payment.controller";
 import { CustomerTransactionController } from "../controllers/customer_transaction.controller";
 import { CustomerBookingController } from "../controllers/customer_booking.controller";
@@ -98,8 +98,9 @@ router.get('/conversations/:conversationId/messages', checkCustomerRole, Custome
 router.post('/conversations/:conversationId/messages', checkCustomerRole, CustomerHttpRequest.sendMessageParams, CustomerConversationController.sendMessage)
 router.post('/conversations/:conversationId/mark-all-read', checkCustomerRole, CustomerConversationController.markAllMessagesAsRead)
 
-// trips day
-router.post('/trips/:tripId/confirm-arrival', checkCustomerRole, CustomerHttpRequest.tripArrivalComfirmParams, CustomerTripController.confirmTrip)
+// jobdays day
+router.post('/jobdays/:jobDayId/confirm-arrival', checkCustomerRole, CustomerHttpRequest.tripArrivalComfirmParams, CustomerJobDayController.confirmTrip)
+router.post('/jobdays/:jobDayId/emergency', checkCustomerRole, CustomerHttpRequest.tripArrivalComfirmParams, CustomerJobDayController.createJobEmergency)
 
 // Call
 router.post("/voicecall/agora-rtc", checkCustomerRole,  CustomerCallController.createRtcToken );

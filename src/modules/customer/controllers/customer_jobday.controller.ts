@@ -1,7 +1,10 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { validationResult } from "express-validator";
 import { NotificationService } from "../../../services/notifications/index";
-import { TRIP_STATUS, TripModel } from "../../../database/common/trip.model";
+import { JOB_DAY_STATUS, JobDayModel } from "../../../database/common/job_day.model";
+import { JobEmergencyModel } from "../../../database/common/job_emergency.model";
+import { InternalServerError } from "../../../utils/custom.errors";
+import { JobEvent } from "../../../events";
 
 
 export const confirmTrip = async (
@@ -10,7 +13,7 @@ export const confirmTrip = async (
   ) => {
   
     try {
-      const { tripId } = req.params;
+      const { jobDayId } = req.params;
       const { verificationCode } = req.body;
     
         // Check for validation errors
@@ -22,37 +25,37 @@ export const confirmTrip = async (
  
         const customerId = req.customer.id
 
-        const trip = await TripModel.findOne({_id: tripId})
-        if (!trip) {
-            return res.status(403).json({ success: false, message: 'trip not found' });
+        const jobDay = await JobDayModel.findOne({_id: jobDayId})
+        if (!jobDay) {
+            return res.status(403).json({ success: false, message: 'jobDay not found' });
         }
 
-        if (trip.status != TRIP_STATUS.ARRIVED) {
+        if (jobDay.status != JOB_DAY_STATUS.ARRIVED) {
             return res.status(403).json({ success: false, message: 'contractor has not arrived yet' });
         }
       
-        if (trip.verified) {
+        if (jobDay.verified) {
             return res.status(403).json({ success: false, message: 'site already visited' });
         }
 
-        if (trip.verificationCode !== verificationCode) {
+        if (jobDay.verificationCode !== verificationCode) {
             return res.status(403).json({ success: false, message: 'incorrect verification code' });
         }
 
-        trip.status = TRIP_STATUS.CONFIRMED
-        trip.verified = true
-        await trip.save()
+        jobDay.status = JOB_DAY_STATUS.CONFIRMED
+        jobDay.verified = true
+        await jobDay.save()
 
         // send notification to  contractor
         NotificationService.sendNotification(
             {
-                user: trip.contractor.toString(),
+                user: jobDay.contractor.toString(),
                 userType: 'contractors',
-                title: 'trip',
+                title: 'jobDay',
                 heading: {},
                 type: 'tripDayComfirmed',
                 message: 'Customer confirmed your arrival.',
-                payload: {tripId: tripId, verificationCode}
+                payload: {jobDayId: jobDayId, verificationCode}
             },
             {
                 push: true,
@@ -65,13 +68,13 @@ export const confirmTrip = async (
         // send notification to  customer
         NotificationService.sendNotification(
             {
-                user: trip.customer,
+                user: jobDay.customer,
                 userType: 'customers',
-                title: 'trip',
+                title: 'jobDay',
                 heading: {},
                 type: 'tripDayComfirmed',
                 message: "You successfully confirmed the contractor's arrival.",
-                payload: {tripId: tripId, verificationCode}
+                payload: {jobDayId: jobDayId, verificationCode}
             },
             {
                 push: true,
@@ -83,7 +86,7 @@ export const confirmTrip = async (
         res.json({  
             success: true,
             message: "contractor arrival successfully comfirmed",
-            data: trip
+            data: jobDay
         });
       
     } catch (err: any) {
@@ -100,7 +103,7 @@ export const uploadQualityAssurancePhotos = async (
   ) => {
   
     try {
-      const { tripId } = req.params;
+      const { jobDayId } = req.params;
       const { verificationCode } = req.body;
     
         // Check for validation errors
@@ -112,37 +115,37 @@ export const uploadQualityAssurancePhotos = async (
  
         const customerId = req.customer.id
 
-        const trip = await TripModel.findOne({_id: tripId})
-        if (!trip) {
-            return res.status(403).json({ success: false, message: 'trip not found' });
+        const jobDay = await JobDayModel.findOne({_id: jobDayId})
+        if (!jobDay) {
+            return res.status(403).json({ success: false, message: 'jobDay not found' });
         }
 
-        if (trip.status != TRIP_STATUS.ARRIVED) {
+        if (jobDay.status != JOB_DAY_STATUS.ARRIVED) {
             return res.status(403).json({ success: false, message: 'contractor has not arrived yet' });
         }
       
-        if (trip.verified) {
+        if (jobDay.verified) {
             return res.status(403).json({ success: false, message: 'site already visited' });
         }
 
-        if (trip.verificationCode !== verificationCode) {
+        if (jobDay.verificationCode !== verificationCode) {
             return res.status(403).json({ success: false, message: 'incorrect verification code' });
         }
 
-        trip.status = TRIP_STATUS.CONFIRMED
-        trip.verified = true
-        await trip.save()
+        jobDay.status = JOB_DAY_STATUS.CONFIRMED
+        jobDay.verified = true
+        await jobDay.save()
 
         // send notification to  contractor
         NotificationService.sendNotification(
             {
-                user: trip.contractor.toString(),
+                user: jobDay.contractor.toString(),
                 userType: 'contractors',
-                title: 'trip',
+                title: 'jobDay',
                 heading: {},
                 type: 'tripDayComfirmed',
                 message: 'Customer confirmed your arrival.',
-                payload: {tripId: tripId, verificationCode}
+                payload: {jobDayId: jobDayId, verificationCode}
             },
             {
                 push: true,
@@ -155,13 +158,13 @@ export const uploadQualityAssurancePhotos = async (
         // send notification to  customer
         NotificationService.sendNotification(
             {
-                user: trip.customer,
+                user: jobDay.customer,
                 userType: 'customers',
-                title: 'trip',
+                title: 'jobDay',
                 heading: {},
                 type: 'tripDayComfirmed',
                 message: "You successfully confirmed the contractor's arrival.",
-                payload: {tripId: tripId, verificationCode}
+                payload: {jobDayId: jobDayId, verificationCode}
             },
             {
                 push: true,
@@ -173,7 +176,7 @@ export const uploadQualityAssurancePhotos = async (
         res.json({  
             success: true,
             message: "contractor arrival successfully comfirmed",
-            data: trip
+            data: jobDay
         });
       
     } catch (err: any) {
@@ -183,7 +186,44 @@ export const uploadQualityAssurancePhotos = async (
   
 }
 
-export const CustomerTripController = {
+
+
+export const createJobEmergency = async (req: any, res: Response, next: NextFunction) => {
+    try {
+        // Extract data from request body
+        const { description, priority, date, media } = req.body;
+        const customer = req.customer.id; // Assuming the contractor triggered the emergency
+        const triggeredBy = 'customer'; // Assuming the contractor triggered the emergency
+        const jobDayId = req.params.jobDayId
+
+        const jobDay = await JobDayModel.findOne({_id: jobDayId})
+        if (!jobDay) {
+            return res.status(403).json({ success: false, message: 'jobDay not found' });
+        }
+
+        // Create new job emergency instance
+        const jobEmergency = await JobEmergencyModel.create({
+            job: jobDay.job,
+            customer:jobDay.customer,
+            contractor:jobDay.contractor,
+            description,
+            priority,
+            date: new Date,
+            triggeredBy,
+            media,
+        });
+
+        JobEvent.emit('JOB_DAY_EMERGENCY', {jobEmergency})
+
+        return res.status(201).json({ success: true, message: 'Job emergency created successfully', data: jobEmergency });
+    } catch (error: any) {
+        next(new InternalServerError('Error creating job emergency:', error))
+    }
+};
+
+
+export const CustomerJobDayController = {
     confirmTrip,
-    uploadQualityAssurancePhotos
+    uploadQualityAssurancePhotos,
+    createJobEmergency
 };

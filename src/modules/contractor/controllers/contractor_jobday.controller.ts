@@ -1,10 +1,13 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { validationResult } from "express-validator";
 import { JobModel, JOB_STATUS, JobType } from "../../../database/common/job.model";
 import { generateOTP } from "../../../utils/otpGenerator";
 import { NotificationService } from "../../../services/notifications/index";
-import { TRIP_STATUS, TripModel } from "../../../database/common/trip.model";
+import { JOB_DAY_STATUS, JobDayModel } from "../../../database/common/job_day.model";
 import { ContractorModel } from "../../../database/contractor/models/contractor.model";
+import { InternalServerError } from "../../../utils/custom.errors";
+import { JobEvent } from "../../../events";
+import { JobEmergencyModel } from "../../../database/common/job_emergency.model";
 
 
 export const startTrip = async (
@@ -33,17 +36,17 @@ export const startTrip = async (
         }
 
         // Check if an active trip already exists for the specified job
-        const activeTrip = await TripModel.findOne({ job: jobId, status: TRIP_STATUS.STARTED });
+        const activeTrip = await JobDayModel.findOne({ job: jobId, status: JOB_DAY_STATUS.STARTED });
 
         if (activeTrip) {
             return res.status(400).json({ success: false, message: 'An active trip already exists for this job' });
         }
 
-        const trip = await TripModel.create({
+        const trip = await JobDayModel.create({
             customer: job.customer,
             contractor: contractorId,
             job: jobId,
-            status: TRIP_STATUS.STARTED,
+            status: JOB_DAY_STATUS.STARTED,
             type: job.schedule.type
         })
 
@@ -56,7 +59,7 @@ export const startTrip = async (
                 heading: {},
                 type: 'tripDayStart',
                 message: 'trip successfully started',
-                payload: { tripId: trip._id }
+                payload: { jobDayId: trip._id }
             },
             {
                 push: true,
@@ -74,7 +77,7 @@ export const startTrip = async (
                 heading: {},
                 type: 'tripDayStart',
                 message: 'Contractor starts trip to your site.',
-                payload: { tripId: trip._id }
+                payload: { jobDayId: trip._id }
             },
             {
                 push: true,
@@ -104,7 +107,7 @@ export const confirmArrival = async (
 ) => {
 
     try {
-        const { tripId } = req.params;
+        const { jobDayId } = req.params;
 
         // Check for validation errors
         const errors = validationResult(req);
@@ -119,12 +122,12 @@ export const confirmArrival = async (
             return res.status(404).json({ success: false, message: 'Contractor not found' });
         }
 
-        const trip = await TripModel.findOne({ _id: tripId })
+        const trip = await JobDayModel.findOne({ _id: jobDayId })
         if (!trip) {
             return res.status(403).json({ success: false, message: 'trip not found' });
         }
 
-        if (!(trip.status === TRIP_STATUS.STARTED || trip.status === TRIP_STATUS.ARRIVED)) {
+        if (!(trip.status === JOB_DAY_STATUS.STARTED || trip.status === JOB_DAY_STATUS.ARRIVED)) {
             return res.status(403).json({ success: false, message: 'Trip not started yet' });
         }
 
@@ -135,7 +138,7 @@ export const confirmArrival = async (
         const verificationCode = generateOTP()
 
         trip.verificationCode = parseInt(verificationCode)
-        trip.status = TRIP_STATUS.ARRIVED
+        trip.status = JOB_DAY_STATUS.ARRIVED
         await trip.save()
 
         // send notification to  contractor
@@ -147,7 +150,7 @@ export const confirmArrival = async (
                 heading: {},
                 type: 'JOB_DAY_ARRIVAL',
                 message: 'you successfully arrrived at site, wait for comfirmation from customer.',
-                payload: { tripId: tripId, verificationCode }
+                payload: { jobDayId: jobDayId, verificationCode }
             },
             {
                 push: true,
@@ -165,7 +168,7 @@ export const confirmArrival = async (
                 heading: {name: contractorId, image: contractorId},
                 type: 'JOB_DAY_ARRIVAL',
                 message: 'Contractor is at your site.',
-                payload: { tripId: tripId, verificationCode }
+                payload: { jobDayId: jobDayId, verificationCode }
             },
             {
                 push: true,
@@ -186,7 +189,42 @@ export const confirmArrival = async (
 
 }
 
-export const ContractorTripController = {
+
+export const createJobEmergency = async (req: any, res: Response, next: NextFunction) => {
+    try {
+        // Extract data from request body
+        const { description, priority, date, media } = req.body;
+        const contractorId = req.contractor.id; // Assuming the contractor triggered the emergency
+        const triggeredBy = 'contractor'; // Assuming the contractor triggered the emergency
+        const jobDayId = req.params.jobDayId
+
+        const jobDay = await JobDayModel.findOne({_id: jobDayId})
+        if (!jobDay) {
+            return res.status(403).json({ success: false, message: 'jobDay not found' });
+        }
+
+        // Create new job emergency instance
+        const jobEmergency = await JobEmergencyModel.create({
+            job: jobDay.job,
+            customer:jobDay.customer,
+            contractor:jobDay.contractor,
+            description,
+            priority,
+            date: new Date,
+            triggeredBy,
+            media,
+        });
+
+        JobEvent.emit('JOB_DAY_EMERGENCY', {jobEmergency})
+
+        return res.status(201).json({ success: true, message: 'Job emergency created successfully', data: jobEmergency });
+    } catch (error: any) {
+        next(new InternalServerError('Error creating job emergency:', error))
+    }
+};
+
+export const ContractorJobDayController = {
     startTrip,
-    confirmArrival
+    confirmArrival,
+    createJobEmergency
 };

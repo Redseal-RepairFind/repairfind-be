@@ -47,7 +47,8 @@ var contractor_model_1 = require("../database/contractor/models/contractor.model
 var job_model_1 = require("../database/common/job.model");
 var conversations_schema_1 = require("../database/common/conversations.schema");
 var socket_1 = require("../services/socket");
-var job_canceled_template_1 = require("../templates/contractorEmail/job_canceled.template");
+var job_canceled_template_1 = require("../templates/common/job_canceled.template");
+var job_emergency_email_1 = require("../templates/common/job_emergency_email");
 exports.JobEvent = new events_1.EventEmitter();
 exports.JobEvent.on('NEW_JOB_REQUEST', function (payload) {
     var _a, _b;
@@ -177,6 +178,49 @@ exports.JobEvent.on('JOB_CANCELED', function (payload) {
                     console.error("Error handling JOB_CANCELED event: ".concat(error_3));
                     return [3 /*break*/, 4];
                 case 4: return [2 /*return*/];
+            }
+        });
+    });
+});
+exports.JobEvent.on('JOB_DAY_EMERGENCY', function (payload) {
+    return __awaiter(this, void 0, void 0, function () {
+        var customer, contractor, job, html, html, error_4;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 4, , 5]);
+                    console.log('handling alert JOB_DAY_EMERGENCY event');
+                    return [4 /*yield*/, customer_model_1.default.findById(payload.jobEmergency.customer)];
+                case 1:
+                    customer = _a.sent();
+                    return [4 /*yield*/, contractor_model_1.ContractorModel.findById(payload.jobEmergency.contractor)];
+                case 2:
+                    contractor = _a.sent();
+                    return [4 /*yield*/, job_model_1.JobModel.findById(payload.jobEmergency.job)];
+                case 3:
+                    job = _a.sent();
+                    if (job) {
+                        if (payload.jobEmergency.triggeredBy == 'contractor') {
+                            console.log('job emergency triggered by contractor');
+                            if (customer) {
+                                html = (0, job_emergency_email_1.JobEmergencyEmailTemplate)({ name: customer.name, emergency: payload.jobEmergency, job: job });
+                                services_1.EmailService.send(customer.email, "Job Emergency", html);
+                            }
+                        }
+                        if (payload.jobEmergency.triggeredBy == 'customer') {
+                            console.log('job emergency triggered by customer');
+                            if (contractor) {
+                                html = (0, job_emergency_email_1.JobEmergencyEmailTemplate)({ name: contractor.name, emergency: payload.jobEmergency, job: job });
+                                services_1.EmailService.send(contractor.email, "Job Emergency", html);
+                            }
+                        }
+                    }
+                    return [3 /*break*/, 5];
+                case 4:
+                    error_4 = _a.sent();
+                    console.error("Error handling JOB_DAY_EMERGENCY event: ".concat(error_4));
+                    return [3 /*break*/, 5];
+                case 5: return [2 /*return*/];
             }
         });
     });

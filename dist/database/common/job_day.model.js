@@ -1,21 +1,21 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TripModel = exports.TripSchema = exports.TRIP_TYPE = exports.TRIP_STATUS = void 0;
+exports.JobDayModel = exports.JobDayShema = exports.JOB_DAY_TYPE = exports.JOB_DAY_STATUS = void 0;
 var mongoose_1 = require("mongoose");
-var TRIP_STATUS;
-(function (TRIP_STATUS) {
-    TRIP_STATUS["STARTED"] = "STARTED";
-    TRIP_STATUS["ARRIVED"] = "ARRIVED";
-    TRIP_STATUS["CANCELED"] = "CANCELED";
-    TRIP_STATUS["CONFIRMED"] = "CONFIRMED";
-    TRIP_STATUS["COMPLETED"] = "COMPLETED";
-})(TRIP_STATUS || (exports.TRIP_STATUS = TRIP_STATUS = {}));
-var TRIP_TYPE;
-(function (TRIP_TYPE) {
-    TRIP_TYPE["JOB_DAY"] = "JOB_DAY";
-    TRIP_TYPE["SITE_VISIT"] = "SITE_VISIT";
-})(TRIP_TYPE || (exports.TRIP_TYPE = TRIP_TYPE = {}));
-var TripSchema = new mongoose_1.Schema({
+var JOB_DAY_STATUS;
+(function (JOB_DAY_STATUS) {
+    JOB_DAY_STATUS["STARTED"] = "STARTED";
+    JOB_DAY_STATUS["ARRIVED"] = "ARRIVED";
+    JOB_DAY_STATUS["CANCELED"] = "CANCELED";
+    JOB_DAY_STATUS["CONFIRMED"] = "CONFIRMED";
+    JOB_DAY_STATUS["COMPLETED"] = "COMPLETED";
+})(JOB_DAY_STATUS || (exports.JOB_DAY_STATUS = JOB_DAY_STATUS = {}));
+var JOB_DAY_TYPE;
+(function (JOB_DAY_TYPE) {
+    JOB_DAY_TYPE["JOB_DAY"] = "JOB_DAY";
+    JOB_DAY_TYPE["SITE_VISIT"] = "SITE_VISIT";
+})(JOB_DAY_TYPE || (exports.JOB_DAY_TYPE = JOB_DAY_TYPE = {}));
+var JobDayShema = new mongoose_1.Schema({
     customer: {
         type: mongoose_1.Schema.Types.ObjectId,
         ref: 'customers',
@@ -33,13 +33,13 @@ var TripSchema = new mongoose_1.Schema({
     },
     status: {
         type: String,
-        enum: Object.values(TRIP_STATUS),
-        default: TRIP_STATUS.STARTED,
+        enum: Object.values(JOB_DAY_STATUS),
+        default: JOB_DAY_STATUS.STARTED,
     },
     type: {
         type: String,
-        enum: Object.values(TRIP_TYPE),
-        default: TRIP_TYPE.JOB_DAY,
+        enum: Object.values(JOB_DAY_TYPE),
+        default: JOB_DAY_TYPE.JOB_DAY,
     },
     verificationCode: {
         type: Number,
@@ -75,6 +75,6 @@ var TripSchema = new mongoose_1.Schema({
 }, {
     timestamps: true,
 });
-exports.TripSchema = TripSchema;
-var TripModel = (0, mongoose_1.model)("trips", TripSchema);
-exports.TripModel = TripModel;
+exports.JobDayShema = JobDayShema;
+var JobDayModel = (0, mongoose_1.model)("job_days", JobDayShema);
+exports.JobDayModel = JobDayModel;

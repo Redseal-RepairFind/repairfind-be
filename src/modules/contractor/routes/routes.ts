@@ -15,7 +15,7 @@ import { ContractorConversationController } from "../controllers/contractor_conv
 import { ContractorTransactionController } from "../controllers/contractor_transaction.controller";
 import { ContractorCallController } from "../controllers/contractor_call.controller";
 import { ContractorBookingController } from "../controllers/contractor_booking.controller";
-import { ContractorTripController } from "../controllers/contractor_trip.controller";
+import { ContractorJobDayController } from "../controllers/contractor_jobday.controller";
 
 const express = require("express");
 const router = express.Router();
@@ -198,9 +198,10 @@ router.post("/bookings/:bookingId/assign", checkContractorRole, ContractorBookin
 router.post("/bookings/:bookingId/cancel", checkContractorRole, ContractorBookingController.cancelBooking ); 
 
 
-// trips day
-router.post('/trips/start', checkContractorRole, ContractorTripController.startTrip)
-router.post('/trips/:tripId/arrive', checkContractorRole, ContractorTripController.confirmArrival)
+// jobdays day
+router.post('/jobdays/trip-start', checkContractorRole, ContractorJobDayController.startTrip)
+router.post('/jobdays/:jobDayId/trip-arrival', checkContractorRole, ContractorJobDayController.confirmArrival)
+router.post('/jobdays/:jobDayId/emergency', checkContractorRole, ContractorJobDayController.createJobEmergency)
 
 
 // Call
