@@ -144,7 +144,7 @@ CustomerSchema.set('toJSON', {
       delete ret.stripeCustomer;
     }
 
-    if (!ret.profilePhoto || !ret.profilePhoto.url) {
+     if (!ret.profilePhoto || !ret.profilePhoto.url) {
       ret.profilePhoto = {
         url: 'https://ipalas3bucket.s3.us-east-2.amazonaws.com/avatar.png'
       }

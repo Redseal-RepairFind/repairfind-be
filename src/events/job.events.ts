@@ -134,12 +134,12 @@ JobEvent.on('JOB_DAY_EMERGENCY', async function (payload: { jobEmergency: IJobEm
         //     JobModel.findById(payload.jobEmergency.job).exec()
         // ])
 
-        const customer = await CustomerModel.findById(payload.jobEmergency.customer) as ICustomer
-        const contractor = await ContractorModel.findById(payload.jobEmergency.contractor) as IContractor
+        const customer = await CustomerModel.findById(payload.jobEmergency.customer)
+        const contractor = await ContractorModel.findById(payload.jobEmergency.contractor)
         const job = await JobModel.findById(payload.jobEmergency.job) as IJob
 
 
-        if (job) {
+        if (job && contractor && customer) {
             if (payload.jobEmergency.triggeredBy == 'contractor') {
                 console.log('job emergency triggered by contractor')
                 if (customer) {
@@ -159,7 +159,7 @@ JobEvent.on('JOB_DAY_EMERGENCY', async function (payload: { jobEmergency: IJobEm
             SocketService.broadcastChannel('admin_alerts', 'NEW_JOB_EMERGENCY', {
                 type: 'NEW_JOB_EMERGENCY',
                 message: 'A new Job emergenc has been reported',
-                data: {emergency: payload.jobEmergency, job, customer, contractor}
+                data: {emergency: payload.jobEmergency, job, customer: customer.toJSON(), contractor: contractor.toJSON()}
             });
 
         }

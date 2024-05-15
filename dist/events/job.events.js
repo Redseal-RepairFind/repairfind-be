@@ -199,7 +199,7 @@ exports.JobEvent.on('JOB_DAY_EMERGENCY', function (payload) {
                     return [4 /*yield*/, job_model_1.JobModel.findById(payload.jobEmergency.job)];
                 case 3:
                     job = _a.sent();
-                    if (job) {
+                    if (job && contractor && customer) {
                         if (payload.jobEmergency.triggeredBy == 'contractor') {
                             console.log('job emergency triggered by contractor');
                             if (customer) {
@@ -218,7 +218,7 @@ exports.JobEvent.on('JOB_DAY_EMERGENCY', function (payload) {
                         socket_1.SocketService.broadcastChannel('admin_alerts', 'NEW_JOB_EMERGENCY', {
                             type: 'NEW_JOB_EMERGENCY',
                             message: 'A new Job emergenc has been reported',
-                            data: { emergency: payload.jobEmergency, job: job, customer: customer, contractor: contractor }
+                            data: { emergency: payload.jobEmergency, job: job, customer: customer.toJSON(), contractor: contractor.toJSON() }
                         });
                     }
                     return [3 /*break*/, 5];
