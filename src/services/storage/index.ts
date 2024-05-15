@@ -184,6 +184,7 @@ export async function transferFileToS3(url: any, key: any) {
 
 
 
+
 export async function transferFileToS3Sync(url: string, key: string): Promise<any> {
   
   return new Promise(async (resolve, reject) => {
@@ -244,3 +245,19 @@ export async function transferFileToS3Sync(url: string, key: string): Promise<an
     }
   });
 }
+
+
+// Function to delete an object from S3 bucket
+export const deleteObjectFromS3 = async (key: string) => {
+  try {
+      const params = {
+          Bucket: config.aws.s3BucketName,
+          Key: key
+      };
+      await s3.deleteObject(params).promise();
+      console.log(`Object with key '${key}' deleted successfully from S3 bucket.`);
+  } catch (error) {
+      console.error(`Error deleting object from S3 bucket: ${error}`);
+      throw error;
+  }
+};

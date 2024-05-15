@@ -381,11 +381,12 @@ class ProfileHandler extends Base {
         payload = { profilePhoto, phoneNumber, firstName, lastName, dateOfBirth }
       }
 
-      await ContractorModel.findOneAndUpdate(
+      const returnOriginal =await ContractorModel.findOneAndUpdate(
         { _id: contractorId },
         payload,
         { new: true }
       );
+
 
 
       account.onboarding = await account.getOnboarding()

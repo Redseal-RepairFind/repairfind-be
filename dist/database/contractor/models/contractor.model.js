@@ -432,5 +432,41 @@ ContractorSchema.set('toJSON', {
     },
     virtuals: true
 });
+// ["updateOne", "findByIdAndUpdate", "findOneAndUpdate"]
+ContractorSchema.pre('findOneAndUpdate', function (next) {
+    return __awaiter(this, void 0, void 0, function () {
+        var filterQuery, update, profilePhoto, documentBeforeUpdate, previousProfilePhoto, error_1;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 3, , 4]);
+                    filterQuery = this.getQuery();
+                    update = this.getUpdate();
+                    if (!(update && '$set' in update && typeof update.$set === 'object' && update.$set !== null)) return [3 /*break*/, 2];
+                    profilePhoto = update.profilePhoto;
+                    if (!profilePhoto) return [3 /*break*/, 2];
+                    return [4 /*yield*/, exports.ContractorModel.findOne(filterQuery).exec()];
+                case 1:
+                    documentBeforeUpdate = _a.sent();
+                    previousProfilePhoto = documentBeforeUpdate === null || documentBeforeUpdate === void 0 ? void 0 : documentBeforeUpdate.profilePhoto;
+                    if (previousProfilePhoto) {
+                        //use JOB here 
+                        // await deleteObjectFromS3(previousProfilePhoto.url as string)
+                    }
+                    console.log('Previous Profile Photo:', previousProfilePhoto);
+                    console.log('Updated Profile Photo:', profilePhoto);
+                    _a.label = 2;
+                case 2:
+                    next();
+                    return [3 /*break*/, 4];
+                case 3:
+                    error_1 = _a.sent();
+                    next(error_1); // Type assertion to Error
+                    return [3 /*break*/, 4];
+                case 4: return [2 /*return*/];
+            }
+        });
+    });
+});
 ContractorSchema.set('toObject', { virtuals: true });
 exports.ContractorModel = (0, mongoose_1.model)("contractors", ContractorSchema);

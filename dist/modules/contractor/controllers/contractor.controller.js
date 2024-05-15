@@ -392,7 +392,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     };
     ProfileHandler.prototype.updateAccount = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, contractor, contractorId, account, _a, firstName, lastName, companyName, profilePhoto, phoneNumber, dateOfBirth, payload, _b, err_5;
+            var req, res, contractor, contractorId, account, _a, firstName, lastName, companyName, profilePhoto, phoneNumber, dateOfBirth, payload, returnOriginal, _b, err_5;
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
@@ -422,7 +422,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         }
                         return [4 /*yield*/, contractor_model_1.ContractorModel.findOneAndUpdate({ _id: contractorId }, payload, { new: true })];
                     case 3:
-                        _c.sent();
+                        returnOriginal = _c.sent();
                         _b = account;
                         return [4 /*yield*/, account.getOnboarding()];
                     case 4:

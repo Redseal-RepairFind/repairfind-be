@@ -62,7 +62,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.transferFileToS3Sync = exports.transferFileToS3 = exports.s3FileUpload = exports.uploadToS3 = exports.diskUpload = exports.memoryUpload = void 0;
+exports.deleteObjectFromS3 = exports.transferFileToS3Sync = exports.transferFileToS3 = exports.s3FileUpload = exports.uploadToS3 = exports.diskUpload = exports.memoryUpload = void 0;
 var multer_1 = __importDefault(require("multer"));
 var client_s3_1 = require("@aws-sdk/client-s3");
 var config_1 = require("../../config");
@@ -331,3 +331,28 @@ function transferFileToS3Sync(url, key) {
     });
 }
 exports.transferFileToS3Sync = transferFileToS3Sync;
+// Function to delete an object from S3 bucket
+var deleteObjectFromS3 = function (key) { return __awaiter(void 0, void 0, void 0, function () {
+    var params, error_7;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                params = {
+                    Bucket: config_1.config.aws.s3BucketName,
+                    Key: key
+                };
+                return [4 /*yield*/, config_1.s3.deleteObject(params).promise()];
+            case 1:
+                _a.sent();
+                console.log("Object with key '".concat(key, "' deleted successfully from S3 bucket."));
+                return [3 /*break*/, 3];
+            case 2:
+                error_7 = _a.sent();
+                console.error("Error deleting object from S3 bucket: ".concat(error_7));
+                throw error_7;
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.deleteObjectFromS3 = deleteObjectFromS3;

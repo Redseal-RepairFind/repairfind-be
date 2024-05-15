@@ -1,13 +1,13 @@
-import { Schema, model, ObjectId } from "mongoose";
+import { Schema, model, ObjectId, FilterQuery } from "mongoose";
 import { COMPANY_STATUS, CONTRACTOR_TYPES, GST_STATUS, IContractor, IContractorCertnDetails, IContractorCompanyDetails, IContractorGstDetails } from "../interface/contractor.interface";
 import { contractorStatus } from "../../../constants/contractorStatus";
-import { config } from "../../../config";
 import ContractorQuizModel from "./contractor_quiz.model";
 import { StripeCustomerSchema } from "../../common/stripe_customer.schema";
 import { StripeAccountSchema } from "../../common/stripe_account.schema";
 import { StripePaymentMethodSchema } from "../../common/stripe_paymentmethod.schema";
 import QuestionModel, { IQuestion } from "../../admin/models/question.model";
 import { CertnService } from "../../../services";
+import { deleteObjectFromS3 } from "../../../services/storage";
 
 
 
@@ -424,6 +424,41 @@ ContractorSchema.set('toJSON', {
   },
   virtuals: true
 });
+
+
+
+
+// ["updateOne", "findByIdAndUpdate", "findOneAndUpdate"]
+
+ContractorSchema.pre('findOneAndUpdate', async function(next) {
+  try {
+      const filterQuery: FilterQuery<Document> = this.getQuery();
+      const update = this.getUpdate();
+      
+      if (update && '$set' in update && typeof update.$set === 'object' && update.$set !== null) {
+          const profilePhoto = update.profilePhoto;
+          
+          if (profilePhoto) {
+              const documentBeforeUpdate = await ContractorModel.findOne(filterQuery).exec();
+              const previousProfilePhoto = documentBeforeUpdate?.profilePhoto;
+
+              if (previousProfilePhoto) {
+                  //use JOB here 
+                // await deleteObjectFromS3(previousProfilePhoto.url as string)
+              }
+              console.log('Previous Profile Photo:', previousProfilePhoto);
+              console.log('Updated Profile Photo:', profilePhoto);
+          }
+      }
+      
+      next();
+  } catch (error) {
+      next(error as Error); // Type assertion to Error
+  }
+});
+
+
+
 
 ContractorSchema.set('toObject', { virtuals: true });
 

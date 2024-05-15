@@ -166,7 +166,7 @@ export const getSingleBooking = async (req: any, res: Response, next: NextFuncti
         const contractorId = req.contractor.id
         const bookingId = req.params.bookingId;
 
-        const job = await JobModel.findOne({ contractor: contractorId, _id: bookingId, status: JOB_STATUS.BOOKED }).populate(['contractor', 'contract']);
+        const job = await JobModel.findOne({ contractor: contractorId, _id: bookingId, status: JOB_STATUS.BOOKED }).populate(['contractor', 'contract', 'customer']);
 
         // Check if the job exists
         if (!job) {
@@ -411,7 +411,7 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
 
         // emit job cancelled event 
         // inside the event take actions such as refund etc
-        JobEvent.emit('JOB_CANCELED', job, contractor)
+        JobEvent.emit('JOB_CANCELED', {job, canceledBy: 'contractor'})
         await job.save();
 
         res.json({ success: true, message: 'Booking canceled successfully', data: job });

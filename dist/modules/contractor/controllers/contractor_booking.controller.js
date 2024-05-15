@@ -206,7 +206,7 @@ var getSingleBooking = function (req, res, next) { return __awaiter(void 0, void
                 _a.trys.push([0, 2, , 3]);
                 contractorId = req.contractor.id;
                 bookingId = req.params.bookingId;
-                return [4 /*yield*/, job_model_1.JobModel.findOne({ contractor: contractorId, _id: bookingId, status: job_model_1.JOB_STATUS.BOOKED }).populate(['contractor', 'contract'])];
+                return [4 /*yield*/, job_model_1.JobModel.findOne({ contractor: contractorId, _id: bookingId, status: job_model_1.JOB_STATUS.BOOKED }).populate(['contractor', 'contract', 'customer'])];
             case 1:
                 job = _a.sent();
                 // Check if the job exists
@@ -440,7 +440,7 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
                 });
                 // emit job cancelled event 
                 // inside the event take actions such as refund etc
-                events_1.JobEvent.emit('JOB_CANCELED', job, contractor);
+                events_1.JobEvent.emit('JOB_CANCELED', { job: job, canceledBy: 'contractor' });
                 return [4 /*yield*/, job.save()];
             case 3:
                 _a.sent();
