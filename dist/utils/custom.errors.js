@@ -19,14 +19,15 @@ exports.errorHandler = exports.InternalServerError = exports.NotFoundError = exp
 var logger_1 = require("./logger");
 var CustomError = /** @class */ (function (_super) {
     __extends(CustomError, _super);
-    function CustomError(message, code, name, error) {
+    function CustomError(message, code, type, error) {
         var _this = _super.call(this, message) || this;
         Object.setPrototypeOf(_this, CustomError.prototype);
         _this.code = code;
         _this.isOperational = true;
         _this.message = message;
-        _this.name = name || 'error';
+        _this.type = type || 'error';
         _this.error = error || new Error;
+        Error.captureStackTrace(_this, _this.constructor);
         return _this;
     }
     return CustomError;
@@ -86,6 +87,22 @@ function errorHandler(err, req, res, next) {
     var statusCode = err.code || 500;
     var errorMessage = err.message || 'Internal Server Error';
     // Send JSON response with error details
+    if (process.env.APN_ENV === "development") {
+        return res.status(statusCode).json({ success: false, message: errorMessage, error: err.error, stack: err.stack, });
+    }
+    else if (process.env.APN_ENV === "development") {
+        if (err.error.name === "CastError")
+            errorMessage = "Invalid ".concat(err.error.path, ": ").concat(JSON.stringify(err.error.value), ".");
+        if (err.error.code === 11000) {
+            var value = err.error.message.match(/(["'])(\\?.)*?\1/)[0];
+            errorMessage = "field value:".concat(value, " aleady exist. please use another");
+        }
+        if (err.name === "ValidationError") {
+            var errors = Object.values(err.error.errors).map(function (el) { return el.message; });
+            errorMessage = "Invalid input data. ".concat(errors.join(". "));
+        }
+        return res.status(statusCode).json({ success: false, message: errorMessage });
+    }
     return res.status(statusCode).json({ success: false, message: errorMessage });
 }
 exports.errorHandler = errorHandler;

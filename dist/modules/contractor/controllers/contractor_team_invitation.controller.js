@@ -79,83 +79,89 @@ var team_invitation_email_template_1 = require("../../../templates/contractorEma
 var services_1 = require("../../../services");
 // Controller method to invite a user to join a team
 var inviteToTeam = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, contractorId, role, contractorCompany, company, team, contractor, existingInvitation, htmlContent_1, htmlContent_2, newInvitation, htmlContent, error_1;
+    var errors, _a, contractorId, role, inviterCompanyId, inviterCompany, team, invitee_1, existingMemberInTeam, existingInvitation, htmlContent_1, htmlContent_2, newInvitation, htmlContent, error_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 13, , 14]);
+                _b.trys.push([0, 15, , 16]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation errors', errors: errors.array() })];
                 }
                 _a = req.body, contractorId = _a.contractorId, role = _a.role;
-                contractorCompany = req.contractor.id;
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorCompany)];
+                inviterCompanyId = req.contractor.id;
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(inviterCompanyId)];
             case 1:
-                company = _b.sent();
-                if (!company) {
-                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Company not found' })];
+                inviterCompany = _b.sent();
+                if (!inviterCompany) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Inviter company not found' })];
                 }
-                return [4 /*yield*/, contractor_team_model_1.default.findOne({ contractor: company.id })];
+                return [4 /*yield*/, contractor_team_model_1.default.findOne({ contractor: inviterCompany.id })];
             case 2:
                 team = _b.sent();
                 if (!!team) return [3 /*break*/, 4];
-                return [4 /*yield*/, contractor_team_model_1.default.create({ name: company.name, contractor: company.id, members: [] })];
+                return [4 /*yield*/, contractor_team_model_1.default.create({ name: inviterCompany.name, contractor: inviterCompany.id, members: [] })];
             case 3:
-                //@ts-ignore
                 team = _b.sent();
                 _b.label = 4;
             case 4: return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
             case 5:
-                contractor = _b.sent();
-                if (!contractor) {
-                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor not found' })];
+                invitee_1 = _b.sent();
+                if (!invitee_1) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Invitee contractor not found' })];
+                }
+                existingMemberInTeam = team.members.find(function (member) { return member.contractor.equals(invitee_1.id) && member.status === contractor_team_model_1.TeamMemberStatus.ACTIVE; });
+                if (existingMemberInTeam) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Invitee is already a member of a team' })];
                 }
                 return [4 /*yield*/, contractor_team_invitation_model_1.default.findOne({
-                        contractor: contractor.id,
+                        contractor: invitee_1.id,
                         team: team.id,
                         status: { $in: [contractor_team_invitation_model_1.TeamInvitationStatus.PENDING, contractor_team_invitation_model_1.TeamInvitationStatus.ACCEPTED, contractor_team_invitation_model_1.TeamInvitationStatus.REJECTED] }
                     })];
             case 6:
                 existingInvitation = _b.sent();
-                if (!existingInvitation) return [3 /*break*/, 11];
-                if (!(existingInvitation.status == contractor_team_invitation_model_1.TeamInvitationStatus.PENDING)) return [3 /*break*/, 8];
-                htmlContent_1 = (0, team_invitation_email_template_1.NewTeamInvitationEmail)(contractor.name, company.companyName);
-                return [4 /*yield*/, services_1.EmailService.send(contractor.email, 'Team Invitation Reminder', htmlContent_1)];
+                if (!existingInvitation) return [3 /*break*/, 12];
+                if (!(existingInvitation.status === contractor_team_invitation_model_1.TeamInvitationStatus.PENDING)) return [3 /*break*/, 8];
+                htmlContent_1 = (0, team_invitation_email_template_1.NewTeamInvitationEmail)(invitee_1.name, inviterCompany.companyName);
+                return [4 /*yield*/, services_1.EmailService.send(invitee_1.email, 'Team Invitation Reminder', htmlContent_1)];
             case 7:
                 _b.sent();
-                _b.label = 8;
+                return [2 /*return*/, res.status(400).json({ success: false, message: 'Invitee is already invited' })];
             case 8:
-                if (!(existingInvitation.status == contractor_team_invitation_model_1.TeamInvitationStatus.REJECTED)) return [3 /*break*/, 10];
+                if (!(existingInvitation.status === contractor_team_invitation_model_1.TeamInvitationStatus.REJECTED)) return [3 /*break*/, 11];
+                // Resend rejected invitation
                 existingInvitation.status = contractor_team_invitation_model_1.TeamInvitationStatus.PENDING;
                 existingInvitation.role = role;
-                existingInvitation.save();
-                htmlContent_2 = (0, team_invitation_email_template_1.NewTeamInvitationEmail)(contractor.name, company.companyName);
-                return [4 /*yield*/, services_1.EmailService.send(contractor.email, 'New Team Invitation', htmlContent_2)];
+                return [4 /*yield*/, existingInvitation.save()];
             case 9:
                 _b.sent();
-                _b.label = 10;
-            case 10: return [2 /*return*/, res.status(400).json({ success: false, message: 'Invitee is already invited' })];
-            case 11: return [4 /*yield*/, contractor_team_invitation_model_1.default.create({
-                    contractor: contractor.id,
+                htmlContent_2 = (0, team_invitation_email_template_1.NewTeamInvitationEmail)(invitee_1.name, inviterCompany.companyName);
+                return [4 /*yield*/, services_1.EmailService.send(invitee_1.email, 'New Team Invitation', htmlContent_2)];
+            case 10:
+                _b.sent();
+                return [2 /*return*/, res.status(400).json({ success: false, message: 'Invitee is already invited' })];
+            case 11: return [2 /*return*/, res.status(400).json({ success: false, message: 'Invitee is already invited' })];
+            case 12: return [4 /*yield*/, contractor_team_invitation_model_1.default.create({
+                    contractor: invitee_1.id,
                     team: team.id,
                     role: role,
                     status: contractor_team_invitation_model_1.TeamInvitationStatus.PENDING,
                 })];
-            case 12:
-                newInvitation = _b.sent();
-                htmlContent = (0, team_invitation_email_template_1.NewTeamInvitationEmail)(contractor.firstName, company.companyName);
-                services_1.EmailService.send(contractor.email, 'New Team Invitation', htmlContent)
-                    .then(function () { return console.log('Email sent successfully'); })
-                    .catch(function (error) { return console.error('Error sending email:', error); });
-                res.status(201).json({ success: true, message: 'Invitation sent successfully', data: newInvitation });
-                return [3 /*break*/, 14];
             case 13:
+                newInvitation = _b.sent();
+                htmlContent = (0, team_invitation_email_template_1.NewTeamInvitationEmail)(invitee_1.firstName, inviterCompany.companyName);
+                return [4 /*yield*/, services_1.EmailService.send(invitee_1.email, 'New Team Invitation', htmlContent)];
+            case 14:
+                _b.sent();
+                res.status(201).json({ success: true, message: 'Invitation sent successfully', data: newInvitation });
+                return [3 /*break*/, 16];
+            case 15:
                 error_1 = _b.sent();
                 console.error('Error inviting to team:', error_1);
                 res.status(500).json({ success: false, message: 'Internal Server Error' });
-                return [3 /*break*/, 14];
-            case 14: return [2 /*return*/];
+                return [3 /*break*/, 16];
+            case 16: return [2 /*return*/];
         }
     });
 }); };
@@ -168,7 +174,7 @@ var getInvitations = function (req, res) { return __awaiter(void 0, void 0, void
             case 0:
                 _a.trys.push([0, 3, , 4]);
                 contractor = req.contractor.id;
-                return [4 /*yield*/, contractor_team_invitation_model_1.default.find({ contractor: contractor }).populate([
+                return [4 /*yield*/, contractor_team_invitation_model_1.default.find({ contractor: contractor, status: contractor_team_invitation_model_1.TeamInvitationStatus.PENDING }).populate([
                         { path: 'contractor' },
                         { path: 'team' },
                     ]).exec()];
@@ -224,15 +230,15 @@ exports.getInvitations = getInvitations;
 // Controller method to accept an invitation
 // Controller method to accept an invitation
 var acceptInvitation = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var invitationId, invitation_1, team, existingMemberIndex, update, error_3;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var invitationId, invitation_1, team, existingMemberIndex, update, _a, _b, _c, error_3;
+    return __generator(this, function (_d) {
+        switch (_d.label) {
             case 0:
-                _a.trys.push([0, 4, , 5]);
+                _d.trys.push([0, 5, , 6]);
                 invitationId = req.params.invitationId;
                 return [4 /*yield*/, contractor_team_invitation_model_1.default.findById(invitationId)];
             case 1:
-                invitation_1 = _a.sent();
+                invitation_1 = _d.sent();
                 if (!invitation_1) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Invitation not found' })];
                 }
@@ -246,7 +252,7 @@ var acceptInvitation = function (req, res) { return __awaiter(void 0, void 0, vo
                 invitation_1.status = contractor_team_invitation_model_1.TeamInvitationStatus.ACCEPTED;
                 return [4 /*yield*/, contractor_team_model_1.default.findById(invitation_1.team)];
             case 2:
-                team = _a.sent();
+                team = _d.sent();
                 if (!team) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Team not found' })];
                 }
@@ -265,26 +271,30 @@ var acceptInvitation = function (req, res) { return __awaiter(void 0, void 0, vo
                     // Update the existing member in the array
                     team.members[existingMemberIndex] = __assign(__assign({}, team.members[existingMemberIndex]), update);
                 }
-                // Save changes to the team and the invitation
-                return [4 /*yield*/, Promise.all([team.save(), invitation_1.save()])];
-            case 3:
-                // Save changes to the team and the invitation
-                _a.sent();
-                res.json({ success: true, message: 'Invitation accepted successfully', data: invitation_1 });
-                return [3 /*break*/, 5];
+                _b = (_a = Promise).all;
+                _c = [team.save()];
+                return [4 /*yield*/, invitation_1.deleteOne()];
+            case 3: 
+            // Save changes to the team and the invitation
+            return [4 /*yield*/, _b.apply(_a, [_c.concat([_d.sent()])])];
             case 4:
-                error_3 = _a.sent();
+                // Save changes to the team and the invitation
+                _d.sent();
+                res.json({ success: true, message: 'Invitation accepted successfully', data: invitation_1 });
+                return [3 /*break*/, 6];
+            case 5:
+                error_3 = _d.sent();
                 console.error('Error accepting invitation:', error_3);
                 res.status(500).json({ success: false, message: 'Internal Server Error' });
-                return [3 /*break*/, 5];
-            case 5: return [2 /*return*/];
+                return [3 /*break*/, 6];
+            case 6: return [2 /*return*/];
         }
     });
 }); };
 exports.acceptInvitation = acceptInvitation;
 // Controller method to reject an invitation
 var rejectInvitation = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var invitationId, rejectedInvitation, error_4;
+    var invitationId, invitation, error_4;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -292,13 +302,20 @@ var rejectInvitation = function (req, res) { return __awaiter(void 0, void 0, vo
                 invitationId = req.params.invitationId;
                 return [4 /*yield*/, contractor_team_invitation_model_1.default.findById(invitationId)];
             case 1:
-                rejectedInvitation = _a.sent();
-                if (!rejectedInvitation) {
+                invitation = _a.sent();
+                if (!invitation) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Invitation not found' })];
                 }
-                rejectedInvitation.status = contractor_team_invitation_model_1.TeamInvitationStatus.REJECTED;
-                rejectedInvitation.save();
-                res.json({ success: true, message: 'Invitation rejected successfully', data: rejectedInvitation });
+                if (invitation.status === contractor_team_invitation_model_1.TeamInvitationStatus.ACCEPTED) {
+                    // Optionally return a message here if the invitation is already accepted
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Invitation is already accepted' })];
+                }
+                if (invitation.status === contractor_team_invitation_model_1.TeamInvitationStatus.REJECTED) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Invitation is already rejected' })];
+                }
+                invitation.status = contractor_team_invitation_model_1.TeamInvitationStatus.REJECTED;
+                invitation.deleteOne();
+                res.json({ success: true, message: 'Invitation rejected successfully', data: invitation });
                 return [3 /*break*/, 3];
             case 2:
                 error_4 = _a.sent();

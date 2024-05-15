@@ -1,12 +1,14 @@
 
 
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import ContractorTeamModel, { IContractorTeam } from '../../../database/contractor/models/contractor_team.model';
 import { ContractorModel } from '../../../database/contractor/models/contractor.model';
 import { validationResult } from 'express-validator';
 import { EmailService } from '../../../services';
 import { NewTeamInvitationEmail } from '../../../templates/contractorEmail/team_invitation_email.template';
 import { IContractor } from '../../../database/contractor/interface/contractor.interface';
+import { InternalServerError } from '../../../utils/custom.errors';
+import { RemovedFromTeamEmail } from '../../../templates/contractorEmail/team_removal_email.template';
 
 
 
@@ -34,7 +36,7 @@ export const getTeam = async (req: any, res: Response) => {
         if (!companyTeam) {
             companyTeam = await ContractorTeamModel.create({
                 contractor: contractorId,
-                name: contractor.firstName
+                name: contractor.name
             });
         }
 
@@ -44,6 +46,7 @@ export const getTeam = async (req: any, res: Response) => {
             data: {
                 id: companyTeam.id,
                 name: companyTeam.name,
+                profilePhoto: contractor.profilePhoto.url,
                 members: companyTeam.members.map((member: any) => ({
                     id: member.contractor.id,
                     firstName: member.contractor.firstName, // deprecate
@@ -164,18 +167,26 @@ export const getTeamMemberships = async (req: any, res: Response) => {
         const formattedTeams = await Promise.all(teams.map(async (team: IContractorTeam) => {
             const userMembership = team.members.find(member => String(member.contractor) === userId);
             const contractor = <IContractor>await ContractorModel.findById(team.contractor);
+            const contractorMember = <IContractor>await ContractorModel.findById(userMembership?.contractor);
 
             // Extract contractor details
             const formattedContractor = {
-                id: contractor._id,
-                name: contractor.name,
+                id: contractorMember._id,
+                name: contractorMember.name,
+                email: contractorMember.email,
+                profilePhoto: contractorMember.profilePhoto,
+            };
+
+            const formattedTeam = {
+                id: team._id,
+                name: team.name,
                 email: contractor.email,
                 profilePhoto: contractor.profilePhoto,
             };
 
             return {
-                id: team._id,
-                team: team.name,
+                // id: team._id,
+                team: formattedTeam,
                 contractor: formattedContractor,
                 role: userMembership?.role || 'Member',
                 status: userMembership?.status || 'ACTIVE', // Assuming default status is ACTIVE
@@ -223,10 +234,58 @@ export const leaveTeam = async (req: any, res: Response) => {
 };
 
 
+export const removeMemberFromTeam = async (req: any, res: Response, next: NextFunction) => {
+    try {
+        const contractorId = req.contractor.id;
+        const memberId = req.body.memberId;
+        const teamId = req.params.teamId;
+
+        // Find the team
+        const team = await ContractorTeamModel.findById(teamId);
+        if (!team) {
+            return res.status(404).json({ success: false, message: 'Team not found' });
+        }
+
+        // Check if the requester is the owner of the team
+        if (team.contractor.toString() !== contractorId) {
+            return res.status(403).json({ success: false, message: 'You are not authorized to remove members from this team' });
+        }
+
+        // Find the member in the team's members array
+        const member = team.members.find(member => member.contractor.equals(memberId));
+        if (!member) {
+            return res.status(404).json({ success: false, message: 'Member not found in the team' });
+        }
+
+        //TODO: Make some checks to ensure member is not assigned to any active job
+
+        // Send email notification to the removed member
+        const removedContractor = await ContractorModel.findById(memberId);
+        if (removedContractor) {
+            const htmlContent = RemovedFromTeamEmail(removedContractor.name, team.name);
+            await EmailService.send(removedContractor.email, 'Removed from Team', htmlContent);
+        }
+
+        // Remove the member from the team
+        team.members = team.members.filter(member => !member.contractor.equals(memberId));
+
+        // Save the updated team
+        await team.save();
+
+        res.json({ success: true, message: 'Member successfully removed from the team' });
+    } catch (error: any) {
+        next(new InternalServerError('An error occurred removing team member', error));
+    }
+};
+
+
+
+
 export const TeamController = {
     getTeam,
     searchContractorsNotInTeam,
     getTeamMemberships,
-    leaveTeam
+    leaveTeam,
+    removeMemberFromTeam
 }
 

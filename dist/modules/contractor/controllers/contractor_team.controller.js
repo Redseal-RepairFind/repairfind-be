@@ -39,9 +39,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TeamController = exports.leaveTeam = exports.getTeamMemberships = exports.getInvitations = exports.searchContractorsNotInTeam = exports.getTeam = void 0;
+exports.TeamController = exports.removeMemberFromTeam = exports.leaveTeam = exports.getTeamMemberships = exports.getInvitations = exports.searchContractorsNotInTeam = exports.getTeam = void 0;
 var contractor_team_model_1 = __importDefault(require("../../../database/contractor/models/contractor_team.model"));
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
+var services_1 = require("../../../services");
+var custom_errors_1 = require("../../../utils/custom.errors");
+var team_removal_email_template_1 = require("../../../templates/contractorEmail/team_removal_email.template");
 var getTeam = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var contractorId, contractor, companyTeam, error_1;
     return __generator(this, function (_a) {
@@ -68,7 +71,7 @@ var getTeam = function (req, res) { return __awaiter(void 0, void 0, void 0, fun
                 if (!!companyTeam) return [3 /*break*/, 4];
                 return [4 /*yield*/, contractor_team_model_1.default.create({
                         contractor: contractorId,
-                        name: contractor.firstName
+                        name: contractor.name
                     })];
             case 3:
                 companyTeam = _a.sent();
@@ -80,6 +83,7 @@ var getTeam = function (req, res) { return __awaiter(void 0, void 0, void 0, fun
                     data: {
                         id: companyTeam.id,
                         name: companyTeam.name,
+                        profilePhoto: contractor.profilePhoto.url,
                         members: companyTeam.members.map(function (member) { return ({
                             id: member.contractor.id,
                             firstName: member.contractor.firstName, // deprecate
@@ -207,7 +211,7 @@ var getTeamMemberships = function (req, res) { return __awaiter(void 0, void 0, 
             case 1:
                 teams = _a.sent();
                 return [4 /*yield*/, Promise.all(teams.map(function (team) { return __awaiter(void 0, void 0, void 0, function () {
-                        var userMembership, contractor, formattedContractor;
+                        var userMembership, contractor, contractorMember, formattedContractor, formattedTeam;
                         return __generator(this, function (_a) {
                             switch (_a.label) {
                                 case 0:
@@ -215,15 +219,24 @@ var getTeamMemberships = function (req, res) { return __awaiter(void 0, void 0, 
                                     return [4 /*yield*/, contractor_model_1.ContractorModel.findById(team.contractor)];
                                 case 1:
                                     contractor = _a.sent();
+                                    return [4 /*yield*/, contractor_model_1.ContractorModel.findById(userMembership === null || userMembership === void 0 ? void 0 : userMembership.contractor)];
+                                case 2:
+                                    contractorMember = _a.sent();
                                     formattedContractor = {
-                                        id: contractor._id,
-                                        name: contractor.name,
+                                        id: contractorMember._id,
+                                        name: contractorMember.name,
+                                        email: contractorMember.email,
+                                        profilePhoto: contractorMember.profilePhoto,
+                                    };
+                                    formattedTeam = {
+                                        id: team._id,
+                                        name: team.name,
                                         email: contractor.email,
                                         profilePhoto: contractor.profilePhoto,
                                     };
                                     return [2 /*return*/, {
-                                            id: team._id,
-                                            team: team.name,
+                                            // id: team._id,
+                                            team: formattedTeam,
                                             contractor: formattedContractor,
                                             role: (userMembership === null || userMembership === void 0 ? void 0 : userMembership.role) || 'Member',
                                             status: (userMembership === null || userMembership === void 0 ? void 0 : userMembership.status) || 'ACTIVE', // Assuming default status is ACTIVE
@@ -283,9 +296,61 @@ var leaveTeam = function (req, res) { return __awaiter(void 0, void 0, void 0, f
     });
 }); };
 exports.leaveTeam = leaveTeam;
+var removeMemberFromTeam = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var contractorId, memberId_1, teamId, team, member, removedContractor, htmlContent, error_6;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 6, , 7]);
+                contractorId = req.contractor.id;
+                memberId_1 = req.body.memberId;
+                teamId = req.params.teamId;
+                return [4 /*yield*/, contractor_team_model_1.default.findById(teamId)];
+            case 1:
+                team = _a.sent();
+                if (!team) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Team not found' })];
+                }
+                // Check if the requester is the owner of the team
+                if (team.contractor.toString() !== contractorId) {
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'You are not authorized to remove members from this team' })];
+                }
+                member = team.members.find(function (member) { return member.contractor.equals(memberId_1); });
+                if (!member) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Member not found in the team' })];
+                }
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(memberId_1)];
+            case 2:
+                removedContractor = _a.sent();
+                if (!removedContractor) return [3 /*break*/, 4];
+                htmlContent = (0, team_removal_email_template_1.RemovedFromTeamEmail)(removedContractor.name, team.name);
+                return [4 /*yield*/, services_1.EmailService.send(removedContractor.email, 'Removed from Team', htmlContent)];
+            case 3:
+                _a.sent();
+                _a.label = 4;
+            case 4:
+                // Remove the member from the team
+                team.members = team.members.filter(function (member) { return !member.contractor.equals(memberId_1); });
+                // Save the updated team
+                return [4 /*yield*/, team.save()];
+            case 5:
+                // Save the updated team
+                _a.sent();
+                res.json({ success: true, message: 'Member successfully removed from the team' });
+                return [3 /*break*/, 7];
+            case 6:
+                error_6 = _a.sent();
+                next(new custom_errors_1.InternalServerError('An error occurred removing team member', error_6));
+                return [3 /*break*/, 7];
+            case 7: return [2 /*return*/];
+        }
+    });
+}); };
+exports.removeMemberFromTeam = removeMemberFromTeam;
 exports.TeamController = {
     getTeam: exports.getTeam,
     searchContractorsNotInTeam: exports.searchContractorsNotInTeam,
     getTeamMemberships: exports.getTeamMemberships,
-    leaveTeam: exports.leaveTeam
+    leaveTeam: exports.leaveTeam,
+    removeMemberFromTeam: exports.removeMemberFromTeam
 };

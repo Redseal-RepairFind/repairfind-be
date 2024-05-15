@@ -117,6 +117,7 @@ router.get("/teams/search-contractors", checkContractorRole, TeamController.sear
 
 router.get("/teams/memberships", checkContractorRole, TeamController.getTeamMemberships); 
 router.delete("/teams/:teamId/leave", checkContractorRole, TeamController.leaveTeam); 
+router.delete("/teams/:teamId/remove-member", checkContractorRole, TeamController.removeMemberFromTeam); 
 
 // Define routes for managing team invitations
 router.post("/teams/invitations", checkContractorRole, TeamInvitationController.inviteToTeam);
