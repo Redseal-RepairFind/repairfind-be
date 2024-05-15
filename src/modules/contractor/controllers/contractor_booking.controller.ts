@@ -396,7 +396,7 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
 
         // Check if the job is already canceled
         if (job.status === JOB_STATUS.CANCELED) {
-            // return res.status(400).json({ success: false, message: 'The booking is already canceled' });
+            return res.status(400).json({ success: false, message: 'The booking is already canceled' });
         }
 
         // Update the job status to canceled
@@ -405,7 +405,7 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
         job.jobHistory.push({
             eventType: 'JOB_CANCELED',
             timestamp: new Date(),
-            details: {reason }
+            details: {reason, canceledBy: 'customer' }
         });
 
 

@@ -429,14 +429,14 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
                 }
                 // Check if the job is already canceled
                 if (job.status === job_model_1.JOB_STATUS.CANCELED) {
-                    // return res.status(400).json({ success: false, message: 'The booking is already canceled' });
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'The booking is already canceled' })];
                 }
                 // Update the job status to canceled
                 job.status = job_model_1.JOB_STATUS.CANCELED;
                 job.jobHistory.push({
                     eventType: 'JOB_CANCELED',
                     timestamp: new Date(),
-                    details: { reason: reason }
+                    details: { reason: reason, canceledBy: 'customer' }
                 });
                 // emit job cancelled event 
                 // inside the event take actions such as refund etc

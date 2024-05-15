@@ -2,7 +2,7 @@ import { IJob } from "../../database/common/job.model";
 import { IContractor } from "../../database/contractor/interface/contractor.interface";
 import { ICustomer } from "../../database/customer/interface/customer.interface";
 
-export const JobCanceledEmailTemplate = (name: string, canceledBy: string, cancelledByName: string,  job: IJob) => `
+export const JobCanceledEmailTemplate = (payload: {name: string, canceledBy: string,  job: IJob}) => `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -55,10 +55,10 @@ export const JobCanceledEmailTemplate = (name: string, canceledBy: string, cance
     </tr>
     <tr>
       <td class="content">
-        <p>Dear ${name},</p>
-        <p>Your job on RepairFind has been canceled  by the ${canceledBy}:  ${cancelledByName}.</p>
-        <p><strong>Date & Time of Job:</strong> ${job.date} </p>
-        <p><strong>Job Description:</strong> ${job.description} </p>
+        <p>Dear ${payload.name},</p>
+        <p>Your job on RepairFind has been canceled  by the ${payload.canceledBy}</p>
+        <p><strong>Date & Time of Job:</strong> ${payload.job.date} </p>
+        <p><strong>Job Description:</strong> ${payload.job.description} </p>
         <p>Login to our app to follow up </p>
         <p>If you have any questions or need further assistance, feel free to contact us.</p>
         <p>Best Regards,<br> The RepairFind Team</p>

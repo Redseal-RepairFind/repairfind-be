@@ -58,6 +58,7 @@ router.post("/jobs/:jobId/payment-capture", customerRoleChecker_middleware_1.che
 router.get("/bookings", customerRoleChecker_middleware_1.checkCustomerRole, customer_booking_controller_1.CustomerBookingController.getMyBookings);
 router.get("/bookings/history", customerRoleChecker_middleware_1.checkCustomerRole, customer_booking_controller_1.CustomerBookingController.getBookingHistory);
 router.get("/bookings/:bookingId", customerRoleChecker_middleware_1.checkCustomerRole, customer_booking_controller_1.CustomerBookingController.getSingleBooking);
+router.post("/bookings/:bookingId/cancel", customerRoleChecker_middleware_1.checkCustomerRole, customer_booking_controller_1.CustomerBookingController.cancelBooking);
 router.post("/bookings/:bookingId/reschedule", customerRoleChecker_middleware_1.checkCustomerRole, customer_booking_controller_1.CustomerBookingController.requestBookingReschedule);
 router.post("/bookings/:bookingId/reschedule/:action", customerRoleChecker_middleware_1.checkCustomerRole, customer_booking_controller_1.CustomerBookingController.acceptOrDeclineReschedule);
 // Transactions

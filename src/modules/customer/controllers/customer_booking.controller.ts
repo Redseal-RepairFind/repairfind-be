@@ -317,6 +317,59 @@ export const acceptOrDeclineReschedule = async (req: any, res: Response, next: N
     }
 };
 
+export const cancelBooking = async (req: any, res: Response, next: NextFunction) => {
+    try {
+        const customerId = req.customer.id;
+        const { bookingId } = req.params;
+        const { reason } = req.body;
+
+        // Find the job
+        const job = await JobModel.findById(bookingId);
+
+        const customer = await CustomerModel.findById(customerId);        
+    
+        // Check if the contractor exists
+        if (!customer) {
+            return res.status(404).json({ success: false, message: 'Customer not found' });
+        }
+
+
+        // Check if the job exists
+        if (!job) {
+            return res.status(404).json({ success: false, message: 'Job not found' });
+        }
+
+        // Check if the contractor is the owner of the job
+        if (job.customer.toString() !== customerId) {
+            return res.status(403).json({ success: false, message: 'You are not authorized to cancel this booking' });
+        }
+
+        // Check if the job is already canceled
+        if (job.status === JOB_STATUS.CANCELED) {
+            return res.status(400).json({ success: false, message: 'The booking is already canceled' });
+        }
+
+        // Update the job status to canceled
+        job.status = JOB_STATUS.CANCELED;
+
+        job.jobHistory.push({
+            eventType: 'JOB_CANCELED',
+            timestamp: new Date(),
+            details: {reason, canceledBy: 'customer' }
+        });
+
+
+        // emit job cancelled event 
+        // inside the event take actions such as refund etc
+        JobEvent.emit('JOB_CANCELED', {job, canceledBy: 'customer'})
+        await job.save();
+
+        res.json({ success: true, message: 'Booking canceled successfully', data: job });
+    } catch (error: any) {
+        return next(new BadRequestError('An error occurred', error));
+    }
+};
+
 // Helper function to find the previous accepted schedule date from job history
 const findPreviousAcceptedScheduleDate = (jobHistory: IJob['jobHistory']): Date | undefined => {
     for (let i = jobHistory.length - 1; i >= 0; i--) {
@@ -333,7 +386,8 @@ export const CustomerBookingController = {
     getBookingHistory,
     getSingleBooking,
     requestBookingReschedule,
-    acceptOrDeclineReschedule
+    acceptOrDeclineReschedule,
+    cancelBooking
 }
 
 

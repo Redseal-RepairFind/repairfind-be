@@ -89,27 +89,29 @@ JobEvent.on('NEW_JOB_LISTING', async function (payload) {
     }
 });
 
-JobEvent.on('JOB_CANCELED', async function (job: IJob, contractor: IContractor|null, customer: ICustomer|null) {
+JobEvent.on('JOB_CANCELED', async function (payload: {job: IJob, canceledBy: string}) {
     try {
         console.log('handling alert JOB_CANCELED event')
-        const customer = await CustomerModel.findById(job.customer) as ICustomer
-        if(contractor){
+        const customer = await CustomerModel.findById(payload.job.customer) as ICustomer
+        const contractor = await ContractorModel.findById(payload.job.contractor) as IContractor
+        
+        if(payload.canceledBy == 'contractor'){
             console.log('job cancelled by contractor')
 
             if(customer){
                 //send email to customer 
-                const html = JobCanceledEmailTemplate(customer.name, 'contractor', contractor.name,  job)
+                const html = JobCanceledEmailTemplate({name: customer.name,   canceledBy: 'contractor',   job:payload.job})
                 EmailService.send(customer.email, "Job Canceled", html)
             }
           
 
         }
-        if(customer){
+        if(payload.canceledBy == 'customer'){
             console.log('job cancelled by customer')
             
             if(contractor){
                 //send email to customer 
-                const html = JobCanceledEmailTemplate(contractor.name, 'customer', customer.name,  job)
+                const html = JobCanceledEmailTemplate({name: contractor.name,   canceledBy: 'customer',   job:payload.job})
                 EmailService.send(contractor.email, "Job Canceled", html)
             }
         }

@@ -143,37 +143,40 @@ exports.JobEvent.on('NEW_JOB_LISTING', function (payload) {
         });
     });
 });
-exports.JobEvent.on('JOB_CANCELED', function (job, contractor, customer) {
+exports.JobEvent.on('JOB_CANCELED', function (payload) {
     return __awaiter(this, void 0, void 0, function () {
-        var customer_1, html, html, error_3;
+        var customer, contractor, html, html, error_3;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    _a.trys.push([0, 2, , 3]);
+                    _a.trys.push([0, 3, , 4]);
                     console.log('handling alert JOB_CANCELED event');
-                    return [4 /*yield*/, customer_model_1.default.findById(job.customer)];
+                    return [4 /*yield*/, customer_model_1.default.findById(payload.job.customer)];
                 case 1:
-                    customer_1 = _a.sent();
-                    if (contractor) {
+                    customer = _a.sent();
+                    return [4 /*yield*/, contractor_model_1.ContractorModel.findById(payload.job.contractor)];
+                case 2:
+                    contractor = _a.sent();
+                    if (payload.canceledBy == 'contractor') {
                         console.log('job cancelled by contractor');
-                        if (customer_1) {
-                            html = (0, job_canceled_template_1.JobCanceledEmailTemplate)(customer_1.name, 'contractor', contractor.name, job);
-                            services_1.EmailService.send(customer_1.email, "Job Canceled", html);
+                        if (customer) {
+                            html = (0, job_canceled_template_1.JobCanceledEmailTemplate)({ name: customer.name, canceledBy: 'contractor', job: payload.job });
+                            services_1.EmailService.send(customer.email, "Job Canceled", html);
                         }
                     }
-                    if (customer_1) {
+                    if (payload.canceledBy == 'customer') {
                         console.log('job cancelled by customer');
                         if (contractor) {
-                            html = (0, job_canceled_template_1.JobCanceledEmailTemplate)(contractor.name, 'customer', customer_1.name, job);
+                            html = (0, job_canceled_template_1.JobCanceledEmailTemplate)({ name: contractor.name, canceledBy: 'customer', job: payload.job });
                             services_1.EmailService.send(contractor.email, "Job Canceled", html);
                         }
                     }
-                    return [3 /*break*/, 3];
-                case 2:
+                    return [3 /*break*/, 4];
+                case 3:
                     error_3 = _a.sent();
                     console.error("Error handling JOB_CANCELED event: ".concat(error_3));
-                    return [3 /*break*/, 3];
-                case 3: return [2 /*return*/];
+                    return [3 /*break*/, 4];
+                case 4: return [2 /*return*/];
             }
         });
     });
