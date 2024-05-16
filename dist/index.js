@@ -142,7 +142,6 @@ var MONGODB_URI = process.env.MONGODB_URI;
                 _a.trys.push([0, 3, , 4]);
                 return [4 /*yield*/, mongoose_1.default.connect(MONGODB_URI, {
                         useNewUrlParser: true,
-                        useUnifiedTopology: true
                     })];
             case 1:
                 _a.sent();
