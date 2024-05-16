@@ -36,6 +36,9 @@ class AuthHandler extends Base {
                 return res.status(401).json({ success: false, message: "Email exists already" });
             }
 
+            
+
+
             const otp = generateOTP();
             const createdTime = new Date();
             const emailOtp = {
@@ -44,28 +47,9 @@ class AuthHandler extends Base {
                 verified: false
             };
 
-            const html = htmlMailTemplate(otp, firstName ?? companyName, "We have received a request to verify your email");
-
-            let emailData = {
-                emailTo: email,
-                subject: "Email Verification",
-                html
-            };
-
-            await sendEmail(emailData);
-
-            const welcomeHtml = htmlContractorWelcomeTemplate(firstName);
-
-            let welcomeEmailData = {
-                emailTo: email,
-                subject: "Welcome",
-                html: welcomeHtml
-            };
-
-            await sendEmail(welcomeEmailData);
+           
 
             const hashedPassword = await bcrypt.hash(password, 10);
-
 
             const contractor = await ContractorModel.create({
                 email,
@@ -80,6 +64,25 @@ class AuthHandler extends Base {
                 companyName
             });
 
+            
+
+
+            const html = htmlMailTemplate(otp, firstName ?? companyName, "We have received a request to verify your email");
+            let emailData = {
+                emailTo: email,
+                subject: "Email Verification",
+                html
+            };
+
+            await sendEmail(emailData);
+            const welcomeHtml = htmlContractorWelcomeTemplate(firstName);
+            let welcomeEmailData = {
+                emailTo: email,
+                subject: "Welcome",
+                html: welcomeHtml
+            };
+
+            await sendEmail(welcomeEmailData);
 
             const adminNoti = new AdminNoficationModel({
                 title: "New Account Created",

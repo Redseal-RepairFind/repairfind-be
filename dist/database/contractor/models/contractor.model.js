@@ -48,6 +48,7 @@ var stripe_customer_schema_1 = require("../../common/stripe_customer.schema");
 var stripe_account_schema_1 = require("../../common/stripe_account.schema");
 var stripe_paymentmethod_schema_1 = require("../../common/stripe_paymentmethod.schema");
 var question_model_1 = __importDefault(require("../../admin/models/question.model"));
+var mongoose_delete_1 = __importDefault(require("mongoose-delete"));
 var GstDetailSchema = new mongoose_1.Schema({
     gstName: String,
     gstNumber: String,
@@ -191,7 +192,9 @@ var ContractorSchema = new mongoose_1.Schema({
     },
     updatedAt: {
         type: Date,
-        default: Date.now,
+    },
+    deletedAt: {
+        type: Date,
     },
     stripeCustomer: {
         type: stripe_customer_schema_1.StripeCustomerSchema,
@@ -468,5 +471,6 @@ ContractorSchema.pre('findOneAndUpdate', function (next) {
         });
     });
 });
+ContractorSchema.plugin(mongoose_delete_1.default, { deletedBy: true, overrideMethods: 'all' });
 ContractorSchema.set('toObject', { virtuals: true });
 exports.ContractorModel = (0, mongoose_1.model)("contractors", ContractorSchema);

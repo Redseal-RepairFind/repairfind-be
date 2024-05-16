@@ -98,6 +98,7 @@ var stripe_1 = require("../../../services/stripe");
 var contractor_devices_model_1 = __importDefault(require("../../../database/contractor/models/contractor_devices.model"));
 var contractor_interface_1 = require("../../../database/contractor/interface/contractor.interface");
 var custom_errors_1 = require("../../../utils/custom.errors");
+var job_model_1 = require("../../../database/common/job.model");
 var ProfileHandler = /** @class */ (function (_super) {
     __extends(ProfileHandler, _super);
     function ProfileHandler() {
@@ -1072,6 +1073,51 @@ var ProfileHandler = /** @class */ (function (_super) {
             });
         });
     };
+    ProfileHandler.prototype.deleteAccount = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var req, res, contractor, contractorId, account, bookedAndDisputedJobs, err_12;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        req = this.req;
+                        res = this.res;
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 6, , 7]);
+                        contractor = req.contractor;
+                        contractorId = contractor.id;
+                        return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: contractorId })];
+                    case 2:
+                        account = _a.sent();
+                        if (!account) {
+                            return [2 /*return*/, res.status(404).json({ success: false, message: 'Account not found' })];
+                        }
+                        return [4 /*yield*/, job_model_1.JobModel.find({ contractor: contractorId, status: { $in: [job_model_1.JOB_STATUS.BOOKED, job_model_1.JOB_STATUS.DISPUTED] } })];
+                    case 3:
+                        bookedAndDisputedJobs = _a.sent();
+                        if (bookedAndDisputedJobs.length > 0) {
+                            return [2 /*return*/, res.status(400).json({ success: false, message: 'You have an active Job, acount cannot be deleted' })];
+                        }
+                        return [4 /*yield*/, contractor_model_1.ContractorModel.deleteById(contractorId)];
+                    case 4:
+                        _a.sent();
+                        account.email = "".concat(account.email, ":").concat(account.id);
+                        account.deletedAt = new Date();
+                        return [4 /*yield*/, account.save()];
+                    case 5:
+                        _a.sent();
+                        res.json({ success: true, message: 'Account deleted successfully' });
+                        return [3 /*break*/, 7];
+                    case 6:
+                        err_12 = _a.sent();
+                        console.log('error', err_12);
+                        res.status(500).json({ success: false, message: err_12.message });
+                        return [3 /*break*/, 7];
+                    case 7: return [2 /*return*/];
+                }
+            });
+        });
+    };
     __decorate([
         (0, decorators_abstract_1.handleAsyncError)(),
         __metadata("design:type", Function),
@@ -1162,6 +1208,12 @@ var ProfileHandler = /** @class */ (function (_super) {
         __metadata("design:paramtypes", []),
         __metadata("design:returntype", Promise)
     ], ProfileHandler.prototype, "myDevices", null);
+    __decorate([
+        (0, decorators_abstract_1.handleAsyncError)(),
+        __metadata("design:type", Function),
+        __metadata("design:paramtypes", []),
+        __metadata("design:returntype", Promise)
+    ], ProfileHandler.prototype, "deleteAccount", null);
     return ProfileHandler;
 }(base_abstract_1.Base));
 var ContractorController = function () {

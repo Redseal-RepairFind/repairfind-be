@@ -69,6 +69,8 @@ export interface ICustomer extends Document {
   provider: CustomerAuthProviders
   createdAt: Date;
   updatedAt: Date;
+  deletedAt: Date;
+  
 }
 
 

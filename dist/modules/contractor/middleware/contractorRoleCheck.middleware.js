@@ -51,7 +51,7 @@ var checkContractorRole = function (req, res, next) { return __awaiter(void 0, v
                 authHeader = req.headers.authorization;
                 token = authHeader && authHeader.split(" ")[1];
                 if (!token) {
-                    return [2 /*return*/, res.status(401).json({ message: "Authorization token missing" })];
+                    return [2 /*return*/, res.status(401).json({ success: false, message: "Authorization token missing" })];
                 }
                 _a.label = 1;
             case 1:
@@ -65,7 +65,7 @@ var checkContractorRole = function (req, res, next) { return __awaiter(void 0, v
                 if (!contractor) {
                     return [2 /*return*/, res
                             .status(403)
-                            .json({ message: "Access denied. contractor role required." })];
+                            .json({ success: false, message: "Access denied. contractor role required." })];
                 }
                 // Add the payload to the request object for later use
                 req.contractor = contractor;
@@ -75,7 +75,7 @@ var checkContractorRole = function (req, res, next) { return __awaiter(void 0, v
             case 3:
                 err_1 = _a.sent();
                 console.error(err_1);
-                return [2 /*return*/, res.status(401).json({ message: "Invalid authorization token" })];
+                return [2 /*return*/, res.status(401).json({ success: false, message: "Invalid authorization token" })];
             case 4: return [2 /*return*/];
         }
     });

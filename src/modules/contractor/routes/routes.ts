@@ -73,6 +73,10 @@ router.patch("/me", checkContractorRole,  ContractorHttpRequest.CreateProfileReq
     ContractorController(req, res, next).updateAccount();
 });
 
+router.delete("/me", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
+    ContractorController(req, res, next).deleteAccount();
+});
+
 router.post("/me/change-password", checkContractorRole, ContractorHttpRequest.PasswordChangeRequest, (req: Request, res: Response, next: NextFunction) => {
     ContractorController(req, res, next).changePassword();
 });

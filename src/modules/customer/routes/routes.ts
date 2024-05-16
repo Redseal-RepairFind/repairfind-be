@@ -38,6 +38,7 @@ router.get("/me", checkCustomerRole, CustomerController.getAccount ); //
 router.post("/me/change-password", checkCustomerRole, CustomerHttpRequest.changePasswordParams,  CustomerController.changePassword ); 
 router.post("/me/devices", checkCustomerRole, CustomerHttpRequest.UpdateOrDeviceParams,  CustomerController.updateOrCreateDevice ); 
 router.get("/me/devices", checkCustomerRole,  CustomerController.myDevices ); 
+router.delete("/me", checkCustomerRole,  CustomerController.deleteAccount ); 
 
 
 

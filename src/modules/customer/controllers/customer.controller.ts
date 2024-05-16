@@ -8,6 +8,7 @@ import { transferFileToS3 } from "../../../services/storage";
 import { StripeService } from "../../../services/stripe";
 import { castPayloadToDTO } from "../../../utils/interface_dto.util";
 import { IStripeCustomer } from "../../../database/common/stripe_customer.interface";
+import { JOB_STATUS, JobModel } from "../../../database/common/job.model";
 
 
 export const updateAccount = async (
@@ -246,11 +247,48 @@ export const updateOrCreateDevice = async (
 
 }
 
+export const deleteAccount = async (
+  req: any,
+  res: Response,
+) => {
+
+  try {
+    const customerId = req.customer.id;
+
+    const account = await CustomerModel.findOne({_id:customerId});
+    if (!account) {
+      return res.status(404).json({ success: false, message: 'Account not found' });
+    }
+
+    // perform checks here
+    const bookedAndDisputedJobs = await JobModel.find({customer: customerId, status: {$in: [JOB_STATUS.BOOKED, JOB_STATUS.DISPUTED ] }})
+    if(bookedAndDisputedJobs.length > 0){
+      return res.status(400).json({ success: false, message: 'You have an active Job, acount cannot be deleted' });
+    }
+
+    await CustomerModel.deleteById(customerId)
+
+    account.email = `${account.email}:${account.id}`
+    account.deletedAt = new Date()
+    await account.save()
+
+    
+    res.json({success: true, message: 'Account deleted successfully'});
+  } catch (err: any) {
+    console.log('error', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+
+}
+
+
+
 
 export const CustomerController = {
   changePassword,
   updateAccount,
   getAccount,
   updateOrCreateDevice,
-  myDevices
+  myDevices,
+  deleteAccount
 }

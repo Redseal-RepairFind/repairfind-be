@@ -123,7 +123,8 @@ var getSingleTransaction = function (req, res, next) { return __awaiter(void 0, 
                 _b.label = 1;
             case 1:
                 _b.trys.push([1, 5, , 6]);
-                return [4 /*yield*/, transaction_model_1.default.findById(transactionId).populate([{ path: 'fromUser' }, { path: 'toUser' }])];
+                return [4 /*yield*/, transaction_model_1.default.findById(transactionId)
+                        .populate([{ path: 'fromUser' }, { path: 'toUser' }])];
             case 2:
                 transaction = _b.sent();
                 if (!transaction) return [3 /*break*/, 4];

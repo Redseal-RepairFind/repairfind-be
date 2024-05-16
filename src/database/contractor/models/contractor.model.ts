@@ -8,6 +8,7 @@ import { StripePaymentMethodSchema } from "../../common/stripe_paymentmethod.sch
 import QuestionModel, { IQuestion } from "../../admin/models/question.model";
 import { CertnService } from "../../../services";
 import { deleteObjectFromS3 } from "../../../services/storage";
+import  MongooseDelete, { SoftDeleteModel } from 'mongoose-delete';
 
 
 
@@ -177,7 +178,9 @@ const ContractorSchema = new Schema<IContractor>(
     },
     updatedAt: {
       type: Date,
-      default: Date.now,
+    },
+    deletedAt: {
+      type: Date,
     },
 
     stripeCustomer: {
@@ -458,8 +461,11 @@ ContractorSchema.pre('findOneAndUpdate', async function(next) {
 });
 
 
+ContractorSchema.plugin(MongooseDelete, { deletedBy: true , overrideMethods: 'all'});
 
 
 ContractorSchema.set('toObject', { virtuals: true });
 
-export const ContractorModel = model<IContractor>("contractors", ContractorSchema);
+
+
+export const ContractorModel = model<IContractor, SoftDeleteModel<IContractor>>("contractors", ContractorSchema);

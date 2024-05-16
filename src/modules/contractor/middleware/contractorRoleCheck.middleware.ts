@@ -24,7 +24,7 @@ export const checkContractorRole = async (
   const token = authHeader && authHeader.split(" ")[1];
 
   if (!token) {
-    return res.status(401).json({ message: "Authorization token missing" });
+    return res.status(401).json({success:false, message: "Authorization token missing" });
   }
 
   try {
@@ -38,7 +38,7 @@ export const checkContractorRole = async (
     if (!contractor) {
       return res
         .status(403)
-        .json({ message: "Access denied. contractor role required." });
+        .json({success:false, message: "Access denied. contractor role required." });
     }
     // Add the payload to the request object for later use
     req.contractor = contractor;
@@ -48,6 +48,6 @@ export const checkContractorRole = async (
     next();
   } catch (err) {
     console.error(err);
-    return res.status(401).json({ message: "Invalid authorization token" });
+    return res.status(401).json({success:false, message: "Invalid authorization token" });
   }
 }

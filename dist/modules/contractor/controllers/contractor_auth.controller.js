@@ -103,7 +103,7 @@ var AuthHandler = /** @class */ (function (_super) {
     }
     AuthHandler.prototype.signUp = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _a, email, password, firstName, dateOfBirth, lastName, phoneNumber, acceptTerms, accountType, companyName, errors, userEmailExists, otp, createdTime, emailOtp, html, emailData, welcomeHtml, welcomeEmailData, hashedPassword, contractor, adminNoti, err_1;
+            var req, res, _a, email, password, firstName, dateOfBirth, lastName, phoneNumber, acceptTerms, accountType, companyName, errors, userEmailExists, otp, createdTime, emailOtp, hashedPassword, contractor, html, emailData, welcomeHtml, welcomeEmailData, adminNoti, err_1;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -130,26 +130,8 @@ var AuthHandler = /** @class */ (function (_super) {
                             createdTime: createdTime,
                             verified: false
                         };
-                        html = (0, sendEmailTemplate_1.htmlMailTemplate)(otp, firstName !== null && firstName !== void 0 ? firstName : companyName, "We have received a request to verify your email");
-                        emailData = {
-                            emailTo: email,
-                            subject: "Email Verification",
-                            html: html
-                        };
-                        return [4 /*yield*/, (0, send_email_utility_1.sendEmail)(emailData)];
-                    case 3:
-                        _b.sent();
-                        welcomeHtml = (0, contractorWelcomeTemplate_1.htmlContractorWelcomeTemplate)(firstName);
-                        welcomeEmailData = {
-                            emailTo: email,
-                            subject: "Welcome",
-                            html: welcomeHtml
-                        };
-                        return [4 /*yield*/, (0, send_email_utility_1.sendEmail)(welcomeEmailData)];
-                    case 4:
-                        _b.sent();
                         return [4 /*yield*/, bcrypt_1.default.hash(password, 10)];
-                    case 5:
+                    case 3:
                         hashedPassword = _b.sent();
                         return [4 /*yield*/, contractor_model_1.ContractorModel.create({
                                 email: email,
@@ -163,8 +145,26 @@ var AuthHandler = /** @class */ (function (_super) {
                                 accountType: accountType,
                                 companyName: companyName
                             })];
-                    case 6:
+                    case 4:
                         contractor = _b.sent();
+                        html = (0, sendEmailTemplate_1.htmlMailTemplate)(otp, firstName !== null && firstName !== void 0 ? firstName : companyName, "We have received a request to verify your email");
+                        emailData = {
+                            emailTo: email,
+                            subject: "Email Verification",
+                            html: html
+                        };
+                        return [4 /*yield*/, (0, send_email_utility_1.sendEmail)(emailData)];
+                    case 5:
+                        _b.sent();
+                        welcomeHtml = (0, contractorWelcomeTemplate_1.htmlContractorWelcomeTemplate)(firstName);
+                        welcomeEmailData = {
+                            emailTo: email,
+                            subject: "Welcome",
+                            html: welcomeHtml
+                        };
+                        return [4 /*yield*/, (0, send_email_utility_1.sendEmail)(welcomeEmailData)];
+                    case 6:
+                        _b.sent();
                         adminNoti = new admin_notification_model_1.default({
                             title: "New Account Created",
                             message: "A contractor - ".concat(firstName, " just created an account."),

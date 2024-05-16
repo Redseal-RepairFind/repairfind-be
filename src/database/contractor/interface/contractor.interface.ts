@@ -145,6 +145,7 @@ export interface IContractor extends Document {
   certnDetails: IContractorCertnDetails
   createdAt: Date;
   updatedAt: Date;
+  deletedAt: Date;
   quiz: any;
   stripeAccountStatus: {
     details_submitted: boolean,

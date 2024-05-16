@@ -39,11 +39,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerController = exports.updateOrCreateDevice = exports.myDevices = exports.changePassword = exports.getAccount = exports.updateAccount = void 0;
+exports.CustomerController = exports.deleteAccount = exports.updateOrCreateDevice = exports.myDevices = exports.changePassword = exports.getAccount = exports.updateAccount = void 0;
 var express_validator_1 = require("express-validator");
 var bcrypt_1 = __importDefault(require("bcrypt"));
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var customer_devices_model_1 = __importDefault(require("../../../database/customer/models/customer_devices.model"));
+var job_model_1 = require("../../../database/common/job.model");
 var updateAccount = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, firstName, lastName, location_1, phoneNumber, profilePhoto, errors, customerId, customer, updatedCustomer, err_1;
     return __generator(this, function (_b) {
@@ -226,10 +227,50 @@ var updateOrCreateDevice = function (req, res) { return __awaiter(void 0, void 0
     });
 }); };
 exports.updateOrCreateDevice = updateOrCreateDevice;
+var deleteAccount = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var customerId, account, bookedAndDisputedJobs, err_3;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 5, , 6]);
+                customerId = req.customer.id;
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
+            case 1:
+                account = _a.sent();
+                if (!account) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Account not found' })];
+                }
+                return [4 /*yield*/, job_model_1.JobModel.find({ customer: customerId, status: { $in: [job_model_1.JOB_STATUS.BOOKED, job_model_1.JOB_STATUS.DISPUTED] } })];
+            case 2:
+                bookedAndDisputedJobs = _a.sent();
+                if (bookedAndDisputedJobs.length > 0) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'You have an active Job, acount cannot be deleted' })];
+                }
+                return [4 /*yield*/, customer_model_1.default.deleteById(customerId)];
+            case 3:
+                _a.sent();
+                account.email = "".concat(account.email, ":").concat(account.id);
+                account.deletedAt = new Date();
+                return [4 /*yield*/, account.save()];
+            case 4:
+                _a.sent();
+                res.json({ success: true, message: 'Account deleted successfully' });
+                return [3 /*break*/, 6];
+            case 5:
+                err_3 = _a.sent();
+                console.log('error', err_3);
+                res.status(500).json({ success: false, message: err_3.message });
+                return [3 /*break*/, 6];
+            case 6: return [2 /*return*/];
+        }
+    });
+}); };
+exports.deleteAccount = deleteAccount;
 exports.CustomerController = {
     changePassword: exports.changePassword,
     updateAccount: exports.updateAccount,
     getAccount: exports.getAccount,
     updateOrCreateDevice: exports.updateOrCreateDevice,
-    myDevices: exports.myDevices
+    myDevices: exports.myDevices,
+    deleteAccount: exports.deleteAccount
 };

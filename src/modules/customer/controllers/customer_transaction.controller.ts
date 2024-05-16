@@ -43,7 +43,7 @@ export const getSingleTransaction = async (req: any, res: Response, next: NextFu
 
     try {
 
-        const transaction = await TransactionModel.findById(transactionId).populate([{ path: 'fromUser' }, { path: 'toUser' }]) as ITransaction;
+        const transaction = await TransactionModel.findById(transactionId).populate([{ path: 'fromUser' }, { path: 'toUser' }]) as ITransaction| null;
         if (transaction) {
             transaction.isCredit = await transaction.getIsCredit(customerId)
         }

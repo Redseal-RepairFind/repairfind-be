@@ -13,43 +13,45 @@ export const getTransactions = async (req: any, res: Response, next: NextFunctio
 
     try {
 
-        let filter: any = { 
+        let filter: any = {
             $or: [
-                { fromUser: customerId, fromUserType: 'contractors'},
-                { toUser: customerId, toUserType: 'contractors'}
+                { fromUser: customerId, fromUserType: 'contractors' },
+                { toUser: customerId, toUserType: 'contractors' }
             ]
         }
 
         // Fetch transactions for the specified customer
-        const { data, error } = await applyAPIFeature(TransactionModel.find(filter).populate([{path:'fromUser'}, {path:'toUser'}]), req.query);
-        
-        if(data){
+        const { data, error } = await applyAPIFeature(TransactionModel.find(filter).populate([{ path: 'fromUser' }, { path: 'toUser' }]), req.query);
+
+        if (data) {
             await Promise.all(data.data.map(async (transaction: ITransaction) => {
-                 transaction.isCredit = await transaction.getIsCredit(customerId)
+                transaction.isCredit = await transaction.getIsCredit(customerId)
             }));
         }
 
         // Return the transactions in the response
         res.status(200).json({ success: true, data });
-    } catch (error:any) {
+    } catch (error: any) {
         next(new InternalServerError('Error fetching customer transactions', error))
     }
 };
 
 
 export const getSingleTransaction = async (req: any, res: Response, next: NextFunction) => {
-    const contractorId = req.contractor.id; 
+    const contractorId = req.contractor.id;
     const transactionId = req.params.transactionId;
 
     try {
 
-       const transaction =  await TransactionModel.findById(transactionId).populate([{path:'fromUser'}, {path:'toUser'}]) as ITransaction;
-        if(transaction){
-            transaction.isCredit = await transaction.getIsCredit(contractorId)
+        const transaction = await TransactionModel.findById(transactionId)
+            .populate([{ path: 'fromUser' }, { path: 'toUser' }]) as ITransaction | null;
+
+        if (transaction) {
+            transaction.isCredit = await transaction.getIsCredit(contractorId);
         }
 
-        res.status(200).json({message: 'transaction retrieved successfully', success: true, data: transaction });
-    } catch (error:any) {
+        res.status(200).json({ message: 'transaction retrieved successfully', success: true, data: transaction });
+    } catch (error: any) {
         next(new InternalServerError('Error fetching customer transactions', error))
     }
 };
@@ -57,8 +59,8 @@ export const getSingleTransaction = async (req: any, res: Response, next: NextFu
 
 export const getTransactionSummary = async (req: any, res: Response, next: NextFunction) => {
     try {
-        
-        
+
+
         const contractorId = req.contractor.id; // Assuming customerId is passed in the request params
 
         const contractor = await ContractorModel.findById(contractorId);
@@ -66,7 +68,7 @@ export const getTransactionSummary = async (req: any, res: Response, next: NextF
             return res.status(400).json({ success: false, message: 'Customer not found' })
         }
 
-        
+
 
         // Calculate amount in holding from TransactionModel
         const transactions: ITransaction[] = await TransactionModel.find({ toUser: contractorId, status: TRANSACTION_STATUS.REQUIRES_CAPTURE });
@@ -78,7 +80,7 @@ export const getTransactionSummary = async (req: any, res: Response, next: NextF
         }, 0);
 
         // Calculate total amount in holding
-        const totalAmountInHolding: number =  amountInHoldingFromTransactions;
+        const totalAmountInHolding: number = amountInHoldingFromTransactions;
 
         res.json({
             success: true,

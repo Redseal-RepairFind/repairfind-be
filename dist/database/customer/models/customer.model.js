@@ -1,9 +1,13 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 var mongoose_1 = require("mongoose");
 var customer_interface_1 = require("../interface/customer.interface");
 var stripe_customer_schema_1 = require("../../common/stripe_customer.schema");
 var stripe_paymentmethod_schema_1 = require("../../common/stripe_paymentmethod.schema");
+var mongoose_delete_1 = __importDefault(require("mongoose-delete"));
 var CustomerLocationSchema = new mongoose_1.Schema({
     address: String,
     city: String,
@@ -52,6 +56,9 @@ var CustomerSchema = new mongoose_1.Schema({
     updatedAt: {
         type: Date,
         default: Date.now,
+    },
+    deletedAt: {
+        type: Date,
     },
     passwordOtp: {
         otp: String,
@@ -137,5 +144,6 @@ CustomerSchema.set('toJSON', {
     virtuals: true
 });
 CustomerSchema.set('toObject', { virtuals: true });
+CustomerSchema.plugin(mongoose_delete_1.default, { deletedBy: true, overrideMethods: 'all' });
 var CustomerModel = (0, mongoose_1.model)("customers", CustomerSchema);
 exports.default = CustomerModel;

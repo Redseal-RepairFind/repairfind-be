@@ -16,6 +16,7 @@ import { IStripeAccount } from "../../../database/common/stripe_account.schema";
 import { COMPANY_STATUS, CONTRACTOR_TYPES, GST_STATUS, IContractorCompanyDetails, IContractorGstDetails } from "../../../database/contractor/interface/contractor.interface";
 import { BadRequestError } from "../../../utils/custom.errors";
 import { castPayloadToDTO } from "../../../utils/interface_dto.util";
+import { JOB_STATUS, JobModel } from "../../../database/common/job.model";
 
 
 class ProfileHandler extends Base {
@@ -960,6 +961,39 @@ class ProfileHandler extends Base {
     }
   }
 
+  @handleAsyncError()
+  public async deleteAccount(): Promise<Response | void> {
+    let req = <any>this.req;
+    let res = this.res;
+    try {
+      const contractor = req.contractor;
+      const contractorId = contractor.id;
+
+      const account = await ContractorModel.findOne({_id:contractorId});
+      if (!account) {
+        return res.status(404).json({ success: false, message: 'Account not found' });
+      }
+
+      // perform checks here
+      const bookedAndDisputedJobs = await JobModel.find({contractor: contractorId, status: {$in: [JOB_STATUS.BOOKED, JOB_STATUS.DISPUTED ] }})
+      if(bookedAndDisputedJobs.length > 0){
+        return res.status(400).json({ success: false, message: 'You have an active Job, acount cannot be deleted' });
+      }
+
+      await ContractorModel.deleteById(contractorId)
+
+      account.email = `${account.email}:${account.id}`
+      account.deletedAt = new Date()
+      await account.save()
+
+      res.json({success: true, message: 'Account deleted successfully'});
+    } catch (err: any) {
+      console.log('error', err);
+      res.status(500).json({ success: false, message: err.message });
+    }
+  }
+
+  
 
 }
 

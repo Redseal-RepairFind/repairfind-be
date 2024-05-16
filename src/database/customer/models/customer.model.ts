@@ -3,6 +3,7 @@ import { Schema, model } from "mongoose";
 import { CustomerAuthProviders, ICustomer, ICustomerLocation } from "../interface/customer.interface";
 import { StripeCustomerSchema } from "../../common/stripe_customer.schema";
 import { StripePaymentMethodSchema } from "../../common/stripe_paymentmethod.schema";
+import  MongooseDelete, { SoftDeleteModel } from 'mongoose-delete';
 
 
 
@@ -56,6 +57,9 @@ const CustomerSchema = new Schema<ICustomer>(
     updatedAt: {
       type: Date,
       default: Date.now,
+    },
+    deletedAt: {
+      type: Date,
     },
     passwordOtp: {
       otp: String,
@@ -162,7 +166,8 @@ CustomerSchema.set('toObject', { virtuals: true });
 
 
 
+CustomerSchema.plugin(MongooseDelete, { deletedBy: true , overrideMethods: 'all'});
 
-const CustomerModel = model<ICustomer>("customers", CustomerSchema);
+const CustomerModel = model<ICustomer, SoftDeleteModel<ICustomer>>("customers", CustomerSchema);
 
 export default CustomerModel;

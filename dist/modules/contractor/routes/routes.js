@@ -60,6 +60,9 @@ router.get("/me", contractorRoleCheck_middleware_1.checkContractorRole, function
 router.patch("/me", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateProfileRequest, function (req, res, next) {
     (0, contractor_controller_1.ContractorController)(req, res, next).updateAccount();
 });
+router.delete("/me", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
+    (0, contractor_controller_1.ContractorController)(req, res, next).deleteAccount();
+});
 router.post("/me/change-password", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.PasswordChangeRequest, function (req, res, next) {
     (0, contractor_controller_1.ContractorController)(req, res, next).changePassword();
 });
