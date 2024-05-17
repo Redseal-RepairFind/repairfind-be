@@ -223,8 +223,10 @@ export const createJobEmergency = async (req: any, res: Response, next: NextFunc
     }
 };
 
+
+
 export const ContractorJobDayController = {
     startTrip,
     confirmArrival,
-    createJobEmergency
+    createJobEmergency,
 };

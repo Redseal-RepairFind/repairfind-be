@@ -64,6 +64,15 @@ interface IVoiceDescription {
 }
 
 
+export interface IStatusUpdate {
+
+    awaitingConfirmation?: boolean; // if there is a pending rescheduling request that has not been accepted by contractor and customer
+    isCustomerAccept?: boolean;
+    isContractorAccept?: boolean;
+    createdBy?: 'customer' | 'contractor'
+    remark?: string
+    status: string;
+  }
 
 export interface IJob extends Document {
     _id: ObjectId;
@@ -78,6 +87,7 @@ export interface IJob extends Document {
     description: string;
     title: string;
     voiceDescription: IVoiceDescription;
+    statusUpdate: IStatusUpdate;
     location: IJobLocation;
     date: Date;
     startDate: Date;
@@ -128,6 +138,19 @@ const ScheduleSchema = new Schema<IJobSchedule>({
     remark: String,
 });
 
+const StatusUpdateSchema = new Schema<IStatusUpdate>({
+    awaitingConfirmation: { type: Boolean, default: false },
+    isCustomerAccept: { type: Boolean, default: false },
+    isContractorAccept: { type: Boolean, default: false },
+    createdBy: String,
+    status: {
+      type: String,
+      enum: Object.values(JOB_STATUS)  
+    }, 
+    remark: String,
+  });
+
+
 const JobAssignmentSchema = new Schema<IJobAssignment>({
     contractor: { type: Schema.Types.ObjectId, ref: 'contractors' },
     date: { type: Date, required: true },
@@ -160,6 +183,7 @@ const JobSchema = new Schema<IJob>({
     contract: { type: Schema.Types.ObjectId, ref: 'job_quotations' }, // TODO: replace quotation with this
     contractorType: { type: String },
     status: { type: String, enum: Object.values(JOB_STATUS), default: JOB_STATUS.PENDING },
+    statusUpdate: StatusUpdateSchema, 
     type: { type: String, enum: Object.values(JobType), default: JobType.LISTING },
     category: { type: String, required: false },
     description: { type: String, required: true },

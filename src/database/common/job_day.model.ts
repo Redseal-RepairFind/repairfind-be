@@ -13,6 +13,11 @@ export enum JOB_DAY_TYPE {
     SITE_VISIT = 'SITE_VISIT'
 }
 
+
+
+
+
+
 export interface IJobDay extends Document {
     _id: ObjectId;
     customer: ObjectId;
