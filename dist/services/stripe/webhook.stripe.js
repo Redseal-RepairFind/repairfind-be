@@ -795,7 +795,7 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                     quotation.status = job_quotation_model_1.JOB_QUOTATION_STATUS.ACCEPTED;
                     if (quotation.startDate) {
                         job.schedule = {
-                            date: quotation.startDate,
+                            startDate: quotation.startDate,
                             type: job_model_1.JOB_SCHEDULE_TYPE.JOB_DAY,
                             remark: 'Initial job schedule'
                         };
@@ -804,7 +804,7 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                         // Check if quotation.siteVisit.date is a valid Date object
                         if (quotation.siteVisit instanceof Date) {
                             job.schedule = {
-                                date: quotation.startDate,
+                                startDate: quotation.startDate,
                                 type: job_model_1.JOB_SCHEDULE_TYPE.SITE_VISIT,
                                 remark: 'Initial site visit schedule'
                             };

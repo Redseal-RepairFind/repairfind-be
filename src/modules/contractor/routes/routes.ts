@@ -200,7 +200,7 @@ router.post("/bookings/:bookingId/reschedule", checkContractorRole, ContractorBo
 router.post("/bookings/:bookingId/reschedule/:action", checkContractorRole, ContractorBookingController.acceptOrDeclineReschedule ); 
 router.post("/bookings/:bookingId/assign", checkContractorRole, ContractorBookingController.assignJob ); 
 router.post("/bookings/:bookingId/cancel", checkContractorRole, ContractorBookingController.cancelBooking ); 
-router.post('/bookings/:bookingId/mark-job-complete', checkContractorRole, ContractorJobController.markJobAsComplete)
+router.post('/bookings/:bookingId/mark-complete', checkContractorRole, ContractorBookingController.markBookingComplete)
 
 
 // jobdays day

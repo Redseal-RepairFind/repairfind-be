@@ -598,7 +598,7 @@ export const chargeSucceeded = async (payload: any) => {
                     quotation.status = JOB_QUOTATION_STATUS.ACCEPTED
                     if (quotation.startDate) {
                         job.schedule = {
-                            date: quotation.startDate,
+                            startDate: quotation.startDate,
                             type: JOB_SCHEDULE_TYPE.JOB_DAY,
                             remark: 'Initial job schedule'
                         };
@@ -607,7 +607,7 @@ export const chargeSucceeded = async (payload: any) => {
                         // Check if quotation.siteVisit.date is a valid Date object
                         if (quotation.siteVisit instanceof Date) {
                             job.schedule = {
-                                date: quotation.startDate,
+                                startDate: quotation.startDate,
                                 type: JOB_SCHEDULE_TYPE.SITE_VISIT,
                                 remark: 'Initial site visit schedule'
                             };

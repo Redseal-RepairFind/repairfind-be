@@ -188,7 +188,7 @@ var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 jobEvent = {
                     eventType: job_model_1.JOB_STATUS.ACCEPTED,
                     timestamp: new Date(),
-                    details: {
+                    payload: {
                         message: 'Contactor accepted this job'
                     },
                 };
@@ -286,7 +286,7 @@ var rejectJobRequest = function (req, res) { return __awaiter(void 0, void 0, vo
                 jobEvent = {
                     eventType: job_model_1.JOB_STATUS.DECLINED,
                     timestamp: new Date(),
-                    details: { reason: rejectionReason }, // Store the rejection reason
+                    payload: { reason: rejectionReason }, // Store the rejection reason
                 };
                 // Push the rejection event to the job history array
                 job.jobHistory.push(jobEvent);
@@ -361,7 +361,7 @@ var getJobRequestById = function (req, res, next) { return __awaiter(void 0, voi
                 return [4 /*yield*/, job.getMyQoutation(contractorId)];
             case 2:
                 _a.myQuotation = _b.sent();
-                // Return the job request details
+                // Return the job request payload
                 res.json({ success: true, data: job });
                 return [3 /*break*/, 4];
             case 3:
@@ -405,7 +405,7 @@ var getJobListingById = function (req, res, next) { return __awaiter(void 0, voi
                 return [4 /*yield*/, job.getMyQoutation(contractorId)];
             case 2:
                 _a.myQuotation = _b.sent();
-                // Return the job request details
+                // Return the job request payload
                 res.json({ success: true, data: job });
                 return [3 /*break*/, 4];
             case 3:
@@ -417,143 +417,6 @@ var getJobListingById = function (req, res, next) { return __awaiter(void 0, voi
     });
 }); };
 exports.getJobListingById = getJobListingById;
-// export const sendJobQuotation = async (
-//   req: any,
-//   res: Response,
-//   next: NextFunction
-// ) => {
-//   try {
-//     let {
-//       startDate,
-//       endDate,
-//       siteVisit,
-//       estimates,
-//     } = req.body;
-//     const { jobId } = req.params
-//     const contractorId = req.contractor.id
-//     // Check for validation errors
-//     const errors = validationResult(req);
-//     if (!errors.isEmpty()) {
-//       return res.status(400).json({ errors: errors.array() });
-//     }
-//     const contractor = await ContractorModel.findOne({ _id: contractorId });
-//     if (!contractor) {
-//       return res
-//         .status(401)
-//         .json({ message: "invalid credential" });
-//     }
-//     const job = await JobModel.findOne({ _id: jobId }).sort({ createdAt: -1 })
-//     if (!job) {
-//       return res
-//         .status(401)
-//         .json({ message: "job does not exist" });
-//     }
-//     // Check if more than three contractors have already applied with the quotation status not declined
-//     const appliedQuotationsCount = await JobQuotationModel.countDocuments({
-//       job: jobId,
-//       status: { $ne: JOB_QUOTATION_STATUS.DECLINED }
-//     });
-//     if (appliedQuotationsCount >= 3) {
-//       return res.status(400).json({ success: false, message: "Maximum number of contractors already applied for this job" });
-//     }
-//     // ensure contractor has a verified connected account
-//     if (contractor.onboarding.hasStripeAccount) {
-//       //fetch and update contractor stripeaccount here
-//       // TODO: If this impacts the response time so much we can prevent this request - doing this because stripe seems no to be sending account related events
-//       const account: unknown = await StripeService.account.getAccount(contractor.stripeAccount.id); //acct_1P4N6NRdmDaBvbML ,acct_1P7XvFRZlKifQSOs
-//       const stripeAccount = castPayloadToDTO(account, account as IStripeAccount)
-//       contractor.stripeAccount = stripeAccount
-//       await contractor.save()
-//       if (!(contractor.stripeAccountStatus?.card_payments_enabled && contractor.stripeAccountStatus?.transfers_enabled)) {
-//         return res
-//           .status(400)
-//           .json({ success: false, message: "You can not send quotation for a job, since stripe account is not  setup" });
-//       }
-//     } else {
-//       return res
-//         .status(400)
-//         .json({ success: false, message: "You can not send quotation for a job, since stripe account is not  setup" });
-//     }
-//     // Check if the contractor has already submitted a quotation for this job
-//     const existingQuotation = await JobQuotationModel.findOne({ job: jobId, contractor: contractorId });
-//     if (existingQuotation) {
-//       return res.status(400).json({ success: false, message: "You have already submitted a quotation for this job" });
-//     }
-//     if (estimates && estimates.length < 1) {
-//       return res
-//         .status(401)
-//         .json({ message: "invalid estimate format" });
-//     }
-//     const customer = await CustomerModel.findOne({ _id: job.customer })
-//     if (!customer) {
-//       return res
-//         .status(401)
-//         .json({ message: "invalid customer Id" });
-//     }
-//     if (siteVisit) {
-//       estimates = []
-//       estimates.push({
-//         description: 'Site Visit',
-//         amount: 100,
-//         rate: 100,
-//         quantity: 1,
-//       })
-//     }
-//     let jobQuotation = await JobQuotationModel.findOneAndUpdate({ job: jobId, contractor: contractorId }, {
-//       startDate: startDate ? new Date(startDate) : null,
-//       endDate: endDate ? new Date(startDate) : null,
-//       siteVisit: siteVisit ? new Date(siteVisit) : null,
-//       estimates,
-//       jobId,
-//       contractorId
-//     }, { new: true, upsert: true })
-//     jobQuotation.charges = await jobQuotation.calculateCharges();
-//     if (!job.quotations.includes(jobQuotation.id)) {
-//       job.quotations.push({
-//         id: jobQuotation.id,
-//         status: jobQuotation.status
-//       });
-//     }
-//     if (job.type == JobType.REQUEST) {
-//       // Update the status of the job request to "Accepted"
-//       job.status = JOB_STATUS.ACCEPTED;
-//       // Define the acceptance event to be stored in the job history
-//       const jobEvent = {
-//         eventType: JOB_STATUS.ACCEPTED,
-//         timestamp: new Date(),
-//         details: {
-//           message: 'Contactor accepted this job'
-//         },
-//       };
-//       // Push the acceptance event to the job history array
-//       if (!job.jobHistory.some(jobEvent => jobEvent.eventType == JOB_STATUS.ACCEPTED)) {
-//         job.jobHistory.push(jobEvent);
-//       }
-//     }
-//     await job.save()
-//     // DO OTHER THINGS HERE
-//     if (estimates) {
-//       const html = htmlJobQoutationTemplate(customer.firstName, contractor.name)
-//       EmailService.send(customer.email, 'Job quotation from contractor', html)
-//       // if (conversation) {
-//       //   // send push notification
-//       // }
-//     }
-//     if (siteVisit) {
-//       //send message alert indicating that contractor has requested for site visit
-//       // if (conversation) {
-//       //  // send notification
-//       // }
-//     }
-//     res.json({
-//       success: true,
-//       message: "job quotation sucessfully sent",
-//       data: jobQuotation
-//     });
-//   } catch (err: any) {
-//     return next(new BadRequestError('An error occured ', err))
-//   }
-// }
 var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var jobId, contractorId, _a, startDate, endDate, siteVisit, _b, estimates, errors, _c, contractor, job, customer, previousQuotation, appliedQuotationsCount, existingQuotation, jobQuotation_1, _d, html, err_1;
     var _e, _f;
@@ -631,7 +494,7 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                 if (job.type === job_model_1.JobType.REQUEST) {
                     job.status = job_model_1.JOB_STATUS.ACCEPTED;
                     if (!job.jobHistory.some(function (jobEvent) { return jobEvent.eventType === job_model_1.JOB_STATUS.ACCEPTED; })) {
-                        job.jobHistory.push({ eventType: job_model_1.JOB_STATUS.ACCEPTED, timestamp: new Date(), details: { message: 'Contractor accepted this job' } });
+                        job.jobHistory.push({ eventType: job_model_1.JOB_STATUS.ACCEPTED, timestamp: new Date(), payload: { message: 'Contractor accepted this job' } });
                     }
                 }
                 // Save changes to the job

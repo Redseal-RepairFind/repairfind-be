@@ -248,5 +248,5 @@ exports.createJobEmergency = createJobEmergency;
 exports.ContractorJobDayController = {
     startTrip: exports.startTrip,
     confirmArrival: exports.confirmArrival,
-    createJobEmergency: exports.createJobEmergency
+    createJobEmergency: exports.createJobEmergency,
 };

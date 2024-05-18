@@ -5,7 +5,7 @@ import { htmlJobRequestTemplate } from "../../../templates/contractorEmail/jobRe
 import CustomerModel from "../../../database/customer/models/customer.model";
 import { EmailService, NotificationService } from "../../../services";
 import { addHours, isFuture, isValid, startOfDay } from "date-fns";
-import { IJob, JobModel, JOB_STATUS, JobType, IJobSchedule, JOB_SCHEDULE_TYPE } from "../../../database/common/job.model";
+import { IJob, JobModel, JOB_STATUS, JobType, IJobSchedule, JOB_SCHEDULE_TYPE, IJobReSchedule } from "../../../database/common/job.model";
 import { BadRequestError, InternalServerError } from "../../../utils/custom.errors";
 import { applyAPIFeature } from "../../../utils/api.feature";
 import { ConversationModel } from "../../../database/common/conversations.schema";
@@ -101,6 +101,7 @@ export const getMyBookings = async (req: any, res: Response, next: NextFunction)
     }
 };
 
+
 export const getBookingHistory = async (req: any, res: Response, next: NextFunction) => {
     const customerId = req.customer.id;
 
@@ -161,7 +162,6 @@ export const getBookingHistory = async (req: any, res: Response, next: NextFunct
 };
 
 
-
 export const getSingleBooking = async (req: any, res: Response, next: NextFunction) => {
     try {
 
@@ -183,29 +183,6 @@ export const getSingleBooking = async (req: any, res: Response, next: NextFuncti
 };
 
 
-
-export const rescheduleJob = async (req: any, res: Response, next: NextFunction) => {
-    try {
-
-        const customerId = req.customer.id
-        const jobId = req.params.jobId;
-
-        const job = await JobModel.findOne({ customer: customerId, _id: jobId }).exec();
-
-        // Check if the job exists
-        if (!job) {
-            return res.status(404).json({ success: false, message: 'Job not found' });
-        }
-
-        // If the job exists, return it as a response
-        res.json({ success: true, message: 'Job retrieved', data: job });
-    } catch (error: any) {
-        return next(new BadRequestError('An error occured ', error))
-    }
-};
-
-
-
 export const requestBookingReschedule = async (req: any, res: Response, next: NextFunction) => {
     try {
         const customerId = req.customer.id;
@@ -225,7 +202,7 @@ export const requestBookingReschedule = async (req: any, res: Response, next: Ne
         const { date, remark } = req.body; // Assuming you're sending new start and end dates along with a remark in the request body
 
         // Update job schedule with new dates and set flags
-        const updatedSchedule: IJobSchedule = {
+        const updatedSchedule: IJobReSchedule = {
             date, // Assuming the rescheduled date replaces the previous one
             awaitingConfirmation: true, // Flag for indicating rescheduling request
             isCustomerAccept: true, // Assume the customer has has already confirmed the rescheduling
@@ -235,22 +212,20 @@ export const requestBookingReschedule = async (req: any, res: Response, next: Ne
             remark: remark // Adding a remark for the rescheduling
         };
 
-        // Update the previous date based on the last accepted schedule
-        const previousDate = findPreviousAcceptedScheduleDate(job.jobHistory);
-        if (previousDate) {
-            job.schedule.previousDate = previousDate;
-        }
-
+        
 
         // Save rescheduling history in job history
         job.jobHistory.push({
             eventType: 'RESCHEDULE_REQUEST', // Custom event type identifier
             timestamp: new Date(), // Timestamp of the event
-            details: { updatedSchedule, previousSchedule: job.schedule } // Additional details specific to the event
+            payload: updatedSchedule // Additional payload specific to the event
         });
 
-        job.schedule = updatedSchedule;
+        job.reschedule = updatedSchedule;
+        
         await job.save();
+
+        JobEvent.emit('NEW_JOB_RESHEDULE_REQUEST', {job})
 
         res.json({ success: true, message: 'Job reschedule request sent' });
     } catch (error: any) {
@@ -275,35 +250,43 @@ export const acceptOrDeclineReschedule = async (req: any, res: Response, next: N
             return res.status(403).json({ success: false, message: 'You are not authorized to perform this action' });
         }
 
-
-
-        // Check if the job has a rescheduling request
-        if (!job.schedule.awaitingConfirmation) {
+         // Check if the job has a rescheduling request
+         if (!job.reschedule) {
             return res.status(400).json({ success: false, message: 'No rescheduling request found for this job' });
         }
 
+
+
         // Ensure that the rescheduling was initiated by the contractor
-        if (job.schedule.createdBy !== 'contractor') {
+        if (job.reschedule.createdBy !== 'contractor') {
             return res.status(403).json({ success: false, message: 'You are not authorized to confirm this rescheduling request' });
         }
 
         // Update rescheduling flags based on customer's choice
         if (action == 'accept') {
-            job.schedule.isCustomerAccept = true;
+            job.reschedule.isCustomerAccept = true;
             
-            if(job.schedule.isContractorAccept && job.schedule.isCustomerAccept){
-                job.schedule.awaitingConfirmation = false;
+            if(job.reschedule.isContractorAccept && job.reschedule.isCustomerAccept){
+                job.reschedule.awaitingConfirmation = false;
             }
+
+            job.schedule = {
+                ...job.schedule, // Keep the existing properties from job.schedule
+                startDate: job.reschedule.date, // Add or overwrite the startDate property
+            };
 
             // Save rescheduling history in job history
             job.jobHistory.push({
-                eventType: 'SCHEDULE_ACCEPTED', // Custom event type identifier
+                eventType: 'JOB_RESCHEDULED', // Custom event type identifier
                 timestamp: new Date(), // Timestamp of the event
-                details: { ...job.schedule } // Additional details specific to the event
+                payload: job.reschedule // Additional payload specific to the event
             });
 
-        } else {
-            job.schedule.awaitingConfirmation = true;
+            JobEvent.emit('JOB_RESHEDULE_DECLINED_ACCEPTED', {job, action: 'accepted'})
+        } else  {
+            JobEvent.emit('JOB_RESHEDULE_DECLINED_ACCEPTED', {job, action: 'declined'})
+            job.reschedule = null
+
         }
 
 
@@ -311,7 +294,7 @@ export const acceptOrDeclineReschedule = async (req: any, res: Response, next: N
 
         await job.save();
 
-        res.json({ success: true, message: `Rescheduling request has been ${action}` });
+        res.json({ success: true, message: `Rescheduling request has been ${action}ed` });
     } catch (error: any) {
         return next(new BadRequestError('An error occurred', error));
     }
@@ -355,7 +338,7 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
         job.jobHistory.push({
             eventType: 'JOB_CANCELED',
             timestamp: new Date(),
-            details: {reason, canceledBy: 'customer' }
+            payload: {reason, canceledBy: 'customer' }
         });
 
 
@@ -370,16 +353,71 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
     }
 };
 
-// Helper function to find the previous accepted schedule date from job history
-const findPreviousAcceptedScheduleDate = (jobHistory: IJob['jobHistory']): Date | undefined => {
-    for (let i = jobHistory.length - 1; i >= 0; i--) {
-        const event = jobHistory[i];
-        if ((event.eventType === 'SCHEDULE_ACCEPTED' || event.eventType === 'SCHEDULE_CREATED') && event.details?.previousSchedule?.isCustomerAccept && event.details?.previousSchedule?.isContractorAccept) {
-            return event.details?.previousSchedule?.date;
+
+export const acceptBookingComplete = async (req: any, res: Response, next: NextFunction) => {
+    try {
+        const customerId = req.customer.id;
+        const { bookingId } = req.params;
+        const { reason } = req.body;
+
+        // Find the job
+        const job = await JobModel.findById(bookingId);
+
+        const customer = await CustomerModel.findById(customerId);        
+    
+        // Check if the contractor exists
+        if (!customer) {
+            return res.status(404).json({ success: false, message: 'Customer not found' });
         }
+
+
+        // Check if the job exists
+        if (!job) {
+            return res.status(404).json({ success: false, message: 'Job not found' });
+        }
+
+        // Check if the contractor is the owner of the job
+        if (job.customer.toString() !== customerId) {
+            return res.status(403).json({ success: false, message: 'You are not authorized to mark  this booking as complete' });
+        }
+
+        // Check if the job is already canceled
+        if (job.status === JOB_STATUS.COMPLETED) {
+            return res.status(400).json({ success: false, message: 'The booking is already marked as complete' });
+        }
+
+        // Check if the job is already canceled
+        if (!job.statusUpdate.awaitingConfirmation ) {
+            return res.status(400).json({ success: false, message: 'Contractor has not requested for a status update' });
+        }
+
+        if (job.statusUpdate.status !== JOB_STATUS.COMPLETED ) {
+            return res.status(400).json({ success: false, message: 'Contractor has not yet marked job as completed' });
+        }
+
+        job.statusUpdate = {
+            ...job.statusUpdate,
+            status: JOB_STATUS.COMPLETED,
+            isCustomerAccept: true,
+            awaitingConfirmation: false
+        }
+        
+        job.status  = JOB_STATUS.COMPLETED  // since its customer accepting job completion
+        job.jobHistory.push({
+            eventType: 'JOB_MARKED_COMPLETE_BY_CUSTOMER',
+            timestamp: new Date(),
+            payload: {}
+        });
+
+        JobEvent.emit('JOB_MARKED_COMPLETE_BY_CUSTOMER', {job})
+        await job.save();
+
+        res.json({ success: true, message: 'Booking marked as completed successfully', data: job });
+    } catch (error: any) {
+        return next(new BadRequestError('An error occurred', error));
     }
-    return undefined;
 };
+
 
 export const CustomerBookingController = {
     getMyBookings,
@@ -387,7 +425,8 @@ export const CustomerBookingController = {
     getSingleBooking,
     requestBookingReschedule,
     acceptOrDeclineReschedule,
-    cancelBooking
+    cancelBooking,
+    acceptBookingComplete
 }
 
 

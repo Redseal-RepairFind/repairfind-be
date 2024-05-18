@@ -14,7 +14,7 @@ export interface IJobLocation extends Document {
 export interface IJobHistory {
     eventType: string; // Custom event type identifier
     timestamp: Date;
-    details?: any; // Additional details specific to each event
+    payload?: any; // Additional details specific to each event
 }
 
 export enum JOB_STATUS {
@@ -41,6 +41,14 @@ export enum JobType {
 
 
 export interface IJobSchedule {
+    startDate: Date;
+    endDate?: Date;
+    createdBy?: 'customer' | 'contractor'
+    type: JOB_SCHEDULE_TYPE
+    remark: string
+}
+
+export interface IJobReSchedule {
     date: Date;
     previousDate?: Date;
     awaitingConfirmation?: boolean; // if there is a pending rescheduling request that has not been accepted by contractor and customer
@@ -65,8 +73,7 @@ interface IVoiceDescription {
 
 
 export interface IStatusUpdate {
-
-    awaitingConfirmation?: boolean; // if there is a pending rescheduling request that has not been accepted by contractor and customer
+    awaitingConfirmation?: boolean; // 
     isCustomerAccept?: boolean;
     isContractorAccept?: boolean;
     createdBy?: 'customer' | 'contractor'
@@ -103,6 +110,7 @@ export interface IJob extends Document {
     jobHistory: IJobHistory[];
     payments: ObjectId[];
     schedule: IJobSchedule;
+    reschedule: IJobReSchedule|null;
     assignment: IJobAssignment;
     emergency: boolean;
     myQuotation: Object | null
@@ -128,15 +136,23 @@ const VoiceDescriptionSchema = new Schema<IVoiceDescription>({
 
 
 const ScheduleSchema = new Schema<IJobSchedule>({
+    startDate: { type: Date },
+    endDate: { type: Date },
+    createdBy: String,
+    type: { type: String, enum: Object.values(JOB_SCHEDULE_TYPE) },
+    remark: String,
+});
+
+const ReScheduleSchema = new Schema<IJobReSchedule>({
     date: { type: Date, required: true },
     previousDate: { type: Date},
     awaitingConfirmation: { type: Boolean, default: false },
     isCustomerAccept: { type: Boolean, default: false },
     isContractorAccept: { type: Boolean, default: false },
     createdBy: String,
-    type: { type: String, enum: Object.values(JOB_SCHEDULE_TYPE) },
     remark: String,
 });
+
 
 const StatusUpdateSchema = new Schema<IStatusUpdate>({
     awaitingConfirmation: { type: Boolean, default: false },
@@ -172,7 +188,7 @@ const JobLocationSchema = new Schema<IJobLocation>({
 const JobHistorySchema = new Schema<IJobHistory>({
     eventType: { type: String, required: false }, // Identify the type of event - JOB_REJECTED, JOB_ACCEPTED, JOB_CLOSED, JOB_EXPIRED
     timestamp: { type: Date, default: Date.now }, // Timestamp of the event
-    details: { type: Schema.Types.Mixed }, // Additional details specific to the event
+    payload: { type: Schema.Types.Mixed }, // Additional details specific to the event
 });
 
 
@@ -200,6 +216,7 @@ const JobSchema = new Schema<IJob>({
     experience: { type: String },
     jobHistory: [JobHistorySchema], // Array of job history entries
     schedule: ScheduleSchema,
+    reschedule: ReScheduleSchema,
     quotations: [{
         id: { type: Schema.Types.ObjectId, ref: 'job_quotations' },
         status: { type: String, enum: Object.values(JOB_QUOTATION_STATUS) }

@@ -49,6 +49,7 @@ var conversations_schema_1 = require("../database/common/conversations.schema");
 var socket_1 = require("../services/socket");
 var job_canceled_template_1 = require("../templates/common/job_canceled.template");
 var job_emergency_email_1 = require("../templates/common/job_emergency_email");
+var generic_email_1 = require("../templates/common/generic_email");
 exports.JobEvent = new events_1.EventEmitter();
 exports.JobEvent.on('NEW_JOB_REQUEST', function (payload) {
     var _a, _b;
@@ -227,6 +228,84 @@ exports.JobEvent.on('JOB_DAY_EMERGENCY', function (payload) {
                     console.error("Error handling JOB_DAY_EMERGENCY event: ".concat(error_4));
                     return [3 /*break*/, 5];
                 case 5: return [2 /*return*/];
+            }
+        });
+    });
+});
+exports.JobEvent.on('JOB_RESHEDULE_DECLINED_ACCEPTED', function (payload) {
+    var _a, _b;
+    return __awaiter(this, void 0, void 0, function () {
+        var customer, contractor, emailSubject, emailContent, html, emailSubject, emailContent, html, error_5;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
+                case 0:
+                    _c.trys.push([0, 3, , 4]);
+                    console.log('handling alert JOB_RESHEDULE_DECLINED_ACCEPTED event', payload.action);
+                    return [4 /*yield*/, customer_model_1.default.findById(payload.job.customer)];
+                case 1:
+                    customer = _c.sent();
+                    return [4 /*yield*/, contractor_model_1.ContractorModel.findById(payload.job.contractor)];
+                case 2:
+                    contractor = _c.sent();
+                    if (contractor && customer) {
+                        if (((_a = payload.job.reschedule) === null || _a === void 0 ? void 0 : _a.createdBy) == 'contractor') { // send mail to contractor
+                            emailSubject = 'Job Schedule';
+                            emailContent = "\n                <p style=\"color: #333333;\">Your Job reschedule request on Repairfind has been ".concat(payload.action, " by customer</p>\n                <p><strong>Job Title:</strong> ").concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(payload.job.reschedule.date, "</p>\n                ");
+                            html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
+                            services_1.EmailService.send(contractor.email, emailSubject, html);
+                        }
+                        if (((_b = payload.job.reschedule) === null || _b === void 0 ? void 0 : _b.createdBy) == 'customer') { // send mail to  customer
+                            emailSubject = 'Job Schedule';
+                            emailContent = "\n                <p style=\"color: #333333;\">Your Job reschedule request on Repairfind has been ".concat(payload.action, "  by the contractor</p>\n                <p><strong>Job Title:</strong> ").concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(payload.job.reschedule.date, "</p>\n                ");
+                            html = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: emailSubject, content: emailContent });
+                            services_1.EmailService.send(customer.email, emailSubject, html);
+                        }
+                    }
+                    return [3 /*break*/, 4];
+                case 3:
+                    error_5 = _c.sent();
+                    console.error("Error handling JOB_RESHEDULE_DECLINED_ACCEPTED event: ".concat(error_5));
+                    return [3 /*break*/, 4];
+                case 4: return [2 /*return*/];
+            }
+        });
+    });
+});
+exports.JobEvent.on('NEW_JOB_RESHEDULE_REQUEST', function (payload) {
+    var _a, _b;
+    return __awaiter(this, void 0, void 0, function () {
+        var customer, contractor, emailSubject, emailContent, html, emailSubject, emailContent, html, error_6;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
+                case 0:
+                    _c.trys.push([0, 3, , 4]);
+                    console.log('handling alert NEW_JOB_RESHEDULE_REQUEST event', payload.action);
+                    return [4 /*yield*/, customer_model_1.default.findById(payload.job.customer)];
+                case 1:
+                    customer = _c.sent();
+                    return [4 /*yield*/, contractor_model_1.ContractorModel.findById(payload.job.contractor)];
+                case 2:
+                    contractor = _c.sent();
+                    if (contractor && customer) {
+                        if (((_a = payload.job.reschedule) === null || _a === void 0 ? void 0 : _a.createdBy) == 'contractor') { // send mail to contractor
+                            emailSubject = 'Job Schedule';
+                            emailContent = "\n                <p style=\"color: #333333;\">Contractor has requested  to reschedule a job on RepairFind</p>\n                <p><strong>Job Title:</strong> ".concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(payload.job.reschedule.date, "</p>\n                ");
+                            html = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: emailSubject, content: emailContent });
+                            services_1.EmailService.send(customer.email, emailSubject, html);
+                        }
+                        if (((_b = payload.job.reschedule) === null || _b === void 0 ? void 0 : _b.createdBy) == 'customer') { // send mail to  customer
+                            emailSubject = 'Job Schedule';
+                            emailContent = "\n                <p style=\"color: #333333;\">Customer has requested  to reschedule a job on RepairFind</p>\n                <p><strong>Job Title:</strong> ".concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(payload.job.reschedule.date, "</p>\n                ");
+                            html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
+                            services_1.EmailService.send(contractor.email, emailSubject, html);
+                        }
+                    }
+                    return [3 /*break*/, 4];
+                case 3:
+                    error_6 = _c.sent();
+                    console.error("Error handling NEW_JOB_RESHEDULE_REQUEST event: ".concat(error_6));
+                    return [3 /*break*/, 4];
+                case 4: return [2 /*return*/];
             }
         });
     });

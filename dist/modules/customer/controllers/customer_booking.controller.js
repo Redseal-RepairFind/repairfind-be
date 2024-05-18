@@ -50,7 +50,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerBookingController = exports.cancelBooking = exports.acceptOrDeclineReschedule = exports.requestBookingReschedule = exports.rescheduleJob = exports.getSingleBooking = exports.getBookingHistory = exports.getMyBookings = void 0;
+exports.CustomerBookingController = exports.acceptBookingComplete = exports.cancelBooking = exports.acceptOrDeclineReschedule = exports.requestBookingReschedule = exports.getSingleBooking = exports.getBookingHistory = exports.getMyBookings = void 0;
 var express_validator_1 = require("express-validator");
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var job_model_1 = require("../../../database/common/job.model");
@@ -228,34 +228,8 @@ var getSingleBooking = function (req, res, next) { return __awaiter(void 0, void
     });
 }); };
 exports.getSingleBooking = getSingleBooking;
-var rescheduleJob = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, jobId, job, error_4;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                _a.trys.push([0, 2, , 3]);
-                customerId = req.customer.id;
-                jobId = req.params.jobId;
-                return [4 /*yield*/, job_model_1.JobModel.findOne({ customer: customerId, _id: jobId }).exec()];
-            case 1:
-                job = _a.sent();
-                // Check if the job exists
-                if (!job) {
-                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found' })];
-                }
-                // If the job exists, return it as a response
-                res.json({ success: true, message: 'Job retrieved', data: job });
-                return [3 /*break*/, 3];
-            case 2:
-                error_4 = _a.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_4))];
-            case 3: return [2 /*return*/];
-        }
-    });
-}); };
-exports.rescheduleJob = rescheduleJob;
 var requestBookingReschedule = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, bookingId, job, _a, date, remark, updatedSchedule, previousDate, error_5;
+    var customerId, bookingId, job, _a, date, remark, updatedSchedule, error_4;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -283,32 +257,29 @@ var requestBookingReschedule = function (req, res, next) { return __awaiter(void
                     type: job_model_1.JOB_SCHEDULE_TYPE.JOB_DAY, // You might need to adjust this based on your business logic
                     remark: remark // Adding a remark for the rescheduling
                 };
-                previousDate = findPreviousAcceptedScheduleDate(job.jobHistory);
-                if (previousDate) {
-                    job.schedule.previousDate = previousDate;
-                }
                 // Save rescheduling history in job history
                 job.jobHistory.push({
                     eventType: 'RESCHEDULE_REQUEST', // Custom event type identifier
                     timestamp: new Date(), // Timestamp of the event
-                    details: { updatedSchedule: updatedSchedule, previousSchedule: job.schedule } // Additional details specific to the event
+                    payload: updatedSchedule // Additional payload specific to the event
                 });
-                job.schedule = updatedSchedule;
+                job.reschedule = updatedSchedule;
                 return [4 /*yield*/, job.save()];
             case 2:
                 _b.sent();
+                events_1.JobEvent.emit('NEW_JOB_RESHEDULE_REQUEST', { job: job });
                 res.json({ success: true, message: 'Job reschedule request sent' });
                 return [3 /*break*/, 4];
             case 3:
-                error_5 = _b.sent();
-                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred', error_5))];
+                error_4 = _b.sent();
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred', error_4))];
             case 4: return [2 /*return*/];
         }
     });
 }); };
 exports.requestBookingReschedule = requestBookingReschedule;
 var acceptOrDeclineReschedule = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, _a, bookingId, action, job, error_6;
+    var customerId, _a, bookingId, action, job, error_5;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -327,44 +298,47 @@ var acceptOrDeclineReschedule = function (req, res, next) { return __awaiter(voi
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'You are not authorized to perform this action' })];
                 }
                 // Check if the job has a rescheduling request
-                if (!job.schedule.awaitingConfirmation) {
+                if (!job.reschedule) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'No rescheduling request found for this job' })];
                 }
                 // Ensure that the rescheduling was initiated by the contractor
-                if (job.schedule.createdBy !== 'contractor') {
+                if (job.reschedule.createdBy !== 'contractor') {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'You are not authorized to confirm this rescheduling request' })];
                 }
                 // Update rescheduling flags based on customer's choice
                 if (action == 'accept') {
-                    job.schedule.isCustomerAccept = true;
-                    if (job.schedule.isContractorAccept && job.schedule.isCustomerAccept) {
-                        job.schedule.awaitingConfirmation = false;
+                    job.reschedule.isCustomerAccept = true;
+                    if (job.reschedule.isContractorAccept && job.reschedule.isCustomerAccept) {
+                        job.reschedule.awaitingConfirmation = false;
                     }
+                    job.schedule = __assign(__assign({}, job.schedule), { startDate: job.reschedule.date });
                     // Save rescheduling history in job history
                     job.jobHistory.push({
-                        eventType: 'SCHEDULE_ACCEPTED', // Custom event type identifier
+                        eventType: 'JOB_RESCHEDULED', // Custom event type identifier
                         timestamp: new Date(), // Timestamp of the event
-                        details: __assign({}, job.schedule) // Additional details specific to the event
+                        payload: job.reschedule // Additional payload specific to the event
                     });
+                    events_1.JobEvent.emit('JOB_RESHEDULE_DECLINED_ACCEPTED', { job: job, action: 'accepted' });
                 }
                 else {
-                    job.schedule.awaitingConfirmation = true;
+                    events_1.JobEvent.emit('JOB_RESHEDULE_DECLINED_ACCEPTED', { job: job, action: 'declined' });
+                    job.reschedule = null;
                 }
                 return [4 /*yield*/, job.save()];
             case 2:
                 _b.sent();
-                res.json({ success: true, message: "Rescheduling request has been ".concat(action) });
+                res.json({ success: true, message: "Rescheduling request has been ".concat(action, "ed") });
                 return [3 /*break*/, 4];
             case 3:
-                error_6 = _b.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_6))];
+                error_5 = _b.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_5))];
             case 4: return [2 /*return*/];
         }
     });
 }); };
 exports.acceptOrDeclineReschedule = acceptOrDeclineReschedule;
 var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, bookingId, reason, job, customer, error_7;
+    var customerId, bookingId, reason, job, customer, error_6;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -399,7 +373,7 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
                 job.jobHistory.push({
                     eventType: 'JOB_CANCELED',
                     timestamp: new Date(),
-                    details: { reason: reason, canceledBy: 'customer' }
+                    payload: { reason: reason, canceledBy: 'customer' }
                 });
                 // emit job cancelled event 
                 // inside the event take actions such as refund etc
@@ -410,29 +384,78 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
                 res.json({ success: true, message: 'Booking canceled successfully', data: job });
                 return [3 /*break*/, 5];
             case 4:
+                error_6 = _a.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_6))];
+            case 5: return [2 /*return*/];
+        }
+    });
+}); };
+exports.cancelBooking = cancelBooking;
+var acceptBookingComplete = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var customerId, bookingId, reason, job, customer, error_7;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 4, , 5]);
+                customerId = req.customer.id;
+                bookingId = req.params.bookingId;
+                reason = req.body.reason;
+                return [4 /*yield*/, job_model_1.JobModel.findById(bookingId)];
+            case 1:
+                job = _a.sent();
+                return [4 /*yield*/, customer_model_1.default.findById(customerId)];
+            case 2:
+                customer = _a.sent();
+                // Check if the contractor exists
+                if (!customer) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Customer not found' })];
+                }
+                // Check if the job exists
+                if (!job) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found' })];
+                }
+                // Check if the contractor is the owner of the job
+                if (job.customer.toString() !== customerId) {
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'You are not authorized to mark  this booking as complete' })];
+                }
+                // Check if the job is already canceled
+                if (job.status === job_model_1.JOB_STATUS.COMPLETED) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'The booking is already marked as complete' })];
+                }
+                // Check if the job is already canceled
+                if (!job.statusUpdate.awaitingConfirmation) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Contractor has not requested for a status update' })];
+                }
+                if (job.statusUpdate.status !== job_model_1.JOB_STATUS.COMPLETED) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Contractor has not yet marked job as completed' })];
+                }
+                job.statusUpdate = __assign(__assign({}, job.statusUpdate), { status: job_model_1.JOB_STATUS.COMPLETED, isCustomerAccept: true, awaitingConfirmation: false });
+                job.status = job_model_1.JOB_STATUS.COMPLETED; // since its customer accepting job completion
+                job.jobHistory.push({
+                    eventType: 'JOB_MARKED_COMPLETE_BY_CUSTOMER',
+                    timestamp: new Date(),
+                    payload: {}
+                });
+                events_1.JobEvent.emit('JOB_MARKED_COMPLETE_BY_CUSTOMER', { job: job });
+                return [4 /*yield*/, job.save()];
+            case 3:
+                _a.sent();
+                res.json({ success: true, message: 'Booking marked as completed successfully', data: job });
+                return [3 /*break*/, 5];
+            case 4:
                 error_7 = _a.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_7))];
             case 5: return [2 /*return*/];
         }
     });
 }); };
-exports.cancelBooking = cancelBooking;
-// Helper function to find the previous accepted schedule date from job history
-var findPreviousAcceptedScheduleDate = function (jobHistory) {
-    var _a, _b, _c, _d, _e, _f;
-    for (var i = jobHistory.length - 1; i >= 0; i--) {
-        var event_1 = jobHistory[i];
-        if ((event_1.eventType === 'SCHEDULE_ACCEPTED' || event_1.eventType === 'SCHEDULE_CREATED') && ((_b = (_a = event_1.details) === null || _a === void 0 ? void 0 : _a.previousSchedule) === null || _b === void 0 ? void 0 : _b.isCustomerAccept) && ((_d = (_c = event_1.details) === null || _c === void 0 ? void 0 : _c.previousSchedule) === null || _d === void 0 ? void 0 : _d.isContractorAccept)) {
-            return (_f = (_e = event_1.details) === null || _e === void 0 ? void 0 : _e.previousSchedule) === null || _f === void 0 ? void 0 : _f.date;
-        }
-    }
-    return undefined;
-};
+exports.acceptBookingComplete = acceptBookingComplete;
 exports.CustomerBookingController = {
     getMyBookings: exports.getMyBookings,
     getBookingHistory: exports.getBookingHistory,
     getSingleBooking: exports.getSingleBooking,
     requestBookingReschedule: exports.requestBookingReschedule,
     acceptOrDeclineReschedule: exports.acceptOrDeclineReschedule,
-    cancelBooking: exports.cancelBooking
+    cancelBooking: exports.cancelBooking,
+    acceptBookingComplete: exports.acceptBookingComplete
 };

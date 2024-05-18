@@ -75,13 +75,30 @@ var VoiceDescriptionSchema = new mongoose_1.Schema({
     }
 });
 var ScheduleSchema = new mongoose_1.Schema({
+    startDate: { type: Date },
+    endDate: { type: Date },
+    createdBy: String,
+    type: { type: String, enum: Object.values(JOB_SCHEDULE_TYPE) },
+    remark: String,
+});
+var ReScheduleSchema = new mongoose_1.Schema({
     date: { type: Date, required: true },
     previousDate: { type: Date },
     awaitingConfirmation: { type: Boolean, default: false },
     isCustomerAccept: { type: Boolean, default: false },
     isContractorAccept: { type: Boolean, default: false },
     createdBy: String,
-    type: { type: String, enum: Object.values(JOB_SCHEDULE_TYPE) },
+    remark: String,
+});
+var StatusUpdateSchema = new mongoose_1.Schema({
+    awaitingConfirmation: { type: Boolean, default: false },
+    isCustomerAccept: { type: Boolean, default: false },
+    isContractorAccept: { type: Boolean, default: false },
+    createdBy: String,
+    status: {
+        type: String,
+        enum: Object.values(JOB_STATUS)
+    },
     remark: String,
 });
 var JobAssignmentSchema = new mongoose_1.Schema({
@@ -100,7 +117,7 @@ var JobLocationSchema = new mongoose_1.Schema({
 var JobHistorySchema = new mongoose_1.Schema({
     eventType: { type: String, required: false }, // Identify the type of event - JOB_REJECTED, JOB_ACCEPTED, JOB_CLOSED, JOB_EXPIRED
     timestamp: { type: Date, default: Date.now }, // Timestamp of the event
-    details: { type: mongoose_1.Schema.Types.Mixed }, // Additional details specific to the event
+    payload: { type: mongoose_1.Schema.Types.Mixed }, // Additional details specific to the event
 });
 var JobSchema = new mongoose_1.Schema({
     customer: { type: mongoose_1.Schema.Types.ObjectId, ref: 'customers', required: true },
@@ -109,6 +126,7 @@ var JobSchema = new mongoose_1.Schema({
     contract: { type: mongoose_1.Schema.Types.ObjectId, ref: 'job_quotations' }, // TODO: replace quotation with this
     contractorType: { type: String },
     status: { type: String, enum: Object.values(JOB_STATUS), default: JOB_STATUS.PENDING },
+    statusUpdate: StatusUpdateSchema,
     type: { type: String, enum: Object.values(JobType), default: JobType.LISTING },
     category: { type: String, required: false },
     description: { type: String, required: true },
@@ -125,6 +143,7 @@ var JobSchema = new mongoose_1.Schema({
     experience: { type: String },
     jobHistory: [JobHistorySchema], // Array of job history entries
     schedule: ScheduleSchema,
+    reschedule: ReScheduleSchema,
     quotations: [{
             id: { type: mongoose_1.Schema.Types.ObjectId, ref: 'job_quotations' },
             status: { type: String, enum: Object.values(job_quotation_model_1.JOB_QUOTATION_STATUS) }

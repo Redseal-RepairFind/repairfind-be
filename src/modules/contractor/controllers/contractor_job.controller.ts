@@ -156,7 +156,7 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
     const jobEvent = {
       eventType: JOB_STATUS.ACCEPTED,
       timestamp: new Date(),
-      details: {
+      payload: {
         message: 'Contactor accepted this job'
       },
     };
@@ -268,7 +268,7 @@ export const rejectJobRequest = async (req: any, res: Response) => {
     const jobEvent = {
       eventType: JOB_STATUS.DECLINED,
       timestamp: new Date(),
-      details: { reason: rejectionReason }, // Store the rejection reason
+      payload: { reason: rejectionReason }, // Store the rejection reason
     };
 
     // Push the rejection event to the job history array
@@ -347,7 +347,7 @@ export const getJobRequestById = async (req: any, res: Response, next: NextFunct
 
     job.myQuotation = await job.getMyQoutation(contractorId);
 
-    // Return the job request details
+    // Return the job request payload
     res.json({ success: true, data: job });
   } catch (error) {
     console.error('Error retrieving job request:', error);
@@ -387,7 +387,7 @@ export const getJobListingById = async (req: any, res: Response, next: NextFunct
     job.myQuotation = await job.getMyQoutation(contractorId);
 
 
-    // Return the job request details
+    // Return the job request payload
     res.json({ success: true, data: job });
   } catch (error) {
     console.error('Error retrieving job listing:', error);
@@ -412,7 +412,7 @@ export const sendJobQuotation = async (
       return res.status(400).json({ errors: errors.array() });
     }
 
-    // Retrieve contractor and job details
+    // Retrieve contractor and job payload
     const [contractor, job] = await Promise.all([
       ContractorModel.findById(contractorId),
       JobModel.findById(jobId).sort({ createdAt: -1 })
@@ -481,7 +481,7 @@ export const sendJobQuotation = async (
     if (job.type === JobType.REQUEST) {
       job.status = JOB_STATUS.ACCEPTED;
       if (!job.jobHistory.some(jobEvent => jobEvent.eventType === JOB_STATUS.ACCEPTED)) {
-        job.jobHistory.push({ eventType: JOB_STATUS.ACCEPTED, timestamp: new Date(), details: { message: 'Contractor accepted this job' } });
+        job.jobHistory.push({ eventType: JOB_STATUS.ACCEPTED, timestamp: new Date(), payload: { message: 'Contractor accepted this job' } });
       }
     }
 
@@ -915,33 +915,6 @@ export const getJobHistory = async (req: any, res: Response, next: NextFunction)
 };
 
 
-export const markJobAsComplete = async (req: any, res: Response, next: NextFunction) => {
-  try {
-      // Extract data from request body
-      const { description, priority, date, media } = req.body;
-      const contractorId = req.contractor.id; // Assuming the contractor triggered the emergency
-      const triggeredBy = 'contractor'; // Assuming the contractor triggered the emergency
-      const jobId = req.params.jobId
-
-      const job = await JobModel.findById(jobId)
-      if (!job) {
-          return res.status(403).json({ success: false, message: 'Job not found' });
-      }
-
-      // Create new job emergency instance
-      job.statusUpdate = {
-          isCustomerAccept:false,
-          isContractorAccept:true,
-          status: JOB_STATUS.COMPLETED,
-      };
-
-      JobEvent.emit('MARK_JOB_AS_COMPLETE', {job})
-      return res.status(201).json({ success: true, message: 'Job marked as completed successfully', data: job });
-  } catch (error: any) {
-      next(new InternalServerError('Error marking job day as complete:', error))
-  }
-};
-
 export const ContractorJobController = {
   getJobRequests,
   getJobListings,
@@ -953,8 +926,7 @@ export const ContractorJobController = {
   updateJobQuotation,
   getJobListingById,
   getMyJobs,
-  getJobHistory,
-  markJobAsComplete
+  getJobHistory
 }
 
 

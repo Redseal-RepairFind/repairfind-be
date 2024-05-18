@@ -74,6 +74,7 @@ router.get("/bookings", checkCustomerRole, CustomerBookingController.getMyBookin
 router.get("/bookings/history", checkCustomerRole, CustomerBookingController.getBookingHistory ); 
 router.get("/bookings/:bookingId", checkCustomerRole, CustomerBookingController.getSingleBooking ); 
 router.post("/bookings/:bookingId/cancel", checkCustomerRole, CustomerBookingController.cancelBooking ); 
+router.post("/bookings/:bookingId/mark-complete", checkCustomerRole, CustomerBookingController.acceptBookingComplete ); 
 router.post("/bookings/:bookingId/reschedule", checkCustomerRole, CustomerBookingController.requestBookingReschedule ); 
 router.post("/bookings/:bookingId/reschedule/:action", checkCustomerRole, CustomerBookingController.acceptOrDeclineReschedule ); 
 

@@ -13,6 +13,7 @@ import { JobCanceledEmailTemplate } from '../templates/common/job_canceled.templ
 import { IJobDay } from '../database/common/job_day.model';
 import { IJobEmergency } from '../database/common/job_emergency.model';
 import { JobEmergencyEmailTemplate } from '../templates/common/job_emergency_email';
+import { GenericEmailTemplate } from '../templates/common/generic_email';
 
 export const JobEvent: EventEmitter = new EventEmitter();
 
@@ -159,7 +160,7 @@ JobEvent.on('JOB_DAY_EMERGENCY', async function (payload: { jobEmergency: IJobEm
             SocketService.broadcastChannel('admin_alerts', 'NEW_JOB_EMERGENCY', {
                 type: 'NEW_JOB_EMERGENCY',
                 message: 'A new Job emergenc has been reported',
-                data: {emergency: payload.jobEmergency, job, customer: customer.toJSON(), contractor: contractor.toJSON()}
+                data: { emergency: payload.jobEmergency, job, customer: customer.toJSON(), contractor: contractor.toJSON() }
             });
 
         }
@@ -167,5 +168,85 @@ JobEvent.on('JOB_DAY_EMERGENCY', async function (payload: { jobEmergency: IJobEm
 
     } catch (error) {
         console.error(`Error handling JOB_DAY_EMERGENCY event: ${error}`);
+    }
+});
+
+
+
+JobEvent.on('JOB_RESHEDULE_DECLINED_ACCEPTED', async function (payload: {job: IJob, action: string}) {
+    try {
+        console.log('handling alert JOB_RESHEDULE_DECLINED_ACCEPTED event', payload.action)
+
+        const customer = await CustomerModel.findById(payload.job.customer)
+        const contractor = await ContractorModel.findById(payload.job.contractor)
+
+
+        if (contractor && customer) {
+            if (payload.job.reschedule?.createdBy == 'contractor') { // send mail to contractor
+                let emailSubject  = 'Job Schedule'
+                let emailContent = `
+                <p style="color: #333333;">Your Job reschedule request on Repairfind has been ${payload.action} by customer</p>
+                <p><strong>Job Title:</strong> ${payload.job.description}</p>
+                <p><strong>Proposed Date:</strong> ${payload.job.reschedule.date}</p>
+                `
+                let html = GenericEmailTemplate({ name: contractor.name, subject:emailSubject, content: emailContent })
+                EmailService.send(contractor.email, emailSubject, html)
+
+            }
+            if (payload.job.reschedule?.createdBy == 'customer') { // send mail to  customer
+                let emailSubject  = 'Job Schedule'
+                let emailContent = `
+                <p style="color: #333333;">Your Job reschedule request on Repairfind has been ${payload.action}  by the contractor</p>
+                <p><strong>Job Title:</strong> ${payload.job.description}</p>
+                <p><strong>Proposed Date:</strong> ${payload.job.reschedule.date}</p>
+                `
+                let html = GenericEmailTemplate({ name: customer.name, subject:emailSubject, content: emailContent })
+                EmailService.send(customer.email, emailSubject, html)
+            }
+
+        }
+
+
+    } catch (error) {
+        console.error(`Error handling JOB_RESHEDULE_DECLINED_ACCEPTED event: ${error}`);
+    }
+});
+
+JobEvent.on('NEW_JOB_RESHEDULE_REQUEST', async function (payload: {job: IJob, action: string}) {
+    try {
+        console.log('handling alert NEW_JOB_RESHEDULE_REQUEST event', payload.action)
+
+        const customer = await CustomerModel.findById(payload.job.customer)
+        const contractor = await ContractorModel.findById(payload.job.contractor)
+
+
+        if (contractor && customer) {
+            if (payload.job.reschedule?.createdBy == 'contractor') { // send mail to contractor
+                let emailSubject  = 'Job Schedule'
+                let emailContent = `
+                <p style="color: #333333;">Contractor has requested  to reschedule a job on RepairFind</p>
+                <p><strong>Job Title:</strong> ${payload.job.description}</p>
+                <p><strong>Proposed Date:</strong> ${payload.job.reschedule.date}</p>
+                `
+                let html = GenericEmailTemplate({ name: customer.name, subject:emailSubject, content: emailContent })
+                EmailService.send(customer.email, emailSubject, html)
+
+            }
+            if (payload.job.reschedule?.createdBy == 'customer') { // send mail to  customer
+                let emailSubject  = 'Job Schedule'
+                let emailContent = `
+                <p style="color: #333333;">Customer has requested  to reschedule a job on RepairFind</p>
+                <p><strong>Job Title:</strong> ${payload.job.description}</p>
+                <p><strong>Proposed Date:</strong> ${payload.job.reschedule.date}</p>
+                `
+                let html = GenericEmailTemplate({ name: contractor.name, subject:emailSubject, content: emailContent })
+                EmailService.send(contractor.email, emailSubject, html)
+            }
+
+        }
+
+
+    } catch (error) {
+        console.error(`Error handling NEW_JOB_RESHEDULE_REQUEST event: ${error}`);
     }
 });
