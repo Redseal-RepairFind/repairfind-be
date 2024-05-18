@@ -151,7 +151,7 @@ var getBookingHistory = function (req, res, next) { return __awaiter(void 0, voi
                 delete req.query.status;
                 jobIds = [];
                 statusArray = status_2.split(',').map(function (s) { return s.trim(); });
-                filter = { status: { $in: statusArray, customer: customerId } };
+                filter = { status: { $in: statusArray }, customer: customerId };
                 if (!contractorId_2) return [3 /*break*/, 3];
                 return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.find({ contractor: contractorId_2 }).select('job').lean()];
             case 2:

@@ -122,7 +122,7 @@ export const getBookingHistory = async (req: any, res: Response, next: NextFunct
 
         let jobIds = [];
         const statusArray = status.split(',').map((s: any) => s.trim()); // Convert the comma-separated string to an array of statuses
-        const filter : any = { status: { $in: statusArray, customer: customerId }}
+        const filter : any = { status: { $in: statusArray }, customer: customerId}
 
         if (contractorId) {
             // Retrieve the quotations for the current contractor and extract job IDs
