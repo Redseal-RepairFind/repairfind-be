@@ -151,7 +151,8 @@ export const getBookingHistory = async (req: any, res: Response, next: NextFunct
         }
 
         if (error) {
-            return next(new BadRequestError('Unkowon error occured'));
+            console.log(error)
+            res.status(500).json({ success: false, message: error });
         }
 
         // Send response with job listings data

@@ -189,7 +189,8 @@ var getBookingHistory = function (req, res, next) { return __awaiter(void 0, voi
                 _g.label = 6;
             case 6:
                 if (error) {
-                    return [2 /*return*/, next(new custom_errors_1.BadRequestError('Unkowon error occured'))];
+                    console.log(error);
+                    res.status(500).json({ success: false, message: error });
                 }
                 // Send response with job listings data
                 res.status(200).json({ success: true, data: data });
