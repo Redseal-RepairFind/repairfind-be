@@ -3,7 +3,7 @@ import { AdminAddNewSkillController, AdminGetSkillController } from "../controll
 import { AdminGetContractorDocForValController, AdminGetSingleContractorDocForValController, AdminValidateContractorDocsController } from "../controllers/adminContractorDocVal.controller";
 import { AdminEmailForgotPasswordController, AdminEmailResetPasswordController } from "../controllers/adminForgotPassword";
 import { AdminContractorDetail } from "../controllers/adminGetContractorDetail.controller";
-import { AdminGetCustomerDetailController, AdminGetSingleCustomerDetailController } from "../controllers/adminGetCustomerDetail.contractor";
+import { AdminCustomerController } from "../controllers/adminGetCustomerDetail.contractor";
 import { adminGetNotificationrController, adminUnseenNotificationrController, adminViewNotificationrController } from "../controllers/adminNotification.controller";
 import { AdminSignInController, SuperAdminGetAllAdminController, SuperAdminValidateOtherAdminController, adminResendEmailController, adminSignUpController, adminUpdateBioController, adminVerifiedEmailController } from "../controllers/adminReg.controller";
 import { AdminGetAppDetailController } from "../controllers/appDetails.Controller";
@@ -34,9 +34,13 @@ router.get("/contractor/detail", checkAdminRole, AdminContractorDetail.AdminGetC
 router.get("/contractor/detail/:contractorId", checkAdminRole, AdminContractorDetail.AdminGetSingleContractorDetailController ); // admin get single contractor detail
 router.post("/validate/contractor/gst", validateContractorChangeStatusValidationParams, checkAdminRole, AdminContractorDetail.AdminChangeContractorGstStatusController ); // admin change contractor gst
 router.get("/contractor/detail/pending/gst", checkAdminRole, AdminContractorDetail.AdminGetContractorGstPendingController ); // admin get contractor detail with gst status pending
+router.get("/contractor/job/detail/:contractorId", checkAdminRole, AdminContractorDetail.AdminGetSingleContractorJonDetailController ); // admin get single contractor job detail
 
-router.get("/admin_get_customer_detail", checkAdminRole, AdminGetCustomerDetailController ); // admin get customer detail
-router.get("/admin_get_single_customer_detail", validateCustomerIdValidationParams, checkAdminRole, AdminGetSingleCustomerDetailController ); // admin get single customer detail
+
+//done
+router.get("/customer/detail", checkAdminRole, AdminCustomerController.AdminGetCustomerDetailController ); // admin get customer detail
+router.get("/customer/detail/:customerId", checkAdminRole, AdminCustomerController.AdminGetSingleCustomerDetailController ); // admin get single customer detail
+router.get("/customer/job/detail/:customerId", checkAdminRole, AdminCustomerController.AdminGetSingleCustomerJobDetailController ); // admin get single customer  job detail
 
 
 router.get("/admin_get_contractor_document", checkAdminRole, AdminGetContractorDocForValController ); // admin get contractor pending document for validation
@@ -45,6 +49,8 @@ router.post("/admin_validate_contractor_document", validateContractoDocumentIdVa
 
 
 router.post("/skills", validateAddSkillParams, checkAdminRole, AdminAddNewSkillController ); // admin add skilll
+//done
+router.post("/add/skill", validateAddSkillParams, checkAdminRole, AdminAddNewSkillController ); // admin add skilll
 router.get("/skills", checkAdminRole, AdminGetSkillController ); // admin get all skill
 
 // done
@@ -52,6 +58,7 @@ router.get("/jobs/detail", checkAdminRole, AdminJobController.AdminGetJobsrDetai
 router.get("/jobs/detail/:jobId", checkAdminRole, AdminJobController.AdminGetSingleJobsrDetailController ); // admin get single job detail
 router.get("/total_job", checkAdminRole, AdminJobController.AdminGetTotalJobsrController); // admin get total job
 router.get("/app_detail", checkAdminRole, AdminGetAppDetailController ); // admin get app detail
+router.get("/invoice/detail/:jobId", checkAdminRole, AdminJobController.AdminGetInvoiceSingleJobsrDetailController ); // admin get invoices for single job detail
 
 
 router.get("/admin_get_transaction_detail", checkAdminRole, AdminGetTransactionDetailController ); // admin get transaction detail
