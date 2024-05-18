@@ -161,7 +161,7 @@ var getBookingHistory = function (req, res, next) { return __awaiter(void 0, voi
                     req.query.customer = customerId;
                     delete req.query.customerId;
                 }
-                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_model_1.JobModel.find(filter).distinct('_id'), req.query)];
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_model_1.JobModel.find(filter).distinct('_id').populate('customer'), req.query)];
             case 2:
                 _f = _g.sent(), data = _f.data, error = _f.error;
                 if (!data) return [3 /*break*/, 4];

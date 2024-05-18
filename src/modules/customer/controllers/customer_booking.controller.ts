@@ -141,7 +141,7 @@ export const getBookingHistory = async (req: any, res: Response, next: NextFunct
         // Query JobModel to find jobs that have IDs present in the extracted jobIds
        
         const { data, error } = await applyAPIFeature(
-            JobModel.find(filter).distinct('_id'),
+            JobModel.find(filter).distinct('_id').populate('contractor'),
             req.query);
         if (data) {
             // Map through each job and attach myQuotation if contractor has applied 
