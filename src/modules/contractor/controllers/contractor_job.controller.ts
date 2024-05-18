@@ -166,25 +166,25 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
 
 
 
-    // Create the initial job application
-    const quotation = new JobQuotationModel({
-      contractor: contractorId,
-      job: jobId,
-      status: JOB_QUOTATION_STATUS.PENDING, // Assuming initial status is pending
-      estimate: [], // You may need to adjust this based on your application schema
-      startDate: job.startDate,
-      endDate: job.endDate,
-      siteVerification: false, // Example value, adjust as needed
-      processingFee: 0 // Example value, adjust as needed
-    });
+    // // Create the initial job application
+    // const quotation = new JobQuotationModel({
+    //   contractor: contractorId,
+    //   job: jobId,
+    //   status: JOB_QUOTATION_STATUS.PENDING, // Assuming initial status is pending
+    //   estimate: [], // You may need to adjust this based on your application schema
+    //   startDate: job.startDate,
+    //   endDate: job.endDate,
+    //   siteVerification: false, // Example value, adjust as needed
+    //   processingFee: 0 // Example value, adjust as needed
+    // });
 
-    // Save the initial job application
-    await quotation.save();
+    // // Save the initial job application
+    // await quotation.save();
 
     // Associate the job application with the job request
-    if (!job.quotations.includes(quotation.id)) {
-      job.quotations.push(quotation.id);
-    }
+    // if (!job.quotations.includes(quotation.id)) {
+    //   job.quotations.push(quotation.id);
+    // }
 
 
     await job.save();
@@ -193,13 +193,13 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
     // Create or update conversation
     const conversationMembers = [
       { memberType: 'customers', member: job.customer },
-      { memberType: 'contractors', member: quotation.contractor }
+      { memberType: 'contractors', member: contractorId }
     ];
     const conversation = await ConversationModel.findOneAndUpdate(
       {
         $and: [
           { members: { $elemMatch: { member: job.customer } } }, // memberType: 'customers'
-          { members: { $elemMatch: { member: quotation.contractor } } } // memberType: 'contractors'
+          { members: { $elemMatch: { member: contractorId } } } // memberType: 'contractors'
         ]
       },
 

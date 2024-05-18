@@ -124,12 +124,12 @@ var getJobRequests = function (req, res) { return __awaiter(void 0, void 0, void
 }); };
 exports.getJobRequests = getJobRequests;
 var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, jobId, contractorId, contractor, job, customer, account, stripeAccount, jobEvent, quotation, conversationMembers, conversation, message, error_2;
+    var errors, jobId, contractorId, contractor, job, customer, account, stripeAccount, jobEvent, conversationMembers, conversation, message, error_2;
     var _a, _b;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
-                _c.trys.push([0, 12, , 13]);
+                _c.trys.push([0, 11, , 12]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -194,43 +194,58 @@ var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 };
                 // Push the rejection event to the job history array
                 job.jobHistory.push(jobEvent);
-                quotation = new job_quotation_model_1.JobQuotationModel({
-                    contractor: contractorId,
-                    job: jobId,
-                    status: job_quotation_model_1.JOB_QUOTATION_STATUS.PENDING, // Assuming initial status is pending
-                    estimate: [], // You may need to adjust this based on your application schema
-                    startDate: job.startDate,
-                    endDate: job.endDate,
-                    siteVerification: false, // Example value, adjust as needed
-                    processingFee: 0 // Example value, adjust as needed
-                });
-                // Save the initial job application
-                return [4 /*yield*/, quotation.save()];
-            case 8:
-                // Save the initial job application
-                _c.sent();
+                // // Create the initial job application
+                // const quotation = new JobQuotationModel({
+                //   contractor: contractorId,
+                //   job: jobId,
+                //   status: JOB_QUOTATION_STATUS.PENDING, // Assuming initial status is pending
+                //   estimate: [], // You may need to adjust this based on your application schema
+                //   startDate: job.startDate,
+                //   endDate: job.endDate,
+                //   siteVerification: false, // Example value, adjust as needed
+                //   processingFee: 0 // Example value, adjust as needed
+                // });
+                // // Save the initial job application
+                // await quotation.save();
                 // Associate the job application with the job request
-                if (!job.quotations.includes(quotation.id)) {
-                    job.quotations.push(quotation.id);
-                }
+                // if (!job.quotations.includes(quotation.id)) {
+                //   job.quotations.push(quotation.id);
+                // }
                 return [4 /*yield*/, job.save()];
-            case 9:
+            case 8:
+                // // Create the initial job application
+                // const quotation = new JobQuotationModel({
+                //   contractor: contractorId,
+                //   job: jobId,
+                //   status: JOB_QUOTATION_STATUS.PENDING, // Assuming initial status is pending
+                //   estimate: [], // You may need to adjust this based on your application schema
+                //   startDate: job.startDate,
+                //   endDate: job.endDate,
+                //   siteVerification: false, // Example value, adjust as needed
+                //   processingFee: 0 // Example value, adjust as needed
+                // });
+                // // Save the initial job application
+                // await quotation.save();
+                // Associate the job application with the job request
+                // if (!job.quotations.includes(quotation.id)) {
+                //   job.quotations.push(quotation.id);
+                // }
                 _c.sent();
                 conversationMembers = [
                     { memberType: 'customers', member: job.customer },
-                    { memberType: 'contractors', member: quotation.contractor }
+                    { memberType: 'contractors', member: contractorId }
                 ];
                 return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
                         $and: [
                             { members: { $elemMatch: { member: job.customer } } }, // memberType: 'customers'
-                            { members: { $elemMatch: { member: quotation.contractor } } } // memberType: 'contractors'
+                            { members: { $elemMatch: { member: contractorId } } } // memberType: 'contractors'
                         ]
                     }, {
                         members: conversationMembers,
                         lastMessage: 'I have accepted your Job request', // Set the last message to the job description
                         lastMessageAt: new Date() // Set the last message timestamp to now
                     }, { new: true, upsert: true })];
-            case 10:
+            case 9:
                 conversation = _c.sent();
                 message = new messages_schema_1.MessageModel({
                     conversation: conversation === null || conversation === void 0 ? void 0 : conversation._id,
@@ -240,15 +255,15 @@ var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void
                     messageType: messages_schema_1.MessageType.ALERT,
                 });
                 return [4 /*yield*/, message.save()];
-            case 11:
+            case 10:
                 _c.sent();
                 // Return success response
                 res.json({ success: true, message: 'Job request accepted successfully' });
-                return [3 /*break*/, 13];
-            case 12:
+                return [3 /*break*/, 12];
+            case 11:
                 error_2 = _c.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('Something went wrong', error_2))];
-            case 13: return [2 /*return*/];
+            case 12: return [2 /*return*/];
         }
     });
 }); };
