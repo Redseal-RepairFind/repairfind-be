@@ -8,6 +8,8 @@ import { ContractorModel } from "../../../database/contractor/models/contractor.
 import { InternalServerError } from "../../../utils/custom.errors";
 import { JobEvent } from "../../../events";
 import { JobEmergencyModel } from "../../../database/common/job_emergency.model";
+import { ConversationModel } from "../../../database/common/conversations.schema";
+import { ContractorProfileModel } from "../../../database/contractor/models/contractor_profile.model";
 
 
 export const startTrip = async (
@@ -99,6 +101,86 @@ export const startTrip = async (
 
 }
 
+export const initiateJobDay = async (
+    req: any,
+    res: Response,
+) => {
+
+    try {
+        const { jobId } = req.body;
+
+        // Check for validation errors
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const contractorId = req.contractor.id
+
+        const contractorProfile = await ContractorProfileModel.findOne({ contractor: contractorId });
+        if (!contractorProfile) {
+            return res.status(403).json({ success: false, message: 'Contractor profile not found' });
+        }
+
+        // Find the job request by ID
+        const job = await JobModel.findOne({ _id: jobId, contractor: contractorId, status: JOB_STATUS.BOOKED }).populate('customer', 'contractor');
+        if (!job) {
+            return res.status(403).json({ success: false, message: 'Job request not found' });
+        }
+
+
+        // Check if an active trip already exists for the specified job
+        // const activeTrip = await JobDayModel.findOne({ job: jobId, status: JOB_DAY_STATUS.STARTED });
+        // if (activeTrip) {
+        //     return res.status(400).json({ success: false, message: 'An active trip already exists for this job' });
+        // }
+
+        // Create or update conversation
+        const conversationMembers = [
+            { memberType: 'customers', member: job.customer },
+            { memberType: 'contractors', member: contractorId }
+        ];
+        const conversation = await ConversationModel.findOneAndUpdate(
+            {
+                $and: [
+                    { members: { $elemMatch: { member: job.customer } } }, // memberType: 'customers'
+                    { members: { $elemMatch: { member: contractorId } } } // memberType: 'contractors'
+                ]
+            },
+
+            {
+                members: conversationMembers,
+                lastMessage: 'I have accepted your Job request', // Set the last message to the job description
+                lastMessageAt: new Date() // Set the last message timestamp to now
+            },
+            { new: true, upsert: true });
+
+
+
+
+        const data = {
+            jobLocation: job.location,
+            contractorLocation: contractorProfile.location,
+            conversation: conversation,
+            customer: job.customer,
+            contractor: job.contractor,
+            booking: job
+        }
+
+        res.json({
+            success: true,
+            message: "job day successfully initiated",
+            data: data
+        });
+
+    } catch (err: any) {
+        console.log("error", err)
+        res.status(500).json({ message: err.message });
+    }
+
+}
+
 
 
 export const confirmArrival = async (
@@ -165,7 +247,7 @@ export const confirmArrival = async (
                 user: trip.customer.toString(),
                 userType: 'customers',
                 title: 'trip',
-                heading: {name: contractorId, image: contractorId},
+                heading: { name: contractorId, image: contractorId },
                 type: 'JOB_DAY_ARRIVAL',
                 message: 'Contractor is at your site.',
                 payload: { jobDayId: jobDayId, verificationCode }
@@ -179,7 +261,7 @@ export const confirmArrival = async (
         res.json({
             success: true,
             message: "you successfully arrrived at site, wait for comfirmation from customer",
-            data: {verificationCode}
+            data: { verificationCode }
         });
 
     } catch (err: any) {
@@ -198,7 +280,7 @@ export const createJobEmergency = async (req: any, res: Response, next: NextFunc
         const triggeredBy = 'contractor'; // Assuming the contractor triggered the emergency
         const jobDayId = req.params.jobDayId
 
-        const jobDay = await JobDayModel.findOne({_id: jobDayId})
+        const jobDay = await JobDayModel.findOne({ _id: jobDayId })
         if (!jobDay) {
             return res.status(403).json({ success: false, message: 'jobDay not found' });
         }
@@ -206,8 +288,8 @@ export const createJobEmergency = async (req: any, res: Response, next: NextFunc
         // Create new job emergency instance
         const jobEmergency = await JobEmergencyModel.create({
             job: jobDay.job,
-            customer:jobDay.customer,
-            contractor:jobDay.contractor,
+            customer: jobDay.customer,
+            contractor: jobDay.contractor,
             description,
             priority,
             date: new Date,
@@ -215,7 +297,7 @@ export const createJobEmergency = async (req: any, res: Response, next: NextFunc
             media,
         });
 
-        JobEvent.emit('JOB_DAY_EMERGENCY', {jobEmergency})
+        JobEvent.emit('JOB_DAY_EMERGENCY', { jobEmergency })
 
         return res.status(201).json({ success: true, message: 'Job emergency created successfully', data: jobEmergency });
     } catch (error: any) {
@@ -229,4 +311,5 @@ export const ContractorJobDayController = {
     startTrip,
     confirmArrival,
     createJobEmergency,
+    initiateJobDay
 };

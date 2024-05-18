@@ -156,6 +156,7 @@ router.post("/bookings/:bookingId/cancel", contractorRoleCheck_middleware_1.chec
 router.post('/bookings/:bookingId/mark-complete', contractorRoleCheck_middleware_1.checkContractorRole, contractor_booking_controller_1.ContractorBookingController.markBookingComplete);
 // jobdays day
 router.post('/jobdays/trip-start', contractorRoleCheck_middleware_1.checkContractorRole, contractor_jobday_controller_1.ContractorJobDayController.startTrip);
+router.post('/jobdays/initiate', contractorRoleCheck_middleware_1.checkContractorRole, contractor_jobday_controller_1.ContractorJobDayController.initiateJobDay);
 router.post('/jobdays/:jobDayId/trip-arrival', contractorRoleCheck_middleware_1.checkContractorRole, contractor_jobday_controller_1.ContractorJobDayController.confirmArrival);
 router.post('/jobdays/:jobDayId/emergency', contractorRoleCheck_middleware_1.checkContractorRole, contractor_jobday_controller_1.ContractorJobDayController.createJobEmergency);
 // Call

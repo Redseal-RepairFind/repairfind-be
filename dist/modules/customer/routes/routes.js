@@ -80,6 +80,7 @@ router.post('/conversations/:conversationId/mark-all-read', customerRoleChecker_
 // jobdays day
 router.post('/jobdays/:jobDayId/confirm-arrival', customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.tripArrivalComfirmParams, customer_jobday_controller_1.CustomerJobDayController.confirmTrip);
 router.post('/jobdays/:jobDayId/emergency', customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.tripArrivalComfirmParams, customer_jobday_controller_1.CustomerJobDayController.createJobEmergency);
+router.post('/jobdays/initiate', customerRoleChecker_middleware_1.checkCustomerRole, customer_jobday_controller_1.CustomerJobDayController.initiateJobDay);
 // Call
 router.post("/voicecall/agora-rtc", customerRoleChecker_middleware_1.checkCustomerRole, customer_call_controller_1.CustomerCallController.createRtcToken);
 router.post("/voicecall", customerRoleChecker_middleware_1.checkCustomerRole, customer_call_controller_1.CustomerCallController.startCall);

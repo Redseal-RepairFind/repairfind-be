@@ -4,6 +4,7 @@ exports.JobDayModel = exports.JobDayShema = exports.JOB_DAY_TYPE = exports.JOB_D
 var mongoose_1 = require("mongoose");
 var JOB_DAY_STATUS;
 (function (JOB_DAY_STATUS) {
+    JOB_DAY_STATUS["PENDING"] = "PENDING";
     JOB_DAY_STATUS["STARTED"] = "STARTED";
     JOB_DAY_STATUS["ARRIVED"] = "ARRIVED";
     JOB_DAY_STATUS["CANCELED"] = "CANCELED";

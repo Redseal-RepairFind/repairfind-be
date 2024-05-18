@@ -36,7 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorJobDayController = exports.createJobEmergency = exports.confirmArrival = exports.startTrip = void 0;
+exports.ContractorJobDayController = exports.createJobEmergency = exports.confirmArrival = exports.initiateJobDay = exports.startTrip = void 0;
 var express_validator_1 = require("express-validator");
 var job_model_1 = require("../../../database/common/job.model");
 var otpGenerator_1 = require("../../../utils/otpGenerator");
@@ -46,6 +46,8 @@ var contractor_model_1 = require("../../../database/contractor/models/contractor
 var custom_errors_1 = require("../../../utils/custom.errors");
 var events_1 = require("../../../events");
 var job_emergency_model_1 = require("../../../database/common/job_emergency.model");
+var conversations_schema_1 = require("../../../database/common/conversations.schema");
+var contractor_profile_model_1 = require("../../../database/contractor/models/contractor_profile.model");
 var startTrip = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var jobId, errors, contractorId, job, activeTrip, trip, err_1;
     return __generator(this, function (_a) {
@@ -126,8 +128,72 @@ var startTrip = function (req, res) { return __awaiter(void 0, void 0, void 0, f
     });
 }); };
 exports.startTrip = startTrip;
+var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var jobId, errors, contractorId, contractorProfile, job, conversationMembers, conversation, data, err_2;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 4, , 5]);
+                jobId = req.body.jobId;
+                errors = (0, express_validator_1.validationResult)(req);
+                if (!errors.isEmpty()) {
+                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                }
+                contractorId = req.contractor.id;
+                return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: contractorId })];
+            case 1:
+                contractorProfile = _a.sent();
+                if (!contractorProfile) {
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'Contractor profile not found' })];
+                }
+                return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobId, contractor: contractorId, status: job_model_1.JOB_STATUS.BOOKED }).populate('customer', 'contractor')];
+            case 2:
+                job = _a.sent();
+                if (!job) {
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'Job request not found' })];
+                }
+                conversationMembers = [
+                    { memberType: 'customers', member: job.customer },
+                    { memberType: 'contractors', member: contractorId }
+                ];
+                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
+                        $and: [
+                            { members: { $elemMatch: { member: job.customer } } }, // memberType: 'customers'
+                            { members: { $elemMatch: { member: contractorId } } } // memberType: 'contractors'
+                        ]
+                    }, {
+                        members: conversationMembers,
+                        lastMessage: 'I have accepted your Job request', // Set the last message to the job description
+                        lastMessageAt: new Date() // Set the last message timestamp to now
+                    }, { new: true, upsert: true })];
+            case 3:
+                conversation = _a.sent();
+                data = {
+                    jobLocation: job.location,
+                    contractorLocation: contractorProfile.location,
+                    conversation: conversation,
+                    customer: job.customer,
+                    contractor: job.contractor,
+                    booking: job
+                };
+                res.json({
+                    success: true,
+                    message: "job day successfully initiated",
+                    data: data
+                });
+                return [3 /*break*/, 5];
+            case 4:
+                err_2 = _a.sent();
+                console.log("error", err_2);
+                res.status(500).json({ message: err_2.message });
+                return [3 /*break*/, 5];
+            case 5: return [2 /*return*/];
+        }
+    });
+}); };
+exports.initiateJobDay = initiateJobDay;
 var confirmArrival = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var jobDayId, errors, contractorId, contractor, trip, verificationCode, err_2;
+    var jobDayId, errors, contractorId, contractor, trip, verificationCode, err_3;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -197,9 +263,9 @@ var confirmArrival = function (req, res) { return __awaiter(void 0, void 0, void
                 });
                 return [3 /*break*/, 5];
             case 4:
-                err_2 = _a.sent();
-                console.log("error", err_2);
-                res.status(500).json({ message: err_2.message });
+                err_3 = _a.sent();
+                console.log("error", err_3);
+                res.status(500).json({ message: err_3.message });
                 return [3 /*break*/, 5];
             case 5: return [2 /*return*/];
         }
@@ -249,4 +315,5 @@ exports.ContractorJobDayController = {
     startTrip: exports.startTrip,
     confirmArrival: exports.confirmArrival,
     createJobEmergency: exports.createJobEmergency,
+    initiateJobDay: exports.initiateJobDay
 };

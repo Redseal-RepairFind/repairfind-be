@@ -205,6 +205,7 @@ router.post('/bookings/:bookingId/mark-complete', checkContractorRole, Contracto
 
 // jobdays day
 router.post('/jobdays/trip-start', checkContractorRole, ContractorJobDayController.startTrip)
+router.post('/jobdays/initiate', checkContractorRole, ContractorJobDayController.initiateJobDay)
 router.post('/jobdays/:jobDayId/trip-arrival', checkContractorRole, ContractorJobDayController.confirmArrival)
 router.post('/jobdays/:jobDayId/emergency', checkContractorRole, ContractorJobDayController.createJobEmergency)
 

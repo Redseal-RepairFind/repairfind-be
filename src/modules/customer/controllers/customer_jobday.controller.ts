@@ -5,7 +5,85 @@ import { JOB_DAY_STATUS, JobDayModel } from "../../../database/common/job_day.mo
 import { JobEmergencyModel } from "../../../database/common/job_emergency.model";
 import { InternalServerError } from "../../../utils/custom.errors";
 import { JobEvent } from "../../../events";
+import { ContractorProfileModel } from "../../../database/contractor/models/contractor_profile.model";
+import { JOB_STATUS, JobModel } from "../../../database/common/job.model";
+import { ConversationModel } from "../../../database/common/conversations.schema";
 
+
+export const initiateJobDay = async (
+    req: any,
+    res: Response,
+) => {
+
+    try {
+        const { jobId } = req.body;
+
+        // Check for validation errors
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const customerId = req.customer.id
+
+
+         // Find the job request by ID
+         const job = await JobModel.findOne({ _id: jobId, customer: customerId, status: JOB_STATUS.BOOKED }).populate('customer', 'contractor');
+         if (!job) {
+             return res.status(403).json({ success: false, message: 'Job  not found' });
+         }
+
+        const contractorId = job.contractor
+        const contractorProfile = await ContractorProfileModel.findOne({ contractor: contractorId });
+        if (!contractorProfile) {
+            return res.status(403).json({ success: false, message: 'Contractor profile not found' });
+        }
+
+        // Create or update conversation
+        const conversationMembers = [
+            { memberType: 'customers', member: job.customer },
+            { memberType: 'contractors', member: contractorId }
+        ];
+        const conversation = await ConversationModel.findOneAndUpdate(
+            {
+                $and: [
+                    { members: { $elemMatch: { member: job.customer } } }, // memberType: 'customers'
+                    { members: { $elemMatch: { member: contractorId } } } // memberType: 'contractors'
+                ]
+            },
+
+            {
+                members: conversationMembers,
+                lastMessage: 'I have accepted your Job request', // Set the last message to the job description
+                lastMessageAt: new Date() // Set the last message timestamp to now
+            },
+            { new: true, upsert: true });
+
+
+
+
+        const data = {
+            jobLocation: job.location,
+            contractorLocation: contractorProfile.location,
+            conversation: conversation,
+            customer: job.customer,
+            contractor: job.contractor,
+            booking: job
+        }
+
+        res.json({
+            success: true,
+            message: "job day successfully initiated",
+            data: data
+        });
+
+    } catch (err: any) {
+        console.log("error", err)
+        res.status(500).json({ message: err.message });
+    }
+
+}
 
 export const confirmTrip = async (
     req: any,
@@ -95,6 +173,7 @@ export const confirmTrip = async (
     }
   
 }
+
 
 
 export const uploadQualityAssurancePhotos = async (
@@ -225,5 +304,6 @@ export const createJobEmergency = async (req: any, res: Response, next: NextFunc
 export const CustomerJobDayController = {
     confirmTrip,
     uploadQualityAssurancePhotos,
-    createJobEmergency
+    createJobEmergency,
+    initiateJobDay
 };
