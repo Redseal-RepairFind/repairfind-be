@@ -366,8 +366,10 @@ var captureJobPayment = function (req, res, next) { return __awaiter(void 0, voi
                     expand: ['latest_charge'],
                     payment_method: paymentMethod.id,
                     currency: 'usd',
-                    amount: (charges.totalAmount) * 100,
-                    application_fee_amount: (charges.processingFee) * 100, // send everthing to connected account and  application_fee_amount will be transfered back
+                    // amount: (charges.totalAmount) * 100,
+                    // application_fee_amount: (charges.processingFee) * 100, 
+                    amount: Math.round(charges.totalAmount * 100) / 100,
+                    application_fee_amount: Math.round(charges.processingFee * 100) / 100,
                     transfer_data: {
                         // amount: (charges.contractorAmount) * 100, // transfer to connected account
                         destination: (_d = contractor === null || contractor === void 0 ? void 0 : contractor.stripeAccount.id) !== null && _d !== void 0 ? _d : '' // mostimes only work with same region example us, user // https://docs.stripe.com/connect/destination-charges
