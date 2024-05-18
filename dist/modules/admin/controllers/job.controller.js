@@ -36,9 +36,10 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AdminJobController = exports.AdminGetTotalJobsrController = exports.AdminGetSingleJobsrDetailController = exports.AdminGetJobsrDetailController = void 0;
+exports.AdminJobController = exports.AdminGetInvoiceSingleJobsrDetailController = exports.AdminGetTotalJobsrController = exports.AdminGetSingleJobsrDetailController = exports.AdminGetJobsrDetailController = void 0;
 var express_validator_1 = require("express-validator");
 var job_model_1 = require("../../../database/common/job.model");
+var invoices_shema_1 = require("../../../database/common/invoices.shema");
 //get jobs detail /////////////
 var AdminGetJobsrDetailController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, page, limit, errors, admin, adminId, skip, jobsDetails, totalJob, jobs, err_1;
@@ -166,8 +167,56 @@ var AdminGetTotalJobsrController = function (req, res) { return __awaiter(void 0
     });
 }); };
 exports.AdminGetTotalJobsrController = AdminGetTotalJobsrController;
+//get invoce for  single jobs detail /////////////
+var AdminGetInvoiceSingleJobsrDetailController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var jobId, errors, admin, adminId, invoice, obj, err_4;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                jobId = req.params.jobId;
+                errors = (0, express_validator_1.validationResult)(req);
+                if (!errors.isEmpty()) {
+                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                }
+                admin = req.admin;
+                adminId = admin.id;
+                return [4 /*yield*/, invoices_shema_1.InvoiceModel.findOne({ jobId: jobId }).populate({
+                        path: 'jobId', // Field in JobModel referencing another model
+                        populate: [
+                            { path: 'customer' }, // Field in CustomerModel referencing another model
+                            { path: 'contractor' },
+                            { path: 'quotation' }
+                        ]
+                    })
+                        .populate('customerId')];
+            case 1:
+                invoice = _a.sent();
+                if (!invoice) {
+                    return [2 /*return*/, res
+                            .status(401)
+                            .json({ message: "invalid job ID or no invoice for this job yet" })];
+                }
+                obj = {
+                    invoice: invoice
+                };
+                res.json({
+                    job: obj
+                });
+                return [3 /*break*/, 3];
+            case 2:
+                err_4 = _a.sent();
+                // signup error
+                res.status(500).json({ message: err_4.message });
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.AdminGetInvoiceSingleJobsrDetailController = AdminGetInvoiceSingleJobsrDetailController;
 exports.AdminJobController = {
     AdminGetJobsrDetailController: exports.AdminGetJobsrDetailController,
     AdminGetSingleJobsrDetailController: exports.AdminGetSingleJobsrDetailController,
-    AdminGetTotalJobsrController: exports.AdminGetTotalJobsrController
+    AdminGetTotalJobsrController: exports.AdminGetTotalJobsrController,
+    AdminGetInvoiceSingleJobsrDetailController: exports.AdminGetInvoiceSingleJobsrDetailController
 };

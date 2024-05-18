@@ -39,20 +39,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AdminGetSingleCustomerDetailController = exports.AdminGetCustomerDetailController = void 0;
+exports.AdminCustomerController = exports.AdminGetSingleCustomerJobDetailController = exports.AdminGetSingleCustomerDetailController = exports.AdminGetCustomerDetailController = void 0;
 var express_validator_1 = require("express-validator");
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
-var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
-var job_model_1 = __importDefault(require("../../../database/contractor/models/job.model"));
-var customerRating_model_1 = __importDefault(require("../../../database/customer/models/customerRating.model"));
+var job_model_1 = require("../../../database/common/job.model");
+var invoices_shema_1 = require("../../../database/common/invoices.shema");
 //get customer detail /////////////
 var AdminGetCustomerDetailController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, page, limit, errors, admin, adminId, skip, customersDetail, totalCustomer, customers, i, customer, jobRequests, jobRequested, rating, customerRating, i_1, jobRequest, contractor, obj, objTwo, err_1;
+    var _a, page, limit, errors, admin, adminId, skip, customersDetail, totalCustomer, err_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 12, , 13]);
-                _a = req.body, page = _a.page, limit = _a.limit;
+                _b.trys.push([0, 3, , 4]);
+                _a = req.query, page = _a.page, limit = _a.limit;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -69,78 +68,87 @@ var AdminGetCustomerDetailController = function (req, res) { return __awaiter(vo
                         .limit(limit)];
             case 1:
                 customersDetail = _b.sent();
-                return [4 /*yield*/, customer_model_1.default.countDocuments()];
+                return [4 /*yield*/, customer_model_1.default.countDocuments()
+                    // let customers = [];
+                    // for (let i = 0; i < customersDetail.length; i++) {
+                    //   const customer = customersDetail[i];
+                    //   const jobRequests = await JobModel.find({customerId: customer._id}).sort({ createdAt: -1 })
+                    //   let jobRequested = []
+                    //   let rating = null
+                    //   const customerRating = await CustomerRatingModel.findOne({customerId: customer._id})
+                    //   if (customerRating) {
+                    //     rating = customerRating
+                    //   }
+                    //   for (let i = 0; i < jobRequests.length; i++) {
+                    //     const jobRequest = jobRequests[i];
+                    //     const contractor = await ContractorModel.findOne({_id: jobRequest.contractorId}).select('-password');
+                    //     const obj = {
+                    //       job: jobRequest,
+                    //       contractor
+                    //     }
+                    //     jobRequested.push(obj)
+                    //   }
+                    //   const objTwo = {
+                    //     customer,
+                    //     rating,
+                    //     jobHistory: jobRequested
+                    //   }
+                    //   customers.push(objTwo)
+                    // }
+                ];
             case 2:
                 totalCustomer = _b.sent();
-                customers = [];
-                i = 0;
-                _b.label = 3;
-            case 3:
-                if (!(i < customersDetail.length)) return [3 /*break*/, 11];
-                customer = customersDetail[i];
-                return [4 /*yield*/, job_model_1.default.find({ customerId: customer._id }).sort({ createdAt: -1 })];
-            case 4:
-                jobRequests = _b.sent();
-                jobRequested = [];
-                rating = null;
-                return [4 /*yield*/, customerRating_model_1.default.findOne({ customerId: customer._id })];
-            case 5:
-                customerRating = _b.sent();
-                if (customerRating) {
-                    rating = customerRating;
-                }
-                i_1 = 0;
-                _b.label = 6;
-            case 6:
-                if (!(i_1 < jobRequests.length)) return [3 /*break*/, 9];
-                jobRequest = jobRequests[i_1];
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: jobRequest.contractorId }).select('-password')];
-            case 7:
-                contractor = _b.sent();
-                obj = {
-                    job: jobRequest,
-                    contractor: contractor
-                };
-                jobRequested.push(obj);
-                _b.label = 8;
-            case 8:
-                i_1++;
-                return [3 /*break*/, 6];
-            case 9:
-                objTwo = {
-                    customer: customer,
-                    rating: rating,
-                    jobHistory: jobRequested
-                };
-                customers.push(objTwo);
-                _b.label = 10;
-            case 10:
-                i++;
-                return [3 /*break*/, 3];
-            case 11:
+                // let customers = [];
+                // for (let i = 0; i < customersDetail.length; i++) {
+                //   const customer = customersDetail[i];
+                //   const jobRequests = await JobModel.find({customerId: customer._id}).sort({ createdAt: -1 })
+                //   let jobRequested = []
+                //   let rating = null
+                //   const customerRating = await CustomerRatingModel.findOne({customerId: customer._id})
+                //   if (customerRating) {
+                //     rating = customerRating
+                //   }
+                //   for (let i = 0; i < jobRequests.length; i++) {
+                //     const jobRequest = jobRequests[i];
+                //     const contractor = await ContractorModel.findOne({_id: jobRequest.contractorId}).select('-password');
+                //     const obj = {
+                //       job: jobRequest,
+                //       contractor
+                //     }
+                //     jobRequested.push(obj)
+                //   }
+                //   const objTwo = {
+                //     customer,
+                //     rating,
+                //     jobHistory: jobRequested
+                //   }
+                //   customers.push(objTwo)
+                // }
                 res.json({
+                    currentPage: page,
                     totalCustomer: totalCustomer,
-                    customers: customers
+                    totalPages: Math.ceil(totalCustomer / limit),
+                    customers: customersDetail
                 });
-                return [3 /*break*/, 13];
-            case 12:
+                return [3 /*break*/, 4];
+            case 3:
                 err_1 = _b.sent();
                 // signup error
                 res.status(500).json({ message: err_1.message });
-                return [3 /*break*/, 13];
-            case 13: return [2 /*return*/];
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
         }
     });
 }); };
 exports.AdminGetCustomerDetailController = AdminGetCustomerDetailController;
 //get single customer detail /////////////
 var AdminGetSingleCustomerDetailController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, errors, admin, adminId, customer, rating, customerRating, jobRequests, jobRequested, i, jobRequest, contractor, obj, objTwo, err_2;
+    var customerId, errors, admin, adminId, customer, err_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 8, , 9]);
-                customerId = req.query.customerId;
+                _a.trys.push([0, 2, , 3]);
+                customerId = req.params.customerId;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -156,51 +164,118 @@ var AdminGetSingleCustomerDetailController = function (req, res) { return __awai
                             .status(401)
                             .json({ message: "invalid customer ID" })];
                 }
-                rating = null;
-                return [4 /*yield*/, customerRating_model_1.default.findOne({ customerId: customer._id })];
+                // let rating = null
+                // const customerRating = await CustomerRatingModel.findOne({customerId: customer._id})
+                // if (customerRating) {
+                //   rating = customerRating
+                // }
+                // const jobRequests = await JobModel.find({customerId: customer._id}).sort({ createdAt: -1 })
+                // let jobRequested = []
+                // for (let i = 0; i < jobRequests.length; i++) {
+                //   const jobRequest = jobRequests[i];
+                //   const contractor = await ContractorModel.findOne({_id: jobRequest.contractorId}).select('-password');
+                //   const obj = {
+                //     job: jobRequest,
+                //     contractor
+                //   }
+                //   jobRequested.push(obj)
+                // }
+                // const objTwo = {
+                //   customer,
+                //   rating,
+                //   jobHistory: jobRequested
+                // }
+                res.json({
+                    customer: customer
+                });
+                return [3 /*break*/, 3];
             case 2:
-                customerRating = _a.sent();
-                if (customerRating) {
-                    rating = customerRating;
+                err_2 = _a.sent();
+                // signup error
+                res.status(500).json({ message: err_2.message });
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.AdminGetSingleCustomerDetailController = AdminGetSingleCustomerDetailController;
+//get single customer job detail /////////////
+var AdminGetSingleCustomerJobDetailController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var customerId, _a, page, limit, errors, admin, adminId, customer, skip, jobsDetails, totalJob, jobs, i, jobsDetail, invoice, obj, err_3;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 8, , 9]);
+                customerId = req.params.customerId;
+                _a = req.query, page = _a.page, limit = _a.limit;
+                errors = (0, express_validator_1.validationResult)(req);
+                if (!errors.isEmpty()) {
+                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
-                return [4 /*yield*/, job_model_1.default.find({ customerId: customer._id }).sort({ createdAt: -1 })];
+                admin = req.admin;
+                adminId = admin.id;
+                page = page || 1;
+                limit = limit || 50;
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })
+                        .select('-password')];
+            case 1:
+                customer = _b.sent();
+                if (!customer) {
+                    return [2 /*return*/, res
+                            .status(401)
+                            .json({ message: "invalid customer ID" })];
+                }
+                skip = (page - 1) * limit;
+                return [4 /*yield*/, job_model_1.JobModel.find({ customer: customerId })
+                        .sort({ createdAt: -1 })
+                        .skip(skip)
+                        .limit(limit)
+                        .populate(['customer', 'contractor', 'quotation'])];
+            case 2:
+                jobsDetails = _b.sent();
+                return [4 /*yield*/, job_model_1.JobModel.countDocuments({ customer: customerId })];
             case 3:
-                jobRequests = _a.sent();
-                jobRequested = [];
+                totalJob = _b.sent();
+                jobs = [];
                 i = 0;
-                _a.label = 4;
+                _b.label = 4;
             case 4:
-                if (!(i < jobRequests.length)) return [3 /*break*/, 7];
-                jobRequest = jobRequests[i];
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: jobRequest.contractorId }).select('-password')];
+                if (!(i < jobsDetails.length)) return [3 /*break*/, 7];
+                jobsDetail = jobsDetails[i];
+                return [4 /*yield*/, invoices_shema_1.InvoiceModel.findOne({ jobId: jobsDetail._id })];
             case 5:
-                contractor = _a.sent();
+                invoice = _b.sent();
+                if (!invoice)
+                    return [3 /*break*/, 6];
                 obj = {
-                    job: jobRequest,
-                    contractor: contractor
+                    jobsDetail: jobsDetail,
+                    invoice: invoice
                 };
-                jobRequested.push(obj);
-                _a.label = 6;
+                jobs.push(obj);
+                _b.label = 6;
             case 6:
                 i++;
                 return [3 /*break*/, 4];
             case 7:
-                objTwo = {
-                    customer: customer,
-                    rating: rating,
-                    jobHistory: jobRequested
-                };
                 res.json({
-                    customer: objTwo
+                    currentPage: page,
+                    totalJob: totalJob,
+                    totalPages: Math.ceil(totalJob / limit),
+                    jobs: jobs
                 });
                 return [3 /*break*/, 9];
             case 8:
-                err_2 = _a.sent();
+                err_3 = _b.sent();
                 // signup error
-                res.status(500).json({ message: err_2.message });
+                res.status(500).json({ message: err_3.message });
                 return [3 /*break*/, 9];
             case 9: return [2 /*return*/];
         }
     });
 }); };
-exports.AdminGetSingleCustomerDetailController = AdminGetSingleCustomerDetailController;
+exports.AdminGetSingleCustomerJobDetailController = AdminGetSingleCustomerJobDetailController;
+exports.AdminCustomerController = {
+    AdminGetCustomerDetailController: exports.AdminGetCustomerDetailController,
+    AdminGetSingleCustomerDetailController: exports.AdminGetSingleCustomerDetailController,
+    AdminGetSingleCustomerJobDetailController: exports.AdminGetSingleCustomerJobDetailController,
+};
