@@ -69,7 +69,7 @@ export const makeJobPayment = async (
                 .status(404)
                 .json({ success: false, message: "Contractor not found" });
         }
-       
+
         // Check if contractor has a verified connected account
         if (!contractor.onboarding.hasStripeAccount || !(contractor.stripeAccountStatus?.card_payments_enabled && contractor.stripeAccountStatus?.transfers_enabled)) {
             return res.status(400).json({ success: false, message: "You cannot make payment to this contractor because his/her Stripe connect account is not set up" });
@@ -360,8 +360,8 @@ export const captureJobPayment = async (
             currency: 'usd',
             // amount: (charges.totalAmount) * 100,
             // application_fee_amount: (charges.processingFee) * 100, 
-            amount: Math.round(charges.totalAmount * 100) / 100,
-            application_fee_amount: Math.round(charges.processingFee * 100) / 100,
+            amount: Math.ceil(charges.totalAmount * 100),
+            application_fee_amount: Math.ceil(charges.processingFee * 100),
             transfer_data: {
                 // amount: (charges.contractorAmount) * 100, // transfer to connected account
                 destination: contractor?.stripeAccount.id ?? '' // mostimes only work with same region example us, user // https://docs.stripe.com/connect/destination-charges
