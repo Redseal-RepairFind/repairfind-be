@@ -111,7 +111,7 @@ export const getBookingHistory = async (req: any, res: Response, next: NextFunct
             limit = 10, // Default to 10 items per page
             sort = '-createdAt', // Sort field and order (-fieldName or fieldName)
             customerId,
-            status = 'COMPLETED, CANCELLED, DECLINED, ACCEPTED, EXPIRED, COMPLETED, DISPUTED',
+            status = 'COMPLETED, CANCELED, DECLINED, EXPIRED, COMPLETED, DISPUTED',
         } = req.query;
 
        
