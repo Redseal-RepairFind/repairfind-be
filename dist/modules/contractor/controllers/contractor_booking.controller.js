@@ -486,7 +486,7 @@ var markBookingComplete = function (req, res, next) { return __awaiter(void 0, v
                 if (job.status === job_model_1.JOB_STATUS.COMPLETED) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'The booking is already marked as complete' })];
                 }
-                job.statusUpdate = __assign(__assign({}, job.statusUpdate), { status: job_model_1.JOB_STATUS.COMPLETED, isCustomerAccept: true, awaitingConfirmation: false });
+                job.statusUpdate = __assign(__assign({}, job.statusUpdate), { status: job_model_1.JOB_STATUS.COMPLETED, isCustomerAccept: false, isContractorAccept: true, awaitingConfirmation: true });
                 job.status = job_model_1.JOB_STATUS.COMPLETED; // since its customer accepting job completion
                 job.jobHistory.push({
                     eventType: 'JOB_MARKED_COMPLETE_BY_CONTRACTOR',

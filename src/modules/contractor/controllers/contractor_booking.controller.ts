@@ -454,8 +454,9 @@ export const markBookingComplete = async (req: any, res: Response, next: NextFun
         job.statusUpdate = {
             ...job.statusUpdate,
             status: JOB_STATUS.COMPLETED,
-            isCustomerAccept: true,
-            awaitingConfirmation: false
+            isCustomerAccept: false,
+            isContractorAccept: true,
+            awaitingConfirmation: true
         }
         
         job.status  = JOB_STATUS.COMPLETED  // since its customer accepting job completion
