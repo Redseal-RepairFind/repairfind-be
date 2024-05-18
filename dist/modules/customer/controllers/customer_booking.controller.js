@@ -56,7 +56,6 @@ var customer_model_1 = __importDefault(require("../../../database/customer/model
 var job_model_1 = require("../../../database/common/job.model");
 var custom_errors_1 = require("../../../utils/custom.errors");
 var api_feature_1 = require("../../../utils/api.feature");
-var job_quotation_model_1 = require("../../../database/common/job_quotation.model");
 var events_1 = require("../../../events");
 var mongoose_1 = __importDefault(require("mongoose"));
 var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
@@ -136,69 +135,70 @@ var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0,
 }); };
 exports.getMyBookings = getMyBookings;
 var getBookingHistory = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, _a, _b, page, _c, limit, _d, sort, contractorId_2, _e, status_2, jobIds, statusArray, filter, quotations, _f, data, error, error_2;
+    var customerId, _a, _b, page, _c, limit, _d, sort, contractorId_2, _e, status_2, statusArray, validStatusValues_1, isValidStatus, filter, _f, data, error, error_2;
     return __generator(this, function (_g) {
         switch (_g.label) {
             case 0:
                 customerId = req.customer.id;
                 _g.label = 1;
             case 1:
-                _g.trys.push([1, 7, , 8]);
+                _g.trys.push([1, 5, , 6]);
                 _a = req.query, _b = _a.page, page = _b === void 0 ? 1 : _b, _c = _a.limit, limit = _c === void 0 ? 10 : _c, _d = _a.sort, sort = _d === void 0 ? '-createdAt' : _d, contractorId_2 = _a.contractorId, _e = _a.status, status_2 = _e === void 0 ? 'COMPLETED, CANCELLED, DECLINED, ACCEPTED, EXPIRED, COMPLETED, DISPUTED' : _e;
-                req.query.page = page;
-                req.query.limit = limit;
-                req.query.sort = sort;
-                delete req.query.status;
-                jobIds = [];
                 statusArray = status_2.split(',').map(function (s) { return s.trim(); });
-                filter = { status: { $in: statusArray }, customer: customerId };
-                if (!contractorId_2) return [3 /*break*/, 3];
-                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.find({ contractor: contractorId_2 }).select('job').lean()];
-            case 2:
-                quotations = _g.sent();
-                // Extract job IDs from the quotations
-                jobIds = quotations.map(function (quotation) { return quotation.job; });
-                filter._id = { $in: jobIds };
-                if (!mongoose_1.default.Types.ObjectId.isValid(contractorId_2)) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid customer id' })];
+                validStatusValues_1 = ['COMPLETED', 'CANCELLED', 'DECLINED', 'ACCEPTED', 'EXPIRED', 'DISPUTED'];
+                isValidStatus = statusArray.every(function (s) { return validStatusValues_1.includes(s); });
+                if (!isValidStatus) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid status value' })];
                 }
-                req.query.contractor = contractorId_2;
-                delete req.query.contractorId;
-                _g.label = 3;
-            case 3: return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_model_1.JobModel.find(filter).distinct('_id').populate('contractor'), req.query)];
-            case 4:
+                filter = { status: { $in: statusArray }, customer: customerId };
+                // Check if contractorId is provided and handle accordingly
+                if (contractorId_2) {
+                    if (!mongoose_1.default.Types.ObjectId.isValid(contractorId_2)) {
+                        return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid contractor ID' })];
+                    }
+                    filter.contractor = contractorId_2;
+                }
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_model_1.JobModel.find(filter).distinct('_id').populate('contractor'), req.query)];
+            case 2:
                 _f = _g.sent(), data = _f.data, error = _f.error;
-                if (!data) return [3 /*break*/, 6];
-                // Map through each job and attach myQuotation if contractor has applied 
+                // Handle errors if any
+                if (error) {
+                    console.log(error);
+                    return [2 /*return*/, res.status(500).json({ success: false, message: error })];
+                }
+                if (!data) return [3 /*break*/, 4];
                 return [4 /*yield*/, Promise.all(data.data.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
-                        var _a;
-                        return __generator(this, function (_b) {
-                            switch (_b.label) {
+                        var _a, _b;
+                        return __generator(this, function (_c) {
+                            switch (_c.label) {
                                 case 0:
                                     _a = job;
+                                    if (!contractorId_2) return [3 /*break*/, 2];
                                     return [4 /*yield*/, job.getMyQoutation(contractorId_2)];
                                 case 1:
-                                    _a.myQuotation = _b.sent();
+                                    _b = _c.sent();
+                                    return [3 /*break*/, 3];
+                                case 2:
+                                    _b = null;
+                                    _c.label = 3;
+                                case 3:
+                                    _a.myQuotation = _b;
                                     return [2 /*return*/];
                             }
                         });
                     }); }))];
-            case 5:
-                // Map through each job and attach myQuotation if contractor has applied 
+            case 3:
                 _g.sent();
-                _g.label = 6;
-            case 6:
-                if (error) {
-                    console.log(error);
-                    res.status(500).json({ success: false, message: error });
-                }
+                _g.label = 4;
+            case 4:
                 // Send response with job listings data
                 res.status(200).json({ success: true, data: data });
-                return [3 /*break*/, 8];
-            case 7:
+                return [3 /*break*/, 6];
+            case 5:
                 error_2 = _g.sent();
+                // Handle any caught errors
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_2))];
-            case 8: return [2 /*return*/];
+            case 6: return [2 /*return*/];
         }
     });
 }); };

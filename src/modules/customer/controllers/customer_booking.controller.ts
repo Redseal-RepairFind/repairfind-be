@@ -114,50 +114,50 @@ export const getBookingHistory = async (req: any, res: Response, next: NextFunct
             status = 'COMPLETED, CANCELLED, DECLINED, ACCEPTED, EXPIRED, COMPLETED, DISPUTED',
         } = req.query;
 
+        // Validate and format the status query parameter
+        const statusArray = status.split(',').map((s: string) => s.trim()); // Convert the comma-separated string to an array of statuses
 
-        req.query.page = page
-        req.query.limit = limit
-        req.query.sort = sort
-        delete req.query.status
-
-        let jobIds = [];
-        const statusArray = status.split(',').map((s: any) => s.trim()); // Convert the comma-separated string to an array of statuses
-        const filter : any = { status: { $in: statusArray }, customer: customerId}
-
-        if (contractorId) {
-            // Retrieve the quotations for the current contractor and extract job IDs
-            const quotations = await JobQuotationModel.find({ contractor: contractorId }).select('job').lean();
-            // Extract job IDs from the quotations
-             jobIds = quotations.map((quotation: any) => quotation.job);
-            filter._id =   { $in: jobIds }
-
-            if (!mongoose.Types.ObjectId.isValid(contractorId)) {
-                return res.status(400).json({ success: false, message: 'Invalid customer id' });
-            }
-            req.query.contractor = contractorId
-            delete req.query.contractorId
+        // Validate status values
+        const validStatusValues = ['COMPLETED', 'CANCELLED', 'DECLINED', 'ACCEPTED', 'EXPIRED', 'DISPUTED'];
+        const isValidStatus = statusArray.every((s: string) => validStatusValues.includes(s));
+        if (!isValidStatus) {
+            return res.status(400).json({ success: false, message: 'Invalid status value' });
         }
 
-        // Query JobModel to find jobs that have IDs present in the extracted jobIds
-       
+        // Construct the filter based on the validated status array and customer ID
+        const filter: any = { status: { $in: statusArray }, customer: customerId };
+
+        // Check if contractorId is provided and handle accordingly
+        if (contractorId) {
+            if (!mongoose.Types.ObjectId.isValid(contractorId)) {
+                return res.status(400).json({ success: false, message: 'Invalid contractor ID' });
+            }
+            filter.contractor = contractorId;
+        }
+
+        // Query JobModel to find jobs based on the constructed filter
         const { data, error } = await applyAPIFeature(
             JobModel.find(filter).distinct('_id').populate('contractor'),
-            req.query);
-        if (data) {
-            // Map through each job and attach myQuotation if contractor has applied 
-            await Promise.all(data.data.map(async (job: any) => {
-                job.myQuotation = await job.getMyQoutation(contractorId)
-            }));
+            req.query
+        );
+
+        // Handle errors if any
+        if (error) {
+            console.log(error);
+            return res.status(500).json({ success: false, message: error });
         }
 
-        if (error) {
-            console.log(error)
-            res.status(500).json({ success: false, message: error });
+        // Attach myQuotation to each job if contractorId is provided
+        if (data) {
+            await Promise.all(data.data.map(async (job: any) => {
+                job.myQuotation = contractorId ? await job.getMyQoutation(contractorId) : null;
+            }));
         }
 
         // Send response with job listings data
         res.status(200).json({ success: true, data: data });
     } catch (error: any) {
+        // Handle any caught errors
         return next(new BadRequestError('An error occurred', error));
     }
 };
