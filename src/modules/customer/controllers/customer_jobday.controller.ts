@@ -151,14 +151,14 @@ export const confirmTrip = async (
                 userType: 'contractors',
                 title: 'jobDay',
                 heading: {},
-                type: 'tripDayComfirmed',
+                type: 'JOB_DAY_CONFIRMED',
                 message: 'Customer confirmed your arrival.',
-                payload: { jobDayId: jobDayId, verificationCode }
+                payload: {jobDay}
             },
             {
                 push: true,
                 socket: true,
-                database: true
+                // database: true
             }
         )
 
@@ -170,14 +170,14 @@ export const confirmTrip = async (
                 userType: 'customers',
                 title: 'jobDay',
                 heading: {},
-                type: 'tripDayComfirmed',
+                type: 'JOB_DAY_CONFIRMED',
                 message: "You successfully confirmed the contractor's arrival.",
-                payload: { jobDayId: jobDayId, verificationCode }
+                payload: {jobDay}
             },
             {
                 push: true,
                 socket: true,
-                database: true
+                // database: true
             }
         )
 

@@ -173,13 +173,13 @@ var confirmTrip = function (req, res) { return __awaiter(void 0, void 0, void 0,
                     userType: 'contractors',
                     title: 'jobDay',
                     heading: {},
-                    type: 'tripDayComfirmed',
+                    type: 'JOB_DAY_CONFIRMED',
                     message: 'Customer confirmed your arrival.',
-                    payload: { jobDayId: jobDayId, verificationCode: verificationCode }
+                    payload: { jobDay: jobDay }
                 }, {
                     push: true,
                     socket: true,
-                    database: true
+                    // database: true
                 });
                 // send notification to  customer
                 index_1.NotificationService.sendNotification({
@@ -187,13 +187,13 @@ var confirmTrip = function (req, res) { return __awaiter(void 0, void 0, void 0,
                     userType: 'customers',
                     title: 'jobDay',
                     heading: {},
-                    type: 'tripDayComfirmed',
+                    type: 'JOB_DAY_CONFIRMED',
                     message: "You successfully confirmed the contractor's arrival.",
-                    payload: { jobDayId: jobDayId, verificationCode: verificationCode }
+                    payload: { jobDay: jobDay }
                 }, {
                     push: true,
                     socket: true,
-                    database: true
+                    // database: true
                 });
                 res.json({
                     success: true,

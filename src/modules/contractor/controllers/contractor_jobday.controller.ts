@@ -60,7 +60,7 @@ export const startTrip = async (
                 userType: 'contractors',
                 title: 'trip',
                 heading: {},
-                type: 'tripDayStart',
+                type: 'JOB_DAY_STARTED',
                 message: 'trip successfully started',
                 payload: { jobDayId: trip._id }
             },
@@ -78,7 +78,7 @@ export const startTrip = async (
                 userType: 'customers',
                 title: 'trip',
                 heading: {},
-                type: 'tripDayStart',
+                type: 'JOB_DAY_STARTED',
                 message: 'Contractor starts trip to your site.',
                 payload: { jobDayId: trip._id }
             },

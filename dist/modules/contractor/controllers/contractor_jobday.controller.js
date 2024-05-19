@@ -94,7 +94,7 @@ var startTrip = function (req, res) { return __awaiter(void 0, void 0, void 0, f
                     userType: 'contractors',
                     title: 'trip',
                     heading: {},
-                    type: 'tripDayStart',
+                    type: 'JOB_DAY_STARTED',
                     message: 'trip successfully started',
                     payload: { jobDayId: trip._id }
                 }, {
@@ -108,7 +108,7 @@ var startTrip = function (req, res) { return __awaiter(void 0, void 0, void 0, f
                     userType: 'customers',
                     title: 'trip',
                     heading: {},
-                    type: 'tripDayStart',
+                    type: 'JOB_DAY_STARTED',
                     message: 'Contractor starts trip to your site.',
                     payload: { jobDayId: trip._id }
                 }, {
