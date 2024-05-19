@@ -10,6 +10,7 @@ import { JobEvent } from "../../../events";
 import { JobEmergencyModel } from "../../../database/common/job_emergency.model";
 import { ConversationModel } from "../../../database/common/conversations.schema";
 import { ContractorProfileModel } from "../../../database/contractor/models/contractor_profile.model";
+import CustomerModel from "../../../database/customer/models/customer.model";
 
 
 export const startTrip = async (
@@ -129,6 +130,12 @@ export const initiateJobDay = async (
             return res.status(403).json({ success: false, message: 'Job request not found' });
         }
 
+        // Find the job request by ID
+        const customer = await CustomerModel.findOne({ _id: job.customer});
+        if (!job) {
+            return res.status(403).json({ success: false, message: 'Job Customer not found' });
+        }
+
 
         // Check if an active trip already exists for the specified job
         const activeTrip = await JobDayModel.findOne({ job: jobId, status: JOB_DAY_STATUS.STARTED });
@@ -163,7 +170,7 @@ export const initiateJobDay = async (
             jobLocation: job.location,
             contractorLocation: contractorProfile.location,
             conversation: conversation,
-            customer: job.customer,
+            customer: customer,
             contractor: job.contractor,
             booking: job,
             trip: activeTrip
