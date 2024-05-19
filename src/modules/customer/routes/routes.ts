@@ -101,8 +101,10 @@ router.post('/conversations/:conversationId/messages', checkCustomerRole, Custom
 router.post('/conversations/:conversationId/mark-all-read', checkCustomerRole, CustomerConversationController.markAllMessagesAsRead)
 
 // jobdays day
-router.post('/jobdays/:jobDayId/confirm-arrival', checkCustomerRole, CustomerHttpRequest.tripArrivalComfirmParams, CustomerJobDayController.confirmTrip)
+router.post('/jobdays/:jobDayId/confirm-arrival', checkCustomerRole, CustomerHttpRequest.tripArrivalComfirmParams, CustomerJobDayController.confirmContractorArrival)
 router.post('/jobdays/:jobDayId/emergency', checkCustomerRole, CustomerHttpRequest.tripArrivalComfirmParams, CustomerJobDayController.createJobEmergency)
+router.post('/jobdays/:jobDayId/post-quality-assurance', checkCustomerRole,  CustomerJobDayController.savePostJobQualityAssurance)
+router.post('/jobdays/:jobDayId/pre-quality-assurance', checkCustomerRole,  CustomerJobDayController.savePreJobJobQualityAssurance)
 router.post('/jobdays/initiate', checkCustomerRole, CustomerJobDayController.initiateJobDay)
 
 

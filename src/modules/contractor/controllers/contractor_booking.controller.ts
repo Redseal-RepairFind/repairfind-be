@@ -163,7 +163,7 @@ export const getSingleBooking = async (req: any, res: Response, next: NextFuncti
         const contractorId = req.contractor.id
         const bookingId = req.params.bookingId;
 
-        const job = await JobModel.findOne({ contractor: contractorId, _id: bookingId, status: JOB_STATUS.BOOKED }).populate(['contractor', 'contract', 'customer']);
+        const job = await JobModel.findOne({ contractor: contractorId, _id: bookingId }).populate(['contractor', 'contract', 'customer']);
 
         // Check if the job exists
         if (!job) {
@@ -176,6 +176,8 @@ export const getSingleBooking = async (req: any, res: Response, next: NextFuncti
         return next(new BadRequestError('An error occured ', error))
     }
 };
+
+
 
 
 

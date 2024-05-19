@@ -211,7 +211,7 @@ var getSingleBooking = function (req, res, next) { return __awaiter(void 0, void
                 _a.trys.push([0, 2, , 3]);
                 customerId = req.customer.id;
                 bookingId = req.params.bookingId;
-                return [4 /*yield*/, job_model_1.JobModel.findOne({ customer: customerId, _id: bookingId, status: job_model_1.JOB_STATUS.BOOKED }).populate(['contractor', 'contract'])];
+                return [4 /*yield*/, job_model_1.JobModel.findOne({ customer: customerId, _id: bookingId }).populate(['contractor', 'contract'])];
             case 1:
                 job = _a.sent();
                 // Check if the job exists

@@ -30,13 +30,13 @@ export interface IJobDay extends Document {
   verified: boolean;
   createdAt: Date;
   updatedAt: Date;
-  contractorPreTripMedia: string[]; // Array of contractor's pre-job media URLs or references
-  contractorPostTripMedia: string[]; // Array of contractor's post-job media URLs or references
-  customerPreTripMedia: string[]; // Array of customer's pre-job media URLs or references
-  customerPostTripMedia: string[]; // Array of customer's post-job media URLs or references
+  contractorPreJobMedia: string[]; // Array of contractor's pre-job media URLs or references
+  contractorPostJobMedia: string[]; // Array of contractor's post-job media URLs or references
+  customerPreJobMedia: string[]; // Array of customer's pre-job media URLs or references
+  customerPostJobMedia: string[]; // Array of customer's post-job media URLs or references
 }
 
-const JobDayShema = new Schema(
+const JobDayShema = new Schema <IJobDay>(
   {
     customer: {
       type: Schema.Types.ObjectId,
@@ -70,19 +70,21 @@ const JobDayShema = new Schema(
       type: Boolean,
       default: false,
     },
-    contractorPreTripMedia: {
+
+    contractorPreJobMedia: {
       type: [String], // Array of contractor's pre-job media URLs or references
       default: [],
     },
-    contractorPostTripMedia: {
+
+    contractorPostJobMedia: {
       type: [String], // Array of contractor's post-job media URLs or references
       default: [],
     },
-    customerPreTripMedia: {
+    customerPreJobMedia: {
       type: [String], // Array of customer's pre-job media URLs or references
       default: [],
     },
-    customerPostTripMedia: {
+    customerPostJobMedia: {
       type: [String], // Array of customer's post-job media URLs or references
       default: [],
     },

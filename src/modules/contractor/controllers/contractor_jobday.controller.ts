@@ -320,10 +320,95 @@ export const createJobEmergency = async (req: any, res: Response, next: NextFunc
 };
 
 
+export const savePreJobJobQualityAssurance = async (
+    req: any,
+    res: Response,
+) => {
+
+    try {
+        const { jobDayId } = req.params;
+        const { media = [] } = req.body;
+
+        // Check for validation errors
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const jobDay = await JobDayModel.findOne({ _id: jobDayId })
+        if (!jobDay) {
+            return res.status(403).json({ success: false, message: 'jobDay not found' });
+        }
+
+        if (jobDay.status != JOB_DAY_STATUS.CONFIRMED) {
+            return res.status(403).json({ success: false, message: 'contractor has not  yet been confirmed yet' });
+        }
+
+        jobDay.contractorPreJobMedia = media
+        await jobDay.save()
+
+
+        res.json({
+            success: true,
+            message: "Pre Job Quality Assurance Media saved",
+            data: jobDay
+        });
+
+    } catch (err: any) {
+        console.log("error", err)
+        res.status(500).json({ message: err.message });
+    }
+
+}
+
+export const savePostJobQualityAssurance = async (
+    req: any,
+    res: Response,
+) => {
+
+    try {
+        const { jobDayId } = req.params;
+        const { media = [] } = req.body;
+
+        // Check for validation errors
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const jobDay = await JobDayModel.findOne({ _id: jobDayId })
+        if (!jobDay) {
+            return res.status(403).json({ success: false, message: 'jobDay not found' });
+        }
+
+        if (jobDay.status != JOB_DAY_STATUS.CONFIRMED) {
+            return res.status(403).json({ success: false, message: 'contractor has not  yet been confirmed yet' });
+        }
+
+        jobDay.contractorPostJobMedia = media
+        await jobDay.save()
+
+        res.json({
+            success: true,
+            message: "Post Job Quality Assurance Media saved",
+            data: jobDay
+        });
+
+    } catch (err: any) {
+        console.log("error", err)
+        res.status(500).json({ message: err.message });
+    }
+
+}
+
 
 export const ContractorJobDayController = {
     startTrip,
     confirmArrival,
     createJobEmergency,
-    initiateJobDay
+    initiateJobDay,
+    savePostJobQualityAssurance,
+    savePreJobJobQualityAssurance
 };

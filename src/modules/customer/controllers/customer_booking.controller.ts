@@ -169,7 +169,7 @@ export const getSingleBooking = async (req: any, res: Response, next: NextFuncti
         const customerId = req.customer.id
         const bookingId = req.params.bookingId;
 
-        const job = await JobModel.findOne({ customer: customerId, _id: bookingId, status: JOB_STATUS.BOOKED }).populate(['contractor', 'contract']);
+        const job = await JobModel.findOne({ customer: customerId, _id: bookingId}).populate(['contractor', 'contract']);
 
         // Check if the job exists
         if (!job) {

@@ -49,19 +49,19 @@ var JobDayShema = new mongoose_1.Schema({
         type: Boolean,
         default: false,
     },
-    contractorPreTripMedia: {
+    contractorPreJobMedia: {
         type: [String], // Array of contractor's pre-job media URLs or references
         default: [],
     },
-    contractorPostTripMedia: {
+    contractorPostJobMedia: {
         type: [String], // Array of contractor's post-job media URLs or references
         default: [],
     },
-    customerPreTripMedia: {
+    customerPreJobMedia: {
         type: [String], // Array of customer's pre-job media URLs or references
         default: [],
     },
-    customerPostTripMedia: {
+    customerPostJobMedia: {
         type: [String], // Array of customer's post-job media URLs or references
         default: [],
     },

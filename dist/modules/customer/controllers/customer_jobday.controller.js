@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerJobDayController = exports.createJobEmergency = exports.uploadQualityAssurancePhotos = exports.confirmTrip = exports.initiateJobDay = void 0;
+exports.CustomerJobDayController = exports.createJobEmergency = exports.savePostJobQualityAssurance = exports.savePreJobJobQualityAssurance = exports.confirmContractorArrival = exports.initiateJobDay = void 0;
 var express_validator_1 = require("express-validator");
 var index_1 = require("../../../services/notifications/index");
 var job_day_model_1 = require("../../../database/common/job_day.model");
@@ -132,12 +132,12 @@ var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void
     });
 }); };
 exports.initiateJobDay = initiateJobDay;
-var confirmTrip = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var jobDayId, verificationCode, errors, customerId, jobDay, err_2;
+var confirmContractorArrival = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var jobDayId, verificationCode, errors, customerId, jobDay, job, err_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 3, , 4]);
+                _a.trys.push([0, 4, , 5]);
                 jobDayId = req.params.jobDayId;
                 verificationCode = req.body.verificationCode;
                 errors = (0, express_validator_1.validationResult)(req);
@@ -160,12 +160,20 @@ var confirmTrip = function (req, res) { return __awaiter(void 0, void 0, void 0,
                 if (jobDay.verificationCode !== verificationCode) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'incorrect verification code' })];
                 }
+                return [4 /*yield*/, job_model_1.JobModel.findById(jobDay.job)];
+            case 2:
+                job = _a.sent();
+                if (!job) {
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'Job not found' })];
+                }
+                job.status = job_model_1.JOB_STATUS.ONGOING;
                 jobDay.status = job_day_model_1.JOB_DAY_STATUS.CONFIRMED;
                 jobDay.verified = true;
-                return [4 /*yield*/, jobDay.save()
-                    // send notification to  contractor
-                ];
-            case 2:
+                return [4 /*yield*/, Promise.all([
+                        jobDay.save(),
+                        job.save()
+                    ])];
+            case 3:
                 _a.sent();
                 // send notification to  contractor
                 index_1.NotificationService.sendNotification({
@@ -200,25 +208,25 @@ var confirmTrip = function (req, res) { return __awaiter(void 0, void 0, void 0,
                     message: "contractor arrival successfully comfirmed",
                     data: jobDay
                 });
-                return [3 /*break*/, 4];
-            case 3:
+                return [3 /*break*/, 5];
+            case 4:
                 err_2 = _a.sent();
                 console.log("error", err_2);
                 res.status(500).json({ message: err_2.message });
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/];
+                return [3 /*break*/, 5];
+            case 5: return [2 /*return*/];
         }
     });
 }); };
-exports.confirmTrip = confirmTrip;
-var uploadQualityAssurancePhotos = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var jobDayId, verificationCode, errors, customerId, jobDay, err_3;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+exports.confirmContractorArrival = confirmContractorArrival;
+var savePreJobJobQualityAssurance = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var jobDayId, _a, media, errors, customerId, jobDay, err_3;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
-                _a.trys.push([0, 3, , 4]);
+                _b.trys.push([0, 3, , 4]);
                 jobDayId = req.params.jobDayId;
-                verificationCode = req.body.verificationCode;
+                _a = req.body.media, media = _a === void 0 ? [] : _a;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -226,62 +234,25 @@ var uploadQualityAssurancePhotos = function (req, res) { return __awaiter(void 0
                 customerId = req.customer.id;
                 return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ _id: jobDayId })];
             case 1:
-                jobDay = _a.sent();
+                jobDay = _b.sent();
                 if (!jobDay) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'jobDay not found' })];
                 }
-                if (jobDay.status != job_day_model_1.JOB_DAY_STATUS.ARRIVED) {
-                    return [2 /*return*/, res.status(403).json({ success: false, message: 'contractor has not arrived yet' })];
+                if (jobDay.status != job_day_model_1.JOB_DAY_STATUS.CONFIRMED) {
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'contractor has not been confirmed yet' })];
                 }
-                if (jobDay.verified) {
-                    return [2 /*return*/, res.status(403).json({ success: false, message: 'site already visited' })];
-                }
-                if (jobDay.verificationCode !== verificationCode) {
-                    return [2 /*return*/, res.status(403).json({ success: false, message: 'incorrect verification code' })];
-                }
-                jobDay.status = job_day_model_1.JOB_DAY_STATUS.CONFIRMED;
-                jobDay.verified = true;
-                return [4 /*yield*/, jobDay.save()
-                    // send notification to  contractor
-                ];
+                jobDay.customerPreJobMedia = media;
+                return [4 /*yield*/, jobDay.save()];
             case 2:
-                _a.sent();
-                // send notification to  contractor
-                index_1.NotificationService.sendNotification({
-                    user: jobDay.contractor.toString(),
-                    userType: 'contractors',
-                    title: 'jobDay',
-                    heading: {},
-                    type: 'tripDayComfirmed',
-                    message: 'Customer confirmed your arrival.',
-                    payload: { jobDayId: jobDayId, verificationCode: verificationCode }
-                }, {
-                    push: true,
-                    socket: true,
-                    database: true
-                });
-                // send notification to  customer
-                index_1.NotificationService.sendNotification({
-                    user: jobDay.customer,
-                    userType: 'customers',
-                    title: 'jobDay',
-                    heading: {},
-                    type: 'tripDayComfirmed',
-                    message: "You successfully confirmed the contractor's arrival.",
-                    payload: { jobDayId: jobDayId, verificationCode: verificationCode }
-                }, {
-                    push: true,
-                    socket: true,
-                    database: true
-                });
+                _b.sent();
                 res.json({
                     success: true,
-                    message: "contractor arrival successfully comfirmed",
+                    message: "Pre Job Quality Assurance Media saved",
                     data: jobDay
                 });
                 return [3 /*break*/, 4];
             case 3:
-                err_3 = _a.sent();
+                err_3 = _b.sent();
                 console.log("error", err_3);
                 res.status(500).json({ message: err_3.message });
                 return [3 /*break*/, 4];
@@ -289,7 +260,49 @@ var uploadQualityAssurancePhotos = function (req, res) { return __awaiter(void 0
         }
     });
 }); };
-exports.uploadQualityAssurancePhotos = uploadQualityAssurancePhotos;
+exports.savePreJobJobQualityAssurance = savePreJobJobQualityAssurance;
+var savePostJobQualityAssurance = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var jobDayId, _a, media, errors, customerId, jobDay, err_4;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 3, , 4]);
+                jobDayId = req.params.jobDayId;
+                _a = req.body.media, media = _a === void 0 ? [] : _a;
+                errors = (0, express_validator_1.validationResult)(req);
+                if (!errors.isEmpty()) {
+                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                }
+                customerId = req.customer.id;
+                return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ _id: jobDayId })];
+            case 1:
+                jobDay = _b.sent();
+                if (!jobDay) {
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'jobDay not found' })];
+                }
+                if (jobDay.status != job_day_model_1.JOB_DAY_STATUS.CONFIRMED) {
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'contractor has not been confirmed yet' })];
+                }
+                jobDay.customerPostJobMedia = media;
+                return [4 /*yield*/, jobDay.save()];
+            case 2:
+                _b.sent();
+                res.json({
+                    success: true,
+                    message: "Post Job Quality Assurance Media saved",
+                    data: jobDay
+                });
+                return [3 /*break*/, 4];
+            case 3:
+                err_4 = _b.sent();
+                console.log("error", err_4);
+                res.status(500).json({ message: err_4.message });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.savePostJobQualityAssurance = savePostJobQualityAssurance;
 var createJobEmergency = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, description, priority, date, media, customer, triggeredBy, jobDayId, jobDay, jobEmergency, error_1;
     return __generator(this, function (_b) {
@@ -330,8 +343,9 @@ var createJobEmergency = function (req, res, next) { return __awaiter(void 0, vo
 }); };
 exports.createJobEmergency = createJobEmergency;
 exports.CustomerJobDayController = {
-    confirmTrip: exports.confirmTrip,
-    uploadQualityAssurancePhotos: exports.uploadQualityAssurancePhotos,
+    confirmContractorArrival: exports.confirmContractorArrival,
+    savePostJobQualityAssurance: exports.savePostJobQualityAssurance,
+    savePreJobJobQualityAssurance: exports.savePreJobJobQualityAssurance,
     createJobEmergency: exports.createJobEmergency,
     initiateJobDay: exports.initiateJobDay
 };

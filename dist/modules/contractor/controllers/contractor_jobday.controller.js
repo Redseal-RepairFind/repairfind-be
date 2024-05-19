@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorJobDayController = exports.createJobEmergency = exports.confirmArrival = exports.initiateJobDay = exports.startTrip = void 0;
+exports.ContractorJobDayController = exports.savePostJobQualityAssurance = exports.savePreJobJobQualityAssurance = exports.createJobEmergency = exports.confirmArrival = exports.initiateJobDay = exports.startTrip = void 0;
 var express_validator_1 = require("express-validator");
 var job_model_1 = require("../../../database/common/job.model");
 var otpGenerator_1 = require("../../../utils/otpGenerator");
@@ -331,9 +331,93 @@ var createJobEmergency = function (req, res, next) { return __awaiter(void 0, vo
     });
 }); };
 exports.createJobEmergency = createJobEmergency;
+var savePreJobJobQualityAssurance = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var jobDayId, _a, media, errors, jobDay, err_4;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 3, , 4]);
+                jobDayId = req.params.jobDayId;
+                _a = req.body.media, media = _a === void 0 ? [] : _a;
+                errors = (0, express_validator_1.validationResult)(req);
+                if (!errors.isEmpty()) {
+                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                }
+                return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ _id: jobDayId })];
+            case 1:
+                jobDay = _b.sent();
+                if (!jobDay) {
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'jobDay not found' })];
+                }
+                if (jobDay.status != job_day_model_1.JOB_DAY_STATUS.CONFIRMED) {
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'contractor has not  yet been confirmed yet' })];
+                }
+                jobDay.contractorPreJobMedia = media;
+                return [4 /*yield*/, jobDay.save()];
+            case 2:
+                _b.sent();
+                res.json({
+                    success: true,
+                    message: "Pre Job Quality Assurance Media saved",
+                    data: jobDay
+                });
+                return [3 /*break*/, 4];
+            case 3:
+                err_4 = _b.sent();
+                console.log("error", err_4);
+                res.status(500).json({ message: err_4.message });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.savePreJobJobQualityAssurance = savePreJobJobQualityAssurance;
+var savePostJobQualityAssurance = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var jobDayId, _a, media, errors, jobDay, err_5;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 3, , 4]);
+                jobDayId = req.params.jobDayId;
+                _a = req.body.media, media = _a === void 0 ? [] : _a;
+                errors = (0, express_validator_1.validationResult)(req);
+                if (!errors.isEmpty()) {
+                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                }
+                return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ _id: jobDayId })];
+            case 1:
+                jobDay = _b.sent();
+                if (!jobDay) {
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'jobDay not found' })];
+                }
+                if (jobDay.status != job_day_model_1.JOB_DAY_STATUS.CONFIRMED) {
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'contractor has not  yet been confirmed yet' })];
+                }
+                jobDay.contractorPostJobMedia = media;
+                return [4 /*yield*/, jobDay.save()];
+            case 2:
+                _b.sent();
+                res.json({
+                    success: true,
+                    message: "Post Job Quality Assurance Media saved",
+                    data: jobDay
+                });
+                return [3 /*break*/, 4];
+            case 3:
+                err_5 = _b.sent();
+                console.log("error", err_5);
+                res.status(500).json({ message: err_5.message });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.savePostJobQualityAssurance = savePostJobQualityAssurance;
 exports.ContractorJobDayController = {
     startTrip: exports.startTrip,
     confirmArrival: exports.confirmArrival,
     createJobEmergency: exports.createJobEmergency,
-    initiateJobDay: exports.initiateJobDay
+    initiateJobDay: exports.initiateJobDay,
+    savePostJobQualityAssurance: exports.savePostJobQualityAssurance,
+    savePreJobJobQualityAssurance: exports.savePreJobJobQualityAssurance
 };
