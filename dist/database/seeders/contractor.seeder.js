@@ -219,9 +219,9 @@ var contractors = [
             gstNumber: "4442223",
             gstType: "Type",
             location: {
-                address: "Logics Senct",
-                latitude: "12323123123",
-                longitude: "2123213213213",
+                address: "New City",
+                latitude: "40.730610",
+                longitude: "-73.935242",
             },
             phoneNumber: "3234234",
             previousJobPhotos: [
