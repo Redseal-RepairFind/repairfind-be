@@ -35,6 +35,9 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ContractorJobDayController = exports.createJobEmergency = exports.confirmArrival = exports.initiateJobDay = exports.startTrip = void 0;
 var express_validator_1 = require("express-validator");
@@ -48,6 +51,7 @@ var events_1 = require("../../../events");
 var job_emergency_model_1 = require("../../../database/common/job_emergency.model");
 var conversations_schema_1 = require("../../../database/common/conversations.schema");
 var contractor_profile_model_1 = require("../../../database/contractor/models/contractor_profile.model");
+var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var startTrip = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var jobId, errors, contractorId, job, activeTrip, trip, err_1;
     return __generator(this, function (_a) {
@@ -129,11 +133,11 @@ var startTrip = function (req, res) { return __awaiter(void 0, void 0, void 0, f
 }); };
 exports.startTrip = startTrip;
 var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var jobId, errors, contractorId, contractorProfile, job, activeTrip, conversationMembers, conversation, data, err_2;
+    var jobId, errors, contractorId, contractorProfile, contractor, job, customer, activeTrip, conversationMembers, conversation, data, err_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 5, , 6]);
+                _a.trys.push([0, 7, , 8]);
                 jobId = req.body.jobId;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
@@ -146,14 +150,26 @@ var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void
                 if (!contractorProfile) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'Contractor profile not found' })];
                 }
-                return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobId, contractor: contractorId, status: job_model_1.JOB_STATUS.BOOKED }).populate('customer', 'contractor')];
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
             case 2:
+                contractor = _a.sent();
+                if (!contractor) {
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'Job Contractor not found' })];
+                }
+                return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobId, contractor: contractorId, status: job_model_1.JOB_STATUS.BOOKED })];
+            case 3:
                 job = _a.sent();
                 if (!job) {
-                    return [2 /*return*/, res.status(403).json({ success: false, message: 'Job request not found' })];
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'Job booking not found' })];
+                }
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: job.customer })];
+            case 4:
+                customer = _a.sent();
+                if (!customer) {
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'Job Customer not found' })];
                 }
                 return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ job: jobId, status: job_day_model_1.JOB_DAY_STATUS.STARTED })];
-            case 3:
+            case 5:
                 activeTrip = _a.sent();
                 conversationMembers = [
                     { memberType: 'customers', member: job.customer },
@@ -169,14 +185,14 @@ var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void
                         lastMessage: 'I have accepted your Job request', // Set the last message to the job description
                         lastMessageAt: new Date() // Set the last message timestamp to now
                     }, { new: true, upsert: true })];
-            case 4:
+            case 6:
                 conversation = _a.sent();
                 data = {
                     jobLocation: job.location,
                     contractorLocation: contractorProfile.location,
                     conversation: conversation,
-                    customer: job.customer,
-                    contractor: job.contractor,
+                    customer: customer,
+                    contractor: contractor,
                     booking: job,
                     trip: activeTrip
                 };
@@ -185,13 +201,13 @@ var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void
                     message: "job day successfully initiated",
                     data: data
                 });
-                return [3 /*break*/, 6];
-            case 5:
+                return [3 /*break*/, 8];
+            case 7:
                 err_2 = _a.sent();
                 console.log("error", err_2);
                 res.status(500).json({ message: err_2.message });
-                return [3 /*break*/, 6];
-            case 6: return [2 /*return*/];
+                return [3 /*break*/, 8];
+            case 8: return [2 /*return*/];
         }
     });
 }); };

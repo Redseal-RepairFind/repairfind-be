@@ -8,6 +8,8 @@ import { JobEvent } from "../../../events";
 import { ContractorProfileModel } from "../../../database/contractor/models/contractor_profile.model";
 import { JOB_STATUS, JobModel } from "../../../database/common/job.model";
 import { ConversationModel } from "../../../database/common/conversations.schema";
+import { ContractorModel } from "../../../database/contractor/models/contractor.model";
+import CustomerModel from "../../../database/customer/models/customer.model";
 
 
 export const initiateJobDay = async (
@@ -34,12 +36,24 @@ export const initiateJobDay = async (
             return res.status(403).json({ success: false, message: 'Job  not found' });
         }
 
+
         const activeTrip = await JobDayModel.findOne({ job: jobId, status: JOB_DAY_STATUS.STARTED });
         // if (activeTrip) {
         //     return res.status(400).json({ success: false, message: 'An active trip already exists for this job' });
         // }
 
         const contractorId = job.contractor
+
+        const contractor = await ContractorModel.findById(job.contractor);
+        if (!contractor) {
+            return res.status(403).json({ success: false, message: 'Job Contractor not found' });
+        }
+
+        const customer = await CustomerModel.findOne({ _id: job.customer });
+        if (!customer) {
+            return res.status(403).json({ success: false, message: 'Job Customer not found' });
+        }
+
         const contractorProfile = await ContractorProfileModel.findOne({ contractor: contractorId });
         if (!contractorProfile) {
             return res.status(403).json({ success: false, message: 'Contractor profile not found' });
@@ -72,8 +86,8 @@ export const initiateJobDay = async (
             jobLocation: job.location,
             contractorLocation: contractorProfile.location,
             conversation: conversation,
-            customer: job.customer,
-            contractor: job.contractor,
+            customer: customer,
+            contractor: contractor,
             booking: job,
             trip: activeTrip
         }

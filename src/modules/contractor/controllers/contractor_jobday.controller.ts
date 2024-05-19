@@ -123,16 +123,22 @@ export const initiateJobDay = async (
         if (!contractorProfile) {
             return res.status(403).json({ success: false, message: 'Contractor profile not found' });
         }
+        
+        const contractor = await ContractorModel.findById(contractorId);
+        if (!contractor) {
+            return res.status(403).json({ success: false, message: 'Job Contractor not found' });
+        }
+
 
         // Find the job request by ID
-        const job = await JobModel.findOne({ _id: jobId, contractor: contractorId, status: JOB_STATUS.BOOKED }).populate('customer', 'contractor');
+        const job = await JobModel.findOne({ _id: jobId, contractor: contractorId, status: JOB_STATUS.BOOKED });
         if (!job) {
-            return res.status(403).json({ success: false, message: 'Job request not found' });
+            return res.status(403).json({ success: false, message: 'Job booking not found' });
         }
 
         // Find the job request by ID
         const customer = await CustomerModel.findOne({ _id: job.customer});
-        if (!job) {
+        if (!customer) {
             return res.status(403).json({ success: false, message: 'Job Customer not found' });
         }
 
@@ -171,7 +177,7 @@ export const initiateJobDay = async (
             contractorLocation: contractorProfile.location,
             conversation: conversation,
             customer: customer,
-            contractor: job.contractor,
+            contractor: contractor,
             booking: job,
             trip: activeTrip
         }
