@@ -28,11 +28,16 @@ export const initiateJobDay = async (
         const customerId = req.customer.id
 
 
-         // Find the job request by ID
-         const job = await JobModel.findOne({ _id: jobId, customer: customerId, status: JOB_STATUS.BOOKED }).populate('customer', 'contractor');
-         if (!job) {
-             return res.status(403).json({ success: false, message: 'Job  not found' });
-         }
+        // Find the job request by ID
+        const job = await JobModel.findOne({ _id: jobId, customer: customerId, status: JOB_STATUS.BOOKED }).populate('customer', 'contractor');
+        if (!job) {
+            return res.status(403).json({ success: false, message: 'Job  not found' });
+        }
+
+        const activeTrip = await JobDayModel.findOne({ job: jobId, status: JOB_DAY_STATUS.STARTED });
+        // if (activeTrip) {
+        //     return res.status(400).json({ success: false, message: 'An active trip already exists for this job' });
+        // }
 
         const contractorId = job.contractor
         const contractorProfile = await ContractorProfileModel.findOne({ contractor: contractorId });
@@ -69,7 +74,8 @@ export const initiateJobDay = async (
             conversation: conversation,
             customer: job.customer,
             contractor: job.contractor,
-            booking: job
+            booking: job,
+            trip: activeTrip
         }
 
         res.json({
@@ -88,22 +94,22 @@ export const initiateJobDay = async (
 export const confirmTrip = async (
     req: any,
     res: Response,
-  ) => {
-  
+) => {
+
     try {
-      const { jobDayId } = req.params;
-      const { verificationCode } = req.body;
-    
+        const { jobDayId } = req.params;
+        const { verificationCode } = req.body;
+
         // Check for validation errors
         const errors = validationResult(req);
-    
+
         if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
         }
- 
+
         const customerId = req.customer.id
 
-        const jobDay = await JobDayModel.findOne({_id: jobDayId})
+        const jobDay = await JobDayModel.findOne({ _id: jobDayId })
         if (!jobDay) {
             return res.status(403).json({ success: false, message: 'jobDay not found' });
         }
@@ -111,7 +117,7 @@ export const confirmTrip = async (
         if (jobDay.status != JOB_DAY_STATUS.ARRIVED) {
             return res.status(403).json({ success: false, message: 'contractor has not arrived yet' });
         }
-      
+
         if (jobDay.verified) {
             return res.status(403).json({ success: false, message: 'site already visited' });
         }
@@ -133,7 +139,7 @@ export const confirmTrip = async (
                 heading: {},
                 type: 'tripDayComfirmed',
                 message: 'Customer confirmed your arrival.',
-                payload: {jobDayId: jobDayId, verificationCode}
+                payload: { jobDayId: jobDayId, verificationCode }
             },
             {
                 push: true,
@@ -152,7 +158,7 @@ export const confirmTrip = async (
                 heading: {},
                 type: 'tripDayComfirmed',
                 message: "You successfully confirmed the contractor's arrival.",
-                payload: {jobDayId: jobDayId, verificationCode}
+                payload: { jobDayId: jobDayId, verificationCode }
             },
             {
                 push: true,
@@ -161,17 +167,17 @@ export const confirmTrip = async (
             }
         )
 
-        res.json({  
+        res.json({
             success: true,
             message: "contractor arrival successfully comfirmed",
             data: jobDay
         });
-      
+
     } catch (err: any) {
-      console.log("error", err)
-      res.status(500).json({ message: err.message });
+        console.log("error", err)
+        res.status(500).json({ message: err.message });
     }
-  
+
 }
 
 
@@ -179,22 +185,22 @@ export const confirmTrip = async (
 export const uploadQualityAssurancePhotos = async (
     req: any,
     res: Response,
-  ) => {
-  
+) => {
+
     try {
-      const { jobDayId } = req.params;
-      const { verificationCode } = req.body;
-    
+        const { jobDayId } = req.params;
+        const { verificationCode } = req.body;
+
         // Check for validation errors
         const errors = validationResult(req);
-    
+
         if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
         }
- 
+
         const customerId = req.customer.id
 
-        const jobDay = await JobDayModel.findOne({_id: jobDayId})
+        const jobDay = await JobDayModel.findOne({ _id: jobDayId })
         if (!jobDay) {
             return res.status(403).json({ success: false, message: 'jobDay not found' });
         }
@@ -202,7 +208,7 @@ export const uploadQualityAssurancePhotos = async (
         if (jobDay.status != JOB_DAY_STATUS.ARRIVED) {
             return res.status(403).json({ success: false, message: 'contractor has not arrived yet' });
         }
-      
+
         if (jobDay.verified) {
             return res.status(403).json({ success: false, message: 'site already visited' });
         }
@@ -224,7 +230,7 @@ export const uploadQualityAssurancePhotos = async (
                 heading: {},
                 type: 'tripDayComfirmed',
                 message: 'Customer confirmed your arrival.',
-                payload: {jobDayId: jobDayId, verificationCode}
+                payload: { jobDayId: jobDayId, verificationCode }
             },
             {
                 push: true,
@@ -243,7 +249,7 @@ export const uploadQualityAssurancePhotos = async (
                 heading: {},
                 type: 'tripDayComfirmed',
                 message: "You successfully confirmed the contractor's arrival.",
-                payload: {jobDayId: jobDayId, verificationCode}
+                payload: { jobDayId: jobDayId, verificationCode }
             },
             {
                 push: true,
@@ -252,17 +258,17 @@ export const uploadQualityAssurancePhotos = async (
             }
         )
 
-        res.json({  
+        res.json({
             success: true,
             message: "contractor arrival successfully comfirmed",
             data: jobDay
         });
-      
+
     } catch (err: any) {
-      console.log("error", err)
-      res.status(500).json({ message: err.message });
+        console.log("error", err)
+        res.status(500).json({ message: err.message });
     }
-  
+
 }
 
 
@@ -275,7 +281,7 @@ export const createJobEmergency = async (req: any, res: Response, next: NextFunc
         const triggeredBy = 'customer'; // Assuming the contractor triggered the emergency
         const jobDayId = req.params.jobDayId
 
-        const jobDay = await JobDayModel.findOne({_id: jobDayId})
+        const jobDay = await JobDayModel.findOne({ _id: jobDayId })
         if (!jobDay) {
             return res.status(403).json({ success: false, message: 'jobDay not found' });
         }
@@ -283,8 +289,8 @@ export const createJobEmergency = async (req: any, res: Response, next: NextFunc
         // Create new job emergency instance
         const jobEmergency = await JobEmergencyModel.create({
             job: jobDay.job,
-            customer:jobDay.customer,
-            contractor:jobDay.contractor,
+            customer: jobDay.customer,
+            contractor: jobDay.contractor,
             description,
             priority,
             date: new Date,
@@ -292,7 +298,7 @@ export const createJobEmergency = async (req: any, res: Response, next: NextFunc
             media,
         });
 
-        JobEvent.emit('JOB_DAY_EMERGENCY', {jobEmergency})
+        JobEvent.emit('JOB_DAY_EMERGENCY', { jobEmergency })
 
         return res.status(201).json({ success: true, message: 'Job emergency created successfully', data: jobEmergency });
     } catch (error: any) {

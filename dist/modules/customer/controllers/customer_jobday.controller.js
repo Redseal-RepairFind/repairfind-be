@@ -47,11 +47,11 @@ var contractor_profile_model_1 = require("../../../database/contractor/models/co
 var job_model_1 = require("../../../database/common/job.model");
 var conversations_schema_1 = require("../../../database/common/conversations.schema");
 var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var jobId, errors, customerId, job, contractorId, contractorProfile, conversationMembers, conversation, data, err_1;
+    var jobId, errors, customerId, job, activeTrip, contractorId, contractorProfile, conversationMembers, conversation, data, err_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 4, , 5]);
+                _a.trys.push([0, 5, , 6]);
                 jobId = req.body.jobId;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
@@ -64,9 +64,12 @@ var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void
                 if (!job) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'Job  not found' })];
                 }
+                return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ job: jobId, status: job_day_model_1.JOB_DAY_STATUS.STARTED })];
+            case 2:
+                activeTrip = _a.sent();
                 contractorId = job.contractor;
                 return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: contractorId })];
-            case 2:
+            case 3:
                 contractorProfile = _a.sent();
                 if (!contractorProfile) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'Contractor profile not found' })];
@@ -85,7 +88,7 @@ var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void
                         lastMessage: 'I have accepted your Job request', // Set the last message to the job description
                         lastMessageAt: new Date() // Set the last message timestamp to now
                     }, { new: true, upsert: true })];
-            case 3:
+            case 4:
                 conversation = _a.sent();
                 data = {
                     jobLocation: job.location,
@@ -93,20 +96,21 @@ var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void
                     conversation: conversation,
                     customer: job.customer,
                     contractor: job.contractor,
-                    booking: job
+                    booking: job,
+                    trip: activeTrip
                 };
                 res.json({
                     success: true,
                     message: "job day successfully initiated",
                     data: data
                 });
-                return [3 /*break*/, 5];
-            case 4:
+                return [3 /*break*/, 6];
+            case 5:
                 err_1 = _a.sent();
                 console.log("error", err_1);
                 res.status(500).json({ message: err_1.message });
-                return [3 /*break*/, 5];
-            case 5: return [2 /*return*/];
+                return [3 /*break*/, 6];
+            case 6: return [2 /*return*/];
         }
     });
 }); };

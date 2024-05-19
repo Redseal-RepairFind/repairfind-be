@@ -64,6 +64,21 @@ class SocketIOService {
                 // this.io.to(user.email).emit('INCOMING_CALL', {name: 'Aaron', image: 'asdasd', channel: '234324234', });
 
             });
+
+            // Handle notification events from client here
+            socket.on("send_jobday_contractor_location", async (payload: any) => {
+                console.log(`Jobday contractor location update `, payload)
+                // JOB_DAY_UPDATES
+                
+                const { toUser, toUserType } = payload
+                if (!toUserType || !toUser) return // Ensure userType and userId are valid
+                const user = toUserType === 'contractors' ? await ContractorModel.findById(toUser) : await CustomerModel.findById(toUser)
+                if (!user) return // Ensure user exists
+                
+                this.io.to(socket.user.email).emit('JOB_DAY_UPDATES', payload);
+                this.io.to(user.email).emit('INCOMING_CALL', {name: 'Aaron', image: 'asdasd', channel: '234324234', });
+
+            });
         });
     }
 

@@ -131,7 +131,7 @@ export const initiateJobDay = async (
 
 
         // Check if an active trip already exists for the specified job
-        // const activeTrip = await JobDayModel.findOne({ job: jobId, status: JOB_DAY_STATUS.STARTED });
+        const activeTrip = await JobDayModel.findOne({ job: jobId, status: JOB_DAY_STATUS.STARTED });
         // if (activeTrip) {
         //     return res.status(400).json({ success: false, message: 'An active trip already exists for this job' });
         // }
@@ -165,7 +165,8 @@ export const initiateJobDay = async (
             conversation: conversation,
             customer: job.customer,
             contractor: job.contractor,
-            booking: job
+            booking: job,
+            trip: activeTrip
         }
 
         res.json({
