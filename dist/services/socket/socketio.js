@@ -1,4 +1,15 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -43,6 +54,7 @@ var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 var custom_errors_1 = require("../../utils/custom.errors");
 var contractor_model_1 = require("../../database/contractor/models/contractor.model");
 var customer_model_1 = __importDefault(require("../../database/customer/models/customer.model"));
+var job_day_model_1 = require("../../database/common/job_day.model");
 var SocketIOService = /** @class */ (function () {
     function SocketIOService() {
     }
@@ -91,7 +103,7 @@ var SocketIOService = /** @class */ (function () {
             }); });
             // Handle notification events from client here
             socket.on("send_jobday_contractor_location", function (payload) { return __awaiter(_this, void 0, void 0, function () {
-                var toUser, toUserType, user, _a;
+                var toUser, toUserType, user, _a, jobday, customer, contractor, data;
                 return __generator(this, function (_b) {
                     switch (_b.label) {
                         case 0:
@@ -112,8 +124,21 @@ var SocketIOService = /** @class */ (function () {
                             user = _a;
                             if (!user)
                                 return [2 /*return*/]; // Ensure user exists
-                            this.io.to(socket.user.email).emit('JOB_DAY_UPDATES', payload);
-                            this.io.to(user.email).emit('INCOMING_CALL', { name: 'Aaron', image: 'asdasd', channel: '234324234', });
+                            return [4 /*yield*/, job_day_model_1.JobDayModel.findById(payload.jobdayId)];
+                        case 5:
+                            jobday = _b.sent();
+                            if (!jobday)
+                                return [2 /*return*/];
+                            return [4 /*yield*/, customer_model_1.default.findById(jobday.customer)];
+                        case 6:
+                            customer = _b.sent();
+                            return [4 /*yield*/, customer_model_1.default.findById(jobday.contractor)];
+                        case 7:
+                            contractor = _b.sent();
+                            if (!customer || !contractor)
+                                return [2 /*return*/];
+                            data = __assign(__assign({}, payload), { name: contractor.name, profilePhoto: contractor.profilePhoto });
+                            this.io.to(customer.email).emit('JOB_DAY_CONTRACTOR_LOCATION', data);
                             return [2 /*return*/];
                     }
                 });
@@ -133,8 +158,6 @@ var SocketIOService = /** @class */ (function () {
     };
     // defind broadcast channels = alerts
     SocketIOService.broadcastChannel = function (channel, type, payload) {
-        // type example NEW_JOB_LISTING
-        // channel example alerts
         console.log(' broadcastChannel socket event is fired inside socketio', payload, channel);
         this.io.to(channel).emit(type, payload);
     };

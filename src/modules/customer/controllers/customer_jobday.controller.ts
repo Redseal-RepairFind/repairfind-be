@@ -36,8 +36,8 @@ export const initiateJobDay = async (
             return res.status(403).json({ success: false, message: 'Job  not found' });
         }
 
-
-        const activeTrip = await JobDayModel.findOne({ job: jobId, status: JOB_DAY_STATUS.STARTED });
+       
+        const activeTrip = await JobDayModel.findOne({ job: jobId, status: {$in: ['STARTED', 'ARRIVED', 'CONFIRMED', 'PENDING'] } });
         // if (activeTrip) {
         //     return res.status(400).json({ success: false, message: 'An active trip already exists for this job' });
         // }

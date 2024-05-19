@@ -168,7 +168,7 @@ var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void
                 if (!customer) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'Job Customer not found' })];
                 }
-                return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ job: jobId, status: job_day_model_1.JOB_DAY_STATUS.STARTED })];
+                return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ job: jobId, status: { $in: ['STARTED', 'ARRIVED', 'CONFIRMED', 'PENDING'] } })];
             case 5:
                 activeTrip = _a.sent();
                 conversationMembers = [

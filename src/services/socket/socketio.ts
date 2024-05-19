@@ -3,6 +3,7 @@ import { Server, Socket } from "socket.io";
 import { BadRequestError } from "../../utils/custom.errors";
 import { ContractorModel } from "../../database/contractor/models/contractor.model";
 import CustomerModel from "../../database/customer/models/customer.model";
+import { JobDayModel } from "../../database/common/job_day.model";
 
 interface CustomSocket extends Socket {
     user?: any; // Define a custom property to store user information
@@ -75,8 +76,18 @@ class SocketIOService {
                 const user = toUserType === 'contractors' ? await ContractorModel.findById(toUser) : await CustomerModel.findById(toUser)
                 if (!user) return // Ensure user exists
                 
-                this.io.to(socket.user.email).emit('JOB_DAY_UPDATES', payload);
-                this.io.to(user.email).emit('INCOMING_CALL', {name: 'Aaron', image: 'asdasd', channel: '234324234', });
+                const jobday = await JobDayModel.findById(payload.jobdayId)
+                if(!jobday)return
+
+                const customer = await CustomerModel.findById(jobday.customer)
+                const contractor = await CustomerModel.findById(jobday.contractor)
+                if(!customer || !contractor)return
+                const  data = {
+                    ...payload,
+                    name:contractor.name,
+                    profilePhoto: contractor.profilePhoto
+                }
+                this.io.to(customer.email).emit('JOB_DAY_CONTRACTOR_LOCATION', data);
 
             });
         });
@@ -95,8 +106,6 @@ class SocketIOService {
 
     // defind broadcast channels = alerts
     static broadcastChannel(channel:string, type: string, payload: object) {
-        // type example NEW_JOB_LISTING
-        // channel example alerts
         console.log(' broadcastChannel socket event is fired inside socketio', payload, channel)
         this.io.to(channel).emit(type, payload);
     }
