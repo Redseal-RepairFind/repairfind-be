@@ -1,5 +1,8 @@
 # Use the official Node.js 18.16.0 image based on Alpine Linux
-FROM node:18.16.0-alpine
+# FROM node:18.16.0-alpine
+
+# Use the latest Node.js image based on Alpine Linux
+FROM node:alpine
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -17,4 +20,4 @@ COPY . .
 EXPOSE 8880
 
 # Start the application
-CMD ["npm", "run", "build-start"]
+CMD ["npm", "run", "start"]

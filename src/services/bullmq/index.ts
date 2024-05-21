@@ -96,6 +96,7 @@ class JobQueue {
       repeat: {
         every: 6000, // 600000 mili = 10 minutes
       },
+      jobId: "expireJobs"
     })
 
     app.use('/queues', this.serverAdapter.getRouter());
