@@ -29,15 +29,15 @@ var JobQueue = /** @class */ (function () {
         }
         ;
         // const redisConnection = createClient(redisConfig); // Create Redis client
-        // this.repairFindQueue = new Queue('RepairFindQueue', { connection: redisConfig });
+        // this.Queue = new Queue('RepairFindQueue', { connection: redisConfig });
         var redisConnection = new ioredis_1.default(redisConfig);
-        this.repairFindQueue = new bullmq_1.Queue(config_1.config.redis.queueName, { connection: redisConnection });
+        this.Queue = new bullmq_1.Queue(config_1.config.redis.queueName, { connection: redisConnection });
         // TODO: Make the obliterate to used via a cli command
-        // this.repairFindQueue.obliterate()
+        // this.Queue.obliterate()
         this.serverAdapter = new express_1.ExpressAdapter();
         this.serverAdapter.setBasePath('/queues');
         (0, api_1.createBullBoard)({
-            queues: [new bullAdapter_1.BullAdapter(this.repairFindQueue)],
+            queues: [new bullAdapter_1.BullAdapter(this.Queue)],
             serverAdapter: this.serverAdapter,
         });
     }
@@ -56,7 +56,7 @@ var JobQueue = /** @class */ (function () {
                 count: 50, // keep up to 50 jobs
             },
         };
-        this.repairFindQueue.add(jobName, jobPayload, jobOptions);
+        this.Queue.add(jobName, jobPayload, jobOptions);
     };
     JobQueue.prototype.attach = function (app) {
         // add cron jobs here
@@ -80,11 +80,16 @@ var JobQueue = /** @class */ (function () {
                 every: 600000, // 600000 mili = 10 minutes
             },
         });
+        exports.QueueService.addJob('expireJobs', {}, {
+            repeat: {
+                every: 6000, // 600000 mili = 10 minutes
+            },
+        });
         app.use('/queues', this.serverAdapter.getRouter());
     };
     JobQueue.prototype.getQueue = function (queueName) {
-        if (queueName === 'RepairFindQueue') {
-            return this.repairFindQueue;
+        if (config_1.config.redis.queueName) {
+            return this.Queue;
         }
         // Add more logic for other queues if needed
         return undefined;

@@ -151,10 +151,12 @@ export const confirmContractorArrival = async (
         jobDay.verified = true
        
 
-        await Promise.all([
-            jobDay.save(),
-            job.save()
-        ]);
+        // await Promise.all([
+        //     jobDay.save(),
+        //     job.save()
+        // ]);
+        await jobDay.save(),
+        await job.save()
 
         // send notification to  contractor
         NotificationService.sendNotification(

@@ -8,7 +8,7 @@ import { BullAdapter } from '@bull-board/api/bullAdapter';
 import { ExpressAdapter } from '@bull-board/express';
 
 class JobQueue {
-  private repairFindQueue: Queue;
+  private Queue: Queue;
   private serverAdapter: ExpressAdapter;
 
   constructor() {
@@ -30,21 +30,21 @@ class JobQueue {
     };
 
     // const redisConnection = createClient(redisConfig); // Create Redis client
-    // this.repairFindQueue = new Queue('RepairFindQueue', { connection: redisConfig });
+    // this.Queue = new Queue('RepairFindQueue', { connection: redisConfig });
 
 
     const redisConnection = new Redis(redisConfig);
-    this.repairFindQueue = new Queue(config.redis.queueName, { connection: redisConnection });
+    this.Queue = new Queue(config.redis.queueName, { connection: redisConnection });
 
 
     // TODO: Make the obliterate to used via a cli command
-    // this.repairFindQueue.obliterate()
+    // this.Queue.obliterate()
 
     this.serverAdapter = new ExpressAdapter();
     this.serverAdapter.setBasePath('/queues');
 
     createBullBoard({
-      queues: [new BullAdapter(this.repairFindQueue)],
+      queues: [new BullAdapter(this.Queue)],
       serverAdapter: this.serverAdapter,
     });
 
@@ -64,7 +64,7 @@ class JobQueue {
         count: 50, // keep up to 50 jobs
       },
     };
-    this.repairFindQueue.add(jobName, jobPayload, jobOptions);
+    this.Queue.add(jobName, jobPayload, jobOptions);
   }
 
   public attach(app: any) {
@@ -92,12 +92,18 @@ class JobQueue {
       },
     })
 
+    QueueService.addJob('expireJobs', {}, {
+      repeat: {
+        every: 6000, // 600000 mili = 10 minutes
+      },
+    })
+
     app.use('/queues', this.serverAdapter.getRouter());
   }
 
   public getQueue(queueName: string): Queue | undefined {
-    if (queueName === 'RepairFindQueue') {
-      return this.repairFindQueue;
+    if (config.redis.queueName) {
+      return this.Queue;
     }
     // Add more logic for other queues if needed
     return undefined;

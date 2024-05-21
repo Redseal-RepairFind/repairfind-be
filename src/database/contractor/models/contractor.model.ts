@@ -244,6 +244,7 @@ ContractorSchema.virtual('stripeAccountStatus').get(function (this: IContractor)
     charges_enabled: stripeAccount.charges_enabled,
     transfers_enabled: stripeAccount?.capabilities?.transfers ?? 'inactive',
     card_payments_enabled: stripeAccount?.capabilities?.card_payments ?? 'inactive',
+    status: stripeAccount?.capabilities.card_payments && stripeAccount?.capabilities?.transfers
   } : null;
 });
 

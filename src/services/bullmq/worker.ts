@@ -4,6 +4,7 @@ import Redis from 'ioredis';
 import { captureStripePayments } from './jobs/capture_stripe_payments';
 import { Logger } from '../../utils/logger';
 import { syncCertnApplications } from './jobs/sync_certn_applications';
+import { expireJobs } from './jobs/expire_jobs';
 
 const redisConfig = {
     port: Number(config.redis.port),
@@ -37,6 +38,10 @@ export const RepairFindQueueWorker = new Worker('RepairFindQueue', async job => 
     }
     if(job.name =='syncCertnApplications'){
         await syncCertnApplications()
+    }
+
+    if(job.name =='expireJobs'){
+        // await expireJobs()
     }
 }, { connection: redisConnection });
 

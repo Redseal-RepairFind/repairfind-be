@@ -139,7 +139,7 @@ export const createSetupIntent = async (req: any, res: Response) => {
 };
 
 
-export const createAccount = async (req: any, res: Response) => {
+export const createCustomer = async (req: any, res: Response) => {
     try {
         const { memberId, role } = req.body;
         const contractorId = req.contractor.id;
@@ -179,7 +179,7 @@ export const createAccount = async (req: any, res: Response) => {
 
 export const ContractorStripeController = {
     createSession,
-    createAccount,
+    createCustomer,
     createSetupIntent,
 
 }

@@ -35,60 +35,54 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.RepairFindQueueWorker = void 0;
-var bullmq_1 = require("bullmq");
-var config_1 = require("../../config");
-var ioredis_1 = __importDefault(require("ioredis"));
-var capture_stripe_payments_1 = require("./jobs/capture_stripe_payments");
-var logger_1 = require("../../utils/logger");
-var sync_certn_applications_1 = require("./jobs/sync_certn_applications");
-var redisConfig = {
-    port: Number(config_1.config.redis.port),
-    host: config_1.config.redis.host,
-    password: config_1.config.redis.password,
-    username: config_1.config.redis.username,
-    maxRetriesPerRequest: null,
-    // uri: config.redis.uri,
-};
-// console.log(config)
-// @ts-ignore
-if (!(config_1.config.environment == 'development')) {
-    console.log('not developement');
-    redisConfig.tls = {};
-}
-;
-// const redisConnection = createClient(redisConfig); // Create Redis client
-// this.repairFindQueue = new Queue('RepairFindQueue', { connection: redisConfig });
-var redisConnection = new ioredis_1.default(redisConfig);
-exports.RepairFindQueueWorker = new bullmq_1.Worker('RepairFindQueue', function (job) { return __awaiter(void 0, void 0, void 0, function () {
+exports.expireJobs = void 0;
+var job_model_1 = require("../../../database/common/job.model");
+var logger_1 = require("../../../utils/logger");
+var expireJobs = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var jobs, _i, jobs_1, job, createdAt, elapsedDays, error_1, error_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                // Job processing logic here
-                logger_1.Logger.info("Job Processing: ".concat(job.name, " - ").concat(job.id));
-                if (!(job.name == 'CapturePayments')) return [3 /*break*/, 2];
-                return [4 /*yield*/, (0, capture_stripe_payments_1.captureStripePayments)()];
+                _a.trys.push([0, 9, , 10]);
+                return [4 /*yield*/, job_model_1.JobModel.find({
+                        status: { $nin: ['EXPIRED', 'BOOKED'] },
+                        expiresIn: { $gt: 0 }
+                    })];
             case 1:
-                _a.sent();
+                jobs = _a.sent();
+                _i = 0, jobs_1 = jobs;
                 _a.label = 2;
             case 2:
-                if (!(job.name == 'syncCertnApplications')) return [3 /*break*/, 4];
-                return [4 /*yield*/, (0, sync_certn_applications_1.syncCertnApplications)()];
+                if (!(_i < jobs_1.length)) return [3 /*break*/, 8];
+                job = jobs_1[_i];
+                _a.label = 3;
             case 3:
-                _a.sent();
-                _a.label = 4;
+                _a.trys.push([3, 6, , 7]);
+                createdAt = job.createdAt.getTime();
+                elapsedDays = Math.floor((Date.now() - createdAt) / (1000 * 60 * 60 * 24));
+                if (!(elapsedDays >= job.expiresIn)) return [3 /*break*/, 5];
+                job.status = job_model_1.JOB_STATUS.EXPIRED;
+                return [4 /*yield*/, job.save()];
             case 4:
-                if (job.name == 'expireJobs') {
-                    // await expireJobs()
-                }
-                return [2 /*return*/];
+                _a.sent();
+                logger_1.Logger.info("Successfully expired job: ".concat(job.id));
+                _a.label = 5;
+            case 5: return [3 /*break*/, 7];
+            case 6:
+                error_1 = _a.sent();
+                logger_1.Logger.error("Error expiring job: ".concat(job.id), error_1);
+                return [3 /*break*/, 7];
+            case 7:
+                _i++;
+                return [3 /*break*/, 2];
+            case 8: return [3 /*break*/, 10];
+            case 9:
+                error_2 = _a.sent();
+                logger_1.Logger.error('Error occurred while expiring job:', error_2);
+                return [3 /*break*/, 10];
+            case 10: return [2 /*return*/];
         }
     });
-}); }, { connection: redisConnection });
-exports.RepairFindQueueWorker.on('completed', function (job) {
-    logger_1.Logger.info("Job Completed: ".concat(job.name, " - ").concat(job.id, " has completed!"));
-});
+}); };
+exports.expireJobs = expireJobs;

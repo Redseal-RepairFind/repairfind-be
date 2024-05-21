@@ -137,7 +137,7 @@ var confirmContractorArrival = function (req, res) { return __awaiter(void 0, vo
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 4, , 5]);
+                _a.trys.push([0, 5, , 6]);
                 jobDayId = req.params.jobDayId;
                 verificationCode = req.body.verificationCode;
                 errors = (0, express_validator_1.validationResult)(req);
@@ -169,11 +169,25 @@ var confirmContractorArrival = function (req, res) { return __awaiter(void 0, vo
                 job.status = job_model_1.JOB_STATUS.ONGOING;
                 jobDay.status = job_day_model_1.JOB_DAY_STATUS.CONFIRMED;
                 jobDay.verified = true;
-                return [4 /*yield*/, Promise.all([
-                        jobDay.save(),
-                        job.save()
-                    ])];
+                // await Promise.all([
+                //     jobDay.save(),
+                //     job.save()
+                // ]);
+                return [4 /*yield*/, jobDay.save()];
             case 3:
+                // await Promise.all([
+                //     jobDay.save(),
+                //     job.save()
+                // ]);
+                _a.sent();
+                return [4 /*yield*/, job.save()
+                    // send notification to  contractor
+                ];
+            case 4:
+                // await Promise.all([
+                //     jobDay.save(),
+                //     job.save()
+                // ]);
                 _a.sent();
                 // send notification to  contractor
                 index_1.NotificationService.sendNotification({
@@ -208,13 +222,13 @@ var confirmContractorArrival = function (req, res) { return __awaiter(void 0, vo
                     message: "contractor arrival successfully comfirmed",
                     data: jobDay
                 });
-                return [3 /*break*/, 5];
-            case 4:
+                return [3 /*break*/, 6];
+            case 5:
                 err_2 = _a.sent();
                 console.log("error", err_2);
                 res.status(500).json({ message: err_2.message });
-                return [3 /*break*/, 5];
-            case 5: return [2 /*return*/];
+                return [3 /*break*/, 6];
+            case 6: return [2 /*return*/];
         }
     });
 }); };
