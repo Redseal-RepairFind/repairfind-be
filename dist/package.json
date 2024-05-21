@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
-    "build": "npm run clean && tsc && npm run copy-files",
+    "build": "tsc && npm run copy-files",
     "clean": "rimraf ./dist",
     "copy-files": "npx copyfiles .env dist/ package.json dist/ package-lock.json dist/ ecosystem.config.js dist/ command.js dist/",
     "build-start": "npm run build && node dist/index.js",
