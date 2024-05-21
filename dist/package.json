@@ -5,12 +5,11 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon src/index.ts",
-    "js-dev": "nodemon dist/index.ts",
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "npm run clean && tsc && npm run copy-files",
     "clean": "rimraf ./dist",
     "copy-files": "npx copyfiles .env dist/ package.json dist/ package-lock.json dist/ ecosystem.config.js dist/ command.js dist/",
-    "build-start": "npm run build && nodemon --watch src -e ts --exec \"(node dist/index.js) || exit 1\"",
+    "build-start": "npm run build && node dist/index.js",
     "start": "node dist/index.js"
   },
   "keywords": [],
@@ -80,6 +79,7 @@
     "copyfiles": "2.4.1",
     "nodemon": "^3.1.0",
     "ts-node": "10.9.1",
+    "ts-node-dev": "^2.0.0",
     "typescript": "5.3.3"
   }
 }
