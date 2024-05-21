@@ -7,7 +7,7 @@ import { Logger } from "../../../utils/logger";
 export const expireJobs = async () => {
     try {
         const jobs = await JobModel.find({
-            status: { $nin: ['EXPIRED', 'BOOKED'] },
+            status: { $nin: ['EXPIRED', 'BOOKED'], $in: ['PENDING'] },
             expiresIn: { $gt: 0 }
         }) as IJob[];
 
@@ -15,7 +15,7 @@ export const expireJobs = async () => {
             try {
                 const createdAt = job.createdAt.getTime();
                 const elapsedDays = Math.floor((Date.now() - createdAt) / (1000 * 60 * 60 * 24)); // Calculate elapsed days
-
+                
                 if (elapsedDays >= job.expiresIn) {
                     job.status = JOB_STATUS.EXPIRED;
                     await job.save();

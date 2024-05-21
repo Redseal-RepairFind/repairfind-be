@@ -364,8 +364,13 @@ var getJobRequestById = function (req, res, next) { return __awaiter(void 0, voi
                         return { _id: { $in: this.quotations }, contractor: options_1.contractorId };
                     }
                 };
-                return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobId, contractor: contractorId, type: job_model_1.JobType.REQUEST })
-                        .populate(['contractor', 'customer'])
+                return [4 /*yield*/, job_model_1.JobModel.findOne({
+                        _id: jobId, $or: [
+                            { contractor: contractorId },
+                            { 'assignment.contractor': contractorId }
+                        ], type: job_model_1.JobType.REQUEST
+                    })
+                        .populate(['contractor', 'customer', 'assignment.contractor'])
                         .exec()];
             case 1:
                 job = _b.sent();
@@ -409,7 +414,7 @@ var getJobListingById = function (req, res, next) { return __awaiter(void 0, voi
                     }
                 };
                 return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobId, type: job_model_1.JobType.LISTING })
-                        .populate(['contractor', 'customer', { path: 'myQuotation', options: options_2 }])
+                        .populate(['contractor', 'assignment.contractor', 'customer', { path: 'myQuotation', options: options_2 }])
                         .exec()];
             case 1:
                 job = _b.sent();
@@ -657,8 +662,8 @@ var updateJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
 }); };
 exports.updateJobQuotation = updateJobQuotation;
 var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, contractorId, contractor, profile, _a, distance, latitude, longitude, emergency, _b, category, city, country, address, startDate, endDate, _c, page, _d, limit, sort // Sort field and order (-fieldName or fieldName)
-    , pipeline, contractor_1, quotations, jobIdsWithQuotations, _e, sortField, sortOrder, sortStage, skip, result, jobs, metadata, error_8;
+    var errors, contractorId, profile, _a, distance, latitude, longitude, emergency, _b, category, city, country, address, startDate, endDate, _c, page, _d, limit, sort // Sort field and order (-fieldName or fieldName)
+    , pipeline, contractor, quotations, jobIdsWithQuotations, _e, sortField, sortOrder, sortStage, skip, result, jobs, metadata, error_8;
     var _f;
     return __generator(this, function (_g) {
         switch (_g.label) {
@@ -668,15 +673,12 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
                 contractorId = req.contractor.id;
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
-            case 1:
-                contractor = _g.sent();
                 return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: contractorId })];
-            case 2:
+            case 1:
                 profile = _g.sent();
-                _g.label = 3;
-            case 3:
-                _g.trys.push([3, 7, , 8]);
+                _g.label = 2;
+            case 2:
+                _g.trys.push([2, 6, , 7]);
                 _a = req.query, distance = _a.distance, latitude = _a.latitude, longitude = _a.longitude, emergency = _a.emergency, _b = _a.category, category = _b === void 0 ? profile === null || profile === void 0 ? void 0 : profile.skill : _b, city = _a.city, country = _a.country, address = _a.address, startDate = _a.startDate, endDate = _a.endDate, _c = _a.page, page = _c === void 0 ? 1 : _c, _d = _a.limit, limit = _d === void 0 ? 10 : _d, sort = _a.sort;
                 limit = limit > 0 ? parseInt(limit) : 10; // Handle null limit
                 pipeline = [
@@ -695,10 +697,10 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                     },
                 ];
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
-            case 4:
-                contractor_1 = _g.sent();
+            case 3:
+                contractor = _g.sent();
                 return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.find({ contractor: contractorId }, { job: 1 })];
-            case 5:
+            case 4:
                 quotations = _g.sent();
                 jobIdsWithQuotations = quotations.map(function (quotation) { return quotation.job; });
                 pipeline.push({ $match: { _id: { $nin: jobIdsWithQuotations } } });
@@ -766,7 +768,7 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                     }
                 });
                 return [4 /*yield*/, job_model_1.JobModel.aggregate(pipeline)];
-            case 6:
+            case 5:
                 result = _g.sent();
                 jobs = result[0].data;
                 if (jobs) {
@@ -779,11 +781,11 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                 metadata = result[0].metadata[0];
                 // Send response with job listings data
                 res.status(200).json({ success: true, data: __assign(__assign({}, metadata), { data: jobs }) });
-                return [3 /*break*/, 8];
-            case 7:
+                return [3 /*break*/, 7];
+            case 6:
                 error_8 = _g.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_8))];
-            case 8: return [2 /*return*/];
+            case 7: return [2 /*return*/];
         }
     });
 }); };
@@ -815,7 +817,8 @@ var getMyJobs = function (req, res, next) { return __awaiter(void 0, void 0, voi
                 return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_model_1.JobModel.find({
                         $or: [
                             { _id: { $in: jobIds } }, // Match jobs specified in jobIds
-                            { contractor: contractorId } // Match jobs with contractorId
+                            { contractor: contractorId }, // Match jobs with contractorId
+                            { 'assignment.contractor': contractorId }
                         ]
                     }).distinct('_id'), req.query)];
             case 3:
@@ -823,15 +826,23 @@ var getMyJobs = function (req, res, next) { return __awaiter(void 0, void 0, voi
                 if (!data) return [3 /*break*/, 5];
                 // Map through each job and attach myQuotation if contractor has applied 
                 return [4 /*yield*/, Promise.all(data.data.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
-                        var _a;
-                        return __generator(this, function (_b) {
-                            switch (_b.label) {
+                        var _a, _b;
+                        return __generator(this, function (_c) {
+                            switch (_c.label) {
                                 case 0:
+                                    if (!job.isAssigned) return [3 /*break*/, 2];
                                     _a = job;
-                                    return [4 /*yield*/, job.getMyQoutation(contractorId)];
+                                    return [4 /*yield*/, job.getMyQoutation(job.contractor)];
                                 case 1:
-                                    _a.myQuotation = _b.sent();
-                                    return [2 /*return*/];
+                                    _a.myQuotation = _c.sent();
+                                    return [3 /*break*/, 4];
+                                case 2:
+                                    _b = job;
+                                    return [4 /*yield*/, job.getMyQoutation(contractorId)];
+                                case 3:
+                                    _b.myQuotation = _c.sent();
+                                    _c.label = 4;
+                                case 4: return [2 /*return*/];
                             }
                         });
                     }); }))];
@@ -881,7 +892,8 @@ var getJobHistory = function (req, res, next) { return __awaiter(void 0, void 0,
                 return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_model_1.JobModel.find({
                         $or: [
                             { _id: { $in: jobIds } }, // Match jobs specified in jobIds
-                            { contractor: contractorId } // Match jobs with contractorId
+                            { contractor: contractorId }, // Match jobs with contractorId
+                            { 'assignment.contractor': contractorId }
                         ]
                     }).distinct('_id'), req.query)];
             case 3:
@@ -889,15 +901,23 @@ var getJobHistory = function (req, res, next) { return __awaiter(void 0, void 0,
                 if (!data) return [3 /*break*/, 5];
                 // Map through each job and attach myQuotation if contractor has applied 
                 return [4 /*yield*/, Promise.all(data.data.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
-                        var _a;
-                        return __generator(this, function (_b) {
-                            switch (_b.label) {
+                        var _a, _b;
+                        return __generator(this, function (_c) {
+                            switch (_c.label) {
                                 case 0:
+                                    if (!job.isAssigned) return [3 /*break*/, 2];
                                     _a = job;
-                                    return [4 /*yield*/, job.getMyQoutation(contractorId)];
+                                    return [4 /*yield*/, job.getMyQoutation(job.contractor)];
                                 case 1:
-                                    _a.myQuotation = _b.sent();
-                                    return [2 /*return*/];
+                                    _a.myQuotation = _c.sent();
+                                    return [3 /*break*/, 4];
+                                case 2:
+                                    _b = job;
+                                    return [4 /*yield*/, job.getMyQoutation(contractorId)];
+                                case 3:
+                                    _b.myQuotation = _c.sent();
+                                    _c.label = 4;
+                                case 4: return [2 /*return*/];
                             }
                         });
                     }); }))];

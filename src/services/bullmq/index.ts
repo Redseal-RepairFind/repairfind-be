@@ -79,6 +79,7 @@ class JobQueue {
         // limit: 1,
         every: 600000, // 600000 mili = 10 minutes
       },
+      jobId: 'CapturePayments'
     })
 
     QueueService.addJob('syncCertnApplications', {}, {
@@ -90,11 +91,17 @@ class JobQueue {
         // limit: 1,
         every: 600000, // 600000 mili = 10 minutes
       },
+      jobId: "syncCertnApplications"
     })
 
     QueueService.addJob('expireJobs', {}, {
       repeat: {
-        every: 6000, // 600000 mili = 10 minutes
+        // pattern: '* * * * *',
+        // cron: '*/5 * * * * *', // Every 5 seconds
+        // offset: new Date().getTimezoneOffset(), 
+        // tz: 'Europe/Berlin',
+        // limit: 1,
+        every: 21600000, // 21600000 ms = 6 hours
       },
       jobId: "expireJobs"
     })

@@ -336,8 +336,13 @@ export const getJobRequestById = async (req: any, res: Response, next: NextFunct
       }
     };
 
-    const job = await JobModel.findOne({ _id: jobId, contractor: contractorId, type: JobType.REQUEST })
-      .populate(['contractor', 'customer'])
+    const job = await JobModel.findOne({
+      _id: jobId, $or: [
+        { contractor: contractorId },
+        { 'assignment.contractor': contractorId }
+      ], type: JobType.REQUEST
+    })
+      .populate(['contractor', 'customer', 'assignment.contractor'])
       .exec();
 
 
@@ -376,7 +381,7 @@ export const getJobListingById = async (req: any, res: Response, next: NextFunct
     };
 
     const job = await JobModel.findOne({ _id: jobId, type: JobType.LISTING })
-      .populate(['contractor', 'customer', { path: 'myQuotation', options: options }])
+      .populate(['contractor', 'assignment.contractor', 'customer', { path: 'myQuotation', options: options }])
       .exec();
 
 
@@ -404,7 +409,7 @@ export const sendJobQuotation = async (
   try {
     const { jobId } = req.params;
     const contractorId = req.contractor.id;
-    let { startDate, endDate, siteVisit, estimates =[] } = req.body;
+    let { startDate, endDate, siteVisit, estimates = [] } = req.body;
 
     // Validate request body
     const errors = validationResult(req);
@@ -651,7 +656,7 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
   }
 
   const contractorId = req.contractor.id
-  const contractor = await ContractorModel.findById(contractorId);
+  // const contractor = await ContractorModel.findById(contractorId);
 
   const profile = await ContractorProfileModel.findOne({ contractor: contractorId });
   try {
@@ -828,19 +833,25 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
       delete req.query.customerId
     }
 
+    
     // Query JobModel to find jobs that have IDs present in the extracted jobIds
     const { data, error } = await applyAPIFeature(
       JobModel.find({
         $or: [
           { _id: { $in: jobIds } }, // Match jobs specified in jobIds
-          { contractor: contractorId } // Match jobs with contractorId
+          { contractor: contractorId }, // Match jobs with contractorId
+          { 'assignment.contractor': contractorId }
         ]
       }).distinct('_id'),
       req.query);
     if (data) {
       // Map through each job and attach myQuotation if contractor has applied 
       await Promise.all(data.data.map(async (job: any) => {
-        job.myQuotation = await job.getMyQoutation(contractorId)
+        if(job.isAssigned){
+          job.myQuotation = await job.getMyQoutation(job.contractor)
+        }else{
+          job.myQuotation = await job.getMyQoutation(contractorId)
+        }
       }));
     }
 
@@ -892,14 +903,20 @@ export const getJobHistory = async (req: any, res: Response, next: NextFunction)
       JobModel.find({
         $or: [
           { _id: { $in: jobIds } }, // Match jobs specified in jobIds
-          { contractor: contractorId } // Match jobs with contractorId
+          { contractor: contractorId }, // Match jobs with contractorId
+          { 'assignment.contractor': contractorId } 
         ]
       }).distinct('_id'),
       req.query);
     if (data) {
       // Map through each job and attach myQuotation if contractor has applied 
       await Promise.all(data.data.map(async (job: any) => {
-        job.myQuotation = await job.getMyQoutation(contractorId)
+        // job.myQuotation = await job.getMyQoutation(contractorId)
+        if(job.isAssigned){
+          job.myQuotation = await job.getMyQoutation(job.contractor)
+        }else{
+          job.myQuotation = await job.getMyQoutation(contractorId)
+        }
       }));
     }
 

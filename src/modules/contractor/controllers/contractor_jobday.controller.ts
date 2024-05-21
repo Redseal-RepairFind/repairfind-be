@@ -120,6 +120,7 @@ export const initiateJobDay = async (
         const contractorId = req.contractor.id
 
         const contractorProfile = await ContractorProfileModel.findOne({ contractor: contractorId });
+        
         if (!contractorProfile) {
             return res.status(403).json({ success: false, message: 'Contractor profile not found' });
         }

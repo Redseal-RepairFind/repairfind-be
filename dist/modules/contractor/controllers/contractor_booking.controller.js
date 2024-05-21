@@ -77,7 +77,12 @@ var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0,
                 req.query.limit = limit;
                 req.query.sort = sort;
                 contractorId_1 = req.contractor.id;
-                filter = { contractor: contractorId_1 };
+                filter = {
+                    $or: [
+                        { contractor: contractorId_1 },
+                        { 'assignment.contractor': contractorId_1 }
+                    ]
+                };
                 // TODO: when contractor is specified, ensure the contractor quotation is attached
                 if (customerId) {
                     if (!mongoose_1.default.Types.ObjectId.isValid(customerId)) {
@@ -110,17 +115,24 @@ var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0,
                 _f = _g.sent(), data = _f.data, error = _f.error;
                 if (!data) return [3 /*break*/, 3];
                 return [4 /*yield*/, Promise.all(data.data.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
-                        var _a;
-                        return __generator(this, function (_b) {
-                            switch (_b.label) {
+                        var _a, _b;
+                        return __generator(this, function (_c) {
+                            switch (_c.label) {
                                 case 0:
-                                    if (!contractorId_1) return [3 /*break*/, 2];
+                                    if (!contractorId_1) return [3 /*break*/, 4];
+                                    if (!job.isAssigned) return [3 /*break*/, 2];
                                     _a = job;
-                                    return [4 /*yield*/, job.getMyQoutation(contractorId_1)];
+                                    return [4 /*yield*/, job.getMyQoutation(job.contractor)];
                                 case 1:
-                                    _a.myQuotation = _b.sent();
-                                    _b.label = 2;
-                                case 2: return [2 /*return*/];
+                                    _a.myQuotation = _c.sent();
+                                    return [3 /*break*/, 4];
+                                case 2:
+                                    _b = job;
+                                    return [4 /*yield*/, job.getMyQoutation(contractorId_1)];
+                                case 3:
+                                    _b.myQuotation = _c.sent();
+                                    _c.label = 4;
+                                case 4: return [2 /*return*/];
                             }
                         });
                     }); }))];
@@ -153,7 +165,13 @@ var getBookingHistory = function (req, res, next) { return __awaiter(void 0, voi
                 req.query.sort = sort;
                 delete req.query.status;
                 statusArray = status_2.split(',').map(function (s) { return s.trim(); });
-                filter = { status: { $in: statusArray }, contractor: contractorId };
+                filter = {
+                    status: { $in: statusArray },
+                    $or: [
+                        { contractor: contractorId },
+                        { 'assignment.contractor': contractorId }
+                    ]
+                };
                 if (customerId) {
                     if (!mongoose_1.default.Types.ObjectId.isValid(customerId)) {
                         return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid customer id' })];
@@ -167,15 +185,23 @@ var getBookingHistory = function (req, res, next) { return __awaiter(void 0, voi
                 if (!data) return [3 /*break*/, 4];
                 // Map through each job and attach myQuotation if contractor has applied 
                 return [4 /*yield*/, Promise.all(data.data.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
-                        var _a;
-                        return __generator(this, function (_b) {
-                            switch (_b.label) {
+                        var _a, _b;
+                        return __generator(this, function (_c) {
+                            switch (_c.label) {
                                 case 0:
+                                    if (!job.isAssigned) return [3 /*break*/, 2];
                                     _a = job;
-                                    return [4 /*yield*/, job.getMyQoutation(contractorId)];
+                                    return [4 /*yield*/, job.getMyQoutation(job.contractor)];
                                 case 1:
-                                    _a.myQuotation = _b.sent();
-                                    return [2 /*return*/];
+                                    _a.myQuotation = _c.sent();
+                                    return [3 /*break*/, 4];
+                                case 2:
+                                    _b = job;
+                                    return [4 /*yield*/, job.getMyQoutation(contractorId)];
+                                case 3:
+                                    _b.myQuotation = _c.sent();
+                                    _c.label = 4;
+                                case 4: return [2 /*return*/];
                             }
                         });
                     }); }))];
@@ -206,7 +232,12 @@ var getSingleBooking = function (req, res, next) { return __awaiter(void 0, void
                 _a.trys.push([0, 2, , 3]);
                 contractorId = req.contractor.id;
                 bookingId = req.params.bookingId;
-                return [4 /*yield*/, job_model_1.JobModel.findOne({ contractor: contractorId, _id: bookingId }).populate(['contractor', 'contract', 'customer'])];
+                return [4 /*yield*/, job_model_1.JobModel.findOne({
+                        $or: [
+                            { contractor: contractorId },
+                            { 'assignment.contractor': contractorId }
+                        ], _id: bookingId
+                    }).populate(['contractor', 'contract', 'customer', 'assignment.contractor'])];
             case 1:
                 job = _a.sent();
                 // Check if the job exists
@@ -350,6 +381,9 @@ var assignJob = function (req, res, next) { return __awaiter(void 0, void 0, voi
                 if (!job) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found' })];
                 }
+                if (job.status !== job_model_1.JOB_STATUS.BOOKED) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Only booked jobs can be assigned' })];
+                }
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
             case 2:
                 contractor = _a.sent();
@@ -381,6 +415,7 @@ var assignJob = function (req, res, next) { return __awaiter(void 0, void 0, voi
                     confirmed: true // true by default
                 };
                 job.assignment = assignData;
+                job.isAssigned = true;
                 job.jobHistory.push({
                     eventType: 'JOB_ASSIGNMENT',
                     timestamp: new Date(),
@@ -457,19 +492,20 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
 exports.cancelBooking = cancelBooking;
 var markBookingComplete = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var contractorId, bookingId, reason, job, contractor, error_8;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var _a;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
-                _a.trys.push([0, 4, , 5]);
+                _b.trys.push([0, 4, , 5]);
                 contractorId = req.contractor.id;
                 bookingId = req.params.bookingId;
                 reason = req.body.reason;
                 return [4 /*yield*/, job_model_1.JobModel.findById(bookingId)];
             case 1:
-                job = _a.sent();
+                job = _b.sent();
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
             case 2:
-                contractor = _a.sent();
+                contractor = _b.sent();
                 // Check if the contractor exists
                 if (!contractor) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor for job not found' })];
@@ -479,7 +515,7 @@ var markBookingComplete = function (req, res, next) { return __awaiter(void 0, v
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found' })];
                 }
                 // Check if the contractor is the owner of the job
-                if (job.contractor.toString() !== contractorId) {
+                if (!(job.contractor.toString() == contractorId || ((_a = job === null || job === void 0 ? void 0 : job.assignment) === null || _a === void 0 ? void 0 : _a.contractor.toString()) == contractorId)) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'You are not authorized to mark  this booking as complete' })];
                 }
                 // Check if the job is already canceled
@@ -496,11 +532,11 @@ var markBookingComplete = function (req, res, next) { return __awaiter(void 0, v
                 events_1.JobEvent.emit('JOB_MARKED_COMPLETE_BY_CONTRACTOR', { job: job });
                 return [4 /*yield*/, job.save()];
             case 3:
-                _a.sent();
+                _b.sent();
                 res.json({ success: true, message: 'Booking marked as completed successfully', data: job });
                 return [3 /*break*/, 5];
             case 4:
-                error_8 = _a.sent();
+                error_8 = _b.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_8))];
             case 5: return [2 /*return*/];
         }

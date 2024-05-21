@@ -156,6 +156,7 @@ var JobSchema = new mongoose_1.Schema({
     myQuotation: Object,
     assignment: JobAssignmentSchema,
     emergency: { type: Boolean, default: false },
+    isAssigned: { type: Boolean, default: false },
 }, { timestamps: true });
 JobSchema.virtual('totalQuotations').get(function () {
     var pendingQuotations = this.quotations.filter(function (quote) { return quote.status !== job_quotation_model_1.JOB_QUOTATION_STATUS.DECLINED; });

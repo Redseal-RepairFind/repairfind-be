@@ -28,26 +28,30 @@ export const getMyBookings = async (req: any, res: Response, next: NextFunction)
 
         // Extract query parameters
         const {
-            limit = 10, 
-            page=1, 
-            sort='-createdAt', 
-            customerId, 
+            limit = 10,
+            page = 1,
+            sort = '-createdAt',
+            customerId,
             status = 'BOOKED',
-            startDate, 
-            endDate, 
-            date, 
-            type 
+            startDate,
+            endDate,
+            date,
+            type
         } = req.query;
-        
+
         req.query.page = page
         req.query.limit = limit
         req.query.sort = sort
-    
+
         const contractorId = req.contractor.id;
 
         // Construct filter object based on query parameters
-        let filter: any = { contractor: contractorId };
-
+        let filter: any = {
+            $or: [
+                { contractor: contractorId },
+                { 'assignment.contractor': contractorId }
+            ]
+        };
 
         // TODO: when contractor is specified, ensure the contractor quotation is attached
         if (customerId) {
@@ -88,7 +92,12 @@ export const getMyBookings = async (req: any, res: Response, next: NextFunction)
 
             await Promise.all(data.data.map(async (job: any) => {
                 if (contractorId) {
-                    job.myQuotation = await job.getMyQoutation(contractorId)
+
+                    if (job.isAssigned) {
+                        job.myQuotation = await job.getMyQoutation(job.contractor)
+                    } else {
+                        job.myQuotation = await job.getMyQoutation(contractorId)
+                    }
                 }
             }));
         }
@@ -114,14 +123,20 @@ export const getBookingHistory = async (req: any, res: Response, next: NextFunct
             status = 'COMPLETED, CANCELED, DECLINED, EXPIRED, COMPLETED, DISPUTED',
         } = req.query;
 
-       
+
         req.query.page = page
         req.query.limit = limit
         req.query.sort = sort
         delete req.query.status
 
         const statusArray = status.split(',').map((s: any) => s.trim()); // Convert the comma-separated string to an array of statuses
-        const filter : any = { status: { $in: statusArray}, contractor: contractorId}
+        let filter: any = {
+            status: { $in: statusArray },
+            $or: [
+                { contractor: contractorId },
+                { 'assignment.contractor': contractorId }
+            ]
+        };
 
         if (customerId) {
             if (!mongoose.Types.ObjectId.isValid(customerId)) {
@@ -132,14 +147,18 @@ export const getBookingHistory = async (req: any, res: Response, next: NextFunct
         }
 
         // Query JobModel to find jobs that have IDs present in the extracted jobIds
-       
+
         const { data, error } = await applyAPIFeature(
             JobModel.find(filter).distinct('_id').populate('customer'),
             req.query);
         if (data) {
             // Map through each job and attach myQuotation if contractor has applied 
             await Promise.all(data.data.map(async (job: any) => {
-                job.myQuotation = await job.getMyQoutation(contractorId)
+                if (job.isAssigned) {
+                    job.myQuotation = await job.getMyQoutation(job.contractor)
+                } else {
+                    job.myQuotation = await job.getMyQoutation(contractorId)
+                }
             }));
         }
 
@@ -156,14 +175,18 @@ export const getBookingHistory = async (req: any, res: Response, next: NextFunct
 
 
 
-
 export const getSingleBooking = async (req: any, res: Response, next: NextFunction) => {
     try {
 
         const contractorId = req.contractor.id
         const bookingId = req.params.bookingId;
 
-        const job = await JobModel.findOne({ contractor: contractorId, _id: bookingId }).populate(['contractor', 'contract', 'customer']);
+        const job = await JobModel.findOne({
+            $or: [
+                { contractor: contractorId },
+                { 'assignment.contractor': contractorId }
+            ], _id: bookingId
+        }).populate(['contractor', 'contract', 'customer', 'assignment.contractor']);
 
         // Check if the job exists
         if (!job) {
@@ -179,8 +202,6 @@ export const getSingleBooking = async (req: any, res: Response, next: NextFuncti
 
 
 
-
-
 export const requestBookingReschedule = async (req: any, res: Response, next: NextFunction) => {
     try {
         const contractorId = req.contractor.id;
@@ -191,15 +212,15 @@ export const requestBookingReschedule = async (req: any, res: Response, next: Ne
         if (!job) {
             return res.status(404).json({ success: false, message: 'Job not found' });
         }
-        
+
         // Check if the customer is the owner of the job
         if (job.contractor.toString() !== contractorId) {
             return res.status(403).json({ success: false, message: 'You are not authorized to perform this action' });
         }
 
-        
+
         const { date, remark } = req.body; // Assuming you're sending new start and end dates along with a remark in the request body
-        
+
         // Update job schedule with new dates and set flags
         const updatedSchedule: IJobReSchedule = {
             date, // Assuming the rescheduled date replaces the previous one
@@ -211,7 +232,7 @@ export const requestBookingReschedule = async (req: any, res: Response, next: Ne
             remark: remark // Adding a remark for the rescheduling
         };
 
-       
+
         // Save rescheduling history in job history
         job.jobHistory.push({
             eventType: 'RESCHEDULE_REQUEST', // Custom event type identifier
@@ -223,9 +244,9 @@ export const requestBookingReschedule = async (req: any, res: Response, next: Ne
         await job.save();
 
         //emit event here
-        JobEvent.emit('NEW_JOB_RESHEDULE_REQUEST', {job})
+        JobEvent.emit('NEW_JOB_RESHEDULE_REQUEST', { job })
 
-        
+
         res.json({ success: true, message: 'Job reschedule request sent' });
     } catch (error: any) {
         return next(new InternalServerError('An error occurred', error));
@@ -243,13 +264,13 @@ export const acceptOrDeclineReschedule = async (req: any, res: Response, next: N
         if (!job) {
             return res.status(404).json({ success: false, message: 'Job not found' });
         }
-        
+
         // Check if the customer is the owner of the job
         if (job.contractor.toString() !== contractorId) {
             return res.status(403).json({ success: false, message: 'You are not authorized to perform this action' });
         }
 
-        
+
 
         // Check if the job has a rescheduling request
         if (!job.reschedule) {
@@ -265,7 +286,7 @@ export const acceptOrDeclineReschedule = async (req: any, res: Response, next: N
         if (action == 'accept') {
             job.reschedule.isContractorAccept = true;
 
-            if(job.reschedule.isContractorAccept && job.reschedule.isCustomerAccept){
+            if (job.reschedule.isContractorAccept && job.reschedule.isCustomerAccept) {
                 job.reschedule.awaitingConfirmation = false;
             }
 
@@ -280,13 +301,13 @@ export const acceptOrDeclineReschedule = async (req: any, res: Response, next: N
                 timestamp: new Date(), // Timestamp of the event
                 payload: job.reschedule // Additional payload specific to the event
             });
-            JobEvent.emit('JOB_RESHEDULE_DECLINED_ACCEPTED', {job, action: 'accepted'})
+            JobEvent.emit('JOB_RESHEDULE_DECLINED_ACCEPTED', { job, action: 'accepted' })
         } else {
-            JobEvent.emit('JOB_RESHEDULE_DECLINED_ACCEPTED', {job, action: 'declined'})
-            job.reschedule =null;
+            JobEvent.emit('JOB_RESHEDULE_DECLINED_ACCEPTED', { job, action: 'declined' })
+            job.reschedule = null;
         }
 
-    
+
         await job.save();
 
         res.json({ success: true, message: `Rescheduling request has been ${action}d` });
@@ -308,10 +329,14 @@ export const assignJob = async (req: any, res: Response, next: NextFunction) => 
             return res.status(404).json({ success: false, message: 'Job not found' });
         }
 
+        if (job.status !== JOB_STATUS.BOOKED) {
+            return res.status(400).json({ success: false, message: 'Only booked jobs can be assigned' });
+        }
+
         const contractor = await ContractorModel.findById(contractorId);
         const employee = await ContractorModel.findById(employeeId);
-        
-    
+
+
         // Check if the contractor exists
         if (!contractor || !employee) {
             return res.status(404).json({ success: false, message: 'Contractor not found' });
@@ -330,14 +355,14 @@ export const assignJob = async (req: any, res: Response, next: NextFunction) => 
         console.log('employeeId', employeeId)
 
         // Check if the contractor is a member of the companies team
-        const team = await ContractorTeamModel.findOne({ 'members.contractor':employeeId, contractor: contractorId});
-        
+        const team = await ContractorTeamModel.findOne({ 'members.contractor': employeeId, contractor: contractorId });
+
         if (!team) {
             return res.status(403).json({ success: false, message: 'Contractor is not a member of your team, kindly invite' });
         }
 
 
-    
+
         //TODO: Implement job assignment logic
         const assignData: IJobAssignment = {
             contractor: employeeId,
@@ -345,11 +370,12 @@ export const assignJob = async (req: any, res: Response, next: NextFunction) => 
             confirmed: true// true by default
         }
         job.assignment = assignData
+        job.isAssigned = true
 
         job.jobHistory.push({
             eventType: 'JOB_ASSIGNMENT',
             timestamp: new Date(),
-            payload: {new: assignData, previous: job.assignment }
+            payload: { new: assignData, previous: job.assignment }
         });
 
         await job.save();
@@ -375,8 +401,8 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
         // Find the job
         const job = await JobModel.findById(bookingId);
 
-        const contractor = await ContractorModel.findById(contractorId);        
-    
+        const contractor = await ContractorModel.findById(contractorId);
+
         // Check if the contractor exists
         if (!contractor) {
             return res.status(404).json({ success: false, message: 'Contractor not found' });
@@ -404,13 +430,13 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
         job.jobHistory.push({
             eventType: 'JOB_CANCELED',
             timestamp: new Date(),
-            payload: {reason, canceledBy: 'customer' }
+            payload: { reason, canceledBy: 'customer' }
         });
 
 
         // emit job cancelled event 
         // inside the event take actions such as refund etc
-        JobEvent.emit('JOB_CANCELED', {job, canceledBy: 'contractor'})
+        JobEvent.emit('JOB_CANCELED', { job, canceledBy: 'contractor' })
         await job.save();
 
         res.json({ success: true, message: 'Booking canceled successfully', data: job });
@@ -428,8 +454,8 @@ export const markBookingComplete = async (req: any, res: Response, next: NextFun
         // Find the job
         const job = await JobModel.findById(bookingId);
 
-        const contractor = await ContractorModel.findById(contractorId);        
-    
+        const contractor = await ContractorModel.findById(contractorId);
+
         // Check if the contractor exists
         if (!contractor) {
             return res.status(404).json({ success: false, message: 'Contractor for job not found' });
@@ -442,7 +468,7 @@ export const markBookingComplete = async (req: any, res: Response, next: NextFun
         }
 
         // Check if the contractor is the owner of the job
-        if (job.contractor.toString() !== contractorId) {
+        if (!(job.contractor.toString() == contractorId || job?.assignment?.contractor.toString() == contractorId)) {
             return res.status(403).json({ success: false, message: 'You are not authorized to mark  this booking as complete' });
         }
 
@@ -451,7 +477,7 @@ export const markBookingComplete = async (req: any, res: Response, next: NextFun
             return res.status(400).json({ success: false, message: 'The booking is already marked as complete' });
         }
 
-    
+
 
         job.statusUpdate = {
             ...job.statusUpdate,
@@ -460,15 +486,15 @@ export const markBookingComplete = async (req: any, res: Response, next: NextFun
             isContractorAccept: true,
             awaitingConfirmation: true
         }
-        
-        job.status  = JOB_STATUS.COMPLETED  // since its customer accepting job completion
+
+        job.status = JOB_STATUS.COMPLETED  // since its customer accepting job completion
         job.jobHistory.push({
             eventType: 'JOB_MARKED_COMPLETE_BY_CONTRACTOR',
             timestamp: new Date(),
             payload: {}
         });
 
-        JobEvent.emit('JOB_MARKED_COMPLETE_BY_CONTRACTOR', {job})
+        JobEvent.emit('JOB_MARKED_COMPLETE_BY_CONTRACTOR', { job })
         await job.save();
 
         res.json({ success: true, message: 'Booking marked as completed successfully', data: job });

@@ -46,6 +46,7 @@ var ioredis_1 = __importDefault(require("ioredis"));
 var capture_stripe_payments_1 = require("./jobs/capture_stripe_payments");
 var logger_1 = require("../../utils/logger");
 var sync_certn_applications_1 = require("./jobs/sync_certn_applications");
+var expire_jobs_1 = require("./jobs/expire_jobs");
 var redisConfig = {
     port: Number(config_1.config.redis.port),
     host: config_1.config.redis.host,
@@ -64,31 +65,40 @@ if (!(config_1.config.environment == 'development')) {
 // const redisConnection = createClient(redisConfig); // Create Redis client
 // this.repairFindQueue = new Queue('RepairFindQueue', { connection: redisConfig });
 var redisConnection = new ioredis_1.default(redisConfig);
-exports.RepairFindQueueWorker = new bullmq_1.Worker('RepairFindQueue', function (job) { return __awaiter(void 0, void 0, void 0, function () {
+exports.RepairFindQueueWorker = new bullmq_1.Worker(config_1.config.redis.queueName, function (job) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                // Job processing logic here
-                logger_1.Logger.info("Job Processing: ".concat(job.name, " - ").concat(job.id));
                 if (!(job.name == 'CapturePayments')) return [3 /*break*/, 2];
                 return [4 /*yield*/, (0, capture_stripe_payments_1.captureStripePayments)()];
             case 1:
                 _a.sent();
                 _a.label = 2;
             case 2:
-                if (!(job.name == 'syncCertnApplications')) return [3 /*break*/, 4];
-                return [4 /*yield*/, (0, sync_certn_applications_1.syncCertnApplications)()];
+                if (!(job.name == 'expireJobs')) return [3 /*break*/, 4];
+                return [4 /*yield*/, (0, expire_jobs_1.expireJobs)()];
             case 3:
                 _a.sent();
                 _a.label = 4;
             case 4:
-                if (job.name == 'expireJobs') {
-                    // await expireJobs()
-                }
-                return [2 /*return*/];
+                if (!(job.name == 'syncCertnApplications')) return [3 /*break*/, 6];
+                return [4 /*yield*/, (0, sync_certn_applications_1.syncCertnApplications)()];
+            case 5:
+                _a.sent();
+                _a.label = 6;
+            case 6: return [2 /*return*/];
         }
     });
 }); }, { connection: redisConnection });
+exports.RepairFindQueueWorker.on('completed', function (job) {
+    logger_1.Logger.info("Job Completed: ".concat(job.name, " - ").concat(job.id, " has completed!"));
+});
+exports.RepairFindQueueWorker.on('error', function (error) {
+    logger_1.Logger.info("Job Errored: ".concat(error));
+});
+exports.RepairFindQueueWorker.on('failed', function (error) {
+    logger_1.Logger.info("Job Failed: ".concat(error));
+});
 exports.RepairFindQueueWorker.on('completed', function (job) {
     logger_1.Logger.info("Job Completed: ".concat(job.name, " - ").concat(job.id, " has completed!"));
 });

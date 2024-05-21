@@ -46,7 +46,7 @@ var expireJobs = function () { return __awaiter(void 0, void 0, void 0, function
             case 0:
                 _a.trys.push([0, 9, , 10]);
                 return [4 /*yield*/, job_model_1.JobModel.find({
-                        status: { $nin: ['EXPIRED', 'BOOKED'] },
+                        status: { $nin: ['EXPIRED', 'BOOKED'], $in: ['PENDING'] },
                         expiresIn: { $gt: 0 }
                     })];
             case 1:

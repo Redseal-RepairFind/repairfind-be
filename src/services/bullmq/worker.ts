@@ -28,25 +28,36 @@ const redisConfig = {
 
   const redisConnection = new Redis(redisConfig);
 
-export const RepairFindQueueWorker = new Worker('RepairFindQueue', async job => {
+export const RepairFindQueueWorker = new Worker(config.redis.queueName, async job => {
     // Job processing logic here
-    Logger.info(`Job Processing: ${job.name} - ${job.id}`);
+    // Logger.info(`Job Processing: ${job.name} - ${job.id}`);
     
-    // CapturePayments
     if(job.name =='CapturePayments'){
         await captureStripePayments()
     }
+
+    if(job.name =='expireJobs'){
+        await expireJobs()
+    }
+
     if(job.name =='syncCertnApplications'){
         await syncCertnApplications()
     }
-
-    if(job.name =='expireJobs'){
-        // await expireJobs()
-    }
+   
 }, { connection: redisConnection });
 
 
 
+RepairFindQueueWorker.on('completed', job => {
+    Logger.info(`Job Completed: ${job.name} - ${job.id} has completed!`);
+});
+
+RepairFindQueueWorker.on('error', error => {
+    Logger.info(`Job Errored: ${error}`);
+});
+RepairFindQueueWorker.on('failed', error => {
+    Logger.info(`Job Failed: ${error}`);
+});
 RepairFindQueueWorker.on('completed', job => {
     Logger.info(`Job Completed: ${job.name} - ${job.id} has completed!`);
 });

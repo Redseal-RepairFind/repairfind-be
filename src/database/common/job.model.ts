@@ -115,6 +115,7 @@ export interface IJob extends Document {
     assignment: IJobAssignment;
     emergency: boolean;
     myQuotation: Object | null
+    isAssigned: boolean;
     getMyQoutation: (contractorId: ObjectId) => {
     };
 }
@@ -229,6 +230,7 @@ const JobSchema = new Schema<IJob>({
     myQuotation: Object,
     assignment: JobAssignmentSchema,
     emergency: {type: Boolean, default:false},
+    isAssigned: {type: Boolean, default:false},
 }, { timestamps: true });
 
 

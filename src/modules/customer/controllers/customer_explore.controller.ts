@@ -201,7 +201,7 @@ export const exploreContractors = async (
         });
 
         // Execute pipeline
-        const result = await ContractorModel.aggregate(pipeline); // Assuming Contractor is your Mongoose model
+        const result = await ContractorModel.aggregate(pipeline); 
         const contractors = result[0].data;
         const metadata = result[0].metadata[0];
 
