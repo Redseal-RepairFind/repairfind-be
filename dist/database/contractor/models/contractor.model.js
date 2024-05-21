@@ -241,7 +241,7 @@ ContractorSchema.virtual('stripeIdentityStatus').get(function () {
     return this.stripeIdentity ? this.stripeIdentity.status : 'unverified';
 });
 ContractorSchema.virtual('stripeAccountStatus').get(function () {
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c, _d, _e, _f;
     var stripeAccount = this.stripeAccount;
     return stripeAccount ? {
         details_submitted: stripeAccount.details_submitted,
@@ -249,7 +249,7 @@ ContractorSchema.virtual('stripeAccountStatus').get(function () {
         charges_enabled: stripeAccount.charges_enabled,
         transfers_enabled: (_b = (_a = stripeAccount === null || stripeAccount === void 0 ? void 0 : stripeAccount.capabilities) === null || _a === void 0 ? void 0 : _a.transfers) !== null && _b !== void 0 ? _b : 'inactive',
         card_payments_enabled: (_d = (_c = stripeAccount === null || stripeAccount === void 0 ? void 0 : stripeAccount.capabilities) === null || _c === void 0 ? void 0 : _c.card_payments) !== null && _d !== void 0 ? _d : 'inactive',
-        status: (stripeAccount === null || stripeAccount === void 0 ? void 0 : stripeAccount.capabilities.card_payments) && ((_e = stripeAccount === null || stripeAccount === void 0 ? void 0 : stripeAccount.capabilities) === null || _e === void 0 ? void 0 : _e.transfers)
+        status: ((_e = stripeAccount === null || stripeAccount === void 0 ? void 0 : stripeAccount.capabilities) === null || _e === void 0 ? void 0 : _e.card_payments) && ((_f = stripeAccount === null || stripeAccount === void 0 ? void 0 : stripeAccount.capabilities) === null || _f === void 0 ? void 0 : _f.transfers)
     } : null;
 });
 ContractorSchema.virtual('certnStatus').get(function () {
