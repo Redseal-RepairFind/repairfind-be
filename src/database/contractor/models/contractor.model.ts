@@ -1,5 +1,5 @@
 import { Schema, model, ObjectId, FilterQuery } from "mongoose";
-import { COMPANY_STATUS, CONTRACTOR_TYPES, GST_STATUS, IContractor, IContractorCertnDetails, IContractorCompanyDetails, IContractorGstDetails } from "../interface/contractor.interface";
+import { COMPANY_STATUS, CONTRACTOR_TYPES, GST_STATUS, IContractor, IContractorCertnDetails, IContractorCompanyDetails, IContractorGstDetails, IContractorReview } from "../interface/contractor.interface";
 import { contractorStatus } from "../../../constants/contractorStatus";
 import ContractorQuizModel from "./contractor_quiz.model";
 import { StripeCustomerSchema } from "../../common/stripe_customer.schema";
@@ -9,6 +9,7 @@ import QuestionModel, { IQuestion } from "../../admin/models/question.model";
 import { CertnService } from "../../../services";
 import { deleteObjectFromS3 } from "../../../services/storage";
 import  MongooseDelete, { SoftDeleteModel } from 'mongoose-delete';
+import { stringify } from "querystring";
 
 
 
@@ -33,6 +34,32 @@ const CompanyDetailSchema = new Schema<IContractorCompanyDetails>({
   approvedBy: Schema.Types.ObjectId,
   approvedAt: Date,
   recentRemark: String,
+});
+
+
+const ContractorReviewSchema = new Schema<IContractorReview>({
+  customer: {
+    type: Schema.Types.ObjectId,
+  },
+  averageRating: {
+    type: Number,
+    required: true,
+    min: 1,
+    max: 5, // Adjust based on your rating scale
+  },
+  ratings: {
+    type: [{item: String, rating: Number}],
+  },
+  review: {
+    type: String,
+  },
+  job: {
+    type: Schema.Types.ObjectId,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
 
@@ -210,6 +237,9 @@ const ContractorSchema = new Schema<IContractor>(
     certnDetails: {
       type: CertnDetailSchema
     },
+    reviews: {
+      type: [ContractorReviewSchema]
+    },
     onboarding: {
       hasStripeAccount: { default: false, type: Boolean },
       hasStripeIdentity: { default: false, type: Boolean },
@@ -227,7 +257,6 @@ const ContractorSchema = new Schema<IContractor>(
     timestamps: true,
   }
 );
-
 
 
 ContractorSchema.virtual('stripeIdentityStatus').get(function (this: IContractor) {
@@ -290,6 +319,14 @@ ContractorSchema.virtual('certnReport').get(function (this: IContractor) {
   }
 
   return {status, action}
+});
+
+
+
+ContractorSchema.virtual('rating').get(function () {
+  const reviews: any = this.reviews;
+  const totalRating = reviews.reduce((acc: any, review: any) => acc + review.averageRating, 0);
+  return reviews.length > 0 ? totalRating / reviews.length : 0;
 });
 
 
@@ -363,7 +400,6 @@ ContractorSchema.methods.getOnboarding = async function () {
   }
 
 };
-
 
 
 

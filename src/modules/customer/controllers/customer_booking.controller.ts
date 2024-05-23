@@ -5,7 +5,7 @@ import { htmlJobRequestTemplate } from "../../../templates/contractorEmail/jobRe
 import CustomerModel from "../../../database/customer/models/customer.model";
 import { EmailService, NotificationService } from "../../../services";
 import { addHours, isFuture, isValid, startOfDay } from "date-fns";
-import { IJob, JobModel, JOB_STATUS, JobType, IJobSchedule, JOB_SCHEDULE_TYPE, IJobReSchedule } from "../../../database/common/job.model";
+import { IJob, JobModel, JOB_STATUS, JobType, IJobSchedule, JOB_SCHEDULE_TYPE, IJobReSchedule, IJobReview } from "../../../database/common/job.model";
 import { BadRequestError, InternalServerError } from "../../../utils/custom.errors";
 import { applyAPIFeature } from "../../../utils/api.feature";
 import { ConversationModel } from "../../../database/common/conversations.schema";
@@ -18,6 +18,7 @@ import mongoose from "mongoose";
 import TransactionModel, { TRANSACTION_STATUS, TRANSACTION_TYPE } from "../../../database/common/transaction.model";
 import { StripeService } from "../../../services/stripe";
 import Stripe from "stripe";
+import { IContractorReview } from "../../../database/contractor/interface/contractor.interface";
 
 
 
@@ -423,11 +424,11 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
 
 
 
-      
 
-      if(!job?.schedule?.startDate){
-        return res.status(400).json({ success: false, message: 'Booking has no associated schedule' });
-      }
+
+        if (!job?.schedule?.startDate) {
+            return res.status(400).json({ success: false, message: 'Booking has no associated schedule' });
+        }
 
         const jobDate = job.schedule.startDate.getTime();
         const currentTime = new Date().getTime();
@@ -460,7 +461,7 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
         }
 
 
-        if(cancelationCharges.amount > 0){
+        if (cancelationCharges.amount > 0) {
             const paymentMethod = customer.stripePaymentMethods[0]
             if (!paymentMethod) throw new Error("No such payment method")
 
@@ -521,21 +522,21 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
             console.log(payload)
             const stripePayment = await StripeService.payment.chargeCustomer(paymentMethod.customer, paymentMethod.id, payload)
 
-            if(!stripePayment){
+            if (!stripePayment) {
                 return res.status(400).json({ success: false, message: 'Severance payment not successfully, job could not be canceled' });
             }
         }
 
 
-          // Update the job status to canceled
-          job.status = JOB_STATUS.CANCELED;
+        // Update the job status to canceled
+        job.status = JOB_STATUS.CANCELED;
 
-          job.jobHistory.push({
-              eventType: 'JOB_CANCELED',
-              timestamp: new Date(),
-              payload: { reason, canceledBy: 'customer' }
-          });
-  
+        job.jobHistory.push({
+            eventType: 'JOB_CANCELED',
+            timestamp: new Date(),
+            payload: { reason, canceledBy: 'customer' }
+        });
+
 
 
         // emit job cancelled event 
@@ -543,7 +544,7 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
         JobEvent.emit('JOB_CANCELED', { job, canceledBy: 'customer' })
         await job.save();
 
-        res.json({ success: true, message: 'Booking canceled successfully', data: {job, cancelationCharges} });
+        res.json({ success: true, message: 'Booking canceled successfully', data: { job, cancelationCharges } });
     } catch (error: any) {
         return next(new BadRequestError('An error occurred', error));
     }
@@ -615,6 +616,93 @@ export const acceptBookingComplete = async (req: any, res: Response, next: NextF
 };
 
 
+
+export const reviewBookingOnCompletion = async (req: any, res: Response, next: NextFunction) => {
+    try {
+        const customerId = req.customer.id;
+        const { review, ratings, favoriteContractor } = req.body;
+        const { bookingId } = req.params;
+
+        // Find the job
+        const job = await JobModel.findById(bookingId);
+
+        // Check if the job exists
+        if (!job) {
+            return res.status(404).json({ success: false, message: 'Job not found' });
+        }
+
+        const contractor = await ContractorModel.findById(job.contractor)
+
+        if (!contractor) {
+            return res.status(404).json({ success: false, message: 'Contractor not found' });
+        }
+        // Check if the customer is the owner of the job
+        if (job.customer.toString() !== customerId) {
+            return res.status(403).json({ success: false, message: 'You are not authorized to add a review for this job' });
+        }
+
+        // Check if the job is already completed
+        if (job.status !== JOB_STATUS.COMPLETED) {
+            // return res.status(400).json({ success: false, message: 'Job is not yet completed, reviews can only be added for completed jobs' });
+        }
+
+        // Check if the customer has already reviewed this job
+        const existingReview = job.review
+        if (existingReview) {
+            // return res.status(400).json({ success: false, message: 'You can only add one review per job' });
+        }
+
+
+        // Create a new review object
+        const newReview: IJobReview = {
+            ratings,
+            review,
+            createdAt: new Date(),
+        };
+
+        // Update the job's reviews array
+        job.review = newReview;
+
+        // Calculate the average rating for the contractor (optional)
+        //   const contractorReviews = await JobModel.find({ contractor: job.contractor, status: JOB_STATUS.COMPLETED });
+        const totalRatings = ratings.length;
+        const totalReviewScore = ratings.reduce((a: any, b: any) => a + b.rating, 0);
+        const averageRating = totalReviewScore > 0 ? totalReviewScore / totalRatings : 0;
+
+        newReview.averageRating = averageRating
+        job.review = newReview
+
+
+
+        const foundReview = contractor?.reviews.find((review) => review.job && review.job == job.id);
+        let contractorReview = {
+            ...newReview,
+            job: job.id
+        } as IContractorReview
+        const foundIndex = contractor.reviews.findIndex((review) => review.job && review.job == job.id);
+        if (foundIndex !== -1) {
+            contractor.reviews[foundIndex] = contractorReview;
+        }else{
+            contractor.reviews.push(contractorReview);
+        }
+
+
+        // Save the job
+
+        await job.save()
+        await contractor.save()
+
+
+        res.json({ success: true, message: 'Review added successfully', data: newReview });
+    } catch (error: any) {
+        return next(new BadRequestError('An error occurred', error));
+    }
+}
+
+
+
+
+
 export const CustomerBookingController = {
     getMyBookings,
     getBookingHistory,
@@ -623,7 +711,8 @@ export const CustomerBookingController = {
     acceptOrDeclineReschedule,
     cancelBooking,
     intiateBookingCancelation,
-    acceptBookingComplete
+    acceptBookingComplete,
+    reviewBookingOnCompletion
 }
 
 

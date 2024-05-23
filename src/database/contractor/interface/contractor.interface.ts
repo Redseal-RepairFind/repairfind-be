@@ -4,7 +4,7 @@ import { IStripeAccount } from "../../common/stripe_account.schema";
 
 
 
-export interface IContractorGstDetails  extends Document  {
+export interface IContractorGstDetails extends Document {
   gstName: string,
   gstNumber: string,
   gstType: string,
@@ -17,7 +17,7 @@ export interface IContractorGstDetails  extends Document  {
   statusReason: string
 }
 
-export interface IContractorCompanyDetails  extends Document  {
+export interface IContractorCompanyDetails extends Document {
   companyLogo: string,
   companyStaffId: string, //url
   status: string,
@@ -79,25 +79,39 @@ export interface IContractorCertnDetails {
 
 
 export enum GST_STATUS {
-  PENDING= "PENDING",
+  PENDING = "PENDING",
   REVIEWING = "REVIEWING",
   APPROVED = "APPROVED",
   DECLINED = "DECLINED"
 }
 
 export enum CONTRACTOR_TYPES {
-  Individual = "Individual", 
+  Individual = "Individual",
   Company = "Company",
   Employee = "Employee",
 }
 
 export enum COMPANY_STATUS {
-  PENDING= "PENDING",
+  PENDING = "PENDING",
   REVIEWING = "REVIEWING",
   APPROVED = "APPROVED",
   DECLINED = "DECLINED"
 }
 
+
+export interface IContractorReview {
+  customer?: ObjectId; // Optional: ObjectId referencing the User who left the rating
+  averageRating: number; // avaraged from the items in ratings array
+  ratings?: Array<{ item: string; rating: number }>; //Rating value (e.g., 1-5 stars)
+  review?: string; // Optional: Textual feedback
+  job?: ObjectId; // Optional: Textual feedback
+  createdAt: Date;
+}
+
+// reviews?: Array<{ item: string; rating: number }> = [
+//   { item: "Professionalism", rating: 2 },
+//   { item: "Cleanliness", rating: 5 }
+// ];
 
 export interface IContractor extends Document {
   _id: ObjectId;
@@ -113,7 +127,7 @@ export interface IContractor extends Document {
   phoneNumber: {
     code: string,
     number: string
-  };  
+  };
   accountType: string;
   profilePhoto: {
     url: String,
@@ -143,26 +157,27 @@ export interface IContractor extends Document {
   gstDetails: IContractorGstDetails
   companyDetails: IContractorCompanyDetails
   certnDetails: IContractorCertnDetails
+  reviews: Array<IContractorReview>,
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date;
   quiz: any;
   stripeAccountStatus: {
     details_submitted: boolean,
-    payouts_enabled : boolean,
-    charges_enabled : boolean,
-    transfers_enabled : boolean,
-    card_payments_enabled : boolean,
+    payouts_enabled: boolean,
+    charges_enabled: boolean,
+    transfers_enabled: boolean,
+    card_payments_enabled: boolean,
   } | null,
   onboarding: {
     hasStripeAccount: boolean,
     hasStripeIdentity: boolean,
     hasStripePaymentMethods: boolean,
     hasStripeCustomer: boolean,
-    hasProfile:boolean,
-    hasGstDetails:boolean,
-    hasCompanyDetails:boolean
-    hasPassedQuiz:boolean
+    hasProfile: boolean,
+    hasGstDetails: boolean,
+    hasCompanyDetails: boolean
+    hasPassedQuiz: boolean
     stage: Object
   };
   certnId: string;
@@ -171,11 +186,11 @@ export interface IContractor extends Document {
     hasStripeIdentity: boolean,
     hasStripePaymentMethods: boolean,
     hasStripeCustomer: boolean,
-    hasProfile:boolean,
-    hasGstDetails:boolean,
-    hasCompanyDetails:boolean
-    hasPassedQuiz:boolean
+    hasProfile: boolean,
+    hasGstDetails: boolean,
+    hasCompanyDetails: boolean
+    hasPassedQuiz: boolean
     stage: number
-};
-  
+  };
+
 }

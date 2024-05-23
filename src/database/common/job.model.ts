@@ -82,6 +82,16 @@ export interface IStatusUpdate {
     status: string;
   }
 
+
+
+
+export interface IJobReview {
+    ratings?: Array<{ item: string; rating: number }>; //Rating value (e.g., 1-5 stars)
+    review?: string; // Optional: Textual feedback
+    averageRating?: number; // avaraged from the items in ratings array
+    createdAt: Date;
+  }
+
 export interface IJob extends Document {
     _id: ObjectId;
     customer: ObjectId;
@@ -116,9 +126,13 @@ export interface IJob extends Document {
     emergency: boolean;
     myQuotation: Object | null
     isAssigned: boolean;
+    review: IJobReview;
     getMyQoutation: (contractorId: ObjectId) => {
     };
 }
+
+
+
 
 
 const VoiceDescriptionSchema = new Schema<IVoiceDescription>({
@@ -186,6 +200,24 @@ const JobLocationSchema = new Schema<IJobLocation>({
 });
 
 
+const JobReviewSchema = new Schema<IJobReview>({
+    averageRating: {
+      type: Number,
+      min: 1,
+      max: 5, // Adjust based on your rating scale
+    },
+    review: {
+      type: String,
+    },
+    ratings: {
+      type: [{item: String, rating: Number}],
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+  });
+
  
 const JobHistorySchema = new Schema<IJobHistory>({
     eventType: { type: String, required: false }, // Identify the type of event - JOB_REJECTED, JOB_ACCEPTED, JOB_CLOSED, JOB_EXPIRED
@@ -231,6 +263,7 @@ const JobSchema = new Schema<IJob>({
     assignment: JobAssignmentSchema,
     emergency: {type: Boolean, default:false},
     isAssigned: {type: Boolean, default:false},
+    review: {type: JobReviewSchema },
 }, { timestamps: true });
 
 
