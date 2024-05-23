@@ -82,6 +82,12 @@ export const makeJobPayment = async (
         if (!paymentMethod) throw new Error("No such payment method")
 
 
+        if (job.status == JOB_STATUS.BOOKED) {
+            return res
+                .status(400)
+                .json({ success: false, message: "This job is not pending, so new payment is not possible" });
+        }
+
 
         const generateInvoce = new Date().getTime().toString()
 
@@ -173,7 +179,7 @@ export const makeJobPayment = async (
                 customerId,
                 constractorId: contractor?.id,
                 quotationId,
-                type: "job_booking",
+                type: "job_payment",
                 jobId,
                 email: customer.email,
                 transactionId: transaction.id,

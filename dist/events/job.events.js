@@ -172,6 +172,10 @@ exports.JobEvent.on('JOB_CANCELED', function (payload) {
                             html = (0, job_canceled_template_1.JobCanceledEmailTemplate)({ name: contractor.name, canceledBy: 'customer', job: payload.job });
                             services_1.EmailService.send(contractor.email, "Job Canceled", html);
                         }
+                        // TODO: apply the guidline below and create cancelationData
+                        // Cancel jobs: Customers have the option to cancel jobs based on the following guidelines:
+                        // Free cancellation up to 48 hours before the scheduled job time..
+                        // For cancellations made within 24 hours, regardless of the job's cost, a $50 cancellation fee is applied. 80% of this fee is directed to the contractor, while the remaining 20% is retained by us.
                     }
                     return [3 /*break*/, 4];
                 case 3:

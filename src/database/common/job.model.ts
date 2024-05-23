@@ -186,7 +186,7 @@ const JobLocationSchema = new Schema<IJobLocation>({
 });
 
 
-
+ 
 const JobHistorySchema = new Schema<IJobHistory>({
     eventType: { type: String, required: false }, // Identify the type of event - JOB_REJECTED, JOB_ACCEPTED, JOB_CLOSED, JOB_EXPIRED
     timestamp: { type: Date, default: Date.now }, // Timestamp of the event

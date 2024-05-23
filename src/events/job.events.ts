@@ -3,7 +3,7 @@ import { EmailService, NotificationService } from '../services';
 import { htmlJobRequestTemplate } from '../templates/contractorEmail/jobRequestTemplate';
 import CustomerModel from '../database/customer/models/customer.model';
 import { ContractorModel } from '../database/contractor/models/contractor.model';
-import { IJob, JobModel } from '../database/common/job.model';
+import { IJob, JOB_STATUS, JobModel } from '../database/common/job.model';
 import { ConversationModel } from '../database/common/conversations.schema';
 import { SocketService } from '../services/socket';
 import { IContractor } from '../database/contractor/interface/contractor.interface';
@@ -118,6 +118,19 @@ JobEvent.on('JOB_CANCELED', async function (payload: { job: IJob, canceledBy: st
                 const html = JobCanceledEmailTemplate({ name: contractor.name, canceledBy: 'customer', job: payload.job })
                 EmailService.send(contractor.email, "Job Canceled", html)
             }
+
+
+
+
+            // TODO: apply the guidline below and create cancelationData
+            // Cancel jobs: Customers have the option to cancel jobs based on the following guidelines:
+            // Free cancellation up to 48 hours before the scheduled job time..
+            // For cancellations made within 24 hours, regardless of the job's cost, a $50 cancellation fee is applied. 80% of this fee is directed to the contractor, while the remaining 20% is retained by us.
+           
+
+
+
+
         }
 
     } catch (error) {
@@ -173,7 +186,7 @@ JobEvent.on('JOB_DAY_EMERGENCY', async function (payload: { jobEmergency: IJobEm
 
 
 
-JobEvent.on('JOB_RESHEDULE_DECLINED_ACCEPTED', async function (payload: {job: IJob, action: string}) {
+JobEvent.on('JOB_RESHEDULE_DECLINED_ACCEPTED', async function (payload: { job: IJob, action: string }) {
     try {
         console.log('handling alert JOB_RESHEDULE_DECLINED_ACCEPTED event', payload.action)
 
@@ -183,24 +196,24 @@ JobEvent.on('JOB_RESHEDULE_DECLINED_ACCEPTED', async function (payload: {job: IJ
 
         if (contractor && customer) {
             if (payload.job.reschedule?.createdBy == 'contractor') { // send mail to contractor
-                let emailSubject  = 'Job Schedule'
+                let emailSubject = 'Job Schedule'
                 let emailContent = `
                 <p style="color: #333333;">Your Job reschedule request on Repairfind has been ${payload.action} by customer</p>
                 <p><strong>Job Title:</strong> ${payload.job.description}</p>
                 <p><strong>Proposed Date:</strong> ${payload.job.reschedule.date}</p>
                 `
-                let html = GenericEmailTemplate({ name: contractor.name, subject:emailSubject, content: emailContent })
+                let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
                 EmailService.send(contractor.email, emailSubject, html)
 
             }
             if (payload.job.reschedule?.createdBy == 'customer') { // send mail to  customer
-                let emailSubject  = 'Job Schedule'
+                let emailSubject = 'Job Schedule'
                 let emailContent = `
                 <p style="color: #333333;">Your Job reschedule request on Repairfind has been ${payload.action}  by the contractor</p>
                 <p><strong>Job Title:</strong> ${payload.job.description}</p>
                 <p><strong>Proposed Date:</strong> ${payload.job.reschedule.date}</p>
                 `
-                let html = GenericEmailTemplate({ name: customer.name, subject:emailSubject, content: emailContent })
+                let html = GenericEmailTemplate({ name: customer.name, subject: emailSubject, content: emailContent })
                 EmailService.send(customer.email, emailSubject, html)
             }
 
@@ -212,7 +225,7 @@ JobEvent.on('JOB_RESHEDULE_DECLINED_ACCEPTED', async function (payload: {job: IJ
     }
 });
 
-JobEvent.on('NEW_JOB_RESHEDULE_REQUEST', async function (payload: {job: IJob, action: string}) {
+JobEvent.on('NEW_JOB_RESHEDULE_REQUEST', async function (payload: { job: IJob, action: string }) {
     try {
         console.log('handling alert NEW_JOB_RESHEDULE_REQUEST event', payload.action)
 
@@ -222,24 +235,24 @@ JobEvent.on('NEW_JOB_RESHEDULE_REQUEST', async function (payload: {job: IJob, ac
 
         if (contractor && customer) {
             if (payload.job.reschedule?.createdBy == 'contractor') { // send mail to contractor
-                let emailSubject  = 'Job Schedule'
+                let emailSubject = 'Job Schedule'
                 let emailContent = `
                 <p style="color: #333333;">Contractor has requested  to reschedule a job on RepairFind</p>
                 <p><strong>Job Title:</strong> ${payload.job.description}</p>
                 <p><strong>Proposed Date:</strong> ${payload.job.reschedule.date}</p>
                 `
-                let html = GenericEmailTemplate({ name: customer.name, subject:emailSubject, content: emailContent })
+                let html = GenericEmailTemplate({ name: customer.name, subject: emailSubject, content: emailContent })
                 EmailService.send(customer.email, emailSubject, html)
 
             }
             if (payload.job.reschedule?.createdBy == 'customer') { // send mail to  customer
-                let emailSubject  = 'Job Schedule'
+                let emailSubject = 'Job Schedule'
                 let emailContent = `
                 <p style="color: #333333;">Customer has requested  to reschedule a job on RepairFind</p>
                 <p><strong>Job Title:</strong> ${payload.job.description}</p>
                 <p><strong>Proposed Date:</strong> ${payload.job.reschedule.date}</p>
                 `
-                let html = GenericEmailTemplate({ name: contractor.name, subject:emailSubject, content: emailContent })
+                let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
                 EmailService.send(contractor.email, emailSubject, html)
             }
 

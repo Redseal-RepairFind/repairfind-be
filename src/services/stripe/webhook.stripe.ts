@@ -581,7 +581,7 @@ export const chargeSucceeded = async (payload: any) => {
         const metadata = payment.metadata as { jobId: string, quotationId: string, constractorId: ObjectId, type: string, customerId: ObjectId, remark: string, extraEstimateId: ObjectId }
         if (metadata.type == 'job_payment') {
             const jobId = metadata.jobId
-            if (jobId) {
+            if (jobId) { 
                 let job = await JobModel.findById(jobId)
                 if (!job) return
                 const quotationId = metadata.quotationId

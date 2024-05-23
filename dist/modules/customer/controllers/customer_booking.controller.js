@@ -10,6 +10,29 @@ var __assign = (this && this.__assign) || function () {
     };
     return __assign.apply(this, arguments);
 };
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -50,8 +73,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerBookingController = exports.acceptBookingComplete = exports.cancelBooking = exports.acceptOrDeclineReschedule = exports.requestBookingReschedule = exports.getSingleBooking = exports.getBookingHistory = exports.getMyBookings = void 0;
+exports.CustomerBookingController = exports.acceptBookingComplete = exports.cancelBooking = exports.intiateBookingCancelation = exports.acceptOrDeclineReschedule = exports.requestBookingReschedule = exports.getSingleBooking = exports.getBookingHistory = exports.getMyBookings = void 0;
 var express_validator_1 = require("express-validator");
+var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var job_model_1 = require("../../../database/common/job.model");
 var custom_errors_1 = require("../../../utils/custom.errors");
@@ -59,6 +83,8 @@ var api_feature_1 = require("../../../utils/api.feature");
 var job_quotation_model_1 = require("../../../database/common/job_quotation.model");
 var events_1 = require("../../../events");
 var mongoose_1 = __importDefault(require("mongoose"));
+var transaction_model_1 = __importStar(require("../../../database/common/transaction.model"));
+var stripe_1 = require("../../../services/stripe");
 var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, _b, limit, _c, page, _d, sort, contractorId_1, _e, status_1, startDate, endDate, date, type, customerId, filter, start, end, selectedDate, startOfDay_1, endOfDay, _f, data, error, error_1;
     return __generator(this, function (_g) {
@@ -338,8 +364,8 @@ var acceptOrDeclineReschedule = function (req, res, next) { return __awaiter(voi
     });
 }); };
 exports.acceptOrDeclineReschedule = acceptOrDeclineReschedule;
-var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, bookingId, reason, job, customer, error_6;
+var intiateBookingCancelation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var customerId, bookingId, reason, job, customer, startDate, jobDate, currentTime, timeDifferenceInHours, cancelationCharges, amount, contractorShare, companyShare, error_6;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -365,10 +391,178 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
                 if (job.customer.toString() !== customerId) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'You are not authorized to cancel this booking' })];
                 }
-                // Check if the job is already canceled
+                if (job.status !== job_model_1.JOB_STATUS.BOOKED) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Job is not yet booked, only booked jobs can be canceled' })];
+                }
+                startDate = job.schedule.startDate;
+                if (!startDate) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Job does not have a schedule' })];
+                }
+                jobDate = job.schedule.startDate.getTime();
+                currentTime = new Date().getTime();
+                timeDifferenceInHours = Math.abs(jobDate - currentTime) / (1000 * 60 * 60);
+                cancelationCharges = {
+                    amount: 0,
+                    contractorShare: 0,
+                    companyShare: 0,
+                    intiatedBy: 'customer',
+                    policyApplied: 'free_cancelation',
+                };
+                if (timeDifferenceInHours >= 48) {
+                    // Free cancellation up to 48 hours before the scheduled job time.
+                }
+                else if (timeDifferenceInHours < 24) {
+                    amount = 50;
+                    contractorShare = 0.8 * amount;
+                    companyShare = 0.2 * amount;
+                    cancelationCharges = {
+                        amount: amount,
+                        contractorShare: contractorShare,
+                        companyShare: companyShare,
+                        intiatedBy: 'customer',
+                        policyApplied: '50_dollar_policy',
+                    };
+                }
+                // Update job status and store cancellation data
+                //job.cancelation = cancelationCharges // dont need to save this
+                return [4 /*yield*/, job.save()];
+            case 3:
+                // Update job status and store cancellation data
+                //job.cancelation = cancelationCharges // dont need to save this
+                _a.sent();
+                res.json({ success: true, message: 'Booking cancelation initiated successfully', data: cancelationCharges });
+                return [3 /*break*/, 5];
+            case 4:
+                error_6 = _a.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_6))];
+            case 5: return [2 /*return*/];
+        }
+    });
+}); };
+exports.intiateBookingCancelation = intiateBookingCancelation;
+var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var customerId, bookingId, reason, job, _a, customer, contractor, jobDate, currentTime, timeDifferenceInHours, cancelationCharges, amount, contractorShare, companyShare, paymentMethod, transaction, payload, stripePayment, error_7;
+    var _b, _c;
+    return __generator(this, function (_d) {
+        switch (_d.label) {
+            case 0:
+                _d.trys.push([0, 7, , 8]);
+                customerId = req.customer.id;
+                bookingId = req.params.bookingId;
+                reason = req.body.reason;
+                return [4 /*yield*/, job_model_1.JobModel.findById(bookingId)];
+            case 1:
+                job = _d.sent();
+                if (!job) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found' })];
+                }
+                return [4 /*yield*/, Promise.all([
+                        customer_model_1.default.findById(customerId),
+                        contractor_model_1.ContractorModel.findById(job.contractor)
+                    ])];
+            case 2:
+                _a = _d.sent(), customer = _a[0], contractor = _a[1];
+                if (!contractor) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor not found' })];
+                }
+                if (!customer) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Customer not found' })];
+                }
+                if (job.customer.toString() !== customerId) {
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'You are not authorized to cancel this booking' })];
+                }
                 if (job.status === job_model_1.JOB_STATUS.CANCELED) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'The booking is already canceled' })];
                 }
+                if (!((_b = job === null || job === void 0 ? void 0 : job.schedule) === null || _b === void 0 ? void 0 : _b.startDate)) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Booking has no associated schedule' })];
+                }
+                jobDate = job.schedule.startDate.getTime();
+                currentTime = new Date().getTime();
+                timeDifferenceInHours = Math.abs(jobDate - currentTime) / (1000 * 60 * 60);
+                cancelationCharges = {
+                    amount: 0,
+                    contractorShare: 0,
+                    companyShare: 0,
+                    intiatedBy: 'customer',
+                    policyApplied: 'free_cancelation',
+                };
+                if (timeDifferenceInHours >= 48) {
+                    // Free cancellation up to 48 hours before the scheduled job time.
+                }
+                else if (timeDifferenceInHours < 24) {
+                    amount = 50;
+                    contractorShare = 0.8 * amount;
+                    companyShare = 0.2 * amount;
+                    cancelationCharges = {
+                        amount: amount,
+                        contractorShare: contractorShare,
+                        companyShare: companyShare,
+                        intiatedBy: 'customer',
+                        policyApplied: '50_dollar_policy',
+                    };
+                }
+                if (!(cancelationCharges.amount > 0)) return [3 /*break*/, 5];
+                paymentMethod = customer.stripePaymentMethods[0];
+                if (!paymentMethod)
+                    throw new Error("No such payment method");
+                return [4 /*yield*/, transaction_model_1.default.create({
+                        type: transaction_model_1.TRANSACTION_TYPE.REFUND,
+                        amount: cancelationCharges.amount,
+                        initiatorUser: customerId,
+                        initiatorUserType: 'customers',
+                        fromUser: customerId,
+                        fromUserType: 'customers',
+                        toUser: job.contractor,
+                        toUserType: 'contractors',
+                        description: "qoutation from ".concat(contractor === null || contractor === void 0 ? void 0 : contractor.firstName, " payment"),
+                        status: transaction_model_1.TRANSACTION_STATUS.PENDING,
+                        remark: 'qoutation',
+                        invoice: {
+                            items: [],
+                            charges: cancelationCharges
+                        },
+                        job: job.id
+                    })
+                    // create transaction here
+                ];
+            case 3:
+                transaction = _d.sent();
+                payload = {
+                    payment_method_types: ['card'],
+                    payment_method: paymentMethod.id,
+                    currency: 'usd',
+                    amount: (cancelationCharges.amount) * 100,
+                    application_fee_amount: (cancelationCharges.companyShare) * 100, // send everthing to connected account and  application_fee_amount will be transfered back
+                    transfer_data: {
+                        // amount: (charges.contractorAmount) * 100, // transfer to connected account
+                        destination: (_c = contractor === null || contractor === void 0 ? void 0 : contractor.stripeAccount.id) !== null && _c !== void 0 ? _c : '' // mostimes only work with same region example us, user
+                        // https://docs.stripe.com/connect/destination-charges
+                    },
+                    on_behalf_of: contractor === null || contractor === void 0 ? void 0 : contractor.stripeAccount.id,
+                    metadata: {
+                        customerId: customerId,
+                        constractorId: contractor === null || contractor === void 0 ? void 0 : contractor.id,
+                        quotationId: job.contract.toString(),
+                        type: "job_canceletion_refund",
+                        jobId: job.id,
+                        email: customer.email,
+                        transactionId: transaction.id,
+                        remark: 'job_canceletion_refund' //
+                    },
+                    customer: customer.stripeCustomer.id,
+                    off_session: true,
+                    confirm: true,
+                };
+                console.log(payload);
+                return [4 /*yield*/, stripe_1.StripeService.payment.chargeCustomer(paymentMethod.customer, paymentMethod.id, payload)];
+            case 4:
+                stripePayment = _d.sent();
+                if (!stripePayment) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Severance payment not successfully, job could not be canceled' })];
+                }
+                _d.label = 5;
+            case 5:
                 // Update the job status to canceled
                 job.status = job_model_1.JOB_STATUS.CANCELED;
                 job.jobHistory.push({
@@ -380,20 +574,20 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
                 // inside the event take actions such as refund etc
                 events_1.JobEvent.emit('JOB_CANCELED', { job: job, canceledBy: 'customer' });
                 return [4 /*yield*/, job.save()];
-            case 3:
-                _a.sent();
-                res.json({ success: true, message: 'Booking canceled successfully', data: job });
-                return [3 /*break*/, 5];
-            case 4:
-                error_6 = _a.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_6))];
-            case 5: return [2 /*return*/];
+            case 6:
+                _d.sent();
+                res.json({ success: true, message: 'Booking canceled successfully', data: { job: job, cancelationCharges: cancelationCharges } });
+                return [3 /*break*/, 8];
+            case 7:
+                error_7 = _d.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_7))];
+            case 8: return [2 /*return*/];
         }
     });
 }); };
 exports.cancelBooking = cancelBooking;
 var acceptBookingComplete = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, bookingId, reason, job, customer, error_7;
+    var customerId, bookingId, reason, job, customer, error_8;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -444,8 +638,8 @@ var acceptBookingComplete = function (req, res, next) { return __awaiter(void 0,
                 res.json({ success: true, message: 'Booking marked as completed successfully', data: job });
                 return [3 /*break*/, 5];
             case 4:
-                error_7 = _a.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_7))];
+                error_8 = _a.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_8))];
             case 5: return [2 /*return*/];
         }
     });
@@ -458,5 +652,6 @@ exports.CustomerBookingController = {
     requestBookingReschedule: exports.requestBookingReschedule,
     acceptOrDeclineReschedule: exports.acceptOrDeclineReschedule,
     cancelBooking: exports.cancelBooking,
+    intiateBookingCancelation: exports.intiateBookingCancelation,
     acceptBookingComplete: exports.acceptBookingComplete
 };

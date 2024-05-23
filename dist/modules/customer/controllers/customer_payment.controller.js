@@ -129,6 +129,11 @@ var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0
                 ;
                 if (!paymentMethod)
                     throw new Error("No such payment method");
+                if (job.status == job_model_1.JOB_STATUS.BOOKED) {
+                    return [2 /*return*/, res
+                            .status(400)
+                            .json({ success: false, message: "This job is not pending, so new payment is not possible" })];
+                }
                 generateInvoce = new Date().getTime().toString();
                 invoiceId = generateInvoce.substring(generateInvoce.length - 5);
                 return [4 /*yield*/, quotation.calculateCharges()];
@@ -206,7 +211,7 @@ var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0
                         customerId: customerId,
                         constractorId: contractor === null || contractor === void 0 ? void 0 : contractor.id,
                         quotationId: quotationId,
-                        type: "job_booking",
+                        type: "job_payment",
                         jobId: jobId,
                         email: customer.email,
                         transactionId: transaction.id,
