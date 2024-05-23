@@ -12,7 +12,7 @@ import { IMessage, MessageModel, MessageType } from "../../../database/common/me
 import { JOB_QUOTATION_STATUS, JobQuotationModel } from "../../../database/common/job_quotation.model";
 import { JobEvent } from "../../../events";
 import mongoose from "mongoose";
-import { CONTRACTOR_TYPES } from "../../../database/contractor/interface/contractor.interface";
+import { CONTRACTOR_REVIEW_TYPE, CONTRACTOR_TYPES, IContractorReview } from "../../../database/contractor/interface/contractor.interface";
 import ContractorTeamModel, { IContractorTeam } from "../../../database/contractor/models/contractor_team.model";
 import { NewJobAssignedEmailTemplate } from "../../../templates/contractorEmail/job_assigned.template";
 
@@ -424,6 +424,12 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
             return res.status(400).json({ success: false, message: 'The booking is already canceled' });
         }
 
+
+         // Check if the job is already completed
+         if (job.status === JOB_STATUS.COMPLETED) {
+            return res.status(400).json({ success: false, message: 'The booking is already marked as complete' });
+        }
+
         // Update the job status to canceled
         job.status = JOB_STATUS.CANCELED;
 
@@ -437,7 +443,27 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
         // emit job cancelled event 
         // inside the event take actions such as refund etc
         JobEvent.emit('JOB_CANCELED', { job, canceledBy: 'contractor' })
+
+
+                // reduce contractor rating
+
+        const contractorReview = {
+            averageRating: 0,
+            job: job.id,
+            type: CONTRACTOR_REVIEW_TYPE.JOB_CANCELETION
+         } as IContractorReview
+
+        const foundIndex = contractor.reviews.findIndex((review) => review.job && review.job == job.id);
+        if (foundIndex !== -1) {
+            contractor.reviews[foundIndex] = contractorReview;
+        }else{
+            contractor.reviews.push(contractorReview);
+        }
+
+        
         await job.save();
+        await contractor.save()
+
 
         res.json({ success: true, message: 'Booking canceled successfully', data: job });
     } catch (error: any) {

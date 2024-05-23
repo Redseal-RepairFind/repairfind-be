@@ -674,7 +674,6 @@ export const reviewBookingOnCompletion = async (req: any, res: Response, next: N
 
 
 
-        const foundReview = contractor?.reviews.find((review) => review.job && review.job == job.id);
         let contractorReview = {
             ...newReview,
             job: job.id

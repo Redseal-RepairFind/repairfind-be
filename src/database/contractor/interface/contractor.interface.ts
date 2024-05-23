@@ -99,6 +99,14 @@ export enum COMPANY_STATUS {
 }
 
 
+
+export enum CONTRACTOR_REVIEW_TYPE {
+  JOB_COMPLETION = "JOB_COMPLETION",
+  JOB_CANCELETION = "JOB_CANCELETION"
+}
+
+
+
 export interface IContractorReview {
   customer?: ObjectId; // Optional: ObjectId referencing the User who left the rating
   averageRating: number; // avaraged from the items in ratings array
@@ -106,6 +114,7 @@ export interface IContractorReview {
   review?: string; // Optional: Textual feedback
   job?: ObjectId; // Optional: Textual feedback
   createdAt: Date;
+  type: string;
 }
 
 // reviews?: Array<{ item: string; rating: number }> = [

@@ -69,6 +69,35 @@ var CompanyDetailSchema = new mongoose_1.Schema({
     approvedAt: Date,
     recentRemark: String,
 });
+var ContractorReviewSchema = new mongoose_1.Schema({
+    customer: {
+        type: mongoose_1.Schema.Types.ObjectId,
+    },
+    averageRating: {
+        type: Number,
+        required: true,
+        min: 1,
+        max: 5, // Adjust based on your rating scale
+    },
+    ratings: {
+        type: [{ item: String, rating: Number }],
+    },
+    review: {
+        type: String,
+    },
+    job: {
+        type: mongoose_1.Schema.Types.ObjectId,
+    },
+    type: {
+        type: String,
+        enum: Object.values(contractor_interface_1.CONTRACTOR_REVIEW_TYPE),
+        default: contractor_interface_1.CONTRACTOR_REVIEW_TYPE.JOB_COMPLETION
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now,
+    },
+});
 var CertnDetailSchema = new mongoose_1.Schema({
     created: String,
     modified: String,
@@ -222,6 +251,9 @@ var ContractorSchema = new mongoose_1.Schema({
     certnDetails: {
         type: CertnDetailSchema
     },
+    reviews: {
+        type: [ContractorReviewSchema]
+    },
     onboarding: {
         hasStripeAccount: { default: false, type: Boolean },
         hasStripeIdentity: { default: false, type: Boolean },
@@ -292,6 +324,11 @@ ContractorSchema.virtual('certnReport').get(function () {
         action = certnDetails.application.applicant.application_url;
     }
     return { status: status, action: action };
+});
+ContractorSchema.virtual('rating').get(function () {
+    var reviews = this.reviews;
+    var totalRating = reviews.reduce(function (acc, review) { return acc + review.averageRating; }, 0);
+    return reviews.length > 0 ? totalRating / reviews.length : 0;
 });
 ContractorSchema.methods.getOnboarding = function () {
     var _a, _b, _c;

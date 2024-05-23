@@ -1,5 +1,5 @@
 import { Schema, model, ObjectId, FilterQuery } from "mongoose";
-import { COMPANY_STATUS, CONTRACTOR_TYPES, GST_STATUS, IContractor, IContractorCertnDetails, IContractorCompanyDetails, IContractorGstDetails, IContractorReview } from "../interface/contractor.interface";
+import { COMPANY_STATUS, CONTRACTOR_REVIEW_TYPE, CONTRACTOR_TYPES, GST_STATUS, IContractor, IContractorCertnDetails, IContractorCompanyDetails, IContractorGstDetails, IContractorReview } from "../interface/contractor.interface";
 import { contractorStatus } from "../../../constants/contractorStatus";
 import ContractorQuizModel from "./contractor_quiz.model";
 import { StripeCustomerSchema } from "../../common/stripe_customer.schema";
@@ -55,6 +55,11 @@ const ContractorReviewSchema = new Schema<IContractorReview>({
   },
   job: {
     type: Schema.Types.ObjectId,
+  },
+  type: {
+    type: String,
+    enum: Object.values(CONTRACTOR_REVIEW_TYPE),
+    default: CONTRACTOR_REVIEW_TYPE.JOB_COMPLETION
   },
   createdAt: {
     type: Date,

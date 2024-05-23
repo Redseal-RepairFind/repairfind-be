@@ -73,7 +73,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerBookingController = exports.acceptBookingComplete = exports.cancelBooking = exports.intiateBookingCancelation = exports.acceptOrDeclineReschedule = exports.requestBookingReschedule = exports.getSingleBooking = exports.getBookingHistory = exports.getMyBookings = void 0;
+exports.CustomerBookingController = exports.reviewBookingOnCompletion = exports.acceptBookingComplete = exports.cancelBooking = exports.intiateBookingCancelation = exports.acceptOrDeclineReschedule = exports.requestBookingReschedule = exports.getSingleBooking = exports.getBookingHistory = exports.getMyBookings = void 0;
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
@@ -645,6 +645,78 @@ var acceptBookingComplete = function (req, res, next) { return __awaiter(void 0,
     });
 }); };
 exports.acceptBookingComplete = acceptBookingComplete;
+var reviewBookingOnCompletion = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var customerId, _a, review, ratings, favoriteContractor, bookingId, job_1, contractor, existingReview, newReview, totalRatings, totalReviewScore, averageRating, contractorReview, foundIndex, error_9;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 5, , 6]);
+                customerId = req.customer.id;
+                _a = req.body, review = _a.review, ratings = _a.ratings, favoriteContractor = _a.favoriteContractor;
+                bookingId = req.params.bookingId;
+                return [4 /*yield*/, job_model_1.JobModel.findById(bookingId)];
+            case 1:
+                job_1 = _b.sent();
+                // Check if the job exists
+                if (!job_1) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found' })];
+                }
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(job_1.contractor)];
+            case 2:
+                contractor = _b.sent();
+                if (!contractor) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor not found' })];
+                }
+                // Check if the customer is the owner of the job
+                if (job_1.customer.toString() !== customerId) {
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'You are not authorized to add a review for this job' })];
+                }
+                // Check if the job is already completed
+                if (job_1.status !== job_model_1.JOB_STATUS.COMPLETED) {
+                    // return res.status(400).json({ success: false, message: 'Job is not yet completed, reviews can only be added for completed jobs' });
+                }
+                existingReview = job_1.review;
+                if (existingReview) {
+                    // return res.status(400).json({ success: false, message: 'You can only add one review per job' });
+                }
+                newReview = {
+                    ratings: ratings,
+                    review: review,
+                    createdAt: new Date(),
+                };
+                // Update the job's reviews array
+                job_1.review = newReview;
+                totalRatings = ratings.length;
+                totalReviewScore = ratings.reduce(function (a, b) { return a + b.rating; }, 0);
+                averageRating = totalReviewScore > 0 ? totalReviewScore / totalRatings : 0;
+                newReview.averageRating = averageRating;
+                job_1.review = newReview;
+                contractorReview = __assign(__assign({}, newReview), { job: job_1.id });
+                foundIndex = contractor.reviews.findIndex(function (review) { return review.job && review.job == job_1.id; });
+                if (foundIndex !== -1) {
+                    contractor.reviews[foundIndex] = contractorReview;
+                }
+                else {
+                    contractor.reviews.push(contractorReview);
+                }
+                // Save the job
+                return [4 /*yield*/, job_1.save()];
+            case 3:
+                // Save the job
+                _b.sent();
+                return [4 /*yield*/, contractor.save()];
+            case 4:
+                _b.sent();
+                res.json({ success: true, message: 'Review added successfully', data: newReview });
+                return [3 /*break*/, 6];
+            case 5:
+                error_9 = _b.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_9))];
+            case 6: return [2 /*return*/];
+        }
+    });
+}); };
+exports.reviewBookingOnCompletion = reviewBookingOnCompletion;
 exports.CustomerBookingController = {
     getMyBookings: exports.getMyBookings,
     getBookingHistory: exports.getBookingHistory,
@@ -653,5 +725,6 @@ exports.CustomerBookingController = {
     acceptOrDeclineReschedule: exports.acceptOrDeclineReschedule,
     cancelBooking: exports.cancelBooking,
     intiateBookingCancelation: exports.intiateBookingCancelation,
-    acceptBookingComplete: exports.acceptBookingComplete
+    acceptBookingComplete: exports.acceptBookingComplete,
+    reviewBookingOnCompletion: exports.reviewBookingOnCompletion
 };

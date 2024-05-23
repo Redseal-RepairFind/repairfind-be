@@ -437,17 +437,17 @@ var assignJob = function (req, res, next) { return __awaiter(void 0, void 0, voi
 }); };
 exports.assignJob = assignJob;
 var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var contractorId, bookingId, reason, job, contractor, error_7;
+    var contractorId, bookingId, reason, job_1, contractor, contractorReview, foundIndex, error_7;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 4, , 5]);
+                _a.trys.push([0, 5, , 6]);
                 contractorId = req.contractor.id;
                 bookingId = req.params.bookingId;
                 reason = req.body.reason;
                 return [4 /*yield*/, job_model_1.JobModel.findById(bookingId)];
             case 1:
-                job = _a.sent();
+                job_1 = _a.sent();
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
             case 2:
                 contractor = _a.sent();
@@ -456,36 +456,55 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor not found' })];
                 }
                 // Check if the job exists
-                if (!job) {
+                if (!job_1) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found' })];
                 }
                 // Check if the contractor is the owner of the job
-                if (job.contractor.toString() !== contractorId) {
+                if (job_1.contractor.toString() !== contractorId) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'You are not authorized to cancel this booking' })];
                 }
                 // Check if the job is already canceled
-                if (job.status === job_model_1.JOB_STATUS.CANCELED) {
+                if (job_1.status === job_model_1.JOB_STATUS.CANCELED) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'The booking is already canceled' })];
                 }
+                // Check if the job is already completed
+                if (job_1.status === job_model_1.JOB_STATUS.COMPLETED) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'The booking is already marked as complete' })];
+                }
                 // Update the job status to canceled
-                job.status = job_model_1.JOB_STATUS.CANCELED;
-                job.jobHistory.push({
+                job_1.status = job_model_1.JOB_STATUS.CANCELED;
+                job_1.jobHistory.push({
                     eventType: 'JOB_CANCELED',
                     timestamp: new Date(),
                     payload: { reason: reason, canceledBy: 'customer' }
                 });
                 // emit job cancelled event 
                 // inside the event take actions such as refund etc
-                events_1.JobEvent.emit('JOB_CANCELED', { job: job, canceledBy: 'contractor' });
-                return [4 /*yield*/, job.save()];
+                events_1.JobEvent.emit('JOB_CANCELED', { job: job_1, canceledBy: 'contractor' });
+                contractorReview = {
+                    averageRating: 0,
+                    job: job_1.id,
+                    type: contractor_interface_1.CONTRACTOR_REVIEW_TYPE.JOB_CANCELETION
+                };
+                foundIndex = contractor.reviews.findIndex(function (review) { return review.job && review.job == job_1.id; });
+                if (foundIndex !== -1) {
+                    contractor.reviews[foundIndex] = contractorReview;
+                }
+                else {
+                    contractor.reviews.push(contractorReview);
+                }
+                return [4 /*yield*/, job_1.save()];
             case 3:
                 _a.sent();
-                res.json({ success: true, message: 'Booking canceled successfully', data: job });
-                return [3 /*break*/, 5];
+                return [4 /*yield*/, contractor.save()];
             case 4:
+                _a.sent();
+                res.json({ success: true, message: 'Booking canceled successfully', data: job_1 });
+                return [3 /*break*/, 6];
+            case 5:
                 error_7 = _a.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_7))];
-            case 5: return [2 /*return*/];
+            case 6: return [2 /*return*/];
         }
     });
 }); };

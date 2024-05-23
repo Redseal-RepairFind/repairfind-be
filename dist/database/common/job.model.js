@@ -115,6 +115,23 @@ var JobLocationSchema = new mongoose_1.Schema({
     latitude: { type: String },
     longitude: { type: String },
 });
+var JobReviewSchema = new mongoose_1.Schema({
+    averageRating: {
+        type: Number,
+        min: 1,
+        max: 5, // Adjust based on your rating scale
+    },
+    review: {
+        type: String,
+    },
+    ratings: {
+        type: [{ item: String, rating: Number }],
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now,
+    },
+});
 var JobHistorySchema = new mongoose_1.Schema({
     eventType: { type: String, required: false }, // Identify the type of event - JOB_REJECTED, JOB_ACCEPTED, JOB_CLOSED, JOB_EXPIRED
     timestamp: { type: Date, default: Date.now }, // Timestamp of the event
@@ -157,6 +174,7 @@ var JobSchema = new mongoose_1.Schema({
     assignment: JobAssignmentSchema,
     emergency: { type: Boolean, default: false },
     isAssigned: { type: Boolean, default: false },
+    review: { type: JobReviewSchema },
 }, { timestamps: true });
 JobSchema.virtual('totalQuotations').get(function () {
     var pendingQuotations = this.quotations.filter(function (quote) { return quote.status !== job_quotation_model_1.JOB_QUOTATION_STATUS.DECLINED; });
