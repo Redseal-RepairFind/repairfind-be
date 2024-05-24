@@ -78,6 +78,7 @@ export interface ITransaction extends Document {
     charges: Object;
     id: ObjectId;
   };
+  metadata?: Object;
   job?: ObjectId;
   payment?: ObjectId;
   createdAt: Date;
@@ -136,7 +137,7 @@ const CaptureDetailsShema = new Schema<ICaptureDetails>(
   });
 
 
-const TransactionSchema = new Schema(
+const TransactionSchema = new Schema<ITransaction>(
   {
     type: {
       type: String,
@@ -190,6 +191,9 @@ const TransactionSchema = new Schema(
         id: Schema.Types.ObjectId,
       },
       default: null,
+    },
+    metadata:{
+      type: Schema.Types.Mixed
     },
     job: {
       type: Schema.Types.ObjectId,

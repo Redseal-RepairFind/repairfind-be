@@ -42,6 +42,7 @@ export interface IJobQuotation extends Document {
         totalAmount: number;
         contractorAmount: number;
     };
+
 }
 
 // Define schema for job quotation estimates
@@ -115,6 +116,7 @@ JobQoutationSchema.methods.calculateCharges = async function () {
 
     return { subtotal, processingFee, gst, totalAmount, contractorAmount };
 };
+
 
 JobQoutationSchema.virtual('charges').get(function () {
     let totalEstimateAmount = 0;

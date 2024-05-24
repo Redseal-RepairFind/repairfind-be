@@ -199,6 +199,34 @@ JobSchema.methods.getMyQoutation = function (contractor) {
         });
     });
 };
+// get job payments summary
+JobSchema.methods.getPayments = function () {
+    return __awaiter(this, void 0, void 0, function () {
+        var totalAmount, job, payments;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    totalAmount = 0;
+                    return [4 /*yield*/, this.populate('payments')];
+                case 1:
+                    job = _a.sent();
+                    totalAmount = job.payments.reduce(function (acc, payment) { return acc + payment.amount; }, 0);
+                    payments = job.payments.map(function (payment) {
+                        return {
+                            amount: payment.amount,
+                            amount_refunded: payment.amount_refunded,
+                            reference: payment.reference,
+                            status: payment.status,
+                            refunded: payment.refunded,
+                            paid: payment.paid,
+                            captured: payment.captured,
+                        };
+                    });
+                    return [2 /*return*/, { totalAmount: totalAmount, paymentCount: payments.length, payments: payments }];
+            }
+        });
+    });
+};
 JobSchema.set('toObject', { virtuals: true });
 JobSchema.set('toJSON', { virtuals: true });
 var JobModel = (0, mongoose_1.model)("jobs", JobSchema);

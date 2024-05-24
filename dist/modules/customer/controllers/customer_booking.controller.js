@@ -84,7 +84,6 @@ var job_quotation_model_1 = require("../../../database/common/job_quotation.mode
 var events_1 = require("../../../events");
 var mongoose_1 = __importDefault(require("mongoose"));
 var transaction_model_1 = __importStar(require("../../../database/common/transaction.model"));
-var stripe_1 = require("../../../services/stripe");
 var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, _b, limit, _c, page, _d, sort, contractorId_1, _e, status_1, startDate, endDate, date, type, customerId, filter, start, end, selectedDate, startOfDay_1, endOfDay, _f, data, error, error_1;
     return __generator(this, function (_g) {
@@ -365,11 +364,11 @@ var acceptOrDeclineReschedule = function (req, res, next) { return __awaiter(voi
 }); };
 exports.acceptOrDeclineReschedule = acceptOrDeclineReschedule;
 var intiateBookingCancelation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, bookingId, reason, job, customer, startDate, jobDate, currentTime, timeDifferenceInHours, cancelationCharges, amount, contractorShare, companyShare, error_6;
+    var customerId, bookingId, reason, job, customer, contract, startDate, jobDate, charges, currentTime, timeDifferenceInHours, refund, canceletionFee, contractorShare, companyShare, refundAmount, error_6;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 4, , 5]);
+                _a.trys.push([0, 6, , 7]);
                 customerId = req.customer.id;
                 bookingId = req.params.bookingId;
                 reason = req.body.reason;
@@ -379,9 +378,15 @@ var intiateBookingCancelation = function (req, res, next) { return __awaiter(voi
                 return [4 /*yield*/, customer_model_1.default.findById(customerId)];
             case 2:
                 customer = _a.sent();
-                // Check if the contractor exists
+                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findById(job === null || job === void 0 ? void 0 : job.contract)];
+            case 3:
+                contract = _a.sent();
+                // Check if the customer exists
                 if (!customer) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Customer not found' })];
+                }
+                if (!contract) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Contract not found' })];
                 }
                 // Check if the job exists
                 if (!job) {
@@ -391,6 +396,9 @@ var intiateBookingCancelation = function (req, res, next) { return __awaiter(voi
                 if (job.customer.toString() !== customerId) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'You are not authorized to cancel this booking' })];
                 }
+                if (job.status == job_model_1.JOB_STATUS.CANCELED) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Job is already canceled' })];
+                }
                 if (job.status !== job_model_1.JOB_STATUS.BOOKED) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Job is not yet booked, only booked jobs can be canceled' })];
                 }
@@ -399,58 +407,66 @@ var intiateBookingCancelation = function (req, res, next) { return __awaiter(voi
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Job does not have a schedule' })];
                 }
                 jobDate = job.schedule.startDate.getTime();
+                return [4 /*yield*/, contract.calculateCharges()];
+            case 4:
+                charges = _a.sent();
                 currentTime = new Date().getTime();
                 timeDifferenceInHours = Math.abs(jobDate - currentTime) / (1000 * 60 * 60);
-                cancelationCharges = {
-                    amount: 0,
+                refund = {
+                    refundAmount: 0,
+                    canceletionFee: 0,
                     contractorShare: 0,
                     companyShare: 0,
                     intiatedBy: 'customer',
                     policyApplied: 'free_cancelation',
+                    contractTerms: charges
                 };
                 if (timeDifferenceInHours >= 48) {
                     // Free cancellation up to 48 hours before the scheduled job time.
                 }
                 else if (timeDifferenceInHours < 24) {
-                    amount = 50;
-                    contractorShare = 0.8 * amount;
-                    companyShare = 0.2 * amount;
-                    cancelationCharges = {
-                        amount: amount,
+                    canceletionFee = 50;
+                    contractorShare = 0.8 * canceletionFee;
+                    companyShare = 0.2 * canceletionFee;
+                    refundAmount = charges.totalAmount - canceletionFee;
+                    refund = {
+                        refundAmount: refundAmount,
+                        canceletionFee: canceletionFee,
                         contractorShare: contractorShare,
                         companyShare: companyShare,
                         intiatedBy: 'customer',
                         policyApplied: '50_dollar_policy',
+                        contractTerms: charges
                     };
                 }
                 // Update job status and store cancellation data
-                //job.cancelation = cancelationCharges // dont need to save this
+                //job.cancelation = refund // dont need to save this
                 return [4 /*yield*/, job.save()];
-            case 3:
+            case 5:
                 // Update job status and store cancellation data
-                //job.cancelation = cancelationCharges // dont need to save this
+                //job.cancelation = refund // dont need to save this
                 _a.sent();
-                res.json({ success: true, message: 'Booking cancelation initiated successfully', data: cancelationCharges });
-                return [3 /*break*/, 5];
-            case 4:
+                res.json({ success: true, message: 'Booking cancelation initiated successfully', data: refund });
+                return [3 /*break*/, 7];
+            case 6:
                 error_6 = _a.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_6))];
-            case 5: return [2 /*return*/];
+            case 7: return [2 /*return*/];
         }
     });
 }); };
 exports.intiateBookingCancelation = intiateBookingCancelation;
 var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, bookingId, reason, job, _a, customer, contractor, jobDate, currentTime, timeDifferenceInHours, cancelationCharges, amount, contractorShare, companyShare, paymentMethod, transaction, payload, stripePayment, error_7;
-    var _b, _c;
+    var customerId, bookingId, reason, job, _a, customer, contractor, contract, jobDate, charges, payments, currentTime, timeDifferenceInHours, refund, canceletionFee, contractorShare, companyShare, refundAmount, paymentMethod, transaction, _i, _b, payment, error_7;
+    var _c;
     return __generator(this, function (_d) {
         switch (_d.label) {
             case 0:
-                _d.trys.push([0, 7, , 8]);
+                _d.trys.push([0, 8, , 9]);
                 customerId = req.customer.id;
                 bookingId = req.params.bookingId;
                 reason = req.body.reason;
-                return [4 /*yield*/, job_model_1.JobModel.findById(bookingId)];
+                return [4 /*yield*/, job_model_1.JobModel.findById(bookingId).populate('payments')];
             case 1:
                 job = _d.sent();
                 if (!job) {
@@ -458,12 +474,16 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
                 }
                 return [4 /*yield*/, Promise.all([
                         customer_model_1.default.findById(customerId),
-                        contractor_model_1.ContractorModel.findById(job.contractor)
+                        contractor_model_1.ContractorModel.findById(job.contractor),
+                        job_quotation_model_1.JobQuotationModel.findById(job === null || job === void 0 ? void 0 : job.contract)
                     ])];
             case 2:
-                _a = _d.sent(), customer = _a[0], contractor = _a[1];
+                _a = _d.sent(), customer = _a[0], contractor = _a[1], contract = _a[2];
                 if (!contractor) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor not found' })];
+                }
+                if (!contract) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Contract not found' })];
                 }
                 if (!customer) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Customer not found' })];
@@ -474,95 +494,102 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
                 if (job.status === job_model_1.JOB_STATUS.CANCELED) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'The booking is already canceled' })];
                 }
-                if (!((_b = job === null || job === void 0 ? void 0 : job.schedule) === null || _b === void 0 ? void 0 : _b.startDate)) {
+                if (!((_c = job === null || job === void 0 ? void 0 : job.schedule) === null || _c === void 0 ? void 0 : _c.startDate)) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Booking has no associated schedule' })];
                 }
                 jobDate = job.schedule.startDate.getTime();
+                return [4 /*yield*/, contract.calculateCharges()];
+            case 3:
+                charges = _d.sent();
+                return [4 /*yield*/, job.getPayments()];
+            case 4:
+                payments = _d.sent();
                 currentTime = new Date().getTime();
                 timeDifferenceInHours = Math.abs(jobDate - currentTime) / (1000 * 60 * 60);
-                cancelationCharges = {
-                    amount: 0,
+                refund = {
+                    refundAmount: payments.totalAmount,
+                    canceletionFee: 0,
                     contractorShare: 0,
                     companyShare: 0,
                     intiatedBy: 'customer',
                     policyApplied: 'free_cancelation',
+                    contractTerms: charges
                 };
                 if (timeDifferenceInHours >= 48) {
                     // Free cancellation up to 48 hours before the scheduled job time.
                 }
                 else if (timeDifferenceInHours < 24) {
-                    amount = 50;
-                    contractorShare = 0.8 * amount;
-                    companyShare = 0.2 * amount;
-                    cancelationCharges = {
-                        amount: amount,
+                    canceletionFee = 50;
+                    contractorShare = 0.8 * canceletionFee;
+                    companyShare = 0.2 * canceletionFee;
+                    refundAmount = payments.totalAmount - canceletionFee;
+                    refund = {
+                        refundAmount: refundAmount,
+                        canceletionFee: canceletionFee,
                         contractorShare: contractorShare,
                         companyShare: companyShare,
                         intiatedBy: 'customer',
                         policyApplied: '50_dollar_policy',
+                        contractTerms: charges
                     };
                 }
-                if (!(cancelationCharges.amount > 0)) return [3 /*break*/, 5];
+                if (!(refund.refundAmount > 0)) return [3 /*break*/, 6];
                 paymentMethod = customer.stripePaymentMethods[0];
                 if (!paymentMethod)
                     throw new Error("No such payment method");
                 return [4 /*yield*/, transaction_model_1.default.create({
                         type: transaction_model_1.TRANSACTION_TYPE.REFUND,
-                        amount: cancelationCharges.amount,
+                        amount: charges.totalAmount,
                         initiatorUser: customerId,
                         initiatorUserType: 'customers',
-                        fromUser: customerId,
-                        fromUserType: 'customers',
-                        toUser: job.contractor,
-                        toUserType: 'contractors',
-                        description: "qoutation from ".concat(contractor === null || contractor === void 0 ? void 0 : contractor.firstName, " payment"),
+                        fromUser: job.contractor,
+                        fromUserType: 'contractors',
+                        toUser: customerId,
+                        toUserType: 'customers',
+                        description: "Refund from job: ".concat(job === null || job === void 0 ? void 0 : job.title, " payment"),
                         status: transaction_model_1.TRANSACTION_STATUS.PENDING,
-                        remark: 'qoutation',
+                        remark: 'job_refund',
                         invoice: {
                             items: [],
-                            charges: cancelationCharges
+                            charges: refund
                         },
+                        metadata: __assign(__assign({}, refund), payments),
                         job: job.id
-                    })
-                    // create transaction here
-                ];
-            case 3:
-                transaction = _d.sent();
-                payload = {
-                    payment_method_types: ['card'],
-                    payment_method: paymentMethod.id,
-                    currency: 'usd',
-                    amount: (cancelationCharges.amount) * 100,
-                    application_fee_amount: (cancelationCharges.companyShare) * 100, // send everthing to connected account and  application_fee_amount will be transfered back
-                    transfer_data: {
-                        // amount: (charges.contractorAmount) * 100, // transfer to connected account
-                        destination: (_c = contractor === null || contractor === void 0 ? void 0 : contractor.stripeAccount.id) !== null && _c !== void 0 ? _c : '' // mostimes only work with same region example us, user
-                        // https://docs.stripe.com/connect/destination-charges
-                    },
-                    on_behalf_of: contractor === null || contractor === void 0 ? void 0 : contractor.stripeAccount.id,
-                    metadata: {
-                        customerId: customerId,
-                        constractorId: contractor === null || contractor === void 0 ? void 0 : contractor.id,
-                        quotationId: job.contract.toString(),
-                        type: "job_canceletion_refund",
-                        jobId: job.id,
-                        email: customer.email,
-                        transactionId: transaction.id,
-                        remark: 'job_canceletion_refund' //
-                    },
-                    customer: customer.stripeCustomer.id,
-                    off_session: true,
-                    confirm: true,
-                };
-                console.log(payload);
-                return [4 /*yield*/, stripe_1.StripeService.payment.chargeCustomer(paymentMethod.customer, paymentMethod.id, payload)];
-            case 4:
-                stripePayment = _d.sent();
-                if (!stripePayment) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Severance payment not successfully, job could not be canceled' })];
-                }
-                _d.label = 5;
+                    })];
             case 5:
+                transaction = _d.sent();
+                for (_i = 0, _b = payments.payments; _i < _b.length; _i++) {
+                    payment = _b[_i];
+                    //@ts-ignore
+                    // const stripePayment = await StripeService.payment.refundCharge(payment.reference, (payment.amount))
+                    // console.log(stripePayment)
+                    // {
+                    //     id: 're_3PGb9WDdPEZ0JirQ2RyxBNRy',
+                    //     object: 'refund',
+                    //     amount: 32500,
+                    //     balance_transaction: 'txn_3PGb9WDdPEZ0JirQ2G8UJRtV',
+                    //     charge: 'ch_3PGb9WDdPEZ0JirQ2C3LgXzN',
+                    //     created: 1716528493,
+                    //     currency: 'usd',
+                    //     destination_details: {
+                    //       card: {
+                    //         reference_status: 'pending',
+                    //         reference_type: 'acquirer_reference_number',
+                    //         type: 'refund'
+                    //       },
+                    //       type: 'card'
+                    //     },
+                    //     metadata: {},
+                    //     payment_intent: 'pi_3PGb9WDdPEZ0JirQ2uVrqdQ6',
+                    //     reason: null,
+                    //     receipt_number: null,
+                    //     source_transfer_reversal: null,
+                    //     status: 'succeeded',
+                    //     transfer_reversal: null
+                    //   }
+                }
+                _d.label = 6;
+            case 6:
                 // Update the job status to canceled
                 job.status = job_model_1.JOB_STATUS.CANCELED;
                 job.jobHistory.push({
@@ -574,14 +601,14 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
                 // inside the event take actions such as refund etc
                 events_1.JobEvent.emit('JOB_CANCELED', { job: job, canceledBy: 'customer' });
                 return [4 /*yield*/, job.save()];
-            case 6:
-                _d.sent();
-                res.json({ success: true, message: 'Booking canceled successfully', data: { job: job, cancelationCharges: cancelationCharges } });
-                return [3 /*break*/, 8];
             case 7:
+                _d.sent();
+                res.json({ success: true, message: 'Booking canceled successfully', data: { job: job, refund: refund, payments: payments } });
+                return [3 /*break*/, 9];
+            case 8:
                 error_7 = _d.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_7))];
-            case 8: return [2 /*return*/];
+            case 9: return [2 /*return*/];
         }
     });
 }); };

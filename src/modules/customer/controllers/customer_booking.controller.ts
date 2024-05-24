@@ -19,6 +19,7 @@ import TransactionModel, { TRANSACTION_STATUS, TRANSACTION_TYPE } from "../../..
 import { StripeService } from "../../../services/stripe";
 import Stripe from "stripe";
 import { IContractorReview } from "../../../database/contractor/interface/contractor.interface";
+import { IPayment } from "../../../database/common/payment.schema";
 
 
 
@@ -313,14 +314,17 @@ export const intiateBookingCancelation = async (req: any, res: Response, next: N
 
         // Find the job
         const job = await JobModel.findById(bookingId);
-
         const customer = await CustomerModel.findById(customerId);
+        const contract = await JobQuotationModel.findById(job?.contract);
 
-        // Check if the contractor exists
+        // Check if the customer exists
         if (!customer) {
             return res.status(404).json({ success: false, message: 'Customer not found' });
         }
 
+        if (!contract) {
+            return res.status(404).json({ success: false, message: 'Contract not found' });
+        }
 
         // Check if the job exists
         if (!job) {
@@ -332,13 +336,19 @@ export const intiateBookingCancelation = async (req: any, res: Response, next: N
             return res.status(403).json({ success: false, message: 'You are not authorized to cancel this booking' });
         }
 
+        if (job.status == JOB_STATUS.CANCELED) {
+            return res.status(400).json({ success: false, message: 'Job is already canceled' });
+        }
+
         if (job.status !== JOB_STATUS.BOOKED) {
             return res.status(400).json({ success: false, message: 'Job is not yet booked, only booked jobs can be canceled' });
         }
 
 
 
-        // TODO: apply the guidline below and create cancelationCharges
+
+
+        // TODO: apply the guidline below and create refund
         // Cancel jobs: Customers have the option to cancel jobs based on the following guidelines:
         // Free cancellation up to 48 hours before the scheduled job time..
         // For cancellations made within 24 hours, regardless of the job's cost, a $50 cancellation fee is applied. 80% of this fee is directed to the contractor, while the remaining 20% is retained by us.
@@ -349,16 +359,18 @@ export const intiateBookingCancelation = async (req: any, res: Response, next: N
         }
 
         const jobDate = job.schedule.startDate.getTime();
-
+        const charges = await contract.calculateCharges()
         const currentTime = new Date().getTime();
         const timeDifferenceInHours = Math.abs(jobDate - currentTime) / (1000 * 60 * 60);
 
-        let cancelationCharges = {
-            amount: 0,
+        let refund = {
+            refundAmount: 0,
+            canceletionFee: 0,
             contractorShare: 0,
             companyShare: 0,
             intiatedBy: 'customer',
             policyApplied: 'free_cancelation',
+            contractTerms: charges
         };
 
         if (timeDifferenceInHours >= 48) {
@@ -366,24 +378,28 @@ export const intiateBookingCancelation = async (req: any, res: Response, next: N
 
         } else if (timeDifferenceInHours < 24) {
             // For cancellations made within 24 hours, apply cancellation fees.
-            const amount = 50;
-            const contractorShare = 0.8 * amount;
-            const companyShare = 0.2 * amount;
+            const canceletionFee = 50;
+            const contractorShare = 0.8 * canceletionFee;
+            const companyShare = 0.2 * canceletionFee;
 
-            cancelationCharges = {
-                amount,
+            
+            const refundAmount = charges.totalAmount - canceletionFee
+            refund = {
+                refundAmount,
+                canceletionFee,
                 contractorShare,
                 companyShare,
                 intiatedBy: 'customer',
                 policyApplied: '50_dollar_policy',
+                contractTerms: charges
             };
         }
 
         // Update job status and store cancellation data
-        //job.cancelation = cancelationCharges // dont need to save this
+        //job.cancelation = refund // dont need to save this
         await job.save();
 
-        res.json({ success: true, message: 'Booking cancelation initiated successfully', data: cancelationCharges });
+        res.json({ success: true, message: 'Booking cancelation initiated successfully', data: refund });
     } catch (error: any) {
         return next(new BadRequestError('An error occurred', error));
     }
@@ -395,18 +411,23 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
         const { bookingId } = req.params;
         const { reason } = req.body;
 
-        const job = await JobModel.findById(bookingId);
+        const job = await JobModel.findById(bookingId).populate('payments');
         if (!job) {
             return res.status(404).json({ success: false, message: 'Job not found' });
         }
 
-        const [customer, contractor] = await Promise.all([
+        const [customer, contractor, contract] = await Promise.all([
             CustomerModel.findById(customerId),
-            ContractorModel.findById(job.contractor)
+            ContractorModel.findById(job.contractor),
+            JobQuotationModel.findById(job?.contract)
         ]);
 
         if (!contractor) {
             return res.status(404).json({ success: false, message: 'Contractor not found' });
+        }
+
+        if (!contract) {
+            return res.status(404).json({ success: false, message: 'Contract not found' });
         }
 
         if (!customer) {
@@ -431,15 +452,19 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
         }
 
         const jobDate = job.schedule.startDate.getTime();
+        const charges = await contract.calculateCharges()
+        const payments = await job.getPayments()
         const currentTime = new Date().getTime();
         const timeDifferenceInHours = Math.abs(jobDate - currentTime) / (1000 * 60 * 60);
 
-        let cancelationCharges = {
-            amount: 0,
+        let refund = {
+            refundAmount: payments.totalAmount,
+            canceletionFee: 0,
             contractorShare: 0,
             companyShare: 0,
             intiatedBy: 'customer',
             policyApplied: 'free_cancelation',
+            contractTerms: charges
         };
 
         if (timeDifferenceInHours >= 48) {
@@ -447,84 +472,85 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
 
         } else if (timeDifferenceInHours < 24) {
             // For cancellations made within 24 hours, apply cancellation fees.
-            const amount = 50;
-            const contractorShare = 0.8 * amount;
-            const companyShare = 0.2 * amount;
+            const canceletionFee = 50;
+            const contractorShare = 0.8 * canceletionFee;
+            const companyShare = 0.2 * canceletionFee;
 
-            cancelationCharges = {
-                amount,
+            const refundAmount = payments.totalAmount - canceletionFee
+            refund = {
+                refundAmount,
+                canceletionFee,
                 contractorShare,
                 companyShare,
                 intiatedBy: 'customer',
                 policyApplied: '50_dollar_policy',
+                contractTerms: charges
             };
         }
 
 
-        if (cancelationCharges.amount > 0) {
+        if (refund.refundAmount > 0) {
             const paymentMethod = customer.stripePaymentMethods[0]
             if (!paymentMethod) throw new Error("No such payment method")
 
             const transaction = await TransactionModel.create({
                 type: TRANSACTION_TYPE.REFUND,
-                amount: cancelationCharges.amount,
+                amount: charges.totalAmount,
 
                 initiatorUser: customerId,
                 initiatorUserType: 'customers',
 
-                fromUser: customerId,
-                fromUserType: 'customers',
+                fromUser: job.contractor,
+                fromUserType: 'contractors',
 
-                toUser: job.contractor,
-                toUserType: 'contractors',
+                toUser: customerId,
+                toUserType: 'customers',
 
-                description: `qoutation from ${contractor?.firstName} payment`,
+                description: `Refund from job: ${job?.title} payment`,
                 status: TRANSACTION_STATUS.PENDING,
-                remark: 'qoutation',
+                remark: 'job_refund',
                 invoice: {
                     items: [],
-                    charges: cancelationCharges
+                    charges: refund
+                },
+                metadata: {
+                    ...refund,
+                    ...payments
                 },
                 job: job.id
             })
 
+            for(const payment of payments.payments){
+                //@ts-ignore
+                // const stripePayment = await StripeService.payment.refundCharge(payment.reference, (payment.amount))
+                // console.log(stripePayment)
 
-
-            // create transaction here
-            let payload: Stripe.PaymentIntentCreateParams = {
-                payment_method_types: ['card'],
-                payment_method: paymentMethod.id,
-                currency: 'usd',
-                amount: (cancelationCharges.amount) * 100,
-                application_fee_amount: (cancelationCharges.companyShare) * 100, // send everthing to connected account and  application_fee_amount will be transfered back
-                transfer_data: {
-                    // amount: (charges.contractorAmount) * 100, // transfer to connected account
-                    destination: contractor?.stripeAccount.id ?? '' // mostimes only work with same region example us, user
-                    // https://docs.stripe.com/connect/destination-charges
-                },
-                on_behalf_of: contractor?.stripeAccount.id,
-                metadata: {
-                    customerId,
-                    constractorId: contractor?.id,
-                    quotationId: job.contract.toString(),
-                    type: "job_canceletion_refund",
-                    jobId: job.id,
-                    email: customer.email,
-                    transactionId: transaction.id,
-                    remark: 'job_canceletion_refund' //
-                },
-
-                customer: customer.stripeCustomer.id,
-                off_session: true,
-                confirm: true,
+                // {
+                //     id: 're_3PGb9WDdPEZ0JirQ2RyxBNRy',
+                //     object: 'refund',
+                //     amount: 32500,
+                //     balance_transaction: 'txn_3PGb9WDdPEZ0JirQ2G8UJRtV',
+                //     charge: 'ch_3PGb9WDdPEZ0JirQ2C3LgXzN',
+                //     created: 1716528493,
+                //     currency: 'usd',
+                //     destination_details: {
+                //       card: {
+                //         reference_status: 'pending',
+                //         reference_type: 'acquirer_reference_number',
+                //         type: 'refund'
+                //       },
+                //       type: 'card'
+                //     },
+                //     metadata: {},
+                //     payment_intent: 'pi_3PGb9WDdPEZ0JirQ2uVrqdQ6',
+                //     reason: null,
+                //     receipt_number: null,
+                //     source_transfer_reversal: null,
+                //     status: 'succeeded',
+                //     transfer_reversal: null
+                //   }
             }
-
-            console.log(payload)
-            const stripePayment = await StripeService.payment.chargeCustomer(paymentMethod.customer, paymentMethod.id, payload)
-
-            if (!stripePayment) {
-                return res.status(400).json({ success: false, message: 'Severance payment not successfully, job could not be canceled' });
-            }
+            
         }
 
 
@@ -544,7 +570,7 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
         JobEvent.emit('JOB_CANCELED', { job, canceledBy: 'customer' })
         await job.save();
 
-        res.json({ success: true, message: 'Booking canceled successfully', data: { job, cancelationCharges } });
+        res.json({ success: true, message: 'Booking canceled successfully', data: { job, refund, payments } });
     } catch (error: any) {
         return next(new BadRequestError('An error occurred', error));
     }

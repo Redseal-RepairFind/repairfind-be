@@ -80,7 +80,7 @@ export interface IStatusUpdate {
     createdBy?: 'customer' | 'contractor'
     remark?: string
     status: string;
-  }
+}
 
 
 
@@ -90,7 +90,7 @@ export interface IJobReview {
     review?: string; // Optional: Textual feedback
     averageRating?: number; // avaraged from the items in ratings array
     createdAt: Date;
-  }
+}
 
 export interface IJob extends Document {
     _id: ObjectId;
@@ -109,7 +109,7 @@ export interface IJob extends Document {
     location: IJobLocation;
     date: Date;
     startDate: Date;
-    endDate: Date; 
+    endDate: Date;
     time: Date;
     expiresIn: number;
     media: string[];
@@ -117,17 +117,22 @@ export interface IJob extends Document {
     experience?: string;
     createdAt: Date;
     updatedAt: Date;
-    quotations: [{id: ObjectId, status: string}];
+    quotations: [{ id: ObjectId, status: string }];
     jobHistory: IJobHistory[];
     payments: ObjectId[];
     schedule: IJobSchedule;
-    reschedule: IJobReSchedule|null;
+    reschedule: IJobReSchedule | null;
     assignment: IJobAssignment;
     emergency: boolean;
     myQuotation: Object | null
     isAssigned: boolean;
     review: IJobReview;
     getMyQoutation: (contractorId: ObjectId) => {
+    };
+    getPayments: () => {
+        paymentCount: number;
+        totalAmount: number;
+        payments: Array<{ amount: number, reference: string, status: string, refunded: boolean, paid: boolean, amount_refunded: number, captured: boolean }>;
     };
 }
 
@@ -161,7 +166,7 @@ const ScheduleSchema = new Schema<IJobSchedule>({
 
 const ReScheduleSchema = new Schema<IJobReSchedule>({
     date: { type: Date, required: true },
-    previousDate: { type: Date},
+    previousDate: { type: Date },
     awaitingConfirmation: { type: Boolean, default: false },
     isCustomerAccept: { type: Boolean, default: false },
     isContractorAccept: { type: Boolean, default: false },
@@ -176,11 +181,11 @@ const StatusUpdateSchema = new Schema<IStatusUpdate>({
     isContractorAccept: { type: Boolean, default: false },
     createdBy: String,
     status: {
-      type: String,
-      enum: Object.values(JOB_STATUS)  
-    }, 
+        type: String,
+        enum: Object.values(JOB_STATUS)
+    },
     remark: String,
-  });
+});
 
 
 const JobAssignmentSchema = new Schema<IJobAssignment>({
@@ -202,23 +207,23 @@ const JobLocationSchema = new Schema<IJobLocation>({
 
 const JobReviewSchema = new Schema<IJobReview>({
     averageRating: {
-      type: Number,
-      min: 1,
-      max: 5, // Adjust based on your rating scale
+        type: Number,
+        min: 1,
+        max: 5, // Adjust based on your rating scale
     },
     review: {
-      type: String,
+        type: String,
     },
     ratings: {
-      type: [{item: String, rating: Number}],
+        type: [{ item: String, rating: Number }],
     },
     createdAt: {
-      type: Date,
-      default: Date.now,
+        type: Date,
+        default: Date.now,
     },
-  });
+});
 
- 
+
 const JobHistorySchema = new Schema<IJobHistory>({
     eventType: { type: String, required: false }, // Identify the type of event - JOB_REJECTED, JOB_ACCEPTED, JOB_CLOSED, JOB_EXPIRED
     timestamp: { type: Date, default: Date.now }, // Timestamp of the event
@@ -233,7 +238,7 @@ const JobSchema = new Schema<IJob>({
     contract: { type: Schema.Types.ObjectId, ref: 'job_quotations' }, // TODO: replace quotation with this
     contractorType: { type: String },
     status: { type: String, enum: Object.values(JOB_STATUS), default: JOB_STATUS.PENDING },
-    statusUpdate: StatusUpdateSchema, 
+    statusUpdate: StatusUpdateSchema,
     type: { type: String, enum: Object.values(JobType), default: JobType.LISTING },
     category: { type: String, required: false },
     description: { type: String, required: true },
@@ -261,9 +266,9 @@ const JobSchema = new Schema<IJob>({
     },
     myQuotation: Object,
     assignment: JobAssignmentSchema,
-    emergency: {type: Boolean, default:false},
-    isAssigned: {type: Boolean, default:false},
-    review: {type: JobReviewSchema },
+    emergency: { type: Boolean, default: false },
+    isAssigned: { type: Boolean, default: false },
+    review: { type: JobReviewSchema },
 }, { timestamps: true });
 
 
@@ -277,12 +282,35 @@ JobSchema.virtual('totalQuotations').get(function () {
 
 
 JobSchema.methods.getMyQoutation = async function (contractor: any) {
-    const contractorQuotation = await JobQuotationModel.findOne({job:this.id, contractor})
-    if(contractorQuotation){
+    const contractorQuotation = await JobQuotationModel.findOne({ job: this.id, contractor })
+    if (contractorQuotation) {
         return contractorQuotation
-    }else{
+    } else {
         return null
     }
+};
+
+
+// get job payments summary
+JobSchema.methods.getPayments = async function () {
+    let totalAmount = 0;
+
+    const job = await this.populate('payments')
+    totalAmount = job.payments.reduce((acc: number, payment: any) => acc + payment.amount, 0);
+    const payments = job.payments.map((payment: any) => {
+        return {
+            amount: payment.amount,
+            amount_refunded: payment.amount_refunded,
+            reference: payment.reference,
+            status: payment.status,
+            refunded: payment.refunded,
+            paid: payment.paid,
+            captured: payment.captured,
+        }
+    })
+   
+
+    return { totalAmount, paymentCount:payments.length,  payments };
 };
 
 

@@ -117,6 +117,9 @@ var TransactionSchema = new mongoose_1.Schema({
         },
         default: null,
     },
+    metadata: {
+        type: mongoose_1.Schema.Types.Mixed
+    },
     job: {
         type: mongoose_1.Schema.Types.ObjectId,
         default: null,
