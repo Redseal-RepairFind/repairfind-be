@@ -377,7 +377,6 @@ export const createJobDispute = async (req: any, res: Response, next: NextFuncti
             status: JOB_DISPUTE_STATUS.OPEN,
         }, { new: true, upsert: true });
 
-        JobEvent.emit('JOB_DISPUTE_CREATED', { dispute: dispute });
         
         const contractorId = job.contractor
         const conversationMembers = [
@@ -413,6 +412,11 @@ export const createJobDispute = async (req: any, res: Response, next: NextFuncti
 
         dispute.conversation = conversation.id
         await dispute.save()
+
+        job.status = JOB_STATUS.DISPUTED
+        await job.save()
+
+        JobEvent.emit('JOB_DISPUTE_CREATED', { dispute: dispute });
 
         return res.status(201).json({ success: true, message: 'Job dispute created successfully', data: dispute });
 

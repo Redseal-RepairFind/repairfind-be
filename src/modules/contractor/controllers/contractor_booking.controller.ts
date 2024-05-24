@@ -174,6 +174,69 @@ export const getBookingHistory = async (req: any, res: Response, next: NextFunct
 };
 
 
+export const getBookingDisputes = async (req: any, res: Response, next: NextFunction) => {
+    const contractorId = req.contractor.id
+
+    try {
+        let {
+            page = 1, // Default to page 1
+            limit = 10, // Default to 10 items per page
+            sort = '-createdAt', // Sort field and order (-fieldName or fieldName)
+            customerId,
+            status = 'DISPUTED',
+        } = req.query;
+
+
+        req.query.page = page
+        req.query.limit = limit
+        req.query.sort = sort
+        delete req.query.status
+
+        const statusArray = status.split(',').map((s: any) => s.trim()); // Convert the comma-separated string to an array of statuses
+        let filter: any = {
+            status: { $in: statusArray },
+            $or: [
+                { contractor: contractorId },
+                { 'assignment.contractor': contractorId }
+            ]
+        };
+
+        if (customerId) {
+            if (!mongoose.Types.ObjectId.isValid(customerId)) {
+                return res.status(400).json({ success: false, message: 'Invalid customer id' });
+            }
+            req.query.customer = customerId
+            delete req.query.customerId
+        }
+
+        // Query JobModel to find jobs that have IDs present in the extracted jobIds
+
+        const { data, error } = await applyAPIFeature(
+            JobModel.find(filter).distinct('_id').populate('customer'),
+            req.query);
+        if (data) {
+            // Map through each job and attach myQuotation if contractor has applied 
+            await Promise.all(data.data.map(async (job: any) => {
+                if (job.isAssigned) {
+                    job.myQuotation = await job.getMyQoutation(job.contractor)
+                } else {
+                    job.myQuotation = await job.getMyQoutation(contractorId)
+                }
+            }));
+        }
+
+        if (error) {
+            return next(new BadRequestError('Unkowon error occured', error as Error));
+        }
+
+        // Send response with job listings data
+        res.status(200).json({ success: true, data: data });
+    } catch (error: any) {
+        return next(new BadRequestError('An error occurred', error));
+    }
+};
+
+
 
 export const getSingleBooking = async (req: any, res: Response, next: NextFunction) => {
     try {
@@ -535,6 +598,7 @@ export const markBookingComplete = async (req: any, res: Response, next: NextFun
 export const ContractorBookingController = {
     getMyBookings,
     getBookingHistory,
+    getBookingDisputes,
     getSingleBooking,
     requestBookingReschedule,
     acceptOrDeclineReschedule,

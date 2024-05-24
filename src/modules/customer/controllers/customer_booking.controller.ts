@@ -168,6 +168,68 @@ export const getBookingHistory = async (req: any, res: Response, next: NextFunct
 };
 
 
+
+export const getBookingDisputes = async (req: any, res: Response, next: NextFunction) => {
+    const customerId = req.customer.id;
+
+    try {
+        let {
+            page = 1, // Default to page 1
+            limit = 10, // Default to 10 items per page
+            sort = '-createdAt', // Sort field and order (-fieldName or fieldName)
+            contractorId,
+            status = 'DISPUTED',
+        } = req.query;
+
+
+        req.query.page = page
+        req.query.limit = limit
+        req.query.sort = sort
+        delete req.query.status
+
+        let jobIds = [];
+        const statusArray = status.split(',').map((s: any) => s.trim()); // Convert the comma-separated string to an array of statuses
+        const filter: any = { status: { $in: statusArray }, customer: customerId }
+
+        if (contractorId) {
+            // Retrieve the quotations for the current contractor and extract job IDs
+            const quotations = await JobQuotationModel.find({ contractor: contractorId }).select('job').lean();
+            // Extract job IDs from the quotations
+            jobIds = quotations.map((quotation: any) => quotation.job);
+            filter._id = { $in: jobIds }
+
+            if (!mongoose.Types.ObjectId.isValid(contractorId)) {
+                return res.status(400).json({ success: false, message: 'Invalid customer id' });
+            }
+            req.query.contractor = contractorId
+            delete req.query.contractorId
+        }
+
+        // Query JobModel to find jobs that have IDs present in the extracted jobIds
+
+        const { data, error } = await applyAPIFeature(
+            JobModel.find(filter).distinct('_id').populate('contractor'),
+            req.query);
+        if (data) {
+            // Map through each job and attach myQuotation if contractor has applied 
+            await Promise.all(data.data.map(async (job: any) => {
+                job.myQuotation = await job.getMyQoutation(contractorId)
+            }));
+        }
+
+        if (error) {
+            console.log(error)
+            res.status(500).json({ success: false, message: error });
+        }
+
+        // Send response with job listings data
+        res.status(200).json({ success: true, data: data });
+    } catch (error: any) {
+        return next(new BadRequestError('An error occurred', error));
+    }
+};
+
+
 export const getSingleBooking = async (req: any, res: Response, next: NextFunction) => {
     try {
 
@@ -736,13 +798,14 @@ export const reviewBookingOnCompletion = async (req: any, res: Response, next: N
 export const CustomerBookingController = {
     getMyBookings,
     getBookingHistory,
+    getBookingDisputes,
     getSingleBooking,
     requestBookingReschedule,
     acceptOrDeclineReschedule,
     cancelBooking,
     intiateBookingCancelation,
     acceptBookingComplete,
-    reviewBookingOnCompletion
+    reviewBookingOnCompletion,
 }
 
 

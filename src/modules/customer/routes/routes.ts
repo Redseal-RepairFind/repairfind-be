@@ -72,6 +72,7 @@ router.post("/jobs/:jobId/payment-capture", checkCustomerRole, CustomerPaymentCo
 // BOOKING
 router.get("/bookings", checkCustomerRole, CustomerBookingController.getMyBookings ); 
 router.get("/bookings/history", checkCustomerRole, CustomerBookingController.getBookingHistory ); 
+router.get("/bookings/disputes", checkCustomerRole, CustomerBookingController.getBookingDisputes ); 
 router.get("/bookings/:bookingId", checkCustomerRole, CustomerBookingController.getSingleBooking ); 
 router.post("/bookings/:bookingId/cancel", checkCustomerRole, CustomerBookingController.cancelBooking ); 
 router.post("/bookings/:bookingId/initiate-cancel", checkCustomerRole, CustomerBookingController.intiateBookingCancelation ); 

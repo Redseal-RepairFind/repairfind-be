@@ -73,7 +73,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerBookingController = exports.reviewBookingOnCompletion = exports.acceptBookingComplete = exports.cancelBooking = exports.intiateBookingCancelation = exports.acceptOrDeclineReschedule = exports.requestBookingReschedule = exports.getSingleBooking = exports.getBookingHistory = exports.getMyBookings = void 0;
+exports.CustomerBookingController = exports.reviewBookingOnCompletion = exports.acceptBookingComplete = exports.cancelBooking = exports.intiateBookingCancelation = exports.acceptOrDeclineReschedule = exports.requestBookingReschedule = exports.getSingleBooking = exports.getBookingDisputes = exports.getBookingHistory = exports.getMyBookings = void 0;
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
@@ -228,8 +228,76 @@ var getBookingHistory = function (req, res, next) { return __awaiter(void 0, voi
     });
 }); };
 exports.getBookingHistory = getBookingHistory;
+var getBookingDisputes = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var customerId, _a, _b, page, _c, limit, _d, sort, contractorId_3, _e, status_3, jobIds, statusArray, filter, quotations, _f, data, error, error_3;
+    return __generator(this, function (_g) {
+        switch (_g.label) {
+            case 0:
+                customerId = req.customer.id;
+                _g.label = 1;
+            case 1:
+                _g.trys.push([1, 7, , 8]);
+                _a = req.query, _b = _a.page, page = _b === void 0 ? 1 : _b, _c = _a.limit, limit = _c === void 0 ? 10 : _c, _d = _a.sort, sort = _d === void 0 ? '-createdAt' : _d, contractorId_3 = _a.contractorId, _e = _a.status, status_3 = _e === void 0 ? 'DISPUTED' : _e;
+                req.query.page = page;
+                req.query.limit = limit;
+                req.query.sort = sort;
+                delete req.query.status;
+                jobIds = [];
+                statusArray = status_3.split(',').map(function (s) { return s.trim(); });
+                filter = { status: { $in: statusArray }, customer: customerId };
+                if (!contractorId_3) return [3 /*break*/, 3];
+                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.find({ contractor: contractorId_3 }).select('job').lean()];
+            case 2:
+                quotations = _g.sent();
+                // Extract job IDs from the quotations
+                jobIds = quotations.map(function (quotation) { return quotation.job; });
+                filter._id = { $in: jobIds };
+                if (!mongoose_1.default.Types.ObjectId.isValid(contractorId_3)) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid customer id' })];
+                }
+                req.query.contractor = contractorId_3;
+                delete req.query.contractorId;
+                _g.label = 3;
+            case 3: return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_model_1.JobModel.find(filter).distinct('_id').populate('contractor'), req.query)];
+            case 4:
+                _f = _g.sent(), data = _f.data, error = _f.error;
+                if (!data) return [3 /*break*/, 6];
+                // Map through each job and attach myQuotation if contractor has applied 
+                return [4 /*yield*/, Promise.all(data.data.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
+                        var _a;
+                        return __generator(this, function (_b) {
+                            switch (_b.label) {
+                                case 0:
+                                    _a = job;
+                                    return [4 /*yield*/, job.getMyQoutation(contractorId_3)];
+                                case 1:
+                                    _a.myQuotation = _b.sent();
+                                    return [2 /*return*/];
+                            }
+                        });
+                    }); }))];
+            case 5:
+                // Map through each job and attach myQuotation if contractor has applied 
+                _g.sent();
+                _g.label = 6;
+            case 6:
+                if (error) {
+                    console.log(error);
+                    res.status(500).json({ success: false, message: error });
+                }
+                // Send response with job listings data
+                res.status(200).json({ success: true, data: data });
+                return [3 /*break*/, 8];
+            case 7:
+                error_3 = _g.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_3))];
+            case 8: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getBookingDisputes = getBookingDisputes;
 var getSingleBooking = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, bookingId, job, error_3;
+    var customerId, bookingId, job, error_4;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -247,15 +315,15 @@ var getSingleBooking = function (req, res, next) { return __awaiter(void 0, void
                 res.json({ success: true, message: 'Booking retrieved', data: job });
                 return [3 /*break*/, 3];
             case 2:
-                error_3 = _a.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_3))];
+                error_4 = _a.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_4))];
             case 3: return [2 /*return*/];
         }
     });
 }); };
 exports.getSingleBooking = getSingleBooking;
 var requestBookingReschedule = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, bookingId, job, _a, date, remark, updatedSchedule, error_4;
+    var customerId, bookingId, job, _a, date, remark, updatedSchedule, error_5;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -297,15 +365,15 @@ var requestBookingReschedule = function (req, res, next) { return __awaiter(void
                 res.json({ success: true, message: 'Job reschedule request sent' });
                 return [3 /*break*/, 4];
             case 3:
-                error_4 = _b.sent();
-                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred', error_4))];
+                error_5 = _b.sent();
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred', error_5))];
             case 4: return [2 /*return*/];
         }
     });
 }); };
 exports.requestBookingReschedule = requestBookingReschedule;
 var acceptOrDeclineReschedule = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, _a, bookingId, action, job, error_5;
+    var customerId, _a, bookingId, action, job, error_6;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -356,15 +424,15 @@ var acceptOrDeclineReschedule = function (req, res, next) { return __awaiter(voi
                 res.json({ success: true, message: "Rescheduling request has been ".concat(action, "ed") });
                 return [3 /*break*/, 4];
             case 3:
-                error_5 = _b.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_5))];
+                error_6 = _b.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_6))];
             case 4: return [2 /*return*/];
         }
     });
 }); };
 exports.acceptOrDeclineReschedule = acceptOrDeclineReschedule;
 var intiateBookingCancelation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, bookingId, reason, job, customer, contract, startDate, jobDate, charges, payments, currentTime, timeDifferenceInHours, refund, canceletionFee, contractorShare, companyShare, refundAmount, error_6;
+    var customerId, bookingId, reason, job, customer, contract, startDate, jobDate, charges, payments, currentTime, timeDifferenceInHours, refund, canceletionFee, contractorShare, companyShare, refundAmount, error_7;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -454,15 +522,15 @@ var intiateBookingCancelation = function (req, res, next) { return __awaiter(voi
                 res.json({ success: true, message: 'Booking cancelation initiated successfully', data: refund });
                 return [3 /*break*/, 8];
             case 7:
-                error_6 = _a.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_6))];
+                error_7 = _a.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_7))];
             case 8: return [2 /*return*/];
         }
     });
 }); };
 exports.intiateBookingCancelation = intiateBookingCancelation;
 var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, bookingId, reason, job, _a, customer, contractor, contract, jobDate, charges, payments, currentTime, timeDifferenceInHours, refund, canceletionFee, contractorShare, companyShare, refundAmount, paymentMethod, transaction, _i, _b, payment, error_7;
+    var customerId, bookingId, reason, job, _a, customer, contractor, contract, jobDate, charges, payments, currentTime, timeDifferenceInHours, refund, canceletionFee, contractorShare, companyShare, refundAmount, paymentMethod, transaction, _i, _b, payment, error_8;
     var _c;
     return __generator(this, function (_d) {
         switch (_d.label) {
@@ -613,15 +681,15 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
                 res.json({ success: true, message: 'Booking canceled successfully', data: { job: job, refund: refund, payments: payments } });
                 return [3 /*break*/, 9];
             case 8:
-                error_7 = _d.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_7))];
+                error_8 = _d.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_8))];
             case 9: return [2 /*return*/];
         }
     });
 }); };
 exports.cancelBooking = cancelBooking;
 var acceptBookingComplete = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, bookingId, reason, job, customer, error_8;
+    var customerId, bookingId, reason, job, customer, error_9;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -672,15 +740,15 @@ var acceptBookingComplete = function (req, res, next) { return __awaiter(void 0,
                 res.json({ success: true, message: 'Booking marked as completed successfully', data: job });
                 return [3 /*break*/, 5];
             case 4:
-                error_8 = _a.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_8))];
+                error_9 = _a.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_9))];
             case 5: return [2 /*return*/];
         }
     });
 }); };
 exports.acceptBookingComplete = acceptBookingComplete;
 var reviewBookingOnCompletion = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, _a, review, ratings, favoriteContractor, bookingId, job_1, contractor, existingReview, newReview, totalRatings, totalReviewScore, averageRating, contractorReview, foundIndex, error_9;
+    var customerId, _a, review, ratings, favoriteContractor, bookingId, job_1, contractor, existingReview, newReview, totalRatings, totalReviewScore, averageRating, contractorReview, foundIndex, error_10;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -744,8 +812,8 @@ var reviewBookingOnCompletion = function (req, res, next) { return __awaiter(voi
                 res.json({ success: true, message: 'Review added successfully', data: newReview });
                 return [3 /*break*/, 6];
             case 5:
-                error_9 = _b.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_9))];
+                error_10 = _b.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_10))];
             case 6: return [2 /*return*/];
         }
     });
@@ -754,11 +822,12 @@ exports.reviewBookingOnCompletion = reviewBookingOnCompletion;
 exports.CustomerBookingController = {
     getMyBookings: exports.getMyBookings,
     getBookingHistory: exports.getBookingHistory,
+    getBookingDisputes: exports.getBookingDisputes,
     getSingleBooking: exports.getSingleBooking,
     requestBookingReschedule: exports.requestBookingReschedule,
     acceptOrDeclineReschedule: exports.acceptOrDeclineReschedule,
     cancelBooking: exports.cancelBooking,
     intiateBookingCancelation: exports.intiateBookingCancelation,
     acceptBookingComplete: exports.acceptBookingComplete,
-    reviewBookingOnCompletion: exports.reviewBookingOnCompletion
+    reviewBookingOnCompletion: exports.reviewBookingOnCompletion,
 };

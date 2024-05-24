@@ -338,7 +338,7 @@ var createJobDispute = function (req, res, next) { return __awaiter(void 0, void
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
-                _c.trys.push([0, 6, , 7]);
+                _c.trys.push([0, 7, , 8]);
                 _a = req.body, description = _a.description, reason = _a.reason, evidence = _a.evidence;
                 jobDayId = req.params.jobDayId;
                 contractorId = req.contractor.id;
@@ -405,13 +405,17 @@ var createJobDispute = function (req, res, next) { return __awaiter(void 0, void
                 return [4 /*yield*/, dispute.save()];
             case 5:
                 _c.sent();
+                job.status = job_model_1.JOB_STATUS.DISPUTED;
+                return [4 /*yield*/, job.save()];
+            case 6:
+                _c.sent();
                 events_1.JobEvent.emit('JOB_DISPUTE_CREATED', { dispute: dispute });
                 return [2 /*return*/, res.status(201).json({ success: true, message: 'Job dispute created successfully', data: dispute })];
-            case 6:
+            case 7:
                 error_2 = _c.sent();
                 next(new custom_errors_1.InternalServerError('Error creating job dispute:', error_2));
-                return [3 /*break*/, 7];
-            case 7: return [2 /*return*/];
+                return [3 /*break*/, 8];
+            case 8: return [2 /*return*/];
         }
     });
 }); };

@@ -401,6 +401,9 @@ export const createJobDispute = async (req: any, res: Response, next: NextFuncti
         await dispute.save()
 
 
+        job.status = JOB_STATUS.DISPUTED
+        await job.save()
+
         JobEvent.emit('JOB_DISPUTE_CREATED', { dispute: dispute });
 
         
