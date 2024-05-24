@@ -14,6 +14,7 @@ import { GoogleServiceProvider } from "../../../services/google";
 import { CustomerAuthProviders } from "../../../database/customer/interface/customer.interface";
 import { FacebookServiceProvider } from "../../../services/facebook";
 import { AppleIdServiceProvider } from "../../../services";
+import { config } from "../../../config";
 
 //customer signup /////////////
 export const signUp = async (
@@ -182,13 +183,14 @@ export const verifyEmail = async (
         userType: 'customers',
       },
       process.env.JWT_CONTRACTOR_SECRET_KEY!,
-      { expiresIn: "24h" }
+      { expiresIn: config.jwt.tokenLifetime }
     );
 
     return res.json({
       success: true,
       message: "email verified successfully",
       accessToken,
+      expiresIn: config.jwt.tokenLifetime,
       data: customer
     });
 
@@ -254,7 +256,7 @@ export const signIn = async (
         userType: 'customers',
       },
       process.env.JWT_CONTRACTOR_SECRET_KEY!,
-      { expiresIn: "24h" }
+      { expiresIn: config.jwt.tokenLifetime  }
     );
 
     // return access token
@@ -262,6 +264,7 @@ export const signIn = async (
       status: true,
       message: "Login successful",
       accessToken,
+      expiresIn: config.jwt.tokenLifetime, 
       data: profile
     });
 

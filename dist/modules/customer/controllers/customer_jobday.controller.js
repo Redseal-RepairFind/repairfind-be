@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerJobDayController = exports.createJobEmergency = exports.savePostJobQualityAssurance = exports.savePreJobJobQualityAssurance = exports.confirmContractorArrival = exports.initiateJobDay = void 0;
+exports.CustomerJobDayController = exports.createJobDispute = exports.createJobEmergency = exports.savePostJobQualityAssurance = exports.savePreJobJobQualityAssurance = exports.confirmContractorArrival = exports.initiateJobDay = void 0;
 var express_validator_1 = require("express-validator");
 var index_1 = require("../../../services/notifications/index");
 var job_day_model_1 = require("../../../database/common/job_day.model");
@@ -51,6 +51,7 @@ var job_model_1 = require("../../../database/common/job.model");
 var conversations_schema_1 = require("../../../database/common/conversations.schema");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
+var job_dispute_model_1 = require("../../../database/common/job_dispute.model");
 var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var jobId, errors, customerId, job, activeTrip, contractorId, contractor, customer, contractorProfile, conversationMembers, conversation, data, err_1;
     return __generator(this, function (_a) {
@@ -356,10 +357,95 @@ var createJobEmergency = function (req, res, next) { return __awaiter(void 0, vo
     });
 }); };
 exports.createJobEmergency = createJobEmergency;
+var createJobDispute = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, description, evidence, jobDayId, customerId, errors, jobDay, job, filedBy, dispute, contractorId, conversationMembers, conversation, disputeEvidence, error_2;
+    var _b;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
+            case 0:
+                _c.trys.push([0, 6, , 7]);
+                _a = req.body, description = _a.description, evidence = _a.evidence;
+                jobDayId = req.params.jobDayId;
+                customerId = req.customer.id;
+                errors = (0, express_validator_1.validationResult)(req);
+                if (!errors.isEmpty()) {
+                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                }
+                return [4 /*yield*/, job_day_model_1.JobDayModel.findById(jobDayId)];
+            case 1:
+                jobDay = _c.sent();
+                if (!jobDay) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found' })];
+                }
+                return [4 /*yield*/, job_model_1.JobModel.findById(jobDay.job)];
+            case 2:
+                job = _c.sent();
+                if (!job) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found' })];
+                }
+                // Check if user is customer or contractor for the job
+                if (!(job.customer == customerId) && !(job.contractor == customerId)) {
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'Unauthorized to create dispute for this job' })];
+                }
+                filedBy = 'customer';
+                return [4 /*yield*/, job_dispute_model_1.JobDisputeModel.findOneAndUpdate({
+                        job: job.id
+                    }, {
+                        description: description,
+                        job: job._id,
+                        customer: job.customer,
+                        contractor: job.contractor,
+                        filedBy: filedBy,
+                        status: job_dispute_model_1.JOB_DISPUTE_STATUS.OPEN,
+                    }, { new: true, upsert: true })];
+            case 3:
+                dispute = _c.sent();
+                events_1.JobEvent.emit('JOB_DISPUTE_CREATED', { dispute: dispute });
+                contractorId = job.contractor;
+                conversationMembers = [
+                    { memberType: 'customers', member: customerId },
+                    { memberType: 'contractors', member: contractorId }
+                ];
+                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
+                        type: conversations_schema_1.CONVERSATION_TYPE.GROUP_CHAT,
+                        entity: dispute.id,
+                        entityType: 'job_disputes',
+                        $and: [
+                            { members: { $elemMatch: { member: customerId } } }, // memberType: 'customers'
+                            { members: { $elemMatch: { member: contractorId } } } // memberType: 'contractors'
+                        ]
+                    }, {
+                        members: conversationMembers,
+                        lastMessage: "New Dispute Created: ".concat(description), // Set the last message to the job description
+                        lastMessageAt: new Date() // Set the last message timestamp to now
+                    }, { new: true, upsert: true })];
+            case 4:
+                conversation = _c.sent();
+                disputeEvidence = evidence.map(function (url) { return ({
+                    url: url,
+                    addedBy: 'customer',
+                    addedAt: new Date(),
+                }); });
+                (_b = dispute.evidence).push.apply(_b, disputeEvidence);
+                dispute.conversation = conversation.id;
+                return [4 /*yield*/, dispute.save()];
+            case 5:
+                _c.sent();
+                return [2 /*return*/, res.status(201).json({ success: true, message: 'Job dispute created successfully', data: dispute })];
+            case 6:
+                error_2 = _c.sent();
+                next(new custom_errors_1.InternalServerError('Error creating job dispute:', error_2));
+                return [3 /*break*/, 7];
+            case 7: return [2 /*return*/];
+        }
+    });
+}); };
+exports.createJobDispute = createJobDispute;
 exports.CustomerJobDayController = {
     confirmContractorArrival: exports.confirmContractorArrival,
     savePostJobQualityAssurance: exports.savePostJobQualityAssurance,
     savePreJobJobQualityAssurance: exports.savePreJobJobQualityAssurance,
     createJobEmergency: exports.createJobEmergency,
-    initiateJobDay: exports.initiateJobDay
+    initiateJobDay: exports.initiateJobDay,
+    createJobDispute: exports.createJobDispute
 };

@@ -314,3 +314,75 @@ exports.JobEvent.on('NEW_JOB_RESHEDULE_REQUEST', function (payload) {
         });
     });
 });
+exports.JobEvent.on('JOB_DISPUTE_CREATED', function (payload) {
+    var _a, _b;
+    return __awaiter(this, void 0, void 0, function () {
+        var dispute, job, customer, contractor, error_7;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
+                case 0:
+                    _c.trys.push([0, 4, , 5]);
+                    console.log('handling alert JOB_DISPUTE_CREATED event', payload.dispute);
+                    dispute = payload.dispute;
+                    return [4 /*yield*/, job_model_1.JobModel.findById(dispute.job)];
+                case 1:
+                    job = _c.sent();
+                    if (!job) {
+                        return [2 /*return*/];
+                    }
+                    return [4 /*yield*/, customer_model_1.default.findById(job.customer)];
+                case 2:
+                    customer = _c.sent();
+                    return [4 /*yield*/, contractor_model_1.ContractorModel.findById(job.contractor)];
+                case 3:
+                    contractor = _c.sent();
+                    if (!customer || !contractor)
+                        return [2 /*return*/];
+                    services_1.NotificationService.sendNotification({
+                        user: contractor.id,
+                        userType: 'contractors',
+                        title: 'Job Disputed',
+                        type: 'Notification', //
+                        message: "You have an open job dispute",
+                        heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_a = customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
+                        payload: {
+                            entity: dispute.id,
+                            entityType: 'disputes',
+                            message: "You have an open job dispute",
+                            contractor: contractor.id,
+                            event: 'JOB_DISPUTE',
+                        }
+                    }, { database: true, push: true, socket: true });
+                    services_1.NotificationService.sendNotification({
+                        user: customer.id,
+                        userType: 'customers',
+                        title: 'Job Disputed',
+                        type: 'Notification', // Conversation, Conversation_Notification
+                        //@ts-ignore
+                        message: "You have an open job dispute",
+                        //@ts-ignore
+                        heading: { name: "".concat(contractor.name), image: (_b = contractor.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
+                        payload: {
+                            entity: job.id,
+                            entityType: 'jobs',
+                            message: "You have an open job dispute",
+                            customer: customer.id,
+                            event: 'JOB_DISPUTE',
+                        }
+                    }, { database: true, push: true, socket: true });
+                    // send socket notification to general admins alert channel
+                    socket_1.SocketService.broadcastChannel('admin_alerts', 'NEW_JOB_DISPUTE', {
+                        type: 'NEW_JOB_EMERGENCY',
+                        message: 'A new Job emergenc has been reported',
+                        data: { dispute: dispute }
+                    });
+                    return [3 /*break*/, 5];
+                case 4:
+                    error_7 = _c.sent();
+                    console.error("Error handling JOB_DISPUTE_CREATED event: ".concat(error_7));
+                    return [3 /*break*/, 5];
+                case 5: return [2 /*return*/];
+            }
+        });
+    });
+});

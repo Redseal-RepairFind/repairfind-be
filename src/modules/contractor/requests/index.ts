@@ -232,6 +232,13 @@ export const sendMessageParams = [
     }),
 ];
 
+
+export const CreateJobDisputeRequest = [
+  body("evidence").notEmpty(),
+  body("description").notEmpty(),
+];
+
+
   
 
 
@@ -253,5 +260,6 @@ export const ContractorHttpRequest = {
     sendMessageParams,
     CreateGstDetailsRequest,
     CreateCompanyDetailsRequest,
-    UpgradeEmployeeProfileRequest
+    UpgradeEmployeeProfileRequest,
+    CreateJobDisputeRequest
 }

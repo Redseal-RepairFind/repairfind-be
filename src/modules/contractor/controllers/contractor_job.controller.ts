@@ -140,12 +140,12 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
       if (!(contractor.stripeAccountStatus?.card_payments_enabled && contractor.stripeAccountStatus?.transfers_enabled)) {
         return res
           .status(400)
-          .json({ success: false, message: "You can not send quotation for a job, since stripe account is not setup" });
+          .json({ success: false, message: "Kindly connect your bank account to receive payment" });
       }
     } else {
       return res
         .status(400)
-        .json({ success: false, message: "You can not send quotation for a job, since stripe account is not setup" });
+        .json({ success: false, message: "Kindly connect your bank account to receive payment" });
     }
 
 
@@ -459,7 +459,7 @@ export const sendJobQuotation = async (
 
     // Check if contractor has a verified connected account
     if (!contractor.onboarding.hasStripeAccount || !(contractor.stripeAccountStatus?.card_payments_enabled && contractor.stripeAccountStatus?.transfers_enabled)) {
-      return res.status(400).json({ success: false, message: "You cannot send a quotation for this job because your Stripe account is not set up" });
+      return res.status(400).json({ success: false, message: "Kindly connect your bank account to receive payment" });
     }
 
     // Prepare estimates

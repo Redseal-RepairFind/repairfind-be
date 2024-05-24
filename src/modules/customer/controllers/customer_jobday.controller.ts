@@ -7,9 +7,10 @@ import { InternalServerError } from "../../../utils/custom.errors";
 import { JobEvent } from "../../../events";
 import { ContractorProfileModel } from "../../../database/contractor/models/contractor_profile.model";
 import { JOB_STATUS, JobModel } from "../../../database/common/job.model";
-import { ConversationModel } from "../../../database/common/conversations.schema";
+import { CONVERSATION_TYPE, ConversationModel } from "../../../database/common/conversations.schema";
 import { ContractorModel } from "../../../database/contractor/models/contractor.model";
 import CustomerModel from "../../../database/customer/models/customer.model";
+import { JOB_DISPUTE_STATUS, JobDisputeModel } from "../../../database/common/job_dispute.model";
 
 
 export const initiateJobDay = async (
@@ -36,8 +37,8 @@ export const initiateJobDay = async (
             return res.status(403).json({ success: false, message: 'Job  not found' });
         }
 
-       
-        const activeTrip = await JobDayModel.findOne({ job: jobId, status: {$in: ['STARTED', 'ARRIVED', 'CONFIRMED', 'PENDING'] } });
+
+        const activeTrip = await JobDayModel.findOne({ job: jobId, status: { $in: ['STARTED', 'ARRIVED', 'CONFIRMED', 'PENDING'] } });
         // if (activeTrip) {
         //     return res.status(400).json({ success: false, message: 'An active trip already exists for this job' });
         // }
@@ -149,14 +150,14 @@ export const confirmContractorArrival = async (
 
         jobDay.status = JOB_DAY_STATUS.CONFIRMED
         jobDay.verified = true
-       
+
 
         // await Promise.all([
         //     jobDay.save(),
         //     job.save()
         // ]);
         await jobDay.save(),
-        await job.save()
+            await job.save()
 
         // send notification to  contractor
         NotificationService.sendNotification(
@@ -167,7 +168,7 @@ export const confirmContractorArrival = async (
                 heading: {},
                 type: 'JOB_DAY_CONFIRMED',
                 message: 'Customer confirmed your arrival.',
-                payload: {jobDay}
+                payload: { jobDay }
             },
             {
                 push: true,
@@ -186,7 +187,7 @@ export const confirmContractorArrival = async (
                 heading: {},
                 type: 'JOB_DAY_CONFIRMED',
                 message: "You successfully confirmed the contractor's arrival.",
-                payload: {jobDay}
+                payload: { jobDay }
             },
             {
                 push: true,
@@ -333,11 +334,102 @@ export const createJobEmergency = async (req: any, res: Response, next: NextFunc
     }
 };
 
+export const createJobDispute = async (req: any, res: Response, next: NextFunction) => {
+    try {
+        // Extract data from request body
+        const { description, evidence } = req.body;
+        const jobDayId = req.params.jobDayId; // Assuming job ID is in the URL params
+        const customerId = req.customer.id; // Assuming user ID from request object
+
+        // Check for validation errors
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+
+        const jobDay = await JobDayModel.findById(jobDayId);
+        if (!jobDay) {
+            return res.status(404).json({ success: false, message: 'Job not found' });
+        }
+
+        // Find the job using job ID
+        const job = await JobModel.findById(jobDay.job);
+        if (!job) {
+            return res.status(404).json({ success: false, message: 'Job not found' });
+        }
+
+        // Check if user is customer or contractor for the job
+        if (!(job.customer == customerId) && !(job.contractor == customerId)) {
+            return res.status(403).json({ success: false, message: 'Unauthorized to create dispute for this job' });
+        }
+
+        const filedBy = 'customer';
+
+        const dispute = await JobDisputeModel.findOneAndUpdate({
+            job: job.id
+        }, {
+            description,
+            job: job._id,
+            customer: job.customer,
+            contractor: job.contractor,
+            filedBy,
+            status: JOB_DISPUTE_STATUS.OPEN,
+        }, { new: true, upsert: true });
+
+        JobEvent.emit('JOB_DISPUTE_CREATED', { dispute: dispute });
+        
+        const contractorId = job.contractor
+        const conversationMembers = [
+            { memberType: 'customers', member: customerId },
+            { memberType: 'contractors', member: contractorId }
+        ];
+
+        const conversation = await ConversationModel.findOneAndUpdate(
+            {
+                type: CONVERSATION_TYPE.GROUP_CHAT,
+                entity: dispute.id,
+                entityType: 'job_disputes',
+                $and: [
+                    { members: { $elemMatch: { member: customerId } } }, // memberType: 'customers'
+                    { members: { $elemMatch: { member: contractorId } } } // memberType: 'contractors'
+                ]
+            },
+            {
+                members: conversationMembers,
+                lastMessage: `New Dispute Created: ${description}`, // Set the last message to the job description
+                lastMessageAt: new Date() // Set the last message timestamp to now
+            },
+            { new: true, upsert: true }
+        );
+
+        const disputeEvidence = evidence.map((url: string) => ({
+            url,
+            addedBy: 'customer',
+            addedAt: new Date(),
+        }));
+
+        dispute.evidence.push(...disputeEvidence);
+
+        dispute.conversation = conversation.id
+        await dispute.save()
+
+        return res.status(201).json({ success: true, message: 'Job dispute created successfully', data: dispute });
+
+
+
+    } catch (error: any) {
+        next(new InternalServerError('Error creating job dispute:', error));
+    }
+};
+
+
 
 export const CustomerJobDayController = {
     confirmContractorArrival,
     savePostJobQualityAssurance,
     savePreJobJobQualityAssurance,
     createJobEmergency,
-    initiateJobDay
+    initiateJobDay,
+    createJobDispute
 };

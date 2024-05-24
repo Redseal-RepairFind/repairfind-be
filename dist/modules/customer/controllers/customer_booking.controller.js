@@ -364,11 +364,11 @@ var acceptOrDeclineReschedule = function (req, res, next) { return __awaiter(voi
 }); };
 exports.acceptOrDeclineReschedule = acceptOrDeclineReschedule;
 var intiateBookingCancelation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, bookingId, reason, job, customer, contract, startDate, jobDate, charges, currentTime, timeDifferenceInHours, refund, canceletionFee, contractorShare, companyShare, refundAmount, error_6;
+    var customerId, bookingId, reason, job, customer, contract, startDate, jobDate, charges, payments, currentTime, timeDifferenceInHours, refund, canceletionFee, contractorShare, companyShare, refundAmount, error_6;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 6, , 7]);
+                _a.trys.push([0, 7, , 8]);
                 customerId = req.customer.id;
                 bookingId = req.params.bookingId;
                 reason = req.body.reason;
@@ -410,16 +410,20 @@ var intiateBookingCancelation = function (req, res, next) { return __awaiter(voi
                 return [4 /*yield*/, contract.calculateCharges()];
             case 4:
                 charges = _a.sent();
+                return [4 /*yield*/, job.getPayments()];
+            case 5:
+                payments = _a.sent();
                 currentTime = new Date().getTime();
                 timeDifferenceInHours = Math.abs(jobDate - currentTime) / (1000 * 60 * 60);
                 refund = {
-                    refundAmount: 0,
+                    refundAmount: payments.totalAmount,
                     canceletionFee: 0,
                     contractorShare: 0,
                     companyShare: 0,
                     intiatedBy: 'customer',
                     policyApplied: 'free_cancelation',
-                    contractTerms: charges
+                    contractTerms: charges,
+                    payments: payments
                 };
                 if (timeDifferenceInHours >= 48) {
                     // Free cancellation up to 48 hours before the scheduled job time.
@@ -428,7 +432,7 @@ var intiateBookingCancelation = function (req, res, next) { return __awaiter(voi
                     canceletionFee = 50;
                     contractorShare = 0.8 * canceletionFee;
                     companyShare = 0.2 * canceletionFee;
-                    refundAmount = charges.totalAmount - canceletionFee;
+                    refundAmount = payments.totalAmount - canceletionFee;
                     refund = {
                         refundAmount: refundAmount,
                         canceletionFee: canceletionFee,
@@ -436,22 +440,23 @@ var intiateBookingCancelation = function (req, res, next) { return __awaiter(voi
                         companyShare: companyShare,
                         intiatedBy: 'customer',
                         policyApplied: '50_dollar_policy',
-                        contractTerms: charges
+                        contractTerms: charges,
+                        payments: payments
                     };
                 }
                 // Update job status and store cancellation data
                 //job.cancelation = refund // dont need to save this
                 return [4 /*yield*/, job.save()];
-            case 5:
+            case 6:
                 // Update job status and store cancellation data
                 //job.cancelation = refund // dont need to save this
                 _a.sent();
                 res.json({ success: true, message: 'Booking cancelation initiated successfully', data: refund });
-                return [3 /*break*/, 7];
-            case 6:
+                return [3 /*break*/, 8];
+            case 7:
                 error_6 = _a.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_6))];
-            case 7: return [2 /*return*/];
+            case 8: return [2 /*return*/];
         }
     });
 }); };
@@ -513,7 +518,8 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
                     companyShare: 0,
                     intiatedBy: 'customer',
                     policyApplied: 'free_cancelation',
-                    contractTerms: charges
+                    contractTerms: charges,
+                    payments: payments
                 };
                 if (timeDifferenceInHours >= 48) {
                     // Free cancellation up to 48 hours before the scheduled job time.
@@ -530,7 +536,8 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
                         companyShare: companyShare,
                         intiatedBy: 'customer',
                         policyApplied: '50_dollar_policy',
-                        contractTerms: charges
+                        contractTerms: charges,
+                        payments: payments
                     };
                 }
                 if (!(refund.refundAmount > 0)) return [3 /*break*/, 6];
@@ -539,7 +546,7 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
                     throw new Error("No such payment method");
                 return [4 /*yield*/, transaction_model_1.default.create({
                         type: transaction_model_1.TRANSACTION_TYPE.REFUND,
-                        amount: charges.totalAmount,
+                        amount: payments.totalAmount,
                         initiatorUser: customerId,
                         initiatorUserType: 'customers',
                         fromUser: job.contractor,

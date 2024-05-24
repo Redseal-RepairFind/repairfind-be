@@ -5,6 +5,9 @@ dotenv.config();
 
 export const config = {
     jwtPrivateKey: <string>process.env.JWT_PRIVATE_KEY,
+    jwt: {
+        tokenLifetime: <string>process.env.JWT_TOKEN_LIFE_TIME || '24h'
+    },
     mongodb: {
         uri: <string>process.env.MONGODB_URI,
         collections: {

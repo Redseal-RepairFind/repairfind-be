@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorHttpRequest = exports.sendMessageParams = exports.CreateJobQuotationRequest = exports.CreateScheduleRequest = exports.UpdateOrDevice = exports.CreateStripeSessionRequest = exports.InviteToTeam = exports.CreateCompanyDetailsRequest = exports.CreateGstDetailsRequest = exports.UpdateBankDetailRequest = exports.PasswordChangeRequest = exports.PasswordResetRequest = exports.ResendEmailRequest = exports.LoginRequest = exports.EmailVerificationRequest = exports.UpgradeEmployeeProfileRequest = exports.UpdateProfileRequest = exports.CreateProfileRequest = exports.CreateContractorRequest = void 0;
+exports.ContractorHttpRequest = exports.CreateJobDisputeRequest = exports.sendMessageParams = exports.CreateJobQuotationRequest = exports.CreateScheduleRequest = exports.UpdateOrDevice = exports.CreateStripeSessionRequest = exports.InviteToTeam = exports.CreateCompanyDetailsRequest = exports.CreateGstDetailsRequest = exports.UpdateBankDetailRequest = exports.PasswordChangeRequest = exports.PasswordResetRequest = exports.ResendEmailRequest = exports.LoginRequest = exports.EmailVerificationRequest = exports.UpgradeEmployeeProfileRequest = exports.UpdateProfileRequest = exports.CreateProfileRequest = exports.CreateContractorRequest = void 0;
 var express_validator_1 = require("express-validator");
 exports.CreateContractorRequest = [
     (0, express_validator_1.body)('email').isEmail(),
@@ -273,6 +273,10 @@ exports.sendMessageParams = [
         return true;
     }),
 ];
+exports.CreateJobDisputeRequest = [
+    (0, express_validator_1.body)("evidence").notEmpty(),
+    (0, express_validator_1.body)("description").notEmpty(),
+];
 exports.ContractorHttpRequest = {
     CreateProfileRequest: exports.CreateProfileRequest,
     CreateContractorRequest: exports.CreateContractorRequest,
@@ -291,5 +295,6 @@ exports.ContractorHttpRequest = {
     sendMessageParams: exports.sendMessageParams,
     CreateGstDetailsRequest: exports.CreateGstDetailsRequest,
     CreateCompanyDetailsRequest: exports.CreateCompanyDetailsRequest,
-    UpgradeEmployeeProfileRequest: exports.UpgradeEmployeeProfileRequest
+    UpgradeEmployeeProfileRequest: exports.UpgradeEmployeeProfileRequest,
+    CreateJobDisputeRequest: exports.CreateJobDisputeRequest
 };

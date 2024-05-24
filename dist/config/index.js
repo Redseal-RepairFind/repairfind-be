@@ -33,6 +33,9 @@ var dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 exports.config = {
     jwtPrivateKey: process.env.JWT_PRIVATE_KEY,
+    jwt: {
+        tokenLifetime: process.env.JWT_TOKEN_LIFE_TIME || '24h'
+    },
     mongodb: {
         uri: process.env.MONGODB_URI,
         collections: {

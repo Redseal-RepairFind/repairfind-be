@@ -8,9 +8,10 @@ import { ContractorModel } from "../../../database/contractor/models/contractor.
 import { InternalServerError } from "../../../utils/custom.errors";
 import { JobEvent } from "../../../events";
 import { JobEmergencyModel } from "../../../database/common/job_emergency.model";
-import { ConversationModel } from "../../../database/common/conversations.schema";
+import { CONVERSATION_TYPE, ConversationModel } from "../../../database/common/conversations.schema";
 import { ContractorProfileModel } from "../../../database/contractor/models/contractor_profile.model";
 import CustomerModel from "../../../database/customer/models/customer.model";
+import { JOB_DISPUTE_STATUS, JobDisputeModel } from "../../../database/common/job_dispute.model";
 
 
 export const startTrip = async (
@@ -23,7 +24,6 @@ export const startTrip = async (
 
         // Check for validation errors
         const errors = validationResult(req);
-
         if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
         }
@@ -120,11 +120,11 @@ export const initiateJobDay = async (
         const contractorId = req.contractor.id
 
         const contractorProfile = await ContractorProfileModel.findOne({ contractor: contractorId });
-        
+
         if (!contractorProfile) {
             return res.status(403).json({ success: false, message: 'Contractor profile not found' });
         }
-        
+
         const contractor = await ContractorModel.findById(contractorId);
         if (!contractor) {
             return res.status(403).json({ success: false, message: 'Job Contractor not found' });
@@ -138,14 +138,14 @@ export const initiateJobDay = async (
         }
 
         // Find the job request by ID
-        const customer = await CustomerModel.findOne({ _id: job.customer});
+        const customer = await CustomerModel.findOne({ _id: job.customer });
         if (!customer) {
             return res.status(403).json({ success: false, message: 'Job Customer not found' });
         }
 
 
         // Check if an active trip already exists for the specified job
-        const activeTrip = await JobDayModel.findOne({ job: jobId, status: {$in: ['STARTED', 'ARRIVED', 'CONFIRMED', 'PENDING'] } });
+        const activeTrip = await JobDayModel.findOne({ job: jobId, status: { $in: ['STARTED', 'ARRIVED', 'CONFIRMED', 'PENDING'] } });
         // if (activeTrip) {
         //     return res.status(400).json({ success: false, message: 'An active trip already exists for this job' });
         // }
@@ -321,6 +321,97 @@ export const createJobEmergency = async (req: any, res: Response, next: NextFunc
 };
 
 
+export const createJobDispute = async (req: any, res: Response, next: NextFunction) => {
+    try {
+        // Extract data from request body
+        const { description, reason, evidence } = req.body;
+        const jobDayId = req.params.jobDayId; // Assuming jo
+        const contractorId = req.contractor.id; // Assuming user ID from request object
+
+         // Check for validation errors
+         const errors = validationResult(req);
+         if (!errors.isEmpty()) {
+             return res.status(400).json({ errors: errors.array() });
+         }
+
+         
+        const jobDay = await JobDayModel.findById(jobDayId);
+        if (!jobDay) {
+            return res.status(404).json({ success: false, message: 'Job not found' });
+        }
+
+        // Find the job using job ID
+        const job = await JobModel.findById(jobDay.job);
+        if (!job) {
+            return res.status(404).json({ success: false, message: 'Job not found' });
+        }
+
+        // Check if user is customer or contractor for the job
+        if (!(job.contractor == contractorId)) {
+            return res.status(403).json({ success: false, message: 'Unauthorized to create dispute for this job' });
+        }
+
+        const filedBy = 'contractor';
+
+        const dispute = await JobDisputeModel.findOneAndUpdate({
+            job: job.id
+        }, {
+            description,
+            job: job._id,
+            customer: job.customer,
+            contractor: job.contractor,
+            filedBy,
+            status: JOB_DISPUTE_STATUS.OPEN,
+        }, { new: true, upsert: true });
+
+        
+        const customerId = job.customer
+        const conversationMembers = [
+            { memberType: 'customers', member: customerId },
+            { memberType: 'contractors', member: contractorId }
+        ];
+
+        const conversation = await ConversationModel.findOneAndUpdate(
+            {
+                type: CONVERSATION_TYPE.GROUP_CHAT,
+                entity: dispute.id,
+                entityType: 'job_disputes',
+                $and: [
+                    { members: { $elemMatch: { member: customerId } } }, // memberType: 'customers'
+                    { members: { $elemMatch: { member: contractorId } } } // memberType: 'contractors'
+                ]
+            },
+            {
+                members: conversationMembers,
+                lastMessage: `New Dispute Created: ${description}`, // Set the last message to the job description
+                lastMessageAt: new Date() // Set the last message timestamp to now
+            },
+            { new: true, upsert: true }
+        );
+
+        const disputeEvidence = evidence.map((url: string) => ({
+            url,
+            addedBy: 'customer',
+            addedAt: new Date(),
+        }));
+
+        dispute.evidence.push(...disputeEvidence);
+
+        dispute.conversation = conversation.id
+        await dispute.save()
+
+
+        JobEvent.emit('JOB_DISPUTE_CREATED', { dispute: dispute });
+
+        
+        return res.status(201).json({ success: true, message: 'Job dispute created successfully', data: dispute });
+        
+    } catch (error: any) {
+        next(new InternalServerError('Error creating job dispute:', error));
+    }
+};
+
+
 export const savePreJobJobQualityAssurance = async (
     req: any,
     res: Response,
@@ -411,5 +502,6 @@ export const ContractorJobDayController = {
     createJobEmergency,
     initiateJobDay,
     savePostJobQualityAssurance,
-    savePreJobJobQualityAssurance
+    savePreJobJobQualityAssurance,
+    createJobDispute
 };

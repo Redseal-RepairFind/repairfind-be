@@ -14,6 +14,7 @@ import { IJobDay } from '../database/common/job_day.model';
 import { IJobEmergency } from '../database/common/job_emergency.model';
 import { JobEmergencyEmailTemplate } from '../templates/common/job_emergency_email';
 import { GenericEmailTemplate } from '../templates/common/generic_email';
+import { IJobDispute } from '../database/common/job_dispute.model';
 
 export const JobEvent: EventEmitter = new EventEmitter();
 
@@ -141,13 +142,6 @@ JobEvent.on('JOB_CANCELED', async function (payload: { job: IJob, canceledBy: st
 JobEvent.on('JOB_DAY_EMERGENCY', async function (payload: { jobEmergency: IJobEmergency }) {
     try {
         console.log('handling alert JOB_DAY_EMERGENCY event')
-
-        // const [customer, contractor, job] = await Promise.all([
-        //     CustomerModel.findById(payload.jobEmergency.customer).exec(),
-        //     ContractorModel.findById(payload.jobEmergency.contractor).exec(),
-        //     JobModel.findById(payload.jobEmergency.job).exec()
-        // ])
-
         const customer = await CustomerModel.findById(payload.jobEmergency.customer)
         const contractor = await ContractorModel.findById(payload.jobEmergency.contractor)
         const job = await JobModel.findById(payload.jobEmergency.job) as IJob
@@ -225,6 +219,7 @@ JobEvent.on('JOB_RESHEDULE_DECLINED_ACCEPTED', async function (payload: { job: I
     }
 });
 
+
 JobEvent.on('NEW_JOB_RESHEDULE_REQUEST', async function (payload: { job: IJob, action: string }) {
     try {
         console.log('handling alert NEW_JOB_RESHEDULE_REQUEST event', payload.action)
@@ -261,5 +256,72 @@ JobEvent.on('NEW_JOB_RESHEDULE_REQUEST', async function (payload: { job: IJob, a
 
     } catch (error) {
         console.error(`Error handling NEW_JOB_RESHEDULE_REQUEST event: ${error}`);
+    }
+});
+
+
+JobEvent.on('JOB_DISPUTE_CREATED', async function (payload: { dispute: IJobDispute}) {
+    try {
+        console.log('handling alert JOB_DISPUTE_CREATED event', payload.dispute)
+
+        const dispute = payload.dispute
+        const job = await JobModel.findById(dispute.job)
+        if(!job){
+            return
+        }
+
+        const customer = await CustomerModel.findById(job.customer)
+        const contractor = await ContractorModel.findById(job.contractor)
+
+        if(!customer || !contractor)return
+
+        NotificationService.sendNotification({
+            user: contractor.id,
+            userType: 'contractors',
+            title: 'Job Disputed',
+            type: 'Notification', //
+            message: `You have an open job dispute`,
+            heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
+            payload: {
+                entity: dispute.id,
+                entityType: 'disputes',
+                message: `You have an open job dispute`,
+                contractor: contractor.id,
+                event: 'JOB_DISPUTE',
+            }
+        }, { database: true, push: true, socket: true })
+
+
+        NotificationService.sendNotification({
+            user: customer.id,
+            userType: 'customers',
+            title: 'Job Disputed',
+            type: 'Notification', // Conversation, Conversation_Notification
+            //@ts-ignore
+            message: `You have an open job dispute`,
+            //@ts-ignore
+            heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
+            payload: {
+                entity: job.id,
+                entityType: 'jobs',
+                message: `You have an open job dispute`,
+                customer: customer.id,
+                event: 'JOB_DISPUTE',
+            }
+        }, { database: true, push: true, socket: true })
+
+
+
+        // send socket notification to general admins alert channel
+        SocketService.broadcastChannel('admin_alerts', 'NEW_JOB_DISPUTE', {
+            type: 'NEW_JOB_EMERGENCY',
+            message: 'A new Job emergenc has been reported',
+            data: { dispute }
+        });
+
+
+
+    } catch (error) {
+        console.error(`Error handling JOB_DISPUTE_CREATED event: ${error}`);
     }
 });

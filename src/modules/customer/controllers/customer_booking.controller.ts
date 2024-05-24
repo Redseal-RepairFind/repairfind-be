@@ -360,17 +360,19 @@ export const intiateBookingCancelation = async (req: any, res: Response, next: N
 
         const jobDate = job.schedule.startDate.getTime();
         const charges = await contract.calculateCharges()
+        const payments = await job.getPayments()
         const currentTime = new Date().getTime();
         const timeDifferenceInHours = Math.abs(jobDate - currentTime) / (1000 * 60 * 60);
 
         let refund = {
-            refundAmount: 0,
+            refundAmount: payments.totalAmount,
             canceletionFee: 0,
             contractorShare: 0,
             companyShare: 0,
             intiatedBy: 'customer',
             policyApplied: 'free_cancelation',
-            contractTerms: charges
+            contractTerms: charges,
+            payments
         };
 
         if (timeDifferenceInHours >= 48) {
@@ -383,7 +385,7 @@ export const intiateBookingCancelation = async (req: any, res: Response, next: N
             const companyShare = 0.2 * canceletionFee;
 
             
-            const refundAmount = charges.totalAmount - canceletionFee
+            const refundAmount = payments.totalAmount - canceletionFee
             refund = {
                 refundAmount,
                 canceletionFee,
@@ -391,7 +393,8 @@ export const intiateBookingCancelation = async (req: any, res: Response, next: N
                 companyShare,
                 intiatedBy: 'customer',
                 policyApplied: '50_dollar_policy',
-                contractTerms: charges
+                contractTerms: charges,
+                payments
             };
         }
 
@@ -464,7 +467,8 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
             companyShare: 0,
             intiatedBy: 'customer',
             policyApplied: 'free_cancelation',
-            contractTerms: charges
+            contractTerms: charges,
+            payments
         };
 
         if (timeDifferenceInHours >= 48) {
@@ -484,7 +488,8 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
                 companyShare,
                 intiatedBy: 'customer',
                 policyApplied: '50_dollar_policy',
-                contractTerms: charges
+                contractTerms: charges,
+                payments
             };
         }
 
@@ -495,7 +500,7 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
 
             const transaction = await TransactionModel.create({
                 type: TRANSACTION_TYPE.REFUND,
-                amount: charges.totalAmount,
+                amount: payments.totalAmount,
 
                 initiatorUser: customerId,
                 initiatorUserType: 'customers',

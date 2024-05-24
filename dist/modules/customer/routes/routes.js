@@ -82,6 +82,7 @@ router.post('/conversations/:conversationId/mark-all-read', customerRoleChecker_
 // jobdays day
 router.post('/jobdays/:jobDayId/confirm-arrival', customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.tripArrivalComfirmParams, customer_jobday_controller_1.CustomerJobDayController.confirmContractorArrival);
 router.post('/jobdays/:jobDayId/emergency', customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.tripArrivalComfirmParams, customer_jobday_controller_1.CustomerJobDayController.createJobEmergency);
+router.post('/jobdays/:jobDayId/dispute', customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.createJobDisputeParams, customer_jobday_controller_1.CustomerJobDayController.createJobDispute);
 router.post('/jobdays/:jobDayId/post-quality-assurance', customerRoleChecker_middleware_1.checkCustomerRole, customer_jobday_controller_1.CustomerJobDayController.savePostJobQualityAssurance);
 router.post('/jobdays/:jobDayId/pre-quality-assurance', customerRoleChecker_middleware_1.checkCustomerRole, customer_jobday_controller_1.CustomerJobDayController.savePreJobJobQualityAssurance);
 router.post('/jobdays/initiate', customerRoleChecker_middleware_1.checkCustomerRole, customer_jobday_controller_1.CustomerJobDayController.initiateJobDay);

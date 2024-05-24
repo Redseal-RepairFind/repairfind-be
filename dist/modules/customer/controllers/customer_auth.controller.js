@@ -53,6 +53,7 @@ var google_1 = require("../../../services/google");
 var customer_interface_1 = require("../../../database/customer/interface/customer.interface");
 var facebook_1 = require("../../../services/facebook");
 var services_1 = require("../../../services");
+var config_1 = require("../../../config");
 //customer signup /////////////
 var signUp = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, email, password, firstName, lastName, acceptTerms, phoneNumber, errors, userEmailExists, otp, createdTime, emailOtp, html, welcomeHtml, welcomeEmailData, emailData, hashedPassword, customer, customerSaved, adminNoti, err_1;
@@ -183,11 +184,12 @@ var verifyEmail = function (req, res) { return __awaiter(void 0, void 0, void 0,
                     id: customer === null || customer === void 0 ? void 0 : customer._id,
                     email: customer.email,
                     userType: 'customers',
-                }, process.env.JWT_CONTRACTOR_SECRET_KEY, { expiresIn: "24h" });
+                }, process.env.JWT_CONTRACTOR_SECRET_KEY, { expiresIn: config_1.config.jwt.tokenLifetime });
                 return [2 /*return*/, res.json({
                         success: true,
                         message: "email verified successfully",
                         accessToken: accessToken,
+                        expiresIn: config_1.config.jwt.tokenLifetime,
                         data: customer
                     })];
             case 3:
@@ -240,12 +242,13 @@ var signIn = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                     id: customer === null || customer === void 0 ? void 0 : customer._id,
                     email: customer.email,
                     userType: 'customers',
-                }, process.env.JWT_CONTRACTOR_SECRET_KEY, { expiresIn: "24h" });
+                }, process.env.JWT_CONTRACTOR_SECRET_KEY, { expiresIn: config_1.config.jwt.tokenLifetime });
                 // return access token
                 res.json({
                     status: true,
                     message: "Login successful",
                     accessToken: accessToken,
+                    expiresIn: config_1.config.jwt.tokenLifetime,
                     data: profile
                 });
                 return [3 /*break*/, 5];

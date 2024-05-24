@@ -161,6 +161,7 @@ router.post('/jobdays/:jobDayId/trip-arrival', contractorRoleCheck_middleware_1.
 router.post('/jobdays/:jobDayId/post-quality-assurance', contractorRoleCheck_middleware_1.checkContractorRole, contractor_jobday_controller_1.ContractorJobDayController.savePostJobQualityAssurance);
 router.post('/jobdays/:jobDayId/pre-quality-assurance', contractorRoleCheck_middleware_1.checkContractorRole, contractor_jobday_controller_1.ContractorJobDayController.savePreJobJobQualityAssurance);
 router.post('/jobdays/:jobDayId/emergency', contractorRoleCheck_middleware_1.checkContractorRole, contractor_jobday_controller_1.ContractorJobDayController.createJobEmergency);
+router.post('/jobdays/:jobDayId/dispute', contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateJobDisputeRequest, contractor_jobday_controller_1.ContractorJobDayController.createJobDispute);
 // Call
 router.post("/voicecall/agora-rtc", contractorRoleCheck_middleware_1.checkContractorRole, contractor_call_controller_1.ContractorCallController.createRtcToken);
 router.post("/voicecall", contractorRoleCheck_middleware_1.checkContractorRole, contractor_call_controller_1.ContractorCallController.startCall);

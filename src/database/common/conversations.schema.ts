@@ -1,10 +1,15 @@
-import mongoose, {Document, ObjectId, Schema, model} from 'mongoose';
-import {v4 as uuidv4} from 'uuid';
+import mongoose, { Document, ObjectId, Schema, model } from 'mongoose';
+import { v4 as uuidv4 } from 'uuid';
 import { MessageModel, MessageType } from './messages.schema';
 
 export enum ConversationEntityType {
     BOOKING = 'bookings',
     JOB = 'jobs',
+}
+
+export enum CONVERSATION_TYPE {
+    DIRECT_MESSAGE = 'DIRECT_MESSAGE',
+    GROUP_CHAT = 'GROUP_CHAT',
 }
 
 export interface IConversation extends Document {
@@ -13,14 +18,14 @@ export interface IConversation extends Document {
         member: ObjectId,
         memberType: string
     }]
-    challenge: Object|string;
     lastMessageAt: Date;
+    type: string;
     lastMessage: string;
     entity: ObjectId
     entityType: ConversationEntityType
     heading: Object;
-    
-    getHeading: (loggedInUserId:any) => {
+
+    getHeading: (loggedInUserId: any) => {
         subtotal: number;
         processingFee: number;
         gst: number;
@@ -31,29 +36,33 @@ export interface IConversation extends Document {
 
 const ConversationSchema = new mongoose.Schema<IConversation>({
 
-        members: [{ member: { type: Schema.Types.ObjectId, refPath: 'members.memberType' }, memberType: String }],
-        entity: {
-            type: Schema.Types.ObjectId,
-            refPath: 'entityType',
-            index: true,
-        },
-
-        entityType: {
-            type: String,
-            required: true,
-            enum: Object.values(ConversationEntityType)
-        },
-
-        heading: {
-            type: Object
-        },
-        lastMessage: {
-            type: String
-        },
-        lastMessageAt: {
-            type: Date
-        }
+    members: [{ member: { type: Schema.Types.ObjectId, refPath: 'members.memberType' }, memberType: String }],
+    entity: {
+        type: Schema.Types.ObjectId,
+        refPath: 'entityType',
+        index: true,
     },
+    type: {
+        type: String,
+        enum: Object.values(CONVERSATION_TYPE),
+        default: CONVERSATION_TYPE.DIRECT_MESSAGE
+    },
+    entityType: {
+        type: String,
+        required: true,
+        enum: Object.values(ConversationEntityType)
+    },
+
+    heading: {
+        type: Object
+    },
+    lastMessage: {
+        type: String
+    },
+    lastMessageAt: {
+        type: Date
+    }
+},
     {
         toObject: {
             virtuals: true,
@@ -78,13 +87,13 @@ const ConversationSchema = new mongoose.Schema<IConversation>({
 
 
 // Define a schema method to get the heading
-ConversationSchema.methods.getHeading = async function(loggedInUserId: string) {
+ConversationSchema.methods.getHeading = async function (loggedInUserId: string) {
     const otherMember = this.members.find((member: { member: { toString: () => string; }; }) => member.member.toString() !== loggedInUserId);
     if (otherMember) {
         let UserModel = mongoose.model('contractors');
-        if(otherMember.memberType == 'contractors'){
+        if (otherMember.memberType == 'contractors') {
             UserModel = mongoose.model('contractors'); // Assuming your user model is named 'User'
-        }else{
+        } else {
             UserModel = mongoose.model('customers'); // Assuming your user model is named 'User'
         }
         const otherMemberUser = await UserModel.findById(otherMember.member);
@@ -109,7 +118,7 @@ ConversationSchema.methods.getHeading = async function(loggedInUserId: string) {
 
 
 
- 
+
 
 
 export const ConversationModel = model<IConversation>('conversations', ConversationSchema);

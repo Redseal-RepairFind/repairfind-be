@@ -234,6 +234,12 @@ export const tripArrivalComfirmParams = [
 ];
 
 
+export const createJobDisputeParams = [
+  body("evidence").notEmpty(),
+  body("description").notEmpty(),
+];
+
+
 // Define the validation rules for the message request
 export const sendMessageParams = [
   body('type').isIn(['TEXT', 'MEDIA', 'AUDIO', 'VIDEO', 'IMAGE']).withMessage('Invalid messageType'),
@@ -292,5 +298,6 @@ export const CustomerHttpRequest = {
   createJobRequestParams,
   createJoListingParams,
   tripArrivalComfirmParams,
-  sendMessageParams
+  sendMessageParams,
+  createJobDisputeParams
 }

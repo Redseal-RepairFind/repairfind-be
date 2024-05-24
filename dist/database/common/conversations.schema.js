@@ -59,7 +59,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ConversationModel = exports.ConversationEntityType = void 0;
+exports.ConversationModel = exports.CONVERSATION_TYPE = exports.ConversationEntityType = void 0;
 var mongoose_1 = __importStar(require("mongoose"));
 var messages_schema_1 = require("./messages.schema");
 var ConversationEntityType;
@@ -67,12 +67,22 @@ var ConversationEntityType;
     ConversationEntityType["BOOKING"] = "bookings";
     ConversationEntityType["JOB"] = "jobs";
 })(ConversationEntityType || (exports.ConversationEntityType = ConversationEntityType = {}));
+var CONVERSATION_TYPE;
+(function (CONVERSATION_TYPE) {
+    CONVERSATION_TYPE["DIRECT_MESSAGE"] = "DIRECT_MESSAGE";
+    CONVERSATION_TYPE["GROUP_CHAT"] = "GROUP_CHAT";
+})(CONVERSATION_TYPE || (exports.CONVERSATION_TYPE = CONVERSATION_TYPE = {}));
 var ConversationSchema = new mongoose_1.default.Schema({
     members: [{ member: { type: mongoose_1.Schema.Types.ObjectId, refPath: 'members.memberType' }, memberType: String }],
     entity: {
         type: mongoose_1.Schema.Types.ObjectId,
         refPath: 'entityType',
         index: true,
+    },
+    type: {
+        type: String,
+        enum: Object.values(CONVERSATION_TYPE),
+        default: CONVERSATION_TYPE.DIRECT_MESSAGE
     },
     entityType: {
         type: String,

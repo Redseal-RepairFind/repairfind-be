@@ -176,12 +176,12 @@ var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 if (!(((_a = contractor.stripeAccountStatus) === null || _a === void 0 ? void 0 : _a.card_payments_enabled) && ((_b = contractor.stripeAccountStatus) === null || _b === void 0 ? void 0 : _b.transfers_enabled))) {
                     return [2 /*return*/, res
                             .status(400)
-                            .json({ success: false, message: "You can not send quotation for a job, since stripe account is not setup" })];
+                            .json({ success: false, message: "Kindly connect your bank account to receive payment" })];
                 }
                 return [3 /*break*/, 7];
             case 6: return [2 /*return*/, res
                     .status(400)
-                    .json({ success: false, message: "You can not send quotation for a job, since stripe account is not setup" })];
+                    .json({ success: false, message: "Kindly connect your bank account to receive payment" })];
             case 7:
                 // Update the status of the job request to "Accepted"
                 job.status = job_model_1.JOB_STATUS.ACCEPTED;
@@ -491,7 +491,7 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                 }
                 // Check if contractor has a verified connected account
                 if (!contractor.onboarding.hasStripeAccount || !(((_e = contractor.stripeAccountStatus) === null || _e === void 0 ? void 0 : _e.card_payments_enabled) && ((_f = contractor.stripeAccountStatus) === null || _f === void 0 ? void 0 : _f.transfers_enabled))) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: "You cannot send a quotation for this job because your Stripe account is not set up" })];
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "Kindly connect your bank account to receive payment" })];
                 }
                 // Prepare estimates
                 if (siteVisit) {

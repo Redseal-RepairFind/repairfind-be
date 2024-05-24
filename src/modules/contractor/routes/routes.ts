@@ -212,6 +212,7 @@ router.post('/jobdays/:jobDayId/post-quality-assurance', checkContractorRole,  C
 router.post('/jobdays/:jobDayId/pre-quality-assurance', checkContractorRole,  ContractorJobDayController.savePreJobJobQualityAssurance)
 
 router.post('/jobdays/:jobDayId/emergency', checkContractorRole, ContractorJobDayController.createJobEmergency)
+router.post('/jobdays/:jobDayId/dispute', checkContractorRole, ContractorHttpRequest.CreateJobDisputeRequest, ContractorJobDayController.createJobDispute)
 
 
 
