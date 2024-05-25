@@ -12,9 +12,11 @@ import { IMessage, MessageModel, MessageType } from "../../../database/common/me
 import { JOB_QUOTATION_STATUS, JobQuotationModel } from "../../../database/common/job_quotation.model";
 import { JobEvent } from "../../../events";
 import mongoose from "mongoose";
-import { CONTRACTOR_REVIEW_TYPE, CONTRACTOR_TYPES, IContractorReview } from "../../../database/contractor/interface/contractor.interface";
+import {  CONTRACTOR_TYPES } from "../../../database/contractor/interface/contractor.interface";
 import ContractorTeamModel, { IContractorTeam } from "../../../database/contractor/models/contractor_team.model";
 import { NewJobAssignedEmailTemplate } from "../../../templates/contractorEmail/job_assigned.template";
+import { JobDisputeModel } from "../../../database/common/job_dispute.model";
+import { REVIEW_TYPE, ReviewModel } from "../../../database/common/review.model";
 
 
 
@@ -256,8 +258,13 @@ export const getSingleBooking = async (req: any, res: Response, next: NextFuncti
             return res.status(404).json({ success: false, message: 'Booking not found' });
         }
 
+        let responseData: any = { ...job.toJSON() };
+        if (job.status === JOB_STATUS.DISPUTED) {
+            responseData.dispute = await JobDisputeModel.findOne({ job: job.id });
+        }
+
         // If the job exists, return it as a response
-        res.json({ success: true, message: 'Booking retrieved', data: job });
+        res.json({ success: true, message: 'Booking retrieved', data: responseData });
     } catch (error: any) {
         return next(new BadRequestError('An error occured ', error))
     }
@@ -510,17 +517,27 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
 
                 // reduce contractor rating
 
-        const contractorReview = {
-            averageRating: 0,
-            job: job.id,
-            type: CONTRACTOR_REVIEW_TYPE.JOB_CANCELETION
-         } as IContractorReview
+       
 
-        const foundIndex = contractor.reviews.findIndex((review) => review.job && review.job == job.id);
+          // Create a new review object
+        const newReview = new ReviewModel({
+            averageRating: 0,
+            // ratings,
+            job: job.id,
+            customer: job.customer,
+            contractor: job.contractor,
+            // comment: review,
+            type: REVIEW_TYPE.JOB_CANCELETION,
+            createdAt: new Date(),
+        });
+        
+        await newReview.save()
+
+        const foundIndex = contractor.reviews.findIndex((review) =>  review.review == job.id);
         if (foundIndex !== -1) {
-            contractor.reviews[foundIndex] = contractorReview;
+            contractor.reviews[foundIndex] = {averageRating: newReview.averageRating, review: newReview.id};
         }else{
-            contractor.reviews.push(contractorReview);
+            contractor.reviews.push({averageRating: newReview.averageRating, review: newReview.id});
         }
 
         

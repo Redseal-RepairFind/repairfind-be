@@ -85,12 +85,12 @@ export interface IStatusUpdate {
 
 
 
-export interface IJobReview {
-    ratings?: Array<{ item: string; rating: number }>; //Rating value (e.g., 1-5 stars)
-    review?: string; // Optional: Textual feedback
-    averageRating?: number; // avaraged from the items in ratings array
-    createdAt: Date;
-}
+// export interface IJobReview {
+//     ratings?: Array<{ item: string; rating: number }>; //Rating value (e.g., 1-5 stars)
+//     review?: string; // Optional: Textual feedback
+//     averageRating?: number; // avaraged from the items in ratings array
+//     createdAt: Date;
+// }
 
 export interface IJob extends Document {
     _id: ObjectId;
@@ -126,7 +126,7 @@ export interface IJob extends Document {
     emergency: boolean;
     myQuotation: Object | null
     isAssigned: boolean;
-    review: IJobReview;
+    review: ObjectId;
     getMyQoutation: (contractorId: ObjectId) => {
     };
     getPayments: () => {
@@ -205,23 +205,23 @@ const JobLocationSchema = new Schema<IJobLocation>({
 });
 
 
-const JobReviewSchema = new Schema<IJobReview>({
-    averageRating: {
-        type: Number,
-        min: 1,
-        max: 5, // Adjust based on your rating scale
-    },
-    review: {
-        type: String,
-    },
-    ratings: {
-        type: [{ item: String, rating: Number }],
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now,
-    },
-});
+// const JobReviewSchema = new Schema<IJobReview>({
+//     averageRating: {
+//         type: Number,
+//         min: 1,
+//         max: 5, // Adjust based on your rating scale
+//     },
+//     review: {
+//         type: String,
+//     },
+//     ratings: {
+//         type: [{ item: String, rating: Number }],
+//     },
+//     createdAt: {
+//         type: Date,
+//         default: Date.now,
+//     },
+// });
 
 
 const JobHistorySchema = new Schema<IJobHistory>({
@@ -268,7 +268,7 @@ const JobSchema = new Schema<IJob>({
     assignment: JobAssignmentSchema,
     emergency: { type: Boolean, default: false },
     isAssigned: { type: Boolean, default: false },
-    review: { type: JobReviewSchema },
+    review: { type: Schema.Types.ObjectId, ref: 'reviews' },
 }, { timestamps: true });
 
 

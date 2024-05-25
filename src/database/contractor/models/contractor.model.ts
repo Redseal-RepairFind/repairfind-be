@@ -1,5 +1,5 @@
 import { Schema, model, ObjectId, FilterQuery } from "mongoose";
-import { COMPANY_STATUS, CONTRACTOR_REVIEW_TYPE, CONTRACTOR_TYPES, GST_STATUS, IContractor, IContractorCertnDetails, IContractorCompanyDetails, IContractorGstDetails, IContractorReview } from "../interface/contractor.interface";
+import { COMPANY_STATUS, CONTRACTOR_TYPES, GST_STATUS, IContractor, IContractorCertnDetails, IContractorCompanyDetails, IContractorGstDetails } from "../interface/contractor.interface";
 import { contractorStatus } from "../../../constants/contractorStatus";
 import ContractorQuizModel from "./contractor_quiz.model";
 import { StripeCustomerSchema } from "../../common/stripe_customer.schema";
@@ -37,35 +37,19 @@ const CompanyDetailSchema = new Schema<IContractorCompanyDetails>({
 });
 
 
-const ContractorReviewSchema = new Schema<IContractorReview>({
-  customer: {
-    type: Schema.Types.ObjectId,
-  },
-  averageRating: {
-    type: Number,
-    required: true,
-    min: 1,
-    max: 5, // Adjust based on your rating scale
-  },
-  ratings: {
-    type: [{item: String, rating: Number}],
-  },
-  review: {
-    type: String,
-  },
-  job: {
-    type: Schema.Types.ObjectId,
-  },
-  type: {
-    type: String,
-    enum: Object.values(CONTRACTOR_REVIEW_TYPE),
-    default: CONTRACTOR_REVIEW_TYPE.JOB_COMPLETION
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
+// const ContractorReviewSchema = new Schema<IContractorReview>({
+//   review: {
+//     type: Schema.Types.ObjectId,
+//     ref: 'reviews'
+//   },
+//   averageRating: {
+//     type: Number,
+//     required: true,
+//     min: 1,
+//     max: 5, // Adjust based on your rating scale
+//   },
+  
+// });
 
 
 
@@ -242,9 +226,12 @@ const ContractorSchema = new Schema<IContractor>(
     certnDetails: {
       type: CertnDetailSchema
     },
-    reviews: {
-      type: [ContractorReviewSchema]
-    },
+    // reviews: {
+    //   type: [ContractorReviewSchema],
+    //   //select: false, // Don't include reviews by default
+    // },
+    reviews: [{ review: { type: Schema.Types.ObjectId, ref: 'reviews' }, averageRating: Number }],
+
     onboarding: {
       hasStripeAccount: { default: false, type: Boolean },
       hasStripeIdentity: { default: false, type: Boolean },
@@ -328,9 +315,16 @@ ContractorSchema.virtual('certnReport').get(function (this: IContractor) {
 
 
 
+// ContractorSchema.virtual('rating').get(function () {
+//   const reviews: any = this.reviews;
+//   const totalRating = reviews.reduce((acc: any, review: any) => acc + review.averageRating, 0);
+//   return reviews.length > 0 ? totalRating / reviews.length : 0;
+// });
+
 ContractorSchema.virtual('rating').get(function () {
-  const reviews: any = this.reviews;
-  const totalRating = reviews.reduce((acc: any, review: any) => acc + review.averageRating, 0);
+  // Access reviews using `this.get('reviews')`
+  const reviews: any[] = this.get('reviews') || [];
+  const totalRating = reviews.reduce((acc, review) => acc + review.averageRating, 0);
   return reviews.length > 0 ? totalRating / reviews.length : 0;
 });
 
@@ -446,9 +440,20 @@ ContractorSchema.set('toJSON', {
       delete ret.stripeCustomer;
     }
     //@ts-ignore
-
     if (!options.includeStripeAccount) {
       delete ret.stripeAccount;
+    }
+
+    //@ts-ignore
+    if (options.includeReviews.status) {
+      //@ts-ignore
+      const limit = options.includeReviews.limit;
+      if (ret.reviews && ret.reviews.length > limit) {
+        ret.reviews = ret.reviews.slice(0, limit);
+      }
+      //TODO: limit number of reviews returned here
+    }else{
+      delete ret.reviews;
     }
 
     if (!ret.profilePhoto || !ret.profilePhoto.url) {

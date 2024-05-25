@@ -482,7 +482,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         return [4 /*yield*/, contractor_2.quiz];
                     case 4:
                         quiz = (_a = _c.sent()) !== null && _a !== void 0 ? _a : null;
-                        contractorResponse = __assign(__assign({}, contractor_2.toJSON({ includeStripeIdentity: true, includeStripeCustomer: true, includeStripePaymentMethods: true, includeStripeAccount: true })), { // Convert to plain JSON object
+                        contractorResponse = __assign(__assign({}, contractor_2.toJSON({ includeStripeIdentity: true, includeStripeCustomer: true, includeStripePaymentMethods: true, includeStripeAccount: true, includeReviews: { status: true, limit: 20 } })), { // Convert to plain JSON object
                             quiz: quiz });
                         if (!contractor_2) {
                             return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor not found' })];

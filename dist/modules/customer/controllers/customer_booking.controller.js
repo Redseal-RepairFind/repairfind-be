@@ -84,6 +84,8 @@ var job_quotation_model_1 = require("../../../database/common/job_quotation.mode
 var events_1 = require("../../../events");
 var mongoose_1 = __importDefault(require("mongoose"));
 var transaction_model_1 = __importStar(require("../../../database/common/transaction.model"));
+var job_dispute_model_1 = require("../../../database/common/job_dispute.model");
+var review_model_1 = require("../../../database/common/review.model");
 var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, _b, limit, _c, page, _d, sort, contractorId_1, _e, status_1, startDate, endDate, date, type, customerId, filter, start, end, selectedDate, startOfDay_1, endOfDay, _f, data, error, error_1;
     return __generator(this, function (_g) {
@@ -94,12 +96,12 @@ var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0,
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
-                _a = req.query, _b = _a.limit, limit = _b === void 0 ? 10 : _b, _c = _a.page, page = _c === void 0 ? 1 : _c, _d = _a.sort, sort = _d === void 0 ? '-createdAt' : _d, contractorId_1 = _a.contractorId, _e = _a.status, status_1 = _e === void 0 ? 'BOOKED' : _e, startDate = _a.startDate, endDate = _a.endDate, date = _a.date, type = _a.type;
+                _a = req.query, _b = _a.limit, limit = _b === void 0 ? 10 : _b, _c = _a.page, page = _c === void 0 ? 1 : _c, _d = _a.sort, sort = _d === void 0 ? '-createdAt' : _d, contractorId_1 = _a.contractorId, _e = _a.status, status_1 = _e === void 0 ? 'BOOKED,ONGOING' : _e, startDate = _a.startDate, endDate = _a.endDate, date = _a.date, type = _a.type;
                 req.query.page = page;
                 req.query.limit = limit;
                 req.query.sort = sort;
                 customerId = req.customer.id;
-                filter = { customer: customerId };
+                filter = { customer: customerId, status: { $in: ['BOOKED', 'ONGOING'] } };
                 // TODO: when contractor is specified, ensure the contractor quotation is attached
                 if (contractorId_1) {
                     if (!mongoose_1.default.Types.ObjectId.isValid(contractorId_1)) {
@@ -109,7 +111,8 @@ var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0,
                     delete req.query.contractorId;
                 }
                 if (status_1) {
-                    req.query.status = status_1.toUpperCase();
+                    // req.query.status = status.toUpperCase();
+                    delete req.query.status;
                 }
                 if (startDate && endDate) {
                     start = new Date(startDate);
@@ -297,27 +300,34 @@ var getBookingDisputes = function (req, res, next) { return __awaiter(void 0, vo
 }); };
 exports.getBookingDisputes = getBookingDisputes;
 var getSingleBooking = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, bookingId, job, error_4;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var customerId, bookingId, job, responseData, _a, error_4;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
-                _a.trys.push([0, 2, , 3]);
+                _b.trys.push([0, 4, , 5]);
                 customerId = req.customer.id;
                 bookingId = req.params.bookingId;
                 return [4 /*yield*/, job_model_1.JobModel.findOne({ customer: customerId, _id: bookingId }).populate(['contractor', 'contract'])];
             case 1:
-                job = _a.sent();
+                job = _b.sent();
                 // Check if the job exists
                 if (!job) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Booking not found' })];
                 }
-                // If the job exists, return it as a response
-                res.json({ success: true, message: 'Booking retrieved', data: job });
-                return [3 /*break*/, 3];
+                responseData = __assign({}, job.toJSON());
+                if (!(job.status === job_model_1.JOB_STATUS.DISPUTED)) return [3 /*break*/, 3];
+                _a = responseData;
+                return [4 /*yield*/, job_dispute_model_1.JobDisputeModel.findOne({ job: job.id })];
             case 2:
-                error_4 = _a.sent();
+                _a.dispute = _b.sent();
+                _b.label = 3;
+            case 3:
+                res.json({ success: true, message: 'Booking retrieved', data: responseData });
+                return [3 /*break*/, 5];
+            case 4:
+                error_4 = _b.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_4))];
-            case 3: return [2 /*return*/];
+            case 5: return [2 /*return*/];
         }
     });
 }); };
@@ -748,73 +758,79 @@ var acceptBookingComplete = function (req, res, next) { return __awaiter(void 0,
 }); };
 exports.acceptBookingComplete = acceptBookingComplete;
 var reviewBookingOnCompletion = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, _a, review, ratings, favoriteContractor, bookingId, job_1, contractor, existingReview, newReview, totalRatings, totalReviewScore, averageRating, contractorReview, foundIndex, error_10;
+    var customerId, _a, review, ratings, favoriteContractor, bookingId, job, contractor, existingReview, newReview_1, totalRatings, totalReviewScore, averageRating, foundIndex, error_10;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 5, , 6]);
+                _b.trys.push([0, 7, , 8]);
                 customerId = req.customer.id;
                 _a = req.body, review = _a.review, ratings = _a.ratings, favoriteContractor = _a.favoriteContractor;
                 bookingId = req.params.bookingId;
                 return [4 /*yield*/, job_model_1.JobModel.findById(bookingId)];
             case 1:
-                job_1 = _b.sent();
+                job = _b.sent();
                 // Check if the job exists
-                if (!job_1) {
+                if (!job) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found' })];
                 }
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(job_1.contractor)];
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(job.contractor)];
             case 2:
                 contractor = _b.sent();
                 if (!contractor) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor not found' })];
                 }
                 // Check if the customer is the owner of the job
-                if (job_1.customer.toString() !== customerId) {
+                if (job.customer.toString() !== customerId) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'You are not authorized to add a review for this job' })];
                 }
                 // Check if the job is already completed
-                if (job_1.status !== job_model_1.JOB_STATUS.COMPLETED) {
+                if (job.status !== job_model_1.JOB_STATUS.COMPLETED) {
                     // return res.status(400).json({ success: false, message: 'Job is not yet completed, reviews can only be added for completed jobs' });
                 }
-                existingReview = job_1.review;
+                return [4 /*yield*/, review_model_1.ReviewModel.findOne({ job: job.id, type: review_model_1.REVIEW_TYPE.JOB_COMPLETION })];
+            case 3:
+                existingReview = _b.sent();
                 if (existingReview) {
                     // return res.status(400).json({ success: false, message: 'You can only add one review per job' });
                 }
-                newReview = {
+                newReview_1 = new review_model_1.ReviewModel({
+                    averageRating: 0,
                     ratings: ratings,
-                    review: review,
+                    job: job.id,
+                    customer: job.customer,
+                    contractor: job.contractor,
+                    comment: review,
+                    type: review_model_1.REVIEW_TYPE.JOB_COMPLETION,
                     createdAt: new Date(),
-                };
-                // Update the job's reviews array
-                job_1.review = newReview;
+                });
                 totalRatings = ratings.length;
                 totalReviewScore = ratings.reduce(function (a, b) { return a + b.rating; }, 0);
                 averageRating = totalReviewScore > 0 ? totalReviewScore / totalRatings : 0;
-                newReview.averageRating = averageRating;
-                job_1.review = newReview;
-                contractorReview = __assign(__assign({}, newReview), { job: job_1.id });
-                foundIndex = contractor.reviews.findIndex(function (review) { return review.job && review.job == job_1.id; });
+                newReview_1.averageRating = averageRating;
+                return [4 /*yield*/, newReview_1.save()];
+            case 4:
+                _b.sent();
+                foundIndex = contractor.reviews.findIndex(function (review) { return review.review == newReview_1.id; });
                 if (foundIndex !== -1) {
-                    contractor.reviews[foundIndex] = contractorReview;
+                    contractor.reviews[foundIndex] = { review: newReview_1.id, averageRating: averageRating };
                 }
                 else {
-                    contractor.reviews.push(contractorReview);
+                    contractor.reviews.push({ review: newReview_1.id, averageRating: averageRating });
                 }
                 // Save the job
-                return [4 /*yield*/, job_1.save()];
-            case 3:
+                return [4 /*yield*/, job.save()];
+            case 5:
                 // Save the job
                 _b.sent();
                 return [4 /*yield*/, contractor.save()];
-            case 4:
+            case 6:
                 _b.sent();
-                res.json({ success: true, message: 'Review added successfully', data: newReview });
-                return [3 /*break*/, 6];
-            case 5:
+                res.json({ success: true, message: 'Review added successfully', data: newReview_1 });
+                return [3 /*break*/, 8];
+            case 7:
                 error_10 = _b.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_10))];
-            case 6: return [2 /*return*/];
+            case 8: return [2 /*return*/];
         }
     });
 }); };

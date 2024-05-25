@@ -62,6 +62,8 @@ var mongoose_1 = __importDefault(require("mongoose"));
 var contractor_interface_1 = require("../../../database/contractor/interface/contractor.interface");
 var contractor_team_model_1 = __importDefault(require("../../../database/contractor/models/contractor_team.model"));
 var job_assigned_template_1 = require("../../../templates/contractorEmail/job_assigned.template");
+var job_dispute_model_1 = require("../../../database/common/job_dispute.model");
+var review_model_1 = require("../../../database/common/review.model");
 var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, _b, limit, _c, page, _d, sort, customerId, _e, status_1, startDate, endDate, date, type, contractorId_1, filter, start, end, selectedDate, startOfDay_1, endOfDay, _f, data, error, error_1;
     return __generator(this, function (_g) {
@@ -299,11 +301,11 @@ var getBookingDisputes = function (req, res, next) { return __awaiter(void 0, vo
 }); };
 exports.getBookingDisputes = getBookingDisputes;
 var getSingleBooking = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var contractorId, bookingId, job, error_4;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var contractorId, bookingId, job, responseData, _a, error_4;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
-                _a.trys.push([0, 2, , 3]);
+                _b.trys.push([0, 4, , 5]);
                 contractorId = req.contractor.id;
                 bookingId = req.params.bookingId;
                 return [4 /*yield*/, job_model_1.JobModel.findOne({
@@ -313,18 +315,26 @@ var getSingleBooking = function (req, res, next) { return __awaiter(void 0, void
                         ], _id: bookingId
                     }).populate(['contractor', 'contract', 'customer', 'assignment.contractor'])];
             case 1:
-                job = _a.sent();
+                job = _b.sent();
                 // Check if the job exists
                 if (!job) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Booking not found' })];
                 }
-                // If the job exists, return it as a response
-                res.json({ success: true, message: 'Booking retrieved', data: job });
-                return [3 /*break*/, 3];
+                responseData = __assign({}, job.toJSON());
+                if (!(job.status === job_model_1.JOB_STATUS.DISPUTED)) return [3 /*break*/, 3];
+                _a = responseData;
+                return [4 /*yield*/, job_dispute_model_1.JobDisputeModel.findOne({ job: job.id })];
             case 2:
-                error_4 = _a.sent();
+                _a.dispute = _b.sent();
+                _b.label = 3;
+            case 3:
+                // If the job exists, return it as a response
+                res.json({ success: true, message: 'Booking retrieved', data: responseData });
+                return [3 /*break*/, 5];
+            case 4:
+                error_4 = _b.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_4))];
-            case 3: return [2 /*return*/];
+            case 5: return [2 /*return*/];
         }
     });
 }); };
@@ -511,11 +521,11 @@ var assignJob = function (req, res, next) { return __awaiter(void 0, void 0, voi
 }); };
 exports.assignJob = assignJob;
 var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var contractorId, bookingId, reason, job_1, contractor, contractorReview, foundIndex, error_8;
+    var contractorId, bookingId, reason, job_1, contractor, newReview, foundIndex, error_8;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 5, , 6]);
+                _a.trys.push([0, 6, , 7]);
                 contractorId = req.contractor.id;
                 bookingId = req.params.bookingId;
                 reason = req.body.reason;
@@ -555,30 +565,38 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
                 // emit job cancelled event 
                 // inside the event take actions such as refund etc
                 events_1.JobEvent.emit('JOB_CANCELED', { job: job_1, canceledBy: 'contractor' });
-                contractorReview = {
+                newReview = new review_model_1.ReviewModel({
                     averageRating: 0,
+                    // ratings,
                     job: job_1.id,
-                    type: contractor_interface_1.CONTRACTOR_REVIEW_TYPE.JOB_CANCELETION
-                };
-                foundIndex = contractor.reviews.findIndex(function (review) { return review.job && review.job == job_1.id; });
-                if (foundIndex !== -1) {
-                    contractor.reviews[foundIndex] = contractorReview;
-                }
-                else {
-                    contractor.reviews.push(contractorReview);
-                }
-                return [4 /*yield*/, job_1.save()];
+                    customer: job_1.customer,
+                    contractor: job_1.contractor,
+                    // comment: review,
+                    type: review_model_1.REVIEW_TYPE.JOB_CANCELETION,
+                    createdAt: new Date(),
+                });
+                return [4 /*yield*/, newReview.save()];
             case 3:
                 _a.sent();
-                return [4 /*yield*/, contractor.save()];
+                foundIndex = contractor.reviews.findIndex(function (review) { return review.review == job_1.id; });
+                if (foundIndex !== -1) {
+                    contractor.reviews[foundIndex] = { averageRating: newReview.averageRating, review: newReview.id };
+                }
+                else {
+                    contractor.reviews.push({ averageRating: newReview.averageRating, review: newReview.id });
+                }
+                return [4 /*yield*/, job_1.save()];
             case 4:
                 _a.sent();
-                res.json({ success: true, message: 'Booking canceled successfully', data: job_1 });
-                return [3 /*break*/, 6];
+                return [4 /*yield*/, contractor.save()];
             case 5:
+                _a.sent();
+                res.json({ success: true, message: 'Booking canceled successfully', data: job_1 });
+                return [3 /*break*/, 7];
+            case 6:
                 error_8 = _a.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_8))];
-            case 6: return [2 /*return*/];
+            case 7: return [2 /*return*/];
         }
     });
 }); };

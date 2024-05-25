@@ -100,22 +100,22 @@ export enum COMPANY_STATUS {
 
 
 
-export enum CONTRACTOR_REVIEW_TYPE {
-  JOB_COMPLETION = "JOB_COMPLETION",
-  JOB_CANCELETION = "JOB_CANCELETION"
-}
+// export enum CONTRACTOR_REVIEW_TYPE {
+//   JOB_COMPLETION = "JOB_COMPLETION",
+//   JOB_CANCELETION = "JOB_CANCELETION"
+// }
 
 
 
-export interface IContractorReview {
-  customer?: ObjectId; // Optional: ObjectId referencing the User who left the rating
-  averageRating: number; // avaraged from the items in ratings array
-  ratings?: Array<{ item: string; rating: number }>; //Rating value (e.g., 1-5 stars)
-  review?: string; // Optional: Textual feedback
-  job?: ObjectId; // Optional: Textual feedback
-  createdAt: Date;
-  type: string;
-}
+// export interface IContractorReview {
+//   customer?: ObjectId; // Optional: ObjectId referencing the User who left the rating
+//   averageRating: number; // avaraged from the items in ratings array
+//   ratings?: Array<{ item: string; rating: number }>; //Rating value (e.g., 1-5 stars)
+//   review?: string; // Optional: Textual feedback
+//   job?: ObjectId; // Optional: Textual feedback
+//   createdAt: Date;
+//   type: string;
+// }
 
 // reviews?: Array<{ item: string; rating: number }> = [
 //   { item: "Professionalism", rating: 2 },
@@ -166,7 +166,7 @@ export interface IContractor extends Document {
   gstDetails: IContractorGstDetails
   companyDetails: IContractorCompanyDetails
   certnDetails: IContractorCertnDetails
-  reviews: Array<IContractorReview>,
+  reviews: Array<{review: ObjectId, averageRating: number}>,
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date;

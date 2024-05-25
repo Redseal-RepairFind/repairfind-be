@@ -105,19 +105,23 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
                                     then: { $concat: ['$firstName', ' ', '$lastName'] },
                                     else: '$companyName'
                                 }
-                            }
+                            },
+                            rating: { $avg: '$reviews.averageRating' } // Calculate average rating using $avg
                         }
                     },
                     {
                         $project: {
                             stripeIdentity: 0,
                             stripeCustomer: 0,
+                            stripeAccount: 0,
                             stripePaymentMethods: 0,
                             stripePaymentMethod: 0,
                             passwordOtp: 0,
                             password: 0,
                             emailOtp: 0,
                             dateOfBirth: 0,
+                            reviews: 0,
+                            onboarding: 0,
                         }
                     }
                 ];
@@ -194,9 +198,11 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
                         break;
                     case 'top-rated':
                         // Logic to fetch top-rated contractors
-                        pipeline.push({ $match: { rating: { $exists: true } } }, // Filter out contractors with no ratings
-                        { $sort: { rating: -1 } } // Sort by rating in descending order
-                        );
+                        // pipeline.push(
+                        //     { $match: { rating: { $exists: true } } }, // Filter out contractors with no ratings
+                        //     { $sort: { rating: -1 } } // Sort by rating in descending order
+                        // );
+                        pipeline.push({ $match: { averageRating: { $exists: true } } });
                         break;
                     case 'featured':
                         // Logic to fetch featured contractors
@@ -237,21 +243,24 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
 }); };
 exports.exploreContractors = exploreContractors;
 var getSingleContractor = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var contractorId, contractor, error_1;
+    var contractorId, contractor, contractorResponse, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
                 contractorId = req.params.contractorId;
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId).populate('profile')];
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId).populate([
+                        { path: 'profile' }
+                    ])];
             case 1:
                 contractor = _a.sent();
                 if (!contractor) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Contractor not found' })];
                 }
+                contractorResponse = __assign({}, contractor.toJSON({ includeReviews: { status: true, limit: 20 }, }));
                 // schedule
                 //reviews etc here
-                return [2 /*return*/, res.status(200).json({ success: true, message: 'Contractor  found', data: contractor })];
+                return [2 /*return*/, res.status(200).json({ success: true, message: 'Contractor  found', data: contractorResponse })];
             case 2:
                 error_1 = _a.sent();
                 next(new custom_errors_1.BadRequestError('An error occured', error_1));

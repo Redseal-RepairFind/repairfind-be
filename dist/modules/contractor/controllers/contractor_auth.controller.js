@@ -96,6 +96,7 @@ var admin_notification_model_1 = __importDefault(require("../../../database/admi
 var decorators_abstract_1 = require("../../../abstracts/decorators.abstract");
 var base_abstract_1 = require("../../../abstracts/base.abstract");
 var services_1 = require("../../../services");
+var config_1 = require("../../../config");
 var AuthHandler = /** @class */ (function (_super) {
     __extends(AuthHandler, _super);
     function AuthHandler() {
@@ -234,7 +235,7 @@ var AuthHandler = /** @class */ (function (_super) {
                             id: contractor === null || contractor === void 0 ? void 0 : contractor._id,
                             email: contractor.email,
                             userType: 'contractors',
-                        }, process.env.JWT_CONTRACTOR_SECRET_KEY, { expiresIn: "24h" });
+                        }, process.env.JWT_CONTRACTOR_SECRET_KEY, { expiresIn: config_1.config.jwt.tokenLifetime });
                         return [4 /*yield*/, (contractor === null || contractor === void 0 ? void 0 : contractor.quiz)];
                     case 4:
                         quiz = (_a = _c.sent()) !== null && _a !== void 0 ? _a : null;
@@ -246,6 +247,7 @@ var AuthHandler = /** @class */ (function (_super) {
                                 success: true,
                                 message: "Email verified successful",
                                 accessToken: accessToken,
+                                expiresIn: config_1.config.jwt.tokenLifetime,
                                 user: contractorResponse
                             })];
                     case 5:
@@ -304,12 +306,13 @@ var AuthHandler = /** @class */ (function (_super) {
                             id: contractor === null || contractor === void 0 ? void 0 : contractor._id,
                             email: contractor.email,
                             userType: 'contractors',
-                        }, process.env.JWT_CONTRACTOR_SECRET_KEY, { expiresIn: "24h" });
+                        }, process.env.JWT_CONTRACTOR_SECRET_KEY, { expiresIn: config_1.config.jwt.tokenLifetime });
                         // return access token
                         return [2 /*return*/, res.json({
                                 success: true,
                                 message: "Login successful",
                                 accessToken: accessToken,
+                                expiresIn: config_1.config.jwt.tokenLifetime,
                                 user: contractorResponse
                             })];
                     case 6:

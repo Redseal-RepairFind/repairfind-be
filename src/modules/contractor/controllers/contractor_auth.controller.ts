@@ -16,6 +16,7 @@ import AdminNoficationModel from "../../../database/admin/models/admin_notificat
 import { handleAsyncError } from "../../../abstracts/decorators.abstract";
 import { Base } from "../../../abstracts/base.abstract";
 import { EmailService } from "../../../services";
+import { config } from "../../../config";
 
 class AuthHandler extends Base {
     @handleAsyncError()
@@ -158,7 +159,7 @@ class AuthHandler extends Base {
                     userType: 'contractors',
                 },
                 process.env.JWT_CONTRACTOR_SECRET_KEY!,
-                { expiresIn: "24h" }
+                { expiresIn: config.jwt.tokenLifetime  }
             );
 
             const quiz = await contractor?.quiz ?? null
@@ -174,6 +175,7 @@ class AuthHandler extends Base {
                 success: true,
                 message: "Email verified successful",
                 accessToken: accessToken,
+                expiresIn: config.jwt.tokenLifetime, 
                 user: contractorResponse
             });
 
@@ -242,7 +244,7 @@ class AuthHandler extends Base {
                     userType: 'contractors',
                 },
                 process.env.JWT_CONTRACTOR_SECRET_KEY!,
-                { expiresIn: "24h" }
+                { expiresIn: config.jwt.tokenLifetime  }
             );
 
             // return access token
@@ -250,6 +252,7 @@ class AuthHandler extends Base {
                 success: true,
                 message: "Login successful",
                 accessToken: accessToken,
+                expiresIn: config.jwt.tokenLifetime, 
                 user: contractorResponse
             });
 

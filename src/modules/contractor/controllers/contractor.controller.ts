@@ -328,7 +328,7 @@ class ProfileHandler extends Base {
       contractor.gstDetails = gstDetails;
       await contractor.save();
       contractor.onboarding = await contractor.getOnboarding()
-      
+
       const contractorResponse = {
         ...contractor.toJSON(), // Convert to plain JSON object
         profile
@@ -382,7 +382,7 @@ class ProfileHandler extends Base {
         payload = { profilePhoto, phoneNumber, firstName, lastName, dateOfBirth }
       }
 
-      const returnOriginal =await ContractorModel.findOneAndUpdate(
+      const returnOriginal = await ContractorModel.findOneAndUpdate(
         { _id: contractorId },
         payload,
         { new: true }
@@ -435,7 +435,7 @@ class ProfileHandler extends Base {
 
       const contractorResponse = {
         //@ts-ignore
-        ...contractor.toJSON({ includeStripeIdentity: true, includeStripeCustomer: true, includeStripePaymentMethods: true, includeStripeAccount: true }), // Convert to plain JSON object
+        ...contractor.toJSON({ includeStripeIdentity: true, includeStripeCustomer: true, includeStripePaymentMethods: true, includeStripeAccount: true, includeReviews: { status: true, limit: 20 } }), // Convert to plain JSON object
         quiz,
       };
 
@@ -463,7 +463,7 @@ class ProfileHandler extends Base {
         //   country: stripeAccount.country,
         //   external_accounts: stripeAccount.external_accounts,
         // } as IStripeAccount;
-    
+
 
       }
 
@@ -969,14 +969,14 @@ class ProfileHandler extends Base {
       const contractor = req.contractor;
       const contractorId = contractor.id;
 
-      const account = await ContractorModel.findOne({_id:contractorId});
+      const account = await ContractorModel.findOne({ _id: contractorId });
       if (!account) {
         return res.status(404).json({ success: false, message: 'Account not found' });
       }
 
       // perform checks here
-      const bookedAndDisputedJobs = await JobModel.find({contractor: contractorId, status: {$in: [JOB_STATUS.BOOKED, JOB_STATUS.DISPUTED ] }})
-      if(bookedAndDisputedJobs.length > 0){
+      const bookedAndDisputedJobs = await JobModel.find({ contractor: contractorId, status: { $in: [JOB_STATUS.BOOKED, JOB_STATUS.DISPUTED] } })
+      if (bookedAndDisputedJobs.length > 0) {
         return res.status(400).json({ success: false, message: 'You have an active Job, acount cannot be deleted' });
       }
 
@@ -986,14 +986,14 @@ class ProfileHandler extends Base {
       account.deletedAt = new Date()
       await account.save()
 
-      res.json({success: true, message: 'Account deleted successfully'});
+      res.json({ success: true, message: 'Account deleted successfully' });
     } catch (err: any) {
       console.log('error', err);
       res.status(500).json({ success: false, message: err.message });
     }
   }
 
-  
+
 
 }
 

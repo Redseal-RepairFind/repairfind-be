@@ -299,8 +299,6 @@ export const savePostJobQualityAssurance = async (
 
 }
 
-
-
 export const createJobEmergency = async (req: any, res: Response, next: NextFunction) => {
     try {
         // Extract data from request body

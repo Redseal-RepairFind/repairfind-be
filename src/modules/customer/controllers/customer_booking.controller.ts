@@ -5,7 +5,7 @@ import { htmlJobRequestTemplate } from "../../../templates/contractorEmail/jobRe
 import CustomerModel from "../../../database/customer/models/customer.model";
 import { EmailService, NotificationService } from "../../../services";
 import { addHours, isFuture, isValid, startOfDay } from "date-fns";
-import { IJob, JobModel, JOB_STATUS, JobType, IJobSchedule, JOB_SCHEDULE_TYPE, IJobReSchedule, IJobReview } from "../../../database/common/job.model";
+import { IJob, JobModel, JOB_STATUS, JobType, IJobSchedule, JOB_SCHEDULE_TYPE, IJobReSchedule } from "../../../database/common/job.model";
 import { BadRequestError, InternalServerError } from "../../../utils/custom.errors";
 import { applyAPIFeature } from "../../../utils/api.feature";
 import { ConversationModel } from "../../../database/common/conversations.schema";
@@ -18,8 +18,9 @@ import mongoose from "mongoose";
 import TransactionModel, { TRANSACTION_STATUS, TRANSACTION_TYPE } from "../../../database/common/transaction.model";
 import { StripeService } from "../../../services/stripe";
 import Stripe from "stripe";
-import { IContractorReview } from "../../../database/contractor/interface/contractor.interface";
 import { IPayment } from "../../../database/common/payment.schema";
+import { JobDisputeModel } from "../../../database/common/job_dispute.model";
+import { IReview, REVIEW_TYPE, ReviewModel } from "../../../database/common/review.model";
 
 
 
@@ -37,7 +38,7 @@ export const getMyBookings = async (req: any, res: Response, next: NextFunction)
             page = 1,
             sort = '-createdAt',
             contractorId,
-            status = 'BOOKED',
+            status = 'BOOKED,ONGOING',
             startDate,
             endDate,
             date,
@@ -51,7 +52,7 @@ export const getMyBookings = async (req: any, res: Response, next: NextFunction)
         const customerId = req.customer.id;
 
         // Construct filter object based on query parameters
-        let filter: any = { customer: customerId };
+        let filter: any = { customer: customerId, status: {$in: ['BOOKED','ONGOING'] } };
 
 
         // TODO: when contractor is specified, ensure the contractor quotation is attached
@@ -64,7 +65,8 @@ export const getMyBookings = async (req: any, res: Response, next: NextFunction)
         }
 
         if (status) {
-            req.query.status = status.toUpperCase();
+            // req.query.status = status.toUpperCase();
+            delete req.query.status
         }
         if (startDate && endDate) {
             // Parse startDate and endDate into Date objects
@@ -243,8 +245,12 @@ export const getSingleBooking = async (req: any, res: Response, next: NextFuncti
             return res.status(404).json({ success: false, message: 'Booking not found' });
         }
 
-        // If the job exists, return it as a response
-        res.json({ success: true, message: 'Booking retrieved', data: job });
+        let responseData: any = { ...job.toJSON() };
+        if (job.status === JOB_STATUS.DISPUTED) {
+            responseData.dispute = await JobDisputeModel.findOne({ job: job.id });
+        }
+        res.json({ success: true, message: 'Booking retrieved', data: responseData });
+
     } catch (error: any) {
         return next(new BadRequestError('An error occured ', error))
     }
@@ -740,21 +746,26 @@ export const reviewBookingOnCompletion = async (req: any, res: Response, next: N
         }
 
         // Check if the customer has already reviewed this job
-        const existingReview = job.review
+        const existingReview = await ReviewModel.findOne({job: job.id, type: REVIEW_TYPE.JOB_COMPLETION})
         if (existingReview) {
             // return res.status(400).json({ success: false, message: 'You can only add one review per job' });
         }
 
 
         // Create a new review object
-        const newReview: IJobReview = {
+        const newReview = new ReviewModel({
+            averageRating: 0,
             ratings,
-            review,
+            job: job.id,
+            customer: job.customer,
+            contractor: job.contractor,
+            comment: review,
+            type: REVIEW_TYPE.JOB_COMPLETION,
             createdAt: new Date(),
-        };
+        });
 
         // Update the job's reviews array
-        job.review = newReview;
+        // job.review = newReview;
 
         // Calculate the average rating for the contractor (optional)
         //   const contractorReviews = await JobModel.find({ contractor: job.contractor, status: JOB_STATUS.COMPLETED });
@@ -763,24 +774,19 @@ export const reviewBookingOnCompletion = async (req: any, res: Response, next: N
         const averageRating = totalReviewScore > 0 ? totalReviewScore / totalRatings : 0;
 
         newReview.averageRating = averageRating
-        job.review = newReview
 
 
+        await newReview.save()
 
-        let contractorReview = {
-            ...newReview,
-            job: job.id
-        } as IContractorReview
-        const foundIndex = contractor.reviews.findIndex((review) => review.job && review.job == job.id);
+        const foundIndex = contractor.reviews.findIndex((review) => review.review == newReview.id);
         if (foundIndex !== -1) {
-            contractor.reviews[foundIndex] = contractorReview;
+            contractor.reviews[foundIndex] = {review: newReview.id, averageRating};
         }else{
-            contractor.reviews.push(contractorReview);
+            contractor.reviews.push({review: newReview.id, averageRating});
         }
 
 
         // Save the job
-
         await job.save()
         await contractor.save()
 

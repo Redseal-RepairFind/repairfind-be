@@ -69,35 +69,18 @@ var CompanyDetailSchema = new mongoose_1.Schema({
     approvedAt: Date,
     recentRemark: String,
 });
-var ContractorReviewSchema = new mongoose_1.Schema({
-    customer: {
-        type: mongoose_1.Schema.Types.ObjectId,
-    },
-    averageRating: {
-        type: Number,
-        required: true,
-        min: 1,
-        max: 5, // Adjust based on your rating scale
-    },
-    ratings: {
-        type: [{ item: String, rating: Number }],
-    },
-    review: {
-        type: String,
-    },
-    job: {
-        type: mongoose_1.Schema.Types.ObjectId,
-    },
-    type: {
-        type: String,
-        enum: Object.values(contractor_interface_1.CONTRACTOR_REVIEW_TYPE),
-        default: contractor_interface_1.CONTRACTOR_REVIEW_TYPE.JOB_COMPLETION
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now,
-    },
-});
+// const ContractorReviewSchema = new Schema<IContractorReview>({
+//   review: {
+//     type: Schema.Types.ObjectId,
+//     ref: 'reviews'
+//   },
+//   averageRating: {
+//     type: Number,
+//     required: true,
+//     min: 1,
+//     max: 5, // Adjust based on your rating scale
+//   },
+// });
 var CertnDetailSchema = new mongoose_1.Schema({
     created: String,
     modified: String,
@@ -251,9 +234,11 @@ var ContractorSchema = new mongoose_1.Schema({
     certnDetails: {
         type: CertnDetailSchema
     },
-    reviews: {
-        type: [ContractorReviewSchema]
-    },
+    // reviews: {
+    //   type: [ContractorReviewSchema],
+    //   //select: false, // Don't include reviews by default
+    // },
+    reviews: [{ review: { type: mongoose_1.Schema.Types.ObjectId, ref: 'reviews' }, averageRating: Number }],
     onboarding: {
         hasStripeAccount: { default: false, type: Boolean },
         hasStripeIdentity: { default: false, type: Boolean },
@@ -325,8 +310,14 @@ ContractorSchema.virtual('certnReport').get(function () {
     }
     return { status: status, action: action };
 });
+// ContractorSchema.virtual('rating').get(function () {
+//   const reviews: any = this.reviews;
+//   const totalRating = reviews.reduce((acc: any, review: any) => acc + review.averageRating, 0);
+//   return reviews.length > 0 ? totalRating / reviews.length : 0;
+// });
 ContractorSchema.virtual('rating').get(function () {
-    var reviews = this.reviews;
+    // Access reviews using `this.get('reviews')`
+    var reviews = this.get('reviews') || [];
     var totalRating = reviews.reduce(function (acc, review) { return acc + review.averageRating; }, 0);
     return reviews.length > 0 ? totalRating / reviews.length : 0;
 });
@@ -456,6 +447,18 @@ ContractorSchema.set('toJSON', {
         //@ts-ignore
         if (!options.includeStripeAccount) {
             delete ret.stripeAccount;
+        }
+        //@ts-ignore
+        if (options.includeReviews.status) {
+            //@ts-ignore
+            var limit = options.includeReviews.limit;
+            if (ret.reviews && ret.reviews.length > limit) {
+                ret.reviews = ret.reviews.slice(0, limit);
+            }
+            //TODO: limit number of reviews returned here
+        }
+        else {
+            delete ret.reviews;
         }
         if (!ret.profilePhoto || !ret.profilePhoto.url) {
             ret.profilePhoto = {
