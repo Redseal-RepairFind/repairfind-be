@@ -71,23 +71,28 @@ class SocketIOService {
                 console.log(`Jobday contractor location update `, payload)
                 // JOB_DAY_UPDATES
                 
-                const { toUser, toUserType } = payload
-                if (!toUserType || !toUser) return // Ensure userType and userId are valid
-                const user = toUserType === 'contractors' ? await ContractorModel.findById(toUser) : await CustomerModel.findById(toUser)
-                if (!user) return // Ensure user exists
+                const { toUser, toUserType, jobdayId } = payload
+                // if (!toUserType || !toUser) return // Ensure userType and userId are valid
+                // const user = toUserType === 'contractors' ? await ContractorModel.findById(toUser) : await CustomerModel.findById(toUser)
+                // if (!user) return // Ensure user exists
                 
                 const jobday = await JobDayModel.findById(payload.jobdayId)
                 if(!jobday)return
 
+                
+
                 const customer = await CustomerModel.findById(jobday.customer)
-                const contractor = await CustomerModel.findById(jobday.contractor)
+                const contractor = await ContractorModel.findById(jobday.contractor)
                 if(!customer || !contractor)return
+                
+                // console.log(customer)
+
                 const  data = {
                     ...payload,
                     name:contractor.name,
                     profilePhoto: contractor.profilePhoto
                 }
-                this.io.to(customer.email).emit('JOB_DAY_CONTRACTOR_LOCATION', data);
+                this.sendNotification(customer.email, 'JOB_DAY_CONTRACTOR_LOCATION', data);
 
             });
         });

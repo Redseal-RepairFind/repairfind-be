@@ -103,42 +103,27 @@ var SocketIOService = /** @class */ (function () {
             }); });
             // Handle notification events from client here
             socket.on("send_jobday_contractor_location", function (payload) { return __awaiter(_this, void 0, void 0, function () {
-                var toUser, toUserType, user, _a, jobday, customer, contractor, data;
-                return __generator(this, function (_b) {
-                    switch (_b.label) {
+                var toUser, toUserType, jobdayId, jobday, customer, contractor, data;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
                         case 0:
                             console.log("Jobday contractor location update ", payload);
-                            toUser = payload.toUser, toUserType = payload.toUserType;
-                            if (!toUserType || !toUser)
-                                return [2 /*return*/]; // Ensure userType and userId are valid
-                            if (!(toUserType === 'contractors')) return [3 /*break*/, 2];
-                            return [4 /*yield*/, contractor_model_1.ContractorModel.findById(toUser)];
-                        case 1:
-                            _a = _b.sent();
-                            return [3 /*break*/, 4];
-                        case 2: return [4 /*yield*/, customer_model_1.default.findById(toUser)];
-                        case 3:
-                            _a = _b.sent();
-                            _b.label = 4;
-                        case 4:
-                            user = _a;
-                            if (!user)
-                                return [2 /*return*/]; // Ensure user exists
+                            toUser = payload.toUser, toUserType = payload.toUserType, jobdayId = payload.jobdayId;
                             return [4 /*yield*/, job_day_model_1.JobDayModel.findById(payload.jobdayId)];
-                        case 5:
-                            jobday = _b.sent();
+                        case 1:
+                            jobday = _a.sent();
                             if (!jobday)
                                 return [2 /*return*/];
                             return [4 /*yield*/, customer_model_1.default.findById(jobday.customer)];
-                        case 6:
-                            customer = _b.sent();
-                            return [4 /*yield*/, customer_model_1.default.findById(jobday.contractor)];
-                        case 7:
-                            contractor = _b.sent();
+                        case 2:
+                            customer = _a.sent();
+                            return [4 /*yield*/, contractor_model_1.ContractorModel.findById(jobday.contractor)];
+                        case 3:
+                            contractor = _a.sent();
                             if (!customer || !contractor)
                                 return [2 /*return*/];
                             data = __assign(__assign({}, payload), { name: contractor.name, profilePhoto: contractor.profilePhoto });
-                            this.io.to(customer.email).emit('JOB_DAY_CONTRACTOR_LOCATION', data);
+                            this.sendNotification(customer.email, 'JOB_DAY_CONTRACTOR_LOCATION', data);
                             return [2 /*return*/];
                     }
                 });
