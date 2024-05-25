@@ -445,16 +445,9 @@ ContractorSchema.set('toJSON', {
     }
 
     //@ts-ignore
-    // if (options.includeReviews.status) {
-    //   //@ts-ignore
-    //   const limit = options.includeReviews.limit;
-    //   if (ret.reviews && ret.reviews.length > limit) {
-    //     ret.reviews = ret.reviews.slice(0, limit);
-    //   }
-    //   //TODO: limit number of reviews returned here
-    // }else{
-    //   delete ret.reviews;
-    // }
+    if (!options.includeReviews) {
+      delete ret.reviews;
+    }
 
     if (!ret.profilePhoto || !ret.profilePhoto.url) {
       ret.profilePhoto = {

@@ -238,7 +238,7 @@ export const getSingleBooking = async (req: any, res: Response, next: NextFuncti
         const customerId = req.customer.id
         const bookingId = req.params.bookingId;
 
-        const job = await JobModel.findOne({ customer: customerId, _id: bookingId }).populate(['contractor', 'contract']);
+        const job = await JobModel.findOne({ customer: customerId, _id: bookingId }).populate(['contractor', 'contract', 'review']);
 
         // Check if the job exists
         if (!job) {
@@ -751,10 +751,13 @@ export const reviewBookingOnCompletion = async (req: any, res: Response, next: N
             // return res.status(400).json({ success: false, message: 'You can only add one review per job' });
         }
 
+        const totalRatings = ratings.length;
+        const totalReviewScore = ratings.reduce((a: any, b: any) => a + b.rating, 0);
+        const averageRating = totalReviewScore > 0 ? totalReviewScore / totalRatings : 0;
 
         // Create a new review object
-        const newReview = new ReviewModel({
-            averageRating: 0,
+        const newReview =  await ReviewModel.findOneAndUpdate({job: job.id,  type: REVIEW_TYPE.JOB_COMPLETION},{
+            averageRating,
             ratings,
             job: job.id,
             customer: job.customer,
@@ -762,22 +765,9 @@ export const reviewBookingOnCompletion = async (req: any, res: Response, next: N
             comment: review,
             type: REVIEW_TYPE.JOB_COMPLETION,
             createdAt: new Date(),
-        });
+        }, {new: true, upsert: true});
 
-        // Update the job's reviews array
-        // job.review = newReview;
-
-        // Calculate the average rating for the contractor (optional)
-        //   const contractorReviews = await JobModel.find({ contractor: job.contractor, status: JOB_STATUS.COMPLETED });
-        const totalRatings = ratings.length;
-        const totalReviewScore = ratings.reduce((a: any, b: any) => a + b.rating, 0);
-        const averageRating = totalReviewScore > 0 ? totalReviewScore / totalRatings : 0;
-
-        newReview.averageRating = averageRating
-
-
-        await newReview.save()
-
+    
         const foundIndex = contractor.reviews.findIndex((review) => review.review == newReview.id);
         if (foundIndex !== -1) {
             contractor.reviews[foundIndex] = {review: newReview.id, averageRating};
@@ -785,19 +775,15 @@ export const reviewBookingOnCompletion = async (req: any, res: Response, next: N
             contractor.reviews.push({review: newReview.id, averageRating});
         }
 
-
-        // Save the job
+        job.review = newReview.id
         await job.save()
         await contractor.save()
-
 
         res.json({ success: true, message: 'Review added successfully', data: newReview });
     } catch (error: any) {
         return next(new BadRequestError('An error occurred', error));
     }
 }
-
-
 
 
 

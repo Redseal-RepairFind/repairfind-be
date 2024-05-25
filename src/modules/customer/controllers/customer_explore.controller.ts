@@ -9,6 +9,7 @@ import { ContractorProfileModel } from "../../../database/contractor/models/cont
 import { endOfMonth, endOfYear, format, getDate, isValid, startOfMonth, startOfYear } from "date-fns";
 import { ContractorScheduleModel } from "../../../database/contractor/models/contractor_schedule.model";
 import { CONTRACTOR_TYPES } from "../../../database/contractor/interface/contractor.interface";
+import { REVIEW_TYPE, ReviewModel } from "../../../database/common/review.model";
 
 
 type PipelineStage =
@@ -231,25 +232,43 @@ export const getSingleContractor = async (req: any, res: Response, next: NextFun
     try {
         const contractorId = req.params.contractorId
         const contractor = await ContractorModel.findById(contractorId).populate([
-            { path: 'profile' }
+            { path: 'profile' },
         ]);
 
-    if (!contractor) {
-        return res.status(400).json({ success: false, message: 'Contractor not found' })
+        if (!contractor) {
+            return res.status(400).json({ success: false, message: 'Contractor not found' })
+        }
+
+       
+        //reviews etc here
+        let filter: any = { contractor: contractorId, type: REVIEW_TYPE.JOB_COMPLETION  };
+        const { data, error } = await applyAPIFeature(ReviewModel.find(filter).populate(['customer']), req.query);
+
+
+        return res.status(200).json({ success: true, message: 'Contractor  found', data: data })
+    } catch (error: any) {
+        next(new BadRequestError('An error occured', error))
     }
-
-    const contractorResponse = {
-        //@ts-ignore
-        ...contractor.toJSON({ includeReviews: {status: true, limit: 20},  }), // Convert to plain JSON object
-      };
-
-
-    // schedule
-    //reviews etc here
-    return res.status(200).json({ success: true, message: 'Contractor  found', data: contractorResponse })
-} catch (error: any) {
-    next(new BadRequestError('An error occured', error))
 }
+
+
+export const getContractorReviews = async (req: any, res: Response, next: NextFunction) => {
+    try {
+        const contractorId = req.params.contractorId
+        const contractor = await ContractorModel.findById(contractorId).populate([
+            { path: 'profile' },
+        ]);
+
+        if (!contractor) {
+            return res.status(400).json({ success: false, message: 'Contractor not found' })
+        }
+
+        // schedule
+        //reviews etc here
+        return res.status(200).json({ success: true, message: 'Contractor  found', data: contractor })
+    } catch (error: any) {
+        next(new BadRequestError('An error occured', error))
+    }
 }
 
 
@@ -362,5 +381,6 @@ export const getContractorSchedules = async (req: any, res: Response) => {
 export const CustomerExploreController = {
     exploreContractors,
     getSingleContractor,
-    getContractorSchedules
+    getContractorSchedules,
+    getContractorReviews
 }

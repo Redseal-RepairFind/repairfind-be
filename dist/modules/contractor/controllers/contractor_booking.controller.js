@@ -83,7 +83,8 @@ var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0,
                     $or: [
                         { contractor: contractorId_1 },
                         { 'assignment.contractor': contractorId_1 }
-                    ]
+                    ],
+                    status: { $in: ['BOOKED', 'ONGOING'] }
                 };
                 // TODO: when contractor is specified, ensure the contractor quotation is attached
                 if (customerId) {
@@ -94,7 +95,8 @@ var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0,
                     delete req.query.customerId;
                 }
                 if (status_1) {
-                    req.query.status = status_1.toUpperCase();
+                    // req.query.status = status.toUpperCase();
+                    delete req.query.status;
                 }
                 if (startDate && endDate) {
                     start = new Date(startDate);

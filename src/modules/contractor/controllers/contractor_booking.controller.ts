@@ -12,7 +12,7 @@ import { IMessage, MessageModel, MessageType } from "../../../database/common/me
 import { JOB_QUOTATION_STATUS, JobQuotationModel } from "../../../database/common/job_quotation.model";
 import { JobEvent } from "../../../events";
 import mongoose from "mongoose";
-import {  CONTRACTOR_TYPES } from "../../../database/contractor/interface/contractor.interface";
+import { CONTRACTOR_TYPES } from "../../../database/contractor/interface/contractor.interface";
 import ContractorTeamModel, { IContractorTeam } from "../../../database/contractor/models/contractor_team.model";
 import { NewJobAssignedEmailTemplate } from "../../../templates/contractorEmail/job_assigned.template";
 import { JobDisputeModel } from "../../../database/common/job_dispute.model";
@@ -52,7 +52,8 @@ export const getMyBookings = async (req: any, res: Response, next: NextFunction)
             $or: [
                 { contractor: contractorId },
                 { 'assignment.contractor': contractorId }
-            ]
+            ],
+            status: { $in: ['BOOKED', 'ONGOING'] }
         };
 
         // TODO: when contractor is specified, ensure the contractor quotation is attached
@@ -65,7 +66,8 @@ export const getMyBookings = async (req: any, res: Response, next: NextFunction)
         }
 
         if (status) {
-            req.query.status = status.toUpperCase();
+            // req.query.status = status.toUpperCase();
+            delete req.query.status
         }
         if (startDate && endDate) {
             // Parse startDate and endDate into Date objects
@@ -495,8 +497,8 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
         }
 
 
-         // Check if the job is already completed
-         if (job.status === JOB_STATUS.COMPLETED) {
+        // Check if the job is already completed
+        if (job.status === JOB_STATUS.COMPLETED) {
             return res.status(400).json({ success: false, message: 'The booking is already marked as complete' });
         }
 
@@ -515,11 +517,11 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
         JobEvent.emit('JOB_CANCELED', { job, canceledBy: 'contractor' })
 
 
-                // reduce contractor rating
+        // reduce contractor rating
 
-       
 
-          // Create a new review object
+
+        // Create a new review object
         const newReview = new ReviewModel({
             averageRating: 0,
             // ratings,
@@ -530,17 +532,17 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
             type: REVIEW_TYPE.JOB_CANCELETION,
             createdAt: new Date(),
         });
-        
+
         await newReview.save()
 
-        const foundIndex = contractor.reviews.findIndex((review) =>  review.review == job.id);
+        const foundIndex = contractor.reviews.findIndex((review) => review.review == job.id);
         if (foundIndex !== -1) {
-            contractor.reviews[foundIndex] = {averageRating: newReview.averageRating, review: newReview.id};
-        }else{
-            contractor.reviews.push({averageRating: newReview.averageRating, review: newReview.id});
+            contractor.reviews[foundIndex] = { averageRating: newReview.averageRating, review: newReview.id };
+        } else {
+            contractor.reviews.push({ averageRating: newReview.averageRating, review: newReview.id });
         }
 
-        
+
         await job.save();
         await contractor.save()
 

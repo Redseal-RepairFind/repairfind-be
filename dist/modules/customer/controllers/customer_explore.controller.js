@@ -56,15 +56,17 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerExploreController = exports.getContractorSchedules = exports.getSingleContractor = exports.exploreContractors = void 0;
+exports.CustomerExploreController = exports.getContractorSchedules = exports.getContractorReviews = exports.getSingleContractor = exports.exploreContractors = void 0;
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var schedule_util_1 = require("../../../utils/schedule.util");
+var api_feature_1 = require("../../../utils/api.feature");
 var custom_errors_1 = require("../../../utils/custom.errors");
 var contractor_profile_model_1 = require("../../../database/contractor/models/contractor_profile.model");
 var date_fns_1 = require("date-fns");
 var contractor_schedule_model_1 = require("../../../database/contractor/models/contractor_schedule.model");
 var contractor_interface_1 = require("../../../database/contractor/interface/contractor.interface");
+var review_model_1 = require("../../../database/common/review.model");
 var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, listing, distance, latitude, longitude, emergencyJobs, category, location_1, city, country, address, accountType, date, isOffDuty, availableDays, experienceYear, gstNumber, _b, page, _c, limit, sort // Sort field and order (-fieldName or fieldName)
     , availableDaysArray, skip, pipeline, contractorIdsWithDateInSchedule, _d, sortField, sortOrder, sortStage, result, contractors, metadata, err_1;
@@ -243,35 +245,63 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
 }); };
 exports.exploreContractors = exploreContractors;
 var getSingleContractor = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var contractorId, contractor, contractorResponse, error_1;
+    var contractorId, contractor, filter, _a, data, error, error_1;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 3, , 4]);
+                contractorId = req.params.contractorId;
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId).populate([
+                        { path: 'profile' },
+                    ])];
+            case 1:
+                contractor = _b.sent();
+                if (!contractor) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Contractor not found' })];
+                }
+                filter = { contractor: contractorId, type: review_model_1.REVIEW_TYPE.JOB_COMPLETION };
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(review_model_1.ReviewModel.find(filter).populate(['customer']), req.query)];
+            case 2:
+                _a = _b.sent(), data = _a.data, error = _a.error;
+                return [2 /*return*/, res.status(200).json({ success: true, message: 'Contractor  found', data: data })];
+            case 3:
+                error_1 = _b.sent();
+                next(new custom_errors_1.BadRequestError('An error occured', error_1));
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getSingleContractor = getSingleContractor;
+var getContractorReviews = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var contractorId, contractor, error_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
                 contractorId = req.params.contractorId;
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId).populate([
-                        { path: 'profile' }
+                        { path: 'profile' },
                     ])];
             case 1:
                 contractor = _a.sent();
                 if (!contractor) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Contractor not found' })];
                 }
-                contractorResponse = __assign({}, contractor.toJSON({ includeReviews: { status: true, limit: 20 }, }));
                 // schedule
                 //reviews etc here
-                return [2 /*return*/, res.status(200).json({ success: true, message: 'Contractor  found', data: contractorResponse })];
+                return [2 /*return*/, res.status(200).json({ success: true, message: 'Contractor  found', data: contractor })];
             case 2:
-                error_1 = _a.sent();
-                next(new custom_errors_1.BadRequestError('An error occured', error_1));
+                error_2 = _a.sent();
+                next(new custom_errors_1.BadRequestError('An error occured', error_2));
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
         }
     });
 }); };
-exports.getSingleContractor = getSingleContractor;
+exports.getContractorReviews = getContractorReviews;
 var getContractorSchedules = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, year, month, contractorId_1, contractorProfile, startDate_1, endDate_1, expandedSchedules, existingSchedules, mergedSchedules_1, uniqueSchedules, groupedSchedules, error_2;
+    var _a, year, month, contractorId_1, contractorProfile, startDate_1, endDate_1, expandedSchedules, existingSchedules, mergedSchedules_1, uniqueSchedules, groupedSchedules, error_3;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -349,8 +379,8 @@ var getContractorSchedules = function (req, res) { return __awaiter(void 0, void
                 res.json({ success: true, message: 'Contractor schedules retrieved successfully', data: groupedSchedules });
                 return [3 /*break*/, 4];
             case 3:
-                error_2 = _b.sent();
-                console.error('Error retrieving schedules:', error_2);
+                error_3 = _b.sent();
+                console.error('Error retrieving schedules:', error_3);
                 res.status(500).json({ success: false, message: 'Internal Server Error' });
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
@@ -361,5 +391,6 @@ exports.getContractorSchedules = getContractorSchedules;
 exports.CustomerExploreController = {
     exploreContractors: exports.exploreContractors,
     getSingleContractor: exports.getSingleContractor,
-    getContractorSchedules: exports.getContractorSchedules
+    getContractorSchedules: exports.getContractorSchedules,
+    getContractorReviews: exports.getContractorReviews
 };

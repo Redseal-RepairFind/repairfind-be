@@ -115,23 +115,6 @@ var JobLocationSchema = new mongoose_1.Schema({
     latitude: { type: String },
     longitude: { type: String },
 });
-// const JobReviewSchema = new Schema<IJobReview>({
-//     averageRating: {
-//         type: Number,
-//         min: 1,
-//         max: 5, // Adjust based on your rating scale
-//     },
-//     review: {
-//         type: String,
-//     },
-//     ratings: {
-//         type: [{ item: String, rating: Number }],
-//     },
-//     createdAt: {
-//         type: Date,
-//         default: Date.now,
-//     },
-// });
 var JobHistorySchema = new mongoose_1.Schema({
     eventType: { type: String, required: false }, // Identify the type of event - JOB_REJECTED, JOB_ACCEPTED, JOB_CLOSED, JOB_EXPIRED
     timestamp: { type: Date, default: Date.now }, // Timestamp of the event

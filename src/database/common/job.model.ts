@@ -83,15 +83,6 @@ export interface IStatusUpdate {
 }
 
 
-
-
-// export interface IJobReview {
-//     ratings?: Array<{ item: string; rating: number }>; //Rating value (e.g., 1-5 stars)
-//     review?: string; // Optional: Textual feedback
-//     averageRating?: number; // avaraged from the items in ratings array
-//     createdAt: Date;
-// }
-
 export interface IJob extends Document {
     _id: ObjectId;
     customer: ObjectId;
@@ -135,9 +126,6 @@ export interface IJob extends Document {
         payments: Array<{ amount: number, reference: string, status: string, refunded: boolean, paid: boolean, amount_refunded: number, captured: boolean }>;
     };
 }
-
-
-
 
 
 const VoiceDescriptionSchema = new Schema<IVoiceDescription>({
@@ -203,25 +191,6 @@ const JobLocationSchema = new Schema<IJobLocation>({
     latitude: { type: String },
     longitude: { type: String },
 });
-
-
-// const JobReviewSchema = new Schema<IJobReview>({
-//     averageRating: {
-//         type: Number,
-//         min: 1,
-//         max: 5, // Adjust based on your rating scale
-//     },
-//     review: {
-//         type: String,
-//     },
-//     ratings: {
-//         type: [{ item: String, rating: Number }],
-//     },
-//     createdAt: {
-//         type: Date,
-//         default: Date.now,
-//     },
-// });
 
 
 const JobHistorySchema = new Schema<IJobHistory>({
