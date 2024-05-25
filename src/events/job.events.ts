@@ -325,3 +325,90 @@ JobEvent.on('JOB_DISPUTE_CREATED', async function (payload: { dispute: IJobDispu
         console.error(`Error handling JOB_DISPUTE_CREATED event: ${error}`);
     }
 });
+
+
+JobEvent.on('JOB_MARKED_COMPLETE_BY_CONTRACTOR', async function (payload: { job: IJob}) {
+    try {
+        console.log('handling alert JOB_MARKED_COMPLETE_BY_CONTRACTOR event', payload.job.id)
+
+        const job = await JobModel.findById(payload.job.id)
+        
+        if(!job){
+            return
+        }
+        
+
+        const customer = await CustomerModel.findById(job.customer)
+        const contractor = await ContractorModel.findById(job.contractor)
+
+        if(!customer || !contractor)return
+
+    
+        NotificationService.sendNotification({
+            user: customer.id,
+            userType: 'customers',
+            title: 'Job Marked Complete',
+            type: 'Notification', // Conversation, Conversation_Notification
+            //@ts-ignore
+            message: `contractor has marked job has completed`,
+            //@ts-ignore
+            heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
+            payload: {
+                entity: job.id,
+                entityType: 'jobs',
+                message: `contractor has marked job has completed`,
+                event: 'JOB_MARKED_COMPLETE',
+            }
+        }, { database: true, push: true, socket: true })
+      
+
+
+
+    } catch (error) {
+        console.error(`Error handling JOB_MARKED_COMPLETE_BY_CONTRACTOR event: ${error}`);
+    }
+});
+
+
+JobEvent.on('JOB_COMPLETED', async function (payload: { job: IJob}) {
+    try {
+        console.log('handling alert JOB_COMPLETED event', payload.job.id)
+
+        const job = await JobModel.findById(payload.job.id)
+        
+        if(!job){
+            return
+        }
+        
+
+        const customer = await CustomerModel.findById(job.customer)
+        const contractor = await ContractorModel.findById(job.contractor)
+
+        if(!customer || !contractor)return
+
+        NotificationService.sendNotification({
+            user: contractor.id,
+            userType: 'contractors',
+            title: 'Job Completed',
+            type: 'Notification', //
+            message: `You have an open job dispute`,
+            heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
+            payload: {
+                entity: job.id,
+                entityType: 'jobs',
+                message: `Your job completion has been confirmed by customer`,
+                contractor: contractor.id,
+                event: 'JOB_COMPLETED',
+            }
+        }, { database: true, push: true, socket: true })
+
+
+      
+      
+
+
+
+    } catch (error) {
+        console.error(`Error handling JOB_COMPLETED event: ${error}`);
+    }
+});

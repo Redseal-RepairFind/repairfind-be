@@ -593,7 +593,7 @@ export const markBookingComplete = async (req: any, res: Response, next: NextFun
             awaitingConfirmation: true
         }
 
-        job.status = JOB_STATUS.COMPLETED  // since its customer accepting job completion
+        // job.status = JOB_STATUS.COMPLETED  // since its customer accepting job completion
         job.jobHistory.push({
             eventType: 'JOB_MARKED_COMPLETE_BY_CONTRACTOR',
             timestamp: new Date(),

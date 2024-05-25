@@ -132,7 +132,7 @@ var SocketIOService = /** @class */ (function () {
     };
     SocketIOService.sendNotification = function (channels, type, payload) {
         var channelArray = typeof channels === 'string' ? [channels] : channels;
-        console.log('sendNotification socket event is fired inside socketio', payload, channels);
+        console.log('sendNotification socket event is fired inside socketio', { payload: payload, channels: channels, type: type });
         for (var _i = 0, channelArray_1 = channelArray; _i < channelArray_1.length; _i++) {
             var channel = channelArray_1[_i];
             this.io.to(channel).emit(type, { payload: payload });

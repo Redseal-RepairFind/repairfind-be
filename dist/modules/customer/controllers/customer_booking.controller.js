@@ -743,7 +743,7 @@ var acceptBookingComplete = function (req, res, next) { return __awaiter(void 0,
                     timestamp: new Date(),
                     payload: {}
                 });
-                events_1.JobEvent.emit('JOB_MARKED_COMPLETE_BY_CUSTOMER', { job: job });
+                events_1.JobEvent.emit('JOB_COMPLETED', { job: job });
                 return [4 /*yield*/, job.save()];
             case 3:
                 _a.sent();

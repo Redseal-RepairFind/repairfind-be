@@ -705,7 +705,7 @@ export const acceptBookingComplete = async (req: any, res: Response, next: NextF
             payload: {}
         });
 
-        JobEvent.emit('JOB_MARKED_COMPLETE_BY_CUSTOMER', { job })
+        JobEvent.emit('JOB_COMPLETED', { job })
         await job.save();
 
         res.json({ success: true, message: 'Booking marked as completed successfully', data: job });

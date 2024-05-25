@@ -386,3 +386,100 @@ exports.JobEvent.on('JOB_DISPUTE_CREATED', function (payload) {
         });
     });
 });
+exports.JobEvent.on('JOB_MARKED_COMPLETE_BY_CONTRACTOR', function (payload) {
+    var _a;
+    return __awaiter(this, void 0, void 0, function () {
+        var job, customer, contractor, error_8;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    _b.trys.push([0, 4, , 5]);
+                    console.log('handling alert JOB_MARKED_COMPLETE_BY_CONTRACTOR event', payload.job.id);
+                    return [4 /*yield*/, job_model_1.JobModel.findById(payload.job.id)];
+                case 1:
+                    job = _b.sent();
+                    if (!job) {
+                        return [2 /*return*/];
+                    }
+                    return [4 /*yield*/, customer_model_1.default.findById(job.customer)];
+                case 2:
+                    customer = _b.sent();
+                    return [4 /*yield*/, contractor_model_1.ContractorModel.findById(job.contractor)];
+                case 3:
+                    contractor = _b.sent();
+                    if (!customer || !contractor)
+                        return [2 /*return*/];
+                    services_1.NotificationService.sendNotification({
+                        user: customer.id,
+                        userType: 'customers',
+                        title: 'Job Marked Complete',
+                        type: 'Notification', // Conversation, Conversation_Notification
+                        //@ts-ignore
+                        message: "contractor has marked job has completed",
+                        //@ts-ignore
+                        heading: { name: "".concat(contractor.name), image: (_a = contractor.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
+                        payload: {
+                            entity: job.id,
+                            entityType: 'jobs',
+                            message: "contractor has marked job has completed",
+                            event: 'JOB_MARKED_COMPLETE',
+                        }
+                    }, { database: true, push: true, socket: true });
+                    return [3 /*break*/, 5];
+                case 4:
+                    error_8 = _b.sent();
+                    console.error("Error handling JOB_MARKED_COMPLETE_BY_CONTRACTOR event: ".concat(error_8));
+                    return [3 /*break*/, 5];
+                case 5: return [2 /*return*/];
+            }
+        });
+    });
+});
+exports.JobEvent.on('JOB_COMPLETED', function (payload) {
+    var _a;
+    return __awaiter(this, void 0, void 0, function () {
+        var job, customer, contractor, error_9;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    _b.trys.push([0, 4, , 5]);
+                    console.log('handling alert JOB_COMPLETED event', payload.job.id);
+                    return [4 /*yield*/, job_model_1.JobModel.findById(payload.job.id)];
+                case 1:
+                    job = _b.sent();
+                    if (!job) {
+                        return [2 /*return*/];
+                    }
+                    return [4 /*yield*/, customer_model_1.default.findById(job.customer)];
+                case 2:
+                    customer = _b.sent();
+                    return [4 /*yield*/, contractor_model_1.ContractorModel.findById(job.contractor)];
+                case 3:
+                    contractor = _b.sent();
+                    if (!customer || !contractor)
+                        return [2 /*return*/];
+                    services_1.NotificationService.sendNotification({
+                        user: contractor.id,
+                        userType: 'contractors',
+                        title: 'Job Completed',
+                        type: 'Notification', //
+                        message: "You have an open job dispute",
+                        heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_a = customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
+                        payload: {
+                            entity: job.id,
+                            entityType: 'jobs',
+                            message: "Your job completion has been confirmed by customer",
+                            contractor: contractor.id,
+                            event: 'JOB_COMPLETED',
+                        }
+                    }, { database: true, push: true, socket: true });
+                    return [3 /*break*/, 5];
+                case 4:
+                    error_9 = _b.sent();
+                    console.error("Error handling JOB_COMPLETED event: ".concat(error_9));
+                    return [3 /*break*/, 5];
+                case 5: return [2 /*return*/];
+            }
+        });
+    });
+});
