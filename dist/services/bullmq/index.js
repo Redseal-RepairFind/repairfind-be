@@ -84,14 +84,13 @@ var JobQueue = /** @class */ (function () {
         });
         exports.QueueService.addJob('expireJobs', {}, {
             repeat: {
-                // pattern: '* * * * *',
-                // cron: '*/5 * * * * *', // Every 5 seconds
-                // offset: new Date().getTimezoneOffset(), 
-                // tz: 'Europe/Berlin',
-                // limit: 1,
                 every: 21600000, // 21600000 ms = 6 hours
-            },
-            jobId: "expireJobs"
+            }
+        });
+        exports.QueueService.addJob('jobDayScheduleCheck', {}, {
+            repeat: {
+                cron: '0 0 * * *' // This cron expression triggers the job at midnight every day
+            }
         });
         app.use('/queues', this.serverAdapter.getRouter());
     };

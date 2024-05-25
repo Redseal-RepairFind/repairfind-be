@@ -51,6 +51,7 @@ router.post("/stripe-setupintent",  checkCustomerRole, CustomerStripeController.
 
 // Explore Contractors
 router.get("/explore/contractors", checkCustomerRole, CustomerHttpRequest.queryContractorParams, CustomerExploreController.exploreContractors ); 
+router.get("/explore/contractors/favorites", checkCustomerRole, CustomerExploreController.getFavoriteContractors ); 
 router.get("/explore/contractors/:contractorId", checkCustomerRole,  CustomerExploreController.getSingleContractor ); 
 router.get("/explore/contractors/:contractorId/schedules", checkCustomerRole, CustomerExploreController.getContractorSchedules ); 
 router.get("/explore/contractors/:contractorId/reviews", checkCustomerRole, CustomerExploreController.getContractorReviews ); 

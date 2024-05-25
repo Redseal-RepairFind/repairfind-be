@@ -5,6 +5,7 @@ import { captureStripePayments } from './jobs/capture_stripe_payments';
 import { Logger } from '../../utils/logger';
 import { syncCertnApplications } from './jobs/sync_certn_applications';
 import { expireJobs } from './jobs/expire_jobs';
+import { jobDayScheduleCheck } from './jobs/jobday_schedule';
 
 const redisConfig = {
     port: Number(config.redis.port),
@@ -42,6 +43,10 @@ export const RepairFindQueueWorker = new Worker(config.redis.queueName, async jo
 
     if(job.name =='syncCertnApplications'){
         await syncCertnApplications()
+    }
+    
+    if(job.name =='jobDayScheduleCheck'){
+        await jobDayScheduleCheck()
     }
    
 }, { connection: redisConnection });

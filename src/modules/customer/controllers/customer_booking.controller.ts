@@ -21,6 +21,7 @@ import Stripe from "stripe";
 import { IPayment } from "../../../database/common/payment.schema";
 import { JobDisputeModel } from "../../../database/common/job_dispute.model";
 import { IReview, REVIEW_TYPE, ReviewModel } from "../../../database/common/review.model";
+import CustomerFavoriteContractorModel from "../../../database/customer/models/customer_favorite_contractors.model";
 
 
 
@@ -751,9 +752,9 @@ export const reviewBookingOnCompletion = async (req: any, res: Response, next: N
             // return res.status(400).json({ success: false, message: 'You can only add one review per job' });
         }
 
-        const totalRatings = ratings.length;
-        const totalReviewScore = ratings.reduce((a: any, b: any) => a + b.rating, 0);
-        const averageRating = totalReviewScore > 0 ? totalReviewScore / totalRatings : 0;
+        const totalRatings = ratings?.length ;
+        const totalReviewScore = totalRatings ? ratings.reduce((a: any, b: any) => a + b.rating, 0) : 0;
+        const averageRating = (totalRatings && totalReviewScore) > 0 ? totalReviewScore / totalRatings : 0;
 
         // Create a new review object
         const newReview =  await ReviewModel.findOneAndUpdate({job: job.id,  type: REVIEW_TYPE.JOB_COMPLETION},{
@@ -773,6 +774,13 @@ export const reviewBookingOnCompletion = async (req: any, res: Response, next: N
             contractor.reviews[foundIndex] = {review: newReview.id, averageRating};
         }else{
             contractor.reviews.push({review: newReview.id, averageRating});
+        }
+
+        if(favoriteContractor){
+            await  CustomerFavoriteContractorModel.findOneAndUpdate({contractor: contractor.id, customer: customerId}, {
+                customer: customerId,
+                contractor: contractor.id
+            }, {new: true, upsert: true})
         }
 
         job.review = newReview.id

@@ -10,6 +10,7 @@ import { endOfMonth, endOfYear, format, getDate, isValid, startOfMonth, startOfY
 import { ContractorScheduleModel } from "../../../database/contractor/models/contractor_schedule.model";
 import { CONTRACTOR_TYPES } from "../../../database/contractor/interface/contractor.interface";
 import { REVIEW_TYPE, ReviewModel } from "../../../database/common/review.model";
+import CustomerFavoriteContractorModel from "../../../database/customer/models/customer_favorite_contractors.model";
 
 
 type PipelineStage =
@@ -239,13 +240,8 @@ export const getSingleContractor = async (req: any, res: Response, next: NextFun
             return res.status(400).json({ success: false, message: 'Contractor not found' })
         }
 
-       
-        //reviews etc here
-        let filter: any = { contractor: contractorId, type: REVIEW_TYPE.JOB_COMPLETION  };
-        const { data, error } = await applyAPIFeature(ReviewModel.find(filter).populate(['customer']), req.query);
 
-
-        return res.status(200).json({ success: true, message: 'Contractor  found', data: data })
+        return res.status(200).json({ success: true, message: 'Contractor  found', data: contractor })
     } catch (error: any) {
         next(new BadRequestError('An error occured', error))
     }
@@ -263,9 +259,28 @@ export const getContractorReviews = async (req: any, res: Response, next: NextFu
             return res.status(400).json({ success: false, message: 'Contractor not found' })
         }
 
-        // schedule
-        //reviews etc here
-        return res.status(200).json({ success: true, message: 'Contractor  found', data: contractor })
+         //reviews etc here
+         let filter: any = { contractor: contractorId, type: REVIEW_TYPE.JOB_COMPLETION  };
+         const { data, error } = await applyAPIFeature(ReviewModel.find(filter).populate(['customer']), req.query);
+        return res.status(200).json({ success: true, message: 'Contractor reviews  retrieved', data: data })
+    } catch (error: any) {
+        next(new BadRequestError('An error occured', error))
+    }
+}
+
+
+
+export const getFavoriteContractors = async (req: any, res: Response, next: NextFunction) => {
+    try {
+        const customerId = req.customer.id
+        
+         //favorites etc here
+         const favorites = await CustomerFavoriteContractorModel.find({ customer: customerId }).select('contractor');
+         const favoriteIds = favorites.map((fav) => fav.contractor);
+         let filter: any = { _id: { $in: favoriteIds } };
+         
+         const { data, error } = await applyAPIFeature(ContractorModel.find(filter), req.query);
+        return res.status(200).json({ success: true, message: 'Favorite contractors  retrieved', data: data })
     } catch (error: any) {
         next(new BadRequestError('An error occured', error))
     }
@@ -382,5 +397,6 @@ export const CustomerExploreController = {
     exploreContractors,
     getSingleContractor,
     getContractorSchedules,
-    getContractorReviews
+    getContractorReviews,
+    getFavoriteContractors
 }

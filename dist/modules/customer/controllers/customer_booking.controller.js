@@ -86,6 +86,7 @@ var mongoose_1 = __importDefault(require("mongoose"));
 var transaction_model_1 = __importStar(require("../../../database/common/transaction.model"));
 var job_dispute_model_1 = require("../../../database/common/job_dispute.model");
 var review_model_1 = require("../../../database/common/review.model");
+var customer_favorite_contractors_model_1 = __importDefault(require("../../../database/customer/models/customer_favorite_contractors.model"));
 var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, _b, limit, _c, page, _d, sort, contractorId_1, _e, status_1, startDate, endDate, date, type, customerId, filter, start, end, selectedDate, startOfDay_1, endOfDay, _f, data, error, error_1;
     return __generator(this, function (_g) {
@@ -762,7 +763,7 @@ var reviewBookingOnCompletion = function (req, res, next) { return __awaiter(voi
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 7, , 8]);
+                _b.trys.push([0, 9, , 10]);
                 customerId = req.customer.id;
                 _a = req.body, review = _a.review, ratings = _a.ratings, favoriteContractor = _a.favoriteContractor;
                 bookingId = req.params.bookingId;
@@ -793,9 +794,9 @@ var reviewBookingOnCompletion = function (req, res, next) { return __awaiter(voi
                 if (existingReview) {
                     // return res.status(400).json({ success: false, message: 'You can only add one review per job' });
                 }
-                totalRatings = ratings.length;
-                totalReviewScore = ratings.reduce(function (a, b) { return a + b.rating; }, 0);
-                averageRating = totalReviewScore > 0 ? totalReviewScore / totalRatings : 0;
+                totalRatings = ratings === null || ratings === void 0 ? void 0 : ratings.length;
+                totalReviewScore = totalRatings ? ratings.reduce(function (a, b) { return a + b.rating; }, 0) : 0;
+                averageRating = (totalRatings && totalReviewScore) > 0 ? totalReviewScore / totalRatings : 0;
                 return [4 /*yield*/, review_model_1.ReviewModel.findOneAndUpdate({ job: job.id, type: review_model_1.REVIEW_TYPE.JOB_COMPLETION }, {
                         averageRating: averageRating,
                         ratings: ratings,
@@ -815,19 +816,28 @@ var reviewBookingOnCompletion = function (req, res, next) { return __awaiter(voi
                 else {
                     contractor.reviews.push({ review: newReview_1.id, averageRating: averageRating });
                 }
-                job.review = newReview_1.id;
-                return [4 /*yield*/, job.save()];
+                if (!favoriteContractor) return [3 /*break*/, 6];
+                return [4 /*yield*/, customer_favorite_contractors_model_1.default.findOneAndUpdate({ contractor: contractor.id, customer: customerId }, {
+                        customer: customerId,
+                        contractor: contractor.id
+                    }, { new: true, upsert: true })];
             case 5:
                 _b.sent();
-                return [4 /*yield*/, contractor.save()];
+                _b.label = 6;
             case 6:
+                job.review = newReview_1.id;
+                return [4 /*yield*/, job.save()];
+            case 7:
+                _b.sent();
+                return [4 /*yield*/, contractor.save()];
+            case 8:
                 _b.sent();
                 res.json({ success: true, message: 'Review added successfully', data: newReview_1 });
-                return [3 /*break*/, 8];
-            case 7:
+                return [3 /*break*/, 10];
+            case 9:
                 error_10 = _b.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_10))];
-            case 8: return [2 /*return*/];
+            case 10: return [2 /*return*/];
         }
     });
 }); };

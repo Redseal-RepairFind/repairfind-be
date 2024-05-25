@@ -14,7 +14,7 @@ export interface ICustomerDevice extends Document {
 const CustomerDeviceSchema = new Schema<ICustomerDevice>({
     customer: {
         type: Schema.Types.ObjectId,
-        ref: 'contractors', // Reference to the contractor who owns the device
+        ref: 'customers', // Reference to the contractor who owns the device
         required: true
     },
     deviceType: {

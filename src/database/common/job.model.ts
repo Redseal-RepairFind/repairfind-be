@@ -27,6 +27,7 @@ export enum JOB_STATUS {
     COMPLETED = 'COMPLETED',
     DISPUTED = 'DISPUTED',
     CANCELED = 'CANCELED',
+    NOT_STARTED = 'NOT_STARTED',
 }
 
 export enum JOB_SCHEDULE_TYPE {
