@@ -53,4 +53,4 @@ const ReviewSchema = new Schema<IReview>({
 });
 
 
-export const ReviewModel = model<IReview>("contractors", ReviewSchema);
+export const ReviewModel = model<IReview>("reviews", ReviewSchema);

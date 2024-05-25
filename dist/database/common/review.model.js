@@ -39,4 +39,4 @@ var ReviewSchema = new mongoose_1.Schema({
         default: Date.now,
     },
 });
-exports.ReviewModel = (0, mongoose_1.model)("contractors", ReviewSchema);
+exports.ReviewModel = (0, mongoose_1.model)("reviews", ReviewSchema);
