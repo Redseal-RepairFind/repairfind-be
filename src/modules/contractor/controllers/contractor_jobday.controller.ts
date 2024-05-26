@@ -132,7 +132,7 @@ export const initiateJobDay = async (
 
 
         // Find the job request by ID
-        const job = await JobModel.findOne({ _id: jobId, contractor: contractorId, status: JOB_STATUS.BOOKED });
+        const job = await JobModel.findOne({ _id: jobId, contractor: contractorId });
         if (!job) {
             return res.status(404).json({ success: false, message: 'Job booking not found' });
         }

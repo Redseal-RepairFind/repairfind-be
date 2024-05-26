@@ -157,7 +157,7 @@ var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void
                 if (!contractor) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Job Contractor not found' })];
                 }
-                return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobId, contractor: contractorId, status: job_model_1.JOB_STATUS.BOOKED })];
+                return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobId, contractor: contractorId })];
             case 3:
                 job = _a.sent();
                 if (!job) {
