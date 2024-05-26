@@ -119,6 +119,7 @@ export interface IJob extends Document {
     myQuotation: Object | null
     isAssigned: boolean;
     review: ObjectId;
+    isChangeOrder: boolean;
     getMyQoutation: (contractorId: ObjectId) => {
     };
     getPayments: () => {
@@ -239,6 +240,7 @@ const JobSchema = new Schema<IJob>({
     emergency: { type: Boolean, default: false },
     isAssigned: { type: Boolean, default: false },
     review: { type: Schema.Types.ObjectId, ref: 'reviews' },
+    isChangeOrder: { type: Boolean, default: false },
 }, { timestamps: true });
 
 

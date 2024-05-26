@@ -77,7 +77,7 @@ exports.JobEvent.on('NEW_JOB_REQUEST', function (payload) {
                             user: contractor.id,
                             userType: 'contractors',
                             title: 'New Job Request',
-                            type: 'Notification', //
+                            type: 'NEW_JOB_REQUEST', //
                             message: "You've received a job request from ".concat(customer.firstName),
                             heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_a = customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
                             payload: {
@@ -92,7 +92,7 @@ exports.JobEvent.on('NEW_JOB_REQUEST', function (payload) {
                             user: customer.id,
                             userType: 'customers',
                             title: 'New Job Request',
-                            type: 'Notification', // Conversation, Conversation_Notification
+                            type: 'NEW_JOB_REQUEST', // Conversation, Conversation_Notification
                             //@ts-ignore
                             message: "You've  sent a job request to ".concat(contractor.name),
                             //@ts-ignore
@@ -342,7 +342,7 @@ exports.JobEvent.on('JOB_DISPUTE_CREATED', function (payload) {
                         user: contractor.id,
                         userType: 'contractors',
                         title: 'Job Disputed',
-                        type: 'Notification', //
+                        type: 'JOB_DISPUTE', //
                         message: "You have an open job dispute",
                         heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_a = customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
                         payload: {
@@ -357,7 +357,7 @@ exports.JobEvent.on('JOB_DISPUTE_CREATED', function (payload) {
                         user: customer.id,
                         userType: 'customers',
                         title: 'Job Disputed',
-                        type: 'Notification', // Conversation, Conversation_Notification
+                        type: 'JOB_DISPUTE', // Conversation, Conversation_Notification
                         //@ts-ignore
                         message: "You have an open job dispute",
                         //@ts-ignore
@@ -413,7 +413,7 @@ exports.JobEvent.on('JOB_MARKED_COMPLETE_BY_CONTRACTOR', function (payload) {
                         user: customer.id,
                         userType: 'customers',
                         title: 'Job Marked Complete',
-                        type: 'Notification', // Conversation, Conversation_Notification
+                        type: 'JOB_MARKED_COMPLETE', // Conversation, Conversation_Notification
                         //@ts-ignore
                         message: "contractor has marked job has completed",
                         //@ts-ignore
@@ -462,7 +462,7 @@ exports.JobEvent.on('JOB_COMPLETED', function (payload) {
                         user: contractor.id,
                         userType: 'contractors',
                         title: 'Job Completed',
-                        type: 'Notification', //
+                        type: 'JOB_COMPLETED', //
                         message: "You have an open job dispute",
                         heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_a = customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
                         payload: {
@@ -477,6 +477,56 @@ exports.JobEvent.on('JOB_COMPLETED', function (payload) {
                 case 4:
                     error_9 = _b.sent();
                     console.error("Error handling JOB_COMPLETED event: ".concat(error_9));
+                    return [3 /*break*/, 5];
+                case 5: return [2 /*return*/];
+            }
+        });
+    });
+});
+exports.JobEvent.on('JOB_CHANGED_ORDER', function (payload) {
+    var _a;
+    return __awaiter(this, void 0, void 0, function () {
+        var job, customer, contractor, state, event_1, error_10;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    _b.trys.push([0, 4, , 5]);
+                    console.log('handling JOB_CHANGED_ORDER event', payload.job.id);
+                    return [4 /*yield*/, job_model_1.JobModel.findById(payload.job.id)];
+                case 1:
+                    job = _b.sent();
+                    if (!job) {
+                        return [2 /*return*/];
+                    }
+                    return [4 /*yield*/, customer_model_1.default.findById(job.customer)];
+                case 2:
+                    customer = _b.sent();
+                    return [4 /*yield*/, contractor_model_1.ContractorModel.findById(job.contractor)];
+                case 3:
+                    contractor = _b.sent();
+                    if (!customer || !contractor)
+                        return [2 /*return*/];
+                    state = job.isChangeOrder ? 'enabled' : 'disabled';
+                    event_1 = job.isChangeOrder ? 'JOB_CHANGE_ORDER_ENABLED' : 'JOB_CHANGE_ORDER_DISABLED';
+                    services_1.NotificationService.sendNotification({
+                        user: contractor.id,
+                        userType: 'contractors',
+                        title: 'Job Completed',
+                        type: event_1, //
+                        message: "change order is ".concat(state, " for your job"),
+                        heading: { name: "".concat(customer.name), image: (_a = customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
+                        payload: {
+                            entity: job.id,
+                            entityType: 'jobs',
+                            message: "change order is ".concat(state, " for your job"),
+                            contractor: contractor.id,
+                            event: event_1,
+                        }
+                    }, { push: true, socket: true });
+                    return [3 /*break*/, 5];
+                case 4:
+                    error_10 = _b.sent();
+                    console.error("Error handling JOB_CHANGED_ORDER event: ".concat(error_10));
                     return [3 /*break*/, 5];
                 case 5: return [2 /*return*/];
             }

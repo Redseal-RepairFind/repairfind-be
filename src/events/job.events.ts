@@ -33,7 +33,7 @@ JobEvent.on('NEW_JOB_REQUEST', async function (payload) {
                 user: contractor.id,
                 userType: 'contractors',
                 title: 'New Job Request',
-                type: 'Notification', //
+                type: 'NEW_JOB_REQUEST', //
                 message: `You've received a job request from ${customer.firstName}`,
                 heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
                 payload: {
@@ -49,7 +49,7 @@ JobEvent.on('NEW_JOB_REQUEST', async function (payload) {
                 user: customer.id,
                 userType: 'customers',
                 title: 'New Job Request',
-                type: 'Notification', // Conversation, Conversation_Notification
+                type: 'NEW_JOB_REQUEST', // Conversation, Conversation_Notification
                 //@ts-ignore
                 message: `You've  sent a job request to ${contractor.name}`,
                 //@ts-ignore
@@ -279,7 +279,7 @@ JobEvent.on('JOB_DISPUTE_CREATED', async function (payload: { dispute: IJobDispu
             user: contractor.id,
             userType: 'contractors',
             title: 'Job Disputed',
-            type: 'Notification', //
+            type: 'JOB_DISPUTE', //
             message: `You have an open job dispute`,
             heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
             payload: {
@@ -296,7 +296,7 @@ JobEvent.on('JOB_DISPUTE_CREATED', async function (payload: { dispute: IJobDispu
             user: customer.id,
             userType: 'customers',
             title: 'Job Disputed',
-            type: 'Notification', // Conversation, Conversation_Notification
+            type: 'JOB_DISPUTE', // Conversation, Conversation_Notification
             //@ts-ignore
             message: `You have an open job dispute`,
             //@ts-ignore
@@ -348,7 +348,7 @@ JobEvent.on('JOB_MARKED_COMPLETE_BY_CONTRACTOR', async function (payload: { job:
             user: customer.id,
             userType: 'customers',
             title: 'Job Marked Complete',
-            type: 'Notification', // Conversation, Conversation_Notification
+            type: 'JOB_MARKED_COMPLETE', // Conversation, Conversation_Notification
             //@ts-ignore
             message: `contractor has marked job has completed`,
             //@ts-ignore
@@ -390,7 +390,7 @@ JobEvent.on('JOB_COMPLETED', async function (payload: { job: IJob}) {
             user: contractor.id,
             userType: 'contractors',
             title: 'Job Completed',
-            type: 'Notification', //
+            type: 'JOB_COMPLETED', //
             message: `You have an open job dispute`,
             heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
             payload: {
@@ -410,5 +410,45 @@ JobEvent.on('JOB_COMPLETED', async function (payload: { job: IJob}) {
 
     } catch (error) {
         console.error(`Error handling JOB_COMPLETED event: ${error}`);
+    }
+});
+
+JobEvent.on('JOB_CHANGED_ORDER', async function (payload: { job: IJob}) {
+    try {
+        console.log('handling JOB_CHANGED_ORDER event', payload.job.id)
+
+        const job = await JobModel.findById(payload.job.id)
+        
+        if(!job){
+            return
+        }
+
+        const customer = await CustomerModel.findById(job.customer)
+        const contractor = await ContractorModel.findById(job.contractor)
+
+        if(!customer || !contractor)return
+
+        const state = job.isChangeOrder ? 'enabled' : 'disabled'
+        const event = job.isChangeOrder ? 'JOB_CHANGE_ORDER_ENABLED' : 'JOB_CHANGE_ORDER_DISABLED'
+        
+        NotificationService.sendNotification({
+            user: contractor.id,
+            userType: 'contractors',
+            title: 'Job Completed',
+            type: event, //
+            message: `change order is ${state} for your job`,
+            heading: { name: `${customer.name}`, image: customer.profilePhoto?.url },
+            payload: {
+                entity: job.id,
+                entityType: 'jobs',
+                message: `change order is ${state} for your job`,
+                contractor: contractor.id,
+                event: event,
+            }
+        }, { push: true, socket: true })
+
+      
+    } catch (error) {
+        console.error(`Error handling JOB_CHANGED_ORDER event: ${error}`);
     }
 });

@@ -132,7 +132,7 @@ function sendReminder(customer, contractor, job, message) {
         user: contractor.id,
         userType: 'contractors',
         title: 'Job Schedule Reminder',
-        type: 'Notification', //
+        type: 'JOB_DAY_REMINDER', //
         message: message,
         heading: { name: "".concat(customer.name), image: (_a = customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
         payload: {
@@ -148,7 +148,7 @@ function sendReminder(customer, contractor, job, message) {
         user: customer.id,
         userType: 'customers',
         title: 'Job Schedule Reminder',
-        type: 'Notification', //
+        type: 'JOB_DAY_REMINDER', //
         message: message,
         heading: { name: "".concat(contractor.name), image: (_b = contractor.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
         payload: {

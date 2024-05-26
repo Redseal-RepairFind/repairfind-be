@@ -78,6 +78,7 @@ router.get("/bookings/disputes", checkCustomerRole, CustomerBookingController.ge
 router.get("/bookings/:bookingId", checkCustomerRole, CustomerBookingController.getSingleBooking ); 
 router.post("/bookings/:bookingId/cancel", checkCustomerRole, CustomerBookingController.cancelBooking ); 
 router.post("/bookings/:bookingId/initiate-cancel", checkCustomerRole, CustomerBookingController.intiateBookingCancelation ); 
+router.post("/bookings/:bookingId/change-order-toggle", checkCustomerRole, CustomerBookingController.toggleChangeOrder ); 
 router.post("/bookings/:bookingId/mark-complete", checkCustomerRole, CustomerBookingController.acceptBookingComplete ); 
 router.post("/bookings/:bookingId/review", checkCustomerRole, CustomerBookingController.reviewBookingOnCompletion ); 
 router.post("/bookings/:bookingId/reschedule", checkCustomerRole, CustomerBookingController.requestBookingReschedule ); 

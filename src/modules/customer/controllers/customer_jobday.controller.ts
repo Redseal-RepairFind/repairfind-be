@@ -168,7 +168,7 @@ export const confirmContractorArrival = async (
                 heading: {},
                 type: 'JOB_DAY_CONFIRMED',
                 message: 'Customer confirmed your arrival.',
-                payload: { jobDay }
+                payload: {event: 'JOB_DAY_CONFIRMED', jobDay }
             },
             {
                 push: true,
@@ -187,7 +187,7 @@ export const confirmContractorArrival = async (
                 heading: {},
                 type: 'JOB_DAY_CONFIRMED',
                 message: "You successfully confirmed the contractor's arrival.",
-                payload: { jobDay }
+                payload: {event: 'JOB_DAY_CONFIRMED', jobDay }
             },
             {
                 push: true,

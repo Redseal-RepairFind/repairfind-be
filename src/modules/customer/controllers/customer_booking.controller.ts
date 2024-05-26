@@ -375,6 +375,47 @@ export const acceptOrDeclineReschedule = async (req: any, res: Response, next: N
     }
 };
 
+export const toggleChangeOrder = async (req: any, res: Response, next: NextFunction) => {
+    try {
+        const customerId = req.customer.id;
+        const { bookingId } = req.params;
+
+        // Find the job
+        const job = await JobModel.findById(bookingId);
+        const customer = await CustomerModel.findById(customerId);
+        const contract = await JobQuotationModel.findById(job?.contract);
+
+       
+        if (!contract) {
+            return res.status(404).json({ success: false, message: 'Contract not found' });
+        }
+
+        // Check if the job exists
+        if (!job) {
+            return res.status(404).json({ success: false, message: 'Job not found' });
+        }
+
+        // Check if the contractor is the owner of the job
+        if (job.customer.toString() !== customerId) {
+            return res.status(403).json({ success: false, message: 'You are not authorized to cancel this booking' });
+        }
+
+        if (job.status !== JOB_STATUS.ONGOING) {
+            return res.status(400).json({ success: false, message: 'Only ongoing job can accept extra estimate ' });
+        }
+
+        job.isChangeOrder = !job.isChangeOrder;
+        await job.save();
+
+        //send notification
+        JobEvent.emit('JOB_CHANGED_ORDER', { job })
+
+        const state = job.isChangeOrder ? 'enabled' : 'disabled'
+        res.json({ success: true, message: `Job change order ${state} successfully`, data: job });
+    } catch (error: any) {
+        return next(new BadRequestError('An error occurred', error));
+    }
+};
 export const intiateBookingCancelation = async (req: any, res: Response, next: NextFunction) => {
     try {
         const customerId = req.customer.id;
@@ -716,7 +757,6 @@ export const acceptBookingComplete = async (req: any, res: Response, next: NextF
 };
 
 
-
 export const reviewBookingOnCompletion = async (req: any, res: Response, next: NextFunction) => {
     try {
         const customerId = req.customer.id;
@@ -806,6 +846,7 @@ export const CustomerBookingController = {
     intiateBookingCancelation,
     acceptBookingComplete,
     reviewBookingOnCompletion,
+    toggleChangeOrder,
 }
 
 

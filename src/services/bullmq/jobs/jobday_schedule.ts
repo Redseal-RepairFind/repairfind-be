@@ -81,7 +81,7 @@ function sendReminder(customer:ICustomer, contractor:IContractor, job: IJob, mes
         user: contractor.id,
         userType: 'contractors',
         title: 'Job Schedule Reminder',
-        type: 'Notification', //
+        type: 'JOB_DAY_REMINDER', //
         message: message,
         heading: { name: `${customer.name}`, image: customer.profilePhoto?.url },
         payload: {
@@ -98,7 +98,7 @@ function sendReminder(customer:ICustomer, contractor:IContractor, job: IJob, mes
         user: customer.id,
         userType: 'customers',
         title: 'Job Schedule Reminder',
-        type: 'Notification', //
+        type: 'JOB_DAY_REMINDER', //
         message: message,
         heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
         payload: {

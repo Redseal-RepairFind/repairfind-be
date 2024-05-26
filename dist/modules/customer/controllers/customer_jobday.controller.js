@@ -198,7 +198,7 @@ var confirmContractorArrival = function (req, res) { return __awaiter(void 0, vo
                     heading: {},
                     type: 'JOB_DAY_CONFIRMED',
                     message: 'Customer confirmed your arrival.',
-                    payload: { jobDay: jobDay }
+                    payload: { event: 'JOB_DAY_CONFIRMED', jobDay: jobDay }
                 }, {
                     push: true,
                     socket: true,
@@ -212,7 +212,7 @@ var confirmContractorArrival = function (req, res) { return __awaiter(void 0, vo
                     heading: {},
                     type: 'JOB_DAY_CONFIRMED',
                     message: "You successfully confirmed the contractor's arrival.",
-                    payload: { jobDay: jobDay }
+                    payload: { event: 'JOB_DAY_CONFIRMED', jobDay: jobDay }
                 }, {
                     push: true,
                     socket: true,

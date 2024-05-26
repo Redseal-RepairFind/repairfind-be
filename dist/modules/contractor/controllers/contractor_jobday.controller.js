@@ -97,7 +97,7 @@ var startTrip = function (req, res) { return __awaiter(void 0, void 0, void 0, f
                     heading: {},
                     type: 'JOB_DAY_STARTED',
                     message: 'trip successfully started',
-                    payload: { jobDayId: trip._id }
+                    payload: { event: 'JOB_DAY_STARTED', jobDayId: trip._id }
                 }, {
                     push: true,
                     socket: true,
@@ -111,7 +111,7 @@ var startTrip = function (req, res) { return __awaiter(void 0, void 0, void 0, f
                     heading: {},
                     type: 'JOB_DAY_STARTED',
                     message: 'Contractor starts trip to your site.',
-                    payload: { jobDayId: trip._id }
+                    payload: { event: 'JOB_DAY_STARTED', jobDayId: trip._id }
                 }, {
                     push: true,
                     socket: true,
@@ -259,7 +259,7 @@ var confirmArrival = function (req, res) { return __awaiter(void 0, void 0, void
                     heading: {},
                     type: 'JOB_DAY_ARRIVAL',
                     message: 'you successfully arrrived at site, wait for comfirmation from customer.',
-                    payload: { jobDayId: jobDayId, verificationCode: verificationCode }
+                    payload: { event: 'JOB_DAY_ARRIVAL', jobDayId: jobDayId, verificationCode: verificationCode }
                 }, {
                     push: true,
                     socket: true,
@@ -272,7 +272,7 @@ var confirmArrival = function (req, res) { return __awaiter(void 0, void 0, void
                     heading: { name: contractorId, image: contractorId },
                     type: 'JOB_DAY_ARRIVAL',
                     message: 'Contractor is at your site.',
-                    payload: { jobDayId: jobDayId, verificationCode: verificationCode }
+                    payload: { event: 'JOB_DAY_ARRIVAL', jobDayId: jobDayId, verificationCode: verificationCode }
                 }, {
                     push: true,
                     socket: true,

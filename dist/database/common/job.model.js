@@ -159,6 +159,7 @@ var JobSchema = new mongoose_1.Schema({
     emergency: { type: Boolean, default: false },
     isAssigned: { type: Boolean, default: false },
     review: { type: mongoose_1.Schema.Types.ObjectId, ref: 'reviews' },
+    isChangeOrder: { type: Boolean, default: false },
 }, { timestamps: true });
 JobSchema.virtual('totalQuotations').get(function () {
     var pendingQuotations = this.quotations.filter(function (quote) { return quote.status !== job_quotation_model_1.JOB_QUOTATION_STATUS.DECLINED; });
