@@ -412,13 +412,20 @@ export const createJobDispute = async (req: any, res: Response, next: NextFuncti
         await dispute.save()
 
         job.status = JOB_STATUS.DISPUTED
+      
+
+        job.statusUpdate = {
+            isContractorAccept: true,
+            isCustomerAccept: false,
+            awaitingConfirmation: false,
+            status: 'REJECTED',
+        }
+
         await job.save()
 
         JobEvent.emit('JOB_DISPUTE_CREATED', { dispute: dispute });
 
         return res.status(201).json({ success: true, message: 'Job dispute created successfully', data: dispute });
-
-
 
     } catch (error: any) {
         next(new InternalServerError('Error creating job dispute:', error));

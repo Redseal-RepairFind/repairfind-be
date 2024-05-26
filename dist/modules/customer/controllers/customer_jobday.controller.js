@@ -431,6 +431,12 @@ var createJobDispute = function (req, res, next) { return __awaiter(void 0, void
             case 5:
                 _c.sent();
                 job.status = job_model_1.JOB_STATUS.DISPUTED;
+                job.statusUpdate = {
+                    isContractorAccept: true,
+                    isCustomerAccept: false,
+                    awaitingConfirmation: false,
+                    status: 'REJECTED',
+                };
                 return [4 /*yield*/, job.save()];
             case 6:
                 _c.sent();
