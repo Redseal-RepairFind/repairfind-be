@@ -149,25 +149,25 @@ var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void
             case 1:
                 contractorProfile = _a.sent();
                 if (!contractorProfile) {
-                    return [2 /*return*/, res.status(403).json({ success: false, message: 'Contractor profile not found' })];
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor profile not found' })];
                 }
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
             case 2:
                 contractor = _a.sent();
                 if (!contractor) {
-                    return [2 /*return*/, res.status(403).json({ success: false, message: 'Job Contractor not found' })];
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Job Contractor not found' })];
                 }
                 return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobId, contractor: contractorId, status: job_model_1.JOB_STATUS.BOOKED })];
             case 3:
                 job = _a.sent();
                 if (!job) {
-                    return [2 /*return*/, res.status(403).json({ success: false, message: 'Job booking not found' })];
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Job booking not found' })];
                 }
                 return [4 /*yield*/, customer_model_1.default.findOne({ _id: job.customer })];
             case 4:
                 customer = _a.sent();
                 if (!customer) {
-                    return [2 /*return*/, res.status(403).json({ success: false, message: 'Job Customer not found' })];
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Job Customer not found' })];
                 }
                 return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ job: jobId, status: { $in: ['STARTED', 'ARRIVED', 'CONFIRMED', 'PENDING'] } })];
             case 5:
