@@ -223,6 +223,11 @@ var signIn = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                             .status(401)
                             .json({ message: "invalid credential" })];
                 }
+                if (!customer.password && customer.provider !== customer_interface_1.CustomerAuthProviders.PASSWORD) {
+                    return [2 /*return*/, res
+                            .status(401)
+                            .json({ message: "The email is associated with a social signon" })];
+                }
                 return [4 /*yield*/, bcrypt_1.default.compare(password, customer.password)];
             case 2:
                 isPasswordMatch = _b.sent();

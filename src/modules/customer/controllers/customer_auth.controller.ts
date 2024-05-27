@@ -231,6 +231,13 @@ export const signIn = async (
         .json({ message: "invalid credential" });
     }
 
+    if (!customer.password && customer.provider !==  CustomerAuthProviders.PASSWORD) {
+      return res
+        .status(401)
+        .json({ message: "The email is associated with a social signon" });
+    }
+
+
     // compare password with hashed password in database
     const isPasswordMatch = await bcrypt.compare(password, customer.password);
     
