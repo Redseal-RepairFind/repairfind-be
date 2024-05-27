@@ -22,6 +22,7 @@ import { IPayment } from "../../../database/common/payment.schema";
 import { JobDisputeModel } from "../../../database/common/job_dispute.model";
 import { IReview, REVIEW_TYPE, ReviewModel } from "../../../database/common/review.model";
 import CustomerFavoriteContractorModel from "../../../database/customer/models/customer_favorite_contractors.model";
+import { JobDayModel } from "../../../database/common/job_day.model";
 
 
 
@@ -250,6 +251,11 @@ export const getSingleBooking = async (req: any, res: Response, next: NextFuncti
         if (job.status === JOB_STATUS.DISPUTED) {
             responseData.dispute = await JobDisputeModel.findOne({ job: job.id });
         }
+
+        if (job.status === JOB_STATUS.ONGOING){
+            const activeJobDay = await JobDayModel.findOne({ job: job.id } );
+            responseData.jobDay = activeJobDay
+        }
         res.json({ success: true, message: 'Booking retrieved', data: responseData });
 
     } catch (error: any) {
@@ -416,6 +422,7 @@ export const toggleChangeOrder = async (req: any, res: Response, next: NextFunct
         return next(new BadRequestError('An error occurred', error));
     }
 };
+
 export const intiateBookingCancelation = async (req: any, res: Response, next: NextFunction) => {
     try {
         const customerId = req.customer.id;
@@ -517,6 +524,7 @@ export const intiateBookingCancelation = async (req: any, res: Response, next: N
         return next(new BadRequestError('An error occurred', error));
     }
 };
+
 
 export const cancelBooking = async (req: any, res: Response, next: NextFunction) => {
     try {

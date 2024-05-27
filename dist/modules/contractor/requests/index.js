@@ -1,7 +1,11 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorHttpRequest = exports.CreateJobDisputeRequest = exports.sendMessageParams = exports.CreateJobQuotationRequest = exports.CreateScheduleRequest = exports.UpdateOrDevice = exports.CreateStripeSessionRequest = exports.InviteToTeam = exports.CreateCompanyDetailsRequest = exports.CreateGstDetailsRequest = exports.UpdateBankDetailRequest = exports.PasswordChangeRequest = exports.PasswordResetRequest = exports.ResendEmailRequest = exports.LoginRequest = exports.EmailVerificationRequest = exports.UpgradeEmployeeProfileRequest = exports.UpdateProfileRequest = exports.CreateProfileRequest = exports.CreateContractorRequest = void 0;
+exports.ContractorHttpRequest = exports.CreateJobDisputeRequest = exports.sendMessageParams = exports.CreateExtraJobQuotationRequest = exports.CreateJobQuotationRequest = exports.CreateScheduleRequest = exports.UpdateOrDevice = exports.CreateStripeSessionRequest = exports.InviteToTeam = exports.CreateCompanyDetailsRequest = exports.CreateGstDetailsRequest = exports.UpdateBankDetailRequest = exports.PasswordChangeRequest = exports.PasswordResetRequest = exports.ResendEmailRequest = exports.LoginRequest = exports.EmailVerificationRequest = exports.UpgradeEmployeeProfileRequest = exports.UpdateProfileRequest = exports.CreateProfileRequest = exports.CreateContractorRequest = void 0;
 var express_validator_1 = require("express-validator");
+var mongoose_1 = __importDefault(require("mongoose"));
 exports.CreateContractorRequest = [
     (0, express_validator_1.body)('email').isEmail(),
     (0, express_validator_1.body)('password').notEmpty(),
@@ -248,11 +252,24 @@ exports.CreateScheduleRequest = [
     (0, express_validator_1.body)('events.*.booking').optional().isNumeric().withMessage('Booking should be a number'),
     (0, express_validator_1.body)('events.*.description').optional().isString().withMessage('Description should be a string'),
 ];
-// JOB
+// JOB Quotation
 exports.CreateJobQuotationRequest = [
     (0, express_validator_1.body)("startDate").optional().isISO8601(),
     (0, express_validator_1.body)("endDate").optional().isISO8601(),
     (0, express_validator_1.body)("siteVisit").optional().isISO8601(),
+    (0, express_validator_1.body)("estimates").optional().isArray(), // Making estimates optional
+    (0, express_validator_1.body)("estimates.*.rate").if((0, express_validator_1.body)("estimates").exists()).notEmpty().isNumeric(), // Checking rate only if estimates is provided
+    (0, express_validator_1.body)("estimates.*.quantity").if((0, express_validator_1.body)("estimates").exists()).notEmpty().isNumeric(), // Checking quantity only if estimates is provided
+    (0, express_validator_1.body)("estimates.*.description").if((0, express_validator_1.body)("estimates").exists()).notEmpty().isString(), // Checking description only if estimates is provided
+];
+// JOB Extra Quotation
+exports.CreateExtraJobQuotationRequest = [
+    (0, express_validator_1.body)('quotationId').custom(function (value) {
+        if (!mongoose_1.default.Types.ObjectId.isValid(value)) {
+            throw new Error('Invalid ObjectId');
+        }
+        return true;
+    }),
     (0, express_validator_1.body)("estimates").optional().isArray(), // Making estimates optional
     (0, express_validator_1.body)("estimates.*.rate").if((0, express_validator_1.body)("estimates").exists()).notEmpty().isNumeric(), // Checking rate only if estimates is provided
     (0, express_validator_1.body)("estimates.*.quantity").if((0, express_validator_1.body)("estimates").exists()).notEmpty().isNumeric(), // Checking quantity only if estimates is provided
@@ -292,6 +309,7 @@ exports.ContractorHttpRequest = {
     CreateStripeSessionRequest: exports.CreateStripeSessionRequest,
     UpdateOrDevice: exports.UpdateOrDevice,
     CreateJobQuotationRequest: exports.CreateJobQuotationRequest,
+    CreateExtraJobQuotationRequest: exports.CreateExtraJobQuotationRequest,
     sendMessageParams: exports.sendMessageParams,
     CreateGstDetailsRequest: exports.CreateGstDetailsRequest,
     CreateCompanyDetailsRequest: exports.CreateCompanyDetailsRequest,

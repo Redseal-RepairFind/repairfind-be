@@ -523,6 +523,89 @@ export const sendJobQuotation = async (
   }
 };
 
+export const sendExtraJobQuotation = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { jobId } = req.params;
+    const contractorId = req.contractor.id;
+    let { quotationId, estimates = [] } = req.body;
+
+    // Validate request body
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    // Retrieve contractor and job payload
+    const [contractor, job] = await Promise.all([
+      ContractorModel.findById(contractorId),
+      JobModel.findById(jobId).sort({ createdAt: -1 })
+    ]);
+
+    if (!contractor || !job) {
+      return res.status(401).json({ message: "Invalid credential or job does not exist" });
+    }
+
+    const customer = await CustomerModel.findOne({ _id: job.customer })
+    if (!customer) {
+      return res
+        .status(401)
+        .json({ message: "invalid customer Id" });
+    }
+
+    const existingQuotation = await JobQuotationModel.findOne({ id: quotationId, job: jobId });
+    if (!existingQuotation) {
+      return res.status(400).json({ success: false, message: "You don't have access to send extra job quotation" });
+    }
+
+    // CHeck if change order is enabled
+    if(!job.isChangeOrder){
+      return res.status(400).json({ success: false, message: "Customer has not enabled change order" });
+    }
+
+
+    // Create or update job quotation
+    const extraJobEstimate = {
+      estimates,
+      isPaid: false,
+      date: new Date()
+    };
+
+    existingQuotation.extraEstimates.push(extraJobEstimate)
+   
+    // Calculate charges for the job quotation
+    existingQuotation.charges = await existingQuotation.calculateCharges();
+
+
+    // Update job status and history if needed
+
+     
+    job.jobHistory.push({ eventType: 'EXTRA_JOB_ESTIMATE_SUBMITTED', timestamp: new Date(), payload: { ...extraJobEstimate } });
+    
+  
+
+    // Save changes to the job
+    await job.save();
+
+    // Do other actions such as sending emails or notifications...
+    JobEvent.emit('EXTRA_JOB_ESTIMATE_SUBMITTED', {job, existingQuotation})
+
+    
+
+    res.json({
+      success: true,
+      message: "Job change oder quotation successfully sent",
+      data: existingQuotation
+    });
+
+  } catch (err: any) {
+    return next(new BadRequestError('An error occurred', err));
+  }
+};
+
 
 export const getQuotationForJob = async (req: any, res: Response, next: NextFunction) => {
   try {
@@ -833,7 +916,7 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
       delete req.query.customerId
     }
 
-    
+
     // Query JobModel to find jobs that have IDs present in the extracted jobIds
     const { data, error } = await applyAPIFeature(
       JobModel.find({
@@ -847,9 +930,9 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
     if (data) {
       // Map through each job and attach myQuotation if contractor has applied 
       await Promise.all(data.data.map(async (job: any) => {
-        if(job.isAssigned){
+        if (job.isAssigned) {
           job.myQuotation = await job.getMyQoutation(job.contractor)
-        }else{
+        } else {
           job.myQuotation = await job.getMyQoutation(contractorId)
         }
       }));
@@ -904,7 +987,7 @@ export const getJobHistory = async (req: any, res: Response, next: NextFunction)
         $or: [
           { _id: { $in: jobIds } }, // Match jobs specified in jobIds
           { contractor: contractorId }, // Match jobs with contractorId
-          { 'assignment.contractor': contractorId } 
+          { 'assignment.contractor': contractorId }
         ]
       }).distinct('_id'),
       req.query);
@@ -912,9 +995,9 @@ export const getJobHistory = async (req: any, res: Response, next: NextFunction)
       // Map through each job and attach myQuotation if contractor has applied 
       await Promise.all(data.data.map(async (job: any) => {
         // job.myQuotation = await job.getMyQoutation(contractorId)
-        if(job.isAssigned){
+        if (job.isAssigned) {
           job.myQuotation = await job.getMyQoutation(job.contractor)
-        }else{
+        } else {
           job.myQuotation = await job.getMyQoutation(contractorId)
         }
       }));
@@ -943,7 +1026,8 @@ export const ContractorJobController = {
   updateJobQuotation,
   getJobListingById,
   getMyJobs,
-  getJobHistory
+  getJobHistory,
+  sendExtraJobQuotation
 }
 
 

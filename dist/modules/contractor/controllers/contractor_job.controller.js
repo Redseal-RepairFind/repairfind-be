@@ -50,7 +50,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorJobController = exports.getJobHistory = exports.getMyJobs = exports.getJobListings = exports.updateJobQuotation = exports.getQuotationForJob = exports.sendJobQuotation = exports.getJobListingById = exports.getJobRequestById = exports.rejectJobRequest = exports.acceptJobRequest = exports.getJobRequests = void 0;
+exports.ContractorJobController = exports.getJobHistory = exports.getMyJobs = exports.getJobListings = exports.updateJobQuotation = exports.getQuotationForJob = exports.sendExtraJobQuotation = exports.sendJobQuotation = exports.getJobListingById = exports.getJobRequestById = exports.rejectJobRequest = exports.acceptJobRequest = exports.getJobRequests = void 0;
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var jobQoutationTemplate_1 = require("../../../templates/customerEmail/jobQoutationTemplate");
@@ -66,6 +66,7 @@ var services_1 = require("../../../services");
 var contractor_profile_model_1 = require("../../../database/contractor/models/contractor_profile.model");
 var interface_dto_util_1 = require("../../../utils/interface_dto.util");
 var stripe_1 = require("../../../services/stripe");
+var events_1 = require("../../../events");
 var getJobRequests = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, customerId, status_1, startDate, endDate, date, contractorId, filter, start, end, selectedDate, startOfDay, endOfDay, jobRequests, _b, data, error, error_1;
     return __generator(this, function (_c) {
@@ -550,6 +551,81 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
     });
 }); };
 exports.sendJobQuotation = sendJobQuotation;
+var sendExtraJobQuotation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var jobId, contractorId, _a, quotationId, _b, estimates, errors, _c, contractor, job, customer, existingQuotation, extraJobEstimate, _d, err_2;
+    return __generator(this, function (_e) {
+        switch (_e.label) {
+            case 0:
+                _e.trys.push([0, 6, , 7]);
+                jobId = req.params.jobId;
+                contractorId = req.contractor.id;
+                _a = req.body, quotationId = _a.quotationId, _b = _a.estimates, estimates = _b === void 0 ? [] : _b;
+                errors = (0, express_validator_1.validationResult)(req);
+                if (!errors.isEmpty()) {
+                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                }
+                return [4 /*yield*/, Promise.all([
+                        contractor_model_1.ContractorModel.findById(contractorId),
+                        job_model_1.JobModel.findById(jobId).sort({ createdAt: -1 })
+                    ])];
+            case 1:
+                _c = _e.sent(), contractor = _c[0], job = _c[1];
+                if (!contractor || !job) {
+                    return [2 /*return*/, res.status(401).json({ message: "Invalid credential or job does not exist" })];
+                }
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: job.customer })];
+            case 2:
+                customer = _e.sent();
+                if (!customer) {
+                    return [2 /*return*/, res
+                            .status(401)
+                            .json({ message: "invalid customer Id" })];
+                }
+                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne({ id: quotationId, job: jobId })];
+            case 3:
+                existingQuotation = _e.sent();
+                if (!existingQuotation) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "You don't have access to send extra job quotation" })];
+                }
+                // CHeck if change order is enabled
+                if (!job.isChangeOrder) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "Customer has not enabled change order" })];
+                }
+                extraJobEstimate = {
+                    estimates: estimates,
+                    isPaid: false,
+                    date: new Date()
+                };
+                existingQuotation.extraEstimates.push(extraJobEstimate);
+                // Calculate charges for the job quotation
+                _d = existingQuotation;
+                return [4 /*yield*/, existingQuotation.calculateCharges()];
+            case 4:
+                // Calculate charges for the job quotation
+                _d.charges = _e.sent();
+                // Update job status and history if needed
+                job.jobHistory.push({ eventType: 'EXTRA_JOB_ESTIMATE_SUBMITTED', timestamp: new Date(), payload: __assign({}, extraJobEstimate) });
+                // Save changes to the job
+                return [4 /*yield*/, job.save()];
+            case 5:
+                // Save changes to the job
+                _e.sent();
+                // Do other actions such as sending emails or notifications...
+                events_1.JobEvent.emit('EXTRA_JOB_ESTIMATE_SUBMITTED', { job: job, existingQuotation: existingQuotation });
+                res.json({
+                    success: true,
+                    message: "Job change oder quotation successfully sent",
+                    data: existingQuotation
+                });
+                return [3 /*break*/, 7];
+            case 6:
+                err_2 = _e.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', err_2))];
+            case 7: return [2 /*return*/];
+        }
+    });
+}); };
+exports.sendExtraJobQuotation = sendExtraJobQuotation;
 var getQuotationForJob = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var jobId, contractorId, jobQuotation, _a, error_6;
     return __generator(this, function (_b) {
@@ -951,5 +1027,6 @@ exports.ContractorJobController = {
     updateJobQuotation: exports.updateJobQuotation,
     getJobListingById: exports.getJobListingById,
     getMyJobs: exports.getMyJobs,
-    getJobHistory: exports.getJobHistory
+    getJobHistory: exports.getJobHistory,
+    sendExtraJobQuotation: exports.sendExtraJobQuotation
 };

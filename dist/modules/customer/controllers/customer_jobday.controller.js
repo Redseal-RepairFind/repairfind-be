@@ -64,7 +64,7 @@ var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
                 customerId = req.customer.id;
-                return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobId, customer: customerId, status: job_model_1.JOB_STATUS.BOOKED }).populate('customer', 'contractor')];
+                return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobId, customer: customerId, status: { $in: [job_model_1.JOB_STATUS.BOOKED, job_model_1.JOB_STATUS.ONGOING] } }).populate('customer', 'contractor')];
             case 1:
                 job = _a.sent();
                 if (!job) {

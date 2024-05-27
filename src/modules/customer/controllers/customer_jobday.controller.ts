@@ -32,11 +32,11 @@ export const initiateJobDay = async (
 
 
         // Find the job request by ID
-        const job = await JobModel.findOne({ _id: jobId, customer: customerId, status: JOB_STATUS.BOOKED }).populate('customer', 'contractor');
+        const job = await JobModel.findOne({ _id: jobId, customer: customerId, status: {$in: [JOB_STATUS.BOOKED, JOB_STATUS.ONGOING ]} }).populate('customer', 'contractor');
         if (!job) {
             return res.status(404).json({ success: false, message: 'Job  not found' });
         }
-
+ 
 
         const activeTrip = await JobDayModel.findOne({ job: jobId, status: { $in: ['STARTED', 'ARRIVED', 'CONFIRMED', 'PENDING'] } });
         // if (activeTrip) {
