@@ -94,6 +94,7 @@ router.post("/quiz-submit", contractorRoleCheck_middleware_1.checkContractorRole
 //  Company Team
 router.post("/teams/invite", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.InviteToTeam, contractor_team_invitation_controller_1.TeamInvitationController.inviteToTeam);
 router.get("/teams", contractorRoleCheck_middleware_1.checkContractorRole, contractor_team_controller_1.TeamController.getTeam);
+router.get("/teams/members", contractorRoleCheck_middleware_1.checkContractorRole, contractor_team_controller_1.TeamController.getTeamMembers);
 router.get("/teams/search-contractors", contractorRoleCheck_middleware_1.checkContractorRole, contractor_team_controller_1.TeamController.searchContractorsNotInTeam);
 router.get("/teams/memberships", contractorRoleCheck_middleware_1.checkContractorRole, contractor_team_controller_1.TeamController.getTeamMemberships);
 router.delete("/teams/:teamId/leave", contractorRoleCheck_middleware_1.checkContractorRole, contractor_team_controller_1.TeamController.leaveTeam);

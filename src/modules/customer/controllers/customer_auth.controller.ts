@@ -228,13 +228,13 @@ export const signIn = async (
     if (!customer) {
       return res
         .status(401)
-        .json({ message: "invalid credential" });
+        .json({success: false, message: "invalid credential" });
     }
 
     if (!customer.password && customer.provider !==  CustomerAuthProviders.PASSWORD) {
       return res
         .status(401)
-        .json({ message: "The email is associated with a social signon" });
+        .json({success: false, message: "The email is associated with a social signon" });
     }
 
 
@@ -246,11 +246,11 @@ export const signIn = async (
     }
 
     if (!isPasswordMatch) {
-      return res.status(401).json({ message: "incorrect credential." });
+      return res.status(401).json({success: false, message: "incorrect credential." });
     }
 
     if (!customer.emailOtp.verified) {
-      return res.status(401).json({ message: "email not verified." });
+      return res.status(401).json({success: false, message: "email not verified." });
     }
 
     const profile = await CustomerModel.findOne({ email }).select('-password');
@@ -268,7 +268,7 @@ export const signIn = async (
 
     // return access token
     res.json({
-      status: true,
+      success: true,
       message: "Login successful",
       accessToken,
       expiresIn: config.jwt.tokenLifetime, 
@@ -277,7 +277,7 @@ export const signIn = async (
 
 
   } catch (err: any) {
-    res.status(500).json({ status: false, message: err.message });
+    res.status(500).json({ success: false, message: err.message });
   }
 
 }

@@ -69,6 +69,7 @@ router.post("/jobs/:jobId/quotations/:quotationId/accept", checkCustomerRole, Cu
 router.post("/jobs/:jobId/quotations/:quotationId/decline", checkCustomerRole, CustomerJobController.declineJobQuotation ); 
 router.post("/jobs/:jobId/pay", checkCustomerRole, CustomerPaymentController.makeJobPayment ); 
 router.post("/jobs/:jobId/payment-capture", checkCustomerRole, CustomerPaymentController.captureJobPayment ); 
+router.post("/jobs/:jobId/extra-estimate-payment", checkCustomerRole, CustomerPaymentController.makeExtraEstimatePayment ); 
 
 
 // BOOKING

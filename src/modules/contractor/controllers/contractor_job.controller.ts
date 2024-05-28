@@ -8,7 +8,7 @@ import AdminNoficationModel from "../../../database/admin/models/admin_notificat
 import { JobModel, JOB_STATUS, JobType, IJob } from "../../../database/common/job.model";
 import { applyAPIFeature } from "../../../utils/api.feature";
 import { BadRequestError, InternalServerError, NotFoundError } from "../../../utils/custom.errors";
-import { JobQuotationModel, JOB_QUOTATION_STATUS } from "../../../database/common/job_quotation.model";
+import { JobQuotationModel, JOB_QUOTATION_STATUS, IExtraEstimate } from "../../../database/common/job_quotation.model";
 import CustomerModel from "../../../database/customer/models/customer.model";
 import mongoose, { Document, PipelineStage as MongoosePipelineStage } from 'mongoose'; // Import Document type from mongoose
 import { ConversationEntityType, ConversationModel } from "../../../database/common/conversations.schema";
@@ -452,8 +452,8 @@ export const sendJobQuotation = async (
     }
 
     // Check if contractor already submitted a quotation for this job
-    const existingQuotation = await JobQuotationModel.findOne({ job: jobId, contractor: contractorId });
-    if (existingQuotation) {
+    const quotation = await JobQuotationModel.findOne({ job: jobId, contractor: contractorId });
+    if (quotation) {
       return res.status(400).json({ success: false, message: "You have already submitted a quotation for this job" });
     }
 
@@ -533,13 +533,11 @@ export const sendExtraJobQuotation = async (
     const contractorId = req.contractor.id;
     let { quotationId, estimates = [] } = req.body;
 
-    // Validate request body
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    // Retrieve contractor and job payload
     const [contractor, job] = await Promise.all([
       ContractorModel.findById(contractorId),
       JobModel.findById(jobId).sort({ createdAt: -1 })
@@ -549,56 +547,42 @@ export const sendExtraJobQuotation = async (
       return res.status(401).json({ message: "Invalid credential or job does not exist" });
     }
 
-    const customer = await CustomerModel.findOne({ _id: job.customer })
+    const customer = await CustomerModel.findOne({ _id: job.customer });
     if (!customer) {
-      return res
-        .status(401)
-        .json({ message: "invalid customer Id" });
+      return res.status(401).json({ message: "Invalid customer ID" });
     }
 
-    const existingQuotation = await JobQuotationModel.findOne({ id: quotationId, job: jobId });
-    if (!existingQuotation) {
+    const quotation = await JobQuotationModel.findOne({ _id: quotationId, job: jobId });
+    if (!quotation) {
       return res.status(400).json({ success: false, message: "You don't have access to send extra job quotation" });
     }
 
-    // CHeck if change order is enabled
-    if(!job.isChangeOrder){
+    if (!job.isChangeOrder) {
       return res.status(400).json({ success: false, message: "Customer has not enabled change order" });
     }
 
-
-    // Create or update job quotation
     const extraJobEstimate = {
       estimates,
       isPaid: false,
       date: new Date()
     };
 
-    existingQuotation.extraEstimates.push(extraJobEstimate)
-   
-    // Calculate charges for the job quotation
-    existingQuotation.charges = await existingQuotation.calculateCharges();
+    quotation.extraEstimates.push(extraJobEstimate as IExtraEstimate);
 
+    quotation.charges = await quotation.calculateCharges();
 
-    // Update job status and history if needed
+    job.jobHistory.push({ eventType: 'CHANGE_ORDER_ESTIMATE_SUBMITTED', timestamp: new Date(), payload: { ...extraJobEstimate } });
 
-     
-    job.jobHistory.push({ eventType: 'EXTRA_JOB_ESTIMATE_SUBMITTED', timestamp: new Date(), payload: { ...extraJobEstimate } });
-    
-  
-
-    // Save changes to the job
+    job.isChangeOrder = false;
     await job.save();
+    await quotation.save();
 
-    // Do other actions such as sending emails or notifications...
-    JobEvent.emit('EXTRA_JOB_ESTIMATE_SUBMITTED', {job, existingQuotation})
-
-    
+    JobEvent.emit('CHANGE_ORDER_ESTIMATE_SUBMITTED', { job, quotation });
 
     res.json({
       success: true,
-      message: "Job change oder quotation successfully sent",
-      data: existingQuotation
+      message: "Job change order quotation successfully sent",
+      data: quotation
     });
 
   } catch (err: any) {

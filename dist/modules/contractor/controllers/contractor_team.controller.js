@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TeamController = exports.removeMemberFromTeam = exports.leaveTeam = exports.getTeamMemberships = exports.getInvitations = exports.searchContractorsNotInTeam = exports.getTeam = void 0;
+exports.TeamController = exports.removeMemberFromTeam = exports.leaveTeam = exports.getTeamMemberships = exports.getInvitations = exports.searchContractorsNotInTeam = exports.getTeamMembers = exports.getTeam = void 0;
 var contractor_team_model_1 = __importDefault(require("../../../database/contractor/models/contractor_team.model"));
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var services_1 = require("../../../services");
@@ -107,8 +107,52 @@ var getTeam = function (req, res) { return __awaiter(void 0, void 0, void 0, fun
     });
 }); };
 exports.getTeam = getTeam;
+var getTeamMembers = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var contractorId, email, contractor, companyTeam, contractorIds, filter, contractors, error_2;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 4, , 5]);
+                contractorId = req.contractor.id;
+                email = req.query.email;
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
+            case 1:
+                contractor = _a.sent();
+                if (!contractor || contractor.accountType !== "Company") {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "Only companies can retrieve team information" })];
+                }
+                return [4 /*yield*/, contractor_team_model_1.default.findOne({ contractor: contractorId })];
+            case 2:
+                companyTeam = _a.sent();
+                if (!companyTeam) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "Team not found" })];
+                }
+                contractorIds = companyTeam.members.map(function (team) { return team.contractor; });
+                filter = { _id: { $in: contractorIds } };
+                if (email) {
+                    filter.email = email;
+                }
+                return [4 /*yield*/, contractor_model_1.ContractorModel.find(filter)];
+            case 3:
+                contractors = _a.sent();
+                res.json({
+                    success: true,
+                    message: "Team members retrieved successfully",
+                    data: contractors,
+                });
+                return [3 /*break*/, 5];
+            case 4:
+                error_2 = _a.sent();
+                console.error("Error retrieving team information:", error_2);
+                res.status(500).json({ success: false, message: "Internal Server Error" });
+                return [3 /*break*/, 5];
+            case 5: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getTeamMembers = getTeamMembers;
 var searchContractorsNotInTeam = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var contractorId, contractor, companyTeam, _a, name_1, email, searchCriteria, contractorsNotInTeam, error_2;
+    var contractorId, contractor, companyTeam, _a, name_1, email, searchCriteria, contractorsNotInTeam, error_3;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -156,8 +200,8 @@ var searchContractorsNotInTeam = function (req, res) { return __awaiter(void 0, 
                 res.json({ success: true, message: 'Contractors not in any team retrieved successfully', data: contractorsNotInTeam });
                 return [3 /*break*/, 7];
             case 6:
-                error_2 = _b.sent();
-                console.error('Error searching for contractors not in any team:', error_2);
+                error_3 = _b.sent();
+                console.error('Error searching for contractors not in any team:', error_3);
                 res.status(500).json({ success: false, message: 'Internal Server Error' });
                 return [3 /*break*/, 7];
             case 7: return [2 /*return*/];
@@ -166,7 +210,7 @@ var searchContractorsNotInTeam = function (req, res) { return __awaiter(void 0, 
 }); };
 exports.searchContractorsNotInTeam = searchContractorsNotInTeam;
 var getInvitations = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var memberId, status_1, invitations, allInvitations_1, error_3;
+    var memberId, status_1, invitations, allInvitations_1, error_4;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -191,8 +235,8 @@ var getInvitations = function (req, res) { return __awaiter(void 0, void 0, void
                 res.json({ success: true, message: 'Invitations retrieved successfully', data: allInvitations_1 });
                 return [3 /*break*/, 3];
             case 2:
-                error_3 = _a.sent();
-                console.error('Error retrieving invitations:', error_3);
+                error_4 = _a.sent();
+                console.error('Error retrieving invitations:', error_4);
                 res.status(500).json({ success: false, message: 'Internal Server Error' });
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
@@ -201,7 +245,7 @@ var getInvitations = function (req, res) { return __awaiter(void 0, void 0, void
 }); };
 exports.getInvitations = getInvitations;
 var getTeamMemberships = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var userId_1, teams, formattedTeams, error_4;
+    var userId_1, teams, formattedTeams, error_5;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -250,8 +294,8 @@ var getTeamMemberships = function (req, res) { return __awaiter(void 0, void 0, 
                 res.json({ success: true, message: 'Team memberships retrieved successfully', data: formattedTeams });
                 return [3 /*break*/, 4];
             case 3:
-                error_4 = _a.sent();
-                console.error('Error retrieving team memberships:', error_4);
+                error_5 = _a.sent();
+                console.error('Error retrieving team memberships:', error_5);
                 res.status(500).json({ success: false, message: 'Internal Server Error' });
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
@@ -260,7 +304,7 @@ var getTeamMemberships = function (req, res) { return __awaiter(void 0, void 0, 
 }); };
 exports.getTeamMemberships = getTeamMemberships;
 var leaveTeam = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var contractorId_1, teamId, team, memberIndex, error_5;
+    var contractorId_1, teamId, team, memberIndex, error_6;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -287,8 +331,8 @@ var leaveTeam = function (req, res) { return __awaiter(void 0, void 0, void 0, f
                 res.json({ success: true, message: 'Contractor successfully left the team' });
                 return [3 /*break*/, 4];
             case 3:
-                error_5 = _a.sent();
-                console.error('Error leaving team:', error_5);
+                error_6 = _a.sent();
+                console.error('Error leaving team:', error_6);
                 res.status(500).json({ success: false, message: 'Internal Server Error' });
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
@@ -297,7 +341,7 @@ var leaveTeam = function (req, res) { return __awaiter(void 0, void 0, void 0, f
 }); };
 exports.leaveTeam = leaveTeam;
 var removeMemberFromTeam = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var contractorId, memberId_1, teamId, team, member, removedContractor, htmlContent, error_6;
+    var contractorId, memberId_1, teamId, team, member, removedContractor, htmlContent, error_7;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -339,8 +383,8 @@ var removeMemberFromTeam = function (req, res, next) { return __awaiter(void 0, 
                 res.json({ success: true, message: 'Member successfully removed from the team' });
                 return [3 /*break*/, 7];
             case 6:
-                error_6 = _a.sent();
-                next(new custom_errors_1.InternalServerError('An error occurred removing team member', error_6));
+                error_7 = _a.sent();
+                next(new custom_errors_1.InternalServerError('An error occurred removing team member', error_7));
                 return [3 /*break*/, 7];
             case 7: return [2 /*return*/];
         }
@@ -352,5 +396,6 @@ exports.TeamController = {
     searchContractorsNotInTeam: exports.searchContractorsNotInTeam,
     getTeamMemberships: exports.getTeamMemberships,
     leaveTeam: exports.leaveTeam,
-    removeMemberFromTeam: exports.removeMemberFromTeam
+    removeMemberFromTeam: exports.removeMemberFromTeam,
+    getTeamMembers: exports.getTeamMembers
 };

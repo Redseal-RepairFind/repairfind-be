@@ -98,8 +98,7 @@ var StatusUpdateSchema = new mongoose_1.Schema({
     isContractorAccept: { type: Boolean, default: false },
     createdBy: String,
     status: {
-        type: String,
-        enum: Object.values(JOB_STATUS)
+        type: String
     },
     remark: String,
 });

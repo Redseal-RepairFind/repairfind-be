@@ -48,6 +48,7 @@ var job_model_1 = require("../database/common/job.model");
 var conversations_schema_1 = require("../database/common/conversations.schema");
 var socket_1 = require("../services/socket");
 var job_canceled_template_1 = require("../templates/common/job_canceled.template");
+var job_day_model_1 = require("../database/common/job_day.model");
 var job_emergency_email_1 = require("../templates/common/job_emergency_email");
 var generic_email_1 = require("../templates/common/generic_email");
 exports.JobEvent = new events_1.EventEmitter();
@@ -483,7 +484,7 @@ exports.JobEvent.on('JOB_COMPLETED', function (payload) {
         });
     });
 });
-exports.JobEvent.on('JOB_CHANGED_ORDER', function (payload) {
+exports.JobEvent.on('JOB_CHANGE_ORDER', function (payload) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
         var job, customer, contractor, state, event_1, error_10;
@@ -491,7 +492,7 @@ exports.JobEvent.on('JOB_CHANGED_ORDER', function (payload) {
             switch (_b.label) {
                 case 0:
                     _b.trys.push([0, 4, , 5]);
-                    console.log('handling JOB_CHANGED_ORDER event', payload.job.id);
+                    console.log('handling JOB_CHANGE_ORDER event', payload.job.id);
                     return [4 /*yield*/, job_model_1.JobModel.findById(payload.job.id)];
                 case 1:
                     job = _b.sent();
@@ -526,9 +527,110 @@ exports.JobEvent.on('JOB_CHANGED_ORDER', function (payload) {
                     return [3 /*break*/, 5];
                 case 4:
                     error_10 = _b.sent();
-                    console.error("Error handling JOB_CHANGED_ORDER event: ".concat(error_10));
+                    console.error("Error handling JOB_CHANGE_ORDER event: ".concat(error_10));
                     return [3 /*break*/, 5];
                 case 5: return [2 /*return*/];
+            }
+        });
+    });
+});
+exports.JobEvent.on('CHANGE_ORDER_ESTIMATE_SUBMITTED', function (payload) {
+    var _a;
+    return __awaiter(this, void 0, void 0, function () {
+        var job, customer, contractor, jobDay, error_11;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    _b.trys.push([0, 5, , 6]);
+                    console.log('handling CHANGE_ORDER_ESTIMATE_SUBMITTED event', payload.job.id);
+                    return [4 /*yield*/, job_model_1.JobModel.findById(payload.job.id)];
+                case 1:
+                    job = _b.sent();
+                    if (!job) {
+                        return [2 /*return*/];
+                    }
+                    return [4 /*yield*/, customer_model_1.default.findById(job.customer)];
+                case 2:
+                    customer = _b.sent();
+                    return [4 /*yield*/, contractor_model_1.ContractorModel.findById(job.contractor)];
+                case 3:
+                    contractor = _b.sent();
+                    if (!customer || !contractor)
+                        return [2 /*return*/];
+                    return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ job: job.id })];
+                case 4:
+                    jobDay = _b.sent();
+                    services_1.NotificationService.sendNotification({
+                        user: customer.id,
+                        userType: 'customers',
+                        title: 'Job Completed',
+                        type: 'CHANGE_ORDER_ESTIMATE_SUBMITTED', //
+                        message: "change order estimate has been submitted",
+                        heading: { name: "".concat(contractor.name), image: (_a = contractor.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
+                        payload: {
+                            entity: job.id,
+                            entityType: 'jobs',
+                            message: "change order estimate has been submitted",
+                            customer: customer.id,
+                            event: 'CHANGE_ORDER_ESTIMATE_SUBMITTED',
+                            jobDayId: jobDay === null || jobDay === void 0 ? void 0 : jobDay.id,
+                            jobId: job.id,
+                            extraEstimate: payload.quotation
+                        }
+                    }, { push: true, socket: true });
+                    return [3 /*break*/, 6];
+                case 5:
+                    error_11 = _b.sent();
+                    console.error("Error handling CHANGE_ORDER_ESTIMATE_SUBMITTED event: ".concat(error_11));
+                    return [3 /*break*/, 6];
+                case 6: return [2 /*return*/];
+            }
+        });
+    });
+});
+exports.JobEvent.on('CHANGE_ORDER_ESTIMATE_PAID', function (payload) {
+    var _a;
+    return __awaiter(this, void 0, void 0, function () {
+        var job, customer, contractor, error_12;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    _b.trys.push([0, 3, , 4]);
+                    console.log('handling CHANGE_ORDER_ESTIMATE_PAID event', payload.job.id);
+                    job = payload.job;
+                    if (!job)
+                        return [2 /*return*/];
+                    return [4 /*yield*/, customer_model_1.default.findById(job.customer)];
+                case 1:
+                    customer = _b.sent();
+                    return [4 /*yield*/, contractor_model_1.ContractorModel.findById(job.contractor)];
+                case 2:
+                    contractor = _b.sent();
+                    if (!customer || !contractor)
+                        return [2 /*return*/];
+                    services_1.NotificationService.sendNotification({
+                        user: contractor.id,
+                        userType: 'contractors',
+                        title: 'Change Order Estimate Paid',
+                        type: 'CHANGE_ORDER_ESTIMATE_PAID', //
+                        message: "change order estimate has been paid",
+                        heading: { name: "".concat(contractor.name), image: (_a = contractor.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
+                        payload: {
+                            entity: job.id,
+                            entityType: 'jobs',
+                            message: "change order estimate has been paid",
+                            customer: customer.id,
+                            event: 'CHANGE_ORDER_ESTIMATE_PAID',
+                            extraEstimate: payload.extraEstimate,
+                            jobId: job.id
+                        }
+                    }, { push: true, socket: true });
+                    return [3 /*break*/, 4];
+                case 3:
+                    error_12 = _b.sent();
+                    console.error("Error handling CHANGE_ORDER_ESTIMATE_PAID event: ".concat(error_12));
+                    return [3 /*break*/, 4];
+                case 4: return [2 /*return*/];
             }
         });
     });

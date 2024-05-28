@@ -439,7 +439,7 @@ var getJobListingById = function (req, res, next) { return __awaiter(void 0, voi
 }); };
 exports.getJobListingById = getJobListingById;
 var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var jobId, contractorId, _a, startDate, endDate, siteVisit, _b, estimates, errors, _c, contractor, job, customer, previousQuotation, appliedQuotationsCount, existingQuotation, jobQuotation_1, _d, html, err_1;
+    var jobId, contractorId, _a, startDate, endDate, siteVisit, _b, estimates, errors, _c, contractor, job, customer, previousQuotation, appliedQuotationsCount, quotation, jobQuotation_1, _d, html, err_1;
     var _e, _f;
     return __generator(this, function (_g) {
         switch (_g.label) {
@@ -486,8 +486,8 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                 }
                 return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne({ job: jobId, contractor: contractorId })];
             case 5:
-                existingQuotation = _g.sent();
-                if (existingQuotation) {
+                quotation = _g.sent();
+                if (quotation) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "You have already submitted a quotation for this job" })];
                 }
                 // Check if contractor has a verified connected account
@@ -552,11 +552,11 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
 }); };
 exports.sendJobQuotation = sendJobQuotation;
 var sendExtraJobQuotation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var jobId, contractorId, _a, quotationId, _b, estimates, errors, _c, contractor, job, customer, existingQuotation, extraJobEstimate, _d, err_2;
+    var jobId, contractorId, _a, quotationId, _b, estimates, errors, _c, contractor, job, customer, quotation, extraJobEstimate, _d, err_2;
     return __generator(this, function (_e) {
         switch (_e.label) {
             case 0:
-                _e.trys.push([0, 6, , 7]);
+                _e.trys.push([0, 7, , 8]);
                 jobId = req.params.jobId;
                 contractorId = req.contractor.id;
                 _a = req.body, quotationId = _a.quotationId, _b = _a.estimates, estimates = _b === void 0 ? [] : _b;
@@ -577,17 +577,14 @@ var sendExtraJobQuotation = function (req, res, next) { return __awaiter(void 0,
             case 2:
                 customer = _e.sent();
                 if (!customer) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ message: "invalid customer Id" })];
+                    return [2 /*return*/, res.status(401).json({ message: "Invalid customer ID" })];
                 }
-                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne({ id: quotationId, job: jobId })];
+                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne({ _id: quotationId, job: jobId })];
             case 3:
-                existingQuotation = _e.sent();
-                if (!existingQuotation) {
+                quotation = _e.sent();
+                if (!quotation) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "You don't have access to send extra job quotation" })];
                 }
-                // CHeck if change order is enabled
                 if (!job.isChangeOrder) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "Customer has not enabled change order" })];
                 }
@@ -596,32 +593,30 @@ var sendExtraJobQuotation = function (req, res, next) { return __awaiter(void 0,
                     isPaid: false,
                     date: new Date()
                 };
-                existingQuotation.extraEstimates.push(extraJobEstimate);
-                // Calculate charges for the job quotation
-                _d = existingQuotation;
-                return [4 /*yield*/, existingQuotation.calculateCharges()];
+                quotation.extraEstimates.push(extraJobEstimate);
+                _d = quotation;
+                return [4 /*yield*/, quotation.calculateCharges()];
             case 4:
-                // Calculate charges for the job quotation
                 _d.charges = _e.sent();
-                // Update job status and history if needed
-                job.jobHistory.push({ eventType: 'EXTRA_JOB_ESTIMATE_SUBMITTED', timestamp: new Date(), payload: __assign({}, extraJobEstimate) });
-                // Save changes to the job
+                job.jobHistory.push({ eventType: 'CHANGE_ORDER_ESTIMATE_SUBMITTED', timestamp: new Date(), payload: __assign({}, extraJobEstimate) });
+                job.isChangeOrder = false;
                 return [4 /*yield*/, job.save()];
             case 5:
-                // Save changes to the job
                 _e.sent();
-                // Do other actions such as sending emails or notifications...
-                events_1.JobEvent.emit('EXTRA_JOB_ESTIMATE_SUBMITTED', { job: job, existingQuotation: existingQuotation });
+                return [4 /*yield*/, quotation.save()];
+            case 6:
+                _e.sent();
+                events_1.JobEvent.emit('CHANGE_ORDER_ESTIMATE_SUBMITTED', { job: job, quotation: quotation });
                 res.json({
                     success: true,
-                    message: "Job change oder quotation successfully sent",
-                    data: existingQuotation
+                    message: "Job change order quotation successfully sent",
+                    data: quotation
                 });
-                return [3 /*break*/, 7];
-            case 6:
+                return [3 /*break*/, 8];
+            case 7:
                 err_2 = _e.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', err_2))];
-            case 7: return [2 /*return*/];
+            case 8: return [2 /*return*/];
         }
     });
 }); };

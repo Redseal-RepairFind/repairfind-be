@@ -539,9 +539,9 @@ export const chargeSucceeded = async (payload: any) => {
         //1 handle transfer payment method options if it requires future capturing to another model ?
         //@ts-ignore
         const transactionId = payment?.metadata?.transactionId
-        let paymentTransaction = await TransactionModel.findById(transactionId)
+        let transaction = await TransactionModel.findById(transactionId)
 
-        if (paymentTransaction) {
+        if (transaction) {
             if (!payment.captured) {
 
                 const captureDetails = payload.payment_method_details.card
@@ -553,9 +553,9 @@ export const chargeSucceeded = async (payload: any) => {
                 capturableTransactionDto.captured = false
                 capturableTransactionDto.currency = payment.currency
 
-                if (paymentTransaction) {
-                    paymentTransaction.captureDetails = capturableTransactionDto
-                    paymentTransaction.save()
+                if (transaction) {
+                    transaction.captureDetails = capturableTransactionDto
+                    transaction.save()
                 }
 
             } else {
@@ -569,10 +569,10 @@ export const chargeSucceeded = async (payload: any) => {
                 capturableTransactionDto.captured = payment.captured
                 capturableTransactionDto.captured_at = payment.created
                 capturableTransactionDto.currency = payment.currency
-                if (paymentTransaction) {
-                    paymentTransaction.captureDetails = capturableTransactionDto
-                    paymentTransaction.status = TRANSACTION_STATUS.SUCCESSFUL
-                    paymentTransaction.save()
+                if (transaction) {
+                    transaction.captureDetails = capturableTransactionDto
+                    transaction.status = TRANSACTION_STATUS.SUCCESSFUL
+                    transaction.save()
                 }
             }
         }
@@ -595,6 +595,7 @@ export const chargeSucceeded = async (payload: any) => {
                     job.contractor = quotation.contractor
 
                     quotation.isPaid = true
+                    quotation.payment = payment.id
                     quotation.status = JOB_QUOTATION_STATUS.ACCEPTED
                     if (quotation.startDate) {
                         job.schedule = {
@@ -619,15 +620,14 @@ export const chargeSucceeded = async (payload: any) => {
                 }
 
                 if (metadata.remark == 'extra_job_payment') {
-
-                    // TODO:
+                    const extraEstimateId  = metadata.extraEstimateId
+                    const extraEstimate: any = quotation.extraEstimates.find((estimate: any) => estimate.id === extraEstimateId)
+                    if (!extraEstimate) return
+                    extraEstimate.isPaid = true
+                    extraEstimate.payment = payment.id
                 }
 
                 if (!job.payments.includes(payment.id)) job.payments.push(payment.id)
-
-                // create schedule here ?
-
-
 
                 await quotation.save()
                 await job.save()

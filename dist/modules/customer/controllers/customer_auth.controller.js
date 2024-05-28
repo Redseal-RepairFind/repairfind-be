@@ -221,12 +221,12 @@ var signIn = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                 if (!customer) {
                     return [2 /*return*/, res
                             .status(401)
-                            .json({ message: "invalid credential" })];
+                            .json({ success: false, message: "invalid credential" })];
                 }
                 if (!customer.password && customer.provider !== customer_interface_1.CustomerAuthProviders.PASSWORD) {
                     return [2 /*return*/, res
                             .status(401)
-                            .json({ message: "The email is associated with a social signon" })];
+                            .json({ success: false, message: "The email is associated with a social signon" })];
                 }
                 return [4 /*yield*/, bcrypt_1.default.compare(password, customer.password)];
             case 2:
@@ -235,10 +235,10 @@ var signIn = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                     return [2 /*return*/, res.status(401).json({ success: false, message: "Account is associated with ".concat(customer.provider, " account") })];
                 }
                 if (!isPasswordMatch) {
-                    return [2 /*return*/, res.status(401).json({ message: "incorrect credential." })];
+                    return [2 /*return*/, res.status(401).json({ success: false, message: "incorrect credential." })];
                 }
                 if (!customer.emailOtp.verified) {
-                    return [2 /*return*/, res.status(401).json({ message: "email not verified." })];
+                    return [2 /*return*/, res.status(401).json({ success: false, message: "email not verified." })];
                 }
                 return [4 /*yield*/, customer_model_1.default.findOne({ email: email }).select('-password')];
             case 3:
@@ -250,7 +250,7 @@ var signIn = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                 }, process.env.JWT_CONTRACTOR_SECRET_KEY, { expiresIn: config_1.config.jwt.tokenLifetime });
                 // return access token
                 res.json({
-                    status: true,
+                    success: true,
                     message: "Login successful",
                     accessToken: accessToken,
                     expiresIn: config_1.config.jwt.tokenLifetime,
@@ -259,7 +259,7 @@ var signIn = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                 return [3 /*break*/, 5];
             case 4:
                 err_3 = _b.sent();
-                res.status(500).json({ status: false, message: err_3.message });
+                res.status(500).json({ success: false, message: err_3.message });
                 return [3 /*break*/, 5];
             case 5: return [2 /*return*/];
         }

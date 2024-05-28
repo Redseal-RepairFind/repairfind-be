@@ -66,6 +66,43 @@ export const getTeam = async (req: any, res: Response) => {
 };
 
 
+export const getTeamMembers = async (req: any, res: Response) => {
+    try {
+        const contractorId = req.contractor.id;
+        const { email } = req.query;
+
+        const contractor = await ContractorModel.findById(contractorId);
+        if (!contractor || contractor.accountType !== "Company") {
+            return res.status(400).json({ success: false, message: "Only companies can retrieve team information" });
+        }
+
+        let companyTeam = await ContractorTeamModel.findOne({ contractor: contractorId });
+
+        if (!companyTeam) {
+            return res.status(400).json({ success: false, message: "Team not found" });
+        }
+
+        let contractorIds = companyTeam.members.map((team: any) => team.contractor);
+        let filter: any = { _id: { $in: contractorIds } };
+
+        if (email) {
+            filter.email = email;
+        }
+
+        const contractors = await ContractorModel.find(filter);
+
+        res.json({
+            success: true,
+            message: "Team members retrieved successfully",
+            data: contractors,
+        });
+    } catch (error) {
+        console.error("Error retrieving team information:", error);
+        res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+};
+
+
 
 export const searchContractorsNotInTeam = async (req: any, res: Response) => {
     try {
@@ -286,6 +323,7 @@ export const TeamController = {
     searchContractorsNotInTeam,
     getTeamMemberships,
     leaveTeam,
-    removeMemberFromTeam
+    removeMemberFromTeam,
+    getTeamMembers
 }
 

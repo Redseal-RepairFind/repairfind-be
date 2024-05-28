@@ -701,7 +701,7 @@ var paymentMethodDetached = function (payload) { return __awaiter(void 0, void 0
 exports.paymentMethodDetached = paymentMethodDetached;
 // Charge
 var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var userType, userId, user, stripeChargeDTO, payment, transactionId, paymentTransaction, captureDetails, capturableTransactionDto, captureDetails, capturableTransactionDto, metadata, jobId, job, quotationId, quotation, error_11;
+    var userType, userId, user, stripeChargeDTO, payment, transactionId, transaction, captureDetails, capturableTransactionDto, captureDetails, capturableTransactionDto, metadata, jobId, job, quotationId, quotation, extraEstimateId_1, extraEstimate, error_11;
     var _a, _b;
     return __generator(this, function (_c) {
         switch (_c.label) {
@@ -738,8 +738,8 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                 transactionId = (_b = payment === null || payment === void 0 ? void 0 : payment.metadata) === null || _b === void 0 ? void 0 : _b.transactionId;
                 return [4 /*yield*/, transaction_model_1.default.findById(transactionId)];
             case 4:
-                paymentTransaction = _c.sent();
-                if (paymentTransaction) {
+                transaction = _c.sent();
+                if (transaction) {
                     if (!payment.captured) {
                         captureDetails = payload.payment_method_details.card;
                         capturableTransactionDto = (0, interface_dto_util_1.castPayloadToDTO)(captureDetails, captureDetails);
@@ -749,9 +749,9 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                         capturableTransactionDto.status = transaction_model_1.TRANSACTION_STATUS.REQUIRES_CAPTURE;
                         capturableTransactionDto.captured = false;
                         capturableTransactionDto.currency = payment.currency;
-                        if (paymentTransaction) {
-                            paymentTransaction.captureDetails = capturableTransactionDto;
-                            paymentTransaction.save();
+                        if (transaction) {
+                            transaction.captureDetails = capturableTransactionDto;
+                            transaction.save();
                         }
                     }
                     else {
@@ -764,10 +764,10 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                         capturableTransactionDto.captured = payment.captured;
                         capturableTransactionDto.captured_at = payment.created;
                         capturableTransactionDto.currency = payment.currency;
-                        if (paymentTransaction) {
-                            paymentTransaction.captureDetails = capturableTransactionDto;
-                            paymentTransaction.status = transaction_model_1.TRANSACTION_STATUS.SUCCESSFUL;
-                            paymentTransaction.save();
+                        if (transaction) {
+                            transaction.captureDetails = capturableTransactionDto;
+                            transaction.status = transaction_model_1.TRANSACTION_STATUS.SUCCESSFUL;
+                            transaction.save();
                         }
                     }
                 }
@@ -792,6 +792,7 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                     job.contract = quotation.id;
                     job.contractor = quotation.contractor;
                     quotation.isPaid = true;
+                    quotation.payment = payment.id;
                     quotation.status = job_quotation_model_1.JOB_QUOTATION_STATUS.ACCEPTED;
                     if (quotation.startDate) {
                         job.schedule = {
@@ -815,14 +816,17 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                     }
                 }
                 if (metadata.remark == 'extra_job_payment') {
-                    // TODO:
+                    extraEstimateId_1 = metadata.extraEstimateId;
+                    extraEstimate = quotation.extraEstimates.find(function (estimate) { return estimate.id === extraEstimateId_1; });
+                    if (!extraEstimate)
+                        return [2 /*return*/];
+                    extraEstimate.isPaid = true;
+                    extraEstimate.payment = payment.id;
                 }
                 if (!job.payments.includes(payment.id))
                     job.payments.push(payment.id);
-                // create schedule here ?
                 return [4 /*yield*/, quotation.save()];
             case 7:
-                // create schedule here ?
                 _c.sent();
                 return [4 /*yield*/, job.save()];
             case 8:

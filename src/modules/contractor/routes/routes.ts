@@ -117,6 +117,7 @@ router.post("/quiz-submit", checkContractorRole, QuizController.SubmitQuiz);
 //  Company Team
 router.post("/teams/invite", checkContractorRole, ContractorHttpRequest.InviteToTeam, TeamInvitationController.inviteToTeam );
 router.get("/teams", checkContractorRole, TeamController.getTeam); 
+router.get("/teams/members", checkContractorRole, TeamController.getTeamMembers); 
 router.get("/teams/search-contractors", checkContractorRole, TeamController.searchContractorsNotInTeam); 
 
 router.get("/teams/memberships", checkContractorRole, TeamController.getTeamMemberships); 

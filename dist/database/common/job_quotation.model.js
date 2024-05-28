@@ -36,7 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.JobQuotationModel = exports.JOB_QUOTATION_STATUS = void 0;
+exports.JobQuotationModel = exports.ExtraEstimateSchema = exports.JOB_QUOTATION_STATUS = void 0;
 var mongoose_1 = require("mongoose");
 var JOB_QUOTATION_STATUS;
 (function (JOB_QUOTATION_STATUS) {
@@ -53,7 +53,7 @@ var JobQuotationEstimateSchema = new mongoose_1.Schema({
     amount: { type: Number }
 });
 // Define schema for extra estimates
-var ExtraEstimatesSchema = new mongoose_1.Schema({
+exports.ExtraEstimateSchema = new mongoose_1.Schema({
     estimates: { type: [JobQuotationEstimateSchema], required: true },
     isPaid: { type: Boolean, default: false },
     payment: { type: mongoose_1.Schema.Types.ObjectId, ref: 'payments' },
@@ -67,43 +67,65 @@ var JobQoutationSchema = new mongoose_1.Schema({
     startDate: { type: Date, required: false },
     endDate: { type: Date, required: false },
     siteVisit: { type: Date, required: false },
-    // charges: { type: Object, default:{
-    //     subtotal: 0.00, 
-    //     processingFee: 0.00, 
-    //     gst: 0.00, 
-    //     totalAmount: 0.00, 
-    //     contractorAmount: 0.00
-    // } },
     payment: { type: mongoose_1.Schema.Types.ObjectId, ref: 'payments' },
     isPaid: { type: Boolean, default: false },
-    extraEstimates: { type: [ExtraEstimatesSchema] }
+    extraEstimates: { type: [exports.ExtraEstimateSchema] }
 }, { timestamps: true });
 // Define the static method to calculate charges
-JobQoutationSchema.methods.calculateCharges = function () {
+JobQoutationSchema.methods.calculateCharges = function (extraEstimateId) {
+    if (extraEstimateId === void 0) { extraEstimateId = null; }
     return __awaiter(this, void 0, void 0, function () {
-        var totalEstimateAmount, processingFee, gst, subtotal, totalAmount, contractorAmount;
+        var totalEstimateAmount_1, extraEstimate, processingFee, gst, subtotal, totalAmount, contractorAmount, totalEstimateAmount_2, processingFee, gst, subtotal, totalAmount, contractorAmount;
         return __generator(this, function (_a) {
-            totalEstimateAmount = 0;
-            // Calculate total estimate amount from rate * quantity for each estimate
-            this.estimates.forEach(function (estimate) {
-                totalEstimateAmount += estimate.rate * estimate.quantity;
-            });
-            processingFee = 0;
-            gst = 0;
-            if (totalEstimateAmount <= 1000) {
-                processingFee = parseFloat(((20 / 100) * totalEstimateAmount).toFixed(2));
-            }
-            else if (totalEstimateAmount <= 5000) {
-                processingFee = parseFloat(((15 / 100) * totalEstimateAmount).toFixed(2));
+            if (extraEstimateId) {
+                totalEstimateAmount_1 = 0;
+                extraEstimate = this.extraEstimates.find(function (estimate) { return estimate.id === extraEstimateId; });
+                if (!extraEstimate)
+                    return [2 /*return*/];
+                extraEstimate.estimates.forEach(function (estimate) {
+                    totalEstimateAmount_1 += estimate.rate * estimate.quantity;
+                });
+                processingFee = 0;
+                gst = 0;
+                if (totalEstimateAmount_1 <= 1000) {
+                    processingFee = parseFloat(((20 / 100) * totalEstimateAmount_1).toFixed(2));
+                }
+                else if (totalEstimateAmount_1 <= 5000) {
+                    processingFee = parseFloat(((15 / 100) * totalEstimateAmount_1).toFixed(2));
+                }
+                else {
+                    processingFee = parseFloat(((10 / 100) * totalEstimateAmount_1).toFixed(2));
+                }
+                gst = parseFloat(((5 / 100) * totalEstimateAmount_1).toFixed(2));
+                subtotal = totalEstimateAmount_1;
+                totalAmount = (subtotal + processingFee + gst).toFixed(2);
+                contractorAmount = (subtotal + gst).toFixed(2);
+                return [2 /*return*/, { subtotal: subtotal, processingFee: processingFee, gst: gst, totalAmount: totalAmount, contractorAmount: contractorAmount }];
             }
             else {
-                processingFee = parseFloat(((10 / 100) * totalEstimateAmount).toFixed(2));
+                totalEstimateAmount_2 = 0;
+                // Calculate total estimate amount from rate * quantity for each estimate
+                this.estimates.forEach(function (estimate) {
+                    totalEstimateAmount_2 += estimate.rate * estimate.quantity;
+                });
+                processingFee = 0;
+                gst = 0;
+                if (totalEstimateAmount_2 <= 1000) {
+                    processingFee = parseFloat(((20 / 100) * totalEstimateAmount_2).toFixed(2));
+                }
+                else if (totalEstimateAmount_2 <= 5000) {
+                    processingFee = parseFloat(((15 / 100) * totalEstimateAmount_2).toFixed(2));
+                }
+                else {
+                    processingFee = parseFloat(((10 / 100) * totalEstimateAmount_2).toFixed(2));
+                }
+                gst = parseFloat(((5 / 100) * totalEstimateAmount_2).toFixed(2));
+                subtotal = totalEstimateAmount_2;
+                totalAmount = (subtotal + processingFee + gst).toFixed(2);
+                contractorAmount = (subtotal + gst).toFixed(2);
+                return [2 /*return*/, { subtotal: subtotal, processingFee: processingFee, gst: gst, totalAmount: totalAmount, contractorAmount: contractorAmount }];
             }
-            gst = parseFloat(((5 / 100) * totalEstimateAmount).toFixed(2));
-            subtotal = totalEstimateAmount;
-            totalAmount = (subtotal + processingFee + gst).toFixed(2);
-            contractorAmount = (subtotal + gst).toFixed(2);
-            return [2 /*return*/, { subtotal: subtotal, processingFee: processingFee, gst: gst, totalAmount: totalAmount, contractorAmount: contractorAmount }];
+            return [2 /*return*/];
         });
     });
 };

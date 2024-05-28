@@ -10,11 +10,12 @@ import { IContractor } from '../database/contractor/interface/contractor.interfa
 import { ICustomer } from '../database/customer/interface/customer.interface';
 import { NewJobAssignedEmailTemplate } from '../templates/contractorEmail/job_assigned.template';
 import { JobCanceledEmailTemplate } from '../templates/common/job_canceled.template';
-import { IJobDay } from '../database/common/job_day.model';
+import { IJobDay, JobDayModel } from '../database/common/job_day.model';
 import { IJobEmergency } from '../database/common/job_emergency.model';
 import { JobEmergencyEmailTemplate } from '../templates/common/job_emergency_email';
 import { GenericEmailTemplate } from '../templates/common/generic_email';
 import { IJobDispute } from '../database/common/job_dispute.model';
+import { IExtraEstimate, IJobQuotation } from '../database/common/job_quotation.model';
 
 export const JobEvent: EventEmitter = new EventEmitter();
 
@@ -413,9 +414,9 @@ JobEvent.on('JOB_COMPLETED', async function (payload: { job: IJob}) {
     }
 });
 
-JobEvent.on('JOB_CHANGED_ORDER', async function (payload: { job: IJob}) {
+JobEvent.on('JOB_CHANGE_ORDER', async function (payload: { job: IJob}) {
     try {
-        console.log('handling JOB_CHANGED_ORDER event', payload.job.id)
+        console.log('handling JOB_CHANGE_ORDER event', payload.job.id)
 
         const job = await JobModel.findById(payload.job.id)
         
@@ -449,6 +450,88 @@ JobEvent.on('JOB_CHANGED_ORDER', async function (payload: { job: IJob}) {
 
       
     } catch (error) {
-        console.error(`Error handling JOB_CHANGED_ORDER event: ${error}`);
+        console.error(`Error handling JOB_CHANGE_ORDER event: ${error}`);
+    }
+});
+
+
+JobEvent.on('CHANGE_ORDER_ESTIMATE_SUBMITTED', async function (payload: { job: IJob, quotation: IJobQuotation}) {
+    try {
+        console.log('handling CHANGE_ORDER_ESTIMATE_SUBMITTED event', payload.job.id)
+
+        const job = await JobModel.findById(payload.job.id)
+        
+        if(!job){
+            return
+        }
+
+        const customer = await CustomerModel.findById(job.customer)
+        const contractor = await ContractorModel.findById(job.contractor)
+
+        if(!customer || !contractor)return
+
+        const jobDay = await JobDayModel.findOne({job: job.id})
+        
+        NotificationService.sendNotification({
+            user: customer.id,
+            userType: 'customers',
+            title: 'Job Completed',
+            type: 'CHANGE_ORDER_ESTIMATE_SUBMITTED', //
+            message: `change order estimate has been submitted`,
+            heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
+            payload: {
+                entity: job.id,
+                entityType: 'jobs',
+                message: `change order estimate has been submitted`,
+                customer: customer.id,
+                event: 'CHANGE_ORDER_ESTIMATE_SUBMITTED',
+                jobDayId: jobDay?.id,
+                jobId: job.id,
+                extraEstimate: payload.quotation
+            }
+        }, { push: true, socket: true })
+
+      
+    } catch (error) {
+        console.error(`Error handling CHANGE_ORDER_ESTIMATE_SUBMITTED event: ${error}`);
+    }
+});
+
+
+JobEvent.on('CHANGE_ORDER_ESTIMATE_PAID', async function (payload: { job: IJob, quotation: IJobQuotation, extraEstimate: IExtraEstimate}) {
+    try {
+        console.log('handling CHANGE_ORDER_ESTIMATE_PAID event', payload.job.id)
+
+        const job =  payload.job
+        if(!job)return
+
+        const customer = await CustomerModel.findById(job.customer)
+        const contractor = await ContractorModel.findById(job.contractor)
+
+        if(!customer || !contractor)return
+
+        
+        
+        NotificationService.sendNotification({
+            user: contractor.id,
+            userType: 'contractors',
+            title: 'Change Order Estimate Paid',
+            type: 'CHANGE_ORDER_ESTIMATE_PAID', //
+            message: `change order estimate has been paid`,
+            heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
+            payload: {
+                entity: job.id,
+                entityType: 'jobs',
+                message: `change order estimate has been paid`,
+                customer: customer.id,
+                event: 'CHANGE_ORDER_ESTIMATE_PAID',
+                extraEstimate: payload.extraEstimate,
+                jobId: job.id
+            }
+        }, { push: true, socket: true })
+
+      
+    } catch (error) {
+        console.error(`Error handling CHANGE_ORDER_ESTIMATE_PAID event: ${error}`);
     }
 });
