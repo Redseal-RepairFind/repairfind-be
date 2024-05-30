@@ -1,12 +1,12 @@
 import { NextFunction, Request, Response } from "express";
 import { validationResult } from "express-validator";
 import { NotificationService } from "../../../services/notifications/index";
-import { JOB_DAY_STATUS, JobDayModel } from "../../../database/common/job_day.model";
+import { JOB_DAY_STATUS, JOB_DAY_TYPE, JobDayModel } from "../../../database/common/job_day.model";
 import { JobEmergencyModel } from "../../../database/common/job_emergency.model";
-import { InternalServerError } from "../../../utils/custom.errors";
+import { BadRequestError, InternalServerError } from "../../../utils/custom.errors";
 import { JobEvent } from "../../../events";
 import { ContractorProfileModel } from "../../../database/contractor/models/contractor_profile.model";
-import { JOB_STATUS, JobModel } from "../../../database/common/job.model";
+import { JOB_SCHEDULE_TYPE, JOB_STATUS, JobModel } from "../../../database/common/job.model";
 import { CONVERSATION_TYPE, ConversationModel } from "../../../database/common/conversations.schema";
 import { ContractorModel } from "../../../database/contractor/models/contractor.model";
 import CustomerModel from "../../../database/customer/models/customer.model";
@@ -32,16 +32,16 @@ export const initiateJobDay = async (
 
 
         // Find the job request by ID
-        const job = await JobModel.findOne({ _id: jobId, customer: customerId, status: {$in: [JOB_STATUS.BOOKED, JOB_STATUS.ONGOING ]} }).populate('customer', 'contractor');
+        const job = await JobModel.findOne({ _id: jobId, customer: customerId }).populate('customer', 'contractor');
         if (!job) {
             return res.status(404).json({ success: false, message: 'Job  not found' });
         }
- 
 
-        const activeTrip = await JobDayModel.findOne({ job: jobId, status: { $in: ['STARTED', 'ARRIVED', 'CONFIRMED', 'PENDING'] } });
-        // if (activeTrip) {
-        //     return res.status(400).json({ success: false, message: 'An active trip already exists for this job' });
-        // }
+
+        const jobDay = await JobDayModel.findOne({ job: jobId, type: job.schedule.type });
+        if (!jobDay) {
+            return res.status(400).json({ success: false, message: 'No job for the current schedule type' });
+        }
 
         const contractorId = job.contractor
 
@@ -84,13 +84,11 @@ export const initiateJobDay = async (
 
 
         const data = {
-            jobLocation: job.location,
-            contractorLocation: contractorProfile.location,
-            conversation: conversation,
-            customer: customer,
-            contractor: contractor,
-            booking: job,
-            trip: activeTrip
+            conversation: conversation.id,
+            customer: {id: customer.id, phoneNumber: customer.phoneNumber, name: customer.name, email: customer.email, profilePhoto: customer.profilePhoto},
+            contractor: {id: contractor.id, phoneNumber: contractor.phoneNumber, name: contractor.name, email: contractor.email, profilePhoto: contractor.profilePhoto},
+            job: {id: job.id, description: job.description, title: job.title, schedule: job.schedule, type:job.type, date:job.date, location: job.location},
+            jobDay
         }
 
         res.json({
@@ -146,18 +144,14 @@ export const confirmContractorArrival = async (
             return res.status(403).json({ success: false, message: 'Job not found' });
         }
 
-        job.status = JOB_STATUS.ONGOING
+        job.status = (job.schedule.type == JOB_SCHEDULE_TYPE.SITE_VISIT) ? JOB_STATUS.ONGOING_SITE_VISIT : JOB_STATUS.ONGOING
 
         jobDay.status = JOB_DAY_STATUS.CONFIRMED
         jobDay.verified = true
 
 
-        // await Promise.all([
-        //     jobDay.save(),
-        //     job.save()
-        // ]);
         await jobDay.save(),
-            await job.save()
+        await job.save()
 
         // send notification to  contractor
         NotificationService.sendNotification(
@@ -168,7 +162,7 @@ export const confirmContractorArrival = async (
                 heading: {},
                 type: 'JOB_DAY_CONFIRMED',
                 message: 'Customer confirmed your arrival.',
-                payload: {event: 'JOB_DAY_CONFIRMED', jobDay }
+                payload: { event: 'JOB_DAY_CONFIRMED', jobDay }
             },
             {
                 push: true,
@@ -187,7 +181,7 @@ export const confirmContractorArrival = async (
                 heading: {},
                 type: 'JOB_DAY_CONFIRMED',
                 message: "You successfully confirmed the contractor's arrival.",
-                payload: {event: 'JOB_DAY_CONFIRMED', jobDay }
+                payload: { event: 'JOB_DAY_CONFIRMED', jobDay }
             },
             {
                 push: true,
@@ -375,7 +369,7 @@ export const createJobDispute = async (req: any, res: Response, next: NextFuncti
             status: JOB_DISPUTE_STATUS.OPEN,
         }, { new: true, upsert: true });
 
-        
+
         const contractorId = job.contractor
         const conversationMembers = [
             { memberType: 'customers', member: customerId },
@@ -412,7 +406,7 @@ export const createJobDispute = async (req: any, res: Response, next: NextFuncti
         await dispute.save()
 
         job.status = JOB_STATUS.DISPUTED
-      
+
 
         job.statusUpdate = {
             isContractorAccept: true,
@@ -432,6 +426,73 @@ export const createJobDispute = async (req: any, res: Response, next: NextFuncti
     }
 };
 
+export const confirmJobDayCompletion = async (req: any, res: Response, next: NextFunction) => {
+    try {
+        const customerId = req.customer.id;
+        const { jobDayId } = req.params;
+
+        const jobDay = await JobDayModel.findById(jobDayId);
+        
+        if (!jobDay) {
+            return res.status(404).json({ success: false, message: 'Job Day not found' });
+        }
+
+        const customer = await CustomerModel.findById(customerId);
+        if (!customer) {
+            return res.status(404).json({ success: false, message: 'Customer not found' });
+        }
+
+        // Find the job
+        const job = await JobModel.findById(jobDay.job);
+
+
+        // Check if the job exists
+        if (!job) {
+            return res.status(404).json({ success: false, message: 'Job not found' });
+        }
+
+        // Check if the contractor is the owner of the job
+        if (job.customer.toString() !== customerId) {
+            return res.status(403).json({ success: false, message: 'You are not authorized to mark  this booking as complete' });
+        }
+
+     
+        if (!job.statusUpdate.awaitingConfirmation) {
+            return res.status(400).json({ success: false, message: 'Contractor has not requested for a status update' });
+        }
+
+        // if (job.statusUpdate.status !== JOB_STATUS.COMPLETED) {
+        //     return res.status(400).json({ success: false, message: 'Contractor has not yet marked job as completed' });
+        // }
+
+        const jobStatus = (job.schedule.type == JOB_SCHEDULE_TYPE.SITE_VISIT) ? JOB_STATUS.COMPLETED_SITE_VISIT : JOB_STATUS.COMPLETED
+        job.statusUpdate = {
+            ...job.statusUpdate,
+            status: jobStatus,
+            isCustomerAccept: true,
+            awaitingConfirmation: false
+        }
+
+        job.status = jobStatus  // since its customer accepting job completion
+        jobDay.status = JOB_DAY_STATUS.COMPLETED  
+        job.jobHistory.push({
+            eventType: 'JOB_MARKED_COMPLETE_BY_CUSTOMER',
+            timestamp: new Date(),
+            payload: {}
+        });
+
+        JobEvent.emit('JOB_COMPLETED', { job })
+        await job.save();
+        await jobDay.save();
+
+        res.json({ success: true, message: 'Booking marked as completed successfully', data: job });
+    } catch (error: any) {
+        return next(new BadRequestError('An error occurred', error));
+    }
+};
+
+
+
 
 
 export const CustomerJobDayController = {
@@ -440,5 +501,6 @@ export const CustomerJobDayController = {
     savePreJobJobQualityAssurance,
     createJobEmergency,
     initiateJobDay,
-    createJobDispute
+    createJobDispute,
+    confirmJobDayCompletion,
 };

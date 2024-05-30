@@ -13,20 +13,20 @@ export const expireJobs = async () => {
 
         for (const job of jobs) {
             try {
-                const createdAt = job.createdAt.getTime();
-                const elapsedDays = Math.floor((Date.now() - createdAt) / (1000 * 60 * 60 * 24)); // Calculate elapsed days
+                job.expiresIn -= 1; // Reduce expiresIn count by 1 each day
                 
-                if (elapsedDays >= job.expiresIn) {
+                if (job.expiresIn <= 0) {
                     job.status = JOB_STATUS.EXPIRED;
-                    await job.save();
-                    Logger.info(`Successfully expired job: ${job.id}`);
                 }
+
+                await job.save();
+                Logger.info(`Successfully processed job expiration for job: ${job.id}`);
             } catch (error) {
-                Logger.error(`Error expiring job: ${job.id}`, error);
+                Logger.error(`Error processing job expiration for job: ${job.id}`, error);
             }
         }
     } catch (error) {
-        Logger.error('Error occurred while expiring job:', error);
+        Logger.error('Error occurred while expiring jobs:', error);
     }
 };
 

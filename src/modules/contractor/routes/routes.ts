@@ -167,7 +167,7 @@ router.post('/jobs/requests/:jobId/reject', checkContractorRole, ContractorJobCo
 
 // Quotation & Estimate
 router.post('/jobs/:jobId/quotations', checkContractorRole, ContractorHttpRequest.CreateJobQuotationRequest, ContractorJobController.sendJobQuotation) // send application and estimate
-router.post('/jobs/:jobId/extra-quotation', checkContractorRole, ContractorHttpRequest.CreateExtraJobQuotationRequest, ContractorJobController.sendExtraJobQuotation) // send application and estimate
+router.post('/jobs/:jobId/extra-quotation', checkContractorRole, ContractorHttpRequest.CreateExtraJobQuotationRequest, ContractorJobController.sendChangeOrderJobQuotation) // send application and estimate
 router.get('/jobs/:jobId/quotations', checkContractorRole, ContractorJobController.getQuotationForJob) // send application and estimate
 router.patch('/jobs/:jobId/quotations', checkContractorRole,ContractorHttpRequest.CreateJobQuotationRequest, ContractorJobController.updateJobQuotation) // send application and estimate
 
@@ -212,9 +212,10 @@ router.post('/jobdays/:jobDayId/trip-arrival', checkContractorRole, ContractorJo
 
 router.post('/jobdays/:jobDayId/post-quality-assurance', checkContractorRole,  ContractorJobDayController.savePostJobQualityAssurance)
 router.post('/jobdays/:jobDayId/pre-quality-assurance', checkContractorRole,  ContractorJobDayController.savePreJobJobQualityAssurance)
-
+router.post('/jobdays/:jobDayId/submit-estimate', checkContractorRole,  ContractorJobDayController.submitEstimate)
 router.post('/jobdays/:jobDayId/emergency', checkContractorRole, ContractorJobDayController.createJobEmergency)
 router.post('/jobdays/:jobDayId/dispute', checkContractorRole, ContractorHttpRequest.CreateJobDisputeRequest, ContractorJobDayController.createJobDispute)
+router.post('/jobdays/:jobDayId/mark-complete', checkContractorRole, ContractorHttpRequest.CreateJobDisputeRequest, ContractorJobDayController.markJobDayComplete)
 
 
 

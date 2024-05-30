@@ -2,12 +2,12 @@ import { validationResult } from "express-validator";
 import { NextFunction, Response } from "express";
 import { ContractorModel } from "../../../database/contractor/models/contractor.model";
 import CustomerModel from "../../../database/customer/models/customer.model";
-import { JobModel, JOB_STATUS } from "../../../database/common/job.model";
+import { JobModel, JOB_STATUS, JOB_PAYMENT_TYPE } from "../../../database/common/job.model";
 import { BadRequestError } from "../../../utils/custom.errors";
 import TransactionModel, { TRANSACTION_STATUS, TRANSACTION_TYPE } from "../../../database/common/transaction.model";
 import { StripeService } from "../../../services/stripe";
 import Stripe from 'stripe';
-import { JobQuotationModel } from "../../../database/common/job_quotation.model";
+import { JOB_QUOTATION_TYPE, JobQuotationModel } from "../../../database/common/job_quotation.model";
 import { ObjectId } from "mongoose";
 import { JobEvent } from "../../../events";
 
@@ -181,16 +181,24 @@ export const makeJobPayment = async (req: any, res: Response, next: NextFunction
             return res.status(400).json({ success: false, message: 'This job is not pending, so new payment is not possible' });
         }
 
+        let jobPaymentType = JOB_PAYMENT_TYPE.JOB_BOOKING
+        if(quotation.type == JOB_QUOTATION_TYPE.SITE_VISIT) jobPaymentType = JOB_PAYMENT_TYPE.SITE_VISIT
+        if(quotation.type == JOB_QUOTATION_TYPE.JOB_DAY) jobPaymentType = JOB_PAYMENT_TYPE.JOB_BOOKING
+        const charges = await quotation.calculateCharges(jobPaymentType);
+
         const metadata = {
             customerId: customer.id,
             constractorId: contractor?.id,
             quotationId: quotation.id,
-            type: 'job_payment',
+            type: TRANSACTION_TYPE.JOB_PAYMENT,
             jobId,
+            jobPaymentType,
             email: customer.email,
             remark: 'initial_job_payment',
         } as any
-        const charges = await quotation.calculateCharges();
+
+     
+
         const transaction = await createTransaction(customerId, contractor.id, jobId, charges, paymentMethod);
         metadata.transactionId = transaction.id
         const payload = prepareStripePayload({paymentMethodId: paymentMethod.id, customer, contractor, charges, transactionId:transaction.id, jobId, metadata, manualCapture:false});
@@ -206,9 +214,10 @@ export const makeJobPayment = async (req: any, res: Response, next: NextFunction
         return next(new BadRequestError(err.message, err));
     }
 };
-export const makeExtraEstimatePayment = async (req: any, res: Response, next: NextFunction) => {
+
+export const makeChangeOrderEstimatePayment = async (req: any, res: Response, next: NextFunction) => {
     try {
-        const { quotationId, paymentMethodId, extraEstimateId } = req.body;
+        const { quotationId, paymentMethodId } = req.body;
         const jobId = req.params.jobId;
 
         // Check for validation errors
@@ -223,10 +232,11 @@ export const makeExtraEstimatePayment = async (req: any, res: Response, next: Ne
         const quotation = await findQuotation(quotationId);
         const contractor = await findContractor(quotation.contractor);
 
-        const extraEstimate: any = quotation.extraEstimates.find((estimate: any) => estimate.id === extraEstimateId)
-        if (!extraEstimate) throw new Error('No such extra estimat');
+        // const changeOrderEstimate: any = quotation.changeOrderEstimates.find((estimate: any) => estimate.id === changeOrderEstimateId)
+        const changeOrderEstimate: any = quotation.changeOrderEstimate
+        if (!changeOrderEstimate) throw new Error('No such changeOrder estimat');
 
-        if (extraEstimate.isPaid) throw new Error('Extra estimate already paid');
+        if (changeOrderEstimate.isPaid) throw new Error('Extra estimate already paid');
 
         let paymentMethod = customer.stripePaymentMethods.find((method) => method.id === paymentMethodId);
         if (!paymentMethod) {
@@ -234,16 +244,20 @@ export const makeExtraEstimatePayment = async (req: any, res: Response, next: Ne
         }
         if (!paymentMethod) throw new Error('No such payment method');
 
-        const charges = await quotation.calculateCharges(extraEstimate.id)
+
+        let jobPaymentType = JOB_PAYMENT_TYPE.CHANGE_ORDER
+        const charges = await quotation.calculateCharges(jobPaymentType);
+
+        
         const metadata = {
             customerId: customer.id,
             constractorId: contractor?.id,
             quotationId: quotation.id,
             jobId,
-            extraEstimateId,
-            type: 'job_payment',
+            jobPaymentType,
+            type: TRANSACTION_TYPE.JOB_PAYMENT,
             email: customer.email,
-            remark: 'extra_job_payment',
+            remark: 'change_order_estimate_payment',
         } as any
         const transaction = await createTransaction(customerId, contractor.id, jobId, charges, paymentMethod, metadata);
         metadata.transactionId = transaction.id
@@ -253,7 +267,7 @@ export const makeExtraEstimatePayment = async (req: any, res: Response, next: Ne
         job.isChangeOrder = false;
         await job.save();
 
-        JobEvent.emit('CHANGE_ORDER_ESTIMATE_PAID', { job, quotation, extraEstimate })
+        JobEvent.emit('CHANGE_ORDER_ESTIMATE_PAID', { job, quotation, changeOrderEstimate })
         
         res.json({ success: true, message: 'Payment intent created', data: stripePayment });
     } catch (err: any) {
@@ -288,16 +302,24 @@ export const captureJobPayment = async (req: any, res: Response, next: NextFunct
             return res.status(400).json({ success: false, message: 'This job is not pending, so new payment is not possible' });
         }
 
+        let jobPaymentType = JOB_PAYMENT_TYPE.JOB_BOOKING
+        if(quotation.type == JOB_QUOTATION_TYPE.SITE_VISIT) jobPaymentType = JOB_PAYMENT_TYPE.SITE_VISIT
+        if(quotation.type == JOB_QUOTATION_TYPE.JOB_DAY) jobPaymentType = JOB_PAYMENT_TYPE.JOB_BOOKING
+        const charges = await quotation.calculateCharges(jobPaymentType);
+
+
         const metadata = {
             customerId: customer.id,
             constractorId: contractor?.id,
             quotationId: quotation.id,
-            type: 'job_payment',
+            type: TRANSACTION_TYPE.JOB_PAYMENT,
             jobId,
+            jobPaymentType,
             email: customer.email,
             remark: 'initial_job_payment',
         } as any
-        const charges = await quotation.calculateCharges();
+        
+      
         const transaction = await createTransaction(customerId, contractor.id, jobId, charges, paymentMethod);
         metadata.transactionId = transaction.id
         const payload = prepareStripePayload({paymentMethodId: paymentMethod.id, customer, contractor, charges, transactionId:transaction.id, jobId, metadata, manualCapture:true});
@@ -315,5 +337,5 @@ export const captureJobPayment = async (req: any, res: Response, next: NextFunct
 export const CustomerPaymentController = {
     makeJobPayment,
     captureJobPayment,
-    makeExtraEstimatePayment
+    makeChangeOrderEstimatePayment
 };

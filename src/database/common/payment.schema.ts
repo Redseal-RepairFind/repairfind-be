@@ -10,6 +10,7 @@ export interface IPayment  {
   application_fee_amount: number;
   object: string; // charge or payment_intent ?
   user: ObjectId;
+  transaction: ObjectId
   userType: string;
   customer: string;
   currency: string;
@@ -44,6 +45,7 @@ const PaymentSchema = new Schema<IPayment>({
   application_fee_amount: { type: Number },
   object: { type: String, required: true },
 
+  transaction: { type: Schema.Types.ObjectId, ref: 'transactions' },
   user: { type: Schema.Types.ObjectId, refPath: 'userType', required: true },
   userType: { type: String, required: true },
 

@@ -582,14 +582,15 @@ export const markBookingComplete = async (req: any, res: Response, next: NextFun
 
         // Check if the job is already canceled
         if (job.status === JOB_STATUS.COMPLETED) {
-            return res.status(400).json({ success: false, message: 'The booking is already marked as complete' });
+            // return res.status(400).json({ success: false, message: 'The booking is already marked as complete' });
         }
 
 
+        const jobStatus = (job.schedule.type == JOB_SCHEDULE_TYPE.SITE_VISIT) ? JOB_STATUS.COMPLETED_SITE_VISIT : JOB_STATUS.COMPLETED
 
         job.statusUpdate = {
             ...job.statusUpdate,
-            status: JOB_STATUS.COMPLETED,
+            status: jobStatus,
             isCustomerAccept: false,
             isContractorAccept: true,
             awaitingConfirmation: true

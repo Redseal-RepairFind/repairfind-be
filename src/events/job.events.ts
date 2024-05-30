@@ -3,7 +3,7 @@ import { EmailService, NotificationService } from '../services';
 import { htmlJobRequestTemplate } from '../templates/contractorEmail/jobRequestTemplate';
 import CustomerModel from '../database/customer/models/customer.model';
 import { ContractorModel } from '../database/contractor/models/contractor.model';
-import { IJob, JOB_STATUS, JobModel } from '../database/common/job.model';
+import { IJob, JOB_SCHEDULE_TYPE, JOB_STATUS, JobModel } from '../database/common/job.model';
 import { ConversationModel } from '../database/common/conversations.schema';
 import { SocketService } from '../services/socket';
 import { IContractor } from '../database/contractor/interface/contractor.interface';
@@ -344,12 +344,14 @@ JobEvent.on('JOB_MARKED_COMPLETE_BY_CONTRACTOR', async function (payload: { job:
 
         if(!customer || !contractor)return
 
-    
+        
+        const event = (job.schedule.type == JOB_SCHEDULE_TYPE.SITE_VISIT) ? 'SITE_VISIT_MARKED_COMPLETE' : 'JOB_MARKED_COMPLETE'
+
         NotificationService.sendNotification({
             user: customer.id,
             userType: 'customers',
             title: 'Job Marked Complete',
-            type: 'JOB_MARKED_COMPLETE', // Conversation, Conversation_Notification
+            type: event,
             //@ts-ignore
             message: `contractor has marked job has completed`,
             //@ts-ignore
@@ -358,7 +360,7 @@ JobEvent.on('JOB_MARKED_COMPLETE_BY_CONTRACTOR', async function (payload: { job:
                 entity: job.id,
                 entityType: 'jobs',
                 message: `contractor has marked job has completed`,
-                event: 'JOB_MARKED_COMPLETE',
+                event: event,
             }
         }, { database: true, push: true, socket: true })
       
@@ -384,29 +386,26 @@ JobEvent.on('JOB_COMPLETED', async function (payload: { job: IJob}) {
 
         const customer = await CustomerModel.findById(job.customer)
         const contractor = await ContractorModel.findById(job.contractor)
-
+        
+        const event = (job.schedule.type == JOB_SCHEDULE_TYPE.SITE_VISIT) ? 'COMPLETED_SITE_VISIT' : 'JOB_COMPLETED'
+        
         if(!customer || !contractor)return
 
         NotificationService.sendNotification({
             user: contractor.id,
             userType: 'contractors',
             title: 'Job Completed',
-            type: 'JOB_COMPLETED', //
-            message: `You have an open job dispute`,
+            type: event, //
+            message: `Your job completion has been confirmed by customer`,
             heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
             payload: {
                 entity: job.id,
                 entityType: 'jobs',
                 message: `Your job completion has been confirmed by customer`,
                 contractor: contractor.id,
-                event: 'JOB_COMPLETED',
+                event: event,
             }
         }, { database: true, push: true, socket: true })
-
-
-      
-      
-
 
 
     } catch (error) {
@@ -454,6 +453,47 @@ JobEvent.on('JOB_CHANGE_ORDER', async function (payload: { job: IJob}) {
     }
 });
 
+
+JobEvent.on('SITE_VISIT_ESTIMATE_SUBMITTED', async function (payload: { job: IJob, quotation: IJobQuotation}) {
+    try {
+        console.log('handling SITE_VISIT_ESTIMATE_SUBMITTED event', payload.job.id)
+
+        const job = await JobModel.findById(payload.job.id)
+        
+        if(!job){
+            return
+        }
+
+        const customer = await CustomerModel.findById(job.customer)
+        const contractor = await ContractorModel.findById(job.contractor)
+
+        if(!customer || !contractor)return
+
+        const jobDay = await JobDayModel.findOne({job: job.id})
+        
+        NotificationService.sendNotification({
+            user: customer.id,
+            userType: 'customers',
+            title: 'Job Completed',
+            type: 'SITE_VISIT_ESTIMATE_SUBMITTED', //
+            message: `change order estimate has been submitted`,
+            heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
+            payload: {
+                entity: job.id,
+                entityType: 'jobs',
+                message: `site visit estimate has been submitted`,
+                customer: customer.id,
+                event: 'SITE_VISIT_ESTIMATE_SUBMITTED',
+                jobDayId: jobDay?.id,
+                jobId: job.id,
+            }
+        }, { push: true, socket: true })
+
+      
+    } catch (error) {
+        console.error(`Error handling SITE_VISIT_ESTIMATE_SUBMITTED event: ${error}`);
+    }
+});
 
 JobEvent.on('CHANGE_ORDER_ESTIMATE_SUBMITTED', async function (payload: { job: IJob, quotation: IJobQuotation}) {
     try {

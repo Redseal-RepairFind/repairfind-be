@@ -8,7 +8,7 @@ import { addHours, isFuture, isValid, startOfDay } from "date-fns";
 import { IJob, JobModel, JOB_STATUS, JobType, IJobSchedule, JOB_SCHEDULE_TYPE, IJobReSchedule } from "../../../database/common/job.model";
 import { BadRequestError, InternalServerError } from "../../../utils/custom.errors";
 import { applyAPIFeature } from "../../../utils/api.feature";
-import { ConversationModel } from "../../../database/common/conversations.schema";
+import { CONVERSATION_TYPE, ConversationModel } from "../../../database/common/conversations.schema";
 import { IMessage, MessageModel, MessageType } from "../../../database/common/messages.schema";
 import { JOB_QUOTATION_STATUS, JobQuotationModel } from "../../../database/common/job_quotation.model";
 import { JobEvent } from "../../../events";
@@ -19,10 +19,10 @@ import TransactionModel, { TRANSACTION_STATUS, TRANSACTION_TYPE } from "../../..
 import { StripeService } from "../../../services/stripe";
 import Stripe from "stripe";
 import { IPayment } from "../../../database/common/payment.schema";
-import { JobDisputeModel } from "../../../database/common/job_dispute.model";
+import { JOB_DISPUTE_STATUS, JobDisputeModel } from "../../../database/common/job_dispute.model";
 import { IReview, REVIEW_TYPE, ReviewModel } from "../../../database/common/review.model";
 import CustomerFavoriteContractorModel from "../../../database/customer/models/customer_favorite_contractors.model";
-import { JobDayModel } from "../../../database/common/job_day.model";
+import { JOB_DAY_STATUS, JobDayModel } from "../../../database/common/job_day.model";
 
 
 
@@ -54,7 +54,7 @@ export const getMyBookings = async (req: any, res: Response, next: NextFunction)
         const customerId = req.customer.id;
 
         // Construct filter object based on query parameters
-        let filter: any = { customer: customerId, status: {$in: ['BOOKED','ONGOING'] } };
+        let filter: any = { customer: customerId, status: { $in: ['BOOKED', 'ONGOING'] } };
 
 
         // TODO: when contractor is specified, ensure the contractor quotation is attached
@@ -252,8 +252,8 @@ export const getSingleBooking = async (req: any, res: Response, next: NextFuncti
             responseData.dispute = await JobDisputeModel.findOne({ job: job.id });
         }
 
-        if (job.status === JOB_STATUS.ONGOING){
-            const activeJobDay = await JobDayModel.findOne({ job: job.id } );
+        if (job.status === JOB_STATUS.ONGOING) {
+            const activeJobDay = await JobDayModel.findOne({ job: job.id });
             responseData.jobDay = activeJobDay
         }
         res.json({ success: true, message: 'Booking retrieved', data: responseData });
@@ -391,7 +391,7 @@ export const toggleChangeOrder = async (req: any, res: Response, next: NextFunct
         const customer = await CustomerModel.findById(customerId);
         const contract = await JobQuotationModel.findById(job?.contract);
 
-       
+
         if (!contract) {
             return res.status(404).json({ success: false, message: 'Contract not found' });
         }
@@ -423,7 +423,7 @@ export const toggleChangeOrder = async (req: any, res: Response, next: NextFunct
     }
 };
 
-export const intiateBookingCancelation = async (req: any, res: Response, next: NextFunction) => {
+export const getRefundable = async (req: any, res: Response, next: NextFunction) => {
     try {
         const customerId = req.customer.id;
         const { bookingId } = req.params;
@@ -457,10 +457,12 @@ export const intiateBookingCancelation = async (req: any, res: Response, next: N
             return res.status(400).json({ success: false, message: 'Job is already canceled' });
         }
 
-        if (job.status !== JOB_STATUS.BOOKED) {
+
+        if (job.status === JOB_STATUS.ONGOING) {
+            return res.status(400).json({ success: false, message: 'Job is ongoing and cannot be canceled, create a dispute instead' });
+        } else if (job.status !== JOB_STATUS.BOOKED) {
             return res.status(400).json({ success: false, message: 'Job is not yet booked, only booked jobs can be canceled' });
         }
-
 
 
 
@@ -501,7 +503,7 @@ export const intiateBookingCancelation = async (req: any, res: Response, next: N
             const contractorShare = 0.8 * canceletionFee;
             const companyShare = 0.2 * canceletionFee;
 
-            
+
             const refundAmount = payments.totalAmount - canceletionFee
             refund = {
                 refundAmount,
@@ -565,7 +567,11 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
 
 
 
-
+        if (job.status === JOB_STATUS.ONGOING) {
+            return res.status(400).json({ success: false, message: 'Job is ongoing and cannot be canceled, create a dispute instead' });
+        } else if (job.status !== JOB_STATUS.BOOKED) {
+            return res.status(400).json({ success: false, message: 'Job is not yet booked, only booked jobs can be canceled' });
+        }
 
 
         if (!job?.schedule?.startDate) {
@@ -578,47 +584,153 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
         const currentTime = new Date().getTime();
         const timeDifferenceInHours = Math.abs(jobDate - currentTime) / (1000 * 60 * 60);
 
-        let refund = {
-            refundAmount: payments.totalAmount,
-            canceletionFee: 0,
-            contractorShare: 0,
-            companyShare: 0,
-            intiatedBy: 'customer',
-            policyApplied: 'free_cancelation',
-            contractTerms: charges,
-            payments
-        };
+        let refundPolicy = {
+            name: 'free_refund',
+            fee: 0, //
+        }
+
 
         if (timeDifferenceInHours >= 48) {
             // Free cancellation up to 48 hours before the scheduled job time.
 
         } else if (timeDifferenceInHours < 24) {
             // For cancellations made within 24 hours, apply cancellation fees.
-            const canceletionFee = 50;
-            const contractorShare = 0.8 * canceletionFee;
-            const companyShare = 0.2 * canceletionFee;
-
-            const refundAmount = payments.totalAmount - canceletionFee
-            refund = {
-                refundAmount,
-                canceletionFee,
-                contractorShare,
-                companyShare,
-                intiatedBy: 'customer',
-                policyApplied: '50_dollar_policy',
-                contractTerms: charges,
-                payments
-            };
+            refundPolicy = {
+                name: '50_dollar_policy',
+                fee: 50, //
+            }
         }
 
 
-        if (refund.refundAmount > 0) {
-            const paymentMethod = customer.stripePaymentMethods[0]
-            if (!paymentMethod) throw new Error("No such payment method")
+        if (refundPolicy.fee > 0) {
 
-            const transaction = await TransactionModel.create({
+            for (const payment of payments.payments) {
+                if (payment.refunded) continue
+                let refund = {
+                    refundAmount: payment.amount - refundPolicy.fee,
+                    totalAmount: payment.amount,
+                    fee: refundPolicy.fee,
+                    contractorAmount: refundPolicy.fee * 0.8,
+                    companyAmount: refundPolicy.fee * 0.2,
+                    intiatedBy: 'customer',
+                    policyApplied: refundPolicy.name,
+                };
+
+                //create refund transaction - 
+                await TransactionModel.create({
+                    type: TRANSACTION_TYPE.REFUND,
+                    amount: payments.totalAmount,
+
+                    initiatorUser: customerId,
+                    initiatorUserType: 'customers',
+
+                    fromUser: job.contractor,
+                    fromUserType: 'contractors',
+
+                    toUser: customerId,
+                    toUserType: 'customers',
+
+                    description: `Refund from job: ${job?.title} payment`,
+                    status: TRANSACTION_STATUS.PENDING,
+                    remark: 'job_refund',
+                    invoice: {
+                        items: [],
+                        charges: refund
+                    },
+                    metadata: {
+                        ...refund,
+                    },
+                    job: job.id,
+                    payment: payment.id
+                })
+
+            }
+
+        }
+
+        // Update the job status to canceled
+        job.status = JOB_STATUS.CANCELED;
+
+        job.jobHistory.push({
+            eventType: 'JOB_CANCELED',
+            timestamp: new Date(),
+            payload: { reason, canceledBy: 'customer' }
+        });
+
+        // emit job cancelled event 
+        JobEvent.emit('JOB_CANCELED', { job, canceledBy: 'customer' })
+        await job.save();
+
+        res.json({ success: true, message: 'Booking canceled successfully', data: { job, payments } });
+    } catch (error: any) {
+        return next(new BadRequestError('An error occurred', error));
+    }
+};
+
+
+export const requestBookingRefund = async (req: any, res: Response, next: NextFunction) => {
+    try {
+        const customerId = req.customer.id;
+        const { bookingId } = req.params;
+        const { reason } = req.body;
+
+        const job = await JobModel.findById(bookingId).populate('payments');
+        if (!job) {
+            return res.status(404).json({ success: false, message: 'Job not found' });
+        }
+
+        const [customer, contractor, contract] = await Promise.all([
+            CustomerModel.findById(customerId),
+            ContractorModel.findById(job.contractor),
+            JobQuotationModel.findById(job?.contract)
+        ]);
+
+        if (!contractor) {
+            return res.status(404).json({ success: false, message: 'Contractor not found' });
+        }
+
+        if (!contract) {
+            return res.status(404).json({ success: false, message: 'Contract not found' });
+        }
+
+        if (!customer) {
+            return res.status(404).json({ success: false, message: 'Customer not found' });
+        }
+
+        if (job.customer.toString() !== customerId) {
+            return res.status(403).json({ success: false, message: 'You are not authorized to cancel this booking' });
+        }
+
+        if (job.status !== JOB_STATUS.NOT_STARTED) {
+            return res.status(400).json({ success: false, message: 'You can only get a refund for a job that was not started' });
+        }
+
+
+        const charges = await contract.calculateCharges()
+        const payments = await job.getPayments()
+
+        const refundPolicy = {
+            name: 'free_refund',
+            fee: 0, //
+        }
+
+        for (const payment of payments.payments) {
+
+            if (payment.refunded) continue
+            let refund = {
+                refundAmount: payment.amount - refundPolicy.fee,
+                totalAmount: payment.amount,
+                fee: refundPolicy.fee,
+                contractorAmount: refundPolicy.fee * 0.8,
+                companyAmount: refundPolicy.fee * 0.2,
+                intiatedBy: 'customer',
+                policyApplied: refundPolicy.name,
+            };
+
+            //create refund transaction - 
+            await TransactionModel.create({
                 type: TRANSACTION_TYPE.REFUND,
-                amount: payments.totalAmount,
+                amount: refund.refundAmount,
 
                 initiatorUser: customerId,
                 initiatorUserType: 'customers',
@@ -638,42 +750,11 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
                 },
                 metadata: {
                     ...refund,
-                    ...payments
                 },
-                job: job.id
+                job: job.id,
+                payment: payment.id
             })
 
-            for(const payment of payments.payments){
-                //@ts-ignore
-                // const stripePayment = await StripeService.payment.refundCharge(payment.reference, (payment.amount))
-                // console.log(stripePayment)
-
-                // {
-                //     id: 're_3PGb9WDdPEZ0JirQ2RyxBNRy',
-                //     object: 'refund',
-                //     amount: 32500,
-                //     balance_transaction: 'txn_3PGb9WDdPEZ0JirQ2G8UJRtV',
-                //     charge: 'ch_3PGb9WDdPEZ0JirQ2C3LgXzN',
-                //     created: 1716528493,
-                //     currency: 'usd',
-                //     destination_details: {
-                //       card: {
-                //         reference_status: 'pending',
-                //         reference_type: 'acquirer_reference_number',
-                //         type: 'refund'
-                //       },
-                //       type: 'card'
-                //     },
-                //     metadata: {},
-                //     payment_intent: 'pi_3PGb9WDdPEZ0JirQ2uVrqdQ6',
-                //     reason: null,
-                //     receipt_number: null,
-                //     source_transfer_reversal: null,
-                //     status: 'succeeded',
-                //     transfer_reversal: null
-                //   }
-            }
-            
         }
 
 
@@ -681,7 +762,7 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
         job.status = JOB_STATUS.CANCELED;
 
         job.jobHistory.push({
-            eventType: 'JOB_CANCELED',
+            eventType: 'JOB_PAYMENT_REFUNDED',
             timestamp: new Date(),
             payload: { reason, canceledBy: 'customer' }
         });
@@ -690,10 +771,10 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
 
         // emit job cancelled event 
         // inside the event take actions such as refund etc
-        JobEvent.emit('JOB_CANCELED', { job, canceledBy: 'customer' })
+        JobEvent.emit('JOB_PAYMENT_REFUNDED', { job })
         await job.save();
 
-        res.json({ success: true, message: 'Booking canceled successfully', data: { job, refund, payments } });
+        res.json({ success: true, message: 'Booking refunded successfully', data: { job, payments } });
     } catch (error: any) {
         return next(new BadRequestError('An error occurred', error));
     }
@@ -728,27 +809,27 @@ export const acceptBookingComplete = async (req: any, res: Response, next: NextF
         }
 
         // Check if the job is already canceled
-        if (job.status === JOB_STATUS.COMPLETED) {
-            return res.status(400).json({ success: false, message: 'The booking is already marked as complete' });
-        }
+        // if (job.status === JOB_STATUS.COMPLETED) {
+        //     return res.status(400).json({ success: false, message: 'The booking is already marked as complete' });
+        // }
 
-        // Check if the job is already canceled
         if (!job.statusUpdate.awaitingConfirmation) {
             return res.status(400).json({ success: false, message: 'Contractor has not requested for a status update' });
         }
 
-        if (job.statusUpdate.status !== JOB_STATUS.COMPLETED) {
-            return res.status(400).json({ success: false, message: 'Contractor has not yet marked job as completed' });
-        }
+        // if (job.statusUpdate.status !== JOB_STATUS.COMPLETED) {
+        //     return res.status(400).json({ success: false, message: 'Contractor has not yet marked job as completed' });
+        // }
 
+        const jobStatus = (job.schedule.type == JOB_SCHEDULE_TYPE.SITE_VISIT) ? JOB_STATUS.COMPLETED_SITE_VISIT : JOB_STATUS.COMPLETED
         job.statusUpdate = {
             ...job.statusUpdate,
-            status: JOB_STATUS.COMPLETED,
+            status: jobStatus,
             isCustomerAccept: true,
             awaitingConfirmation: false
         }
 
-        job.status = JOB_STATUS.COMPLETED  // since its customer accepting job completion
+        job.status = jobStatus  // since its customer accepting job completion
         job.jobHistory.push({
             eventType: 'JOB_MARKED_COMPLETE_BY_CUSTOMER',
             timestamp: new Date(),
@@ -795,17 +876,17 @@ export const reviewBookingOnCompletion = async (req: any, res: Response, next: N
         }
 
         // Check if the customer has already reviewed this job
-        const existingReview = await ReviewModel.findOne({job: job.id, type: REVIEW_TYPE.JOB_COMPLETION})
+        const existingReview = await ReviewModel.findOne({ job: job.id, type: REVIEW_TYPE.JOB_COMPLETION })
         if (existingReview) {
             // return res.status(400).json({ success: false, message: 'You can only add one review per job' });
         }
 
-        const totalRatings = ratings?.length ;
+        const totalRatings = ratings?.length;
         const totalReviewScore = totalRatings ? ratings.reduce((a: any, b: any) => a + b.rating, 0) : 0;
         const averageRating = (totalRatings && totalReviewScore) > 0 ? totalReviewScore / totalRatings : 0;
 
         // Create a new review object
-        const newReview =  await ReviewModel.findOneAndUpdate({job: job.id,  type: REVIEW_TYPE.JOB_COMPLETION},{
+        const newReview = await ReviewModel.findOneAndUpdate({ job: job.id, type: REVIEW_TYPE.JOB_COMPLETION }, {
             averageRating,
             ratings,
             job: job.id,
@@ -814,21 +895,21 @@ export const reviewBookingOnCompletion = async (req: any, res: Response, next: N
             comment: review,
             type: REVIEW_TYPE.JOB_COMPLETION,
             createdAt: new Date(),
-        }, {new: true, upsert: true});
+        }, { new: true, upsert: true });
 
-    
+
         const foundIndex = contractor.reviews.findIndex((review) => review.review == newReview.id);
         if (foundIndex !== -1) {
-            contractor.reviews[foundIndex] = {review: newReview.id, averageRating};
-        }else{
-            contractor.reviews.push({review: newReview.id, averageRating});
+            contractor.reviews[foundIndex] = { review: newReview.id, averageRating };
+        } else {
+            contractor.reviews.push({ review: newReview.id, averageRating });
         }
 
-        if(favoriteContractor){
-            await  CustomerFavoriteContractorModel.findOneAndUpdate({contractor: contractor.id, customer: customerId}, {
+        if (favoriteContractor) {
+            await CustomerFavoriteContractorModel.findOneAndUpdate({ contractor: contractor.id, customer: customerId }, {
                 customer: customerId,
                 contractor: contractor.id
-            }, {new: true, upsert: true})
+            }, { new: true, upsert: true })
         }
 
         job.review = newReview.id
@@ -842,6 +923,100 @@ export const reviewBookingOnCompletion = async (req: any, res: Response, next: N
 }
 
 
+export const createBookingDispute = async (req: any, res: Response, next: NextFunction) => {
+    try {
+        // Extract data from request body
+        const { description, evidence } = req.body;
+        const { bookingId } = req.params;
+        const customerId = req.customer.id; // Assuming user ID from request object
+
+        // Check for validation errors
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        // Find the job using job ID
+        const job = await JobModel.findById(bookingId);
+        if (!job) {
+            return res.status(404).json({ success: false, message: 'Job not found' });
+        }
+
+        // Check if user is customer or contractor for the job
+        if (!(job.customer == customerId) && !(job.contractor == customerId)) {
+            return res.status(403).json({ success: false, message: 'Unauthorized to create dispute for this job' });
+        }
+
+        const filedBy = 'customer';
+
+        const dispute = await JobDisputeModel.findOneAndUpdate({
+            job: job.id
+        }, {
+            description,
+            job: job._id,
+            customer: job.customer,
+            contractor: job.contractor,
+            filedBy,
+            status: JOB_DISPUTE_STATUS.OPEN,
+        }, { new: true, upsert: true });
+
+
+        const contractorId = job.contractor
+        const conversationMembers = [
+            { memberType: 'customers', member: customerId },
+            { memberType: 'contractors', member: contractorId }
+        ];
+
+        const conversation = await ConversationModel.findOneAndUpdate(
+            {
+                type: CONVERSATION_TYPE.GROUP_CHAT,
+                entity: dispute.id,
+                entityType: 'job_disputes',
+                $and: [
+                    { members: { $elemMatch: { member: customerId } } }, // memberType: 'customers'
+                    { members: { $elemMatch: { member: contractorId } } } // memberType: 'contractors'
+                ]
+            },
+            {
+                members: conversationMembers,
+                lastMessage: `New Dispute Created: ${description}`, // Set the last message to the job description
+                lastMessageAt: new Date() // Set the last message timestamp to now
+            },
+            { new: true, upsert: true }
+        );
+
+        const disputeEvidence = evidence.map((url: string) => ({
+            url,
+            addedBy: 'customer',
+            addedAt: new Date(),
+        }));
+
+        dispute.evidence.push(...disputeEvidence);
+
+        dispute.conversation = conversation.id
+        await dispute.save()
+
+        job.status = JOB_STATUS.DISPUTED
+
+
+        job.statusUpdate = {
+            isContractorAccept: true,
+            isCustomerAccept: false,
+            awaitingConfirmation: false,
+            status: 'REJECTED',
+        }
+
+        await job.save()
+
+        JobEvent.emit('JOB_DISPUTE_CREATED', { dispute: dispute });
+
+        return res.status(201).json({ success: true, message: 'Job dispute created successfully', data: dispute });
+
+    } catch (error: any) {
+        next(new InternalServerError('Error creating job dispute:', error));
+    }
+};
+
 
 export const CustomerBookingController = {
     getMyBookings,
@@ -851,10 +1026,12 @@ export const CustomerBookingController = {
     requestBookingReschedule,
     acceptOrDeclineReschedule,
     cancelBooking,
-    intiateBookingCancelation,
+    getRefundable,
     acceptBookingComplete,
     reviewBookingOnCompletion,
     toggleChangeOrder,
+    createBookingDispute,
+    requestBookingRefund
 }
 
 

@@ -14,11 +14,11 @@ import ContractorDeviceModel from '../../database/contractor/models/contractor_d
 import { castPayloadToDTO } from '../../utils/interface_dto.util';
 import { IStripeAccount } from '../../database/common/stripe_account.schema';
 import { IPayment, PaymentModel } from '../../database/common/payment.schema';
-import { JobModel, JOB_STATUS, JOB_SCHEDULE_TYPE } from '../../database/common/job.model';
+import { JobModel, JOB_STATUS, JOB_SCHEDULE_TYPE, JOB_PAYMENT_TYPE } from '../../database/common/job.model';
 import { IJobQuotation, JobQuotationModel, JOB_QUOTATION_STATUS } from '../../database/common/job_quotation.model';
 import { ObjectId } from 'mongoose';
 import { NotificationService } from '../notifications';
-import TransactionModel, { ICaptureDetails, ITransaction, TRANSACTION_STATUS } from '../../database/common/transaction.model';
+import TransactionModel, { ICaptureDetails, ITransaction, TRANSACTION_STATUS, TRANSACTION_TYPE } from '../../database/common/transaction.model';
 
 
 const STRIPE_SECRET_KEY = <string>process.env.STRIPE_SECRET_KEY;
@@ -578,25 +578,28 @@ export const chargeSucceeded = async (payload: any) => {
         }
 
         // handle job booking creating here ?
-        const metadata = payment.metadata as { jobId: string, quotationId: string, constractorId: ObjectId, type: string, customerId: ObjectId, remark: string, extraEstimateId: ObjectId }
-        if (metadata.type == 'job_payment') {
+        const metadata = payment.metadata as { jobId: string, quotationId: string, constractorId: ObjectId, type: string, customerId: ObjectId, remark: string, extraEstimateId: ObjectId, jobPaymentType: JOB_PAYMENT_TYPE }
+        if (metadata.type == TRANSACTION_TYPE.JOB_PAYMENT) {
             const jobId = metadata.jobId
-            if (jobId) { 
-                let job = await JobModel.findById(jobId)
-                if (!job) return
-                const quotationId = metadata.quotationId
-                let quotation = await JobQuotationModel.findById(quotationId)
-                if (!quotation) return
+            const jobPaymentType = metadata.jobPaymentType
+            const quotationId = metadata.quotationId
 
-                if (metadata.remark == 'initial_job_payment') {
+            if (jobId && jobPaymentType && quotationId) { 
+                
+                let job = await JobModel.findById(jobId)
+                let quotation = await JobQuotationModel.findById(quotationId)
+                if (!job || !quotation) return
+               
+                
+                if (jobPaymentType == JOB_PAYMENT_TYPE.JOB_BOOKING) {
                     job.status = JOB_STATUS.BOOKED
-                    job.quotation = quotation.id
                     job.contract = quotation.id
                     job.contractor = quotation.contractor
 
                     quotation.isPaid = true
                     quotation.payment = payment.id
                     quotation.status = JOB_QUOTATION_STATUS.ACCEPTED
+                    
                     if (quotation.startDate) {
                         job.schedule = {
                             startDate: quotation.startDate,
@@ -604,27 +607,38 @@ export const chargeSucceeded = async (payload: any) => {
                             remark: 'Initial job schedule'
                         };
 
-                    } else if (quotation.siteVisit) {
-                        // Check if quotation.siteVisit.date is a valid Date object
-                        if (quotation.siteVisit instanceof Date) {
-                            job.schedule = {
-                                startDate: quotation.startDate,
-                                type: JOB_SCHEDULE_TYPE.SITE_VISIT,
-                                remark: 'Initial site visit schedule'
-                            };
-                        } else {
-                            console.log('quotation.siteVisit.date is not a valid Date object.');
-                        }
                     }
 
                 }
 
-                if (metadata.remark == 'extra_job_payment') {
-                    const extraEstimateId  = metadata.extraEstimateId
-                    const extraEstimate: any = quotation.extraEstimates.find((estimate: any) => estimate.id === extraEstimateId)
-                    if (!extraEstimate) return
-                    extraEstimate.isPaid = true
-                    extraEstimate.payment = payment.id
+
+                if (jobPaymentType == JOB_PAYMENT_TYPE.SITE_VISIT) {
+                    job.status = JOB_STATUS.BOOKED
+                    job.contract = quotation.id
+                    job.contractor = quotation.contractor
+
+                    quotation.siteVisitEstimate.isPaid = true
+                    quotation.siteVisitEstimate.payment = payment.id
+                    quotation.status = JOB_QUOTATION_STATUS.ACCEPTED
+                    
+                    if (quotation.siteVisit instanceof Date) {
+                        job.schedule = {
+                            startDate: quotation.siteVisit,
+                            type: JOB_SCHEDULE_TYPE.SITE_VISIT,
+                            remark: 'Site visit schedule'
+                        };
+                    } else {
+                        console.log('quotation.siteVisit.date is not a valid Date object.');
+                    }
+
+                }
+                
+
+                if (jobPaymentType ==  JOB_PAYMENT_TYPE.CHANGE_ORDER) {
+                    const changeOrderEstimate: any = quotation.changeOrderEstimate
+                    if (!changeOrderEstimate) return
+                    changeOrderEstimate.isPaid = true
+                    changeOrderEstimate.payment = payment.id
                 }
 
                 if (!job.payments.includes(payment.id)) job.payments.push(payment.id)

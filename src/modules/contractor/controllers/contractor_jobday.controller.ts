@@ -1,17 +1,18 @@
 import { NextFunction, Request, Response } from "express";
 import { validationResult } from "express-validator";
-import { JobModel, JOB_STATUS, JobType } from "../../../database/common/job.model";
+import { JobModel, JOB_STATUS, JobType, JOB_SCHEDULE_TYPE } from "../../../database/common/job.model";
 import { generateOTP } from "../../../utils/otpGenerator";
 import { NotificationService } from "../../../services/notifications/index";
-import { JOB_DAY_STATUS, JobDayModel } from "../../../database/common/job_day.model";
+import { JOB_DAY_STATUS, JOB_DAY_TYPE, JobDayModel } from "../../../database/common/job_day.model";
 import { ContractorModel } from "../../../database/contractor/models/contractor.model";
-import { InternalServerError } from "../../../utils/custom.errors";
+import { BadRequestError, InternalServerError } from "../../../utils/custom.errors";
 import { JobEvent } from "../../../events";
 import { JobEmergencyModel } from "../../../database/common/job_emergency.model";
 import { CONVERSATION_TYPE, ConversationModel } from "../../../database/common/conversations.schema";
 import { ContractorProfileModel } from "../../../database/contractor/models/contractor_profile.model";
 import CustomerModel from "../../../database/customer/models/customer.model";
 import { JOB_DISPUTE_STATUS, JobDisputeModel } from "../../../database/common/job_dispute.model";
+import { JOB_QUOTATION_TYPE, JobQuotationModel } from "../../../database/common/job_quotation.model";
 
 
 export const startTrip = async (
@@ -20,7 +21,7 @@ export const startTrip = async (
 ) => {
 
     try {
-        const { jobId } = req.body;
+        const { jobId, contractorLocation } = req.body;
 
         // Check for validation errors
         const errors = validationResult(req);
@@ -35,39 +36,38 @@ export const startTrip = async (
 
         // Check if the job request exists
         if (!job) {
-            return res.status(403).json({ success: false, message: 'Job request not found' });
+            return res.status(404).json({ success: false, message: 'Job booking not found' });
         }
 
-        // Check if an active trip already exists for the specified job
-        const activeTrip = await JobDayModel.findOne({ job: jobId, status: JOB_DAY_STATUS.STARTED });
-
-        if (activeTrip) {
-            return res.status(400).json({ success: false, message: 'An active trip already exists for this job' });
-        }
-
-        const trip = await JobDayModel.create({
-            customer: job.customer,
-            contractor: contractorId,
-            job: jobId,
-            status: JOB_DAY_STATUS.STARTED,
-            type: job.schedule.type
-        })
+        const jobDay = await JobDayModel.findOneAndUpdate(
+            { job: jobId, type: job.schedule.type },
+            {
+                customer: job.customer,
+                contractor: contractorId,
+                status: JOB_DAY_STATUS.STARTED,
+                jobLocation: job.location,
+                contractorLocation,
+                type: job.schedule.type
+            },
+            { new: true, upsert: true }
+        );
+        
 
         // send notification to contractor
         NotificationService.sendNotification(
             {
                 user: contractorId,
                 userType: 'contractors',
-                title: 'trip',
+                title: 'jobDay',
                 heading: {},
                 type: 'JOB_DAY_STARTED',
-                message: 'trip successfully started',
-                payload: {event: 'JOB_DAY_STARTED', jobDayId: trip._id }
+                message: 'jobday tripe successfully started',
+                payload: {event: 'JOB_DAY_STARTED', jobDayId: jobDay._id }
             },
             {
                 push: true,
                 socket: true,
-                database: true
+                // database: true
             }
         )
 
@@ -76,23 +76,23 @@ export const startTrip = async (
             {
                 user: job.customer.toString(),
                 userType: 'customers',
-                title: 'trip',
+                title: 'jobDay',
                 heading: {},
                 type: 'JOB_DAY_STARTED',
-                message: 'Contractor starts trip to your site.',
-                payload: {event: 'JOB_DAY_STARTED', jobDayId: trip._id }
+                message: 'Contractor starts jobDay to your site.',
+                payload: {event: 'JOB_DAY_STARTED', jobDayId: jobDay._id }
             },
             {
                 push: true,
                 socket: true,
-                database: true
+                // database: true
             }
         )
 
         res.json({
             success: true,
-            message: "trip successfully started",
-            data: { jobLocation: job.location, trip: trip }
+            message: "Jobday jobDay successfully started",
+            data: { jobLocation: job.location, jobDay }
         });
 
     } catch (err: any) {
@@ -108,7 +108,7 @@ export const initiateJobDay = async (
 ) => {
 
     try {
-        const { jobId } = req.body;
+        const { jobId, contractorLocation } = req.body;
 
         // Check for validation errors
         const errors = validationResult(req);
@@ -144,10 +144,9 @@ export const initiateJobDay = async (
         }
 
 
-        // Check if an active trip already exists for the specified job
-        const activeTrip = await JobDayModel.findOne({ job: jobId, status: { $in: ['STARTED', 'ARRIVED', 'CONFIRMED', 'PENDING'] } });
-        // if (activeTrip) {
-        //     return res.status(400).json({ success: false, message: 'An active trip already exists for this job' });
+        const jobDay = await JobDayModel.findOne({ job: jobId, type: job.schedule.type });
+        // if(jobDay){
+        //     return res.status(400).json({ success: false, message: 'Jobday does not exists for the current schedule, kindly start a job' });
         // }
 
         // Create or update conversation
@@ -170,17 +169,12 @@ export const initiateJobDay = async (
             },
             { new: true, upsert: true });
 
-
-
-
         const data = {
-            jobLocation: job.location,
-            contractorLocation: contractorProfile.location,
-            conversation: conversation,
-            customer: customer,
-            contractor: contractor,
-            booking: job,
-            trip: activeTrip
+            conversation: conversation.id,
+            customer: {id: customer.id, phoneNumber: customer.phoneNumber, name: customer.name, email: customer.email, profilePhoto: customer.profilePhoto},
+            contractor: {id: contractor.id, phoneNumber: contractor.phoneNumber, name: contractor.name, email: contractor.email, profilePhoto: contractor.profilePhoto},
+            job: {id: job.id, description: job.description, title: job.title, schedule: job.schedule, type:job.type, date:job.date, location: job.location},
+            jobDay
         }
 
         res.json({
@@ -195,7 +189,6 @@ export const initiateJobDay = async (
     }
 
 }
-
 
 
 export const confirmArrival = async (
@@ -219,31 +212,31 @@ export const confirmArrival = async (
             return res.status(404).json({ success: false, message: 'Contractor not found' });
         }
 
-        const trip = await JobDayModel.findOne({ _id: jobDayId })
-        if (!trip) {
-            return res.status(403).json({ success: false, message: 'trip not found' });
+        const jobDay = await JobDayModel.findOne({ _id: jobDayId })
+        if (!jobDay) {
+            return res.status(403).json({ success: false, message: 'jobDay not found' });
         }
 
-        if (!(trip.status === JOB_DAY_STATUS.STARTED || trip.status === JOB_DAY_STATUS.ARRIVED)) {
+        if (!(jobDay.status === JOB_DAY_STATUS.STARTED || jobDay.status === JOB_DAY_STATUS.ARRIVED)) {
             return res.status(403).json({ success: false, message: 'Trip not started yet' });
         }
 
-        if (trip.verified) {
-            return res.status(403).json({ success: false, message: 'Trio already visited' });
+        if (jobDay.verified) {
+            return res.status(403).json({ success: false, message: 'Jobday trip already visited' });
         }
 
         const verificationCode = generateOTP()
 
-        trip.verificationCode = parseInt(verificationCode)
-        trip.status = JOB_DAY_STATUS.ARRIVED
-        await trip.save()
+        jobDay.verificationCode = parseInt(verificationCode)
+        jobDay.status = JOB_DAY_STATUS.ARRIVED
+        await jobDay.save()
 
         // send notification to  contractor
         NotificationService.sendNotification(
             {
                 user: contractorId,
                 userType: 'contractors',
-                title: 'trip',
+                title: 'jobDay',
                 heading: {},
                 type: 'JOB_DAY_ARRIVAL',
                 message: 'you successfully arrrived at site, wait for comfirmation from customer.',
@@ -259,9 +252,9 @@ export const confirmArrival = async (
         // send notification to  customer
         NotificationService.sendNotification(
             {
-                user: trip.customer.toString(),
+                user: jobDay.customer.toString(),
                 userType: 'customers',
-                title: 'trip',
+                title: 'jobDay',
                 heading: { name: contractorId, image: contractorId },
                 type: 'JOB_DAY_ARRIVAL',
                 message: 'Contractor is at your site.',
@@ -415,6 +408,69 @@ export const createJobDispute = async (req: any, res: Response, next: NextFuncti
 };
 
 
+export const markJobDayComplete = async (req: any, res: Response, next: NextFunction) => {
+    try {
+        const contractorId = req.contractor.id;
+        const { jobDayId } = req.params;
+
+        // Find the job
+        const jobDay = await JobDayModel.findById(jobDayId);
+        if (!jobDay) {
+            return res.status(404).json({ success: false, message: 'Job day not found' });
+        }
+        
+        const job = await JobModel.findById(jobDay.job);
+
+        const contractor = await ContractorModel.findById(contractorId);
+
+        // Check if the contractor exists
+        if (!contractor) {
+            return res.status(404).json({ success: false, message: 'Contractor for job not found' });
+        }
+
+
+        // Check if the job exists
+        if (!job) {
+            return res.status(404).json({ success: false, message: 'Job not found' });
+        }
+
+        // Check if the contractor is the owner of the job
+        if (!(job.contractor.toString() == contractorId || job?.assignment?.contractor.toString() == contractorId)) {
+            return res.status(403).json({ success: false, message: 'You are not authorized to mark this job day as complete' });
+        }
+
+        // Check if the job is already canceled
+        if (job.status === JOB_STATUS.COMPLETED) {
+            // return res.status(400).json({ success: false, message: 'The booking is already marked as complete' });
+        }
+
+
+        const jobStatus = (job.schedule.type == JOB_SCHEDULE_TYPE.SITE_VISIT) ? JOB_STATUS.COMPLETED_SITE_VISIT : JOB_STATUS.COMPLETED
+
+        job.statusUpdate = {
+            ...job.statusUpdate,
+            status: jobStatus,
+            isCustomerAccept: false,
+            isContractorAccept: true,
+            awaitingConfirmation: true
+        }
+
+        job.jobHistory.push({
+            eventType: 'JOB_MARKED_COMPLETE_BY_CONTRACTOR',
+            timestamp: new Date(),
+            payload: {}
+        });
+
+        JobEvent.emit('JOB_MARKED_COMPLETE_BY_CONTRACTOR', { job })
+        await job.save();
+
+        res.json({ success: true, message: 'Jobday marked as complete successfully', data: job });
+    } catch (error: any) {
+        return next(new BadRequestError('An error occurred', error));
+    }
+};
+
+
 export const savePreJobJobQualityAssurance = async (
     req: any,
     res: Response,
@@ -499,6 +555,80 @@ export const savePostJobQualityAssurance = async (
 }
 
 
+export const submitEstimate = async (req: any, res: Response, next: NextFunction) => {
+    try {
+        const contractorId = req.contractor.id;
+        const { jobDayId } = req.params;
+        const { estimates } = req.body;
+
+
+        const jobDay = await JobDayModel.findById(jobDayId);
+        if (!jobDay) {
+            return res.status(404).json({ success: false, message: 'Job Day not found' });
+        }
+
+        const contractor = await ContractorModel.findById(contractorId);
+        if (!contractor) {
+            return res.status(404).json({ success: false, message: 'Customer not found' });
+        }
+
+        // Find the job
+        const job = await JobModel.findById(jobDay.job);
+
+
+        // Check if the job exists
+        if (!job) {
+            return res.status(404).json({ success: false, message: 'Job not found' });
+        }
+
+        // Check if the contractor is the owner of the job
+       
+
+        if ( jobDay.type !== JOB_DAY_TYPE.SITE_VISIT ) {
+            return res.status(400).json({ success: false, message: 'Estimate can only be submitted for site visit' });
+        }
+
+        if (job.statusUpdate.status == JOB_STATUS.COMPLETED_SITE_VISIT &&  job.statusUpdate.awaitingConfirmation) {
+            return res.status(400).json({ success: false, message: 'Customer has not confirmed completion of site visit' });
+        }
+
+        const quotation = await JobQuotationModel.findById(job.contract)
+        if(!quotation) return res.status(400).json({ success: false, message: 'Job quotation not found' });
+
+        quotation.startDate = job.date
+        quotation.estimates = estimates
+        quotation.type = JOB_QUOTATION_TYPE.JOB_DAY
+
+        const jobStatus = (job.schedule.type == JOB_SCHEDULE_TYPE.SITE_VISIT) ? JOB_STATUS.COMPLETED_SITE_VISIT : JOB_STATUS.COMPLETED
+        job.status = JOB_STATUS.PENDING
+        
+        job.statusUpdate = {
+            ...job.statusUpdate,
+            status: 'SITE_VISIT_ESTIMATE_SUBMITTED',
+            isCustomerAccept: false,
+            awaitingConfirmation: true
+        }
+
+        job.jobHistory.push({
+            eventType: 'SITE_VISIT_ESTIMATE_SUBMITTED',
+            timestamp: new Date(),
+            payload: {}
+        });
+
+       
+
+        await quotation.save();
+        await job.save();
+
+        JobEvent.emit('SITE_VISIT_ESTIMATE_SUBMITTED', { job })
+
+        res.json({ success: true, message: 'Site visit estimate submitted successfully', data: job });
+    } catch (error: any) {
+        return next(new BadRequestError('An error occurred', error));
+    }
+};
+
+
 export const ContractorJobDayController = {
     startTrip,
     confirmArrival,
@@ -506,5 +636,7 @@ export const ContractorJobDayController = {
     initiateJobDay,
     savePostJobQualityAssurance,
     savePreJobJobQualityAssurance,
-    createJobDispute
+    createJobDispute,
+    markJobDayComplete,
+    submitEstimate
 };

@@ -69,7 +69,7 @@ router.post("/jobs/:jobId/quotations/:quotationId/accept", checkCustomerRole, Cu
 router.post("/jobs/:jobId/quotations/:quotationId/decline", checkCustomerRole, CustomerJobController.declineJobQuotation ); 
 router.post("/jobs/:jobId/pay", checkCustomerRole, CustomerPaymentController.makeJobPayment ); 
 router.post("/jobs/:jobId/payment-capture", checkCustomerRole, CustomerPaymentController.captureJobPayment ); 
-router.post("/jobs/:jobId/extra-estimate-payment", checkCustomerRole, CustomerPaymentController.makeExtraEstimatePayment ); 
+router.post("/jobs/:jobId/change-order-payment", checkCustomerRole, CustomerPaymentController.makeChangeOrderEstimatePayment ); 
 
 
 // BOOKING
@@ -78,11 +78,13 @@ router.get("/bookings/history", checkCustomerRole, CustomerBookingController.get
 router.get("/bookings/disputes", checkCustomerRole, CustomerBookingController.getBookingDisputes ); 
 router.get("/bookings/:bookingId", checkCustomerRole, CustomerBookingController.getSingleBooking ); 
 router.post("/bookings/:bookingId/cancel", checkCustomerRole, CustomerBookingController.cancelBooking ); 
-router.post("/bookings/:bookingId/initiate-cancel", checkCustomerRole, CustomerBookingController.intiateBookingCancelation ); 
+router.post("/bookings/:bookingId/initiate-cancel", checkCustomerRole, CustomerBookingController.getRefundable ); 
 router.post("/bookings/:bookingId/change-order-toggle", checkCustomerRole, CustomerBookingController.toggleChangeOrder ); 
 router.post("/bookings/:bookingId/mark-complete", checkCustomerRole, CustomerBookingController.acceptBookingComplete ); 
 router.post("/bookings/:bookingId/review", checkCustomerRole, CustomerBookingController.reviewBookingOnCompletion ); 
 router.post("/bookings/:bookingId/reschedule", checkCustomerRole, CustomerBookingController.requestBookingReschedule ); 
+router.post("/bookings/:bookingId/dispute", checkCustomerRole,  CustomerHttpRequest.createJobDisputeParams,  CustomerBookingController.createBookingDispute ); 
+router.post("/bookings/:bookingId/refund", checkCustomerRole, CustomerBookingController.requestBookingRefund ); 
 router.post("/bookings/:bookingId/reschedule/:action", checkCustomerRole, CustomerBookingController.acceptOrDeclineReschedule ); 
 
 
@@ -111,6 +113,7 @@ router.post('/conversations/:conversationId/mark-all-read', checkCustomerRole, C
 router.post('/jobdays/:jobDayId/confirm-arrival', checkCustomerRole, CustomerHttpRequest.tripArrivalComfirmParams, CustomerJobDayController.confirmContractorArrival)
 router.post('/jobdays/:jobDayId/emergency', checkCustomerRole, CustomerHttpRequest.tripArrivalComfirmParams, CustomerJobDayController.createJobEmergency)
 router.post('/jobdays/:jobDayId/dispute', checkCustomerRole, CustomerHttpRequest.createJobDisputeParams, CustomerJobDayController.createJobDispute)
+router.post('/jobdays/:jobDayId/confirm-completion', checkCustomerRole, CustomerHttpRequest.createJobDisputeParams, CustomerJobDayController.confirmJobDayCompletion)
 router.post('/jobdays/:jobDayId/post-quality-assurance', checkCustomerRole,  CustomerJobDayController.savePostJobQualityAssurance)
 router.post('/jobdays/:jobDayId/pre-quality-assurance', checkCustomerRole,  CustomerJobDayController.savePreJobJobQualityAssurance)
 router.post('/jobdays/initiate', checkCustomerRole, CustomerJobDayController.initiateJobDay)

@@ -5,10 +5,10 @@ import CustomerRegModel from "../../../database/customer/models/customer.model";
 import { sendEmail } from "../../../utils/send_email_utility";
 import { htmlJobQoutationTemplate } from "../../../templates/customerEmail/jobQoutationTemplate";
 import AdminNoficationModel from "../../../database/admin/models/admin_notification.model";
-import { JobModel, JOB_STATUS, JobType, IJob } from "../../../database/common/job.model";
+import { JobModel, JOB_STATUS, JobType, IJob, JOB_PAYMENT_TYPE } from "../../../database/common/job.model";
 import { applyAPIFeature } from "../../../utils/api.feature";
 import { BadRequestError, InternalServerError, NotFoundError } from "../../../utils/custom.errors";
-import { JobQuotationModel, JOB_QUOTATION_STATUS, IExtraEstimate } from "../../../database/common/job_quotation.model";
+import { JobQuotationModel, JOB_QUOTATION_STATUS, IExtraEstimate, JOB_QUOTATION_TYPE } from "../../../database/common/job_quotation.model";
 import CustomerModel from "../../../database/customer/models/customer.model";
 import mongoose, { Document, PipelineStage as MongoosePipelineStage } from 'mongoose'; // Import Document type from mongoose
 import { ConversationEntityType, ConversationModel } from "../../../database/common/conversations.schema";
@@ -165,28 +165,6 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
     job.jobHistory.push(jobEvent);
 
 
-
-    // // Create the initial job application
-    // const quotation = new JobQuotationModel({
-    //   contractor: contractorId,
-    //   job: jobId,
-    //   status: JOB_QUOTATION_STATUS.PENDING, // Assuming initial status is pending
-    //   estimate: [], // You may need to adjust this based on your application schema
-    //   startDate: job.startDate,
-    //   endDate: job.endDate,
-    //   siteVerification: false, // Example value, adjust as needed
-    //   processingFee: 0 // Example value, adjust as needed
-    // });
-
-    // // Save the initial job application
-    // await quotation.save();
-
-    // Associate the job application with the job request
-    // if (!job.quotations.includes(quotation.id)) {
-    //   job.quotations.push(quotation.id);
-    // }
-
-
     await job.save();
 
 
@@ -314,7 +292,6 @@ export const rejectJobRequest = async (req: any, res: Response) => {
     res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 };
-
 
 
 export const getJobRequestById = async (req: any, res: Response, next: NextFunction) => {
@@ -462,10 +439,6 @@ export const sendJobQuotation = async (
       return res.status(400).json({ success: false, message: "Kindly connect your bank account to receive payment" });
     }
 
-    // Prepare estimates
-    if (siteVisit) {
-      estimates.push({ description: 'Site Visit', amount: 100, rate: 100, quantity: 1 });
-    }
 
     // Create or update job quotation
     let jobQuotation = await JobQuotationModel.findOneAndUpdate(
@@ -474,8 +447,17 @@ export const sendJobQuotation = async (
       { new: true, upsert: true }
     );
 
-    // Calculate charges for the job quotation
-    jobQuotation.charges = await jobQuotation.calculateCharges();
+    // Prepare estimates
+    if (siteVisit) {
+      const siteVisitEstimate = {
+        isPaid: false,
+        date: new Date(),
+        estimates: [{ description: 'Site Visit', amount: 100, rate: 100, quantity: 1 }]
+      };
+      jobQuotation.siteVisitEstimate = siteVisitEstimate as IExtraEstimate;
+      jobQuotation.type = JOB_QUOTATION_TYPE.SITE_VISIT
+    }
+
 
     // Add job quotation to job's list of quotations
     if (!job.quotations.some(quotation => quotation.id === jobQuotation.id)) {
@@ -492,25 +474,8 @@ export const sendJobQuotation = async (
 
     // Save changes to the job
     await job.save();
-
+    await jobQuotation.save()
     // Do other actions such as sending emails or notifications...
-    if (estimates) {
-      const html = htmlJobQoutationTemplate(customer.firstName, contractor.name)
-      EmailService.send(customer.email, 'Job quotation from contractor', html)
-      // if (conversation) {
-      //   // send push notification
-
-      // }
-
-    }
-
-    if (siteVisit) {
-      //send message alert indicating that contractor has requested for site visit
-      // if (conversation) {
-      //  // send notification
-      // }
-
-    }
 
     res.json({
       success: true,
@@ -519,11 +484,11 @@ export const sendJobQuotation = async (
     });
 
   } catch (err: any) {
-    return next(new BadRequestError('An error occurred', err));
+    return next(new InternalServerError('Error sending job quotation', err));
   }
 };
 
-export const sendExtraJobQuotation = async (
+export const sendChangeOrderJobQuotation = async (
   req: any,
   res: Response,
   next: NextFunction
@@ -561,17 +526,17 @@ export const sendExtraJobQuotation = async (
       return res.status(400).json({ success: false, message: "Customer has not enabled change order" });
     }
 
-    const extraJobEstimate = {
+    const changeOrderEstimate = {
       estimates,
       isPaid: false,
       date: new Date()
     };
 
-    quotation.extraEstimates.push(extraJobEstimate as IExtraEstimate);
+    quotation.changeOrderEstimate = changeOrderEstimate as IExtraEstimate;
 
     quotation.charges = await quotation.calculateCharges();
 
-    job.jobHistory.push({ eventType: 'CHANGE_ORDER_ESTIMATE_SUBMITTED', timestamp: new Date(), payload: { ...extraJobEstimate } });
+    job.jobHistory.push({ eventType: 'CHANGE_ORDER_ESTIMATE_SUBMITTED', timestamp: new Date(), payload: { ...changeOrderEstimate } });
 
     job.isChangeOrder = false;
     await job.save();
@@ -606,7 +571,7 @@ export const getQuotationForJob = async (req: any, res: Response, next: NextFunc
 
     // Check if the job application exists
     if (!jobQuotation) {
-      return res.status(404).json({ success: false, message: 'Job quotation not found' });
+      return res.status(404).json({ success: false, message: 'You have not submitted quotation for this job' });
     }
 
     jobQuotation.charges = await jobQuotation.calculateCharges()
@@ -1011,7 +976,7 @@ export const ContractorJobController = {
   getJobListingById,
   getMyJobs,
   getJobHistory,
-  sendExtraJobQuotation
+  sendChangeOrderJobQuotation
 }
 
 

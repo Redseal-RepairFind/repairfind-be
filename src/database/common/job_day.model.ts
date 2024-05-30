@@ -16,6 +16,14 @@ export enum JOB_DAY_TYPE {
 
 
 
+export interface ILocation extends Document {
+  address?: string;
+  city?: string;
+  region?: string;
+  country?: string;
+  latitude: string;
+  longitude: string;
+}
 
 
 
@@ -34,7 +42,20 @@ export interface IJobDay extends Document {
   contractorPostJobMedia: string[]; // Array of contractor's post-job media URLs or references
   customerPreJobMedia: string[]; // Array of customer's pre-job media URLs or references
   customerPostJobMedia: string[]; // Array of customer's post-job media URLs or references
+  jobLocation: ILocation,
+  contractorLocation: ILocation,
 }
+
+
+const LocationSchema = new Schema<ILocation>({
+  address: { type: String },
+  city: { type: String },
+  region: { type: String },
+  country: { type: String },
+  latitude: { type: String },
+  longitude: { type: String },
+});
+
 
 const JobDayShema = new Schema <IJobDay>(
   {
@@ -88,6 +109,8 @@ const JobDayShema = new Schema <IJobDay>(
       type: [String], // Array of customer's post-job media URLs or references
       default: [],
     },
+    jobLocation: LocationSchema,
+    contractorLocation: LocationSchema,
     createdAt: {
       type: Date,
       default: Date.now,

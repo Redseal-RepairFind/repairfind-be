@@ -28,7 +28,16 @@ export enum JOB_STATUS {
     DISPUTED = 'DISPUTED',
     CANCELED = 'CANCELED',
     NOT_STARTED = 'NOT_STARTED',
+    ONGOING_SITE_VISIT = 'ONGOING_SITE_VISIT',
+    COMPLETED_SITE_VISIT = 'COMPLETED_SITE_VISIT',
 }
+
+export enum JOB_PAYMENT_TYPE {
+    SITE_VISIT = 'SITE_VISIT',
+    JOB_BOOKING = 'JOB_BOOKING',
+    CHANGE_ORDER = 'CHANGE_ORDER',
+}
+
 
 export enum JOB_SCHEDULE_TYPE {
     JOB_DAY = 'JOB_DAY',
@@ -125,7 +134,7 @@ export interface IJob extends Document {
     getPayments: () => {
         paymentCount: number;
         totalAmount: number;
-        payments: Array<{ amount: number, reference: string, status: string, refunded: boolean, paid: boolean, amount_refunded: number, captured: boolean }>;
+        payments: Array<{id: ObjectId, amount: number, reference: string, status: string, refunded: boolean, paid: boolean, amount_refunded: number, captured: boolean }>;
     };
 }
 
@@ -270,9 +279,10 @@ JobSchema.methods.getPayments = async function () {
     totalAmount = job.payments.reduce((acc: number, payment: any) => acc + payment.amount, 0);
     const payments = job.payments.map((payment: any) => {
         return {
+            id: payment._id,
+            reference: payment.reference,
             amount: payment.amount,
             amount_refunded: payment.amount_refunded,
-            reference: payment.reference,
             status: payment.status,
             refunded: payment.refunded,
             paid: payment.paid,
