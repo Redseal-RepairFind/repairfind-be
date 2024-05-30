@@ -51,43 +51,9 @@ export const startTrip = async (
             },
             { new: true, upsert: true }
         );
-        
 
-        // send notification to contractor
-        NotificationService.sendNotification(
-            {
-                user: contractorId,
-                userType: 'contractors',
-                title: 'jobDay',
-                heading: {},
-                type: 'JOB_DAY_STARTED',
-                message: 'jobday tripe successfully started',
-                payload: {event: 'JOB_DAY_STARTED', jobDayId: jobDay._id }
-            },
-            {
-                push: true,
-                socket: true,
-                // database: true
-            }
-        )
+        JobEvent.emit('JOB_DAY_STARTED', { job, jobDay })
 
-        // send notification to customer
-        NotificationService.sendNotification(
-            {
-                user: job.customer.toString(),
-                userType: 'customers',
-                title: 'jobDay',
-                heading: {},
-                type: 'JOB_DAY_STARTED',
-                message: 'Contractor starts jobDay to your site.',
-                payload: {event: 'JOB_DAY_STARTED', jobDayId: jobDay._id }
-            },
-            {
-                push: true,
-                socket: true,
-                // database: true
-            }
-        )
 
         res.json({
             success: true,
@@ -231,40 +197,8 @@ export const confirmArrival = async (
         jobDay.status = JOB_DAY_STATUS.ARRIVED
         await jobDay.save()
 
-        // send notification to  contractor
-        NotificationService.sendNotification(
-            {
-                user: contractorId,
-                userType: 'contractors',
-                title: 'jobDay',
-                heading: {},
-                type: 'JOB_DAY_ARRIVAL',
-                message: 'you successfully arrrived at site, wait for comfirmation from customer.',
-                payload: {event: 'JOB_DAY_ARRIVAL', jobDayId: jobDayId, verificationCode }
-            },
-            {
-                push: true,
-                socket: true,
-            }
-        )
-
-
-        // send notification to  customer
-        NotificationService.sendNotification(
-            {
-                user: jobDay.customer.toString(),
-                userType: 'customers',
-                title: 'jobDay',
-                heading: { name: contractorId, image: contractorId },
-                type: 'JOB_DAY_ARRIVAL',
-                message: 'Contractor is at your site.',
-                payload: {event: 'JOB_DAY_ARRIVAL', jobDayId: jobDayId, verificationCode }
-            },
-            {
-                push: true,
-                socket: true,
-            }
-        )
+       
+        JobEvent.emit('JOB_DAY_ARRIVAL', { jobDay, verificationCode })
 
         res.json({
             success: true,

@@ -36,8 +36,9 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.JobQuotationModel = exports.ExtraEstimateSchema = exports.JOB_QUOTATION_STATUS = void 0;
+exports.JobQuotationModel = exports.ExtraEstimateSchema = exports.JOB_QUOTATION_TYPE = exports.JOB_QUOTATION_STATUS = void 0;
 var mongoose_1 = require("mongoose");
+var job_model_1 = require("./job.model");
 var JOB_QUOTATION_STATUS;
 (function (JOB_QUOTATION_STATUS) {
     JOB_QUOTATION_STATUS["PENDING"] = "PENDING";
@@ -45,6 +46,11 @@ var JOB_QUOTATION_STATUS;
     JOB_QUOTATION_STATUS["DECLINED"] = "DECLINED";
     JOB_QUOTATION_STATUS["COMPLETED"] = "COMPLETED";
 })(JOB_QUOTATION_STATUS || (exports.JOB_QUOTATION_STATUS = JOB_QUOTATION_STATUS = {}));
+var JOB_QUOTATION_TYPE;
+(function (JOB_QUOTATION_TYPE) {
+    JOB_QUOTATION_TYPE["SITE_VISIT"] = "SITE_VISIT";
+    JOB_QUOTATION_TYPE["JOB_DAY"] = "JOB_DAY";
+})(JOB_QUOTATION_TYPE || (exports.JOB_QUOTATION_TYPE = JOB_QUOTATION_TYPE = {}));
 // Define schema for job quotation estimates
 var JobQuotationEstimateSchema = new mongoose_1.Schema({
     description: { type: String, required: true },
@@ -59,105 +65,85 @@ exports.ExtraEstimateSchema = new mongoose_1.Schema({
     payment: { type: mongoose_1.Schema.Types.ObjectId, ref: 'payments' },
     date: { type: Date, required: true }
 });
-var JobQoutationSchema = new mongoose_1.Schema({
+var JobQuotationSchema = new mongoose_1.Schema({
     contractor: { type: mongoose_1.Schema.Types.ObjectId, ref: 'contractors', required: true },
     job: { type: mongoose_1.Schema.Types.ObjectId, ref: 'jobs', required: true },
     status: { type: String, enum: Object.values(JOB_QUOTATION_STATUS), default: JOB_QUOTATION_STATUS.PENDING },
+    type: { type: String, enum: Object.values(JOB_QUOTATION_TYPE), default: JOB_QUOTATION_TYPE.JOB_DAY },
     estimates: { type: [JobQuotationEstimateSchema], required: false },
     startDate: { type: Date, required: false },
     endDate: { type: Date, required: false },
     siteVisit: { type: Date, required: false },
     payment: { type: mongoose_1.Schema.Types.ObjectId, ref: 'payments' },
     isPaid: { type: Boolean, default: false },
-    extraEstimates: { type: [exports.ExtraEstimateSchema] }
+    changeOrderEstimate: { type: exports.ExtraEstimateSchema },
+    siteVisitEstimate: { type: exports.ExtraEstimateSchema }
 }, { timestamps: true });
 // Define the static method to calculate charges
-JobQoutationSchema.methods.calculateCharges = function (extraEstimateId) {
-    if (extraEstimateId === void 0) { extraEstimateId = null; }
+JobQuotationSchema.methods.calculateCharges = function (type) {
+    if (type === void 0) { type = null; }
     return __awaiter(this, void 0, void 0, function () {
-        var totalEstimateAmount_1, extraEstimate, processingFee, gst, subtotal, totalAmount, contractorAmount, totalEstimateAmount_2, processingFee, gst, subtotal, totalAmount, contractorAmount;
+        var estimates, subtotal, processingFee, gst, totalAmount, contractorAmount, siteVisitAmount, totalEstimateAmount;
         return __generator(this, function (_a) {
-            if (extraEstimateId) {
-                totalEstimateAmount_1 = 0;
-                extraEstimate = this.extraEstimates.find(function (estimate) { return estimate.id === extraEstimateId; });
-                if (!extraEstimate)
-                    return [2 /*return*/];
-                extraEstimate.estimates.forEach(function (estimate) {
-                    totalEstimateAmount_1 += estimate.rate * estimate.quantity;
-                });
-                processingFee = 0;
-                gst = 0;
-                if (totalEstimateAmount_1 <= 1000) {
-                    processingFee = parseFloat(((20 / 100) * totalEstimateAmount_1).toFixed(2));
-                }
-                else if (totalEstimateAmount_1 <= 5000) {
-                    processingFee = parseFloat(((15 / 100) * totalEstimateAmount_1).toFixed(2));
-                }
-                else {
-                    processingFee = parseFloat(((10 / 100) * totalEstimateAmount_1).toFixed(2));
-                }
-                gst = parseFloat(((5 / 100) * totalEstimateAmount_1).toFixed(2));
-                subtotal = totalEstimateAmount_1;
-                totalAmount = (subtotal + processingFee + gst).toFixed(2);
-                contractorAmount = (subtotal + gst).toFixed(2);
-                return [2 /*return*/, { subtotal: subtotal, processingFee: processingFee, gst: gst, totalAmount: totalAmount, contractorAmount: contractorAmount }];
+            estimates = [];
+            if (type == job_model_1.JOB_PAYMENT_TYPE.CHANGE_ORDER) {
+                estimates = this.changeOrderEstimate.estimates;
+            }
+            if (type == job_model_1.JOB_PAYMENT_TYPE.SITE_VISIT) {
+                estimates = this.siteVisitEstimate.estimates;
+            }
+            siteVisitAmount = 0;
+            totalEstimateAmount = 0;
+            estimates.forEach(function (estimate) {
+                totalEstimateAmount += estimate.rate * estimate.quantity;
+            });
+            if (totalEstimateAmount <= 1000) {
+                processingFee = parseFloat(((20 / 100) * totalEstimateAmount).toFixed(2));
+            }
+            else if (totalEstimateAmount <= 5000) {
+                processingFee = parseFloat(((15 / 100) * totalEstimateAmount).toFixed(2));
             }
             else {
-                totalEstimateAmount_2 = 0;
-                // Calculate total estimate amount from rate * quantity for each estimate
-                this.estimates.forEach(function (estimate) {
-                    totalEstimateAmount_2 += estimate.rate * estimate.quantity;
-                });
-                processingFee = 0;
-                gst = 0;
-                if (totalEstimateAmount_2 <= 1000) {
-                    processingFee = parseFloat(((20 / 100) * totalEstimateAmount_2).toFixed(2));
-                }
-                else if (totalEstimateAmount_2 <= 5000) {
-                    processingFee = parseFloat(((15 / 100) * totalEstimateAmount_2).toFixed(2));
-                }
-                else {
-                    processingFee = parseFloat(((10 / 100) * totalEstimateAmount_2).toFixed(2));
-                }
-                gst = parseFloat(((5 / 100) * totalEstimateAmount_2).toFixed(2));
-                subtotal = totalEstimateAmount_2;
-                totalAmount = (subtotal + processingFee + gst).toFixed(2);
-                contractorAmount = (subtotal + gst).toFixed(2);
-                return [2 /*return*/, { subtotal: subtotal, processingFee: processingFee, gst: gst, totalAmount: totalAmount, contractorAmount: contractorAmount }];
+                processingFee = parseFloat(((10 / 100) * totalEstimateAmount).toFixed(2));
             }
-            return [2 /*return*/];
+            gst = parseFloat(((5 / 100) * totalEstimateAmount).toFixed(2));
+            subtotal = totalEstimateAmount;
+            totalAmount = (subtotal + processingFee + gst).toFixed(2);
+            contractorAmount = (subtotal + gst).toFixed(2);
+            return [2 /*return*/, { subtotal: subtotal, processingFee: processingFee, gst: gst, totalAmount: totalAmount, contractorAmount: contractorAmount }];
         });
     });
 };
-JobQoutationSchema.virtual('charges').get(function () {
+JobQuotationSchema.virtual('charges').get(function () {
     var totalEstimateAmount = 0;
-    // Calculate total estimate amount from rate * quantity for each estimate
-    if (this.estimates) {
-        this.estimates.forEach(function (estimate) {
-            totalEstimateAmount += estimate.rate * estimate.quantity;
-        });
-        var processingFee = 0;
-        var gst = 0;
-        if (totalEstimateAmount <= 1000) {
-            processingFee = parseFloat(((20 / 100) * totalEstimateAmount).toFixed(2));
-        }
-        else if (totalEstimateAmount <= 5000) {
-            processingFee = parseFloat(((15 / 100) * totalEstimateAmount).toFixed(2));
-        }
-        else {
-            processingFee = parseFloat(((10 / 100) * totalEstimateAmount).toFixed(2));
-        }
-        gst = parseFloat(((5 / 100) * totalEstimateAmount).toFixed(2));
-        // Calculate subtotal before adding processing fee and GST
-        var subtotal = totalEstimateAmount;
-        // Calculate total amounts for customer and contractor
-        var totalAmount = (subtotal + processingFee + gst).toFixed(2);
-        var contractorAmount = (subtotal + gst).toFixed(2);
-        return { subtotal: subtotal, processingFee: processingFee, gst: gst, totalAmount: totalAmount, contractorAmount: contractorAmount };
+    var estimates = [];
+    var type = (this.type == JOB_QUOTATION_TYPE.SITE_VISIT) ? job_model_1.JOB_PAYMENT_TYPE.SITE_VISIT : job_model_1.JOB_PAYMENT_TYPE.JOB_BOOKING;
+    if (type == job_model_1.JOB_PAYMENT_TYPE.CHANGE_ORDER) {
+        estimates = this.changeOrderEstimate.estimates;
     }
-    return { subtotal: 0, processingFee: 0, gst: 0, totalAmount: 0, contractorAmount: 0, siteVisitAmount: 0 };
+    if (type == job_model_1.JOB_PAYMENT_TYPE.SITE_VISIT) {
+        estimates = this.siteVisitEstimate.estimates;
+    }
+    estimates.forEach(function (estimate) {
+        totalEstimateAmount += estimate.rate * estimate.quantity;
+    });
+    var subtotal, processingFee, gst, totalAmount, contractorAmount, siteVisitAmount = 0;
+    if (totalEstimateAmount <= 1000) {
+        processingFee = parseFloat(((20 / 100) * totalEstimateAmount).toFixed(2));
+    }
+    else if (totalEstimateAmount <= 5000) {
+        processingFee = parseFloat(((15 / 100) * totalEstimateAmount).toFixed(2));
+    }
+    else {
+        processingFee = parseFloat(((10 / 100) * totalEstimateAmount).toFixed(2));
+    }
+    gst = parseFloat(((5 / 100) * totalEstimateAmount).toFixed(2));
+    subtotal = totalEstimateAmount;
+    totalAmount = (subtotal + processingFee + gst).toFixed(2);
+    contractorAmount = (subtotal + gst).toFixed(2);
+    return { subtotal: subtotal, processingFee: processingFee, gst: gst, totalAmount: totalAmount, contractorAmount: contractorAmount };
 });
-JobQoutationSchema.set('toObject', { virtuals: true });
-JobQoutationSchema.set('toJSON', { virtuals: true });
-var JobQuotationModel = (0, mongoose_1.model)('job_quotations', JobQoutationSchema);
+JobQuotationSchema.set('toObject', { virtuals: true });
+JobQuotationSchema.set('toJSON', { virtuals: true });
+var JobQuotationModel = (0, mongoose_1.model)('job_quotations', JobQuotationSchema);
 exports.JobQuotationModel = JobQuotationModel;

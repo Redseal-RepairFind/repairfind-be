@@ -36,7 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.JobModel = exports.JobType = exports.JOB_SCHEDULE_TYPE = exports.JOB_STATUS = void 0;
+exports.JobModel = exports.JobType = exports.JOB_SCHEDULE_TYPE = exports.JOB_PAYMENT_TYPE = exports.JOB_STATUS = void 0;
 var mongoose_1 = require("mongoose");
 var job_quotation_model_1 = require("./job_quotation.model");
 var JOB_STATUS;
@@ -51,7 +51,15 @@ var JOB_STATUS;
     JOB_STATUS["DISPUTED"] = "DISPUTED";
     JOB_STATUS["CANCELED"] = "CANCELED";
     JOB_STATUS["NOT_STARTED"] = "NOT_STARTED";
+    JOB_STATUS["ONGOING_SITE_VISIT"] = "ONGOING_SITE_VISIT";
+    JOB_STATUS["COMPLETED_SITE_VISIT"] = "COMPLETED_SITE_VISIT";
 })(JOB_STATUS || (exports.JOB_STATUS = JOB_STATUS = {}));
+var JOB_PAYMENT_TYPE;
+(function (JOB_PAYMENT_TYPE) {
+    JOB_PAYMENT_TYPE["SITE_VISIT"] = "SITE_VISIT";
+    JOB_PAYMENT_TYPE["JOB_BOOKING"] = "JOB_BOOKING";
+    JOB_PAYMENT_TYPE["CHANGE_ORDER"] = "CHANGE_ORDER";
+})(JOB_PAYMENT_TYPE || (exports.JOB_PAYMENT_TYPE = JOB_PAYMENT_TYPE = {}));
 var JOB_SCHEDULE_TYPE;
 (function (JOB_SCHEDULE_TYPE) {
     JOB_SCHEDULE_TYPE["JOB_DAY"] = "JOB_DAY";
@@ -197,9 +205,10 @@ JobSchema.methods.getPayments = function () {
                     totalAmount = job.payments.reduce(function (acc, payment) { return acc + payment.amount; }, 0);
                     payments = job.payments.map(function (payment) {
                         return {
+                            id: payment._id,
+                            reference: payment.reference,
                             amount: payment.amount,
                             amount_refunded: payment.amount_refunded,
-                            reference: payment.reference,
                             status: payment.status,
                             refunded: payment.refunded,
                             paid: payment.paid,

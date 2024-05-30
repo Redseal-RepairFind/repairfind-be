@@ -40,11 +40,11 @@ exports.expireJobs = void 0;
 var job_model_1 = require("../../../database/common/job.model");
 var logger_1 = require("../../../utils/logger");
 var expireJobs = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var jobs, _i, jobs_1, job, createdAt, elapsedDays, error_1, error_2;
+    var jobs, _i, jobs_1, job, error_1, error_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 9, , 10]);
+                _a.trys.push([0, 8, , 9]);
                 return [4 /*yield*/, job_model_1.JobModel.find({
                         status: { $nin: ['EXPIRED', 'BOOKED'], $in: ['PENDING'] },
                         expiresIn: { $gt: 0 }
@@ -54,34 +54,33 @@ var expireJobs = function () { return __awaiter(void 0, void 0, void 0, function
                 _i = 0, jobs_1 = jobs;
                 _a.label = 2;
             case 2:
-                if (!(_i < jobs_1.length)) return [3 /*break*/, 8];
+                if (!(_i < jobs_1.length)) return [3 /*break*/, 7];
                 job = jobs_1[_i];
                 _a.label = 3;
             case 3:
-                _a.trys.push([3, 6, , 7]);
-                createdAt = job.createdAt.getTime();
-                elapsedDays = Math.floor((Date.now() - createdAt) / (1000 * 60 * 60 * 24));
-                if (!(elapsedDays >= job.expiresIn)) return [3 /*break*/, 5];
-                job.status = job_model_1.JOB_STATUS.EXPIRED;
+                _a.trys.push([3, 5, , 6]);
+                job.expiresIn -= 1; // Reduce expiresIn count by 1 each day
+                if (job.expiresIn <= 0) {
+                    job.status = job_model_1.JOB_STATUS.EXPIRED;
+                }
                 return [4 /*yield*/, job.save()];
             case 4:
                 _a.sent();
-                logger_1.Logger.info("Successfully expired job: ".concat(job.id));
-                _a.label = 5;
-            case 5: return [3 /*break*/, 7];
-            case 6:
+                logger_1.Logger.info("Successfully processed job expiration for job: ".concat(job.id));
+                return [3 /*break*/, 6];
+            case 5:
                 error_1 = _a.sent();
-                logger_1.Logger.error("Error expiring job: ".concat(job.id), error_1);
-                return [3 /*break*/, 7];
-            case 7:
+                logger_1.Logger.error("Error processing job expiration for job: ".concat(job.id), error_1);
+                return [3 /*break*/, 6];
+            case 6:
                 _i++;
                 return [3 /*break*/, 2];
-            case 8: return [3 /*break*/, 10];
-            case 9:
+            case 7: return [3 /*break*/, 9];
+            case 8:
                 error_2 = _a.sent();
-                logger_1.Logger.error('Error occurred while expiring job:', error_2);
-                return [3 /*break*/, 10];
-            case 10: return [2 /*return*/];
+                logger_1.Logger.error('Error occurred while expiring jobs:', error_2);
+                return [3 /*break*/, 9];
+            case 9: return [2 /*return*/];
         }
     });
 }); };

@@ -701,7 +701,7 @@ var paymentMethodDetached = function (payload) { return __awaiter(void 0, void 0
 exports.paymentMethodDetached = paymentMethodDetached;
 // Charge
 var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var userType, userId, user, stripeChargeDTO, payment, transactionId, transaction, captureDetails, capturableTransactionDto, captureDetails, capturableTransactionDto, metadata, jobId, job, quotationId, quotation, extraEstimateId_1, extraEstimate, error_11;
+    var userType, userId, user, stripeChargeDTO, payment, transactionId, transaction, captureDetails, capturableTransactionDto, captureDetails, capturableTransactionDto, metadata, jobId, jobPaymentType, quotationId, job, quotation, changeOrderEstimate, error_11;
     var _a, _b;
     return __generator(this, function (_c) {
         switch (_c.label) {
@@ -772,23 +772,21 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                     }
                 }
                 metadata = payment.metadata;
-                if (!(metadata.type == 'job_payment')) return [3 /*break*/, 9];
+                if (!(metadata.type == transaction_model_1.TRANSACTION_TYPE.JOB_PAYMENT)) return [3 /*break*/, 9];
                 jobId = metadata.jobId;
-                if (!jobId) return [3 /*break*/, 9];
+                jobPaymentType = metadata.jobPaymentType;
+                quotationId = metadata.quotationId;
+                if (!(jobId && jobPaymentType && quotationId)) return [3 /*break*/, 9];
                 return [4 /*yield*/, job_model_1.JobModel.findById(jobId)];
             case 5:
                 job = _c.sent();
-                if (!job)
-                    return [2 /*return*/];
-                quotationId = metadata.quotationId;
                 return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findById(quotationId)];
             case 6:
                 quotation = _c.sent();
-                if (!quotation)
+                if (!job || !quotation)
                     return [2 /*return*/];
-                if (metadata.remark == 'initial_job_payment') {
+                if (jobPaymentType == job_model_1.JOB_PAYMENT_TYPE.JOB_BOOKING) {
                     job.status = job_model_1.JOB_STATUS.BOOKED;
-                    job.quotation = quotation.id;
                     job.contract = quotation.id;
                     job.contractor = quotation.contractor;
                     quotation.isPaid = true;
@@ -801,27 +799,31 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                             remark: 'Initial job schedule'
                         };
                     }
-                    else if (quotation.siteVisit) {
-                        // Check if quotation.siteVisit.date is a valid Date object
-                        if (quotation.siteVisit instanceof Date) {
-                            job.schedule = {
-                                startDate: quotation.startDate,
-                                type: job_model_1.JOB_SCHEDULE_TYPE.SITE_VISIT,
-                                remark: 'Initial site visit schedule'
-                            };
-                        }
-                        else {
-                            console.log('quotation.siteVisit.date is not a valid Date object.');
-                        }
+                }
+                if (jobPaymentType == job_model_1.JOB_PAYMENT_TYPE.SITE_VISIT) {
+                    job.status = job_model_1.JOB_STATUS.BOOKED;
+                    job.contract = quotation.id;
+                    job.contractor = quotation.contractor;
+                    quotation.siteVisitEstimate.isPaid = true;
+                    quotation.siteVisitEstimate.payment = payment.id;
+                    quotation.status = job_quotation_model_1.JOB_QUOTATION_STATUS.ACCEPTED;
+                    if (quotation.siteVisit instanceof Date) {
+                        job.schedule = {
+                            startDate: quotation.siteVisit,
+                            type: job_model_1.JOB_SCHEDULE_TYPE.SITE_VISIT,
+                            remark: 'Site visit schedule'
+                        };
+                    }
+                    else {
+                        console.log('quotation.siteVisit.date is not a valid Date object.');
                     }
                 }
-                if (metadata.remark == 'extra_job_payment') {
-                    extraEstimateId_1 = metadata.extraEstimateId;
-                    extraEstimate = quotation.extraEstimates.find(function (estimate) { return estimate.id === extraEstimateId_1; });
-                    if (!extraEstimate)
+                if (jobPaymentType == job_model_1.JOB_PAYMENT_TYPE.CHANGE_ORDER) {
+                    changeOrderEstimate = quotation.changeOrderEstimate;
+                    if (!changeOrderEstimate)
                         return [2 /*return*/];
-                    extraEstimate.isPaid = true;
-                    extraEstimate.payment = payment.id;
+                    changeOrderEstimate.isPaid = true;
+                    changeOrderEstimate.payment = payment.id;
                 }
                 if (!job.payments.includes(payment.id))
                     job.payments.push(payment.id);

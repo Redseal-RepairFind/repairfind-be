@@ -32,6 +32,7 @@ var PaymentSchema = new mongoose_1.Schema({
     amount_refunded: { type: Number },
     application_fee_amount: { type: Number },
     object: { type: String, required: true },
+    transaction: { type: mongoose_1.Schema.Types.ObjectId, ref: 'transactions' },
     user: { type: mongoose_1.Schema.Types.ObjectId, refPath: 'userType', required: true },
     userType: { type: String, required: true },
     customer: { type: String },

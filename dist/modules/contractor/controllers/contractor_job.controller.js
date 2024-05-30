@@ -50,10 +50,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorJobController = exports.getJobHistory = exports.getMyJobs = exports.getJobListings = exports.updateJobQuotation = exports.getQuotationForJob = exports.sendExtraJobQuotation = exports.sendJobQuotation = exports.getJobListingById = exports.getJobRequestById = exports.rejectJobRequest = exports.acceptJobRequest = exports.getJobRequests = void 0;
+exports.ContractorJobController = exports.getJobHistory = exports.getMyJobs = exports.getJobListings = exports.updateJobQuotation = exports.getQuotationForJob = exports.sendChangeOrderJobQuotation = exports.sendJobQuotation = exports.getJobListingById = exports.getJobRequestById = exports.rejectJobRequest = exports.acceptJobRequest = exports.getJobRequests = void 0;
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
-var jobQoutationTemplate_1 = require("../../../templates/customerEmail/jobQoutationTemplate");
 var job_model_1 = require("../../../database/common/job.model");
 var api_feature_1 = require("../../../utils/api.feature");
 var custom_errors_1 = require("../../../utils/custom.errors");
@@ -62,7 +61,6 @@ var customer_model_1 = __importDefault(require("../../../database/customer/model
 var mongoose_1 = __importDefault(require("mongoose")); // Import Document type from mongoose
 var conversations_schema_1 = require("../../../database/common/conversations.schema");
 var messages_schema_1 = require("../../../database/common/messages.schema");
-var services_1 = require("../../../services");
 var contractor_profile_model_1 = require("../../../database/contractor/models/contractor_profile.model");
 var interface_dto_util_1 = require("../../../utils/interface_dto.util");
 var stripe_1 = require("../../../services/stripe");
@@ -195,42 +193,8 @@ var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 };
                 // Push the rejection event to the job history array
                 job.jobHistory.push(jobEvent);
-                // // Create the initial job application
-                // const quotation = new JobQuotationModel({
-                //   contractor: contractorId,
-                //   job: jobId,
-                //   status: JOB_QUOTATION_STATUS.PENDING, // Assuming initial status is pending
-                //   estimate: [], // You may need to adjust this based on your application schema
-                //   startDate: job.startDate,
-                //   endDate: job.endDate,
-                //   siteVerification: false, // Example value, adjust as needed
-                //   processingFee: 0 // Example value, adjust as needed
-                // });
-                // // Save the initial job application
-                // await quotation.save();
-                // Associate the job application with the job request
-                // if (!job.quotations.includes(quotation.id)) {
-                //   job.quotations.push(quotation.id);
-                // }
                 return [4 /*yield*/, job.save()];
             case 8:
-                // // Create the initial job application
-                // const quotation = new JobQuotationModel({
-                //   contractor: contractorId,
-                //   job: jobId,
-                //   status: JOB_QUOTATION_STATUS.PENDING, // Assuming initial status is pending
-                //   estimate: [], // You may need to adjust this based on your application schema
-                //   startDate: job.startDate,
-                //   endDate: job.endDate,
-                //   siteVerification: false, // Example value, adjust as needed
-                //   processingFee: 0 // Example value, adjust as needed
-                // });
-                // // Save the initial job application
-                // await quotation.save();
-                // Associate the job application with the job request
-                // if (!job.quotations.includes(quotation.id)) {
-                //   job.quotations.push(quotation.id);
-                // }
                 _c.sent();
                 conversationMembers = [
                     { memberType: 'customers', member: job.customer },
@@ -439,12 +403,12 @@ var getJobListingById = function (req, res, next) { return __awaiter(void 0, voi
 }); };
 exports.getJobListingById = getJobListingById;
 var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var jobId, contractorId, _a, startDate, endDate, siteVisit, _b, estimates, errors, _c, contractor, job, customer, previousQuotation, appliedQuotationsCount, quotation, jobQuotation_1, _d, html, err_1;
-    var _e, _f;
-    return __generator(this, function (_g) {
-        switch (_g.label) {
+    var jobId, contractorId, _a, startDate, endDate, siteVisit, _b, estimates, errors, _c, contractor, job, customer, previousQuotation, appliedQuotationsCount, quotation, jobQuotation_1, siteVisitEstimate, err_1;
+    var _d, _e;
+    return __generator(this, function (_f) {
+        switch (_f.label) {
             case 0:
-                _g.trys.push([0, 9, , 10]);
+                _f.trys.push([0, 9, , 10]);
                 jobId = req.params.jobId;
                 contractorId = req.contractor.id;
                 _a = req.body, startDate = _a.startDate, endDate = _a.endDate, siteVisit = _a.siteVisit, _b = _a.estimates, estimates = _b === void 0 ? [] : _b;
@@ -457,13 +421,13 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                         job_model_1.JobModel.findById(jobId).sort({ createdAt: -1 })
                     ])];
             case 1:
-                _c = _g.sent(), contractor = _c[0], job = _c[1];
+                _c = _f.sent(), contractor = _c[0], job = _c[1];
                 if (!contractor || !job) {
                     return [2 /*return*/, res.status(401).json({ message: "Invalid credential or job does not exist" })];
                 }
                 return [4 /*yield*/, customer_model_1.default.findOne({ _id: job.customer })];
             case 2:
-                customer = _g.sent();
+                customer = _f.sent();
                 if (!customer) {
                     return [2 /*return*/, res
                             .status(401)
@@ -471,7 +435,7 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                 }
                 return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne({ job: jobId, contractor: contractorId })];
             case 3:
-                previousQuotation = _g.sent();
+                previousQuotation = _f.sent();
                 if (previousQuotation && previousQuotation.status === job_quotation_model_1.JOB_QUOTATION_STATUS.DECLINED) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "You cannot apply again since your previous quotation was declined" })];
                 }
@@ -480,33 +444,33 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                         status: { $ne: job_quotation_model_1.JOB_QUOTATION_STATUS.DECLINED }
                     })];
             case 4:
-                appliedQuotationsCount = _g.sent();
+                appliedQuotationsCount = _f.sent();
                 if (appliedQuotationsCount >= 3) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "Maximum number of contractors already applied for this job" })];
                 }
                 return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne({ job: jobId, contractor: contractorId })];
             case 5:
-                quotation = _g.sent();
+                quotation = _f.sent();
                 if (quotation) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "You have already submitted a quotation for this job" })];
                 }
                 // Check if contractor has a verified connected account
-                if (!contractor.onboarding.hasStripeAccount || !(((_e = contractor.stripeAccountStatus) === null || _e === void 0 ? void 0 : _e.card_payments_enabled) && ((_f = contractor.stripeAccountStatus) === null || _f === void 0 ? void 0 : _f.transfers_enabled))) {
+                if (!contractor.onboarding.hasStripeAccount || !(((_d = contractor.stripeAccountStatus) === null || _d === void 0 ? void 0 : _d.card_payments_enabled) && ((_e = contractor.stripeAccountStatus) === null || _e === void 0 ? void 0 : _e.transfers_enabled))) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "Kindly connect your bank account to receive payment" })];
-                }
-                // Prepare estimates
-                if (siteVisit) {
-                    estimates.push({ description: 'Site Visit', amount: 100, rate: 100, quantity: 1 });
                 }
                 return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOneAndUpdate({ job: jobId, contractor: contractorId }, { startDate: startDate ? new Date(startDate) : null, endDate: endDate ? new Date(startDate) : null, siteVisit: siteVisit ? new Date(siteVisit) : null, estimates: estimates, jobId: jobId, contractorId: contractorId }, { new: true, upsert: true })];
             case 6:
-                jobQuotation_1 = _g.sent();
-                // Calculate charges for the job quotation
-                _d = jobQuotation_1;
-                return [4 /*yield*/, jobQuotation_1.calculateCharges()];
-            case 7:
-                // Calculate charges for the job quotation
-                _d.charges = _g.sent();
+                jobQuotation_1 = _f.sent();
+                // Prepare estimates
+                if (siteVisit) {
+                    siteVisitEstimate = {
+                        isPaid: false,
+                        date: new Date(),
+                        estimates: [{ description: 'Site Visit', amount: 100, rate: 100, quantity: 1 }]
+                    };
+                    jobQuotation_1.siteVisitEstimate = siteVisitEstimate;
+                    jobQuotation_1.type = job_quotation_model_1.JOB_QUOTATION_TYPE.SITE_VISIT;
+                }
                 // Add job quotation to job's list of quotations
                 if (!job.quotations.some(function (quotation) { return quotation.id === jobQuotation_1.id; })) {
                     job.quotations.push({ id: jobQuotation_1.id, status: jobQuotation_1.status });
@@ -520,23 +484,15 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                 }
                 // Save changes to the job
                 return [4 /*yield*/, job.save()];
-            case 8:
+            case 7:
                 // Save changes to the job
-                _g.sent();
+                _f.sent();
+                return [4 /*yield*/, jobQuotation_1.save()
+                    // Do other actions such as sending emails or notifications...
+                ];
+            case 8:
+                _f.sent();
                 // Do other actions such as sending emails or notifications...
-                if (estimates) {
-                    html = (0, jobQoutationTemplate_1.htmlJobQoutationTemplate)(customer.firstName, contractor.name);
-                    services_1.EmailService.send(customer.email, 'Job quotation from contractor', html);
-                    // if (conversation) {
-                    //   // send push notification
-                    // }
-                }
-                if (siteVisit) {
-                    //send message alert indicating that contractor has requested for site visit
-                    // if (conversation) {
-                    //  // send notification
-                    // }
-                }
                 res.json({
                     success: true,
                     message: "Job quotation successfully sent",
@@ -544,15 +500,15 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                 });
                 return [3 /*break*/, 10];
             case 9:
-                err_1 = _g.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', err_1))];
+                err_1 = _f.sent();
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError('Error sending job quotation', err_1))];
             case 10: return [2 /*return*/];
         }
     });
 }); };
 exports.sendJobQuotation = sendJobQuotation;
-var sendExtraJobQuotation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var jobId, contractorId, _a, quotationId, _b, estimates, errors, _c, contractor, job, customer, quotation, extraJobEstimate, _d, err_2;
+var sendChangeOrderJobQuotation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var jobId, contractorId, _a, quotationId, _b, estimates, errors, _c, contractor, job, customer, quotation, changeOrderEstimate, _d, err_2;
     return __generator(this, function (_e) {
         switch (_e.label) {
             case 0:
@@ -588,17 +544,17 @@ var sendExtraJobQuotation = function (req, res, next) { return __awaiter(void 0,
                 if (!job.isChangeOrder) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "Customer has not enabled change order" })];
                 }
-                extraJobEstimate = {
+                changeOrderEstimate = {
                     estimates: estimates,
                     isPaid: false,
                     date: new Date()
                 };
-                quotation.extraEstimates.push(extraJobEstimate);
+                quotation.changeOrderEstimate = changeOrderEstimate;
                 _d = quotation;
                 return [4 /*yield*/, quotation.calculateCharges()];
             case 4:
                 _d.charges = _e.sent();
-                job.jobHistory.push({ eventType: 'CHANGE_ORDER_ESTIMATE_SUBMITTED', timestamp: new Date(), payload: __assign({}, extraJobEstimate) });
+                job.jobHistory.push({ eventType: 'CHANGE_ORDER_ESTIMATE_SUBMITTED', timestamp: new Date(), payload: __assign({}, changeOrderEstimate) });
                 job.isChangeOrder = false;
                 return [4 /*yield*/, job.save()];
             case 5:
@@ -620,7 +576,7 @@ var sendExtraJobQuotation = function (req, res, next) { return __awaiter(void 0,
         }
     });
 }); };
-exports.sendExtraJobQuotation = sendExtraJobQuotation;
+exports.sendChangeOrderJobQuotation = sendChangeOrderJobQuotation;
 var getQuotationForJob = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var jobId, contractorId, jobQuotation, _a, error_6;
     return __generator(this, function (_b) {
@@ -638,7 +594,7 @@ var getQuotationForJob = function (req, res, next) { return __awaiter(void 0, vo
                 jobQuotation = _b.sent();
                 // Check if the job application exists
                 if (!jobQuotation) {
-                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Job quotation not found' })];
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'You have not submitted quotation for this job' })];
                 }
                 _a = jobQuotation;
                 return [4 /*yield*/, jobQuotation.calculateCharges()];
@@ -1023,5 +979,5 @@ exports.ContractorJobController = {
     getJobListingById: exports.getJobListingById,
     getMyJobs: exports.getMyJobs,
     getJobHistory: exports.getJobHistory,
-    sendExtraJobQuotation: exports.sendExtraJobQuotation
+    sendChangeOrderJobQuotation: exports.sendChangeOrderJobQuotation
 };

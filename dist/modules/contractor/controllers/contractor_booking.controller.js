@@ -604,7 +604,7 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
 }); };
 exports.cancelBooking = cancelBooking;
 var markBookingComplete = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var contractorId, bookingId, reason, job, contractor, error_9;
+    var contractorId, bookingId, reason, job, contractor, jobStatus, error_9;
     var _a;
     return __generator(this, function (_b) {
         switch (_b.label) {
@@ -633,9 +633,10 @@ var markBookingComplete = function (req, res, next) { return __awaiter(void 0, v
                 }
                 // Check if the job is already canceled
                 if (job.status === job_model_1.JOB_STATUS.COMPLETED) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'The booking is already marked as complete' })];
+                    // return res.status(400).json({ success: false, message: 'The booking is already marked as complete' });
                 }
-                job.statusUpdate = __assign(__assign({}, job.statusUpdate), { status: job_model_1.JOB_STATUS.COMPLETED, isCustomerAccept: false, isContractorAccept: true, awaitingConfirmation: true });
+                jobStatus = (job.schedule.type == job_model_1.JOB_SCHEDULE_TYPE.SITE_VISIT) ? job_model_1.JOB_STATUS.COMPLETED_SITE_VISIT : job_model_1.JOB_STATUS.COMPLETED;
+                job.statusUpdate = __assign(__assign({}, job.statusUpdate), { status: jobStatus, isCustomerAccept: false, isContractorAccept: true, awaitingConfirmation: true });
                 // job.status = JOB_STATUS.COMPLETED  // since its customer accepting job completion
                 job.jobHistory.push({
                     eventType: 'JOB_MARKED_COMPLETE_BY_CONTRACTOR',

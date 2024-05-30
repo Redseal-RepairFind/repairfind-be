@@ -130,7 +130,7 @@ router.post('/jobs/requests/:jobId/accept', contractorRoleCheck_middleware_1.che
 router.post('/jobs/requests/:jobId/reject', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.rejectJobRequest);
 // Quotation & Estimate
 router.post('/jobs/:jobId/quotations', contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateJobQuotationRequest, contractor_job_controller_1.ContractorJobController.sendJobQuotation); // send application and estimate
-router.post('/jobs/:jobId/extra-quotation', contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateExtraJobQuotationRequest, contractor_job_controller_1.ContractorJobController.sendExtraJobQuotation); // send application and estimate
+router.post('/jobs/:jobId/extra-quotation', contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateExtraJobQuotationRequest, contractor_job_controller_1.ContractorJobController.sendChangeOrderJobQuotation); // send application and estimate
 router.get('/jobs/:jobId/quotations', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.getQuotationForJob); // send application and estimate
 router.patch('/jobs/:jobId/quotations', contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateJobQuotationRequest, contractor_job_controller_1.ContractorJobController.updateJobQuotation); // send application and estimate
 // Notifications
@@ -162,8 +162,10 @@ router.post('/jobdays/initiate', contractorRoleCheck_middleware_1.checkContracto
 router.post('/jobdays/:jobDayId/trip-arrival', contractorRoleCheck_middleware_1.checkContractorRole, contractor_jobday_controller_1.ContractorJobDayController.confirmArrival);
 router.post('/jobdays/:jobDayId/post-quality-assurance', contractorRoleCheck_middleware_1.checkContractorRole, contractor_jobday_controller_1.ContractorJobDayController.savePostJobQualityAssurance);
 router.post('/jobdays/:jobDayId/pre-quality-assurance', contractorRoleCheck_middleware_1.checkContractorRole, contractor_jobday_controller_1.ContractorJobDayController.savePreJobJobQualityAssurance);
+router.post('/jobdays/:jobDayId/submit-estimate', contractorRoleCheck_middleware_1.checkContractorRole, contractor_jobday_controller_1.ContractorJobDayController.submitEstimate);
 router.post('/jobdays/:jobDayId/emergency', contractorRoleCheck_middleware_1.checkContractorRole, contractor_jobday_controller_1.ContractorJobDayController.createJobEmergency);
 router.post('/jobdays/:jobDayId/dispute', contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateJobDisputeRequest, contractor_jobday_controller_1.ContractorJobDayController.createJobDispute);
+router.post('/jobdays/:jobDayId/mark-complete', contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateJobDisputeRequest, contractor_jobday_controller_1.ContractorJobDayController.markJobDayComplete);
 // Call
 router.post("/voicecall/agora-rtc", contractorRoleCheck_middleware_1.checkContractorRole, contractor_call_controller_1.ContractorCallController.createRtcToken);
 router.post("/voicecall", contractorRoleCheck_middleware_1.checkContractorRole, contractor_call_controller_1.ContractorCallController.startCall);

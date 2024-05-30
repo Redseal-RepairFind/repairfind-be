@@ -57,18 +57,20 @@ router.post("/jobs/:jobId/quotations/:quotationId/accept", customerRoleChecker_m
 router.post("/jobs/:jobId/quotations/:quotationId/decline", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.declineJobQuotation);
 router.post("/jobs/:jobId/pay", customerRoleChecker_middleware_1.checkCustomerRole, customer_payment_controller_1.CustomerPaymentController.makeJobPayment);
 router.post("/jobs/:jobId/payment-capture", customerRoleChecker_middleware_1.checkCustomerRole, customer_payment_controller_1.CustomerPaymentController.captureJobPayment);
-router.post("/jobs/:jobId/extra-estimate-payment", customerRoleChecker_middleware_1.checkCustomerRole, customer_payment_controller_1.CustomerPaymentController.makeExtraEstimatePayment);
+router.post("/jobs/:jobId/change-order-payment", customerRoleChecker_middleware_1.checkCustomerRole, customer_payment_controller_1.CustomerPaymentController.makeChangeOrderEstimatePayment);
 // BOOKING
 router.get("/bookings", customerRoleChecker_middleware_1.checkCustomerRole, customer_booking_controller_1.CustomerBookingController.getMyBookings);
 router.get("/bookings/history", customerRoleChecker_middleware_1.checkCustomerRole, customer_booking_controller_1.CustomerBookingController.getBookingHistory);
 router.get("/bookings/disputes", customerRoleChecker_middleware_1.checkCustomerRole, customer_booking_controller_1.CustomerBookingController.getBookingDisputes);
 router.get("/bookings/:bookingId", customerRoleChecker_middleware_1.checkCustomerRole, customer_booking_controller_1.CustomerBookingController.getSingleBooking);
 router.post("/bookings/:bookingId/cancel", customerRoleChecker_middleware_1.checkCustomerRole, customer_booking_controller_1.CustomerBookingController.cancelBooking);
-router.post("/bookings/:bookingId/initiate-cancel", customerRoleChecker_middleware_1.checkCustomerRole, customer_booking_controller_1.CustomerBookingController.intiateBookingCancelation);
+router.post("/bookings/:bookingId/initiate-cancel", customerRoleChecker_middleware_1.checkCustomerRole, customer_booking_controller_1.CustomerBookingController.getRefundable);
 router.post("/bookings/:bookingId/change-order-toggle", customerRoleChecker_middleware_1.checkCustomerRole, customer_booking_controller_1.CustomerBookingController.toggleChangeOrder);
 router.post("/bookings/:bookingId/mark-complete", customerRoleChecker_middleware_1.checkCustomerRole, customer_booking_controller_1.CustomerBookingController.acceptBookingComplete);
 router.post("/bookings/:bookingId/review", customerRoleChecker_middleware_1.checkCustomerRole, customer_booking_controller_1.CustomerBookingController.reviewBookingOnCompletion);
 router.post("/bookings/:bookingId/reschedule", customerRoleChecker_middleware_1.checkCustomerRole, customer_booking_controller_1.CustomerBookingController.requestBookingReschedule);
+router.post("/bookings/:bookingId/dispute", customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.createJobDisputeParams, customer_booking_controller_1.CustomerBookingController.createBookingDispute);
+router.post("/bookings/:bookingId/refund", customerRoleChecker_middleware_1.checkCustomerRole, customer_booking_controller_1.CustomerBookingController.requestBookingRefund);
 router.post("/bookings/:bookingId/reschedule/:action", customerRoleChecker_middleware_1.checkCustomerRole, customer_booking_controller_1.CustomerBookingController.acceptOrDeclineReschedule);
 // Transactions
 router.get("/transactions", customerRoleChecker_middleware_1.checkCustomerRole, customer_transaction_controller_1.CustomerTransactionController.getTransactions);
@@ -88,6 +90,7 @@ router.post('/conversations/:conversationId/mark-all-read', customerRoleChecker_
 router.post('/jobdays/:jobDayId/confirm-arrival', customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.tripArrivalComfirmParams, customer_jobday_controller_1.CustomerJobDayController.confirmContractorArrival);
 router.post('/jobdays/:jobDayId/emergency', customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.tripArrivalComfirmParams, customer_jobday_controller_1.CustomerJobDayController.createJobEmergency);
 router.post('/jobdays/:jobDayId/dispute', customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.createJobDisputeParams, customer_jobday_controller_1.CustomerJobDayController.createJobDispute);
+router.post('/jobdays/:jobDayId/confirm-completion', customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.createJobDisputeParams, customer_jobday_controller_1.CustomerJobDayController.confirmJobDayCompletion);
 router.post('/jobdays/:jobDayId/post-quality-assurance', customerRoleChecker_middleware_1.checkCustomerRole, customer_jobday_controller_1.CustomerJobDayController.savePostJobQualityAssurance);
 router.post('/jobdays/:jobDayId/pre-quality-assurance', customerRoleChecker_middleware_1.checkCustomerRole, customer_jobday_controller_1.CustomerJobDayController.savePreJobJobQualityAssurance);
 router.post('/jobdays/initiate', customerRoleChecker_middleware_1.checkCustomerRole, customer_jobday_controller_1.CustomerJobDayController.initiateJobDay);

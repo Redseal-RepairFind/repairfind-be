@@ -1,4 +1,15 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -39,11 +50,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorJobDayController = exports.savePostJobQualityAssurance = exports.savePreJobJobQualityAssurance = exports.createJobDispute = exports.createJobEmergency = exports.confirmArrival = exports.initiateJobDay = exports.startTrip = void 0;
+exports.ContractorJobDayController = exports.submitEstimate = exports.savePostJobQualityAssurance = exports.savePreJobJobQualityAssurance = exports.markJobDayComplete = exports.createJobDispute = exports.createJobEmergency = exports.confirmArrival = exports.initiateJobDay = exports.startTrip = void 0;
 var express_validator_1 = require("express-validator");
 var job_model_1 = require("../../../database/common/job.model");
 var otpGenerator_1 = require("../../../utils/otpGenerator");
-var index_1 = require("../../../services/notifications/index");
 var job_day_model_1 = require("../../../database/common/job_day.model");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var custom_errors_1 = require("../../../utils/custom.errors");
@@ -53,13 +63,14 @@ var conversations_schema_1 = require("../../../database/common/conversations.sch
 var contractor_profile_model_1 = require("../../../database/contractor/models/contractor_profile.model");
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var job_dispute_model_1 = require("../../../database/common/job_dispute.model");
+var job_quotation_model_1 = require("../../../database/common/job_quotation.model");
 var startTrip = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var jobId, errors, contractorId, job, activeTrip, trip, err_1;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var _a, jobId, contractorLocation, errors, contractorId, job, jobDay, err_1;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
-                _a.trys.push([0, 4, , 5]);
-                jobId = req.body.jobId;
+                _b.trys.push([0, 3, , 4]);
+                _a = req.body, jobId = _a.jobId, contractorLocation = _a.contractorLocation;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -67,79 +78,45 @@ var startTrip = function (req, res) { return __awaiter(void 0, void 0, void 0, f
                 contractorId = req.contractor.id;
                 return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobId, contractor: contractorId, status: job_model_1.JOB_STATUS.BOOKED })];
             case 1:
-                job = _a.sent();
+                job = _b.sent();
                 // Check if the job request exists
                 if (!job) {
-                    return [2 /*return*/, res.status(403).json({ success: false, message: 'Job request not found' })];
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Job booking not found' })];
                 }
-                return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ job: jobId, status: job_day_model_1.JOB_DAY_STATUS.STARTED })];
-            case 2:
-                activeTrip = _a.sent();
-                if (activeTrip) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'An active trip already exists for this job' })];
-                }
-                return [4 /*yield*/, job_day_model_1.JobDayModel.create({
+                return [4 /*yield*/, job_day_model_1.JobDayModel.findOneAndUpdate({ job: jobId, type: job.schedule.type }, {
                         customer: job.customer,
                         contractor: contractorId,
-                        job: jobId,
                         status: job_day_model_1.JOB_DAY_STATUS.STARTED,
+                        jobLocation: job.location,
+                        contractorLocation: contractorLocation,
                         type: job.schedule.type
-                    })
-                    // send notification to contractor
-                ];
-            case 3:
-                trip = _a.sent();
-                // send notification to contractor
-                index_1.NotificationService.sendNotification({
-                    user: contractorId,
-                    userType: 'contractors',
-                    title: 'trip',
-                    heading: {},
-                    type: 'JOB_DAY_STARTED',
-                    message: 'trip successfully started',
-                    payload: { event: 'JOB_DAY_STARTED', jobDayId: trip._id }
-                }, {
-                    push: true,
-                    socket: true,
-                    database: true
-                });
-                // send notification to customer
-                index_1.NotificationService.sendNotification({
-                    user: job.customer.toString(),
-                    userType: 'customers',
-                    title: 'trip',
-                    heading: {},
-                    type: 'JOB_DAY_STARTED',
-                    message: 'Contractor starts trip to your site.',
-                    payload: { event: 'JOB_DAY_STARTED', jobDayId: trip._id }
-                }, {
-                    push: true,
-                    socket: true,
-                    database: true
-                });
+                    }, { new: true, upsert: true })];
+            case 2:
+                jobDay = _b.sent();
+                events_1.JobEvent.emit('JOB_DAY_STARTED', { job: job, jobDay: jobDay });
                 res.json({
                     success: true,
-                    message: "trip successfully started",
-                    data: { jobLocation: job.location, trip: trip }
+                    message: "Jobday jobDay successfully started",
+                    data: { jobLocation: job.location, jobDay: jobDay }
                 });
-                return [3 /*break*/, 5];
-            case 4:
-                err_1 = _a.sent();
+                return [3 /*break*/, 4];
+            case 3:
+                err_1 = _b.sent();
                 console.log("error", err_1);
                 res.status(500).json({ message: err_1.message });
-                return [3 /*break*/, 5];
-            case 5: return [2 /*return*/];
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
         }
     });
 }); };
 exports.startTrip = startTrip;
 var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var jobId, errors, contractorId, contractorProfile, contractor, job, customer, activeTrip, conversationMembers, conversation, data, err_2;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var _a, jobId, contractorLocation, errors, contractorId, contractorProfile, contractor, job, customer, jobDay, conversationMembers, conversation, data, err_2;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
-                _a.trys.push([0, 7, , 8]);
-                jobId = req.body.jobId;
+                _b.trys.push([0, 7, , 8]);
+                _a = req.body, jobId = _a.jobId, contractorLocation = _a.contractorLocation;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -147,31 +124,31 @@ var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void
                 contractorId = req.contractor.id;
                 return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: contractorId })];
             case 1:
-                contractorProfile = _a.sent();
+                contractorProfile = _b.sent();
                 if (!contractorProfile) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor profile not found' })];
                 }
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
             case 2:
-                contractor = _a.sent();
+                contractor = _b.sent();
                 if (!contractor) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Job Contractor not found' })];
                 }
                 return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobId, contractor: contractorId })];
             case 3:
-                job = _a.sent();
+                job = _b.sent();
                 if (!job) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Job booking not found' })];
                 }
                 return [4 /*yield*/, customer_model_1.default.findOne({ _id: job.customer })];
             case 4:
-                customer = _a.sent();
+                customer = _b.sent();
                 if (!customer) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Job Customer not found' })];
                 }
-                return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ job: jobId, status: { $in: ['STARTED', 'ARRIVED', 'CONFIRMED', 'PENDING'] } })];
+                return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ job: jobId, type: job.schedule.type })];
             case 5:
-                activeTrip = _a.sent();
+                jobDay = _b.sent();
                 conversationMembers = [
                     { memberType: 'customers', member: job.customer },
                     { memberType: 'contractors', member: contractorId }
@@ -187,15 +164,13 @@ var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void
                         lastMessageAt: new Date() // Set the last message timestamp to now
                     }, { new: true, upsert: true })];
             case 6:
-                conversation = _a.sent();
+                conversation = _b.sent();
                 data = {
-                    jobLocation: job.location,
-                    contractorLocation: contractorProfile.location,
-                    conversation: conversation,
-                    customer: customer,
-                    contractor: contractor,
-                    booking: job,
-                    trip: activeTrip
+                    conversation: conversation.id,
+                    customer: { id: customer.id, phoneNumber: customer.phoneNumber, name: customer.name, email: customer.email, profilePhoto: customer.profilePhoto },
+                    contractor: { id: contractor.id, phoneNumber: contractor.phoneNumber, name: contractor.name, email: contractor.email, profilePhoto: contractor.profilePhoto },
+                    job: { id: job.id, description: job.description, title: job.title, schedule: job.schedule, type: job.type, date: job.date, location: job.location },
+                    jobDay: jobDay
                 };
                 res.json({
                     success: true,
@@ -204,7 +179,7 @@ var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void
                 });
                 return [3 /*break*/, 8];
             case 7:
-                err_2 = _a.sent();
+                err_2 = _b.sent();
                 console.log("error", err_2);
                 res.status(500).json({ message: err_2.message });
                 return [3 /*break*/, 8];
@@ -214,7 +189,7 @@ var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void
 }); };
 exports.initiateJobDay = initiateJobDay;
 var confirmArrival = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var jobDayId, errors, contractorId, contractor, trip, verificationCode, err_3;
+    var jobDayId, errors, contractorId, contractor, jobDay, verificationCode, err_3;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -233,50 +208,23 @@ var confirmArrival = function (req, res) { return __awaiter(void 0, void 0, void
                 }
                 return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ _id: jobDayId })];
             case 2:
-                trip = _a.sent();
-                if (!trip) {
-                    return [2 /*return*/, res.status(403).json({ success: false, message: 'trip not found' })];
+                jobDay = _a.sent();
+                if (!jobDay) {
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'jobDay not found' })];
                 }
-                if (!(trip.status === job_day_model_1.JOB_DAY_STATUS.STARTED || trip.status === job_day_model_1.JOB_DAY_STATUS.ARRIVED)) {
+                if (!(jobDay.status === job_day_model_1.JOB_DAY_STATUS.STARTED || jobDay.status === job_day_model_1.JOB_DAY_STATUS.ARRIVED)) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'Trip not started yet' })];
                 }
-                if (trip.verified) {
-                    return [2 /*return*/, res.status(403).json({ success: false, message: 'Trio already visited' })];
+                if (jobDay.verified) {
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'Jobday trip already visited' })];
                 }
                 verificationCode = (0, otpGenerator_1.generateOTP)();
-                trip.verificationCode = parseInt(verificationCode);
-                trip.status = job_day_model_1.JOB_DAY_STATUS.ARRIVED;
-                return [4 /*yield*/, trip.save()
-                    // send notification to  contractor
-                ];
+                jobDay.verificationCode = parseInt(verificationCode);
+                jobDay.status = job_day_model_1.JOB_DAY_STATUS.ARRIVED;
+                return [4 /*yield*/, jobDay.save()];
             case 3:
                 _a.sent();
-                // send notification to  contractor
-                index_1.NotificationService.sendNotification({
-                    user: contractorId,
-                    userType: 'contractors',
-                    title: 'trip',
-                    heading: {},
-                    type: 'JOB_DAY_ARRIVAL',
-                    message: 'you successfully arrrived at site, wait for comfirmation from customer.',
-                    payload: { event: 'JOB_DAY_ARRIVAL', jobDayId: jobDayId, verificationCode: verificationCode }
-                }, {
-                    push: true,
-                    socket: true,
-                });
-                // send notification to  customer
-                index_1.NotificationService.sendNotification({
-                    user: trip.customer.toString(),
-                    userType: 'customers',
-                    title: 'trip',
-                    heading: { name: contractorId, image: contractorId },
-                    type: 'JOB_DAY_ARRIVAL',
-                    message: 'Contractor is at your site.',
-                    payload: { event: 'JOB_DAY_ARRIVAL', jobDayId: jobDayId, verificationCode: verificationCode }
-                }, {
-                    push: true,
-                    socket: true,
-                });
+                events_1.JobEvent.emit('JOB_DAY_ARRIVAL', { jobDay: jobDay, verificationCode: verificationCode });
                 res.json({
                     success: true,
                     message: "you successfully arrrived at site, wait for comfirmation from customer",
@@ -420,6 +368,64 @@ var createJobDispute = function (req, res, next) { return __awaiter(void 0, void
     });
 }); };
 exports.createJobDispute = createJobDispute;
+var markJobDayComplete = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var contractorId, jobDayId, jobDay, job, contractor, jobStatus, error_3;
+    var _a;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 5, , 6]);
+                contractorId = req.contractor.id;
+                jobDayId = req.params.jobDayId;
+                return [4 /*yield*/, job_day_model_1.JobDayModel.findById(jobDayId)];
+            case 1:
+                jobDay = _b.sent();
+                if (!jobDay) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Job day not found' })];
+                }
+                return [4 /*yield*/, job_model_1.JobModel.findById(jobDay.job)];
+            case 2:
+                job = _b.sent();
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
+            case 3:
+                contractor = _b.sent();
+                // Check if the contractor exists
+                if (!contractor) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor for job not found' })];
+                }
+                // Check if the job exists
+                if (!job) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found' })];
+                }
+                // Check if the contractor is the owner of the job
+                if (!(job.contractor.toString() == contractorId || ((_a = job === null || job === void 0 ? void 0 : job.assignment) === null || _a === void 0 ? void 0 : _a.contractor.toString()) == contractorId)) {
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'You are not authorized to mark this job day as complete' })];
+                }
+                // Check if the job is already canceled
+                if (job.status === job_model_1.JOB_STATUS.COMPLETED) {
+                    // return res.status(400).json({ success: false, message: 'The booking is already marked as complete' });
+                }
+                jobStatus = (job.schedule.type == job_model_1.JOB_SCHEDULE_TYPE.SITE_VISIT) ? job_model_1.JOB_STATUS.COMPLETED_SITE_VISIT : job_model_1.JOB_STATUS.COMPLETED;
+                job.statusUpdate = __assign(__assign({}, job.statusUpdate), { status: jobStatus, isCustomerAccept: false, isContractorAccept: true, awaitingConfirmation: true });
+                job.jobHistory.push({
+                    eventType: 'JOB_MARKED_COMPLETE_BY_CONTRACTOR',
+                    timestamp: new Date(),
+                    payload: {}
+                });
+                events_1.JobEvent.emit('JOB_MARKED_COMPLETE_BY_CONTRACTOR', { job: job });
+                return [4 /*yield*/, job.save()];
+            case 4:
+                _b.sent();
+                res.json({ success: true, message: 'Jobday marked as complete successfully', data: job });
+                return [3 /*break*/, 6];
+            case 5:
+                error_3 = _b.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_3))];
+            case 6: return [2 /*return*/];
+        }
+    });
+}); };
+exports.markJobDayComplete = markJobDayComplete;
 var savePreJobJobQualityAssurance = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var jobDayId, _a, media, errors, jobDay, err_4;
     return __generator(this, function (_b) {
@@ -502,6 +508,74 @@ var savePostJobQualityAssurance = function (req, res) { return __awaiter(void 0,
     });
 }); };
 exports.savePostJobQualityAssurance = savePostJobQualityAssurance;
+var submitEstimate = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var contractorId, jobDayId, estimates, jobDay, contractor, job, quotation, jobStatus, error_4;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 7, , 8]);
+                contractorId = req.contractor.id;
+                jobDayId = req.params.jobDayId;
+                estimates = req.body.estimates;
+                return [4 /*yield*/, job_day_model_1.JobDayModel.findById(jobDayId)];
+            case 1:
+                jobDay = _a.sent();
+                if (!jobDay) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Job Day not found' })];
+                }
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
+            case 2:
+                contractor = _a.sent();
+                if (!contractor) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Customer not found' })];
+                }
+                return [4 /*yield*/, job_model_1.JobModel.findById(jobDay.job)];
+            case 3:
+                job = _a.sent();
+                // Check if the job exists
+                if (!job) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found' })];
+                }
+                // Check if the contractor is the owner of the job
+                if (jobDay.type !== job_day_model_1.JOB_DAY_TYPE.SITE_VISIT) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Estimate can only be submitted for site visit' })];
+                }
+                if (job.statusUpdate.status == job_model_1.JOB_STATUS.COMPLETED_SITE_VISIT && job.statusUpdate.awaitingConfirmation) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Customer has not confirmed completion of site visit' })];
+                }
+                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findById(job.contract)];
+            case 4:
+                quotation = _a.sent();
+                if (!quotation)
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Job quotation not found' })];
+                quotation.startDate = job.date;
+                quotation.estimates = estimates;
+                quotation.type = job_quotation_model_1.JOB_QUOTATION_TYPE.JOB_DAY;
+                jobStatus = (job.schedule.type == job_model_1.JOB_SCHEDULE_TYPE.SITE_VISIT) ? job_model_1.JOB_STATUS.COMPLETED_SITE_VISIT : job_model_1.JOB_STATUS.COMPLETED;
+                job.status = job_model_1.JOB_STATUS.PENDING;
+                job.statusUpdate = __assign(__assign({}, job.statusUpdate), { status: 'SITE_VISIT_ESTIMATE_SUBMITTED', isCustomerAccept: false, awaitingConfirmation: true });
+                job.jobHistory.push({
+                    eventType: 'SITE_VISIT_ESTIMATE_SUBMITTED',
+                    timestamp: new Date(),
+                    payload: {}
+                });
+                return [4 /*yield*/, quotation.save()];
+            case 5:
+                _a.sent();
+                return [4 /*yield*/, job.save()];
+            case 6:
+                _a.sent();
+                events_1.JobEvent.emit('SITE_VISIT_ESTIMATE_SUBMITTED', { job: job });
+                res.json({ success: true, message: 'Site visit estimate submitted successfully', data: job });
+                return [3 /*break*/, 8];
+            case 7:
+                error_4 = _a.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_4))];
+            case 8: return [2 /*return*/];
+        }
+    });
+}); };
+exports.submitEstimate = submitEstimate;
 exports.ContractorJobDayController = {
     startTrip: exports.startTrip,
     confirmArrival: exports.confirmArrival,
@@ -509,5 +583,7 @@ exports.ContractorJobDayController = {
     initiateJobDay: exports.initiateJobDay,
     savePostJobQualityAssurance: exports.savePostJobQualityAssurance,
     savePreJobJobQualityAssurance: exports.savePreJobJobQualityAssurance,
-    createJobDispute: exports.createJobDispute
+    createJobDispute: exports.createJobDispute,
+    markJobDayComplete: exports.markJobDayComplete,
+    submitEstimate: exports.submitEstimate
 };

@@ -62,7 +62,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerPaymentController = exports.captureJobPayment = exports.makeExtraEstimatePayment = exports.makeJobPayment = void 0;
+exports.CustomerPaymentController = exports.captureJobPayment = exports.makeChangeOrderEstimatePayment = exports.makeJobPayment = void 0;
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
@@ -232,7 +232,7 @@ var prepareStripePayload = function (data) {
     return payload;
 };
 var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, quotationId, paymentMethodId_1, jobId, errors, customerId, customer, job, quotation, contractor, paymentMethod, metadata, charges, transaction, payload, stripePayment, err_1;
+    var _a, quotationId, paymentMethodId_1, jobId, errors, customerId, customer, job, quotation, contractor, paymentMethod, jobPaymentType, charges, metadata, transaction, payload, stripePayment, err_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -265,18 +265,24 @@ var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0
                 if (job.status === job_model_1.JOB_STATUS.BOOKED) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'This job is not pending, so new payment is not possible' })];
                 }
+                jobPaymentType = job_model_1.JOB_PAYMENT_TYPE.JOB_BOOKING;
+                if (quotation.type == job_quotation_model_1.JOB_QUOTATION_TYPE.SITE_VISIT)
+                    jobPaymentType = job_model_1.JOB_PAYMENT_TYPE.SITE_VISIT;
+                if (quotation.type == job_quotation_model_1.JOB_QUOTATION_TYPE.JOB_DAY)
+                    jobPaymentType = job_model_1.JOB_PAYMENT_TYPE.JOB_BOOKING;
+                return [4 /*yield*/, quotation.calculateCharges(jobPaymentType)];
+            case 5:
+                charges = _b.sent();
                 metadata = {
                     customerId: customer.id,
                     constractorId: contractor === null || contractor === void 0 ? void 0 : contractor.id,
                     quotationId: quotation.id,
-                    type: 'job_payment',
+                    type: transaction_model_1.TRANSACTION_TYPE.JOB_PAYMENT,
                     jobId: jobId,
+                    jobPaymentType: jobPaymentType,
                     email: customer.email,
                     remark: 'initial_job_payment',
                 };
-                return [4 /*yield*/, quotation.calculateCharges()];
-            case 5:
-                charges = _b.sent();
                 return [4 /*yield*/, createTransaction(customerId, contractor.id, jobId, charges, paymentMethod)];
             case 6:
                 transaction = _b.sent();
@@ -299,13 +305,13 @@ var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0
     });
 }); };
 exports.makeJobPayment = makeJobPayment;
-var makeExtraEstimatePayment = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, quotationId, paymentMethodId_2, extraEstimateId_1, jobId, errors, customerId, customer, job, quotation, contractor, extraEstimate, paymentMethod, charges, metadata, transaction, payload, stripePayment, err_2;
+var makeChangeOrderEstimatePayment = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, quotationId, paymentMethodId_2, jobId, errors, customerId, customer, job, quotation, contractor, changeOrderEstimate, paymentMethod, jobPaymentType, charges, metadata, transaction, payload, stripePayment, err_2;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
                 _b.trys.push([0, 9, , 10]);
-                _a = req.body, quotationId = _a.quotationId, paymentMethodId_2 = _a.paymentMethodId, extraEstimateId_1 = _a.extraEstimateId;
+                _a = req.body, quotationId = _a.quotationId, paymentMethodId_2 = _a.paymentMethodId;
                 jobId = req.params.jobId;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
@@ -324,10 +330,10 @@ var makeExtraEstimatePayment = function (req, res, next) { return __awaiter(void
                 return [4 /*yield*/, findContractor(quotation.contractor)];
             case 4:
                 contractor = _b.sent();
-                extraEstimate = quotation.extraEstimates.find(function (estimate) { return estimate.id === extraEstimateId_1; });
-                if (!extraEstimate)
-                    throw new Error('No such extra estimat');
-                if (extraEstimate.isPaid)
+                changeOrderEstimate = quotation.changeOrderEstimate;
+                if (!changeOrderEstimate)
+                    throw new Error('No such changeOrder estimat');
+                if (changeOrderEstimate.isPaid)
                     throw new Error('Extra estimate already paid');
                 paymentMethod = customer.stripePaymentMethods.find(function (method) { return method.id === paymentMethodId_2; });
                 if (!paymentMethod) {
@@ -335,7 +341,8 @@ var makeExtraEstimatePayment = function (req, res, next) { return __awaiter(void
                 }
                 if (!paymentMethod)
                     throw new Error('No such payment method');
-                return [4 /*yield*/, quotation.calculateCharges(extraEstimate.id)];
+                jobPaymentType = job_model_1.JOB_PAYMENT_TYPE.CHANGE_ORDER;
+                return [4 /*yield*/, quotation.calculateCharges(jobPaymentType)];
             case 5:
                 charges = _b.sent();
                 metadata = {
@@ -343,10 +350,10 @@ var makeExtraEstimatePayment = function (req, res, next) { return __awaiter(void
                     constractorId: contractor === null || contractor === void 0 ? void 0 : contractor.id,
                     quotationId: quotation.id,
                     jobId: jobId,
-                    extraEstimateId: extraEstimateId_1,
-                    type: 'job_payment',
+                    jobPaymentType: jobPaymentType,
+                    type: transaction_model_1.TRANSACTION_TYPE.JOB_PAYMENT,
                     email: customer.email,
-                    remark: 'extra_job_payment',
+                    remark: 'change_order_estimate_payment',
                 };
                 return [4 /*yield*/, createTransaction(customerId, contractor.id, jobId, charges, paymentMethod, metadata)];
             case 6:
@@ -360,7 +367,7 @@ var makeExtraEstimatePayment = function (req, res, next) { return __awaiter(void
                 return [4 /*yield*/, job.save()];
             case 8:
                 _b.sent();
-                events_1.JobEvent.emit('CHANGE_ORDER_ESTIMATE_PAID', { job: job, quotation: quotation, extraEstimate: extraEstimate });
+                events_1.JobEvent.emit('CHANGE_ORDER_ESTIMATE_PAID', { job: job, quotation: quotation, changeOrderEstimate: changeOrderEstimate });
                 res.json({ success: true, message: 'Payment intent created', data: stripePayment });
                 return [3 /*break*/, 10];
             case 9:
@@ -370,9 +377,9 @@ var makeExtraEstimatePayment = function (req, res, next) { return __awaiter(void
         }
     });
 }); };
-exports.makeExtraEstimatePayment = makeExtraEstimatePayment;
+exports.makeChangeOrderEstimatePayment = makeChangeOrderEstimatePayment;
 var captureJobPayment = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, quotationId, paymentMethodId_3, jobId, errors, customerId, customer, job, quotation, contractor, paymentMethod, metadata, charges, transaction, payload, stripePayment, err_3;
+    var _a, quotationId, paymentMethodId_3, jobId, errors, customerId, customer, job, quotation, contractor, paymentMethod, jobPaymentType, charges, metadata, transaction, payload, stripePayment, err_3;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -405,18 +412,24 @@ var captureJobPayment = function (req, res, next) { return __awaiter(void 0, voi
                 if (job.status === job_model_1.JOB_STATUS.BOOKED) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'This job is not pending, so new payment is not possible' })];
                 }
+                jobPaymentType = job_model_1.JOB_PAYMENT_TYPE.JOB_BOOKING;
+                if (quotation.type == job_quotation_model_1.JOB_QUOTATION_TYPE.SITE_VISIT)
+                    jobPaymentType = job_model_1.JOB_PAYMENT_TYPE.SITE_VISIT;
+                if (quotation.type == job_quotation_model_1.JOB_QUOTATION_TYPE.JOB_DAY)
+                    jobPaymentType = job_model_1.JOB_PAYMENT_TYPE.JOB_BOOKING;
+                return [4 /*yield*/, quotation.calculateCharges(jobPaymentType)];
+            case 5:
+                charges = _b.sent();
                 metadata = {
                     customerId: customer.id,
                     constractorId: contractor === null || contractor === void 0 ? void 0 : contractor.id,
                     quotationId: quotation.id,
-                    type: 'job_payment',
+                    type: transaction_model_1.TRANSACTION_TYPE.JOB_PAYMENT,
                     jobId: jobId,
+                    jobPaymentType: jobPaymentType,
                     email: customer.email,
                     remark: 'initial_job_payment',
                 };
-                return [4 /*yield*/, quotation.calculateCharges()];
-            case 5:
-                charges = _b.sent();
                 return [4 /*yield*/, createTransaction(customerId, contractor.id, jobId, charges, paymentMethod)];
             case 6:
                 transaction = _b.sent();
@@ -442,5 +455,5 @@ exports.captureJobPayment = captureJobPayment;
 exports.CustomerPaymentController = {
     makeJobPayment: exports.makeJobPayment,
     captureJobPayment: exports.captureJobPayment,
-    makeExtraEstimatePayment: exports.makeExtraEstimatePayment
+    makeChangeOrderEstimatePayment: exports.makeChangeOrderEstimatePayment
 };

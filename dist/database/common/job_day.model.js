@@ -16,6 +16,14 @@ var JOB_DAY_TYPE;
     JOB_DAY_TYPE["JOB_DAY"] = "JOB_DAY";
     JOB_DAY_TYPE["SITE_VISIT"] = "SITE_VISIT";
 })(JOB_DAY_TYPE || (exports.JOB_DAY_TYPE = JOB_DAY_TYPE = {}));
+var LocationSchema = new mongoose_1.Schema({
+    address: { type: String },
+    city: { type: String },
+    region: { type: String },
+    country: { type: String },
+    latitude: { type: String },
+    longitude: { type: String },
+});
 var JobDayShema = new mongoose_1.Schema({
     customer: {
         type: mongoose_1.Schema.Types.ObjectId,
@@ -65,6 +73,8 @@ var JobDayShema = new mongoose_1.Schema({
         type: [String], // Array of customer's post-job media URLs or references
         default: [],
     },
+    jobLocation: LocationSchema,
+    contractorLocation: LocationSchema,
     createdAt: {
         type: Date,
         default: Date.now,
