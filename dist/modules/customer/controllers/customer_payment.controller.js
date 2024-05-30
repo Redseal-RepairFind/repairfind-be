@@ -265,11 +265,11 @@ var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0
                 if (job.status === job_model_1.JOB_STATUS.BOOKED) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'This job is not pending, so new payment is not possible' })];
                 }
-                jobPaymentType = job_model_1.JOB_PAYMENT_TYPE.JOB_BOOKING;
+                jobPaymentType = job_model_1.JOB_PAYMENT_TYPE.JOB_DAY;
                 if (quotation.type == job_quotation_model_1.JOB_QUOTATION_TYPE.SITE_VISIT)
                     jobPaymentType = job_model_1.JOB_PAYMENT_TYPE.SITE_VISIT;
                 if (quotation.type == job_quotation_model_1.JOB_QUOTATION_TYPE.JOB_DAY)
-                    jobPaymentType = job_model_1.JOB_PAYMENT_TYPE.JOB_BOOKING;
+                    jobPaymentType = job_model_1.JOB_PAYMENT_TYPE.JOB_DAY;
                 return [4 /*yield*/, quotation.calculateCharges(jobPaymentType)];
             case 5:
                 charges = _b.sent();
@@ -412,11 +412,11 @@ var captureJobPayment = function (req, res, next) { return __awaiter(void 0, voi
                 if (job.status === job_model_1.JOB_STATUS.BOOKED) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'This job is not pending, so new payment is not possible' })];
                 }
-                jobPaymentType = job_model_1.JOB_PAYMENT_TYPE.JOB_BOOKING;
+                jobPaymentType = job_model_1.JOB_PAYMENT_TYPE.JOB_DAY;
                 if (quotation.type == job_quotation_model_1.JOB_QUOTATION_TYPE.SITE_VISIT)
                     jobPaymentType = job_model_1.JOB_PAYMENT_TYPE.SITE_VISIT;
                 if (quotation.type == job_quotation_model_1.JOB_QUOTATION_TYPE.JOB_DAY)
-                    jobPaymentType = job_model_1.JOB_PAYMENT_TYPE.JOB_BOOKING;
+                    jobPaymentType = job_model_1.JOB_PAYMENT_TYPE.JOB_DAY;
                 return [4 /*yield*/, quotation.calculateCharges(jobPaymentType)];
             case 5:
                 charges = _b.sent();

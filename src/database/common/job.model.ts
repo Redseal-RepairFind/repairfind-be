@@ -34,7 +34,7 @@ export enum JOB_STATUS {
 
 export enum JOB_PAYMENT_TYPE {
     SITE_VISIT = 'SITE_VISIT',
-    JOB_BOOKING = 'JOB_BOOKING',
+    JOB_DAY = 'JOB_DAY',
     CHANGE_ORDER = 'CHANGE_ORDER',
 }
 

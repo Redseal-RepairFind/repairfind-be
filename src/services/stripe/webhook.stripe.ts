@@ -591,7 +591,7 @@ export const chargeSucceeded = async (payload: any) => {
                 if (!job || !quotation) return
                
                 
-                if (jobPaymentType == JOB_PAYMENT_TYPE.JOB_BOOKING) {
+                if (jobPaymentType == JOB_PAYMENT_TYPE.JOB_DAY) {
                     job.status = JOB_STATUS.BOOKED
                     job.contract = quotation.id
                     job.contractor = quotation.contractor

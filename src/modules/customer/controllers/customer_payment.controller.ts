@@ -181,9 +181,9 @@ export const makeJobPayment = async (req: any, res: Response, next: NextFunction
             return res.status(400).json({ success: false, message: 'This job is not pending, so new payment is not possible' });
         }
 
-        let jobPaymentType = JOB_PAYMENT_TYPE.JOB_BOOKING
+        let jobPaymentType = JOB_PAYMENT_TYPE.JOB_DAY
         if(quotation.type == JOB_QUOTATION_TYPE.SITE_VISIT) jobPaymentType = JOB_PAYMENT_TYPE.SITE_VISIT
-        if(quotation.type == JOB_QUOTATION_TYPE.JOB_DAY) jobPaymentType = JOB_PAYMENT_TYPE.JOB_BOOKING
+        if(quotation.type == JOB_QUOTATION_TYPE.JOB_DAY) jobPaymentType = JOB_PAYMENT_TYPE.JOB_DAY
         const charges = await quotation.calculateCharges(jobPaymentType);
 
         const metadata = {
@@ -302,9 +302,9 @@ export const captureJobPayment = async (req: any, res: Response, next: NextFunct
             return res.status(400).json({ success: false, message: 'This job is not pending, so new payment is not possible' });
         }
 
-        let jobPaymentType = JOB_PAYMENT_TYPE.JOB_BOOKING
+        let jobPaymentType = JOB_PAYMENT_TYPE.JOB_DAY
         if(quotation.type == JOB_QUOTATION_TYPE.SITE_VISIT) jobPaymentType = JOB_PAYMENT_TYPE.SITE_VISIT
-        if(quotation.type == JOB_QUOTATION_TYPE.JOB_DAY) jobPaymentType = JOB_PAYMENT_TYPE.JOB_BOOKING
+        if(quotation.type == JOB_QUOTATION_TYPE.JOB_DAY) jobPaymentType = JOB_PAYMENT_TYPE.JOB_DAY
         const charges = await quotation.calculateCharges(jobPaymentType);
 
 

@@ -785,7 +785,7 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                 quotation = _c.sent();
                 if (!job || !quotation)
                     return [2 /*return*/];
-                if (jobPaymentType == job_model_1.JOB_PAYMENT_TYPE.JOB_BOOKING) {
+                if (jobPaymentType == job_model_1.JOB_PAYMENT_TYPE.JOB_DAY) {
                     job.status = job_model_1.JOB_STATUS.BOOKED;
                     job.contract = quotation.id;
                     job.contractor = quotation.contractor;

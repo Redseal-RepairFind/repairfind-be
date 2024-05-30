@@ -85,7 +85,7 @@ JobQuotationSchema.methods.calculateCharges = function (type) {
     return __awaiter(this, void 0, void 0, function () {
         var estimates, subtotal, processingFee, gst, totalAmount, contractorAmount, siteVisitAmount, totalEstimateAmount;
         return __generator(this, function (_a) {
-            estimates = [];
+            estimates = this.estimates;
             if (type == job_model_1.JOB_PAYMENT_TYPE.CHANGE_ORDER) {
                 estimates = this.changeOrderEstimate.estimates;
             }
@@ -116,8 +116,8 @@ JobQuotationSchema.methods.calculateCharges = function (type) {
 };
 JobQuotationSchema.virtual('charges').get(function () {
     var totalEstimateAmount = 0;
-    var estimates = [];
-    var type = (this.type == JOB_QUOTATION_TYPE.SITE_VISIT) ? job_model_1.JOB_PAYMENT_TYPE.SITE_VISIT : job_model_1.JOB_PAYMENT_TYPE.JOB_BOOKING;
+    var estimates = this.estimates;
+    var type = (this.type == JOB_QUOTATION_TYPE.SITE_VISIT) ? job_model_1.JOB_PAYMENT_TYPE.SITE_VISIT : job_model_1.JOB_PAYMENT_TYPE.JOB_DAY;
     if (type == job_model_1.JOB_PAYMENT_TYPE.CHANGE_ORDER) {
         estimates = this.changeOrderEstimate.estimates;
     }
