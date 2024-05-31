@@ -89,7 +89,7 @@ var JobQueue = /** @class */ (function () {
         });
         exports.QueueService.addJob('expireJobs', {}, {
             repeat: {
-                every: 21600000, // 21600000 ms = 6 hours
+                every: 86400000, // 86400000 ms = 24 hours
             }
         });
         exports.QueueService.addJob('jobDayScheduleCheck', {}, {
