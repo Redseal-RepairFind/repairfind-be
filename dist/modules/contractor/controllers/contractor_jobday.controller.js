@@ -111,12 +111,12 @@ var startTrip = function (req, res) { return __awaiter(void 0, void 0, void 0, f
 }); };
 exports.startTrip = startTrip;
 var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, jobId, contractorLocation, errors, contractorId, contractorProfile, contractor, job, customer, jobDay, conversationMembers, conversation, data, err_2;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+    var jobId, errors, contractorId, contractorProfile, contractor, job, customer, jobDay, conversationMembers, conversation, contractorLocation, data, err_2;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
             case 0:
-                _b.trys.push([0, 7, , 8]);
-                _a = req.body, jobId = _a.jobId, contractorLocation = _a.contractorLocation;
+                _a.trys.push([0, 9, , 10]);
+                jobId = req.body.jobId;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -124,31 +124,31 @@ var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void
                 contractorId = req.contractor.id;
                 return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: contractorId })];
             case 1:
-                contractorProfile = _b.sent();
+                contractorProfile = _a.sent();
                 if (!contractorProfile) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor profile not found' })];
                 }
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
             case 2:
-                contractor = _b.sent();
+                contractor = _a.sent();
                 if (!contractor) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Job Contractor not found' })];
                 }
                 return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobId, contractor: contractorId })];
             case 3:
-                job = _b.sent();
+                job = _a.sent();
                 if (!job) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Job booking not found' })];
                 }
                 return [4 /*yield*/, customer_model_1.default.findOne({ _id: job.customer })];
             case 4:
-                customer = _b.sent();
+                customer = _a.sent();
                 if (!customer) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Job Customer not found' })];
                 }
                 return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ job: jobId, type: job.schedule.type })];
             case 5:
-                jobDay = _b.sent();
+                jobDay = _a.sent();
                 conversationMembers = [
                     { memberType: 'customers', member: job.customer },
                     { memberType: 'contractors', member: contractorId }
@@ -164,12 +164,22 @@ var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void
                         lastMessageAt: new Date() // Set the last message timestamp to now
                     }, { new: true, upsert: true })];
             case 6:
-                conversation = _b.sent();
+                conversation = _a.sent();
+                contractorLocation = contractorProfile.location;
+                if (!job.isAssigned) return [3 /*break*/, 8];
+                return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: job.assignment.contractor })];
+            case 7:
+                contractorProfile = _a.sent();
+                if (contractorProfile)
+                    contractorLocation = contractorProfile === null || contractorProfile === void 0 ? void 0 : contractorProfile.location;
+                _a.label = 8;
+            case 8:
                 data = {
                     conversation: conversation.id,
                     customer: { id: customer.id, phoneNumber: customer.phoneNumber, name: customer.name, email: customer.email, profilePhoto: customer.profilePhoto },
                     contractor: { id: contractor.id, phoneNumber: contractor.phoneNumber, name: contractor.name, email: contractor.email, profilePhoto: contractor.profilePhoto },
                     job: { id: job.id, description: job.description, title: job.title, schedule: job.schedule, type: job.type, date: job.date, location: job.location },
+                    contractorLocation: contractorLocation,
                     jobDay: jobDay
                 };
                 res.json({
@@ -177,13 +187,13 @@ var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void
                     message: "job day successfully initiated",
                     data: data
                 });
-                return [3 /*break*/, 8];
-            case 7:
-                err_2 = _b.sent();
+                return [3 /*break*/, 10];
+            case 9:
+                err_2 = _a.sent();
                 console.log("error", err_2);
                 res.status(500).json({ message: err_2.message });
-                return [3 /*break*/, 8];
-            case 8: return [2 /*return*/];
+                return [3 /*break*/, 10];
+            case 10: return [2 /*return*/];
         }
     });
 }); };
