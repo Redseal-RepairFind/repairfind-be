@@ -40,7 +40,7 @@ export const initiateJobDay = async (
 
         const jobDay = await JobDayModel.findOne({ job: jobId, type: job.schedule.type });
         if (!jobDay) {
-            return res.status(400).json({ success: false, message: 'No job for the current schedule type' });
+            // return res.status(400).json({ success: false, message: 'No job for the current schedule type' });
         }
 
         const contractorId = job.contractor

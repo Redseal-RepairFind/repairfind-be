@@ -85,7 +85,7 @@ var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void
             case 2:
                 jobDay = _a.sent();
                 if (!jobDay) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'No job for the current schedule type' })];
+                    // return res.status(400).json({ success: false, message: 'No job for the current schedule type' });
                 }
                 contractorId = job.contractor;
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(job.contractor)];
