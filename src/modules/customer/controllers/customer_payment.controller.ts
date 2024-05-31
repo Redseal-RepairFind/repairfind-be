@@ -234,7 +234,7 @@ export const makeChangeOrderEstimatePayment = async (req: any, res: Response, ne
 
         // const changeOrderEstimate: any = quotation.changeOrderEstimates.find((estimate: any) => estimate.id === changeOrderEstimateId)
         const changeOrderEstimate: any = quotation.changeOrderEstimate
-        if (!changeOrderEstimate) throw new Error('No such changeOrder estimat');
+        if (!changeOrderEstimate) throw new Error('No  changeOrder estimate for this job');
 
         if (changeOrderEstimate.isPaid) throw new Error('Extra estimate already paid');
 

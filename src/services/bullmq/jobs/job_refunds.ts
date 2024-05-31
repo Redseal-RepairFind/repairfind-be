@@ -13,29 +13,28 @@ import { StripeService } from "../../stripe";
 export const handleJobRefunds = async () => {
     try {
         const transactions = await TransactionModel.find({
-            type: { $in: [ TRANSACTION_TYPE.REFUND ] },
+            type: { $in: [TRANSACTION_TYPE.REFUND] },
             status: TRANSACTION_STATUS.PENDING
         });
-        
+
 
         for (const transaction of transactions) {
             try {
 
-                const fromUser = (transaction.fromUserType == 'customers') ? await CustomerModel.findById(transaction.fromUser) :  await ContractorModel.findById(transaction.fromUser)
-                const toUser = (transaction.toUser.toString() == 'customers') ? await CustomerModel.findById(transaction.toUser) :  await ContractorModel.findById(transaction.toUser)
-        
-             
-                if(fromUser && toUser){
-                    
+                const fromUser = (transaction.fromUserType == 'customers') ? await CustomerModel.findById(transaction.fromUser) : await ContractorModel.findById(transaction.fromUser)
+                const toUser = (transaction.toUser.toString() == 'customers') ? await CustomerModel.findById(transaction.toUser) : await ContractorModel.findById(transaction.toUser)
+
+
+                if (fromUser && toUser) {
+
                     //@ts-ignore
                     const payment = await PaymentModel.findById(transaction.payment)
-                        if(!payment)return
-                       
-                        if(!payment.refunded){
-                            const stripePayment = await StripeService.payment.refundCharge(payment.reference, (payment.amount))
-                        }
-            
-                        
+                    if (!payment) return
+
+                    if (!payment.refunded) {
+                        const stripePayment = await StripeService.payment.refundCharge(payment.reference, (payment.amount))
+                    }
+
                 }
 
 
@@ -51,7 +50,7 @@ export const handleJobRefunds = async () => {
 
 
 
-function sendNotification(customer:ICustomer, contractor:IContractor, job: IJob, message: any){
+function sendNotification(customer: ICustomer, contractor: IContractor, job: IJob, message: any) {
     NotificationService.sendNotification({
         user: contractor.id,
         userType: 'contractors',
@@ -83,6 +82,6 @@ function sendNotification(customer:ICustomer, contractor:IContractor, job: IJob,
             contractor: contractor.id,
             event: 'JOB_DAY_REMINDER',
         }
-    }, {  push: true, socket: true })
+    }, { push: true, socket: true })
 }
 

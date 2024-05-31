@@ -6,6 +6,7 @@ import { Logger } from '../../utils/logger';
 import { syncCertnApplications } from './jobs/sync_certn_applications';
 import { expireJobs } from './jobs/expire_jobs';
 import { jobDayScheduleCheck } from './jobs/jobday_schedule';
+import { handleJobRefunds } from './jobs/job_refunds';
 
 const redisConfig = {
     port: Number(config.redis.port),
@@ -48,6 +49,10 @@ export const RepairFindQueueWorker = new Worker(config.redis.queueName, async jo
     if(job.name =='jobDayScheduleCheck'){
         await jobDayScheduleCheck()
     }
+
+    if(job.name =='handleJobRefunds'){
+        await handleJobRefunds()
+    }
    
 }, { connection: redisConnection });
 
@@ -63,6 +68,7 @@ RepairFindQueueWorker.on('error', error => {
 RepairFindQueueWorker.on('failed', error => {
     Logger.info(`Job Failed: ${error}`);
 });
+
 RepairFindQueueWorker.on('completed', job => {
     Logger.info(`Job Completed: ${job.name} - ${job.id} has completed!`);
 });

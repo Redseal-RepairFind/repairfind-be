@@ -76,7 +76,7 @@ export const getTeamMembers = async (req: any, res: Response) => {
             return res.status(400).json({ success: false, message: "Only companies can retrieve team information" });
         }
 
-        let companyTeam = await ContractorTeamModel.findOne({ contractor: contractorId });
+        let companyTeam = await ContractorTeamModel.findOne({ contractor: contractorId }).populate('profile');
 
         if (!companyTeam) {
             return res.status(400).json({ success: false, message: "Team not found" });

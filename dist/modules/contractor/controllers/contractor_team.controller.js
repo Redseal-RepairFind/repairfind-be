@@ -121,7 +121,7 @@ var getTeamMembers = function (req, res) { return __awaiter(void 0, void 0, void
                 if (!contractor || contractor.accountType !== "Company") {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "Only companies can retrieve team information" })];
                 }
-                return [4 /*yield*/, contractor_team_model_1.default.findOne({ contractor: contractorId })];
+                return [4 /*yield*/, contractor_team_model_1.default.findOne({ contractor: contractorId }).populate('profile')];
             case 2:
                 companyTeam = _a.sent();
                 if (!companyTeam) {

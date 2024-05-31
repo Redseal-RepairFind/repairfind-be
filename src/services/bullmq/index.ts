@@ -82,6 +82,12 @@ class JobQueue {
       jobId: 'CapturePayments'
     })
 
+    QueueService.addJob('handleJobRefunds', {}, {
+      repeat: {
+        every: 600000, // 600000 mili = 10 minutes
+      }
+    })
+
     QueueService.addJob('syncCertnApplications', {}, {
       repeat: {
         // pattern: '* * * * *',

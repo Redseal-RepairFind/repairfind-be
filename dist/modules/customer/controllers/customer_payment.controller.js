@@ -332,7 +332,7 @@ var makeChangeOrderEstimatePayment = function (req, res, next) { return __awaite
                 contractor = _b.sent();
                 changeOrderEstimate = quotation.changeOrderEstimate;
                 if (!changeOrderEstimate)
-                    throw new Error('No such changeOrder estimat');
+                    throw new Error('No  changeOrder estimate for this job');
                 if (changeOrderEstimate.isPaid)
                     throw new Error('Extra estimate already paid');
                 paymentMethod = customer.stripePaymentMethods.find(function (method) { return method.id === paymentMethodId_2; });

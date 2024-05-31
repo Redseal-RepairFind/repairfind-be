@@ -71,6 +71,11 @@ var JobQueue = /** @class */ (function () {
             },
             jobId: 'CapturePayments'
         });
+        exports.QueueService.addJob('handleJobRefunds', {}, {
+            repeat: {
+                every: 600000, // 600000 mili = 10 minutes
+            }
+        });
         exports.QueueService.addJob('syncCertnApplications', {}, {
             repeat: {
                 // pattern: '* * * * *',

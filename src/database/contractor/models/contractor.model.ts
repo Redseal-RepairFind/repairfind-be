@@ -328,6 +328,11 @@ ContractorSchema.virtual('rating').get(function () {
   return reviews.length > 0 ? totalRating / reviews.length : 0;
 });
 
+ContractorSchema.virtual('reviewCount').get(function () {
+  const reviews: any[] = this.get('reviews') || [];
+  return reviews.length ;
+});
+
 
 ContractorSchema.methods.getOnboarding = async function () {
   const hasStripeAccount = !!this.stripeAccount;

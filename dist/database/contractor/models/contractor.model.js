@@ -321,6 +321,10 @@ ContractorSchema.virtual('rating').get(function () {
     var totalRating = reviews.reduce(function (acc, review) { return acc + review.averageRating; }, 0);
     return reviews.length > 0 ? totalRating / reviews.length : 0;
 });
+ContractorSchema.virtual('reviewCount').get(function () {
+    var reviews = this.get('reviews') || [];
+    return reviews.length;
+});
 ContractorSchema.methods.getOnboarding = function () {
     var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function () {

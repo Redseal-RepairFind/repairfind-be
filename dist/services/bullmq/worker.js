@@ -48,6 +48,7 @@ var logger_1 = require("../../utils/logger");
 var sync_certn_applications_1 = require("./jobs/sync_certn_applications");
 var expire_jobs_1 = require("./jobs/expire_jobs");
 var jobday_schedule_1 = require("./jobs/jobday_schedule");
+var job_refunds_1 = require("./jobs/job_refunds");
 var redisConfig = {
     port: Number(config_1.config.redis.port),
     host: config_1.config.redis.host,
@@ -93,7 +94,13 @@ exports.RepairFindQueueWorker = new bullmq_1.Worker(config_1.config.redis.queueN
             case 7:
                 _a.sent();
                 _a.label = 8;
-            case 8: return [2 /*return*/];
+            case 8:
+                if (!(job.name == 'handleJobRefunds')) return [3 /*break*/, 10];
+                return [4 /*yield*/, (0, job_refunds_1.handleJobRefunds)()];
+            case 9:
+                _a.sent();
+                _a.label = 10;
+            case 10: return [2 /*return*/];
         }
     });
 }); }, { connection: redisConnection });
