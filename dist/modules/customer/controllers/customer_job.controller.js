@@ -261,6 +261,7 @@ var getMyJobs = function (req, res, next) { return __awaiter(void 0, void 0, voi
             case 1:
                 quotations = _f.sent();
                 quotationIds = quotations.map(function (quotation) { return quotation._id; });
+                console.log(quotationIds);
                 filter['quotations.id'] = { $in: quotationIds };
                 // filter['quotations.contractor'] = {$in: contractorId};
                 delete req.query.contractorId;

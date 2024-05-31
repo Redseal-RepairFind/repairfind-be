@@ -258,6 +258,8 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
 
             const quotations = await JobQuotationModel.find({contractor: contractorId})
             const quotationIds = quotations.map(quotation => quotation._id);
+            
+            console.log(quotationIds)
             filter['quotations.id'] = { $in: quotationIds };
             // filter['quotations.contractor'] = {$in: contractorId};
             delete req.query.contractorId

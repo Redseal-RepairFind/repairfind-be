@@ -55,6 +55,7 @@ var custom_errors_1 = require("../../utils/custom.errors");
 var contractor_model_1 = require("../../database/contractor/models/contractor.model");
 var customer_model_1 = __importDefault(require("../../database/customer/models/customer.model"));
 var job_day_model_1 = require("../../database/common/job_day.model");
+var job_model_1 = require("../../database/common/job.model");
 var SocketIOService = /** @class */ (function () {
     function SocketIOService() {
     }
@@ -103,7 +104,7 @@ var SocketIOService = /** @class */ (function () {
             }); });
             // Handle notification events from client here
             socket.on("send_jobday_contractor_location", function (payload) { return __awaiter(_this, void 0, void 0, function () {
-                var toUser, toUserType, jobdayId, jobday, customer, contractor, data;
+                var toUser, toUserType, jobdayId, jobday, customer, contractor, job, data;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
@@ -120,11 +121,22 @@ var SocketIOService = /** @class */ (function () {
                             return [4 /*yield*/, contractor_model_1.ContractorModel.findById(jobday.contractor)];
                         case 3:
                             contractor = _a.sent();
+                            return [4 /*yield*/, job_model_1.JobModel.findById(jobday.job)];
+                        case 4:
+                            job = _a.sent();
                             if (!customer || !contractor)
                                 return [2 /*return*/];
                             data = __assign(__assign({}, payload), { name: contractor.name, profilePhoto: contractor.profilePhoto });
                             this.sendNotification(customer.email, 'JOB_DAY_CONTRACTOR_LOCATION', data);
-                            return [2 /*return*/];
+                            if (!(job && job.isAssigned)) return [3 /*break*/, 6];
+                            return [4 /*yield*/, contractor_model_1.ContractorModel.findById(job.contractor)];
+                        case 5:
+                            contractor = _a.sent();
+                            if (!contractor)
+                                return [2 /*return*/];
+                            this.sendNotification(contractor.email, 'JOB_DAY_CONTRACTOR_LOCATION', data);
+                            _a.label = 6;
+                        case 6: return [2 /*return*/];
                     }
                 });
             }); });

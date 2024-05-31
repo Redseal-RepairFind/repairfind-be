@@ -4,6 +4,7 @@ import { BadRequestError } from "../../utils/custom.errors";
 import { ContractorModel } from "../../database/contractor/models/contractor.model";
 import CustomerModel from "../../database/customer/models/customer.model";
 import { JobDayModel } from "../../database/common/job_day.model";
+import { JobModel } from "../../database/common/job.model";
 
 interface CustomSocket extends Socket {
     user?: any; // Define a custom property to store user information
@@ -82,7 +83,8 @@ class SocketIOService {
                 
 
                 const customer = await CustomerModel.findById(jobday.customer)
-                const contractor = await ContractorModel.findById(jobday.contractor)
+                let contractor = await ContractorModel.findById(jobday.contractor)
+                const job = await JobModel.findById(jobday.job)
                 if(!customer || !contractor)return
                 
                 // console.log(customer)
@@ -93,6 +95,12 @@ class SocketIOService {
                     profilePhoto: contractor.profilePhoto
                 }
                 this.sendNotification(customer.email, 'JOB_DAY_CONTRACTOR_LOCATION', data);
+
+                if(job && job.isAssigned){
+                    contractor = await ContractorModel.findById(job.contractor)
+                    if(!contractor)return
+                    this.sendNotification(contractor.email, 'JOB_DAY_CONTRACTOR_LOCATION', data);
+                }
 
             });
         });
