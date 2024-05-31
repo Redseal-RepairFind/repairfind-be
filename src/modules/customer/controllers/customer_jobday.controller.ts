@@ -55,7 +55,7 @@ export const initiateJobDay = async (
             return res.status(404).json({ success: false, message: 'Job Customer not found' });
         }
 
-        const contractorProfile = await ContractorProfileModel.findOne({ contractor: contractorId });
+        let contractorProfile = await ContractorProfileModel.findOne({ contractor: contractorId });
         if (!contractorProfile) {
             return res.status(404).json({ success: false, message: 'Contractor profile not found' });
         }
@@ -82,12 +82,20 @@ export const initiateJobDay = async (
 
 
 
+        let contractorLocation = contractorProfile.location
+        // if job is assigned show assigned contractor location
+        if(job.isAssigned){
+            contractorProfile = await ContractorProfileModel.findOne({ contractor: job.assignment.contractor });
+            if(contractorProfile)  contractorLocation = contractorProfile?.location
+        }
+
 
         const data = {
             conversation: conversation.id,
             customer: {id: customer.id, phoneNumber: customer.phoneNumber, name: customer.name, email: customer.email, profilePhoto: customer.profilePhoto},
             contractor: {id: contractor.id, phoneNumber: contractor.phoneNumber, name: contractor.name, email: contractor.email, profilePhoto: contractor.profilePhoto},
             job: {id: job.id, description: job.description, title: job.title, schedule: job.schedule, type:job.type, date:job.date, location: job.location},
+            contractorLocation,
             jobDay
         }
 

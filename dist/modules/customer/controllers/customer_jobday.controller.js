@@ -64,11 +64,11 @@ var contractor_model_1 = require("../../../database/contractor/models/contractor
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var job_dispute_model_1 = require("../../../database/common/job_dispute.model");
 var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var jobId, errors, customerId, job, jobDay, contractorId, contractor, customer, contractorProfile, conversationMembers, conversation, data, err_1;
+    var jobId, errors, customerId, job, jobDay, contractorId, contractor, customer, contractorProfile, conversationMembers, conversation, contractorLocation, data, err_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 7, , 8]);
+                _a.trys.push([0, 9, , 10]);
                 jobId = req.body.jobId;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
@@ -122,11 +122,21 @@ var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void
                     }, { new: true, upsert: true })];
             case 6:
                 conversation = _a.sent();
+                contractorLocation = contractorProfile.location;
+                if (!job.isAssigned) return [3 /*break*/, 8];
+                return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: job.assignment.contractor })];
+            case 7:
+                contractorProfile = _a.sent();
+                if (contractorProfile)
+                    contractorLocation = contractorProfile === null || contractorProfile === void 0 ? void 0 : contractorProfile.location;
+                _a.label = 8;
+            case 8:
                 data = {
                     conversation: conversation.id,
                     customer: { id: customer.id, phoneNumber: customer.phoneNumber, name: customer.name, email: customer.email, profilePhoto: customer.profilePhoto },
                     contractor: { id: contractor.id, phoneNumber: contractor.phoneNumber, name: contractor.name, email: contractor.email, profilePhoto: contractor.profilePhoto },
                     job: { id: job.id, description: job.description, title: job.title, schedule: job.schedule, type: job.type, date: job.date, location: job.location },
+                    contractorLocation: contractorLocation,
                     jobDay: jobDay
                 };
                 res.json({
@@ -134,13 +144,13 @@ var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void
                     message: "job day successfully initiated",
                     data: data
                 });
-                return [3 /*break*/, 8];
-            case 7:
+                return [3 /*break*/, 10];
+            case 9:
                 err_1 = _a.sent();
                 console.log("error", err_1);
                 res.status(500).json({ message: err_1.message });
-                return [3 /*break*/, 8];
-            case 8: return [2 /*return*/];
+                return [3 /*break*/, 10];
+            case 10: return [2 /*return*/];
         }
     });
 }); };
