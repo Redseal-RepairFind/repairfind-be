@@ -387,6 +387,8 @@ export const markJobDayComplete = async (req: any, res: Response, next: NextFunc
 
 
         const jobStatus = (job.schedule.type == JOB_SCHEDULE_TYPE.SITE_VISIT) ? JOB_STATUS.COMPLETED_SITE_VISIT : JOB_STATUS.COMPLETED
+         // const jobStatus = (job.schedule.type == JOB_SCHEDULE_TYPE.SITE_VISIT) ? JOB_STATUS.COMPLETED_SITE_VISIT : JOB_STATUS.COMPLETED
+        // job.status = JOB_STATUS.PENDING
 
         job.statusUpdate = {
             ...job.statusUpdate,

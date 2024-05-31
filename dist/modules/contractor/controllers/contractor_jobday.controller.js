@@ -416,6 +416,8 @@ var markJobDayComplete = function (req, res, next) { return __awaiter(void 0, vo
                     // return res.status(400).json({ success: false, message: 'The booking is already marked as complete' });
                 }
                 jobStatus = (job.schedule.type == job_model_1.JOB_SCHEDULE_TYPE.SITE_VISIT) ? job_model_1.JOB_STATUS.COMPLETED_SITE_VISIT : job_model_1.JOB_STATUS.COMPLETED;
+                // const jobStatus = (job.schedule.type == JOB_SCHEDULE_TYPE.SITE_VISIT) ? JOB_STATUS.COMPLETED_SITE_VISIT : JOB_STATUS.COMPLETED
+                // job.status = JOB_STATUS.PENDING
                 job.statusUpdate = __assign(__assign({}, job.statusUpdate), { status: jobStatus, isCustomerAccept: false, isContractorAccept: true, awaitingConfirmation: true });
                 job.jobHistory.push({
                     eventType: 'JOB_MARKED_COMPLETE_BY_CONTRACTOR',
@@ -519,7 +521,7 @@ var savePostJobQualityAssurance = function (req, res) { return __awaiter(void 0,
 }); };
 exports.savePostJobQualityAssurance = savePostJobQualityAssurance;
 var submitEstimate = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var contractorId, jobDayId, estimates, jobDay, contractor, job, quotation, jobStatus, error_4;
+    var contractorId, jobDayId, estimates, jobDay, contractor, job, quotation, error_4;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -558,8 +560,8 @@ var submitEstimate = function (req, res, next) { return __awaiter(void 0, void 0
                 quotation.startDate = job.date;
                 quotation.estimates = estimates;
                 quotation.type = job_quotation_model_1.JOB_QUOTATION_TYPE.JOB_DAY;
-                jobStatus = (job.schedule.type == job_model_1.JOB_SCHEDULE_TYPE.SITE_VISIT) ? job_model_1.JOB_STATUS.COMPLETED_SITE_VISIT : job_model_1.JOB_STATUS.COMPLETED;
-                job.status = job_model_1.JOB_STATUS.PENDING;
+                // const jobStatus = (job.schedule.type == JOB_SCHEDULE_TYPE.SITE_VISIT) ? JOB_STATUS.COMPLETED_SITE_VISIT : JOB_STATUS.COMPLETED
+                // job.status = JOB_STATUS.PENDING
                 job.statusUpdate = __assign(__assign({}, job.statusUpdate), { status: 'SITE_VISIT_ESTIMATE_SUBMITTED', isCustomerAccept: false, awaitingConfirmation: true });
                 job.jobHistory.push({
                     eventType: 'SITE_VISIT_ESTIMATE_SUBMITTED',
