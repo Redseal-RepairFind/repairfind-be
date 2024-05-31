@@ -248,14 +248,9 @@ export const getSingleBooking = async (req: any, res: Response, next: NextFuncti
         }
 
         let responseData: any = { ...job.toJSON() };
-        if (job.status === JOB_STATUS.DISPUTED) {
-            responseData.dispute = await JobDisputeModel.findOne({ job: job.id });
-        }
+        responseData.jobDay = await JobDayModel.findOne({ job: job.id, type: job.schedule.type });
+        responseData.dispute = await JobDisputeModel.findOne({ job: job.id });
 
-        if (job.status === JOB_STATUS.ONGOING) {
-            const activeJobDay = await JobDayModel.findOne({ job: job.id });
-            responseData.jobDay = activeJobDay
-        }
         res.json({ success: true, message: 'Booking retrieved', data: responseData });
 
     } catch (error: any) {

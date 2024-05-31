@@ -343,7 +343,7 @@ exports.JobEvent.on('JOB_DISPUTE_CREATED', function (payload) {
                         user: customer.id,
                         userType: 'customers',
                         title: 'Job Disputed',
-                        type: 'JOB_DISPUTE', // Conversation, Conversation_Notification
+                        type: 'JOB_DISPUTED', // Conversation, Conversation_Notification
                         //@ts-ignore
                         message: "You have an open job dispute",
                         //@ts-ignore
@@ -353,14 +353,14 @@ exports.JobEvent.on('JOB_DISPUTE_CREATED', function (payload) {
                             entityType: 'jobs',
                             message: "You have an open job dispute",
                             customer: customer.id,
-                            event: 'JOB_DISPUTE',
+                            event: 'JOB_DISPUTED',
                         }
                     }, { database: true, push: true, socket: true });
                     services_1.NotificationService.sendNotification({
                         user: contractor.id,
                         userType: 'contractors',
                         title: 'Job Disputed',
-                        type: 'JOB_DISPUTE', //
+                        type: 'JOB_DISPUTED', //
                         message: "You have an open job dispute",
                         heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_b = customer.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
                         payload: {
@@ -368,7 +368,7 @@ exports.JobEvent.on('JOB_DISPUTE_CREATED', function (payload) {
                             entityType: 'disputes',
                             message: "You have an open job dispute",
                             contractor: contractor.id,
-                            event: 'JOB_DISPUTE',
+                            event: 'JOB_DISPUTED',
                         }
                     }, { database: true, push: true, socket: true });
                     if (job.isAssigned) {
@@ -376,7 +376,7 @@ exports.JobEvent.on('JOB_DISPUTE_CREATED', function (payload) {
                             user: job.assignment.contractor,
                             userType: 'contractors',
                             title: 'Job Disputed',
-                            type: 'JOB_DISPUTE', //
+                            type: 'JOB_DISPUTED', //
                             message: "You have an open job dispute",
                             heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_c = customer.profilePhoto) === null || _c === void 0 ? void 0 : _c.url },
                             payload: {
@@ -384,14 +384,14 @@ exports.JobEvent.on('JOB_DISPUTE_CREATED', function (payload) {
                                 entityType: 'disputes',
                                 message: "You have an open job dispute",
                                 contractor: contractor.id,
-                                event: 'JOB_DISPUTE',
+                                event: 'JOB_DISPUTED',
                             }
                         }, { database: true, push: true, socket: true });
                     }
                     // send socket notification to general admins alert channel
-                    socket_1.SocketService.broadcastChannel('admin_alerts', 'NEW_JOB_DISPUTE', {
-                        type: 'NEW_JOB_EMERGENCY',
-                        message: 'A new Job emergenc has been reported',
+                    socket_1.SocketService.broadcastChannel('admin_alerts', 'NEW_DISPUTED_JOB', {
+                        type: 'NEW_DISPUTED_JOB',
+                        message: 'A new Job dispute has been reported',
                         data: { dispute: dispute }
                     });
                     return [3 /*break*/, 5];
@@ -460,18 +460,18 @@ exports.JobEvent.on('JOB_MARKED_COMPLETE_BY_CONTRACTOR', function (payload) {
                         services_1.NotificationService.sendNotification({
                             user: job.assignment.contractor,
                             userType: 'contractors',
-                            title: 'Job Disputed',
-                            type: 'JOB_DISPUTE', //
-                            message: "You have an open job dispute",
+                            title: 'Job Marked Complete',
+                            type: event_1, //
+                            message: "Job marked as completed",
                             heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_c = customer.profilePhoto) === null || _c === void 0 ? void 0 : _c.url },
                             payload: {
                                 entity: job.id,
                                 entityType: 'jobs',
-                                message: "You have an open job dispute",
+                                message: "Job marked as completed",
                                 contractor: contractor.id,
-                                event: 'JOB_DISPUTE',
+                                event: event_1,
                             }
-                        }, { database: true, push: true, socket: true });
+                        }, { push: true, socket: true });
                     }
                     return [3 /*break*/, 5];
                 case 4:

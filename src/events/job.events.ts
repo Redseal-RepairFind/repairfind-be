@@ -283,7 +283,7 @@ JobEvent.on('JOB_DISPUTE_CREATED', async function (payload: { dispute: IJobDispu
             user: customer.id,
             userType: 'customers',
             title: 'Job Disputed',
-            type: 'JOB_DISPUTE', // Conversation, Conversation_Notification
+            type: 'JOB_DISPUTED', // Conversation, Conversation_Notification
             //@ts-ignore
             message: `You have an open job dispute`,
             //@ts-ignore
@@ -293,7 +293,7 @@ JobEvent.on('JOB_DISPUTE_CREATED', async function (payload: { dispute: IJobDispu
                 entityType: 'jobs',
                 message: `You have an open job dispute`,
                 customer: customer.id,
-                event: 'JOB_DISPUTE',
+                event: 'JOB_DISPUTED',
             }
         }, { database: true, push: true, socket: true })
 
@@ -302,7 +302,7 @@ JobEvent.on('JOB_DISPUTE_CREATED', async function (payload: { dispute: IJobDispu
             user: contractor.id,
             userType: 'contractors',
             title: 'Job Disputed',
-            type: 'JOB_DISPUTE', //
+            type: 'JOB_DISPUTED', //
             message: `You have an open job dispute`,
             heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
             payload: {
@@ -310,7 +310,7 @@ JobEvent.on('JOB_DISPUTE_CREATED', async function (payload: { dispute: IJobDispu
                 entityType: 'disputes',
                 message: `You have an open job dispute`,
                 contractor: contractor.id,
-                event: 'JOB_DISPUTE',
+                event: 'JOB_DISPUTED',
             }
         }, { database: true, push: true, socket: true })
 
@@ -319,7 +319,7 @@ JobEvent.on('JOB_DISPUTE_CREATED', async function (payload: { dispute: IJobDispu
                 user: job.assignment.contractor,
                 userType: 'contractors',
                 title: 'Job Disputed',
-                type: 'JOB_DISPUTE', //
+                type: 'JOB_DISPUTED', //
                 message: `You have an open job dispute`,
                 heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
                 payload: {
@@ -327,15 +327,15 @@ JobEvent.on('JOB_DISPUTE_CREATED', async function (payload: { dispute: IJobDispu
                     entityType: 'disputes',
                     message: `You have an open job dispute`,
                     contractor: contractor.id,
-                    event: 'JOB_DISPUTE',
+                    event: 'JOB_DISPUTED',
                 }
             }, { database: true, push: true, socket: true })
         }
 
         // send socket notification to general admins alert channel
-        SocketService.broadcastChannel('admin_alerts', 'NEW_JOB_DISPUTE', {
-            type: 'NEW_JOB_EMERGENCY',
-            message: 'A new Job emergenc has been reported',
+        SocketService.broadcastChannel('admin_alerts', 'NEW_DISPUTED_JOB', {
+            type: 'NEW_DISPUTED_JOB',
+            message: 'A new Job dispute has been reported',
             data: { dispute }
         });
 
@@ -401,18 +401,18 @@ JobEvent.on('JOB_MARKED_COMPLETE_BY_CONTRACTOR', async function (payload: { job:
             NotificationService.sendNotification({
                 user: job.assignment.contractor,
                 userType: 'contractors',
-                title: 'Job Disputed',
-                type: 'JOB_DISPUTE', //
-                message: `You have an open job dispute`,
+                title: 'Job Marked Complete',
+                type: event, //
+                message: `Job marked as completed`,
                 heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
                 payload: {
                     entity: job.id,
                     entityType: 'jobs',
-                    message: `You have an open job dispute`,
+                    message: `Job marked as completed`,
                     contractor: contractor.id,
-                    event: 'JOB_DISPUTE',
+                    event: event,
                 }
-            }, { database: true, push: true, socket: true })
+            }, { push: true, socket: true })
         }
 
 

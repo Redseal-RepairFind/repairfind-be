@@ -17,6 +17,7 @@ import ContractorTeamModel, { IContractorTeam } from "../../../database/contract
 import { NewJobAssignedEmailTemplate } from "../../../templates/contractorEmail/job_assigned.template";
 import { JobDisputeModel } from "../../../database/common/job_dispute.model";
 import { REVIEW_TYPE, ReviewModel } from "../../../database/common/review.model";
+import { JobDayModel } from "../../../database/common/job_day.model";
 
 
 
@@ -260,10 +261,12 @@ export const getSingleBooking = async (req: any, res: Response, next: NextFuncti
             return res.status(404).json({ success: false, message: 'Booking not found' });
         }
 
+       
         let responseData: any = { ...job.toJSON() };
-        if (job.status === JOB_STATUS.DISPUTED) {
-            responseData.dispute = await JobDisputeModel.findOne({ job: job.id });
-        }
+        responseData.jobDay = await JobDayModel.findOne({ job: job.id, type: job.schedule.type });
+        responseData.dispute = await JobDisputeModel.findOne({ job: job.id });
+
+
 
         // If the job exists, return it as a response
         res.json({ success: true, message: 'Booking retrieved', data: responseData });

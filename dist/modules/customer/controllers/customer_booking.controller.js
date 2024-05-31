@@ -303,41 +303,35 @@ var getBookingDisputes = function (req, res, next) { return __awaiter(void 0, vo
 }); };
 exports.getBookingDisputes = getBookingDisputes;
 var getSingleBooking = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, bookingId, job, responseData, _a, activeJobDay, error_4;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+    var customerId, bookingId, job, responseData, _a, _b, error_4;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
             case 0:
-                _b.trys.push([0, 6, , 7]);
+                _c.trys.push([0, 4, , 5]);
                 customerId = req.customer.id;
                 bookingId = req.params.bookingId;
                 return [4 /*yield*/, job_model_1.JobModel.findOne({ customer: customerId, _id: bookingId }).populate(['contractor', 'contract', 'review'])];
             case 1:
-                job = _b.sent();
+                job = _c.sent();
                 // Check if the job exists
                 if (!job) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Booking not found' })];
                 }
                 responseData = __assign({}, job.toJSON());
-                if (!(job.status === job_model_1.JOB_STATUS.DISPUTED)) return [3 /*break*/, 3];
                 _a = responseData;
-                return [4 /*yield*/, job_dispute_model_1.JobDisputeModel.findOne({ job: job.id })];
+                return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ job: job.id, type: job.schedule.type })];
             case 2:
-                _a.dispute = _b.sent();
-                _b.label = 3;
+                _a.jobDay = _c.sent();
+                _b = responseData;
+                return [4 /*yield*/, job_dispute_model_1.JobDisputeModel.findOne({ job: job.id })];
             case 3:
-                if (!(job.status === job_model_1.JOB_STATUS.ONGOING)) return [3 /*break*/, 5];
-                return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ job: job.id })];
-            case 4:
-                activeJobDay = _b.sent();
-                responseData.jobDay = activeJobDay;
-                _b.label = 5;
-            case 5:
+                _b.dispute = _c.sent();
                 res.json({ success: true, message: 'Booking retrieved', data: responseData });
-                return [3 /*break*/, 7];
-            case 6:
-                error_4 = _b.sent();
+                return [3 /*break*/, 5];
+            case 4:
+                error_4 = _c.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_4))];
-            case 7: return [2 /*return*/];
+            case 5: return [2 /*return*/];
         }
     });
 }); };
