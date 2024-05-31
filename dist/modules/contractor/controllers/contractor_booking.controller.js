@@ -85,7 +85,7 @@ var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0,
                         { contractor: contractorId_1 },
                         { 'assignment.contractor': contractorId_1 }
                     ],
-                    status: { $in: ['BOOKED', 'ONGOING'] }
+                    status: { $in: ['BOOKED', 'ONGOING', 'ONGOING_SITE_VISIT', 'COMPLETED_SITE_VISIT'] }
                 };
                 // TODO: when contractor is specified, ensure the contractor quotation is attached
                 if (customerId) {

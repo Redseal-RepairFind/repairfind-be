@@ -54,7 +54,7 @@ export const getMyBookings = async (req: any, res: Response, next: NextFunction)
                 { contractor: contractorId },
                 { 'assignment.contractor': contractorId }
             ],
-            status: { $in: ['BOOKED', 'ONGOING'] }
+            status: { $in: ['BOOKED', 'ONGOING', 'ONGOING_SITE_VISIT', 'COMPLETED_SITE_VISIT'] }
         };
 
         // TODO: when contractor is specified, ensure the contractor quotation is attached

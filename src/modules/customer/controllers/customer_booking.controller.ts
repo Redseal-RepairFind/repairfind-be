@@ -40,7 +40,7 @@ export const getMyBookings = async (req: any, res: Response, next: NextFunction)
             page = 1,
             sort = '-createdAt',
             contractorId,
-            status = 'BOOKED,ONGOING',
+            status = 'BOOKED,ONGOING,ONGOING_SITE_VISIT',
             startDate,
             endDate,
             date,
@@ -54,7 +54,7 @@ export const getMyBookings = async (req: any, res: Response, next: NextFunction)
         const customerId = req.customer.id;
 
         // Construct filter object based on query parameters
-        let filter: any = { customer: customerId, status: { $in: ['BOOKED', 'ONGOING'] } };
+        let filter: any = { customer: customerId, status: { $in: ['BOOKED', 'ONGOING', 'ONGOING_SITE_VISIT', 'COMPLETED_SITE_VISIT'] } };
 
 
         // TODO: when contractor is specified, ensure the contractor quotation is attached

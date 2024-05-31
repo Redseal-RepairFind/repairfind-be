@@ -99,12 +99,12 @@ var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0,
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
-                _a = req.query, _b = _a.limit, limit = _b === void 0 ? 10 : _b, _c = _a.page, page = _c === void 0 ? 1 : _c, _d = _a.sort, sort = _d === void 0 ? '-createdAt' : _d, contractorId_1 = _a.contractorId, _e = _a.status, status_1 = _e === void 0 ? 'BOOKED,ONGOING' : _e, startDate = _a.startDate, endDate = _a.endDate, date = _a.date, type = _a.type;
+                _a = req.query, _b = _a.limit, limit = _b === void 0 ? 10 : _b, _c = _a.page, page = _c === void 0 ? 1 : _c, _d = _a.sort, sort = _d === void 0 ? '-createdAt' : _d, contractorId_1 = _a.contractorId, _e = _a.status, status_1 = _e === void 0 ? 'BOOKED,ONGOING,ONGOING_SITE_VISIT' : _e, startDate = _a.startDate, endDate = _a.endDate, date = _a.date, type = _a.type;
                 req.query.page = page;
                 req.query.limit = limit;
                 req.query.sort = sort;
                 customerId = req.customer.id;
-                filter = { customer: customerId, status: { $in: ['BOOKED', 'ONGOING'] } };
+                filter = { customer: customerId, status: { $in: ['BOOKED', 'ONGOING', 'ONGOING_SITE_VISIT', 'COMPLETED_SITE_VISIT'] } };
                 // TODO: when contractor is specified, ensure the contractor quotation is attached
                 if (contractorId_1) {
                     if (!mongoose_1.default.Types.ObjectId.isValid(contractorId_1)) {
