@@ -155,6 +155,7 @@ var JobSchema = new mongoose_1.Schema({
     reschedule: ReScheduleSchema,
     quotations: [{
             id: { type: mongoose_1.Schema.Types.ObjectId, ref: 'job_quotations' },
+            contractor: { type: mongoose_1.Schema.Types.ObjectId, ref: 'contractors' },
             status: { type: String, enum: Object.values(job_quotation_model_1.JOB_QUOTATION_STATUS) }
         }],
     payments: {

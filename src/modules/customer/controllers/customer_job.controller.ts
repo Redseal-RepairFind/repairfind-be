@@ -255,9 +255,15 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
             if (!mongoose.Types.ObjectId.isValid(contractorId)) {
                 return res.status(400).json({ success: false, message: 'Invalid contractor id' });
             }
-            req.query.contractor = contractorId;
+
+            const quotations = await JobQuotationModel.find({contractor: contractorId})
+            const quotationIds = quotations.map(quotation => quotation._id);
+            filter['quotations.id'] = { $in: quotationIds };
+            // filter['quotations.contractor'] = {$in: contractorId};
             delete req.query.contractorId
         }
+
+
 
         if (status) {
             req.query.status = status.toUpperCase();

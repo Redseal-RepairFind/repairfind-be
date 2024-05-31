@@ -118,7 +118,7 @@ export interface IJob extends Document {
     experience?: string;
     createdAt: Date;
     updatedAt: Date;
-    quotations: [{ id: ObjectId, status: string }];
+    quotations: [{ id: ObjectId, status: string, contractor: ObjectId }];
     jobHistory: IJobHistory[];
     payments: ObjectId[];
     schedule: IJobSchedule;
@@ -237,6 +237,7 @@ const JobSchema = new Schema<IJob>({
     reschedule: ReScheduleSchema,
     quotations: [{
         id: { type: Schema.Types.ObjectId, ref: 'job_quotations' },
+        contractor: { type: Schema.Types.ObjectId, ref: 'contractors' },
         status: { type: String, enum: Object.values(JOB_QUOTATION_STATUS) }
     }],
     payments: {

@@ -461,7 +461,7 @@ export const sendJobQuotation = async (
 
     // Add job quotation to job's list of quotations
     if (!job.quotations.some(quotation => quotation.id === jobQuotation.id)) {
-      job.quotations.push({ id: jobQuotation.id, status: jobQuotation.status });
+      job.quotations.push({ id: jobQuotation.id, status: jobQuotation.status, contractor: contractorId });
     }
 
     // Update job status and history if needed

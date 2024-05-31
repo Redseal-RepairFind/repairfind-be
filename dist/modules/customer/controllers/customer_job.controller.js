@@ -238,11 +238,11 @@ var createJobListing = function (req, res, next) { return __awaiter(void 0, void
 }); };
 exports.createJobListing = createJobListing;
 var getMyJobs = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, _b, limit, _c, page, _d, sort, contractorId_1, status_1, startDate, endDate, date, type, customerId, filter, start, end, selectedDate, startOfDay_1, endOfDay, _e, data, error, error_3;
+    var errors, _a, _b, limit, _c, page, _d, sort, contractorId_1, status_1, startDate, endDate, date, type, customerId, filter, quotations, quotationIds, start, end, selectedDate, startOfDay_1, endOfDay, _e, data, error, error_3;
     return __generator(this, function (_f) {
         switch (_f.label) {
             case 0:
-                _f.trys.push([0, 4, , 5]);
+                _f.trys.push([0, 6, , 7]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -253,14 +253,19 @@ var getMyJobs = function (req, res, next) { return __awaiter(void 0, void 0, voi
                 req.query.sort = sort;
                 customerId = req.customer.id;
                 filter = { customer: customerId };
-                // TODO: when contractor is specified, ensure the contractor quotation is attached
-                if (contractorId_1) {
-                    if (!mongoose_1.default.Types.ObjectId.isValid(contractorId_1)) {
-                        return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid contractor id' })];
-                    }
-                    req.query.contractor = contractorId_1;
-                    delete req.query.contractorId;
+                if (!contractorId_1) return [3 /*break*/, 2];
+                if (!mongoose_1.default.Types.ObjectId.isValid(contractorId_1)) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid contractor id' })];
                 }
+                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.find({ contractor: contractorId_1 })];
+            case 1:
+                quotations = _f.sent();
+                quotationIds = quotations.map(function (quotation) { return quotation._id; });
+                filter['quotations.id'] = { $in: quotationIds };
+                // filter['quotations.contractor'] = {$in: contractorId};
+                delete req.query.contractorId;
+                _f.label = 2;
+            case 2:
                 if (status_1) {
                     req.query.status = status_1.toUpperCase();
                 }
@@ -281,9 +286,9 @@ var getMyJobs = function (req, res, next) { return __awaiter(void 0, void 0, voi
                     req.query.date = { $gte: startOfDay_1, $lt: endOfDay };
                 }
                 return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_model_1.JobModel.find(filter).populate(['contractor', 'quotation']), req.query)];
-            case 1:
+            case 3:
                 _e = _f.sent(), data = _e.data, error = _e.error;
-                if (!data) return [3 /*break*/, 3];
+                if (!data) return [3 /*break*/, 5];
                 return [4 /*yield*/, Promise.all(data.data.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
                         var _a;
                         return __generator(this, function (_b) {
@@ -299,16 +304,16 @@ var getMyJobs = function (req, res, next) { return __awaiter(void 0, void 0, voi
                             }
                         });
                     }); }))];
-            case 2:
-                _f.sent();
-                _f.label = 3;
-            case 3:
-                res.json({ success: true, message: 'Jobs retrieved', data: data });
-                return [3 /*break*/, 5];
             case 4:
+                _f.sent();
+                _f.label = 5;
+            case 5:
+                res.json({ success: true, message: 'Jobs retrieved', data: data });
+                return [3 /*break*/, 7];
+            case 6:
                 error_3 = _f.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_3))];
-            case 5: return [2 /*return*/];
+            case 7: return [2 /*return*/];
         }
     });
 }); };

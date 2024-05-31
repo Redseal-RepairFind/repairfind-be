@@ -473,7 +473,7 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                 }
                 // Add job quotation to job's list of quotations
                 if (!job.quotations.some(function (quotation) { return quotation.id === jobQuotation_1.id; })) {
-                    job.quotations.push({ id: jobQuotation_1.id, status: jobQuotation_1.status });
+                    job.quotations.push({ id: jobQuotation_1.id, status: jobQuotation_1.status, contractor: contractorId });
                 }
                 // Update job status and history if needed
                 if (job.type === job_model_1.JobType.REQUEST) {
