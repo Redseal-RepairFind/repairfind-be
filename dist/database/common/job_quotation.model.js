@@ -118,12 +118,12 @@ JobQuotationSchema.virtual('charges').get(function () {
     var totalEstimateAmount = 0;
     var estimates = this.estimates;
     var type = (this.type == JOB_QUOTATION_TYPE.SITE_VISIT) ? job_model_1.JOB_PAYMENT_TYPE.SITE_VISIT : job_model_1.JOB_PAYMENT_TYPE.JOB_DAY;
-    if (type == job_model_1.JOB_PAYMENT_TYPE.CHANGE_ORDER) {
-        estimates = this.changeOrderEstimate.estimates;
-    }
-    if (type == job_model_1.JOB_PAYMENT_TYPE.SITE_VISIT) {
-        estimates = this.siteVisitEstimate.estimates;
-    }
+    // if (type == JOB_PAYMENT_TYPE.CHANGE_ORDER) {
+    //     estimates = this.changeOrderEstimate.estimates
+    // }
+    // if (type == JOB_PAYMENT_TYPE.SITE_VISIT) {
+    //     estimates = this.siteVisitEstimate.estimates
+    // }
     estimates.forEach(function (estimate) {
         totalEstimateAmount += estimate.rate * estimate.quantity;
     });

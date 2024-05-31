@@ -138,13 +138,13 @@ JobQuotationSchema.virtual('charges').get(function () {
     let type = (this.type == JOB_QUOTATION_TYPE.SITE_VISIT) ? JOB_PAYMENT_TYPE.SITE_VISIT : JOB_PAYMENT_TYPE.JOB_DAY as JOB_PAYMENT_TYPE
 
 
-    if (type == JOB_PAYMENT_TYPE.CHANGE_ORDER) {
-        estimates = this.changeOrderEstimate.estimates
-    }
+    // if (type == JOB_PAYMENT_TYPE.CHANGE_ORDER) {
+    //     estimates = this.changeOrderEstimate.estimates
+    // }
 
-    if (type == JOB_PAYMENT_TYPE.SITE_VISIT) {
-        estimates = this.siteVisitEstimate.estimates
-    }
+    // if (type == JOB_PAYMENT_TYPE.SITE_VISIT) {
+    //     estimates = this.siteVisitEstimate.estimates
+    // }
 
     estimates.forEach((estimate: any) => {
         totalEstimateAmount += estimate.rate * estimate.quantity;

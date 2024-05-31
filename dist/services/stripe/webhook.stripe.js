@@ -861,8 +861,8 @@ var chargeRefunded = function (payload) { return __awaiter(void 0, void 0, void 
                 console.log('Stripe Event Handler: chargeRefunded', payload);
                 _a.label = 1;
             case 1:
-                _a.trys.push([1, 5, , 6]);
-                if (payload.object != 'charge')
+                _a.trys.push([1, 6, , 7]);
+                if (payload.object !== 'charge')
                     return [2 /*return*/];
                 stripeChargeDTO = (0, interface_dto_util_1.castPayloadToDTO)(payload, payload);
                 stripeChargeDTO.reference = payload.id;
@@ -870,24 +870,24 @@ var chargeRefunded = function (payload) { return __awaiter(void 0, void 0, void 
                 return [4 /*yield*/, payment_schema_1.PaymentModel.findOne({ reference: stripeChargeDTO.reference })];
             case 2:
                 payment = _a.sent();
-                if (!payment) return [3 /*break*/, 4];
+                if (!payment) return [3 /*break*/, 5];
                 return [4 /*yield*/, transaction_model_1.default.findOne({ type: transaction_model_1.TRANSACTION_TYPE.REFUND, payment: payment.id })];
             case 3:
                 transaction = _a.sent();
-                if (transaction) {
-                    transaction.status = transaction_model_1.TRANSACTION_STATUS.SUCCESSFUL;
-                    payment.amount_refunded = payload.amount_refunded;
-                    payment.refunded = payload.refunded;
-                    transaction.save();
-                    payment.save();
-                }
-                _a.label = 4;
-            case 4: return [3 /*break*/, 6];
-            case 5:
+                if (!transaction) return [3 /*break*/, 5];
+                transaction.status = transaction_model_1.TRANSACTION_STATUS.SUCCESSFUL;
+                payment.amount_refunded = payload.amount_refunded / 100;
+                payment.refunded = payload.refunded;
+                return [4 /*yield*/, Promise.all([transaction.save(), payment.save()])];
+            case 4:
+                _a.sent();
+                _a.label = 5;
+            case 5: return [3 /*break*/, 7];
+            case 6:
                 error_12 = _a.sent();
                 console.log('Error handling chargeRefunded stripe webhook event', error_12);
-                return [3 /*break*/, 6];
-            case 6: return [2 /*return*/];
+                return [3 /*break*/, 7];
+            case 7: return [2 /*return*/];
         }
     });
 }); };

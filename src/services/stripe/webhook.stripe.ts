@@ -669,38 +669,31 @@ export const chargeSucceeded = async (payload: any) => {
 };
 
 export const chargeRefunded = async (payload: any) => {
-    console.log('Stripe Event Handler: chargeRefunded', payload)
-    try {
-
-        if (payload.object != 'charge') return
-
+    console.log('Stripe Event Handler: chargeRefunded', payload);
     
+    try {
+        if (payload.object !== 'charge') return;
 
-        let stripeChargeDTO: IPayment = castPayloadToDTO(payload, payload as IPayment);
-        stripeChargeDTO.reference = payload.id
+        const stripeChargeDTO: IPayment = castPayloadToDTO(payload, payload as IPayment);
+        stripeChargeDTO.reference = payload.id;
         delete (stripeChargeDTO as { id?: any }).id;
 
-      
-        let payment = await PaymentModel.findOne({ reference: stripeChargeDTO.reference })
+        const payment = await PaymentModel.findOne({ reference: stripeChargeDTO.reference });
 
-        if(payment){
-            let transaction = await TransactionModel.findOne({ type: TRANSACTION_TYPE.REFUND, payment: payment.id})
+        if (payment) {
+            const transaction = await TransactionModel.findOne({ type: TRANSACTION_TYPE.REFUND, payment: payment.id });
+
             if (transaction) {
-                
-                transaction.status = TRANSACTION_STATUS.SUCCESSFUL
-                payment.amount_refunded = payload.amount_refunded
-                payment.refunded = payload.refunded
-                
-                transaction.save()
-                payment.save()
+                transaction.status = TRANSACTION_STATUS.SUCCESSFUL;
+                payment.amount_refunded = payload.amount_refunded / 100;
+                payment.refunded = payload.refunded;
+
+                await Promise.all([transaction.save(), payment.save()]);
             }
-
         }
-       
     } catch (error: any) {
-        console.log('Error handling chargeRefunded stripe webhook event', error)
+        console.log('Error handling chargeRefunded stripe webhook event', error);
     }
-
 };
 
 
