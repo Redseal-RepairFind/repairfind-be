@@ -863,7 +863,7 @@ exports.JobEvent.on('JOB_DAY_STARTED', function (payload) {
                     }
                     // send notification to customer
                     services_1.NotificationService.sendNotification({
-                        user: customer.toString(),
+                        user: customer.id,
                         userType: 'customers',
                         title: 'jobDay',
                         heading: {},

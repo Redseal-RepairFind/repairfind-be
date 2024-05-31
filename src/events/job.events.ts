@@ -763,7 +763,7 @@ JobEvent.on('JOB_DAY_STARTED', async function (payload: { job: IJob, jobDay: IJo
         // send notification to customer
         NotificationService.sendNotification(
             {
-                user: customer.toString(),
+                user: customer.id,
                 userType: 'customers',
                 title: 'jobDay',
                 heading: {},
