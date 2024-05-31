@@ -550,9 +550,6 @@ var submitEstimate = function (req, res, next) { return __awaiter(void 0, void 0
                 if (jobDay.type !== job_day_model_1.JOB_DAY_TYPE.SITE_VISIT) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Estimate can only be submitted for site visit' })];
                 }
-                if (job.statusUpdate.status == job_model_1.JOB_STATUS.COMPLETED_SITE_VISIT && job.statusUpdate.awaitingConfirmation) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Customer has not confirmed completion of site visit' })];
-                }
                 return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findById(job.contract)];
             case 4:
                 quotation = _a.sent();

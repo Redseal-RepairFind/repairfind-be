@@ -529,9 +529,9 @@ export const submitEstimate = async (req: any, res: Response, next: NextFunction
             return res.status(400).json({ success: false, message: 'Estimate can only be submitted for site visit' });
         }
 
-        if (job.statusUpdate.status == JOB_STATUS.COMPLETED_SITE_VISIT &&  job.statusUpdate.awaitingConfirmation) {
-            return res.status(400).json({ success: false, message: 'Customer has not confirmed completion of site visit' });
-        }
+        // if (job.statusUpdate && job.statusUpdate.status == JOB_STATUS.COMPLETED_SITE_VISIT &&  job.statusUpdate.awaitingConfirmation) {
+        //     // return res.status(400).json({ success: false, message: 'Customer has not confirmed completion of site visit' });
+        // }
 
         const quotation = await JobQuotationModel.findById(job.contract)
         if(!quotation) return res.status(400).json({ success: false, message: 'Job quotation not found' });
