@@ -893,11 +893,11 @@ exports.JobEvent.on('JOB_DAY_ARRIVAL', function (payload) {
             switch (_b.label) {
                 case 0:
                     _b.trys.push([0, 5, , 6]);
-                    console.log('handling alert JOB_DAY_STARTED event', payload.jobDay.id);
+                    console.log('handling alert JOB_DAY_ARRIVAL event', payload.jobDay.id);
                     return [4 /*yield*/, payload.jobDay];
                 case 1:
                     jobDay = _b.sent();
-                    return [4 /*yield*/, job_model_1.JobModel.findById(jobDay.id)];
+                    return [4 /*yield*/, job_model_1.JobModel.findById(jobDay.job)];
                 case 2:
                     job = _b.sent();
                     verificationCode = payload.verificationCode;
@@ -954,7 +954,7 @@ exports.JobEvent.on('JOB_DAY_ARRIVAL', function (payload) {
                     return [3 /*break*/, 6];
                 case 5:
                     error_15 = _b.sent();
-                    console.error("Error handling JOB_MARKED_COMPLETE_BY_CONTRACTOR event: ".concat(error_15));
+                    console.error("Error handling JOB_DAY_ARRIVAL event: ".concat(error_15));
                     return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }

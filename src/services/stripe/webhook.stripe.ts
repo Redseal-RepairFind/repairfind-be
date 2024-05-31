@@ -100,6 +100,9 @@ export const StripeWebhookHandler = async (req: Request) => {
             case 'charge.captured':
                 chargeSucceeded(eventData.object);
                 break;
+            case 'charge.refunded':
+                chargeRefunded(eventData.object);
+                break;
             default:
                 console.log(`Unhandled event type: ${eventType}`, eventData.object);
                 break;
@@ -148,8 +151,6 @@ export const customerCreated = async (payload: any) => {
     }
 
 };
-
-
 
 
 export const identityVerificationCreated = async (payload: any) => {
@@ -524,6 +525,12 @@ export const chargeSucceeded = async (payload: any) => {
         const user =  await CustomerModel.findById(userId)
         if (!user) return // Ensure user exists
 
+        //convert from base currency
+        payload.amount = payload.amount/100
+        payload.amount_refunded = payload.amount_refunded/100
+        payload.amount_captured = payload.amount_captured/100
+        payload.application_fee_amount = payload.application_fee_amount/100
+
         let stripeChargeDTO: IPayment = castPayloadToDTO(payload, payload as IPayment);
         stripeChargeDTO.reference = payload.id
         delete (stripeChargeDTO as { id?: any }).id;
@@ -661,6 +668,39 @@ export const chargeSucceeded = async (payload: any) => {
 
 };
 
+export const chargeRefunded = async (payload: any) => {
+    console.log('Stripe Event Handler: chargeRefunded', payload)
+    try {
 
+        if (payload.object != 'charge') return
+
+    
+
+        let stripeChargeDTO: IPayment = castPayloadToDTO(payload, payload as IPayment);
+        stripeChargeDTO.reference = payload.id
+        delete (stripeChargeDTO as { id?: any }).id;
+
+      
+        let payment = await PaymentModel.findOne({ reference: stripeChargeDTO.reference })
+
+        if(payment){
+            let transaction = await TransactionModel.findOne({ type: TRANSACTION_TYPE.REFUND, payment: payment.id})
+            if (transaction) {
+                
+                transaction.status = TRANSACTION_STATUS.SUCCESSFUL
+                payment.amount_refunded = payload.amount_refunded
+                payment.refunded = payload.refunded
+                
+                transaction.save()
+                payment.save()
+            }
+
+        }
+       
+    } catch (error: any) {
+        console.log('Error handling chargeRefunded stripe webhook event', error)
+    }
+
+};
 
 

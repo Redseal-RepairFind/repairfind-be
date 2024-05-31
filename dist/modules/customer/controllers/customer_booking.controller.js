@@ -664,7 +664,6 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
                         fee: 50, //
                     };
                 }
-                if (!(refundPolicy.fee > 0)) return [3 /*break*/, 8];
                 _i = 0, _b = payments.payments;
                 _d.label = 5;
             case 5:
@@ -698,9 +697,9 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
                             items: [],
                             charges: refund
                         },
-                        metadata: __assign({}, refund),
+                        metadata: __assign(__assign({}, refund), { payment: payment.id, charge: payment.reference }),
                         job: job.id,
-                        payment: payment.id
+                        payment: payment.id,
                     })];
             case 6:
                 //create refund transaction - 

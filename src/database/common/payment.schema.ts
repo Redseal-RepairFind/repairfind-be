@@ -71,6 +71,9 @@ const PaymentSchema = new Schema<IPayment>({
   payment_intent: { type: String }
 }, { timestamps: true });
 
+
+
+
 // Create the Payment model
 const PaymentModel = mongoose.model<IPayment>('payments', PaymentSchema);
 

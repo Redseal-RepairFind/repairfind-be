@@ -596,52 +596,50 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
             }
         }
 
+        for (const payment of payments.payments) {
+            if (payment.refunded) continue
+            let refund = {
+                refundAmount: payment.amount - refundPolicy.fee,
+                totalAmount: payment.amount,
+                fee: refundPolicy.fee,
+                contractorAmount: refundPolicy.fee * 0.8,
+                companyAmount: refundPolicy.fee * 0.2,
+                intiatedBy: 'customer',
+                policyApplied: refundPolicy.name,
+            };
 
-        if (refundPolicy.fee > 0) {
+            //create refund transaction - 
+            await TransactionModel.create({
+                type: TRANSACTION_TYPE.REFUND,
+                amount: payments.totalAmount,
 
-            for (const payment of payments.payments) {
-                if (payment.refunded) continue
-                let refund = {
-                    refundAmount: payment.amount - refundPolicy.fee,
-                    totalAmount: payment.amount,
-                    fee: refundPolicy.fee,
-                    contractorAmount: refundPolicy.fee * 0.8,
-                    companyAmount: refundPolicy.fee * 0.2,
-                    intiatedBy: 'customer',
-                    policyApplied: refundPolicy.name,
-                };
+                initiatorUser: customerId,
+                initiatorUserType: 'customers',
 
-                //create refund transaction - 
-                await TransactionModel.create({
-                    type: TRANSACTION_TYPE.REFUND,
-                    amount: payments.totalAmount,
+                fromUser: job.contractor,
+                fromUserType: 'contractors',
 
-                    initiatorUser: customerId,
-                    initiatorUserType: 'customers',
+                toUser: customerId,
+                toUserType: 'customers',
 
-                    fromUser: job.contractor,
-                    fromUserType: 'contractors',
-
-                    toUser: customerId,
-                    toUserType: 'customers',
-
-                    description: `Refund from job: ${job?.title} payment`,
-                    status: TRANSACTION_STATUS.PENDING,
-                    remark: 'job_refund',
-                    invoice: {
-                        items: [],
-                        charges: refund
-                    },
-                    metadata: {
-                        ...refund,
-                    },
-                    job: job.id,
-                    payment: payment.id
-                })
-
-            }
+                description: `Refund from job: ${job?.title} payment`,
+                status: TRANSACTION_STATUS.PENDING,
+                remark: 'job_refund',
+                invoice: {
+                    items: [],
+                    charges: refund
+                },
+                metadata: {
+                    ...refund,
+                    payment: payment.id,
+                    charge: payment.reference
+                },
+                job: job.id,
+                payment: payment.id,
+            })
 
         }
+
 
         // Update the job status to canceled
         job.status = JOB_STATUS.CANCELED;

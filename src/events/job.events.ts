@@ -786,10 +786,10 @@ JobEvent.on('JOB_DAY_STARTED', async function (payload: { job: IJob, jobDay: IJo
 
 JobEvent.on('JOB_DAY_ARRIVAL', async function (payload: { jobDay: IJobDay, verificationCode: number }) {
     try {
-        console.log('handling alert JOB_DAY_STARTED event', payload.jobDay.id)
+        console.log('handling alert JOB_DAY_ARRIVAL event', payload.jobDay.id)
 
         const jobDay = await payload.jobDay
-        const job = await JobModel.findById(jobDay.id)
+        const job = await JobModel.findById(jobDay.job)
         const verificationCode = payload.verificationCode
 
         if (!job || !jobDay) return
@@ -851,10 +851,7 @@ JobEvent.on('JOB_DAY_ARRIVAL', async function (payload: { jobDay: IJobDay, verif
             )
         }
 
-
-
-
     } catch (error) {
-        console.error(`Error handling JOB_MARKED_COMPLETE_BY_CONTRACTOR event: ${error}`);
+        console.error(`Error handling JOB_DAY_ARRIVAL event: ${error}`);
     }
 });

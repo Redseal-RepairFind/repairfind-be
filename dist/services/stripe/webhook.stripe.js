@@ -62,7 +62,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.chargeSucceeded = exports.paymentMethodDetached = exports.paymentMethodAttached = exports.setupIntentSucceeded = exports.setupIntentCreated = exports.paymentIntentSucceeded = exports.accountUpdated = exports.identityVerificationVerified = exports.identityVerificationRequiresInput = exports.identityVerificationCreated = exports.customerCreated = exports.customerUpdated = exports.StripeWebhookHandler = void 0;
+exports.chargeRefunded = exports.chargeSucceeded = exports.paymentMethodDetached = exports.paymentMethodAttached = exports.setupIntentSucceeded = exports.setupIntentCreated = exports.paymentIntentSucceeded = exports.accountUpdated = exports.identityVerificationVerified = exports.identityVerificationRequiresInput = exports.identityVerificationCreated = exports.customerCreated = exports.customerUpdated = exports.StripeWebhookHandler = void 0;
 var stripe_1 = __importDefault(require("stripe"));
 var _1 = require(".");
 var contractor_model_1 = require("../../database/contractor/models/contractor.model");
@@ -138,6 +138,9 @@ var StripeWebhookHandler = function (req) { return __awaiter(void 0, void 0, voi
                     break;
                 case 'charge.captured':
                     (0, exports.chargeSucceeded)(eventData.object);
+                    break;
+                case 'charge.refunded':
+                    (0, exports.chargeRefunded)(eventData.object);
                     break;
                 default:
                     console.log("Unhandled event type: ".concat(eventType), eventData.object);
@@ -721,6 +724,11 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                 user = _c.sent();
                 if (!user)
                     return [2 /*return*/]; // Ensure user exists
+                //convert from base currency
+                payload.amount = payload.amount / 100;
+                payload.amount_refunded = payload.amount_refunded / 100;
+                payload.amount_captured = payload.amount_captured / 100;
+                payload.application_fee_amount = payload.application_fee_amount / 100;
                 stripeChargeDTO = (0, interface_dto_util_1.castPayloadToDTO)(payload, payload);
                 stripeChargeDTO.reference = payload.id;
                 delete stripeChargeDTO.id;
@@ -845,3 +853,42 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
     });
 }); };
 exports.chargeSucceeded = chargeSucceeded;
+var chargeRefunded = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
+    var stripeChargeDTO, payment, transaction, error_12;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                console.log('Stripe Event Handler: chargeRefunded', payload);
+                _a.label = 1;
+            case 1:
+                _a.trys.push([1, 5, , 6]);
+                if (payload.object != 'charge')
+                    return [2 /*return*/];
+                stripeChargeDTO = (0, interface_dto_util_1.castPayloadToDTO)(payload, payload);
+                stripeChargeDTO.reference = payload.id;
+                delete stripeChargeDTO.id;
+                return [4 /*yield*/, payment_schema_1.PaymentModel.findOne({ reference: stripeChargeDTO.reference })];
+            case 2:
+                payment = _a.sent();
+                if (!payment) return [3 /*break*/, 4];
+                return [4 /*yield*/, transaction_model_1.default.findOne({ type: transaction_model_1.TRANSACTION_TYPE.REFUND, payment: payment.id })];
+            case 3:
+                transaction = _a.sent();
+                if (transaction) {
+                    transaction.status = transaction_model_1.TRANSACTION_STATUS.SUCCESSFUL;
+                    payment.amount_refunded = payload.amount_refunded;
+                    payment.refunded = payload.refunded;
+                    transaction.save();
+                    payment.save();
+                }
+                _a.label = 4;
+            case 4: return [3 /*break*/, 6];
+            case 5:
+                error_12 = _a.sent();
+                console.log('Error handling chargeRefunded stripe webhook event', error_12);
+                return [3 /*break*/, 6];
+            case 6: return [2 /*return*/];
+        }
+    });
+}); };
+exports.chargeRefunded = chargeRefunded;
