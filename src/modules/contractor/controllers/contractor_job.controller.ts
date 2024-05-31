@@ -488,7 +488,7 @@ export const sendJobQuotation = async (
   }
 };
 
-export const sendChangeOrderJobQuotation = async (
+export const sendChangeOrderEstimate = async (
   req: any,
   res: Response,
   next: NextFunction
@@ -496,7 +496,7 @@ export const sendChangeOrderJobQuotation = async (
   try {
     const { jobId } = req.params;
     const contractorId = req.contractor.id;
-    let { quotationId, estimates = [] } = req.body;
+    let { estimates = [] } = req.body;
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -517,7 +517,7 @@ export const sendChangeOrderJobQuotation = async (
       return res.status(401).json({ message: "Invalid customer ID" });
     }
 
-    const quotation = await JobQuotationModel.findOne({ _id: quotationId, job: jobId });
+    const quotation = await JobQuotationModel.findOne({ _id: job.contract, job: jobId });
     if (!quotation) {
       return res.status(400).json({ success: false, message: "You don't have access to send extra job quotation" });
     }
@@ -976,7 +976,7 @@ export const ContractorJobController = {
   getJobListingById,
   getMyJobs,
   getJobHistory,
-  sendChangeOrderJobQuotation
+  sendChangeOrderEstimate
 }
 
 

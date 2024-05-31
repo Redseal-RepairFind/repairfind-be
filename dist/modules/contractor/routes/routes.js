@@ -130,7 +130,7 @@ router.post('/jobs/requests/:jobId/accept', contractorRoleCheck_middleware_1.che
 router.post('/jobs/requests/:jobId/reject', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.rejectJobRequest);
 // Quotation & Estimate
 router.post('/jobs/:jobId/quotations', contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateJobQuotationRequest, contractor_job_controller_1.ContractorJobController.sendJobQuotation); // send application and estimate
-router.post('/jobs/:jobId/extra-quotation', contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateExtraJobQuotationRequest, contractor_job_controller_1.ContractorJobController.sendChangeOrderJobQuotation); // send application and estimate
+router.post('/jobs/:jobId/change-order-estimate', contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateExtraJobQuotationRequest, contractor_job_controller_1.ContractorJobController.sendChangeOrderEstimate); // send application and estimate
 router.get('/jobs/:jobId/quotations', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.getQuotationForJob); // send application and estimate
 router.patch('/jobs/:jobId/quotations', contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateJobQuotationRequest, contractor_job_controller_1.ContractorJobController.updateJobQuotation); // send application and estimate
 // Notifications

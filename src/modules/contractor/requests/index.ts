@@ -218,12 +218,6 @@ export const CreateJobQuotationRequest = [
 
 // JOB Extra Quotation
 export const CreateExtraJobQuotationRequest = [
-  body('quotationId').custom((value) => {
-    if (!mongoose.Types.ObjectId.isValid(value)) {
-      throw new Error('Invalid ObjectId');
-    }
-    return true;
-  }),
   body("estimates").optional().isArray(), // Making estimates optional
   body("estimates.*.rate").if(body("estimates").exists()).notEmpty().isNumeric(), // Checking rate only if estimates is provided
   body("estimates.*.quantity").if(body("estimates").exists()).notEmpty().isNumeric(), // Checking quantity only if estimates is provided

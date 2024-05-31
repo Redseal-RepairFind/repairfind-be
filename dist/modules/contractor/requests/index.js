@@ -1,11 +1,7 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ContractorHttpRequest = exports.CreateJobDisputeRequest = exports.sendMessageParams = exports.CreateExtraJobQuotationRequest = exports.CreateJobQuotationRequest = exports.CreateScheduleRequest = exports.UpdateOrDevice = exports.CreateStripeSessionRequest = exports.InviteToTeam = exports.CreateCompanyDetailsRequest = exports.CreateGstDetailsRequest = exports.UpdateBankDetailRequest = exports.PasswordChangeRequest = exports.PasswordResetRequest = exports.ResendEmailRequest = exports.LoginRequest = exports.EmailVerificationRequest = exports.UpgradeEmployeeProfileRequest = exports.UpdateProfileRequest = exports.CreateProfileRequest = exports.CreateContractorRequest = void 0;
 var express_validator_1 = require("express-validator");
-var mongoose_1 = __importDefault(require("mongoose"));
 exports.CreateContractorRequest = [
     (0, express_validator_1.body)('email').isEmail(),
     (0, express_validator_1.body)('password').notEmpty(),
@@ -264,12 +260,6 @@ exports.CreateJobQuotationRequest = [
 ];
 // JOB Extra Quotation
 exports.CreateExtraJobQuotationRequest = [
-    (0, express_validator_1.body)('quotationId').custom(function (value) {
-        if (!mongoose_1.default.Types.ObjectId.isValid(value)) {
-            throw new Error('Invalid ObjectId');
-        }
-        return true;
-    }),
     (0, express_validator_1.body)("estimates").optional().isArray(), // Making estimates optional
     (0, express_validator_1.body)("estimates.*.rate").if((0, express_validator_1.body)("estimates").exists()).notEmpty().isNumeric(), // Checking rate only if estimates is provided
     (0, express_validator_1.body)("estimates.*.quantity").if((0, express_validator_1.body)("estimates").exists()).notEmpty().isNumeric(), // Checking quantity only if estimates is provided

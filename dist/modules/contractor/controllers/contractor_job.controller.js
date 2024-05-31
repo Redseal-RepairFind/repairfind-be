@@ -50,7 +50,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorJobController = exports.getJobHistory = exports.getMyJobs = exports.getJobListings = exports.updateJobQuotation = exports.getQuotationForJob = exports.sendChangeOrderJobQuotation = exports.sendJobQuotation = exports.getJobListingById = exports.getJobRequestById = exports.rejectJobRequest = exports.acceptJobRequest = exports.getJobRequests = void 0;
+exports.ContractorJobController = exports.getJobHistory = exports.getMyJobs = exports.getJobListings = exports.updateJobQuotation = exports.getQuotationForJob = exports.sendChangeOrderEstimate = exports.sendJobQuotation = exports.getJobListingById = exports.getJobRequestById = exports.rejectJobRequest = exports.acceptJobRequest = exports.getJobRequests = void 0;
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var job_model_1 = require("../../../database/common/job.model");
@@ -507,15 +507,15 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
     });
 }); };
 exports.sendJobQuotation = sendJobQuotation;
-var sendChangeOrderJobQuotation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var jobId, contractorId, _a, quotationId, _b, estimates, errors, _c, contractor, job, customer, quotation, changeOrderEstimate, _d, err_2;
-    return __generator(this, function (_e) {
-        switch (_e.label) {
+var sendChangeOrderEstimate = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var jobId, contractorId, _a, estimates, errors, _b, contractor, job, customer, quotation, changeOrderEstimate, _c, err_2;
+    return __generator(this, function (_d) {
+        switch (_d.label) {
             case 0:
-                _e.trys.push([0, 7, , 8]);
+                _d.trys.push([0, 7, , 8]);
                 jobId = req.params.jobId;
                 contractorId = req.contractor.id;
-                _a = req.body, quotationId = _a.quotationId, _b = _a.estimates, estimates = _b === void 0 ? [] : _b;
+                _a = req.body.estimates, estimates = _a === void 0 ? [] : _a;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -525,19 +525,19 @@ var sendChangeOrderJobQuotation = function (req, res, next) { return __awaiter(v
                         job_model_1.JobModel.findById(jobId).sort({ createdAt: -1 })
                     ])];
             case 1:
-                _c = _e.sent(), contractor = _c[0], job = _c[1];
+                _b = _d.sent(), contractor = _b[0], job = _b[1];
                 if (!contractor || !job) {
                     return [2 /*return*/, res.status(401).json({ message: "Invalid credential or job does not exist" })];
                 }
                 return [4 /*yield*/, customer_model_1.default.findOne({ _id: job.customer })];
             case 2:
-                customer = _e.sent();
+                customer = _d.sent();
                 if (!customer) {
                     return [2 /*return*/, res.status(401).json({ message: "Invalid customer ID" })];
                 }
-                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne({ _id: quotationId, job: jobId })];
+                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne({ _id: job.contract, job: jobId })];
             case 3:
-                quotation = _e.sent();
+                quotation = _d.sent();
                 if (!quotation) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "You don't have access to send extra job quotation" })];
                 }
@@ -550,18 +550,18 @@ var sendChangeOrderJobQuotation = function (req, res, next) { return __awaiter(v
                     date: new Date()
                 };
                 quotation.changeOrderEstimate = changeOrderEstimate;
-                _d = quotation;
+                _c = quotation;
                 return [4 /*yield*/, quotation.calculateCharges()];
             case 4:
-                _d.charges = _e.sent();
+                _c.charges = _d.sent();
                 job.jobHistory.push({ eventType: 'CHANGE_ORDER_ESTIMATE_SUBMITTED', timestamp: new Date(), payload: __assign({}, changeOrderEstimate) });
                 job.isChangeOrder = false;
                 return [4 /*yield*/, job.save()];
             case 5:
-                _e.sent();
+                _d.sent();
                 return [4 /*yield*/, quotation.save()];
             case 6:
-                _e.sent();
+                _d.sent();
                 events_1.JobEvent.emit('CHANGE_ORDER_ESTIMATE_SUBMITTED', { job: job, quotation: quotation });
                 res.json({
                     success: true,
@@ -570,13 +570,13 @@ var sendChangeOrderJobQuotation = function (req, res, next) { return __awaiter(v
                 });
                 return [3 /*break*/, 8];
             case 7:
-                err_2 = _e.sent();
+                err_2 = _d.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', err_2))];
             case 8: return [2 /*return*/];
         }
     });
 }); };
-exports.sendChangeOrderJobQuotation = sendChangeOrderJobQuotation;
+exports.sendChangeOrderEstimate = sendChangeOrderEstimate;
 var getQuotationForJob = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var jobId, contractorId, jobQuotation, _a, error_6;
     return __generator(this, function (_b) {
@@ -979,5 +979,5 @@ exports.ContractorJobController = {
     getJobListingById: exports.getJobListingById,
     getMyJobs: exports.getMyJobs,
     getJobHistory: exports.getJobHistory,
-    sendChangeOrderJobQuotation: exports.sendChangeOrderJobQuotation
+    sendChangeOrderEstimate: exports.sendChangeOrderEstimate
 };
