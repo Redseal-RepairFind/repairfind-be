@@ -1,10 +1,13 @@
 import { NextFunction, Request, Response } from "express";
 import { applyAPIFeature } from "../../../utils/api.feature";
 import { ConversationModel } from "../../../database/common/conversations.schema";
-import { MessageModel, MessageType } from "../../../database/common/messages.schema";
+import { IMessage, MessageModel, MessageType } from "../../../database/common/messages.schema";
 import { ConversationEvent } from "../../../events";
 import { BadRequestError, InternalServerError } from "../../../utils/custom.errors";
 import { validationResult } from "express-validator";
+import { ContractorModel } from "../../../database/contractor/models/contractor.model";
+import CustomerModel from "../../../database/customer/models/customer.model";
+import mongoose, { Schema } from "mongoose";
 
 export const getConversations = async (req: any, res: Response, next: NextFunction) => {
     try {
@@ -175,10 +178,71 @@ export const markAllMessagesAsRead = async (req: any, res: Response, next: NextF
     }
 };
 
+
+export const startConversation = async (
+    req: any,
+    res: Response,
+    next: NextFunction,
+) => {
+    try { 
+        const { userId, userType, message} = req.body;
+        const fromUserId = req.contractor.id
+        const fromUser =  await ContractorModel.findById(fromUserId)
+        if(!fromUser)return res.status(404).json({ success:false, message:'From user not found' }) 
+       
+       if(!mongoose.Types.ObjectId.isValid(userId)) return res.status(400).json({ success:false, message:'Invalid user id provided' }) 
+
+        if (!userId || !userType) return res.status(400).json({ success:false, message:'To user not provided' }) 
+        const user = userType === 'contractors' ? await ContractorModel.findById(userId) : await CustomerModel.findById(userId)
+        if (!user)  return res.status(404).json({ success:false, message:'User not found' }); // Ensure user exists
+       
+
+        // Create a new conversation between the customer and the contractor
+        const conversationMembers = [
+            { memberType: userType, member: userId },
+            { memberType: 'contractors', member: fromUserId }
+        ];
+
+        const conversation = await ConversationModel.findOneAndUpdate(
+            {
+                $and: [
+                    { members: { $elemMatch: { member: fromUserId } } }, // memberType: 'customers'
+                    { members: { $elemMatch: { member: userId } } } // memberType: 'contractors'
+                ]
+            },
+
+            {
+                members: conversationMembers,
+                lastMessage: message, // Set the last message to the job description
+                lastMessageAt: new Date() // Set the last message timestamp to now
+            },
+            { new: true, upsert: true }
+        );
+
+        // Create a message in the conversation
+        const newMessage: IMessage = await MessageModel.create({
+            conversation: conversation._id,
+            sender: fromUserId, // Assuming the customer sends the initial message
+            message: message, // You can customize the message content as needed
+            messageType: MessageType.TEXT, // You can customize the message content as needed
+            createdAt: new Date()
+        });
+
+      
+        ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
+
+        res.status(200).json({message:'Conversation created', data:conversation });
+    } catch (err: any) {
+        res.status(500).json({ message: err.message });
+    }
+}
+
 export const ContractorConversationController = {
     getConversations,
     getSingleConversation,
     getConversationMessages,
     sendMessage,
-    markAllMessagesAsRead
+    markAllMessagesAsRead,
+    startConversation
+    
 };

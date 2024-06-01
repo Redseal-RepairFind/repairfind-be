@@ -180,6 +180,7 @@ router.get('/notifications/:notificationId', checkContractorRole, ContractorNoti
 
 // Conversations
 router.get('/conversations', checkContractorRole, ContractorConversationController.getConversations)
+router.post('/conversations', checkContractorRole, ContractorConversationController.startConversation)
 router.get('/conversations/:conversationId', checkContractorRole, ContractorConversationController.getSingleConversation)
 router.get('/conversations/:conversationId/messages', checkContractorRole, ContractorConversationController.getConversationMessages)
 router.post('/conversations/:conversationId/messages', checkContractorRole, ContractorHttpRequest.sendMessageParams,  ContractorConversationController.sendMessage)

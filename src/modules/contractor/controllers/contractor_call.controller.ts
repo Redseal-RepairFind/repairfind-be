@@ -49,7 +49,7 @@ export const startCall = async (
     res: Response,
     next: NextFunction,
 ) => {
-    try {
+    try { 
         const { toUser, toUserType } = req.body;
         const fromUserId = req.contractor.id
         const fromUser =  await ContractorModel.findById(fromUserId)

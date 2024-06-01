@@ -35,14 +35,20 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorConversationController = exports.markAllMessagesAsRead = exports.sendMessage = exports.getConversationMessages = exports.getSingleConversation = exports.getConversations = void 0;
+exports.ContractorConversationController = exports.startConversation = exports.markAllMessagesAsRead = exports.sendMessage = exports.getConversationMessages = exports.getSingleConversation = exports.getConversations = void 0;
 var api_feature_1 = require("../../../utils/api.feature");
 var conversations_schema_1 = require("../../../database/common/conversations.schema");
 var messages_schema_1 = require("../../../database/common/messages.schema");
 var events_1 = require("../../../events");
 var custom_errors_1 = require("../../../utils/custom.errors");
 var express_validator_1 = require("express-validator");
+var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
+var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
+var mongoose_1 = __importDefault(require("mongoose"));
 var getConversations = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, startDate, endDate, read, unread, contractorId_1, filter, _b, data, error, error_1;
     return __generator(this, function (_c) {
@@ -270,10 +276,78 @@ var markAllMessagesAsRead = function (req, res, next) { return __awaiter(void 0,
     });
 }); };
 exports.markAllMessagesAsRead = markAllMessagesAsRead;
+var startConversation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, userId, userType, message, fromUserId, fromUser, user, _b, conversationMembers, conversation, newMessage, err_1;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
+            case 0:
+                _c.trys.push([0, 8, , 9]);
+                _a = req.body, userId = _a.userId, userType = _a.userType, message = _a.message;
+                fromUserId = req.contractor.id;
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(fromUserId)];
+            case 1:
+                fromUser = _c.sent();
+                if (!fromUser)
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'From user not found' })];
+                if (!mongoose_1.default.Types.ObjectId.isValid(userId))
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid user id provided' })];
+                if (!userId || !userType)
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'To user not provided' })];
+                if (!(userType === 'contractors')) return [3 /*break*/, 3];
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(userId)];
+            case 2:
+                _b = _c.sent();
+                return [3 /*break*/, 5];
+            case 3: return [4 /*yield*/, customer_model_1.default.findById(userId)];
+            case 4:
+                _b = _c.sent();
+                _c.label = 5;
+            case 5:
+                user = _b;
+                if (!user)
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'User not found' })]; // Ensure user exists
+                conversationMembers = [
+                    { memberType: userType, member: userId },
+                    { memberType: 'contractors', member: fromUserId }
+                ];
+                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
+                        $and: [
+                            { members: { $elemMatch: { member: fromUserId } } }, // memberType: 'customers'
+                            { members: { $elemMatch: { member: userId } } } // memberType: 'contractors'
+                        ]
+                    }, {
+                        members: conversationMembers,
+                        lastMessage: message, // Set the last message to the job description
+                        lastMessageAt: new Date() // Set the last message timestamp to now
+                    }, { new: true, upsert: true })];
+            case 6:
+                conversation = _c.sent();
+                return [4 /*yield*/, messages_schema_1.MessageModel.create({
+                        conversation: conversation._id,
+                        sender: fromUserId, // Assuming the customer sends the initial message
+                        message: message, // You can customize the message content as needed
+                        messageType: messages_schema_1.MessageType.TEXT, // You can customize the message content as needed
+                        createdAt: new Date()
+                    })];
+            case 7:
+                newMessage = _c.sent();
+                events_1.ConversationEvent.emit('NEW_MESSAGE', { message: newMessage });
+                res.status(200).json({ message: 'Conversation created', data: conversation });
+                return [3 /*break*/, 9];
+            case 8:
+                err_1 = _c.sent();
+                res.status(500).json({ message: err_1.message });
+                return [3 /*break*/, 9];
+            case 9: return [2 /*return*/];
+        }
+    });
+}); };
+exports.startConversation = startConversation;
 exports.ContractorConversationController = {
     getConversations: exports.getConversations,
     getSingleConversation: exports.getSingleConversation,
     getConversationMessages: exports.getConversationMessages,
     sendMessage: exports.sendMessage,
-    markAllMessagesAsRead: exports.markAllMessagesAsRead
+    markAllMessagesAsRead: exports.markAllMessagesAsRead,
+    startConversation: exports.startConversation
 };
