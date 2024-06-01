@@ -76,7 +76,7 @@ var startTrip = function (req, res) { return __awaiter(void 0, void 0, void 0, f
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
                 contractorId = req.contractor.id;
-                return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobId, contractor: contractorId, status: job_model_1.JOB_STATUS.BOOKED })];
+                return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobId, status: job_model_1.JOB_STATUS.BOOKED })];
             case 1:
                 job = _b.sent();
                 // Check if the job request exists
@@ -111,7 +111,7 @@ var startTrip = function (req, res) { return __awaiter(void 0, void 0, void 0, f
 }); };
 exports.startTrip = startTrip;
 var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var jobId, errors, contractorId, contractorProfile, contractor, job, customer, jobDay, conversationMembers, conversation, contractorLocation, data, err_2;
+    var jobId, errors, job, contractorId, contractorProfile, contractor, customer, jobDay, conversationMembers, conversation, contractorLocation, data, err_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -121,24 +121,26 @@ var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
-                contractorId = req.contractor.id;
-                return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: contractorId })];
+                return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobId })];
             case 1:
+                job = _a.sent();
+                if (!job) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Job booking not found' })];
+                }
+                contractorId = req.contractor.id;
+                if (job.isAssigned && job.assignment)
+                    contractorId = job.assignment.contractor;
+                return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: contractorId })];
+            case 2:
                 contractorProfile = _a.sent();
                 if (!contractorProfile) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor profile not found' })];
                 }
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
-            case 2:
+            case 3:
                 contractor = _a.sent();
                 if (!contractor) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Job Contractor not found' })];
-                }
-                return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobId, contractor: contractorId })];
-            case 3:
-                job = _a.sent();
-                if (!job) {
-                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Job booking not found' })];
                 }
                 return [4 /*yield*/, customer_model_1.default.findOne({ _id: job.customer })];
             case 4:
@@ -178,7 +180,7 @@ var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void
                     conversation: conversation.id,
                     customer: { id: customer.id, phoneNumber: customer.phoneNumber, name: customer.name, email: customer.email, profilePhoto: customer.profilePhoto },
                     contractor: { id: contractor.id, phoneNumber: contractor.phoneNumber, name: contractor.name, email: contractor.email, profilePhoto: contractor.profilePhoto },
-                    job: { id: job.id, description: job.description, title: job.title, schedule: job.schedule, type: job.type, date: job.date, location: job.location },
+                    job: { id: job.id, description: job.description, title: job.title, schedule: job.schedule, type: job.type, date: job.date, location: job.location, assignment: job.assignment },
                     contractorLocation: contractorLocation,
                     jobDay: jobDay
                 };

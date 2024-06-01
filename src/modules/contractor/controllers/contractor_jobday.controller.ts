@@ -32,7 +32,7 @@ export const startTrip = async (
         const contractorId = req.contractor.id
 
         // Find the job request by ID
-        const job = await JobModel.findOne({ _id: jobId, contractor: contractorId, status: JOB_STATUS.BOOKED });
+        const job = await JobModel.findOne({ _id: jobId, status: JOB_STATUS.BOOKED });
 
         // Check if the job request exists
         if (!job) {
@@ -83,8 +83,15 @@ export const initiateJobDay = async (
             return res.status(400).json({ errors: errors.array() });
         }
 
-        const contractorId = req.contractor.id
+        
+        // Find the job request by ID
+        const job = await JobModel.findOne({ _id: jobId });
+        if (!job) {
+            return res.status(404).json({ success: false, message: 'Job booking not found' });
+        }
 
+        let contractorId = req.contractor.id
+        if(job.isAssigned && job.assignment) contractorId = job.assignment.contractor
         let contractorProfile = await ContractorProfileModel.findOne({ contractor: contractorId });
 
         if (!contractorProfile) {
@@ -96,12 +103,6 @@ export const initiateJobDay = async (
             return res.status(404).json({ success: false, message: 'Job Contractor not found' });
         }
 
-
-        // Find the job request by ID
-        const job = await JobModel.findOne({ _id: jobId, contractor: contractorId });
-        if (!job) {
-            return res.status(404).json({ success: false, message: 'Job booking not found' });
-        }
 
         // Find the job request by ID
         const customer = await CustomerModel.findOne({ _id: job.customer });
@@ -145,7 +146,7 @@ export const initiateJobDay = async (
             conversation: conversation.id,
             customer: {id: customer.id, phoneNumber: customer.phoneNumber, name: customer.name, email: customer.email, profilePhoto: customer.profilePhoto},
             contractor: {id: contractor.id, phoneNumber: contractor.phoneNumber, name: contractor.name, email: contractor.email, profilePhoto: contractor.profilePhoto},
-            job: {id: job.id, description: job.description, title: job.title, schedule: job.schedule, type:job.type, date:job.date, location: job.location},
+            job: {id: job.id, description: job.description, title: job.title, schedule: job.schedule, type:job.type, date:job.date, location: job.location, assignment:job.assignment},
             contractorLocation: contractorLocation,
             jobDay
         }
