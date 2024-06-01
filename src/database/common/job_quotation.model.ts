@@ -170,8 +170,8 @@ JobQuotationSchema.virtual('charges').get(function () {
 
 
 
-//@ts-ignore
-if(this.changeOrderEstimate){
+
+
     JobQuotationSchema.virtual('changeOrderEstimate.charges').get(function () {
     
         
@@ -203,10 +203,9 @@ if(this.changeOrderEstimate){
 
         return { subtotal, processingFee, gst, totalAmount, contractorAmount };
     });
-}
 
-//@ts-ignore
-if(this.changeOrderEstimate){
+
+
     JobQuotationSchema.virtual('siteVisitEstimate.charges').get(function () {
     
         let totalEstimateAmount = 0;
@@ -237,7 +236,6 @@ if(this.changeOrderEstimate){
 
         return { subtotal, processingFee, gst, totalAmount, contractorAmount };
     });
-}
 
 JobQuotationSchema.set('toObject', { virtuals: true });
 JobQuotationSchema.set('toJSON', { virtuals: true });
