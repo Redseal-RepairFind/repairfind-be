@@ -37,9 +37,7 @@ const NotificationSchema = new Schema(
         default: null,
       },
       entityType: {
-        type: String,
-        enum: ['contractors', 'customers', 'bookings', 'jobs', 'others'],
-        default: 'others',
+        type: String
       },
       heading: Object,
       createdAt: {

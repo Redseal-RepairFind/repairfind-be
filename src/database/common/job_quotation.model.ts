@@ -170,70 +170,74 @@ JobQuotationSchema.virtual('charges').get(function () {
 
 
 
-JobQuotationSchema.virtual('changeOrderEstimate.charges').get(function () {
-   
-    let totalEstimateAmount = 0;
+//@ts-ignore
+if(this.changeOrderEstimate){
+    JobQuotationSchema.virtual('changeOrderEstimate.charges').get(function () {
     
-    let estimates: any = []
-    if(this.changeOrderEstimate){
-        estimates = this.changeOrderEstimate.estimates
-    }
+        
+        let totalEstimateAmount = 0;
+        
+        let estimates: any = []
+        if(this.changeOrderEstimate){
+            estimates = this.changeOrderEstimate.estimates
+        }
 
-    estimates.forEach((estimate: any) => {
-        totalEstimateAmount += estimate.rate * estimate.quantity;
+        estimates.forEach((estimate: any) => {
+            totalEstimateAmount += estimate.rate * estimate.quantity;
+        });
+
+        let subtotal, processingFee, gst, totalAmount, contractorAmount, siteVisitAmount = 0;
+
+        if (totalEstimateAmount <= 1000) {
+            processingFee = parseFloat(((20 / 100) * totalEstimateAmount).toFixed(2));
+        } else if (totalEstimateAmount <= 5000) {
+            processingFee = parseFloat(((15 / 100) * totalEstimateAmount).toFixed(2));
+        } else {
+            processingFee = parseFloat(((10 / 100) * totalEstimateAmount).toFixed(2));
+        }
+
+        gst = parseFloat(((5 / 100) * totalEstimateAmount).toFixed(2));
+        subtotal = totalEstimateAmount;
+        totalAmount = (subtotal + processingFee + gst).toFixed(2);
+        contractorAmount = (subtotal + gst).toFixed(2);
+
+        return { subtotal, processingFee, gst, totalAmount, contractorAmount };
     });
+}
 
-    let subtotal, processingFee, gst, totalAmount, contractorAmount, siteVisitAmount = 0;
-
-    if (totalEstimateAmount <= 1000) {
-        processingFee = parseFloat(((20 / 100) * totalEstimateAmount).toFixed(2));
-    } else if (totalEstimateAmount <= 5000) {
-        processingFee = parseFloat(((15 / 100) * totalEstimateAmount).toFixed(2));
-    } else {
-        processingFee = parseFloat(((10 / 100) * totalEstimateAmount).toFixed(2));
-    }
-
-    gst = parseFloat(((5 / 100) * totalEstimateAmount).toFixed(2));
-    subtotal = totalEstimateAmount;
-    totalAmount = (subtotal + processingFee + gst).toFixed(2);
-    contractorAmount = (subtotal + gst).toFixed(2);
-
-    return { subtotal, processingFee, gst, totalAmount, contractorAmount };
-});
-
-
-
-JobQuotationSchema.virtual('siteVisitEstimate.charges').get(function () {
-   
-    let totalEstimateAmount = 0;
+//@ts-ignore
+if(this.changeOrderEstimate){
+    JobQuotationSchema.virtual('siteVisitEstimate.charges').get(function () {
     
-    let estimates: any = []
-    if(this.siteVisitEstimate){
-        estimates = this.siteVisitEstimate.estimates
-    }
+        let totalEstimateAmount = 0;
+        
+        let estimates: any = []
+        if(this.siteVisitEstimate){
+            estimates = this.siteVisitEstimate.estimates
+        }
 
-    estimates.forEach((estimate: any) => {
-        totalEstimateAmount += estimate.rate * estimate.quantity;
+        estimates.forEach((estimate: any) => {
+            totalEstimateAmount += estimate.rate * estimate.quantity;
+        });
+
+        let subtotal, processingFee, gst, totalAmount, contractorAmount, siteVisitAmount = 0;
+
+        if (totalEstimateAmount <= 1000) {
+            processingFee = parseFloat(((20 / 100) * totalEstimateAmount).toFixed(2));
+        } else if (totalEstimateAmount <= 5000) {
+            processingFee = parseFloat(((15 / 100) * totalEstimateAmount).toFixed(2));
+        } else {
+            processingFee = parseFloat(((10 / 100) * totalEstimateAmount).toFixed(2));
+        }
+
+        gst = parseFloat(((5 / 100) * totalEstimateAmount).toFixed(2));
+        subtotal = totalEstimateAmount;
+        totalAmount = (subtotal + processingFee + gst).toFixed(2);
+        contractorAmount = (subtotal + gst).toFixed(2);
+
+        return { subtotal, processingFee, gst, totalAmount, contractorAmount };
     });
-
-    let subtotal, processingFee, gst, totalAmount, contractorAmount, siteVisitAmount = 0;
-
-    if (totalEstimateAmount <= 1000) {
-        processingFee = parseFloat(((20 / 100) * totalEstimateAmount).toFixed(2));
-    } else if (totalEstimateAmount <= 5000) {
-        processingFee = parseFloat(((15 / 100) * totalEstimateAmount).toFixed(2));
-    } else {
-        processingFee = parseFloat(((10 / 100) * totalEstimateAmount).toFixed(2));
-    }
-
-    gst = parseFloat(((5 / 100) * totalEstimateAmount).toFixed(2));
-    subtotal = totalEstimateAmount;
-    totalAmount = (subtotal + processingFee + gst).toFixed(2);
-    contractorAmount = (subtotal + gst).toFixed(2);
-
-    return { subtotal, processingFee, gst, totalAmount, contractorAmount };
-});
-
+}
 
 JobQuotationSchema.set('toObject', { virtuals: true });
 JobQuotationSchema.set('toJSON', { virtuals: true });

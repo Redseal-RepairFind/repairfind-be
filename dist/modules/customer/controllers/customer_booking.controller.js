@@ -80,7 +80,6 @@ var customer_model_1 = __importDefault(require("../../../database/customer/model
 var job_model_1 = require("../../../database/common/job.model");
 var custom_errors_1 = require("../../../utils/custom.errors");
 var api_feature_1 = require("../../../utils/api.feature");
-var conversations_schema_1 = require("../../../database/common/conversations.schema");
 var job_quotation_model_1 = require("../../../database/common/job_quotation.model");
 var events_1 = require("../../../events");
 var mongoose_1 = __importDefault(require("mongoose"));
@@ -987,12 +986,12 @@ var reviewBookingOnCompletion = function (req, res, next) { return __awaiter(voi
 }); };
 exports.reviewBookingOnCompletion = reviewBookingOnCompletion;
 var createBookingDispute = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, description, evidence, bookingId, customerId, errors, job, filedBy, dispute, contractorId, conversationMembers, conversation, disputeEvidence, error_13;
+    var _a, description, evidence, bookingId, customerId, errors, job, filedBy, dispute, disputeEvidence, error_13;
     var _b;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
-                _c.trys.push([0, 6, , 7]);
+                _c.trys.push([0, 5, , 6]);
                 _a = req.body, description = _a.description, evidence = _a.evidence;
                 bookingId = req.params.bookingId;
                 customerId = req.customer.id;
@@ -1023,35 +1022,16 @@ var createBookingDispute = function (req, res, next) { return __awaiter(void 0, 
                     }, { new: true, upsert: true })];
             case 2:
                 dispute = _c.sent();
-                contractorId = job.contractor;
-                conversationMembers = [
-                    { memberType: 'customers', member: customerId },
-                    { memberType: 'contractors', member: contractorId }
-                ];
-                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
-                        type: conversations_schema_1.CONVERSATION_TYPE.GROUP_CHAT,
-                        entity: dispute.id,
-                        entityType: 'job_disputes',
-                        $and: [
-                            { members: { $elemMatch: { member: customerId } } }, // memberType: 'customers'
-                            { members: { $elemMatch: { member: contractorId } } } // memberType: 'contractors'
-                        ]
-                    }, {
-                        members: conversationMembers,
-                        lastMessage: "New Dispute Created: ".concat(description), // Set the last message to the job description
-                        lastMessageAt: new Date() // Set the last message timestamp to now
-                    }, { new: true, upsert: true })];
-            case 3:
-                conversation = _c.sent();
                 disputeEvidence = evidence.map(function (url) { return ({
                     url: url,
                     addedBy: 'customer',
                     addedAt: new Date(),
                 }); });
                 (_b = dispute.evidence).push.apply(_b, disputeEvidence);
-                dispute.conversation = conversation.id;
+                // dispute.conversation = conversation.id
                 return [4 /*yield*/, dispute.save()];
-            case 4:
+            case 3:
+                // dispute.conversation = conversation.id
                 _c.sent();
                 job.status = job_model_1.JOB_STATUS.DISPUTED;
                 job.statusUpdate = {
@@ -1061,15 +1041,15 @@ var createBookingDispute = function (req, res, next) { return __awaiter(void 0, 
                     status: 'REJECTED',
                 };
                 return [4 /*yield*/, job.save()];
-            case 5:
+            case 4:
                 _c.sent();
                 events_1.JobEvent.emit('JOB_DISPUTE_CREATED', { dispute: dispute });
                 return [2 /*return*/, res.status(201).json({ success: true, message: 'Job dispute created successfully', data: dispute })];
-            case 6:
+            case 5:
                 error_13 = _c.sent();
                 next(new custom_errors_1.InternalServerError('Error creating job dispute:', error_13));
-                return [3 /*break*/, 7];
-            case 7: return [2 /*return*/];
+                return [3 /*break*/, 6];
+            case 6: return [2 /*return*/];
         }
     });
 }); };

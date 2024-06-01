@@ -22,9 +22,7 @@ var NotificationSchema = new mongoose_1.Schema({
         default: null,
     },
     entityType: {
-        type: String,
-        enum: ['contractors', 'customers', 'bookings', 'jobs', 'others'],
-        default: 'others',
+        type: String
     },
     heading: Object,
     createdAt: {

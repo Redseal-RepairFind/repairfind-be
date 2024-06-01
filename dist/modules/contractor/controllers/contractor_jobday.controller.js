@@ -416,8 +416,6 @@ var markJobDayComplete = function (req, res, next) { return __awaiter(void 0, vo
                     // return res.status(400).json({ success: false, message: 'The booking is already marked as complete' });
                 }
                 jobStatus = (job.schedule.type == job_model_1.JOB_SCHEDULE_TYPE.SITE_VISIT) ? job_model_1.JOB_STATUS.COMPLETED_SITE_VISIT : job_model_1.JOB_STATUS.COMPLETED;
-                // const jobStatus = (job.schedule.type == JOB_SCHEDULE_TYPE.SITE_VISIT) ? JOB_STATUS.COMPLETED_SITE_VISIT : JOB_STATUS.COMPLETED
-                // job.status = JOB_STATUS.PENDING
                 job.statusUpdate = __assign(__assign({}, job.statusUpdate), { status: jobStatus, isCustomerAccept: false, isContractorAccept: true, awaitingConfirmation: true });
                 job.jobHistory.push({
                     eventType: 'JOB_MARKED_COMPLETE_BY_CONTRACTOR',
@@ -559,9 +557,6 @@ var submitEstimate = function (req, res, next) { return __awaiter(void 0, void 0
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Job quotation not found' })];
                 quotation.startDate = job.date;
                 quotation.estimates = estimates;
-                quotation.type = job_quotation_model_1.JOB_QUOTATION_TYPE.JOB_DAY;
-                // const jobStatus = (job.schedule.type == JOB_SCHEDULE_TYPE.SITE_VISIT) ? JOB_STATUS.COMPLETED_SITE_VISIT : JOB_STATUS.COMPLETED
-                // job.status = JOB_STATUS.PENDING
                 job.statusUpdate = __assign(__assign({}, job.statusUpdate), { status: 'SITE_VISIT_ESTIMATE_SUBMITTED', isCustomerAccept: false, awaitingConfirmation: true });
                 job.jobHistory.push({
                     eventType: 'SITE_VISIT_ESTIMATE_SUBMITTED',

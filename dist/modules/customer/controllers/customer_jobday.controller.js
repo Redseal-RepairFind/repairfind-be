@@ -50,7 +50,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerJobDayController = exports.confirmJobDayCompletion = exports.createJobDispute = exports.createJobEmergency = exports.savePostJobQualityAssurance = exports.savePreJobJobQualityAssurance = exports.confirmContractorArrival = exports.initiateJobDay = void 0;
+exports.CustomerJobDayController = exports.rejectJobDayCompletion = exports.confirmJobDayCompletion = exports.createJobDispute = exports.createJobEmergency = exports.savePostJobQualityAssurance = exports.savePreJobJobQualityAssurance = exports.confirmContractorArrival = exports.initiateJobDay = void 0;
 var express_validator_1 = require("express-validator");
 var index_1 = require("../../../services/notifications/index");
 var job_day_model_1 = require("../../../database/common/job_day.model");
@@ -63,6 +63,7 @@ var conversations_schema_1 = require("../../../database/common/conversations.sch
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var job_dispute_model_1 = require("../../../database/common/job_dispute.model");
+var job_quotation_model_1 = require("../../../database/common/job_quotation.model");
 var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var jobId, errors, customerId, job, jobDay, contractorId, contractor, customer, contractorProfile, conversationMembers, conversation, contractorLocation, data, err_1;
     return __generator(this, function (_a) {
@@ -462,11 +463,11 @@ var createJobDispute = function (req, res, next) { return __awaiter(void 0, void
 }); };
 exports.createJobDispute = createJobDispute;
 var confirmJobDayCompletion = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, jobDayId, jobDay, customer, job, jobStatus, error_3;
+    var customerId, jobDayId, jobDay, customer, job, quotation, jobStatus, error_3;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 6, , 7]);
+                _a.trys.push([0, 7, , 8]);
                 customerId = req.customer.id;
                 jobDayId = req.params.jobDayId;
                 return [4 /*yield*/, job_day_model_1.JobDayModel.findById(jobDayId)];
@@ -484,10 +485,14 @@ var confirmJobDayCompletion = function (req, res, next) { return __awaiter(void 
                 return [4 /*yield*/, job_model_1.JobModel.findById(jobDay.job)];
             case 3:
                 job = _a.sent();
-                // Check if the job exists
                 if (!job) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found' })];
                 }
+                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findById(job.contract)];
+            case 4:
+                quotation = _a.sent();
+                if (!quotation)
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Job quotation not found' })];
                 // Check if the contractor is the owner of the job
                 if (job.customer.toString() !== customerId) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'You are not authorized to mark  this booking as complete' })];
@@ -497,6 +502,12 @@ var confirmJobDayCompletion = function (req, res, next) { return __awaiter(void 
                 }
                 jobStatus = (job.schedule.type == job_model_1.JOB_SCHEDULE_TYPE.SITE_VISIT) ? job_model_1.JOB_STATUS.COMPLETED_SITE_VISIT : job_model_1.JOB_STATUS.COMPLETED;
                 job.statusUpdate = __assign(__assign({}, job.statusUpdate), { status: jobStatus, isCustomerAccept: true, awaitingConfirmation: false });
+                // if schedul was a site visit
+                //change job to pending and qoutation type to jobday
+                if (job.schedule.type == job_model_1.JOB_SCHEDULE_TYPE.SITE_VISIT) {
+                    job.status = job_model_1.JOB_STATUS.PENDING;
+                    quotation.type = job_quotation_model_1.JOB_QUOTATION_TYPE.JOB_DAY;
+                }
                 job.status = jobStatus; // since its customer accepting job completion
                 jobDay.status = job_day_model_1.JOB_DAY_STATUS.COMPLETED;
                 job.jobHistory.push({
@@ -506,21 +517,85 @@ var confirmJobDayCompletion = function (req, res, next) { return __awaiter(void 
                 });
                 events_1.JobEvent.emit('JOB_COMPLETED', { job: job });
                 return [4 /*yield*/, job.save()];
-            case 4:
-                _a.sent();
-                return [4 /*yield*/, jobDay.save()];
             case 5:
                 _a.sent();
-                res.json({ success: true, message: 'Booking marked as completed successfully', data: job });
-                return [3 /*break*/, 7];
+                return [4 /*yield*/, jobDay.save()];
             case 6:
+                _a.sent();
+                res.json({ success: true, message: 'Booking marked as completed successfully', data: job });
+                return [3 /*break*/, 8];
+            case 7:
                 error_3 = _a.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_3))];
-            case 7: return [2 /*return*/];
+            case 8: return [2 /*return*/];
         }
     });
 }); };
 exports.confirmJobDayCompletion = confirmJobDayCompletion;
+var rejectJobDayCompletion = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var customerId, jobDayId, jobDay, customer, job, quotation, jobStatus, error_4;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 7, , 8]);
+                customerId = req.customer.id;
+                jobDayId = req.params.jobDayId;
+                return [4 /*yield*/, job_day_model_1.JobDayModel.findById(jobDayId)];
+            case 1:
+                jobDay = _a.sent();
+                if (!jobDay) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Job Day not found' })];
+                }
+                return [4 /*yield*/, customer_model_1.default.findById(customerId)];
+            case 2:
+                customer = _a.sent();
+                if (!customer) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Customer not found' })];
+                }
+                return [4 /*yield*/, job_model_1.JobModel.findById(jobDay.job)];
+            case 3:
+                job = _a.sent();
+                if (!job) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found' })];
+                }
+                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findById(job.contract)];
+            case 4:
+                quotation = _a.sent();
+                if (!quotation)
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Job quotation not found' })];
+                // Check if the contractor is the owner of the job
+                if (job.customer.toString() !== customerId) {
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'You are not authorized to mark  this booking as complete' })];
+                }
+                if (!job.statusUpdate.awaitingConfirmation) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Contractor has not requested for a status update' })];
+                }
+                jobStatus = (job.schedule.type == job_model_1.JOB_SCHEDULE_TYPE.SITE_VISIT) ? job_model_1.JOB_STATUS.DISPUTED : job_model_1.JOB_STATUS.DISPUTED;
+                job.statusUpdate = __assign(__assign({}, job.statusUpdate), { status: 'REJECTED', isCustomerAccept: true, awaitingConfirmation: false });
+                job.status = jobStatus; // since its customer accepting job completion
+                jobDay.status = job_day_model_1.JOB_DAY_STATUS.COMPLETED;
+                job.jobHistory.push({
+                    eventType: 'JOB_MARKED_COMPLETE_BY_CUSTOMER',
+                    timestamp: new Date(),
+                    payload: {}
+                });
+                events_1.JobEvent.emit('JOB_COMPLETED', { job: job });
+                return [4 /*yield*/, job.save()];
+            case 5:
+                _a.sent();
+                return [4 /*yield*/, jobDay.save()];
+            case 6:
+                _a.sent();
+                res.json({ success: true, message: 'Booking marked as completed successfully', data: job });
+                return [3 /*break*/, 8];
+            case 7:
+                error_4 = _a.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_4))];
+            case 8: return [2 /*return*/];
+        }
+    });
+}); };
+exports.rejectJobDayCompletion = rejectJobDayCompletion;
 exports.CustomerJobDayController = {
     confirmContractorArrival: exports.confirmContractorArrival,
     savePostJobQualityAssurance: exports.savePostJobQualityAssurance,

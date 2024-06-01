@@ -387,8 +387,7 @@ export const markJobDayComplete = async (req: any, res: Response, next: NextFunc
 
 
         const jobStatus = (job.schedule.type == JOB_SCHEDULE_TYPE.SITE_VISIT) ? JOB_STATUS.COMPLETED_SITE_VISIT : JOB_STATUS.COMPLETED
-         // const jobStatus = (job.schedule.type == JOB_SCHEDULE_TYPE.SITE_VISIT) ? JOB_STATUS.COMPLETED_SITE_VISIT : JOB_STATUS.COMPLETED
-        // job.status = JOB_STATUS.PENDING
+
 
         job.statusUpdate = {
             ...job.statusUpdate,
@@ -540,11 +539,9 @@ export const submitEstimate = async (req: any, res: Response, next: NextFunction
 
         quotation.startDate = job.date
         quotation.estimates = estimates
-        quotation.type = JOB_QUOTATION_TYPE.JOB_DAY
 
-        // const jobStatus = (job.schedule.type == JOB_SCHEDULE_TYPE.SITE_VISIT) ? JOB_STATUS.COMPLETED_SITE_VISIT : JOB_STATUS.COMPLETED
-        // job.status = JOB_STATUS.PENDING
         
+
         job.statusUpdate = {
             ...job.statusUpdate,
             status: 'SITE_VISIT_ESTIMATE_SUBMITTED',

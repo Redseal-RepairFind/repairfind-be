@@ -11,6 +11,7 @@ import { CONVERSATION_TYPE, ConversationModel } from "../../../database/common/c
 import { ContractorModel } from "../../../database/contractor/models/contractor.model";
 import CustomerModel from "../../../database/customer/models/customer.model";
 import { JOB_DISPUTE_STATUS, JobDisputeModel } from "../../../database/common/job_dispute.model";
+import { JOB_QUOTATION_TYPE, JobQuotationModel } from "../../../database/common/job_quotation.model";
 
 
 export const initiateJobDay = async (
@@ -452,12 +453,12 @@ export const confirmJobDayCompletion = async (req: any, res: Response, next: Nex
 
         // Find the job
         const job = await JobModel.findById(jobDay.job);
-
-
-        // Check if the job exists
         if (!job) {
             return res.status(404).json({ success: false, message: 'Job not found' });
         }
+
+        const quotation = await JobQuotationModel.findById(job.contract)
+        if(!quotation) return res.status(400).json({ success: false, message: 'Job quotation not found' });
 
         // Check if the contractor is the owner of the job
         if (job.customer.toString() !== customerId) {
@@ -480,6 +481,78 @@ export const confirmJobDayCompletion = async (req: any, res: Response, next: Nex
             isCustomerAccept: true,
             awaitingConfirmation: false
         }
+
+        // if schedul was a site visit
+        //change job to pending and qoutation type to jobday
+        if(job.schedule.type == JOB_SCHEDULE_TYPE.SITE_VISIT){
+            job.status = JOB_STATUS.PENDING
+            quotation.type = JOB_QUOTATION_TYPE.JOB_DAY
+        }
+
+        job.status = jobStatus  // since its customer accepting job completion
+        jobDay.status = JOB_DAY_STATUS.COMPLETED  
+        job.jobHistory.push({
+            eventType: 'JOB_MARKED_COMPLETE_BY_CUSTOMER',
+            timestamp: new Date(),
+            payload: {}
+        });
+
+        JobEvent.emit('JOB_COMPLETED', { job })
+        await job.save();
+        await jobDay.save();
+
+        res.json({ success: true, message: 'Booking marked as completed successfully', data: job });
+    } catch (error: any) {
+        return next(new BadRequestError('An error occurred', error));
+    }
+};
+
+
+
+export const rejectJobDayCompletion = async (req: any, res: Response, next: NextFunction) => {
+    try {
+        const customerId = req.customer.id;
+        const { jobDayId } = req.params;
+
+        const jobDay = await JobDayModel.findById(jobDayId);
+        
+        if (!jobDay) {
+            return res.status(404).json({ success: false, message: 'Job Day not found' });
+        }
+
+        const customer = await CustomerModel.findById(customerId);
+        if (!customer) {
+            return res.status(404).json({ success: false, message: 'Customer not found' });
+        }
+
+        // Find the job
+        const job = await JobModel.findById(jobDay.job);
+        if (!job) {
+            return res.status(404).json({ success: false, message: 'Job not found' });
+        }
+
+        const quotation = await JobQuotationModel.findById(job.contract)
+        if(!quotation) return res.status(400).json({ success: false, message: 'Job quotation not found' });
+
+        // Check if the contractor is the owner of the job
+        if (job.customer.toString() !== customerId) {
+            return res.status(403).json({ success: false, message: 'You are not authorized to mark  this booking as complete' });
+        }
+
+     
+        if (!job.statusUpdate.awaitingConfirmation) {
+            return res.status(400).json({ success: false, message: 'Contractor has not requested for a status update' });
+        }
+
+
+        const jobStatus = (job.schedule.type == JOB_SCHEDULE_TYPE.SITE_VISIT) ? JOB_STATUS.DISPUTED : JOB_STATUS.DISPUTED
+        job.statusUpdate = {
+            ...job.statusUpdate,
+            status: 'REJECTED',
+            isCustomerAccept: true,
+            awaitingConfirmation: false
+        }
+
 
         job.status = jobStatus  // since its customer accepting job completion
         jobDay.status = JOB_DAY_STATUS.COMPLETED  
