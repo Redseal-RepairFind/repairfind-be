@@ -121,7 +121,7 @@ var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
-                return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobId })];
+                return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobId }).populate('assignment.contractor')];
             case 1:
                 job = _a.sent();
                 if (!job) {
