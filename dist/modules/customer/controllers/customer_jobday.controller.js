@@ -215,6 +215,21 @@ var confirmContractorArrival = function (req, res) { return __awaiter(void 0, vo
                     socket: true,
                     // database: true
                 });
+                if (job.assignment) {
+                    index_1.NotificationService.sendNotification({
+                        user: job.assignment.contractor,
+                        userType: 'contractors',
+                        title: 'jobDay',
+                        heading: {},
+                        type: 'JOB_DAY_CONFIRMED',
+                        message: 'Customer confirmed your arrival.',
+                        payload: { event: 'JOB_DAY_CONFIRMED', jobDay: jobDay }
+                    }, {
+                        push: true,
+                        socket: true,
+                        // database: true
+                    });
+                }
                 // send notification to  customer
                 index_1.NotificationService.sendNotification({
                     user: jobDay.customer,

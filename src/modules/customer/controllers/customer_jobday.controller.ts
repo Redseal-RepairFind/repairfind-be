@@ -180,6 +180,25 @@ export const confirmContractorArrival = async (
             }
         )
 
+        if(job.assignment){
+            NotificationService.sendNotification(
+                {
+                    user: job.assignment.contractor,
+                    userType: 'contractors',
+                    title: 'jobDay',
+                    heading: {},
+                    type: 'JOB_DAY_CONFIRMED',
+                    message: 'Customer confirmed your arrival.',
+                    payload: { event: 'JOB_DAY_CONFIRMED', jobDay }
+                },
+                {
+                    push: true,
+                    socket: true,
+                    // database: true
+                }
+            )
+    
+        }
 
         // send notification to  customer
         NotificationService.sendNotification(
