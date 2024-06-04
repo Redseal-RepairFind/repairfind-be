@@ -277,11 +277,11 @@ var markAllMessagesAsRead = function (req, res, next) { return __awaiter(void 0,
 }); };
 exports.markAllMessagesAsRead = markAllMessagesAsRead;
 var startConversation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, userId, userType, message, fromUserId, fromUser, user, _b, conversationMembers, conversation, newMessage, err_1;
+    var _a, userId, userType, message, fromUserId, fromUser, user, _b, conversationMembers, conversation, err_1;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
-                _c.trys.push([0, 8, , 9]);
+                _c.trys.push([0, 7, , 8]);
                 _a = req.body, userId = _a.userId, userType = _a.userType, message = _a.message;
                 fromUserId = req.contractor.id;
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(fromUserId)];
@@ -322,23 +322,22 @@ var startConversation = function (req, res, next) { return __awaiter(void 0, voi
                     }, { new: true, upsert: true })];
             case 6:
                 conversation = _c.sent();
-                return [4 /*yield*/, messages_schema_1.MessageModel.create({
-                        conversation: conversation._id,
-                        sender: fromUserId, // Assuming the customer sends the initial message
-                        message: message, // You can customize the message content as needed
-                        messageType: messages_schema_1.MessageType.TEXT, // You can customize the message content as needed
-                        createdAt: new Date()
-                    })];
-            case 7:
-                newMessage = _c.sent();
-                events_1.ConversationEvent.emit('NEW_MESSAGE', { message: newMessage });
+                // // Create a message in the conversation
+                // const newMessage: IMessage = await MessageModel.create({
+                //     conversation: conversation._id,
+                //     sender: fromUserId, // Assuming the customer sends the initial message
+                //     message: message, // You can customize the message content as needed
+                //     messageType: MessageType.TEXT, // You can customize the message content as needed
+                //     createdAt: new Date()
+                // });
+                // ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
                 res.status(200).json({ message: 'Conversation created', data: conversation });
-                return [3 /*break*/, 9];
-            case 8:
+                return [3 /*break*/, 8];
+            case 7:
                 err_1 = _c.sent();
                 res.status(500).json({ message: err_1.message });
-                return [3 /*break*/, 9];
-            case 9: return [2 /*return*/];
+                return [3 /*break*/, 8];
+            case 8: return [2 /*return*/];
         }
     });
 }); };

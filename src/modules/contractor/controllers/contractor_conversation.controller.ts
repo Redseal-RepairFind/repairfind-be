@@ -219,17 +219,17 @@ export const startConversation = async (
             { new: true, upsert: true }
         );
 
-        // Create a message in the conversation
-        const newMessage: IMessage = await MessageModel.create({
-            conversation: conversation._id,
-            sender: fromUserId, // Assuming the customer sends the initial message
-            message: message, // You can customize the message content as needed
-            messageType: MessageType.TEXT, // You can customize the message content as needed
-            createdAt: new Date()
-        });
+        // // Create a message in the conversation
+        // const newMessage: IMessage = await MessageModel.create({
+        //     conversation: conversation._id,
+        //     sender: fromUserId, // Assuming the customer sends the initial message
+        //     message: message, // You can customize the message content as needed
+        //     messageType: MessageType.TEXT, // You can customize the message content as needed
+        //     createdAt: new Date()
+        // });
 
       
-        ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
+        // ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
 
         res.status(200).json({message:'Conversation created', data:conversation });
     } catch (err: any) {
