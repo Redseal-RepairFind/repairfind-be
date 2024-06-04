@@ -120,24 +120,30 @@ var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0,
                 _f = _g.sent(), data = _f.data, error = _f.error;
                 if (!data) return [3 /*break*/, 3];
                 return [4 /*yield*/, Promise.all(data.data.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
-                        var _a, _b;
-                        return __generator(this, function (_c) {
-                            switch (_c.label) {
+                        var _a, _b, _c;
+                        return __generator(this, function (_d) {
+                            switch (_d.label) {
                                 case 0:
-                                    if (!contractorId_1) return [3 /*break*/, 4];
+                                    if (!contractorId_1) return [3 /*break*/, 6];
                                     if (!job.isAssigned) return [3 /*break*/, 2];
                                     _a = job;
                                     return [4 /*yield*/, job.getMyQoutation(job.contractor)];
                                 case 1:
-                                    _a.myQuotation = _c.sent();
+                                    _a.myQuotation = _d.sent();
                                     return [3 /*break*/, 4];
                                 case 2:
                                     _b = job;
                                     return [4 /*yield*/, job.getMyQoutation(contractorId_1)];
                                 case 3:
-                                    _b.myQuotation = _c.sent();
-                                    _c.label = 4;
-                                case 4: return [2 /*return*/];
+                                    _b.myQuotation = _d.sent();
+                                    _d.label = 4;
+                                case 4:
+                                    _c = job;
+                                    return [4 /*yield*/, job.getJobDay()];
+                                case 5:
+                                    _c.jobDay = _d.sent();
+                                    _d.label = 6;
+                                case 6: return [2 /*return*/];
                             }
                         });
                     }); }))];
@@ -190,23 +196,28 @@ var getBookingHistory = function (req, res, next) { return __awaiter(void 0, voi
                 if (!data) return [3 /*break*/, 4];
                 // Map through each job and attach myQuotation if contractor has applied 
                 return [4 /*yield*/, Promise.all(data.data.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
-                        var _a, _b;
-                        return __generator(this, function (_c) {
-                            switch (_c.label) {
+                        var _a, _b, _c;
+                        return __generator(this, function (_d) {
+                            switch (_d.label) {
                                 case 0:
                                     if (!job.isAssigned) return [3 /*break*/, 2];
                                     _a = job;
                                     return [4 /*yield*/, job.getMyQoutation(job.contractor)];
                                 case 1:
-                                    _a.myQuotation = _c.sent();
+                                    _a.myQuotation = _d.sent();
                                     return [3 /*break*/, 4];
                                 case 2:
                                     _b = job;
                                     return [4 /*yield*/, job.getMyQoutation(contractorId)];
                                 case 3:
-                                    _b.myQuotation = _c.sent();
-                                    _c.label = 4;
-                                case 4: return [2 /*return*/];
+                                    _b.myQuotation = _d.sent();
+                                    _d.label = 4;
+                                case 4:
+                                    _c = job;
+                                    return [4 /*yield*/, job.getJobDay()];
+                                case 5:
+                                    _c.jobDay = _d.sent();
+                                    return [2 /*return*/];
                             }
                         });
                     }); }))];
@@ -264,23 +275,28 @@ var getBookingDisputes = function (req, res, next) { return __awaiter(void 0, vo
                 if (!data) return [3 /*break*/, 4];
                 // Map through each job and attach myQuotation if contractor has applied 
                 return [4 /*yield*/, Promise.all(data.data.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
-                        var _a, _b;
-                        return __generator(this, function (_c) {
-                            switch (_c.label) {
+                        var _a, _b, _c;
+                        return __generator(this, function (_d) {
+                            switch (_d.label) {
                                 case 0:
                                     if (!job.isAssigned) return [3 /*break*/, 2];
                                     _a = job;
                                     return [4 /*yield*/, job.getMyQoutation(job.contractor)];
                                 case 1:
-                                    _a.myQuotation = _c.sent();
+                                    _a.myQuotation = _d.sent();
                                     return [3 /*break*/, 4];
                                 case 2:
                                     _b = job;
                                     return [4 /*yield*/, job.getMyQoutation(contractorId)];
                                 case 3:
-                                    _b.myQuotation = _c.sent();
-                                    _c.label = 4;
-                                case 4: return [2 /*return*/];
+                                    _b.myQuotation = _d.sent();
+                                    _d.label = 4;
+                                case 4:
+                                    _c = job;
+                                    return [4 /*yield*/, job.getJobDay()];
+                                case 5:
+                                    _c.jobDay = _d.sent();
+                                    return [2 /*return*/];
                             }
                         });
                     }); }))];
@@ -304,11 +320,11 @@ var getBookingDisputes = function (req, res, next) { return __awaiter(void 0, vo
 }); };
 exports.getBookingDisputes = getBookingDisputes;
 var getSingleBooking = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var contractorId, bookingId, job, responseData, _a, _b, error_4;
-    return __generator(this, function (_c) {
-        switch (_c.label) {
+    var contractorId, bookingId, job, responseData, _a, _b, _c, error_4;
+    return __generator(this, function (_d) {
+        switch (_d.label) {
             case 0:
-                _c.trys.push([0, 4, , 5]);
+                _d.trys.push([0, 5, , 6]);
                 contractorId = req.contractor.id;
                 bookingId = req.params.bookingId;
                 return [4 /*yield*/, job_model_1.JobModel.findOne({
@@ -318,7 +334,7 @@ var getSingleBooking = function (req, res, next) { return __awaiter(void 0, void
                         ], _id: bookingId
                     }).populate(['contractor', 'contract', 'customer', 'assignment.contractor'])];
             case 1:
-                job = _c.sent();
+                job = _d.sent();
                 // Check if the job exists
                 if (!job) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Booking not found' })];
@@ -327,18 +343,24 @@ var getSingleBooking = function (req, res, next) { return __awaiter(void 0, void
                 _a = responseData;
                 return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ job: job.id, type: job.schedule.type })];
             case 2:
-                _a.jobDay = _c.sent();
+                _a.jobDay = _d.sent();
                 _b = responseData;
                 return [4 /*yield*/, job_dispute_model_1.JobDisputeModel.findOne({ job: job.id })];
             case 3:
-                _b.dispute = _c.sent();
+                _b.dispute = _d.sent();
+                _c = responseData;
+                return [4 /*yield*/, job.getJobDay()
+                    // If the job exists, return it as a response
+                ];
+            case 4:
+                _c.jobDay = _d.sent();
                 // If the job exists, return it as a response
                 res.json({ success: true, message: 'Booking retrieved', data: responseData });
-                return [3 /*break*/, 5];
-            case 4:
-                error_4 = _c.sent();
+                return [3 /*break*/, 6];
+            case 5:
+                error_4 = _d.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_4))];
-            case 5: return [2 /*return*/];
+            case 6: return [2 /*return*/];
         }
     });
 }); };

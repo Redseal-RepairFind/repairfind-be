@@ -18,7 +18,7 @@ import mongoose from "mongoose";
 import TransactionModel, { TRANSACTION_STATUS, TRANSACTION_TYPE } from "../../../database/common/transaction.model";
 import { StripeService } from "../../../services/stripe";
 import Stripe from "stripe";
-import { IPayment } from "../../../database/common/payment.schema";
+import { IPayment, PAYMENT_TYPE } from "../../../database/common/payment.schema";
 import { JOB_DISPUTE_STATUS, JobDisputeModel } from "../../../database/common/job_dispute.model";
 import { IReview, REVIEW_TYPE, ReviewModel } from "../../../database/common/review.model";
 import CustomerFavoriteContractorModel from "../../../database/customer/models/customer_favorite_contractors.model";
@@ -96,9 +96,11 @@ export const getMyBookings = async (req: any, res: Response, next: NextFunction)
         if (data) {
 
             await Promise.all(data.data.map(async (job: any) => {
-                if (contractorId) {
-                    job.myQuotation = await job.getMyQoutation(contractorId)
-                }
+                // if (contractorId) {
+                //     job.myQuotation = await job.getMyQoutation(contractorId)
+                // }
+                job.jobDay = await job.getJobDay()
+
             }));
         }
 
@@ -156,6 +158,7 @@ export const getBookingHistory = async (req: any, res: Response, next: NextFunct
             // Map through each job and attach myQuotation if contractor has applied 
             await Promise.all(data.data.map(async (job: any) => {
                 job.myQuotation = await job.getMyQoutation(contractorId)
+                job.jobDay = await job.getJobDay()
             }));
         }
 
@@ -218,6 +221,7 @@ export const getBookingDisputes = async (req: any, res: Response, next: NextFunc
             // Map through each job and attach myQuotation if contractor has applied 
             await Promise.all(data.data.map(async (job: any) => {
                 job.myQuotation = await job.getMyQoutation(contractorId)
+                job.jobDay = await job.getJobDay()
             }));
         }
 
@@ -248,8 +252,9 @@ export const getSingleBooking = async (req: any, res: Response, next: NextFuncti
         }
 
         let responseData: any = { ...job.toJSON() };
-        responseData.jobDay = await JobDayModel.findOne({ job: job.id, type: job.schedule.type });
         responseData.dispute = await JobDisputeModel.findOne({ job: job.id });
+        responseData.jobDay = await job.getJobDay()
+        responseData.jobDay = await job.getJobDay()
 
         res.json({ success: true, message: 'Booking retrieved', data: responseData });
 
@@ -461,12 +466,6 @@ export const getRefundable = async (req: any, res: Response, next: NextFunction)
 
 
 
-
-        // TODO: apply the guidline below and create refund
-        // Cancel jobs: Customers have the option to cancel jobs based on the following guidelines:
-        // Free cancellation up to 48 hours before the scheduled job time..
-        // For cancellations made within 24 hours, regardless of the job's cost, a $50 cancellation fee is applied. 80% of this fee is directed to the contractor, while the remaining 20% is retained by us.
-
         const startDate = job.schedule.startDate;
         if (!startDate) {
             return res.status(400).json({ success: false, message: 'Job does not have a schedule' });
@@ -474,9 +473,15 @@ export const getRefundable = async (req: any, res: Response, next: NextFunction)
 
         const jobDate = job.schedule.startDate.getTime();
         const charges = await contract.calculateCharges()
-        const payments = await job.getPayments()
+       
+        // choose which payment to refund ? SITE_VISIT_PAYMENT, JOB_DAY_PAYMENT, CHANGE_ORDER_PAYMENT
+        const paymentType = (job.schedule.type == 'JOB_DAY') ? [PAYMENT_TYPE.JOB_DAY_PAYMENT, PAYMENT_TYPE.CHANGE_ORDER_PAYMENT] : [PAYMENT_TYPE.SITE_VISIT_PAYMENT] 
+        const payments = await job.getPayments(paymentType)
+        
         const currentTime = new Date().getTime();
         const timeDifferenceInHours = Math.abs(jobDate - currentTime) / (1000 * 60 * 60);
+        
+        // const transactions  = await TransactionModel.find({job: job.id})
 
         let refund = {
             refundAmount: payments.totalAmount,
@@ -632,7 +637,7 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
                 metadata: {
                     ...refund,
                     payment: payment.id,
-                    charge: payment.reference
+                    charge: payment.charge
                 },
                 job: job.id,
                 payment: payment.id,

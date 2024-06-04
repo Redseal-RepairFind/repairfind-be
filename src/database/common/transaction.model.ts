@@ -15,6 +15,9 @@ export enum TRANSACTION_TYPE {
   REFUND = "REFUND",
   PAYOUT = "PAYOUT",
   INSPECTION_PAYMENT = "INSPECTION_PAYMENT",
+  SITE_VISIT = 'SITE_VISIT',
+  JOB_DAY = 'JOB_DAY',
+  CHANGE_ORDER = 'CHANGE_ORDER',
 }
 
 export interface ICaptureDetails extends Document {

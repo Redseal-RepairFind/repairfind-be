@@ -119,7 +119,7 @@ var handleJobRefunds = function () { return __awaiter(void 0, void 0, void 0, fu
                 if (!payment)
                     return [2 /*return*/];
                 if (!!payment.refunded) return [3 /*break*/, 14];
-                return [4 /*yield*/, stripe_1.StripeService.payment.refundCharge(payment.reference, (payment.amount))];
+                return [4 /*yield*/, stripe_1.StripeService.payment.refundCharge(payment.charge, (payment.amount))];
             case 13:
                 stripePayment = _c.sent();
                 _c.label = 14;

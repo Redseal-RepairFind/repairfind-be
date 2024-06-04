@@ -719,7 +719,14 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                     },
                     {
                         $addFields: {
-                            totalQuotations: { $size: "$totalQuotations" }
+                            totalQuotations: { $size: "$totalQuotations" },
+                            expiresIn: {
+                                $dateDiff: {
+                                    unit: "day", // Change to "hour", "minute", etc. if needed
+                                    startDate: "$createdAt",
+                                    endDate: "$expiryDate",
+                                },
+                            },
                         }
                     },
                 ];

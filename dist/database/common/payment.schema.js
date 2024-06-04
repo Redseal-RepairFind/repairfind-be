@@ -23,16 +23,24 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PaymentModel = void 0;
+exports.PaymentModel = exports.PAYMENT_TYPE = void 0;
 var mongoose_1 = __importStar(require("mongoose"));
+var PAYMENT_TYPE;
+(function (PAYMENT_TYPE) {
+    PAYMENT_TYPE["JOB_DAY_PAYMENT"] = "JOB_DAY_PAYMENT";
+    PAYMENT_TYPE["SITE_VISIT_PAYMENT"] = "SITE_VISIT_PAYMENT";
+    PAYMENT_TYPE["CHANGE_ORDER_PAYMENT"] = "CHANGE_ORDER_PAYMENT";
+})(PAYMENT_TYPE || (exports.PAYMENT_TYPE = PAYMENT_TYPE = {}));
 var PaymentSchema = new mongoose_1.Schema({
-    reference: { type: String, required: true },
+    charge: { type: String, required: true },
     amount: { type: Number, required: true },
     amount_captured: { type: Number, required: true },
     amount_refunded: { type: Number },
     application_fee_amount: { type: Number },
     object: { type: String, required: true },
+    type: { type: String, required: false, enum: Object.values(PAYMENT_TYPE) },
     transaction: { type: mongoose_1.Schema.Types.ObjectId, ref: 'transactions' },
+    job: { type: mongoose_1.Schema.Types.ObjectId, ref: 'jobs' },
     user: { type: mongoose_1.Schema.Types.ObjectId, refPath: 'userType', required: true },
     userType: { type: String, required: true },
     customer: { type: String },

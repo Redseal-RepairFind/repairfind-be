@@ -18,6 +18,9 @@ var TRANSACTION_TYPE;
     TRANSACTION_TYPE["REFUND"] = "REFUND";
     TRANSACTION_TYPE["PAYOUT"] = "PAYOUT";
     TRANSACTION_TYPE["INSPECTION_PAYMENT"] = "INSPECTION_PAYMENT";
+    TRANSACTION_TYPE["SITE_VISIT"] = "SITE_VISIT";
+    TRANSACTION_TYPE["JOB_DAY"] = "JOB_DAY";
+    TRANSACTION_TYPE["CHANGE_ORDER"] = "CHANGE_ORDER";
 })(TRANSACTION_TYPE || (exports.TRANSACTION_TYPE = TRANSACTION_TYPE = {}));
 var CaptureDetailsShema = new mongoose_1.Schema({
     payment: { type: mongoose_1.Schema.Types.ObjectId, required: true },

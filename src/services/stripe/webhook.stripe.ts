@@ -13,8 +13,8 @@ import { sendPushNotifications } from '../expo';
 import ContractorDeviceModel from '../../database/contractor/models/contractor_devices.model';
 import { castPayloadToDTO } from '../../utils/interface_dto.util';
 import { IStripeAccount } from '../../database/common/stripe_account.schema';
-import { IPayment, PaymentModel } from '../../database/common/payment.schema';
-import { JobModel, JOB_STATUS, JOB_SCHEDULE_TYPE, JOB_PAYMENT_TYPE } from '../../database/common/job.model';
+import { IPayment, PAYMENT_TYPE, PaymentModel } from '../../database/common/payment.schema';
+import { JobModel, JOB_STATUS, JOB_SCHEDULE_TYPE } from '../../database/common/job.model';
 import { IJobQuotation, JobQuotationModel, JOB_QUOTATION_STATUS } from '../../database/common/job_quotation.model';
 import { ObjectId } from 'mongoose';
 import { NotificationService } from '../notifications';
@@ -532,13 +532,14 @@ export const chargeSucceeded = async (payload: any) => {
         payload.application_fee_amount = payload.application_fee_amount/100
 
         let stripeChargeDTO: IPayment = castPayloadToDTO(payload, payload as IPayment);
-        stripeChargeDTO.reference = payload.id
-        delete (stripeChargeDTO as { id?: any }).id;
-
+        stripeChargeDTO.charge = payload.id
+        stripeChargeDTO.type = payload.metadata.type
         stripeChargeDTO.user = user.id
         stripeChargeDTO.userType = userType
+        delete (stripeChargeDTO as { id?: any }).id;
 
-        let payment = await PaymentModel.findOneAndUpdate({ reference: stripeChargeDTO.reference }, stripeChargeDTO, {
+
+        let payment = await PaymentModel.findOneAndUpdate({ charge: stripeChargeDTO.charge }, stripeChargeDTO, {
             new: true, upsert: true
         })
 
@@ -585,20 +586,20 @@ export const chargeSucceeded = async (payload: any) => {
         }
 
         // handle job booking creating here ?
-        const metadata = payment.metadata as { jobId: string, quotationId: string, constractorId: ObjectId, type: string, customerId: ObjectId, remark: string, extraEstimateId: ObjectId, jobPaymentType: JOB_PAYMENT_TYPE }
-        if (metadata.type == TRANSACTION_TYPE.JOB_PAYMENT) {
+        const metadata = payment.metadata as { jobId: string, quotationId: string, constractorId: ObjectId, customerId: ObjectId, remark: string, extraEstimateId: ObjectId, type: PAYMENT_TYPE }
+        if (metadata.jobId) {
             const jobId = metadata.jobId
-            const jobPaymentType = metadata.jobPaymentType
+            const paymentType = metadata.type
             const quotationId = metadata.quotationId
 
-            if (jobId && jobPaymentType && quotationId) { 
+            if (jobId && paymentType && quotationId) { 
                 
                 let job = await JobModel.findById(jobId)
                 let quotation = await JobQuotationModel.findById(quotationId)
                 if (!job || !quotation) return
                
                 
-                if (jobPaymentType == JOB_PAYMENT_TYPE.JOB_DAY) {
+                if (paymentType == PAYMENT_TYPE.JOB_DAY_PAYMENT) {
                     job.status = JOB_STATUS.BOOKED
                     job.contract = quotation.id
                     job.contractor = quotation.contractor
@@ -619,7 +620,7 @@ export const chargeSucceeded = async (payload: any) => {
                 }
 
 
-                if (jobPaymentType == JOB_PAYMENT_TYPE.SITE_VISIT) {
+                if (paymentType == PAYMENT_TYPE.SITE_VISIT_PAYMENT) {
                     job.status = JOB_STATUS.BOOKED
                     job.contract = quotation.id
                     job.contractor = quotation.contractor
@@ -641,7 +642,7 @@ export const chargeSucceeded = async (payload: any) => {
                 }
                 
 
-                if (jobPaymentType ==  JOB_PAYMENT_TYPE.CHANGE_ORDER) {
+                if (paymentType ==  PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) {
                     const changeOrderEstimate: any = quotation.changeOrderEstimate
                     if (!changeOrderEstimate) return
                     changeOrderEstimate.isPaid = true
@@ -675,10 +676,10 @@ export const chargeRefunded = async (payload: any) => {
         if (payload.object !== 'charge') return;
 
         const stripeChargeDTO: IPayment = castPayloadToDTO(payload, payload as IPayment);
-        stripeChargeDTO.reference = payload.id;
+        stripeChargeDTO.charge = payload.id;
         delete (stripeChargeDTO as { id?: any }).id;
 
-        const payment = await PaymentModel.findOne({ reference: stripeChargeDTO.reference });
+        const payment = await PaymentModel.findOne({ charge: stripeChargeDTO.charge });
 
         if (payment) {
             const transaction = await TransactionModel.findOne({ type: TRANSACTION_TYPE.REFUND, payment: payment.id });

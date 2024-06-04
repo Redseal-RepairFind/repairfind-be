@@ -39,37 +39,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.expireJobs = void 0;
 var job_model_1 = require("../../../database/common/job.model");
 var logger_1 = require("../../../utils/logger");
-// export const expireJobs = async () => {
-//     try {
-//         const jobs = await JobModel.find({
-//             status: {  $in: ['PENDING'] },
-//             expiresIn: { $gt: 0 }
-//         }) as IJob[];
-//         for (const job of jobs) {
-//             try {
-//                 job.expiresIn -= 1; // Reduce expiresIn count by 1 each day
-//                 if (job.expiresIn <= 0) {
-//                     job.status = JOB_STATUS.EXPIRED;
-//                 }
-//                 await job.save();
-//                 Logger.info(`Successfully processed job expiration for job: ${job.id}`);
-//             } catch (error) {
-//                 Logger.error(`Error processing job expiration for job: ${job.id}`, error);
-//             }
-//         }
-//     } catch (error) {
-//         Logger.error('Error occurred while expiring jobs:', error);
-//     }
-// };
 var expireJobs = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var jobs, _i, jobs_1, job, currentTime, elapsedTime, error_1, error_2;
+    var jobs, _i, jobs_1, job, error_1, error_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 8, , 9]);
                 return [4 /*yield*/, job_model_1.JobModel.find({
                         status: { $in: ['PENDING'] },
-                        expiresIn: { $gt: 0 }
                     })];
             case 1:
                 jobs = _a.sent();
@@ -81,9 +58,6 @@ var expireJobs = function () { return __awaiter(void 0, void 0, void 0, function
                 _a.label = 3;
             case 3:
                 _a.trys.push([3, 5, , 6]);
-                currentTime = new Date();
-                elapsedTime = Math.floor((currentTime.getTime() - job.createdAt.getTime()) / (1000 * 3600 * 24));
-                job.expiresIn = job.expiresIn - elapsedTime; // Decrease expiresIn based on days elapsed
                 if (job.expiresIn <= 0) {
                     job.status = job_model_1.JOB_STATUS.EXPIRED;
                 }

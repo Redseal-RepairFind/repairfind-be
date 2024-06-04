@@ -36,9 +36,11 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.JobModel = exports.JobType = exports.JOB_SCHEDULE_TYPE = exports.JOB_PAYMENT_TYPE = exports.JOB_STATUS = void 0;
+exports.JobModel = exports.JobType = exports.JOB_SCHEDULE_TYPE = exports.JOB_STATUS = void 0;
 var mongoose_1 = require("mongoose");
 var job_quotation_model_1 = require("./job_quotation.model");
+var payment_schema_1 = require("./payment.schema");
+var job_day_model_1 = require("./job_day.model");
 var JOB_STATUS;
 (function (JOB_STATUS) {
     JOB_STATUS["PENDING"] = "PENDING";
@@ -54,12 +56,6 @@ var JOB_STATUS;
     JOB_STATUS["ONGOING_SITE_VISIT"] = "ONGOING_SITE_VISIT";
     JOB_STATUS["COMPLETED_SITE_VISIT"] = "COMPLETED_SITE_VISIT";
 })(JOB_STATUS || (exports.JOB_STATUS = JOB_STATUS = {}));
-var JOB_PAYMENT_TYPE;
-(function (JOB_PAYMENT_TYPE) {
-    JOB_PAYMENT_TYPE["SITE_VISIT"] = "SITE_VISIT";
-    JOB_PAYMENT_TYPE["JOB_DAY"] = "JOB_DAY";
-    JOB_PAYMENT_TYPE["CHANGE_ORDER"] = "CHANGE_ORDER";
-})(JOB_PAYMENT_TYPE || (exports.JOB_PAYMENT_TYPE = JOB_PAYMENT_TYPE = {}));
 var JOB_SCHEDULE_TYPE;
 (function (JOB_SCHEDULE_TYPE) {
     JOB_SCHEDULE_TYPE["JOB_DAY"] = "JOB_DAY";
@@ -144,8 +140,15 @@ var JobSchema = new mongoose_1.Schema({
     location: { type: JobLocationSchema, required: true },
     date: { type: Date, required: true },
     time: { type: Date, required: false },
-    expiresIn: { type: Number, default: 0 },
+    // expiresIn: { type: Number, default: 10 },
     startDate: { type: Date },
+    expiryDate: {
+        type: Date,
+        default: function () {
+            var now = new Date();
+            return new Date(now.setDate(now.getDate() + 7));
+        }
+    },
     endDate: { type: Date },
     media: { type: [String], default: [] },
     tags: { type: [String] },
@@ -168,11 +171,30 @@ var JobSchema = new mongoose_1.Schema({
     isAssigned: { type: Boolean, default: false },
     review: { type: mongoose_1.Schema.Types.ObjectId, ref: 'reviews' },
     isChangeOrder: { type: Boolean, default: false },
+    jobDay: { type: mongoose_1.Schema.Types.ObjectId, ref: 'job_days' },
 }, { timestamps: true });
 JobSchema.virtual('totalQuotations').get(function () {
     var pendingQuotations = this.quotations.filter(function (quote) { return quote.status !== job_quotation_model_1.JOB_QUOTATION_STATUS.DECLINED; });
     return pendingQuotations.length;
 });
+JobSchema.virtual('expiresIn').get(function () {
+    return this.expiryDate ? this.expiryDate.getDate() - this.createdAt.getDate() : null;
+});
+//get job day that match with the schedule type
+JobSchema.methods.getJobDay = function (scheduleType) {
+    if (scheduleType === void 0) { scheduleType = null; }
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    if (!scheduleType)
+                        scheduleType = this.schedule.type;
+                    return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ job: this.id, type: scheduleType })];
+                case 1: return [2 /*return*/, _a.sent()];
+            }
+        });
+    });
+};
 JobSchema.methods.getMyQoutation = function (contractor) {
     return __awaiter(this, void 0, void 0, function () {
         var contractorQuotation;
@@ -193,21 +215,39 @@ JobSchema.methods.getMyQoutation = function (contractor) {
     });
 };
 // get job payments summary
-JobSchema.methods.getPayments = function () {
+JobSchema.methods.getPayments = function (types) {
+    if (types === void 0) { types = null; }
     return __awaiter(this, void 0, void 0, function () {
-        var totalAmount, job, payments;
+        var totalAmount, paymentIds, jobPayments, payments;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     totalAmount = 0;
-                    return [4 /*yield*/, this.populate('payments')];
+                    return [4 /*yield*/, this.payments];
                 case 1:
-                    job = _a.sent();
-                    totalAmount = job.payments.reduce(function (acc, payment) { return acc + payment.amount; }, 0);
-                    payments = job.payments.map(function (payment) {
+                    paymentIds = _a.sent();
+                    if (!paymentIds)
+                        return [2 /*return*/, { totalAmount: 0, paymentCount: 0, payments: null }];
+                    jobPayments = null;
+                    if (!types) return [3 /*break*/, 3];
+                    return [4 /*yield*/, payment_schema_1.PaymentModel.find({ _id: { $in: paymentIds }, type: { $in: types } })];
+                case 2:
+                    jobPayments = _a.sent();
+                    return [3 /*break*/, 5];
+                case 3: return [4 /*yield*/, payment_schema_1.PaymentModel.find({ _id: { $in: paymentIds } })];
+                case 4:
+                    jobPayments = _a.sent();
+                    _a.label = 5;
+                case 5:
+                    console.log(paymentIds, jobPayments, types);
+                    if (!jobPayments)
+                        return [2 /*return*/, { totalAmount: 0, paymentCount: 0, payments: null }];
+                    totalAmount = jobPayments.reduce(function (acc, payment) { return acc + payment.amount; }, 0);
+                    payments = jobPayments.map(function (payment) {
                         return {
                             id: payment._id,
-                            reference: payment.reference,
+                            transaction: payment.transaction,
+                            charge: payment.charge,
                             amount: payment.amount,
                             amount_refunded: payment.amount_refunded,
                             status: payment.status,

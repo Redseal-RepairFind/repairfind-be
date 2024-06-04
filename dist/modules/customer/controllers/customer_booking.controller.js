@@ -84,12 +84,12 @@ var job_quotation_model_1 = require("../../../database/common/job_quotation.mode
 var events_1 = require("../../../events");
 var mongoose_1 = __importDefault(require("mongoose"));
 var transaction_model_1 = __importStar(require("../../../database/common/transaction.model"));
+var payment_schema_1 = require("../../../database/common/payment.schema");
 var job_dispute_model_1 = require("../../../database/common/job_dispute.model");
 var review_model_1 = require("../../../database/common/review.model");
 var customer_favorite_contractors_model_1 = __importDefault(require("../../../database/customer/models/customer_favorite_contractors.model"));
-var job_day_model_1 = require("../../../database/common/job_day.model");
 var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, _b, limit, _c, page, _d, sort, contractorId_1, _e, status_1, startDate, endDate, date, type, customerId, filter, start, end, selectedDate, startOfDay_1, endOfDay, _f, data, error, error_1;
+    var errors, _a, _b, limit, _c, page, _d, sort, contractorId, _e, status_1, startDate, endDate, date, type, customerId, filter, start, end, selectedDate, startOfDay_1, endOfDay, _f, data, error, error_1;
     return __generator(this, function (_g) {
         switch (_g.label) {
             case 0:
@@ -98,18 +98,18 @@ var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0,
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
-                _a = req.query, _b = _a.limit, limit = _b === void 0 ? 10 : _b, _c = _a.page, page = _c === void 0 ? 1 : _c, _d = _a.sort, sort = _d === void 0 ? '-createdAt' : _d, contractorId_1 = _a.contractorId, _e = _a.status, status_1 = _e === void 0 ? 'BOOKED,ONGOING,ONGOING_SITE_VISIT' : _e, startDate = _a.startDate, endDate = _a.endDate, date = _a.date, type = _a.type;
+                _a = req.query, _b = _a.limit, limit = _b === void 0 ? 10 : _b, _c = _a.page, page = _c === void 0 ? 1 : _c, _d = _a.sort, sort = _d === void 0 ? '-createdAt' : _d, contractorId = _a.contractorId, _e = _a.status, status_1 = _e === void 0 ? 'BOOKED,ONGOING,ONGOING_SITE_VISIT' : _e, startDate = _a.startDate, endDate = _a.endDate, date = _a.date, type = _a.type;
                 req.query.page = page;
                 req.query.limit = limit;
                 req.query.sort = sort;
                 customerId = req.customer.id;
                 filter = { customer: customerId, status: { $in: ['BOOKED', 'ONGOING', 'ONGOING_SITE_VISIT', 'COMPLETED_SITE_VISIT'] } };
                 // TODO: when contractor is specified, ensure the contractor quotation is attached
-                if (contractorId_1) {
-                    if (!mongoose_1.default.Types.ObjectId.isValid(contractorId_1)) {
+                if (contractorId) {
+                    if (!mongoose_1.default.Types.ObjectId.isValid(contractorId)) {
                         return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid contractor id' })];
                     }
-                    req.query.contractor = contractorId_1;
+                    req.query.contractor = contractorId;
                     delete req.query.contractorId;
                 }
                 if (status_1) {
@@ -141,13 +141,17 @@ var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0,
                         return __generator(this, function (_b) {
                             switch (_b.label) {
                                 case 0:
-                                    if (!contractorId_1) return [3 /*break*/, 2];
+                                    // if (contractorId) {
+                                    //     job.myQuotation = await job.getMyQoutation(contractorId)
+                                    // }
                                     _a = job;
-                                    return [4 /*yield*/, job.getMyQoutation(contractorId_1)];
+                                    return [4 /*yield*/, job.getJobDay()];
                                 case 1:
-                                    _a.myQuotation = _b.sent();
-                                    _b.label = 2;
-                                case 2: return [2 /*return*/];
+                                    // if (contractorId) {
+                                    //     job.myQuotation = await job.getMyQoutation(contractorId)
+                                    // }
+                                    _a.jobDay = _b.sent();
+                                    return [2 /*return*/];
                             }
                         });
                     }); }))];
@@ -166,7 +170,7 @@ var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0,
 }); };
 exports.getMyBookings = getMyBookings;
 var getBookingHistory = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, _a, _b, page, _c, limit, _d, sort, contractorId_2, _e, status_2, jobIds, statusArray, filter, quotations, _f, data, error, error_2;
+    var customerId, _a, _b, page, _c, limit, _d, sort, contractorId_1, _e, status_2, jobIds, statusArray, filter, quotations, _f, data, error, error_2;
     return __generator(this, function (_g) {
         switch (_g.label) {
             case 0:
@@ -174,7 +178,7 @@ var getBookingHistory = function (req, res, next) { return __awaiter(void 0, voi
                 _g.label = 1;
             case 1:
                 _g.trys.push([1, 7, , 8]);
-                _a = req.query, _b = _a.page, page = _b === void 0 ? 1 : _b, _c = _a.limit, limit = _c === void 0 ? 10 : _c, _d = _a.sort, sort = _d === void 0 ? '-createdAt' : _d, contractorId_2 = _a.contractorId, _e = _a.status, status_2 = _e === void 0 ? 'COMPLETED, CANCELED, DECLINED, EXPIRED, COMPLETED, DISPUTED' : _e;
+                _a = req.query, _b = _a.page, page = _b === void 0 ? 1 : _b, _c = _a.limit, limit = _c === void 0 ? 10 : _c, _d = _a.sort, sort = _d === void 0 ? '-createdAt' : _d, contractorId_1 = _a.contractorId, _e = _a.status, status_2 = _e === void 0 ? 'COMPLETED, CANCELED, DECLINED, EXPIRED, COMPLETED, DISPUTED' : _e;
                 req.query.page = page;
                 req.query.limit = limit;
                 req.query.sort = sort;
@@ -182,17 +186,17 @@ var getBookingHistory = function (req, res, next) { return __awaiter(void 0, voi
                 jobIds = [];
                 statusArray = status_2.split(',').map(function (s) { return s.trim(); });
                 filter = { status: { $in: statusArray }, customer: customerId };
-                if (!contractorId_2) return [3 /*break*/, 3];
-                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.find({ contractor: contractorId_2 }).select('job').lean()];
+                if (!contractorId_1) return [3 /*break*/, 3];
+                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.find({ contractor: contractorId_1 }).select('job').lean()];
             case 2:
                 quotations = _g.sent();
                 // Extract job IDs from the quotations
                 jobIds = quotations.map(function (quotation) { return quotation.job; });
                 filter._id = { $in: jobIds };
-                if (!mongoose_1.default.Types.ObjectId.isValid(contractorId_2)) {
+                if (!mongoose_1.default.Types.ObjectId.isValid(contractorId_1)) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid customer id' })];
                 }
-                req.query.contractor = contractorId_2;
+                req.query.contractor = contractorId_1;
                 delete req.query.contractorId;
                 _g.label = 3;
             case 3: return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_model_1.JobModel.find(filter).distinct('_id').populate('contractor'), req.query)];
@@ -201,14 +205,18 @@ var getBookingHistory = function (req, res, next) { return __awaiter(void 0, voi
                 if (!data) return [3 /*break*/, 6];
                 // Map through each job and attach myQuotation if contractor has applied 
                 return [4 /*yield*/, Promise.all(data.data.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
-                        var _a;
-                        return __generator(this, function (_b) {
-                            switch (_b.label) {
+                        var _a, _b;
+                        return __generator(this, function (_c) {
+                            switch (_c.label) {
                                 case 0:
                                     _a = job;
-                                    return [4 /*yield*/, job.getMyQoutation(contractorId_2)];
+                                    return [4 /*yield*/, job.getMyQoutation(contractorId_1)];
                                 case 1:
-                                    _a.myQuotation = _b.sent();
+                                    _a.myQuotation = _c.sent();
+                                    _b = job;
+                                    return [4 /*yield*/, job.getJobDay()];
+                                case 2:
+                                    _b.jobDay = _c.sent();
                                     return [2 /*return*/];
                             }
                         });
@@ -234,7 +242,7 @@ var getBookingHistory = function (req, res, next) { return __awaiter(void 0, voi
 }); };
 exports.getBookingHistory = getBookingHistory;
 var getBookingDisputes = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, _a, _b, page, _c, limit, _d, sort, contractorId_3, _e, status_3, jobIds, statusArray, filter, quotations, _f, data, error, error_3;
+    var customerId, _a, _b, page, _c, limit, _d, sort, contractorId_2, _e, status_3, jobIds, statusArray, filter, quotations, _f, data, error, error_3;
     return __generator(this, function (_g) {
         switch (_g.label) {
             case 0:
@@ -242,7 +250,7 @@ var getBookingDisputes = function (req, res, next) { return __awaiter(void 0, vo
                 _g.label = 1;
             case 1:
                 _g.trys.push([1, 7, , 8]);
-                _a = req.query, _b = _a.page, page = _b === void 0 ? 1 : _b, _c = _a.limit, limit = _c === void 0 ? 10 : _c, _d = _a.sort, sort = _d === void 0 ? '-createdAt' : _d, contractorId_3 = _a.contractorId, _e = _a.status, status_3 = _e === void 0 ? 'DISPUTED' : _e;
+                _a = req.query, _b = _a.page, page = _b === void 0 ? 1 : _b, _c = _a.limit, limit = _c === void 0 ? 10 : _c, _d = _a.sort, sort = _d === void 0 ? '-createdAt' : _d, contractorId_2 = _a.contractorId, _e = _a.status, status_3 = _e === void 0 ? 'DISPUTED' : _e;
                 req.query.page = page;
                 req.query.limit = limit;
                 req.query.sort = sort;
@@ -250,17 +258,17 @@ var getBookingDisputes = function (req, res, next) { return __awaiter(void 0, vo
                 jobIds = [];
                 statusArray = status_3.split(',').map(function (s) { return s.trim(); });
                 filter = { status: { $in: statusArray }, customer: customerId };
-                if (!contractorId_3) return [3 /*break*/, 3];
-                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.find({ contractor: contractorId_3 }).select('job').lean()];
+                if (!contractorId_2) return [3 /*break*/, 3];
+                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.find({ contractor: contractorId_2 }).select('job').lean()];
             case 2:
                 quotations = _g.sent();
                 // Extract job IDs from the quotations
                 jobIds = quotations.map(function (quotation) { return quotation.job; });
                 filter._id = { $in: jobIds };
-                if (!mongoose_1.default.Types.ObjectId.isValid(contractorId_3)) {
+                if (!mongoose_1.default.Types.ObjectId.isValid(contractorId_2)) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid customer id' })];
                 }
-                req.query.contractor = contractorId_3;
+                req.query.contractor = contractorId_2;
                 delete req.query.contractorId;
                 _g.label = 3;
             case 3: return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_model_1.JobModel.find(filter).distinct('_id').populate('contractor'), req.query)];
@@ -269,14 +277,18 @@ var getBookingDisputes = function (req, res, next) { return __awaiter(void 0, vo
                 if (!data) return [3 /*break*/, 6];
                 // Map through each job and attach myQuotation if contractor has applied 
                 return [4 /*yield*/, Promise.all(data.data.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
-                        var _a;
-                        return __generator(this, function (_b) {
-                            switch (_b.label) {
+                        var _a, _b;
+                        return __generator(this, function (_c) {
+                            switch (_c.label) {
                                 case 0:
                                     _a = job;
-                                    return [4 /*yield*/, job.getMyQoutation(contractorId_3)];
+                                    return [4 /*yield*/, job.getMyQoutation(contractorId_2)];
                                 case 1:
-                                    _a.myQuotation = _b.sent();
+                                    _a.myQuotation = _c.sent();
+                                    _b = job;
+                                    return [4 /*yield*/, job.getJobDay()];
+                                case 2:
+                                    _b.jobDay = _c.sent();
                                     return [2 /*return*/];
                             }
                         });
@@ -302,35 +314,39 @@ var getBookingDisputes = function (req, res, next) { return __awaiter(void 0, vo
 }); };
 exports.getBookingDisputes = getBookingDisputes;
 var getSingleBooking = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, bookingId, job, responseData, _a, _b, error_4;
-    return __generator(this, function (_c) {
-        switch (_c.label) {
+    var customerId, bookingId, job, responseData, _a, _b, _c, error_4;
+    return __generator(this, function (_d) {
+        switch (_d.label) {
             case 0:
-                _c.trys.push([0, 4, , 5]);
+                _d.trys.push([0, 5, , 6]);
                 customerId = req.customer.id;
                 bookingId = req.params.bookingId;
                 return [4 /*yield*/, job_model_1.JobModel.findOne({ customer: customerId, _id: bookingId }).populate(['contractor', 'contract', 'review'])];
             case 1:
-                job = _c.sent();
+                job = _d.sent();
                 // Check if the job exists
                 if (!job) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Booking not found' })];
                 }
                 responseData = __assign({}, job.toJSON());
                 _a = responseData;
-                return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ job: job.id, type: job.schedule.type })];
-            case 2:
-                _a.jobDay = _c.sent();
-                _b = responseData;
                 return [4 /*yield*/, job_dispute_model_1.JobDisputeModel.findOne({ job: job.id })];
+            case 2:
+                _a.dispute = _d.sent();
+                _b = responseData;
+                return [4 /*yield*/, job.getJobDay()];
             case 3:
-                _b.dispute = _c.sent();
-                res.json({ success: true, message: 'Booking retrieved', data: responseData });
-                return [3 /*break*/, 5];
+                _b.jobDay = _d.sent();
+                _c = responseData;
+                return [4 /*yield*/, job.getJobDay()];
             case 4:
-                error_4 = _c.sent();
+                _c.jobDay = _d.sent();
+                res.json({ success: true, message: 'Booking retrieved', data: responseData });
+                return [3 /*break*/, 6];
+            case 5:
+                error_4 = _d.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_4))];
-            case 5: return [2 /*return*/];
+            case 6: return [2 /*return*/];
         }
     });
 }); };
@@ -493,7 +509,7 @@ var toggleChangeOrder = function (req, res, next) { return __awaiter(void 0, voi
 }); };
 exports.toggleChangeOrder = toggleChangeOrder;
 var getRefundable = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, bookingId, reason, job, customer, contract, startDate, jobDate, charges, payments, currentTime, timeDifferenceInHours, refund, canceletionFee, contractorShare, companyShare, refundAmount, error_8;
+    var customerId, bookingId, reason, job, customer, contract, startDate, jobDate, charges, paymentType, payments, currentTime, timeDifferenceInHours, refund, canceletionFee, contractorShare, companyShare, refundAmount, error_8;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -539,10 +555,13 @@ var getRefundable = function (req, res, next) { return __awaiter(void 0, void 0,
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Job does not have a schedule' })];
                 }
                 jobDate = job.schedule.startDate.getTime();
-                return [4 /*yield*/, contract.calculateCharges()];
+                return [4 /*yield*/, contract.calculateCharges()
+                    // choose which payment to refund ? SITE_VISIT_PAYMENT, JOB_DAY_PAYMENT, CHANGE_ORDER_PAYMENT
+                ];
             case 4:
                 charges = _a.sent();
-                return [4 /*yield*/, job.getPayments()];
+                paymentType = (job.schedule.type == 'JOB_DAY') ? [payment_schema_1.PAYMENT_TYPE.JOB_DAY_PAYMENT, payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT] : [payment_schema_1.PAYMENT_TYPE.SITE_VISIT_PAYMENT];
+                return [4 /*yield*/, job.getPayments(paymentType)];
             case 5:
                 payments = _a.sent();
                 currentTime = new Date().getTime();
@@ -696,7 +715,7 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
                             items: [],
                             charges: refund
                         },
-                        metadata: __assign(__assign({}, refund), { payment: payment.id, charge: payment.reference }),
+                        metadata: __assign(__assign({}, refund), { payment: payment.id, charge: payment.charge }),
                         job: job.id,
                         payment: payment.id,
                     })];

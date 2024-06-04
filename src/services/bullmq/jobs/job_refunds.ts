@@ -32,7 +32,7 @@ export const handleJobRefunds = async () => {
                     if (!payment) return
 
                     if (!payment.refunded) {
-                        const stripePayment = await StripeService.payment.refundCharge(payment.reference, (payment.amount))
+                        const stripePayment = await StripeService.payment.refundCharge(payment.charge, (payment.amount))
                     }
 
                 }

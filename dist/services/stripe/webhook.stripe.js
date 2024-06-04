@@ -704,7 +704,7 @@ var paymentMethodDetached = function (payload) { return __awaiter(void 0, void 0
 exports.paymentMethodDetached = paymentMethodDetached;
 // Charge
 var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var userType, userId, user, stripeChargeDTO, payment, transactionId, transaction, captureDetails, capturableTransactionDto, captureDetails, capturableTransactionDto, metadata, jobId, jobPaymentType, quotationId, job, quotation, changeOrderEstimate, error_11;
+    var userType, userId, user, stripeChargeDTO, payment, transactionId, transaction, captureDetails, capturableTransactionDto, captureDetails, capturableTransactionDto, metadata, jobId, paymentType, quotationId, job, quotation, changeOrderEstimate, error_11;
     var _a, _b;
     return __generator(this, function (_c) {
         switch (_c.label) {
@@ -730,11 +730,12 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                 payload.amount_captured = payload.amount_captured / 100;
                 payload.application_fee_amount = payload.application_fee_amount / 100;
                 stripeChargeDTO = (0, interface_dto_util_1.castPayloadToDTO)(payload, payload);
-                stripeChargeDTO.reference = payload.id;
-                delete stripeChargeDTO.id;
+                stripeChargeDTO.charge = payload.id;
+                stripeChargeDTO.type = payload.metadata.type;
                 stripeChargeDTO.user = user.id;
                 stripeChargeDTO.userType = userType;
-                return [4 /*yield*/, payment_schema_1.PaymentModel.findOneAndUpdate({ reference: stripeChargeDTO.reference }, stripeChargeDTO, {
+                delete stripeChargeDTO.id;
+                return [4 /*yield*/, payment_schema_1.PaymentModel.findOneAndUpdate({ charge: stripeChargeDTO.charge }, stripeChargeDTO, {
                         new: true, upsert: true
                     })
                     // handle things here
@@ -780,11 +781,11 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                     }
                 }
                 metadata = payment.metadata;
-                if (!(metadata.type == transaction_model_1.TRANSACTION_TYPE.JOB_PAYMENT)) return [3 /*break*/, 9];
+                if (!metadata.jobId) return [3 /*break*/, 9];
                 jobId = metadata.jobId;
-                jobPaymentType = metadata.jobPaymentType;
+                paymentType = metadata.type;
                 quotationId = metadata.quotationId;
-                if (!(jobId && jobPaymentType && quotationId)) return [3 /*break*/, 9];
+                if (!(jobId && paymentType && quotationId)) return [3 /*break*/, 9];
                 return [4 /*yield*/, job_model_1.JobModel.findById(jobId)];
             case 5:
                 job = _c.sent();
@@ -793,7 +794,7 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                 quotation = _c.sent();
                 if (!job || !quotation)
                     return [2 /*return*/];
-                if (jobPaymentType == job_model_1.JOB_PAYMENT_TYPE.JOB_DAY) {
+                if (paymentType == payment_schema_1.PAYMENT_TYPE.JOB_DAY_PAYMENT) {
                     job.status = job_model_1.JOB_STATUS.BOOKED;
                     job.contract = quotation.id;
                     job.contractor = quotation.contractor;
@@ -808,7 +809,7 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                         };
                     }
                 }
-                if (jobPaymentType == job_model_1.JOB_PAYMENT_TYPE.SITE_VISIT) {
+                if (paymentType == payment_schema_1.PAYMENT_TYPE.SITE_VISIT_PAYMENT) {
                     job.status = job_model_1.JOB_STATUS.BOOKED;
                     job.contract = quotation.id;
                     job.contractor = quotation.contractor;
@@ -826,7 +827,7 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                         console.log('quotation.siteVisit.date is not a valid Date object.');
                     }
                 }
-                if (jobPaymentType == job_model_1.JOB_PAYMENT_TYPE.CHANGE_ORDER) {
+                if (paymentType == payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) {
                     changeOrderEstimate = quotation.changeOrderEstimate;
                     if (!changeOrderEstimate)
                         return [2 /*return*/];
@@ -865,9 +866,9 @@ var chargeRefunded = function (payload) { return __awaiter(void 0, void 0, void 
                 if (payload.object !== 'charge')
                     return [2 /*return*/];
                 stripeChargeDTO = (0, interface_dto_util_1.castPayloadToDTO)(payload, payload);
-                stripeChargeDTO.reference = payload.id;
+                stripeChargeDTO.charge = payload.id;
                 delete stripeChargeDTO.id;
-                return [4 /*yield*/, payment_schema_1.PaymentModel.findOne({ reference: stripeChargeDTO.reference })];
+                return [4 /*yield*/, payment_schema_1.PaymentModel.findOne({ charge: stripeChargeDTO.charge })];
             case 2:
                 payment = _a.sent();
                 if (!payment) return [3 /*break*/, 5];

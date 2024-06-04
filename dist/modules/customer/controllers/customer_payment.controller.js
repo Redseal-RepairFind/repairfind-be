@@ -72,6 +72,7 @@ var transaction_model_1 = __importStar(require("../../../database/common/transac
 var stripe_1 = require("../../../services/stripe");
 var job_quotation_model_1 = require("../../../database/common/job_quotation.model");
 var events_1 = require("../../../events");
+var payment_schema_1 = require("../../../database/common/payment.schema");
 var findCustomer = function (customerId) { return __awaiter(void 0, void 0, void 0, function () {
     var customer;
     return __generator(this, function (_a) {
@@ -232,7 +233,7 @@ var prepareStripePayload = function (data) {
     return payload;
 };
 var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, quotationId, paymentMethodId_1, jobId, errors, customerId, customer, job, quotation, contractor, paymentMethod, jobPaymentType, charges, metadata, transaction, payload, stripePayment, err_1;
+    var _a, quotationId, paymentMethodId_1, jobId, errors, customerId, customer, job, quotation, contractor, paymentMethod, paymentType, charges, metadata, transaction, payload, stripePayment, err_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -265,21 +266,20 @@ var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0
                 if (job.status === job_model_1.JOB_STATUS.BOOKED) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'This job is not pending, so new payment is not possible' })];
                 }
-                jobPaymentType = job_model_1.JOB_PAYMENT_TYPE.JOB_DAY;
+                paymentType = payment_schema_1.PAYMENT_TYPE.JOB_DAY_PAYMENT;
                 if (quotation.type == job_quotation_model_1.JOB_QUOTATION_TYPE.SITE_VISIT)
-                    jobPaymentType = job_model_1.JOB_PAYMENT_TYPE.SITE_VISIT;
+                    paymentType = payment_schema_1.PAYMENT_TYPE.SITE_VISIT_PAYMENT;
                 if (quotation.type == job_quotation_model_1.JOB_QUOTATION_TYPE.JOB_DAY)
-                    jobPaymentType = job_model_1.JOB_PAYMENT_TYPE.JOB_DAY;
-                return [4 /*yield*/, quotation.calculateCharges(jobPaymentType)];
+                    paymentType = payment_schema_1.PAYMENT_TYPE.JOB_DAY_PAYMENT;
+                return [4 /*yield*/, quotation.calculateCharges(paymentType)];
             case 5:
                 charges = _b.sent();
                 metadata = {
                     customerId: customer.id,
                     constractorId: contractor === null || contractor === void 0 ? void 0 : contractor.id,
                     quotationId: quotation.id,
-                    type: transaction_model_1.TRANSACTION_TYPE.JOB_PAYMENT,
+                    type: paymentType,
                     jobId: jobId,
-                    jobPaymentType: jobPaymentType,
                     email: customer.email,
                     remark: 'initial_job_payment',
                 };
@@ -306,7 +306,7 @@ var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0
 }); };
 exports.makeJobPayment = makeJobPayment;
 var makeChangeOrderEstimatePayment = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, quotationId, paymentMethodId_2, jobId, errors, customerId, customer, job, quotation, contractor, changeOrderEstimate, paymentMethod, jobPaymentType, charges, metadata, transaction, payload, stripePayment, err_2;
+    var _a, quotationId, paymentMethodId_2, jobId, errors, customerId, customer, job, quotation, contractor, changeOrderEstimate, paymentMethod, paymentType, charges, metadata, transaction, payload, stripePayment, err_2;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -341,8 +341,8 @@ var makeChangeOrderEstimatePayment = function (req, res, next) { return __awaite
                 }
                 if (!paymentMethod)
                     throw new Error('No such payment method');
-                jobPaymentType = job_model_1.JOB_PAYMENT_TYPE.CHANGE_ORDER;
-                return [4 /*yield*/, quotation.calculateCharges(jobPaymentType)];
+                paymentType = payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT;
+                return [4 /*yield*/, quotation.calculateCharges(paymentType)];
             case 5:
                 charges = _b.sent();
                 metadata = {
@@ -350,8 +350,7 @@ var makeChangeOrderEstimatePayment = function (req, res, next) { return __awaite
                     constractorId: contractor === null || contractor === void 0 ? void 0 : contractor.id,
                     quotationId: quotation.id,
                     jobId: jobId,
-                    jobPaymentType: jobPaymentType,
-                    type: transaction_model_1.TRANSACTION_TYPE.JOB_PAYMENT,
+                    type: paymentType,
                     email: customer.email,
                     remark: 'change_order_estimate_payment',
                 };
@@ -379,7 +378,7 @@ var makeChangeOrderEstimatePayment = function (req, res, next) { return __awaite
 }); };
 exports.makeChangeOrderEstimatePayment = makeChangeOrderEstimatePayment;
 var captureJobPayment = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, quotationId, paymentMethodId_3, jobId, errors, customerId, customer, job, quotation, contractor, paymentMethod, jobPaymentType, charges, metadata, transaction, payload, stripePayment, err_3;
+    var _a, quotationId, paymentMethodId_3, jobId, errors, customerId, customer, job, quotation, contractor, paymentMethod, paymentType, charges, metadata, transaction, payload, stripePayment, err_3;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -412,21 +411,21 @@ var captureJobPayment = function (req, res, next) { return __awaiter(void 0, voi
                 if (job.status === job_model_1.JOB_STATUS.BOOKED) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'This job is not pending, so new payment is not possible' })];
                 }
-                jobPaymentType = job_model_1.JOB_PAYMENT_TYPE.JOB_DAY;
+                paymentType = payment_schema_1.PAYMENT_TYPE.JOB_DAY_PAYMENT;
                 if (quotation.type == job_quotation_model_1.JOB_QUOTATION_TYPE.SITE_VISIT)
-                    jobPaymentType = job_model_1.JOB_PAYMENT_TYPE.SITE_VISIT;
+                    paymentType = payment_schema_1.PAYMENT_TYPE.SITE_VISIT_PAYMENT;
                 if (quotation.type == job_quotation_model_1.JOB_QUOTATION_TYPE.JOB_DAY)
-                    jobPaymentType = job_model_1.JOB_PAYMENT_TYPE.JOB_DAY;
-                return [4 /*yield*/, quotation.calculateCharges(jobPaymentType)];
+                    paymentType = payment_schema_1.PAYMENT_TYPE.JOB_DAY_PAYMENT;
+                return [4 /*yield*/, quotation.calculateCharges(paymentType)];
             case 5:
                 charges = _b.sent();
                 metadata = {
                     customerId: customer.id,
                     constractorId: contractor === null || contractor === void 0 ? void 0 : contractor.id,
                     quotationId: quotation.id,
-                    type: transaction_model_1.TRANSACTION_TYPE.JOB_PAYMENT,
+                    type: paymentType,
                     jobId: jobId,
-                    jobPaymentType: jobPaymentType,
+                    paymentType: paymentType,
                     email: customer.email,
                     remark: 'initial_job_payment',
                 };

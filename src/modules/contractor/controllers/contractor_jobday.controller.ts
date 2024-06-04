@@ -136,7 +136,8 @@ export const initiateJobDay = async (
             },
             { new: true, upsert: true });
 
-        let contractorLocation = contractorProfile.location
+        // let contractorLocation = contractorProfile.location
+        let contractorLocation = jobDay?.contractorLocation
         // if job is assigned show assigned contractor location
         if(job.isAssigned){
             contractorProfile = await ContractorProfileModel.findOne({ contractor: job.assignment.contractor });

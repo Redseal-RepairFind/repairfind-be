@@ -167,7 +167,7 @@ var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void
                     }, { new: true, upsert: true })];
             case 6:
                 conversation = _a.sent();
-                contractorLocation = contractorProfile.location;
+                contractorLocation = jobDay === null || jobDay === void 0 ? void 0 : jobDay.contractorLocation;
                 if (!job.isAssigned) return [3 /*break*/, 8];
                 return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: job.assignment.contractor })];
             case 7:

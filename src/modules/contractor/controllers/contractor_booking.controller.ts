@@ -103,6 +103,9 @@ export const getMyBookings = async (req: any, res: Response, next: NextFunction)
                     } else {
                         job.myQuotation = await job.getMyQoutation(contractorId)
                     }
+
+                    job.jobDay = await job.getJobDay()
+
                 }
             }));
         }
@@ -164,6 +167,8 @@ export const getBookingHistory = async (req: any, res: Response, next: NextFunct
                 } else {
                     job.myQuotation = await job.getMyQoutation(contractorId)
                 }
+                job.jobDay = await job.getJobDay()
+
             }));
         }
 
@@ -227,6 +232,7 @@ export const getBookingDisputes = async (req: any, res: Response, next: NextFunc
                 } else {
                     job.myQuotation = await job.getMyQoutation(contractorId)
                 }
+                job.jobDay = await job.getJobDay()
             }));
         }
 
@@ -265,7 +271,7 @@ export const getSingleBooking = async (req: any, res: Response, next: NextFuncti
         let responseData: any = { ...job.toJSON() };
         responseData.jobDay = await JobDayModel.findOne({ job: job.id, type: job.schedule.type });
         responseData.dispute = await JobDisputeModel.findOne({ job: job.id });
-
+        responseData.jobDay = await job.getJobDay()
 
 
         // If the job exists, return it as a response

@@ -1,5 +1,7 @@
 import { Document, ObjectId, Schema, model } from "mongoose";
 import { IJobQuotation, JOB_QUOTATION_STATUS, JobQuotationModel } from "./job_quotation.model";
+import { PAYMENT_TYPE, PaymentModel } from "./payment.schema";
+import { JobDayModel } from "./job_day.model";
 
 export interface IJobLocation extends Document {
     address?: string;
@@ -32,11 +34,6 @@ export enum JOB_STATUS {
     COMPLETED_SITE_VISIT = 'COMPLETED_SITE_VISIT',
 }
 
-export enum JOB_PAYMENT_TYPE {
-    SITE_VISIT = 'SITE_VISIT',
-    JOB_DAY = 'JOB_DAY',
-    CHANGE_ORDER = 'CHANGE_ORDER',
-}
 
 
 export enum JOB_SCHEDULE_TYPE {
@@ -111,6 +108,7 @@ export interface IJob extends Document {
     date: Date;
     startDate: Date;
     endDate: Date;
+    expiryDate?: Date;
     time: Date;
     expiresIn: number;
     media: string[];
@@ -129,12 +127,15 @@ export interface IJob extends Document {
     isAssigned: boolean;
     review: ObjectId;
     isChangeOrder: boolean;
+    jobDay: ObjectId;
     getMyQoutation: (contractorId: ObjectId) => {
     };
-    getPayments: () => {
+    getJobDay: (scheduleType?: JOB_SCHEDULE_TYPE) => {
+    };
+    getPayments: (types?: PAYMENT_TYPE[]) => {
         paymentCount: number;
         totalAmount: number;
-        payments: Array<{id: ObjectId, amount: number, reference: string, status: string, refunded: boolean, paid: boolean, amount_refunded: number, captured: boolean }>;
+        payments: Array<{id: ObjectId, transaction: ObjectId, amount: number, charge: string, status: string, refunded: boolean, paid: boolean, amount_refunded: number, captured: boolean }>;
     };
 }
 
@@ -226,8 +227,15 @@ const JobSchema = new Schema<IJob>({
     location: { type: JobLocationSchema, required: true },
     date: { type: Date, required: true },
     time: { type: Date, required: false },
-    expiresIn: { type: Number, default: 0 },
+    // expiresIn: { type: Number, default: 10 },
     startDate: { type: Date },
+    expiryDate: { 
+        type: Date,
+        default: function() {
+            const now = new Date();
+            return new Date(now.setDate(now.getDate() + 7));
+        }
+     },
     endDate: { type: Date },
     media: { type: [String], default: [] },
     tags: { type: [String] },
@@ -250,6 +258,7 @@ const JobSchema = new Schema<IJob>({
     isAssigned: { type: Boolean, default: false },
     review: { type: Schema.Types.ObjectId, ref: 'reviews' },
     isChangeOrder: { type: Boolean, default: false },
+    jobDay: { type: Schema.Types.ObjectId, ref: 'job_days' },
 }, { timestamps: true });
 
 
@@ -260,7 +269,15 @@ JobSchema.virtual('totalQuotations').get(function () {
     return pendingQuotations.length;
 });
 
+JobSchema.virtual('expiresIn').get(function () {
+   return this.expiryDate ?  this.expiryDate.getDate() - this.createdAt.getDate() : null
+});
 
+//get job day that match with the schedule type
+ JobSchema.methods.getJobDay = async function (scheduleType = null) {
+    if(!scheduleType) scheduleType = this.schedule.type;
+    return await JobDayModel.findOne({ job: this.id, type: scheduleType })
+};
 
 JobSchema.methods.getMyQoutation = async function (contractor: any) {
     const contractorQuotation = await JobQuotationModel.findOne({ job: this.id, contractor })
@@ -273,15 +290,31 @@ JobSchema.methods.getMyQoutation = async function (contractor: any) {
 
 
 // get job payments summary
-JobSchema.methods.getPayments = async function () {
+JobSchema.methods.getPayments = async function (types = null) {
     let totalAmount = 0;
 
-    const job = await this.populate('payments')
-    totalAmount = job.payments.reduce((acc: number, payment: any) => acc + payment.amount, 0);
-    const payments = job.payments.map((payment: any) => {
+    const paymentIds = await this.payments
+
+
+    if(!paymentIds)return  { totalAmount: 0, paymentCount:0,  payments: null }
+
+
+    let jobPayments = null
+    if(types){
+        jobPayments = await PaymentModel.find({_id: {$in: paymentIds}, type: {$in: types } })
+    }else{
+        jobPayments = await PaymentModel.find({_id: {$in: paymentIds} })
+    }
+
+    console.log(paymentIds, jobPayments, types)
+    if(!jobPayments)return  { totalAmount: 0, paymentCount:0,  payments: null }
+
+    totalAmount = jobPayments.reduce((acc: number, payment: any) => acc + payment.amount, 0);
+    const payments = jobPayments.map((payment: any) => {
         return {
             id: payment._id,
-            reference: payment.reference,
+            transaction: payment.transaction,
+            charge: payment.charge,
             amount: payment.amount,
             amount_refunded: payment.amount_refunded,
             status: payment.status,

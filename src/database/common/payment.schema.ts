@@ -1,16 +1,26 @@
 import mongoose, { Document, ObjectId, Schema } from 'mongoose';
 
+
+export enum PAYMENT_TYPE {
+  JOB_DAY_PAYMENT = 'JOB_DAY_PAYMENT',
+  SITE_VISIT_PAYMENT = 'SITE_VISIT_PAYMENT',
+  CHANGE_ORDER_PAYMENT = 'CHANGE_ORDER_PAYMENT',
+}
+
+
 // Define the interface for the payment
 export interface IPayment  {
   id: ObjectId
-  reference: string; // stripe payment or charge id
+  charge: string; // stripe payment or charge id
   amount: number;
   amount_captured: number;
   amount_refunded: number;
   application_fee_amount: number;
   object: string; // charge or payment_intent ?
   user: ObjectId;
+  type: PAYMENT_TYPE;
   transaction: ObjectId
+  job?: ObjectId
   userType: string;
   customer: string;
   currency: string;
@@ -38,14 +48,15 @@ export interface IPayment  {
 }
 
 const PaymentSchema = new Schema<IPayment>({
-  reference: { type: String, required: true },
+  charge: { type: String, required: true },
   amount: { type: Number, required: true },
   amount_captured: { type: Number, required: true },
   amount_refunded: { type: Number },
   application_fee_amount: { type: Number },
   object: { type: String, required: true },
-
+  type: { type: String, required: false, enum: Object.values(PAYMENT_TYPE) },
   transaction: { type: Schema.Types.ObjectId, ref: 'transactions' },
+  job: { type: Schema.Types.ObjectId, ref: 'jobs' },
   user: { type: Schema.Types.ObjectId, refPath: 'userType', required: true },
   userType: { type: String, required: true },
 

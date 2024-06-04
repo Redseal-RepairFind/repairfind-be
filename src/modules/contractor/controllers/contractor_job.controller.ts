@@ -5,7 +5,7 @@ import CustomerRegModel from "../../../database/customer/models/customer.model";
 import { sendEmail } from "../../../utils/send_email_utility";
 import { htmlJobQoutationTemplate } from "../../../templates/customerEmail/jobQoutationTemplate";
 import AdminNoficationModel from "../../../database/admin/models/admin_notification.model";
-import { JobModel, JOB_STATUS, JobType, IJob, JOB_PAYMENT_TYPE } from "../../../database/common/job.model";
+import { JobModel, JOB_STATUS, JobType, IJob } from "../../../database/common/job.model";
 import { applyAPIFeature } from "../../../utils/api.feature";
 import { BadRequestError, InternalServerError, NotFoundError } from "../../../utils/custom.errors";
 import { JobQuotationModel, JOB_QUOTATION_STATUS, IExtraEstimate, JOB_QUOTATION_TYPE } from "../../../database/common/job_quotation.model";
@@ -723,11 +723,20 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
       },
       {
         $addFields: {
-          totalQuotations: { $size: "$totalQuotations" }
+          totalQuotations: { $size: "$totalQuotations" },
+          expiresIn: {
+            $dateDiff: {
+              unit: "day", // Change to "hour", "minute", etc. if needed
+              startDate: "$createdAt",
+              endDate: "$expiryDate",
+            },
+          },
         }
       },
     ];
 
+
+    
 
 
     // THis logic is to remove jobs that the contractor has already submitted quotation for 

@@ -38,7 +38,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.JobQuotationModel = exports.ExtraEstimateSchema = exports.JOB_QUOTATION_TYPE = exports.JOB_QUOTATION_STATUS = void 0;
 var mongoose_1 = require("mongoose");
-var job_model_1 = require("./job.model");
 var JOB_QUOTATION_STATUS;
 (function (JOB_QUOTATION_STATUS) {
     JOB_QUOTATION_STATUS["PENDING"] = "PENDING";
@@ -86,10 +85,10 @@ JobQuotationSchema.methods.calculateCharges = function (type) {
         var estimates, subtotal, processingFee, gst, totalAmount, contractorAmount, siteVisitAmount, totalEstimateAmount;
         return __generator(this, function (_a) {
             estimates = this.estimates;
-            if (type == job_model_1.JOB_PAYMENT_TYPE.CHANGE_ORDER) {
+            if (type == 'CHANGE_ORDER') {
                 estimates = this.changeOrderEstimate.estimates;
             }
-            if (type == job_model_1.JOB_PAYMENT_TYPE.SITE_VISIT) {
+            if (type == 'SITE_VISIT') {
                 estimates = this.siteVisitEstimate.estimates;
             }
             siteVisitAmount = 0;
@@ -117,13 +116,6 @@ JobQuotationSchema.methods.calculateCharges = function (type) {
 JobQuotationSchema.virtual('charges').get(function () {
     var totalEstimateAmount = 0;
     var estimates = this.estimates;
-    var type = (this.type == JOB_QUOTATION_TYPE.SITE_VISIT) ? job_model_1.JOB_PAYMENT_TYPE.SITE_VISIT : job_model_1.JOB_PAYMENT_TYPE.JOB_DAY;
-    // if (type == JOB_PAYMENT_TYPE.CHANGE_ORDER) {
-    //     estimates = this.changeOrderEstimate.estimates
-    // }
-    // if (type == JOB_PAYMENT_TYPE.SITE_VISIT) {
-    //     estimates = this.siteVisitEstimate.estimates
-    // }
     estimates.forEach(function (estimate) {
         totalEstimateAmount += estimate.rate * estimate.quantity;
     });

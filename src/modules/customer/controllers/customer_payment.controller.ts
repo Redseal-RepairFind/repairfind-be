@@ -2,7 +2,7 @@ import { validationResult } from "express-validator";
 import { NextFunction, Response } from "express";
 import { ContractorModel } from "../../../database/contractor/models/contractor.model";
 import CustomerModel from "../../../database/customer/models/customer.model";
-import { JobModel, JOB_STATUS, JOB_PAYMENT_TYPE } from "../../../database/common/job.model";
+import { JobModel, JOB_STATUS } from "../../../database/common/job.model";
 import { BadRequestError } from "../../../utils/custom.errors";
 import TransactionModel, { TRANSACTION_STATUS, TRANSACTION_TYPE } from "../../../database/common/transaction.model";
 import { StripeService } from "../../../services/stripe";
@@ -10,6 +10,7 @@ import Stripe from 'stripe';
 import { JOB_QUOTATION_TYPE, JobQuotationModel } from "../../../database/common/job_quotation.model";
 import { ObjectId } from "mongoose";
 import { JobEvent } from "../../../events";
+import { PAYMENT_TYPE } from "../../../database/common/payment.schema";
 
 const findCustomer = async (customerId: string) => {
     const customer = await CustomerModel.findOne({ _id: customerId });
@@ -181,18 +182,17 @@ export const makeJobPayment = async (req: any, res: Response, next: NextFunction
             return res.status(400).json({ success: false, message: 'This job is not pending, so new payment is not possible' });
         }
 
-        let jobPaymentType = JOB_PAYMENT_TYPE.JOB_DAY
-        if(quotation.type == JOB_QUOTATION_TYPE.SITE_VISIT) jobPaymentType = JOB_PAYMENT_TYPE.SITE_VISIT
-        if(quotation.type == JOB_QUOTATION_TYPE.JOB_DAY) jobPaymentType = JOB_PAYMENT_TYPE.JOB_DAY
-        const charges = await quotation.calculateCharges(jobPaymentType);
+        let paymentType = PAYMENT_TYPE.JOB_DAY_PAYMENT
+        if(quotation.type == JOB_QUOTATION_TYPE.SITE_VISIT) paymentType = PAYMENT_TYPE.SITE_VISIT_PAYMENT
+        if(quotation.type == JOB_QUOTATION_TYPE.JOB_DAY) paymentType = PAYMENT_TYPE.JOB_DAY_PAYMENT
+        const charges = await quotation.calculateCharges(paymentType);
 
         const metadata = {
             customerId: customer.id,
             constractorId: contractor?.id,
             quotationId: quotation.id,
-            type: TRANSACTION_TYPE.JOB_PAYMENT,
+            type: paymentType,
             jobId,
-            jobPaymentType,
             email: customer.email,
             remark: 'initial_job_payment',
         } as any
@@ -245,8 +245,8 @@ export const makeChangeOrderEstimatePayment = async (req: any, res: Response, ne
         if (!paymentMethod) throw new Error('No such payment method');
 
 
-        let jobPaymentType = JOB_PAYMENT_TYPE.CHANGE_ORDER
-        const charges = await quotation.calculateCharges(jobPaymentType);
+        let paymentType = PAYMENT_TYPE.CHANGE_ORDER_PAYMENT
+        const charges = await quotation.calculateCharges(paymentType);
 
         
         const metadata = {
@@ -254,8 +254,7 @@ export const makeChangeOrderEstimatePayment = async (req: any, res: Response, ne
             constractorId: contractor?.id,
             quotationId: quotation.id,
             jobId,
-            jobPaymentType,
-            type: TRANSACTION_TYPE.JOB_PAYMENT,
+            type: paymentType,
             email: customer.email,
             remark: 'change_order_estimate_payment',
         } as any
@@ -302,19 +301,19 @@ export const captureJobPayment = async (req: any, res: Response, next: NextFunct
             return res.status(400).json({ success: false, message: 'This job is not pending, so new payment is not possible' });
         }
 
-        let jobPaymentType = JOB_PAYMENT_TYPE.JOB_DAY
-        if(quotation.type == JOB_QUOTATION_TYPE.SITE_VISIT) jobPaymentType = JOB_PAYMENT_TYPE.SITE_VISIT
-        if(quotation.type == JOB_QUOTATION_TYPE.JOB_DAY) jobPaymentType = JOB_PAYMENT_TYPE.JOB_DAY
-        const charges = await quotation.calculateCharges(jobPaymentType);
+        let paymentType = PAYMENT_TYPE.JOB_DAY_PAYMENT
+        if(quotation.type == JOB_QUOTATION_TYPE.SITE_VISIT) paymentType = PAYMENT_TYPE.SITE_VISIT_PAYMENT
+        if(quotation.type == JOB_QUOTATION_TYPE.JOB_DAY) paymentType = PAYMENT_TYPE.JOB_DAY_PAYMENT
+        const charges = await quotation.calculateCharges(paymentType);
 
 
         const metadata = {
             customerId: customer.id,
             constractorId: contractor?.id,
             quotationId: quotation.id,
-            type: TRANSACTION_TYPE.JOB_PAYMENT,
+            type: paymentType,
             jobId,
-            jobPaymentType,
+            paymentType,
             email: customer.email,
             remark: 'initial_job_payment',
         } as any
