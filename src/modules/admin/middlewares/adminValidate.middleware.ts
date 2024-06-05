@@ -1,10 +1,12 @@
 import { body, query } from "express-validator";
+import { AdminStatus } from "../../../database/admin/interface/admin.interface";
 
 export const validateSignupParams = [
   body("email").isEmail(),
   body("firstName").notEmpty(),
   body("lastName").notEmpty(),
   body("password").notEmpty(),
+  body("phoneNumber").notEmpty(),
 ];
 
 export const validatAdminEmailverificationParams = [
@@ -27,8 +29,10 @@ export const validateAdminResetPasswprdParams = [
     body("password").notEmpty(),
 ];
 
-export const validateSuperAdminValidationParams = [
-    body("subAdminId").notEmpty(),
+export const validateSuperAdmiCchangeStatusParams = [
+    body("staffId").notEmpty(),
+    body("status").isIn([AdminStatus.ACTIVE, AdminStatus.PENDING, AdminStatus.SUSPENDED,])
+    .withMessage(`status must be ${AdminStatus.ACTIVE}, ${AdminStatus.PENDING}, or ${AdminStatus.SUSPENDED}`),
 ];
 
 export const validateContractorIdValidationParams = [
@@ -112,3 +116,44 @@ export const validatePayoutIDParams = [
 export const validatePayoutIDPayContractorParams = [
     body("payoutId").notEmpty(),
 ];
+
+export const validateEmergecyIdParams = [
+    body("emergencyId").notEmpty(),
+];
+
+export const validateResolvedEmergecyIdParams = [
+    body("emergencyId").notEmpty(),
+    body("resolvedWay").notEmpty(),
+];
+
+export const PermissionCreationParam = [
+    body("name").notEmpty(),
+];
+
+export const EditPermissionParams = [
+    body("name").notEmpty(),
+    body("permissionId").notEmpty(),
+];
+
+export const AddStaffParams = [
+    body("email").isEmail(),
+    body("firstName").notEmpty(),
+    body("lastName").notEmpty(),
+    body("password").notEmpty(),
+    body("phoneNumber").notEmpty(),
+    body("permisions").isArray()
+    .custom((array) => array.every((item: any) => typeof item === 'string'))
+    .withMessage("Every permission must be a string")
+];
+
+export const AddPermissionParams = [
+    body("staffId").notEmpty(),
+    body("permision").notEmpty(),
+];
+
+export const Validations = {
+    PermissionCreationParam,
+    EditPermissionParams,
+    AddStaffParams,
+    AddPermissionParams
+}

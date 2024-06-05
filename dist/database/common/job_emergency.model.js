@@ -31,6 +31,12 @@ var JobEmergencySchema = new mongoose_1.Schema({
     triggeredBy: {
         type: String,
     },
+    acceptedBy: {
+        type: mongoose_1.Schema.Types.ObjectId,
+    },
+    resolvedWay: {
+        type: String,
+    },
     priority: {
         type: String,
         enum: Object.values(EmergencyPriority),

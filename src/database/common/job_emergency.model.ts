@@ -19,6 +19,8 @@ export interface IJobEmergency extends Document {
     customer: Types.ObjectId, 
     contractor: Types.ObjectId, 
     triggeredBy: string; 
+    acceptedBy: Types.ObjectId, 
+    resolvedWay: string;
     priority: EmergencyPriority;
     date: Date;
     status: EmergencyStatus;
@@ -43,6 +45,12 @@ const JobEmergencySchema = new Schema<IJobEmergency>(
             type: Schema.Types.ObjectId,
         },
         triggeredBy: {
+            type: String,
+        },
+        acceptedBy: {
+            type: Schema.Types.ObjectId,
+        },
+        resolvedWay: {
             type: String,
         },
         priority: {

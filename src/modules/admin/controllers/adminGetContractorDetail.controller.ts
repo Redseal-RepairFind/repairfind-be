@@ -24,7 +24,7 @@ export const AdminGetContractorDetailController = async (
       let {  
        page,
        limit
-      } = req.body;
+      } = req.query;
   
       // Check for validation errors
       const errors = validationResult(req);
