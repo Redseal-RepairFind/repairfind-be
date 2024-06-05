@@ -961,3 +961,41 @@ exports.JobEvent.on('JOB_DAY_ARRIVAL', function (payload) {
         });
     });
 });
+exports.JobEvent.on('JOB_REFUND_REQUESTED', function (payload) {
+    return __awaiter(this, void 0, void 0, function () {
+        var job, payment, refund, customer, contractor, emailSubject, emailContent, html, error_16;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 3, , 4]);
+                    console.log('handling alert JOB_REFUND_REQUESTED event', payload.payment.id);
+                    job = payload.job;
+                    payment = payload.payment;
+                    refund = payload.refund;
+                    return [4 /*yield*/, customer_model_1.default.findById(job.customer)];
+                case 1:
+                    customer = _a.sent();
+                    return [4 /*yield*/, contractor_model_1.ContractorModel.findById(job.contractor)];
+                case 2:
+                    contractor = _a.sent();
+                    if (!customer || !contractor)
+                        return [2 /*return*/];
+                    emailSubject = 'Job Refund Requested';
+                    emailContent = "\n                <p style=\"color: #333333;\">A refund for your job on Repairfind has been requested </p>\n                <p style=\"color: #333333;\">The refund should be completed in 3 business days </p>\n                <p><strong>Job Title:</strong> ".concat(job.description, "</p>\n                <p><strong>Job Amount</strong> ").concat(payment.amount, "</p>\n                <p><strong>Refund Amount:</strong> ").concat(refund.refundAmount, "</p>\n                ");
+                    html = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: emailSubject, content: emailContent });
+                    services_1.EmailService.send(customer.email, emailSubject, html);
+                    // send notification to  contractor
+                    emailSubject = 'Job Refund Requested';
+                    emailContent = "\n                <p style=\"color: #333333;\">A refund for your job on Repairfind has been requested </p>\n                <p style=\"color: #333333;\">The refund should be completed in 3 business days </p>\n                <p><strong>Job Title:</strong> ".concat(job.description, "</p>\n                <p><strong>Job Amount</strong> ").concat(payment.amount, "</p>\n                <p><strong>Refund Amount:</strong> ").concat(refund.refundAmount, "</p>\n                ");
+                    html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
+                    services_1.EmailService.send(contractor.email, emailSubject, html);
+                    return [3 /*break*/, 4];
+                case 3:
+                    error_16 = _a.sent();
+                    console.error("Error handling JOB_REFUND_REQUESTED event: ".concat(error_16));
+                    return [3 /*break*/, 4];
+                case 4: return [2 /*return*/];
+            }
+        });
+    });
+});

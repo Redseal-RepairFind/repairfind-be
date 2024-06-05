@@ -276,7 +276,7 @@ JobEvent.on('JOB_DISPUTE_CREATED', async function (payload: { dispute: IJobDispu
 
         if (!customer || !contractor) return
 
-       
+
 
 
         NotificationService.sendNotification({
@@ -314,7 +314,7 @@ JobEvent.on('JOB_DISPUTE_CREATED', async function (payload: { dispute: IJobDispu
             }
         }, { database: true, push: true, socket: true })
 
-        if(job.isAssigned){
+        if (job.isAssigned) {
             NotificationService.sendNotification({
                 user: job.assignment.contractor,
                 userType: 'contractors',
@@ -379,7 +379,7 @@ JobEvent.on('JOB_MARKED_COMPLETE_BY_CONTRACTOR', async function (payload: { job:
                 event: event,
             }
         }, { database: true, push: true, socket: true })
-       
+
         NotificationService.sendNotification({
             user: contractor.id,
             userType: 'contractors',
@@ -397,7 +397,7 @@ JobEvent.on('JOB_MARKED_COMPLETE_BY_CONTRACTOR', async function (payload: { job:
 
 
 
-        if(job.isAssigned){
+        if (job.isAssigned) {
             NotificationService.sendNotification({
                 user: job.assignment.contractor,
                 userType: 'contractors',
@@ -456,12 +456,12 @@ JobEvent.on('JOB_COMPLETED', async function (payload: { job: IJob }) {
             }
         }, { push: true, socket: true })
 
-        if(job.isAssigned){
+        if (job.isAssigned) {
             NotificationService.sendNotification({
                 user: job.assignment.contractor,
                 userType: 'contractors',
                 title: 'Job Completed',
-                type: event, 
+                type: event,
                 message: `Job completion confirmed by customer`,
                 heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
                 payload: {
@@ -514,7 +514,7 @@ JobEvent.on('JOB_CHANGE_ORDER', async function (payload: { job: IJob }) {
             }
         }, { push: true, socket: true })
 
-        if(job.isAssigned){
+        if (job.isAssigned) {
             NotificationService.sendNotification({
                 user: job.assignment.contractor,
                 userType: 'contractors',
@@ -633,7 +633,7 @@ JobEvent.on('CHANGE_ORDER_ESTIMATE_SUBMITTED', async function (payload: { job: I
         }, { push: true, socket: true })
 
 
-        if(job.isAssigned){
+        if (job.isAssigned) {
             NotificationService.sendNotification({
                 user: contractor.id,
                 userType: 'contractors',
@@ -808,7 +808,7 @@ JobEvent.on('JOB_DAY_ARRIVAL', async function (payload: { jobDay: IJobDay, verif
                 heading: { name: contractor.name, image: contractor.profilePhoto?.url },
                 type: 'JOB_DAY_ARRIVAL',
                 message: 'Contractor is at your site.',
-                payload: {event: 'JOB_DAY_ARRIVAL', jobDayId: jobDay.id, verificationCode }
+                payload: { event: 'JOB_DAY_ARRIVAL', jobDayId: jobDay.id, verificationCode }
             },
             {
                 push: true,
@@ -816,8 +816,8 @@ JobEvent.on('JOB_DAY_ARRIVAL', async function (payload: { jobDay: IJobDay, verif
             }
         )
 
-         // send notification to  contractor
-         NotificationService.sendNotification(
+        // send notification to  contractor
+        NotificationService.sendNotification(
             {
                 user: contractor.id,
                 userType: 'contractors',
@@ -825,7 +825,7 @@ JobEvent.on('JOB_DAY_ARRIVAL', async function (payload: { jobDay: IJobDay, verif
                 heading: {},
                 type: 'JOB_DAY_ARRIVAL',
                 message: 'Job Day arrival, waiting for comfirmation from customer.',
-                payload: {event: 'JOB_DAY_ARRIVAL', jobDayId: jobDay.id, verificationCode }
+                payload: { event: 'JOB_DAY_ARRIVAL', jobDayId: jobDay.id, verificationCode }
             },
             {
                 push: true,
@@ -833,7 +833,7 @@ JobEvent.on('JOB_DAY_ARRIVAL', async function (payload: { jobDay: IJobDay, verif
             }
         )
 
-        if(job.isAssigned){
+        if (job.isAssigned) {
             NotificationService.sendNotification(
                 {
                     user: job.assignment.contractor,
@@ -842,7 +842,7 @@ JobEvent.on('JOB_DAY_ARRIVAL', async function (payload: { jobDay: IJobDay, verif
                     heading: {},
                     type: 'JOB_DAY_ARRIVAL',
                     message: 'Job Day arrival, waiting for comfirmation from customer.',
-                    payload: {event: 'JOB_DAY_ARRIVAL', jobDayId: jobDay.id, verificationCode }
+                    payload: { event: 'JOB_DAY_ARRIVAL', jobDayId: jobDay.id, verificationCode }
                 },
                 {
                     push: true,
@@ -853,5 +853,51 @@ JobEvent.on('JOB_DAY_ARRIVAL', async function (payload: { jobDay: IJobDay, verif
 
     } catch (error) {
         console.error(`Error handling JOB_DAY_ARRIVAL event: ${error}`);
+    }
+});
+
+
+
+JobEvent.on('JOB_REFUND_REQUESTED', async function (payload: {job: any, payment: any, refund: any }) {
+    try {
+        console.log('handling alert JOB_REFUND_REQUESTED event', payload.payment.id)
+
+        const job = payload.job
+        const payment = payload.payment
+        const refund = payload.refund
+
+        const customer = await CustomerModel.findById(job.customer)
+        const contractor = await ContractorModel.findById(job.contractor)
+
+        if (!customer || !contractor) return
+
+        // send notification to  customer
+        let emailSubject = 'Job Refund Requested'
+        let emailContent = `
+                <p style="color: #333333;">A refund for your job on Repairfind has been requested </p>
+                <p style="color: #333333;">The refund should be completed in 3 business days </p>
+                <p><strong>Job Title:</strong> ${job.description}</p>
+                <p><strong>Job Amount</strong> ${payment.amount}</p>
+                <p><strong>Refund Amount:</strong> ${refund.refundAmount}</p>
+                `
+        let html = GenericEmailTemplate({ name: customer.name, subject: emailSubject, content: emailContent })
+        EmailService.send(customer.email, emailSubject, html)
+
+
+        // send notification to  contractor
+         emailSubject = 'Job Refund Requested'
+         emailContent = `
+                <p style="color: #333333;">A refund for your job on Repairfind has been requested </p>
+                <p style="color: #333333;">The refund should be completed in 3 business days </p>
+                <p><strong>Job Title:</strong> ${job.description}</p>
+                <p><strong>Job Amount</strong> ${payment.amount}</p>
+                <p><strong>Refund Amount:</strong> ${refund.refundAmount}</p>
+                `
+        html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
+        EmailService.send(contractor.email, emailSubject, html)
+
+
+    } catch (error) {
+        console.error(`Error handling JOB_REFUND_REQUESTED event: ${error}`);
     }
 });
