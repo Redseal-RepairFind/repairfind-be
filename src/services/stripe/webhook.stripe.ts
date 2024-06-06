@@ -698,3 +698,30 @@ export const chargeRefunded = async (payload: any) => {
 };
 
 
+// Unhandled event type: charge.refund.updated {
+//     id: 're_3PNwnjDdPEZ0JirQ20mqxBjp',
+//     object: 'refund',
+//     amount: 50,
+//     balance_transaction: 'txn_3PNwnjDdPEZ0JirQ2MMmeQvR',
+//     charge: 'ch_3PNwnjDdPEZ0JirQ22CZD8r8',
+//     created: 1717686090,
+//     currency: 'usd',
+//     destination_details: {
+//       card: {
+//         reference: '4640929230954498',
+//         reference_status: 'available',
+//         reference_type: 'acquirer_reference_number',
+//         type: 'refund'
+//       },
+//       type: 'card'
+//     },
+//     metadata: {},
+//     payment_intent: 'pi_3PNwnjDdPEZ0JirQ2XmJrrTp',
+//     reason: null,
+//     receipt_number: null,
+//     source_transfer_reversal: null,
+//     status: 'succeeded',
+//     transfer_reversal: null
+//   }
+
+

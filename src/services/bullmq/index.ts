@@ -82,19 +82,15 @@ class JobQueue {
       jobId: 'CapturePayments'
     })
 
+    
     QueueService.addJob('handleJobRefunds', {}, {
       repeat: {
-        every: 6000, // 600000 mili = 10 minutes
+        every: 600000, // 600000 mili = 10 minutes
       }
     })
 
     QueueService.addJob('syncCertnApplications', {}, {
       repeat: {
-        // pattern: '* * * * *',
-        // cron: '*/5 * * * * *', // Every 5 seconds
-        // offset: new Date().getTimezoneOffset(), 
-        // tz: 'Europe/Berlin',
-        // limit: 1,
         every: 600000, // 600000 mili = 10 minutes
       },
       jobId: "syncCertnApplications"
