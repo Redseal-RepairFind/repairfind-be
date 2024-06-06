@@ -57,35 +57,35 @@ var job_quotation_accepted_template_1 = require("../../../templates/contractorEm
 var job_quotation_declined_template_1 = require("../../../templates/contractorEmail/job_quotation_declined.template");
 var mongoose_1 = __importDefault(require("mongoose"));
 var createJobRequest = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, contractorId, category, description, location_1, date, expiresIn, emergency, media, voiceDescription, time, customerId, customer, contractor, startOfToday, existingJobRequest, dateTimeString, jobTime, currentDate, expiryDate, newJob, conversationMembers, conversation, newMessage, html, error_1;
-    var _b, _c;
-    return __generator(this, function (_d) {
-        switch (_d.label) {
+    var errors, _a, contractorId, category, description, location_1, date, _b, expiresIn, emergency, media, voiceDescription, time, customerId, customer, contractor, startOfToday, existingJobRequest, dateTimeString, jobTime, currentDate, expiryDate, newJob, conversationMembers, conversation, newMessage, html, error_1;
+    var _c, _d;
+    return __generator(this, function (_e) {
+        switch (_e.label) {
             case 0:
-                _d.trys.push([0, 7, , 8]);
+                _e.trys.push([0, 7, , 8]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ message: 'validatior error occured', errors: errors.array() })];
                 }
-                _a = req.body, contractorId = _a.contractorId, category = _a.category, description = _a.description, location_1 = _a.location, date = _a.date, expiresIn = _a.expiresIn, emergency = _a.emergency, media = _a.media, voiceDescription = _a.voiceDescription, time = _a.time;
+                _a = req.body, contractorId = _a.contractorId, category = _a.category, description = _a.description, location_1 = _a.location, date = _a.date, _b = _a.expiresIn, expiresIn = _b === void 0 ? 7 : _b, emergency = _a.emergency, media = _a.media, voiceDescription = _a.voiceDescription, time = _a.time;
                 customerId = req.customer.id;
                 if (!mongoose_1.default.Types.ObjectId.isValid(contractorId)) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid contractor format' })];
                 }
                 return [4 /*yield*/, customer_model_1.default.findById(customerId)];
             case 1:
-                customer = _d.sent();
+                customer = _e.sent();
                 if (!customer) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "Customer not found" })];
                 }
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId).populate('profile')];
             case 2:
-                contractor = _d.sent();
+                contractor = _e.sent();
                 if (!contractor) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "Contractor not found" })];
                 }
                 // Check if contractor has a verified connected account
-                if (!contractor.onboarding.hasStripeAccount || !(((_b = contractor.stripeAccountStatus) === null || _b === void 0 ? void 0 : _b.card_payments_enabled) && ((_c = contractor.stripeAccountStatus) === null || _c === void 0 ? void 0 : _c.transfers_enabled))) {
+                if (!contractor.onboarding.hasStripeAccount || !(((_c = contractor.stripeAccountStatus) === null || _c === void 0 ? void 0 : _c.card_payments_enabled) && ((_d = contractor.stripeAccountStatus) === null || _d === void 0 ? void 0 : _d.transfers_enabled))) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "You cannot send a job request to this contractor because  stripe account is not set up" })];
                 }
                 startOfToday = (0, date_fns_1.startOfDay)(new Date());
@@ -100,7 +100,7 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                         createdAt: { $gte: (0, date_fns_1.addHours)(new Date(), -24) }, // Check for job requests within the last 72 hours
                     })];
             case 3:
-                existingJobRequest = _d.sent();
+                existingJobRequest = _e.sent();
                 if (existingJobRequest) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'A similar job request has already been sent to this contractor within the last 24 hours' })];
                 }
@@ -131,7 +131,7 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 return [4 /*yield*/, newJob.save()];
             case 4:
                 // Save the job document to the database
-                _d.sent();
+                _e.sent();
                 conversationMembers = [
                     { memberType: 'customers', member: customerId },
                     { memberType: 'contractors', member: contractorId }
@@ -147,7 +147,7 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                         lastMessageAt: new Date() // Set the last message timestamp to now
                     }, { new: true, upsert: true })];
             case 5:
-                conversation = _d.sent();
+                conversation = _e.sent();
                 return [4 /*yield*/, messages_schema_1.MessageModel.create({
                         conversation: conversation._id,
                         sender: customerId, // Assuming the customer sends the initial message
@@ -156,14 +156,14 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                         createdAt: new Date()
                     })];
             case 6:
-                newMessage = _d.sent();
+                newMessage = _e.sent();
                 events_1.JobEvent.emit('NEW_JOB_REQUEST', { jobId: newJob.id, contractorId: contractorId, customerId: customerId, conversationId: conversation.id });
                 html = (0, jobRequestTemplate_1.htmlJobRequestTemplate)(customer.firstName, customer.firstName, "".concat(date, " ").concat(time), description);
                 services_1.EmailService.send(contractor.email, 'Job request from customer', html);
                 res.status(201).json({ success: true, message: 'Job request submitted successfully', data: newJob });
                 return [3 /*break*/, 8];
             case 7:
-                error_1 = _d.sent();
+                error_1 = _e.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('Bad Request', error_1))];
             case 8: return [2 /*return*/];
         }

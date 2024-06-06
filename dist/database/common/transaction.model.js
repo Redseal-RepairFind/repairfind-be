@@ -22,7 +22,7 @@ var TRANSACTION_TYPE;
     TRANSACTION_TYPE["JOB_DAY"] = "JOB_DAY";
     TRANSACTION_TYPE["CHANGE_ORDER"] = "CHANGE_ORDER";
 })(TRANSACTION_TYPE || (exports.TRANSACTION_TYPE = TRANSACTION_TYPE = {}));
-var CaptureDetailsShema = new mongoose_1.Schema({
+var CaptureShema = new mongoose_1.Schema({
     payment: { type: mongoose_1.Schema.Types.ObjectId, required: true },
     payment_method: { type: String, required: true },
     payment_intent: { type: String, required: true },
@@ -65,6 +65,31 @@ var CaptureDetailsShema = new mongoose_1.Schema({
     capture_method: { type: String }
 }, {
     timestamps: true,
+});
+var RefundSchema = new mongoose_1.Schema({
+    id: { type: String, required: true },
+    object: { type: String, required: true },
+    amount: { type: Number, required: true },
+    balance_transaction: { type: String, required: true },
+    charge: { type: String, required: true },
+    created: { type: Number, required: true },
+    currency: { type: String, required: true },
+    destination_details: {
+        card: {
+            reference: { type: String, required: true },
+            reference_status: { type: String, required: true },
+            reference_type: { type: String, required: true },
+            type: { type: String, required: true }
+        },
+        type: { type: String, required: true }
+    },
+    metadata: { type: Map, of: mongoose_1.Schema.Types.Mixed, default: {} },
+    payment_intent: { type: String, required: true },
+    reason: { type: String, default: null },
+    receipt_number: { type: String, default: null },
+    source_transfer_reversal: { type: String, default: null },
+    status: { type: String, required: true },
+    transfer_reversal: { type: String, default: null }
 });
 var TransactionSchema = new mongoose_1.Schema({
     type: {
@@ -130,7 +155,8 @@ var TransactionSchema = new mongoose_1.Schema({
     payment: {
         type: mongoose_1.Schema.Types.ObjectId,
     },
-    captureDetails: CaptureDetailsShema,
+    capture: CaptureShema,
+    refund: RefundSchema,
     createdAt: {
         type: Date,
         default: Date.now,

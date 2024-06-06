@@ -74,8 +74,8 @@ var captureStripePayments = function () { return __awaiter(void 0, void 0, void 
                 dayFromNow = Math.floor(Date.now() / 1000) + (2 * oneDayInMillis);
                 return [4 /*yield*/, transaction_model_1.default.find({
                         status: transaction_model_1.TRANSACTION_STATUS.REQUIRES_CAPTURE,
-                        'captureDetails.captured': false,
-                        'captureDetails.capture_before': {
+                        'capture.captured': false,
+                        'capture.capture_before': {
                             $gte: daysBeforeNow,
                             $lte: dayFromNow
                         }
@@ -90,11 +90,11 @@ var captureStripePayments = function () { return __awaiter(void 0, void 0, void 
                 _a.label = 3;
             case 3:
                 _a.trys.push([3, 5, , 6]);
-                return [4 /*yield*/, stripe_1.StripeService.payment.capturePayment(transaction.captureDetails.payment_intent)];
+                return [4 /*yield*/, stripe_1.StripeService.payment.capturePayment(transaction.capture.payment_intent)];
             case 4:
                 _a.sent();
                 // I should wait for webhook before updating transaction
-                // transaction.captureDetails.captured = true;
+                // transaction.capture.captured = true;
                 // transaction.status = TRANSACTION_STATUS.SUCCESSFUL
                 // await transaction.save();
                 logger_1.Logger.info("Successfully captured payment for payment ID: ".concat(transaction._id));

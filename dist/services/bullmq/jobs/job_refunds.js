@@ -77,7 +77,7 @@ var handleJobRefunds = function () { return __awaiter(void 0, void 0, void 0, fu
             case 0:
                 _c.trys.push([0, 19, , 20]);
                 return [4 /*yield*/, transaction_model_1.default.find({
-                        type: { $in: [transaction_model_1.TRANSACTION_TYPE.REFUND] },
+                        type: transaction_model_1.TRANSACTION_TYPE.REFUND,
                         status: transaction_model_1.TRANSACTION_STATUS.PENDING
                     })];
             case 1:
@@ -101,7 +101,7 @@ var handleJobRefunds = function () { return __awaiter(void 0, void 0, void 0, fu
                 _c.label = 7;
             case 7:
                 fromUser = _a;
-                if (!(transaction.toUser.toString() == 'customers')) return [3 /*break*/, 9];
+                if (!(transaction.toUserType == 'customers')) return [3 /*break*/, 9];
                 return [4 /*yield*/, customer_model_1.default.findById(transaction.toUser)];
             case 8:
                 _b = _c.sent();
@@ -116,12 +116,15 @@ var handleJobRefunds = function () { return __awaiter(void 0, void 0, void 0, fu
                 return [4 /*yield*/, payment_schema_1.PaymentModel.findById(transaction.payment)];
             case 12:
                 payment = _c.sent();
-                if (!payment)
+                if (!payment) {
                     return [2 /*return*/];
-                if (!!payment.refunded) return [3 /*break*/, 14];
-                return [4 /*yield*/, stripe_1.StripeService.payment.refundCharge(payment.charge, (payment.amount))];
+                }
+                return [4 /*yield*/, stripe_1.StripeService.payment.refundCharge(payment.charge, (transaction.amount * 100))
+                    // }
+                ]; // convert to cent
             case 13:
-                stripePayment = _c.sent();
+                stripePayment = _c.sent() // convert to cent
+                ;
                 _c.label = 14;
             case 14: return [4 /*yield*/, transaction.save()];
             case 15:
