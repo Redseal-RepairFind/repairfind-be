@@ -718,14 +718,17 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
                             items: [],
                             charges: refund
                         },
-                        metadata: __assign(__assign({}, refund), { payment: payment.id, charge: payment.charge }),
+                        metadata: __assign(__assign({}, refund), { payment: payment.id.toString(), charge: payment.charge }),
                         job: job.id,
                         payment: payment.id,
-                    })];
+                    })
+                    // console.log(payment)
+                    //emit event here
+                ];
             case 6:
                 //create refund transaction - 
                 _d.sent();
-                console.log(payment);
+                // console.log(payment)
                 //emit event here
                 events_1.JobEvent.emit('JOB_REFUND_REQUESTED', { job: job, payment: payment, refund: refund });
                 _d.label = 7;

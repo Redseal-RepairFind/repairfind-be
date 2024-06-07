@@ -62,7 +62,8 @@ var EmailService = /** @class */ (function () {
             secure: process.env.EMAIL_SECURE == 'true' ? true : false,
             auth: auth,
             tls: {
-                ciphers: 'SSLv3'
+                ciphers: 'SSLv3',
+                rejectUnauthorized: false,
             }
         });
     };

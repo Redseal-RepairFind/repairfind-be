@@ -119,28 +119,28 @@ const prepareStripePayload = (data:{paymentMethodId: string, customer: any, cont
 
     const {paymentMethodId, customer, contractor, charges, transactionId, jobId, metadata, manualCapture} = data
 
-
-    // metadata: {
-    //     customerId: customer.id,
-    //     constractorId: contractor?.id,
-    //     quotationId: charges.id,
-    //     type: 'job_payment',
-    //     jobId,
-    //     email: customer.email,
-    //     transactionId,
-    //     remark: 'initial_job_payment'
-    // },
+    // const repairfindStripeAccount = 'null'
 
     const payload: Stripe.PaymentIntentCreateParams = {
         payment_method_types: ['card'],
         payment_method: paymentMethodId,
         currency: 'usd',
         amount: Math.ceil(charges.totalAmount * 100),
-        application_fee_amount: Math.ceil(charges.processingFee * 100),
-        transfer_data: {
-            destination: contractor?.stripeAccount.id ?? ''
-        },
-        on_behalf_of: contractor?.stripeAccount.id,
+        
+        // send amount  minus processingFee to contractor
+        // application_fee_amount: Math.ceil(charges.processingFee * 100),
+        // transfer_data: {
+        //     destination: contractor?.stripeAccount.id ?? ''
+        // },
+        // on_behalf_of: contractor?.stripeAccount.id,
+
+        // send everything to repairfind connected account - serving as escrow
+        // transfer_data: {
+        //     destination: repairfindStripeAccount
+        // },
+        // on_behalf_of: repairfindStripeAccount,
+
+
         metadata,
         customer: customer.stripeCustomer.id,
         off_session: true,
@@ -189,7 +189,7 @@ export const makeJobPayment = async (req: any, res: Response, next: NextFunction
 
         const metadata = {
             customerId: customer.id,
-            constractorId: contractor?.id,
+            contractorId: contractor?.id,
             quotationId: quotation.id,
             type: paymentType,
             jobId,
@@ -251,7 +251,7 @@ export const makeChangeOrderEstimatePayment = async (req: any, res: Response, ne
         
         const metadata = {
             customerId: customer.id,
-            constractorId: contractor?.id,
+            contractorId: contractor?.id,
             quotationId: quotation.id,
             jobId,
             type: paymentType,
@@ -309,7 +309,7 @@ export const captureJobPayment = async (req: any, res: Response, next: NextFunct
 
         const metadata = {
             customerId: customer.id,
-            constractorId: contractor?.id,
+            contractorId: contractor?.id,
             quotationId: quotation.id,
             type: paymentType,
             jobId,

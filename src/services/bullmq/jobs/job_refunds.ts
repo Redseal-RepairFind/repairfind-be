@@ -24,9 +24,8 @@ export const handleJobRefunds = async () => {
                 const fromUser = (transaction.fromUserType == 'customers') ? await CustomerModel.findById(transaction.fromUser) : await ContractorModel.findById(transaction.fromUser)
                 const toUser = (transaction.toUserType == 'customers') ? await CustomerModel.findById(transaction.toUser) : await ContractorModel.findById(transaction.toUser)
 
-                
-                if (fromUser && toUser) {
 
+                if (fromUser && toUser) {
 
 
                     const payment = await PaymentModel.findById(transaction.payment)
@@ -34,10 +33,13 @@ export const handleJobRefunds = async () => {
                         return
                     }
 
-                    // if (!transaction.status) {
-                        // const stripePayment = await StripeService.payment.refundCharge(payment.charge, (payment.amount))
-                        const stripePayment = await StripeService.payment.refundCharge(payment.charge, (transaction.amount*100) )// convert to cent
-                    // }
+                    const amount = (transaction.amount * 100)
+                    const charge = payment.charge
+                    let metadata: any = transaction.metadata ?? {}
+                    metadata.transactionId = transaction.id
+                    metadata.paymentId = payment.id
+                    const stripePayment = await StripeService.payment.refundCharge(charge, amount, metadata)// convert to cent
+
 
                 }
 

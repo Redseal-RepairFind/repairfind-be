@@ -275,7 +275,7 @@ JobSchema.virtual('expiresIn').get(function () {
 
 //get job day that match with the schedule type
  JobSchema.methods.getJobDay = async function (scheduleType = null) {
-    if(!scheduleType) scheduleType = this.schedule.type;
+    if(!scheduleType && this.schedule) scheduleType = this.schedule.type;
     return await JobDayModel.findOne({ job: this.id, type: scheduleType })
 };
 

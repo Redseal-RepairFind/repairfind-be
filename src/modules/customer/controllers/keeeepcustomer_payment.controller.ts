@@ -175,7 +175,7 @@ export const makeJobPayment = async (
             on_behalf_of: contractor?.stripeAccount.id,
             metadata: {
                 customerId,
-                constractorId: contractor?.id,
+                contractorId: contractor?.id,
                 quotationId,
                 type: "job_payment",
                 jobId,
@@ -373,7 +373,7 @@ export const captureJobPayment = async (
             on_behalf_of: contractor?.stripeAccount.id,
             metadata: {
                 customerId,
-                constractorId: contractor?.id,
+                contractorId: contractor?.id,
                 quotationId,
                 type: "job_payment",
                 jobId,

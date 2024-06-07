@@ -641,7 +641,7 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
                 },
                 metadata: {
                     ...refund,
-                    payment: payment.id,
+                    payment: payment.id.toString(),
                     charge: payment.charge
                 },
                 job: job.id,
@@ -649,7 +649,7 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
             })
 
 
-            console.log(payment)
+            // console.log(payment)
             //emit event here
             JobEvent.emit('JOB_REFUND_REQUESTED', {job, payment, refund})
 

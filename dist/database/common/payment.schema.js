@@ -31,6 +31,74 @@ var PAYMENT_TYPE;
     PAYMENT_TYPE["SITE_VISIT_PAYMENT"] = "SITE_VISIT_PAYMENT";
     PAYMENT_TYPE["CHANGE_ORDER_PAYMENT"] = "CHANGE_ORDER_PAYMENT";
 })(PAYMENT_TYPE || (exports.PAYMENT_TYPE = PAYMENT_TYPE = {}));
+var RefundSchema = new mongoose_1.Schema({
+    id: { type: String, required: true },
+    object: { type: String, required: true },
+    amount: { type: Number, required: true },
+    balance_transaction: { type: String, required: true },
+    charge: { type: String, required: true },
+    created: { type: Number, required: true },
+    currency: { type: String, required: true },
+    destination_details: {
+        card: {
+            reference: { type: String, required: true },
+            reference_status: { type: String, required: true },
+            reference_type: { type: String, required: true },
+            type: { type: String, required: true }
+        },
+        type: { type: String, required: true }
+    },
+    metadata: { type: Map, of: mongoose_1.Schema.Types.Mixed, default: {} },
+    payment_intent: { type: String, required: true },
+    reason: { type: String, default: null },
+    receipt_number: { type: String, default: null },
+    source_transfer_reversal: { type: String, default: null },
+    status: { type: String, required: true },
+    transfer_reversal: { type: String, default: null }
+});
+var CaptureShema = new mongoose_1.Schema({
+    payment: { type: mongoose_1.Schema.Types.ObjectId, required: true },
+    payment_method: { type: String, required: true },
+    payment_intent: { type: String, required: true },
+    amount_authorized: { type: Number, required: true },
+    currency: { type: String, required: true },
+    brand: { type: String },
+    capture_before: { type: Number },
+    country: { type: String },
+    exp_month: { type: Number },
+    exp_year: { type: Number },
+    extended_authorization: {
+        status: { type: String }
+    },
+    fingerprint: { type: String },
+    funding: { type: String },
+    incremental_authorization: {
+        status: { type: String }
+    },
+    installments: { type: Number },
+    last4: { type: String },
+    mandate: { type: mongoose_1.Schema.Types.Mixed },
+    multicapture: {
+        status: { type: String }
+    },
+    network: { type: String },
+    network_token: {
+        used: { type: Boolean }
+    },
+    overcapture: {
+        maximum_amount_capturable: { type: Number },
+        status: { type: String }
+    },
+    three_d_secure: { type: String },
+    wallet: { type: mongoose_1.Schema.Types.Mixed },
+    captured: { type: Boolean, required: true },
+    canceled_at: { type: String },
+    captured_at: { type: String },
+    cancellation_reason: { type: String },
+    capture_method: { type: String }
+}, {
+    timestamps: true,
+});
 var PaymentSchema = new mongoose_1.Schema({
     charge: { type: String, required: true },
     amount: { type: Number, required: true },
@@ -62,7 +130,9 @@ var PaymentSchema = new mongoose_1.Schema({
     transfer: { type: String },
     on_behalf_of: { type: String },
     calculated_statement_descriptor: { type: String },
-    payment_intent: { type: String }
+    payment_intent: { type: String },
+    refunds: [RefundSchema],
+    capture: CaptureShema,
 }, { timestamps: true });
 // Create the Payment model
 var PaymentModel = mongoose_1.default.model('payments', PaymentSchema);

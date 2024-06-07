@@ -103,13 +103,14 @@ var chargeCustomer = function (customerId, paymentMethodId, payload) { return __
     });
 }); };
 exports.chargeCustomer = chargeCustomer;
-var refundCharge = function (chargeId, amountToRefund) { return __awaiter(void 0, void 0, void 0, function () {
+var refundCharge = function (chargeId, amountToRefund, metadata) { return __awaiter(void 0, void 0, void 0, function () {
     var refund;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0: return [4 /*yield*/, stripeClient.refunds.create({
                     charge: chargeId,
-                    amount: amountToRefund
+                    amount: amountToRefund,
+                    metadata: metadata
                 })];
             case 1:
                 refund = _a.sent();

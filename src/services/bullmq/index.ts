@@ -85,7 +85,7 @@ class JobQueue {
     
     QueueService.addJob('handleJobRefunds', {}, {
       repeat: {
-        every: 600000, // 600000 mili = 10 minutes
+        every: 6000, // 600000 mili = 10 minutes
       }
     })
 
