@@ -216,7 +216,7 @@ export const identityVerificationRequiresInput = async (payload: any) => {
         if (!user) return
 
         let message = 'Verification check failed: ' + payload.last_error.reason
-        
+
 
         // Handle specific failure reasons
         switch (payload.last_error.code) {
@@ -386,7 +386,7 @@ export const paymentIntentSucceeded = async (payload: any) => {
         if (payload.object != 'payment_intent') return
 
         const customer: any = await StripeService.customer.getCustomerById(payload.customer)
-        
+
         // const userType = customer?.metadata?.userType
         // const userId = customer?.metadata?.userId
         const userType = payload?.metadata?.userType
@@ -398,8 +398,8 @@ export const paymentIntentSucceeded = async (payload: any) => {
         const user = userType === 'contractors' ? await ContractorModel.findById(userId) : await CustomerModel.findById(userId)
         if (!user) return // Ensure user exists
 
-        const paymentMethod : any= await StripeService.payment.getPaymentMethod(payload.payment_method)
-        if(paymentMethod){
+        const paymentMethod: any = await StripeService.payment.getPaymentMethod(payload.payment_method)
+        if (paymentMethod) {
             const existingPaymentMethodIndex: any = user.stripePaymentMethods.findIndex((pm: any) => pm.id === paymentMethod.id)
             if (existingPaymentMethodIndex !== -1) {
                 // If paymentMethod already exists, update it
@@ -473,7 +473,7 @@ export const paymentMethodAttached = async (payload: any) => {
 
         if (!userType || !userId) return // Ensure userType and userId are valid
 
-        const user =  await CustomerModel.findById(userId) // assume only customers have to add payment method
+        const user = await CustomerModel.findById(userId) // assume only customers have to add payment method
         if (!user) return // Ensure user exists
 
         const existingPaymentMethodIndex = user.stripePaymentMethods.findIndex((pm: any) => pm.id === paymentMethod.id)
@@ -519,20 +519,20 @@ export const chargeSucceeded = async (payload: any) => {
         // const customer: any = await StripeService.customer.getCustomerById(payload.customer)
         // const userType = customer?.metadata?.userType
         // const userId = customer?.metadata?.userId
-        
+
         const userType = 'customers'
         const userId = payload?.metadata?.customerId
 
         if (!userType || !userId) return // Ensure userType and userId are valid
 
-        const user =  await CustomerModel.findById(userId)
+        const user = await CustomerModel.findById(userId)
         if (!user) return // Ensure user exists
 
         //convert from base currency
-        payload.amount = payload.amount/100
-        payload.amount_refunded = payload.amount_refunded/100
-        payload.amount_captured = payload.amount_captured/100
-        payload.application_fee_amount = payload.application_fee_amount/100
+        payload.amount = payload.amount / 100
+        payload.amount_refunded = payload.amount_refunded / 100
+        payload.amount_captured = payload.amount_captured / 100
+        payload.application_fee_amount = payload.application_fee_amount / 100
 
         let stripeChargeDTO: IPayment = castPayloadToDTO(payload, payload as IPayment);
         stripeChargeDTO.charge = payload.id
@@ -557,7 +557,7 @@ export const chargeSucceeded = async (payload: any) => {
 
                 const capture = payload.payment_method_details.card
                 let capturaDto: ICapture = castPayloadToDTO(capture, capture as ICapture);
-                
+
                 capturaDto.payment_intent = payload.payment_intent
                 capturaDto.payment_method = payload.payment_method
                 capturaDto.payment = payment.id
@@ -597,13 +597,13 @@ export const chargeSucceeded = async (payload: any) => {
             const paymentType = metadata.type
             const quotationId = metadata.quotationId
 
-            if (jobId && paymentType && quotationId) { 
-                
+            if (jobId && paymentType && quotationId) {
+
                 let job = await JobModel.findById(jobId)
                 let quotation = await JobQuotationModel.findById(quotationId)
                 if (!job || !quotation) return
-               
-                
+
+
                 if (paymentType == PAYMENT_TYPE.JOB_DAY_PAYMENT) {
                     job.status = JOB_STATUS.BOOKED
                     job.contract = quotation.id
@@ -612,7 +612,7 @@ export const chargeSucceeded = async (payload: any) => {
                     quotation.isPaid = true
                     quotation.payment = payment.id
                     quotation.status = JOB_QUOTATION_STATUS.ACCEPTED
-                    
+
                     if (quotation.startDate) {
                         job.schedule = {
                             startDate: quotation.startDate,
@@ -633,7 +633,7 @@ export const chargeSucceeded = async (payload: any) => {
                     quotation.siteVisitEstimate.isPaid = true
                     quotation.siteVisitEstimate.payment = payment.id
                     quotation.status = JOB_QUOTATION_STATUS.ACCEPTED
-                    
+
                     if (quotation.siteVisit instanceof Date) {
                         job.schedule = {
                             startDate: quotation.siteVisit,
@@ -645,9 +645,9 @@ export const chargeSucceeded = async (payload: any) => {
                     }
 
                 }
-                
 
-                if (paymentType ==  PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) {
+
+                if (paymentType == PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) {
                     const changeOrderEstimate: any = quotation.changeOrderEstimate
                     if (!changeOrderEstimate) return
                     changeOrderEstimate.isPaid = true
@@ -656,12 +656,59 @@ export const chargeSucceeded = async (payload: any) => {
 
                 if (!job.payments.includes(payment.id)) job.payments.push(payment.id)
 
+
                 await quotation.save()
                 await job.save()
+
+
+                //handle payout transaction schedule here if payment was made to platform
+                if (payment) {
+                    const onBehalf = payment.on_behalf_of
+                    const destination = payment.destination
+                    const transferData = payment.transfer_data
+
+                    // payment was made to platform ?
+                    if (!onBehalf && destination && transferData) {
+                        //create payout transaction - 
+                        
+                        await TransactionModel.create({
+                            type: TRANSACTION_TYPE.PAYOUT,
+                            amount: payment.amount,
+
+                            // customer can initiate payout on job completetion or admin on dispute resolution
+                            // initiatorUser: customerId,
+                            // initiatorUserType: 'customers',
+
+                            fromUser: job.customer,
+                            fromUserType: 'customers',
+
+                            toUser: job.contractor,
+                            toUserType: 'contractors',
+
+                            description: `Payout for job: ${job?.title}`,
+                            status: TRANSACTION_STATUS.PENDING,
+                            remark: 'job_payout',
+                            invoice: {
+                                items: [],
+                                charges: quotation.charges
+                            },
+                            metadata: {
+                                paymentType,
+                                parentTransaction: transaction?.id
+                            },
+                            job: job.id,
+                            payment: payment.id,
+                        })
+
+                    }
+
+                }
 
             }
 
         }
+
+
 
     } catch (error: any) {
         // throw new BadRequestError(error.message || "Something went wrong");
@@ -672,7 +719,7 @@ export const chargeSucceeded = async (payload: any) => {
 
 export const chargeRefunded = async (payload: any) => {
     console.log('Stripe Event Handler: chargeRefunded', payload);
-    
+
     try {
         if (payload.object !== 'charge') return;
 
@@ -691,8 +738,8 @@ export const chargeRefunded = async (payload: any) => {
 };
 
 export const chargeRefundUpdated = async (payload: any) => {
-    console.log('Stripe Event Handler: chargeRefundUpdated', {object: payload.object, id: payload.id});
-    
+    console.log('Stripe Event Handler: chargeRefundUpdated', { object: payload.object, id: payload.id });
+
     try {
         if (payload.object !== 'refund') return;
         const metadata = payload.metadata as { charge: string, policyApplied: string, totalAmount: any, refundAmount: any, paymentId: ObjectId, transactionId: ObjectId }
@@ -702,8 +749,8 @@ export const chargeRefundUpdated = async (payload: any) => {
         const transaction = await TransactionModel.findOne({ _id: metadata.transactionId });
         console.log('transaction', transaction)
         if (payment && transaction) {
-            if(!payment.refunds.includes(stripeRefundDTO))  payment.refunds.push(stripeRefundDTO);
-            if(payload.status == 'succeeded' )transaction.status = TRANSACTION_STATUS.SUCCESSFUL
+            if (!payment.refunds.includes(stripeRefundDTO)) payment.refunds.push(stripeRefundDTO);
+            if (payload.status == 'succeeded') transaction.status = TRANSACTION_STATUS.SUCCESSFUL
             await Promise.all([payment.save(), transaction.save()])
         }
     } catch (error: any) {

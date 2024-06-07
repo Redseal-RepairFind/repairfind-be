@@ -758,6 +758,8 @@ export const requestBookingRefund = async (req: any, res: Response, next: NextFu
                 },
                 metadata: {
                     ...refund,
+                    payment: payment.id.toString(),
+                    charge: payment.charge
                 },
                 job: job.id,
                 payment: payment.id

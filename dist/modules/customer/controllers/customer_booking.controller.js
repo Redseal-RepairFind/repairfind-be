@@ -838,7 +838,7 @@ var requestBookingRefund = function (req, res, next) { return __awaiter(void 0, 
                             items: [],
                             charges: refund
                         },
-                        metadata: __assign({}, refund),
+                        metadata: __assign(__assign({}, refund), { payment: payment.id.toString(), charge: payment.charge }),
                         job: job.id,
                         payment: payment.id
                     })];

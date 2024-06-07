@@ -2,6 +2,7 @@ import { Schema, model, Document, ObjectId } from 'mongoose';
 
 export enum TRANSACTION_STATUS {
   PENDING = "PENDING",
+  APPROVED = "APPROVED", // important for payout transactions
   SUCCESSFUL = "SUCCESSFUL",
   FAILED = "FAILED",
   REFUNDED = "REFUNDED",
@@ -14,7 +15,6 @@ export enum TRANSACTION_TYPE {
   JOB_PAYMENT = "JOB_PAYMENT",
   REFUND = "REFUND",
   PAYOUT = "PAYOUT",
-  INSPECTION_PAYMENT = "INSPECTION_PAYMENT",
   SITE_VISIT = 'SITE_VISIT',
   JOB_DAY = 'JOB_DAY',
   CHANGE_ORDER = 'CHANGE_ORDER',
@@ -28,12 +28,14 @@ export interface ITransaction extends Document {
   type: TRANSACTION_TYPE;
   amount: number;
   currency?: string;
-  initiatorUser: ObjectId;
-  initiatorUserType: string;
+  initiatorUser?: ObjectId;
+  initiatorUserType?: string;
+
   fromUser: ObjectId;
   fromUserType: string;
   toUser: ObjectId;
   toUserType: string;
+
   description?: string;
   status: TRANSACTION_STATUS;
   remark?: string;

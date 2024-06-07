@@ -707,7 +707,7 @@ var paymentMethodDetached = function (payload) { return __awaiter(void 0, void 0
 exports.paymentMethodDetached = paymentMethodDetached;
 // Charge
 var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var userType, userId, user, stripeChargeDTO, payment, transactionId, transaction, capture, capturaDto, capture, capturaDto, metadata, jobId, paymentType, quotationId, job, quotation, changeOrderEstimate, error_11;
+    var userType, userId, user, stripeChargeDTO, payment, transactionId, transaction, capture, capturaDto, capture, capturaDto, metadata, jobId, paymentType, quotationId, job, quotation, changeOrderEstimate, onBehalf, destination, transferData, error_11;
     var _a, _b;
     return __generator(this, function (_c) {
         switch (_c.label) {
@@ -715,7 +715,7 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                 console.log('Stripe Event Handler: chargeSucceeded', payload);
                 _c.label = 1;
             case 1:
-                _c.trys.push([1, 12, , 13]);
+                _c.trys.push([1, 13, , 14]);
                 if (payload.object != 'charge')
                     return [2 /*return*/];
                 userType = 'customers';
@@ -785,11 +785,11 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                 _c.label = 6;
             case 6:
                 metadata = payment.metadata;
-                if (!metadata.jobId) return [3 /*break*/, 11];
+                if (!metadata.jobId) return [3 /*break*/, 12];
                 jobId = metadata.jobId;
                 paymentType = metadata.type;
                 quotationId = metadata.quotationId;
-                if (!(jobId && paymentType && quotationId)) return [3 /*break*/, 11];
+                if (!(jobId && paymentType && quotationId)) return [3 /*break*/, 12];
                 return [4 /*yield*/, job_model_1.JobModel.findById(jobId)];
             case 7:
                 job = _c.sent();
@@ -843,17 +843,52 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                 return [4 /*yield*/, quotation.save()];
             case 9:
                 _c.sent();
-                return [4 /*yield*/, job.save()];
+                return [4 /*yield*/, job.save()
+                    //handle payout transaction schedule here if payment was made to platform
+                ];
             case 10:
                 _c.sent();
-                _c.label = 11;
-            case 11: return [3 /*break*/, 13];
-            case 12:
+                if (!payment) return [3 /*break*/, 12];
+                onBehalf = payment.on_behalf_of;
+                destination = payment.destination;
+                transferData = payment.transfer_data;
+                if (!(!onBehalf && destination && transferData)) return [3 /*break*/, 12];
+                //create payout transaction - 
+                return [4 /*yield*/, transaction_model_1.default.create({
+                        type: transaction_model_1.TRANSACTION_TYPE.PAYOUT,
+                        amount: payment.amount,
+                        // customer can initiate payout on job completetion or admin on dispute resolution
+                        // initiatorUser: customerId,
+                        // initiatorUserType: 'customers',
+                        fromUser: job.customer,
+                        fromUserType: 'customers',
+                        toUser: job.contractor,
+                        toUserType: 'contractors',
+                        description: "Payout for job: ".concat(job === null || job === void 0 ? void 0 : job.title),
+                        status: transaction_model_1.TRANSACTION_STATUS.PENDING,
+                        remark: 'job_payout',
+                        invoice: {
+                            items: [],
+                            charges: quotation.charges
+                        },
+                        metadata: {
+                            paymentType: paymentType,
+                            parentTransaction: transaction === null || transaction === void 0 ? void 0 : transaction.id
+                        },
+                        job: job.id,
+                        payment: payment.id,
+                    })];
+            case 11:
+                //create payout transaction - 
+                _c.sent();
+                _c.label = 12;
+            case 12: return [3 /*break*/, 14];
+            case 13:
                 error_11 = _c.sent();
                 // throw new BadRequestError(error.message || "Something went wrong");
                 console.log('Error handling chargeSucceeded stripe webhook event', error_11);
-                return [3 /*break*/, 13];
-            case 13: return [2 /*return*/];
+                return [3 /*break*/, 14];
+            case 14: return [2 /*return*/];
         }
     });
 }); };
