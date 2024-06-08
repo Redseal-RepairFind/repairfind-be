@@ -1,12 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validatePayoutIDPayContractorParams = exports.validatePayoutIDParams = exports.validateRevenueDateParams = exports.validateDeleteQuestionValidationParams = exports.validateEditQuestionParams = exports.validateQuestionIdValidationParams = exports.createQuizParams = exports.validateAddQuestionParams = exports.validateTRansactionIdValidationParams = exports.validateJobIdValidationParams = exports.validateAddSkillParams = exports.validateContractoDocumentIdValidationParams = exports.validateContractorChangeStatusValidationParams = exports.validateCustomerIdValidationParams = exports.validateContractorIdValidationParams = exports.validateSuperAdminValidationParams = exports.validateAdminResetPasswprdParams = exports.validateAdminForgotPasswordParams = exports.validateAdminLoginParams = exports.validatAdminEmailverificationParams = exports.validateSignupParams = void 0;
+exports.Validations = exports.AddPermissionParams = exports.AddStaffParams = exports.EditPermissionParams = exports.PermissionCreationParam = exports.validateResolvedEmergecyIdParams = exports.validateEmergecyIdParams = exports.validatePayoutIDPayContractorParams = exports.validatePayoutIDParams = exports.validateRevenueDateParams = exports.validateDeleteQuestionValidationParams = exports.validateEditQuestionParams = exports.validateQuestionIdValidationParams = exports.createQuizParams = exports.validateAddQuestionParams = exports.validateTRansactionIdValidationParams = exports.validateJobIdValidationParams = exports.validateAddSkillParams = exports.validateContractoDocumentIdValidationParams = exports.validateContractorChangeStatusValidationParams = exports.validateCustomerIdValidationParams = exports.validateContractorIdValidationParams = exports.validateSuperAdmiCchangeStatusParams = exports.validateAdminResetPasswprdParams = exports.validateAdminForgotPasswordParams = exports.validateAdminLoginParams = exports.validatAdminEmailverificationParams = exports.validateSignupParams = void 0;
 var express_validator_1 = require("express-validator");
+var admin_interface_1 = require("../../../database/admin/interface/admin.interface");
 exports.validateSignupParams = [
     (0, express_validator_1.body)("email").isEmail(),
     (0, express_validator_1.body)("firstName").notEmpty(),
     (0, express_validator_1.body)("lastName").notEmpty(),
     (0, express_validator_1.body)("password").notEmpty(),
+    (0, express_validator_1.body)("phoneNumber").notEmpty(),
 ];
 exports.validatAdminEmailverificationParams = [
     (0, express_validator_1.body)("email").isEmail(),
@@ -24,8 +26,10 @@ exports.validateAdminResetPasswprdParams = [
     (0, express_validator_1.body)("otp").notEmpty(),
     (0, express_validator_1.body)("password").notEmpty(),
 ];
-exports.validateSuperAdminValidationParams = [
-    (0, express_validator_1.body)("subAdminId").notEmpty(),
+exports.validateSuperAdmiCchangeStatusParams = [
+    (0, express_validator_1.body)("staffId").notEmpty(),
+    (0, express_validator_1.body)("status").isIn([admin_interface_1.AdminStatus.ACTIVE, admin_interface_1.AdminStatus.PENDING, admin_interface_1.AdminStatus.SUSPENDED,])
+        .withMessage("status must be ".concat(admin_interface_1.AdminStatus.ACTIVE, ", ").concat(admin_interface_1.AdminStatus.PENDING, ", or ").concat(admin_interface_1.AdminStatus.SUSPENDED)),
 ];
 exports.validateContractorIdValidationParams = [
     (0, express_validator_1.body)("contractorId").notEmpty(),
@@ -93,3 +97,37 @@ exports.validatePayoutIDParams = [
 exports.validatePayoutIDPayContractorParams = [
     (0, express_validator_1.body)("payoutId").notEmpty(),
 ];
+exports.validateEmergecyIdParams = [
+    (0, express_validator_1.body)("emergencyId").notEmpty(),
+];
+exports.validateResolvedEmergecyIdParams = [
+    (0, express_validator_1.body)("emergencyId").notEmpty(),
+    (0, express_validator_1.body)("resolvedWay").notEmpty(),
+];
+exports.PermissionCreationParam = [
+    (0, express_validator_1.body)("name").notEmpty(),
+];
+exports.EditPermissionParams = [
+    (0, express_validator_1.body)("name").notEmpty(),
+    (0, express_validator_1.body)("permissionId").notEmpty(),
+];
+exports.AddStaffParams = [
+    (0, express_validator_1.body)("email").isEmail(),
+    (0, express_validator_1.body)("firstName").notEmpty(),
+    (0, express_validator_1.body)("lastName").notEmpty(),
+    (0, express_validator_1.body)("password").notEmpty(),
+    (0, express_validator_1.body)("phoneNumber").notEmpty(),
+    (0, express_validator_1.body)("permisions").isArray()
+        .custom(function (array) { return array.every(function (item) { return typeof item === 'string'; }); })
+        .withMessage("Every permission must be a string")
+];
+exports.AddPermissionParams = [
+    (0, express_validator_1.body)("staffId").notEmpty(),
+    (0, express_validator_1.body)("permision").notEmpty(),
+];
+exports.Validations = {
+    PermissionCreationParam: exports.PermissionCreationParam,
+    EditPermissionParams: exports.EditPermissionParams,
+    AddStaffParams: exports.AddStaffParams,
+    AddPermissionParams: exports.AddPermissionParams
+};

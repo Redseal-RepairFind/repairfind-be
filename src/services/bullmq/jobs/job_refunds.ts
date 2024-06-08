@@ -13,7 +13,7 @@ import { StripeService } from "../../stripe";
 export const handleJobRefunds = async () => {
     try {
         const transactions = await TransactionModel.find({
-            type: { $in: [TRANSACTION_TYPE.REFUND] },
+            type: TRANSACTION_TYPE.REFUND,
             status: TRANSACTION_STATUS.PENDING
         });
 
@@ -22,18 +22,22 @@ export const handleJobRefunds = async () => {
             try {
 
                 const fromUser = (transaction.fromUserType == 'customers') ? await CustomerModel.findById(transaction.fromUser) : await ContractorModel.findById(transaction.fromUser)
-                const toUser = (transaction.toUser.toString() == 'customers') ? await CustomerModel.findById(transaction.toUser) : await ContractorModel.findById(transaction.toUser)
+                const toUser = (transaction.toUserType == 'customers') ? await CustomerModel.findById(transaction.toUser) : await ContractorModel.findById(transaction.toUser)
 
-
+                
                 if (fromUser && toUser) {
 
-                    //@ts-ignore
-                    const payment = await PaymentModel.findById(transaction.payment)
-                    if (!payment) return
 
-                    if (!payment.refunded) {
-                        const stripePayment = await StripeService.payment.refundCharge(payment.charge, (payment.amount))
+
+                    const payment = await PaymentModel.findById(transaction.payment)
+                    if (!payment) {
+                        return
                     }
+
+                    // if (!transaction.status) {
+                        // const stripePayment = await StripeService.payment.refundCharge(payment.charge, (payment.amount))
+                        const stripePayment = await StripeService.payment.refundCharge(payment.charge, (transaction.amount*100) )// convert to cent
+                    // }
 
                 }
 

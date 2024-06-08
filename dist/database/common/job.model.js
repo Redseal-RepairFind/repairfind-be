@@ -239,7 +239,6 @@ JobSchema.methods.getPayments = function (types) {
                     jobPayments = _a.sent();
                     _a.label = 5;
                 case 5:
-                    console.log(paymentIds, jobPayments, types);
                     if (!jobPayments)
                         return [2 /*return*/, { totalAmount: 0, paymentCount: 0, payments: null }];
                     totalAmount = jobPayments.reduce(function (acc, payment) { return acc + payment.amount; }, 0);

@@ -14,8 +14,8 @@ export const captureStripePayments = async () => {
  
         const paymentCaptures = await TransactionModel.find({
             status: TRANSACTION_STATUS.REQUIRES_CAPTURE,
-            'captureDetails.captured': false,
-            'captureDetails.capture_before': {
+            'capture.captured': false,
+            'capture.capture_before': {
                 $gte: daysBeforeNow, 
                 $lte: dayFromNow 
             }
@@ -23,10 +23,10 @@ export const captureStripePayments = async () => {
 
         for (const transaction of paymentCaptures) {
             try {
-                await StripeService.payment.capturePayment(transaction.captureDetails.payment_intent);
+                await StripeService.payment.capturePayment(transaction.capture.payment_intent);
                 
                 // I should wait for webhook before updating transaction
-                // transaction.captureDetails.captured = true;
+                // transaction.capture.captured = true;
                 // transaction.status = TRANSACTION_STATUS.SUCCESSFUL
                 // await transaction.save();
 

@@ -613,7 +613,7 @@ var getRefundable = function (req, res, next) { return __awaiter(void 0, void 0,
 }); };
 exports.getRefundable = getRefundable;
 var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, bookingId, reason, job, _a, customer, contractor, contract, jobDate, charges, payments, currentTime, timeDifferenceInHours, refundPolicy, _i, _b, payment, refund, error_9;
+    var customerId, bookingId, reason, job, _a, customer, contractor, contract, jobDate, charges, paymentType, payments, currentTime, timeDifferenceInHours, refundPolicy, _i, _b, payment, refund, error_9;
     var _c;
     return __generator(this, function (_d) {
         switch (_d.label) {
@@ -660,10 +660,13 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Booking has no associated schedule' })];
                 }
                 jobDate = job.schedule.startDate.getTime();
-                return [4 /*yield*/, contract.calculateCharges()];
+                return [4 /*yield*/, contract.calculateCharges()
+                    // choose which payment to refund ? SITE_VISIT_PAYMENT, JOB_DAY_PAYMENT, CHANGE_ORDER_PAYMENT
+                ];
             case 3:
                 charges = _d.sent();
-                return [4 /*yield*/, job.getPayments()];
+                paymentType = (job.schedule.type == 'JOB_DAY') ? [payment_schema_1.PAYMENT_TYPE.JOB_DAY_PAYMENT, payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT] : [payment_schema_1.PAYMENT_TYPE.SITE_VISIT_PAYMENT];
+                return [4 /*yield*/, job.getPayments(paymentType)];
             case 4:
                 payments = _d.sent();
                 currentTime = new Date().getTime();
@@ -722,6 +725,9 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
             case 6:
                 //create refund transaction - 
                 _d.sent();
+                console.log(payment);
+                //emit event here
+                events_1.JobEvent.emit('JOB_REFUND_REQUESTED', { job: job, payment: payment, refund: refund });
                 _d.label = 7;
             case 7:
                 _i++;

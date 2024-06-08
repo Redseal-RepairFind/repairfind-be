@@ -33,7 +33,7 @@ export const createJobRequest = async (
             return res.status(400).json({ message: 'validatior error occured', errors: errors.array() });
         }
 
-        const { contractorId, category, description, location, date, expiresIn, emergency, media, voiceDescription, time } = req.body;
+        const { contractorId, category, description, location, date, expiresIn = 7, emergency, media, voiceDescription, time } = req.body;
         const customerId = req.customer.id
 
         if (!mongoose.Types.ObjectId.isValid(contractorId)) {

@@ -11,23 +11,33 @@ var adminReg_controller_1 = require("../controllers/adminReg.controller");
 var appDetails_Controller_1 = require("../controllers/appDetails.Controller");
 var averageRevenue_controller_1 = require("../controllers/averageRevenue.controller");
 var contractor_controller_1 = require("../controllers/contractor.controller");
+var emergency_controller_1 = require("../controllers/emergency.controller");
 var job_controller_1 = require("../controllers/job.controller");
 var payout_controller_1 = require("../controllers/payout.controller");
+var permission_controller_1 = require("../controllers/permission.controller");
 var quiz_controller_1 = require("../controllers/quiz.controller");
 var transaction_controller_1 = require("../controllers/transaction.controller");
 var adminRoleChecker_middleware_1 = require("../middlewares/adminRoleChecker.middleware");
 var adminValidate_middleware_1 = require("../middlewares/adminValidate.middleware");
 var express = require("express");
 var router = express.Router();
+//done authecation
 router.post("/signup", adminValidate_middleware_1.validateSignupParams, adminReg_controller_1.adminSignUpController); // admin signup
 router.post("/email/verification", adminValidate_middleware_1.validatAdminEmailverificationParams, adminReg_controller_1.adminVerifiedEmailController); // admin email verification
 router.post("/resend/email", adminValidate_middleware_1.validateAdminForgotPasswordParams, adminReg_controller_1.adminResendEmailController); // admin resend email
 router.post("/signin", adminValidate_middleware_1.validateAdminLoginParams, adminReg_controller_1.AdminSignInController); // admin login
 router.post("/forgot/password", adminValidate_middleware_1.validateAdminForgotPasswordParams, adminForgotPassword_1.AdminEmailForgotPasswordController); // admin forgot password
 router.post("/reset/password", adminValidate_middleware_1.validateAdminResetPasswprdParams, adminForgotPassword_1.AdminEmailResetPasswordController); // admin reset password
-router.get("/super/admin/get_list_of_admin", adminRoleChecker_middleware_1.checkAdminRole, adminReg_controller_1.SuperAdminGetAllAdminController); // super get the list of admin
-router.post("/super/admin/validate/other_admin", adminValidate_middleware_1.validateSuperAdminValidationParams, adminRoleChecker_middleware_1.checkAdminRole, adminReg_controller_1.SuperAdminValidateOtherAdminController); // super admin validate other admin
-//don
+router.post("/staff", adminValidate_middleware_1.Validations.AddStaffParams, adminRoleChecker_middleware_1.checkAdminRole, adminReg_controller_1.AddStaffController); // super admin add staff
+router.post("/staff/status", adminValidate_middleware_1.validateSuperAdmiCchangeStatusParams, adminRoleChecker_middleware_1.checkAdminRole, adminReg_controller_1.SuperAdminChangeStaffStatusController); // super admin change staff status
+router.get("/staffs", adminRoleChecker_middleware_1.checkAdminRole, adminReg_controller_1.SuperAdminGetAllAdminController); // super get the list of staff
+router.post("/staff/permission", adminValidate_middleware_1.Validations.AddPermissionParams, adminRoleChecker_middleware_1.checkAdminRole, adminReg_controller_1.SuperAdminAddPermissionToStaffController); // super add permission to staff
+router.post("/staff/permission/remove", adminValidate_middleware_1.Validations.AddPermissionParams, adminRoleChecker_middleware_1.checkAdminRole, adminReg_controller_1.SuperAdminRemovePermissionFromStaffController); // super remove permission from staff
+// done permission
+router.post("/permission", adminValidate_middleware_1.Validations.PermissionCreationParam, adminRoleChecker_middleware_1.checkAdminRole, permission_controller_1.Permission.PermissionCreationController); // super admin create permission
+router.get("/permission", adminRoleChecker_middleware_1.checkAdminRole, permission_controller_1.Permission.GetPermissionController); // super admin get all permission
+router.post("/edit/permission", adminValidate_middleware_1.Validations.EditPermissionParams, adminRoleChecker_middleware_1.checkAdminRole, permission_controller_1.Permission.EditPermissionController); // super admin edit permission
+//don contractor
 router.get("/contractor/detail", adminRoleChecker_middleware_1.checkAdminRole, adminGetContractorDetail_controller_1.AdminContractorDetail.AdminGetContractorDetailController); // admin get contractor detail
 router.get("/contractor/detail/:contractorId", adminRoleChecker_middleware_1.checkAdminRole, adminGetContractorDetail_controller_1.AdminContractorDetail.AdminGetSingleContractorDetailController); // admin get single contractor detail
 router.post("/validate/contractor/gst", adminValidate_middleware_1.validateContractorChangeStatusValidationParams, adminRoleChecker_middleware_1.checkAdminRole, adminGetContractorDetail_controller_1.AdminContractorDetail.AdminChangeContractorGstStatusController); // admin change contractor gst
@@ -40,6 +50,10 @@ router.get("/customer/job/detail/:customerId", adminRoleChecker_middleware_1.che
 router.get("/admin_get_contractor_document", adminRoleChecker_middleware_1.checkAdminRole, adminContractorDocVal_controller_1.AdminGetContractorDocForValController); // admin get contractor pending document for validation
 router.get("/admin_get_single_contractor_document", adminValidate_middleware_1.validateContractoDocumentIdValidationParams, adminRoleChecker_middleware_1.checkAdminRole, adminContractorDocVal_controller_1.AdminGetSingleContractorDocForValController); // admin get single contractor pending document for validation
 router.post("/admin_validate_contractor_document", adminValidate_middleware_1.validateContractoDocumentIdValidationParams, adminRoleChecker_middleware_1.checkAdminRole, adminContractorDocVal_controller_1.AdminValidateContractorDocsController); // admin get validate contractor document 
+//done skill
+router.post("/skills", adminValidate_middleware_1.validateAddSkillParams, adminRoleChecker_middleware_1.checkAdminRole, adminAddSkill_controller_1.AdminAddNewSkillController); // admin add skill
+router.post("/add/skill", adminValidate_middleware_1.validateAddSkillParams, adminRoleChecker_middleware_1.checkAdminRole, adminAddSkill_controller_1.AdminAddNewSkillController); // admin add skilll
+router.get("/skills", adminRoleChecker_middleware_1.checkAdminRole, adminAddSkill_controller_1.AdminGetSkillController); // admin get all skill
 router.post("/skills", adminValidate_middleware_1.validateAddSkillParams, adminRoleChecker_middleware_1.checkAdminRole, adminAddSkill_controller_1.AdminAddNewSkillController); // admin add skilll
 //done
 router.post("/add/skill", adminValidate_middleware_1.validateAddSkillParams, adminRoleChecker_middleware_1.checkAdminRole, adminAddSkill_controller_1.AdminAddNewSkillController); // admin add skilll
@@ -50,8 +64,16 @@ router.get("/jobs/detail/:jobId", adminRoleChecker_middleware_1.checkAdminRole, 
 router.get("/total_job", adminRoleChecker_middleware_1.checkAdminRole, job_controller_1.AdminJobController.AdminGetTotalJobsrController); // admin get total job
 router.get("/app_detail", adminRoleChecker_middleware_1.checkAdminRole, appDetails_Controller_1.AdminGetAppDetailController); // admin get app detail
 router.get("/invoice/detail/:jobId", adminRoleChecker_middleware_1.checkAdminRole, job_controller_1.AdminJobController.AdminGetInvoiceSingleJobsrDetailController); // admin get invoices for single job detail
-router.get("/admin_get_transaction_detail", adminRoleChecker_middleware_1.checkAdminRole, transaction_controller_1.AdminGetTransactionDetailController); // admin get transaction detail
-router.get("/admin_get_single_transaction_detail", adminValidate_middleware_1.validateTRansactionIdValidationParams, adminRoleChecker_middleware_1.checkAdminRole, transaction_controller_1.AdminGetSingleTransactionDetailController); // admin get single transaction detail
+//done transaction
+router.get("/transactions", adminRoleChecker_middleware_1.checkAdminRole, transaction_controller_1.TransactionDetailController.AdminGetTransactionDetailController); // admin get transaction detail
+router.get("/transaction/:transactionId", adminRoleChecker_middleware_1.checkAdminRole, transaction_controller_1.TransactionDetailController.AdminGetSingleTransactionDetailController); // admin get single transaction detail
+//done emergency
+router.get("/emergecy/active", adminRoleChecker_middleware_1.checkAdminRole, emergency_controller_1.ermergency.AdminGetActiveEmergencyJobController); // admin get active emergency
+router.get("/emergecy/new", adminRoleChecker_middleware_1.checkAdminRole, emergency_controller_1.ermergency.AdminGeNewEmergencyJobController); // admin get new emergency
+router.get("/emergecy/resolve", adminRoleChecker_middleware_1.checkAdminRole, emergency_controller_1.ermergency.AdminGetResolveEmergencyJobController); // admin get resolve emergency
+router.get("/emergecy/:emergencyId", adminRoleChecker_middleware_1.checkAdminRole, emergency_controller_1.ermergency.AdminGetSingleEmergencyJobController); // admin get single emergency
+router.post("/emergecy/accept", adminValidate_middleware_1.validateEmergecyIdParams, adminRoleChecker_middleware_1.checkAdminRole, emergency_controller_1.ermergency.AdminAcceptEmergencyJobController); // admin accept emergecy
+router.post("/emergecy/resolved", adminValidate_middleware_1.validateResolvedEmergecyIdParams, adminRoleChecker_middleware_1.checkAdminRole, emergency_controller_1.ermergency.AdminResolvedEmergencyJobController); // admin resolved emergecy
 router.post("/admin_add_question", adminValidate_middleware_1.validateAddQuestionParams, adminRoleChecker_middleware_1.checkAdminRole, quiz_controller_1.AdminQuizController.AddQuestion); // admin add question
 router.get("/admin_get_all_question", adminRoleChecker_middleware_1.checkAdminRole, quiz_controller_1.AdminQuizController.GetAllQuestions); // admin get all question
 router.get("/admin_get_single_question", adminValidate_middleware_1.validateQuestionIdValidationParams, adminRoleChecker_middleware_1.checkAdminRole, quiz_controller_1.AdminQuizController.GetSingleQuestion); // admin get single question

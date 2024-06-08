@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var mongoose_1 = require("mongoose");
+var admin_interface_1 = require("../interface/admin.interface");
 var AdminSchema = new mongoose_1.Schema({
     email: {
         type: String,
@@ -20,6 +21,9 @@ var AdminSchema = new mongoose_1.Schema({
         type: String,
         required: true,
     },
+    phoneNumber: {
+        type: String,
+    },
     superAdmin: {
         type: Boolean,
         required: true,
@@ -35,6 +39,15 @@ var AdminSchema = new mongoose_1.Schema({
         default: {
             url: 'https://ipalas3bucket.s3.us-east-2.amazonaws.com/avatar.png'
         }
+    },
+    permissions: {
+        type: (Array)
+    },
+    status: {
+        type: String,
+        enum: Object.values(admin_interface_1.AdminStatus),
+        required: true,
+        default: admin_interface_1.AdminStatus.PENDING,
     },
     createdAt: {
         type: Date,

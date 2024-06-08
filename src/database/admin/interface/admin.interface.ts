@@ -1,5 +1,11 @@
 import { Document, Types, ObjectId } from "mongoose";
 
+export enum AdminStatus {
+  PENDING = 'PENDING',
+  ACTIVE = 'ACTIVE',
+  SUSPENDED = 'SUSPENDED',
+}
+
 export interface IAdmin extends Document {
   _id: ObjectId;
   
@@ -7,6 +13,7 @@ export interface IAdmin extends Document {
   password: string;
   firstName: string;
   lastName: string;
+  phoneNumber: string;
   superAdmin: boolean;
   validation: boolean;
   profilePhoto: {
@@ -14,6 +21,8 @@ export interface IAdmin extends Document {
     label?:String
     descriptions?: Array<string>,
   };
+  permissions: Array<string>;
+  status: AdminStatus;
   passwordOtp: {
     otp: string;
     createdTime: Date;

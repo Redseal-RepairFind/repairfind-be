@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import { IAdmin } from "../interface/admin.interface";
+import { AdminStatus, IAdmin } from "../interface/admin.interface";
 
 const AdminSchema = new Schema(
     {
@@ -21,6 +21,9 @@ const AdminSchema = new Schema(
         type: String,
         required: true,
       },
+      phoneNumber: {
+        type: String,
+      },
       superAdmin: {
         type: Boolean,
         required: true,
@@ -36,6 +39,15 @@ const AdminSchema = new Schema(
         default: {
           url: 'https://ipalas3bucket.s3.us-east-2.amazonaws.com/avatar.png'
         }
+      },
+      permissions: {
+        type: Array<String>
+      },
+      status: {
+        type: String,
+        enum: Object.values(AdminStatus),
+        required: true,
+        default: AdminStatus.PENDING,
       },
       createdAt: {
         type: Date,

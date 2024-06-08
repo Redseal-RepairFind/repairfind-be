@@ -20,7 +20,7 @@ export enum TRANSACTION_TYPE {
   CHANGE_ORDER = 'CHANGE_ORDER',
 }
 
-export interface ICaptureDetails extends Document {
+export interface ICapture extends Document {
   payment: ObjectId;
   payment_method: string;
   payment_intent: string;
@@ -32,26 +32,26 @@ export interface ICaptureDetails extends Document {
   exp_month?: number;
   exp_year?: number;
   extended_authorization?: {
-      status: string;
+    status: string;
   };
   fingerprint?: string;
   funding?: string;
   incremental_authorization?: {
-      status: string;
+    status: string;
   };
   installments?: number | null;
   last4?: string;
   mandate?: any;
   multicapture?: {
-      status: string;
+    status: string;
   };
   network?: string;
   network_token?: {
-      used: boolean;
+    used: boolean;
   };
   overcapture?: {
-      maximum_amount_capturable: number;
-      status: string;
+    maximum_amount_capturable: number;
+    status: string;
   };
   three_d_secure?: string | null;
   wallet?: any;
@@ -62,6 +62,34 @@ export interface ICaptureDetails extends Document {
   cancellation_reason?: string;
   capture_method?: string;
 }
+
+
+export interface IRefund extends Document {
+  id: string;
+  object: string;
+  amount: number;
+  balance_transaction: string;
+  charge: string;
+  created: number;
+  currency: string;
+  destination_details: {
+    card: {
+      reference: string;
+      reference_status: string;
+      reference_type: string;
+      type: string;
+    };
+    type: string;
+  };
+  metadata: Record<string, unknown>;
+  payment_intent: string;
+  reason: string | null;
+  receipt_number: string | null;
+  source_transfer_reversal: string | null;
+  status: string;
+  transfer_reversal: string | null;
+}
+
 
 export interface ITransaction extends Document {
   type: TRANSACTION_TYPE;
@@ -87,58 +115,85 @@ export interface ITransaction extends Document {
   createdAt: Date;
   updatedAt: Date;
   isCredit: boolean;
-  captureDetails: ICaptureDetails
-  getIsCredit: (userId: any) =>  boolean
+  capture: ICapture
+  refund: ICapture
+  getIsCredit: (userId: any) => boolean
 }
 
 
-const CaptureDetailsShema = new Schema<ICaptureDetails>(
+const CaptureShema = new Schema<ICapture>(
   {
-      payment: { type: Schema.Types.ObjectId, required: true },
-      payment_method: { type: String, required: true },
-      payment_intent: { type: String, required: true },
-      amount_authorized: { type: Number, required: true },
-      currency: { type: String, required: true },
-      brand: { type: String },
-      capture_before: { type: Number },
-      country: { type: String },
-      exp_month: { type: Number },
-      exp_year: { type: Number },
-      extended_authorization: {
-          status: { type: String }
-      },
-      fingerprint: { type: String },
-      funding: { type: String },
-      incremental_authorization: {
-          status: { type: String }
-      },
-      installments: { type: Number },
-      last4: { type: String },
-      mandate: { type: Schema.Types.Mixed },
-      multicapture: {
-          status: { type: String }
-      },
-      network: { type: String },
-      network_token: {
-          used: { type: Boolean }
-      },
-      overcapture: {
-          maximum_amount_capturable: { type: Number },
-          status: { type: String }
-      },
-      three_d_secure: { type: String },
-      wallet: { type: Schema.Types.Mixed },
-      status: { type: String, required: true },
-      captured: { type: Boolean, required: true },
-      canceled_at: { type: String },
-      captured_at: { type: String },
-      cancellation_reason: { type: String },
-      capture_method: { type: String }
+    payment: { type: Schema.Types.ObjectId, required: true },
+    payment_method: { type: String, required: true },
+    payment_intent: { type: String, required: true },
+    amount_authorized: { type: Number, required: true },
+    currency: { type: String, required: true },
+    brand: { type: String },
+    capture_before: { type: Number },
+    country: { type: String },
+    exp_month: { type: Number },
+    exp_year: { type: Number },
+    extended_authorization: {
+      status: { type: String }
+    },
+    fingerprint: { type: String },
+    funding: { type: String },
+    incremental_authorization: {
+      status: { type: String }
+    },
+    installments: { type: Number },
+    last4: { type: String },
+    mandate: { type: Schema.Types.Mixed },
+    multicapture: {
+      status: { type: String }
+    },
+    network: { type: String },
+    network_token: {
+      used: { type: Boolean }
+    },
+    overcapture: {
+      maximum_amount_capturable: { type: Number },
+      status: { type: String }
+    },
+    three_d_secure: { type: String },
+    wallet: { type: Schema.Types.Mixed },
+    status: { type: String, required: true },
+    captured: { type: Boolean, required: true },
+    canceled_at: { type: String },
+    captured_at: { type: String },
+    cancellation_reason: { type: String },
+    capture_method: { type: String }
   },
   {
-      timestamps: true,
+    timestamps: true,
   });
 
+
+const RefundSchema = new Schema<IRefund>({
+  id: { type: String, required: true },
+  object: { type: String, required: true },
+  amount: { type: Number, required: true },
+  balance_transaction: { type: String, required: true },
+  charge: { type: String, required: true },
+  created: { type: Number, required: true },
+  currency: { type: String, required: true },
+  destination_details: {
+    card: {
+      reference: { type: String, required: true },
+      reference_status: { type: String, required: true },
+      reference_type: { type: String, required: true },
+      type: { type: String, required: true }
+    },
+    type: { type: String, required: true }
+  },
+  metadata: { type: Map, of: Schema.Types.Mixed, default: {} },
+  payment_intent: { type: String, required: true },
+  reason: { type: String, default: null },
+  receipt_number: { type: String, default: null },
+  source_transfer_reversal: { type: String, default: null },
+  status: { type: String, required: true },
+  transfer_reversal: { type: String, default: null }
+});
 
 const TransactionSchema = new Schema<ITransaction>(
   {
@@ -195,7 +250,7 @@ const TransactionSchema = new Schema<ITransaction>(
       },
       default: null,
     },
-    metadata:{
+    metadata: {
       type: Schema.Types.Mixed
     },
     job: {
@@ -206,8 +261,9 @@ const TransactionSchema = new Schema<ITransaction>(
       type: Schema.Types.ObjectId,
     },
 
-    captureDetails: CaptureDetailsShema,
-    
+    capture: CaptureShema,
+    refund: RefundSchema,
+
     createdAt: {
       type: Date,
       default: Date.now,
@@ -223,7 +279,7 @@ const TransactionSchema = new Schema<ITransaction>(
 );
 
 
-TransactionSchema.methods.getIsCredit =  function (userId: string) {
+TransactionSchema.methods.getIsCredit = function (userId: string) {
   return this.toUser == userId
 };
 const TransactionModel = model("Transaction", TransactionSchema);

@@ -580,7 +580,12 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
 
         const jobDate = job.schedule.startDate.getTime();
         const charges = await contract.calculateCharges()
-        const payments = await job.getPayments()
+
+         // choose which payment to refund ? SITE_VISIT_PAYMENT, JOB_DAY_PAYMENT, CHANGE_ORDER_PAYMENT
+         const paymentType = (job.schedule.type == 'JOB_DAY') ? [PAYMENT_TYPE.JOB_DAY_PAYMENT, PAYMENT_TYPE.CHANGE_ORDER_PAYMENT] : [PAYMENT_TYPE.SITE_VISIT_PAYMENT] 
+         const payments = await job.getPayments(paymentType)
+
+
         const currentTime = new Date().getTime();
         const timeDifferenceInHours = Math.abs(jobDate - currentTime) / (1000 * 60 * 60);
 
@@ -642,6 +647,11 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
                 job: job.id,
                 payment: payment.id,
             })
+
+
+            console.log(payment)
+            //emit event here
+            JobEvent.emit('JOB_REFUND_REQUESTED', {job, payment, refund})
 
         }
 

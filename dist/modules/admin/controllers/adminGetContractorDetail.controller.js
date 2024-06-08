@@ -53,7 +53,7 @@ var AdminGetContractorDetailController = function (req, res) { return __awaiter(
         switch (_b.label) {
             case 0:
                 _b.trys.push([0, 3, , 4]);
-                _a = req.body, page = _a.page, limit = _a.limit;
+                _a = req.query, page = _a.page, limit = _a.limit;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];

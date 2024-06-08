@@ -306,7 +306,6 @@ JobSchema.methods.getPayments = async function (types = null) {
         jobPayments = await PaymentModel.find({_id: {$in: paymentIds} })
     }
 
-    console.log(paymentIds, jobPayments, types)
     if(!jobPayments)return  { totalAmount: 0, paymentCount:0,  payments: null }
 
     totalAmount = jobPayments.reduce((acc: number, payment: any) => acc + payment.amount, 0);

@@ -62,7 +62,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.chargeRefunded = exports.chargeSucceeded = exports.paymentMethodDetached = exports.paymentMethodAttached = exports.setupIntentSucceeded = exports.setupIntentCreated = exports.paymentIntentSucceeded = exports.accountUpdated = exports.identityVerificationVerified = exports.identityVerificationRequiresInput = exports.identityVerificationCreated = exports.customerCreated = exports.customerUpdated = exports.StripeWebhookHandler = void 0;
+exports.chargeRefundUpdated = exports.chargeRefunded = exports.chargeSucceeded = exports.paymentMethodDetached = exports.paymentMethodAttached = exports.setupIntentSucceeded = exports.setupIntentCreated = exports.paymentIntentSucceeded = exports.accountUpdated = exports.identityVerificationVerified = exports.identityVerificationRequiresInput = exports.identityVerificationCreated = exports.customerCreated = exports.customerUpdated = exports.StripeWebhookHandler = void 0;
 var stripe_1 = __importDefault(require("stripe"));
 var _1 = require(".");
 var contractor_model_1 = require("../../database/contractor/models/contractor.model");
@@ -141,6 +141,9 @@ var StripeWebhookHandler = function (req) { return __awaiter(void 0, void 0, voi
                     break;
                 case 'charge.refunded':
                     (0, exports.chargeRefunded)(eventData.object);
+                    break;
+                case 'charge.refund.updated':
+                    (0, exports.chargeRefundUpdated)(eventData.object);
                     break;
                 default:
                     console.log("Unhandled event type: ".concat(eventType), eventData.object);
@@ -704,7 +707,7 @@ var paymentMethodDetached = function (payload) { return __awaiter(void 0, void 0
 exports.paymentMethodDetached = paymentMethodDetached;
 // Charge
 var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var userType, userId, user, stripeChargeDTO, payment, transactionId, transaction, captureDetails, capturableTransactionDto, captureDetails, capturableTransactionDto, metadata, jobId, paymentType, quotationId, job, quotation, changeOrderEstimate, error_11;
+    var userType, userId, user, stripeChargeDTO, payment, transactionId, transaction, capture, capturableTransactionDto, capture, capturableTransactionDto, metadata, jobId, paymentType, quotationId, job, quotation, changeOrderEstimate, error_11;
     var _a, _b;
     return __generator(this, function (_c) {
         switch (_c.label) {
@@ -750,8 +753,8 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                 transaction = _c.sent();
                 if (transaction) {
                     if (!payment.captured) {
-                        captureDetails = payload.payment_method_details.card;
-                        capturableTransactionDto = (0, interface_dto_util_1.castPayloadToDTO)(captureDetails, captureDetails);
+                        capture = payload.payment_method_details.card;
+                        capturableTransactionDto = (0, interface_dto_util_1.castPayloadToDTO)(capture, capture);
                         capturableTransactionDto.payment_intent = payload.payment_intent;
                         capturableTransactionDto.payment_method = payload.payment_method;
                         capturableTransactionDto.payment = payment.id;
@@ -759,13 +762,13 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                         capturableTransactionDto.captured = false;
                         capturableTransactionDto.currency = payment.currency;
                         if (transaction) {
-                            transaction.captureDetails = capturableTransactionDto;
+                            transaction.capture = capturableTransactionDto;
                             transaction.save();
                         }
                     }
                     else {
-                        captureDetails = payload.payment_method_details.card;
-                        capturableTransactionDto = (0, interface_dto_util_1.castPayloadToDTO)(captureDetails, captureDetails);
+                        capture = payload.payment_method_details.card;
+                        capturableTransactionDto = (0, interface_dto_util_1.castPayloadToDTO)(capture, capture);
                         capturableTransactionDto.payment_intent = payload.payment_intent;
                         capturableTransactionDto.payment_method = payload.payment_method;
                         capturableTransactionDto.payment = payment.id;
@@ -774,7 +777,7 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                         capturableTransactionDto.captured_at = payment.created;
                         capturableTransactionDto.currency = payment.currency;
                         if (transaction) {
-                            transaction.captureDetails = capturableTransactionDto;
+                            transaction.capture = capturableTransactionDto;
                             transaction.status = transaction_model_1.TRANSACTION_STATUS.SUCCESSFUL;
                             transaction.save();
                         }
@@ -893,3 +896,39 @@ var chargeRefunded = function (payload) { return __awaiter(void 0, void 0, void 
     });
 }); };
 exports.chargeRefunded = chargeRefunded;
+var chargeRefundUpdated = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
+    var stripeRefundDTO, payment, transaction, error_13;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                console.log('Stripe Event Handler: chargeRefundUpdated', payload);
+                _a.label = 1;
+            case 1:
+                _a.trys.push([1, 6, , 7]);
+                if (payload.object !== 'refund')
+                    return [2 /*return*/];
+                stripeRefundDTO = (0, interface_dto_util_1.castPayloadToDTO)(payload, payload);
+                return [4 /*yield*/, payment_schema_1.PaymentModel.findOne({ charge: stripeRefundDTO.charge })];
+            case 2:
+                payment = _a.sent();
+                return [4 /*yield*/, transaction_model_1.default.findOne({ 'metadata.charge': stripeRefundDTO.charge })];
+            case 3:
+                transaction = _a.sent();
+                if (!(payment && transaction)) return [3 /*break*/, 5];
+                if (!transaction) return [3 /*break*/, 5];
+                // transaction.refund = stripeRefundDTO;
+                return [4 /*yield*/, Promise.all([transaction.save()])];
+            case 4:
+                // transaction.refund = stripeRefundDTO;
+                _a.sent();
+                _a.label = 5;
+            case 5: return [3 /*break*/, 7];
+            case 6:
+                error_13 = _a.sent();
+                console.log('Error handling chargeRefundUpdated stripe webhook event', error_13);
+                return [3 /*break*/, 7];
+            case 7: return [2 /*return*/];
+        }
+    });
+}); };
+exports.chargeRefundUpdated = chargeRefundUpdated;

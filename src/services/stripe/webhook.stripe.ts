@@ -18,7 +18,7 @@ import { JobModel, JOB_STATUS, JOB_SCHEDULE_TYPE } from '../../database/common/j
 import { IJobQuotation, JobQuotationModel, JOB_QUOTATION_STATUS } from '../../database/common/job_quotation.model';
 import { ObjectId } from 'mongoose';
 import { NotificationService } from '../notifications';
-import TransactionModel, { ICaptureDetails, ITransaction, TRANSACTION_STATUS, TRANSACTION_TYPE } from '../../database/common/transaction.model';
+import TransactionModel, { ICapture, IRefund, ITransaction, TRANSACTION_STATUS, TRANSACTION_TYPE } from '../../database/common/transaction.model';
 
 
 const STRIPE_SECRET_KEY = <string>process.env.STRIPE_SECRET_KEY;
@@ -102,6 +102,9 @@ export const StripeWebhookHandler = async (req: Request) => {
                 break;
             case 'charge.refunded':
                 chargeRefunded(eventData.object);
+                break;
+            case 'charge.refund.updated':
+                chargeRefundUpdated(eventData.object);
                 break;
             default:
                 console.log(`Unhandled event type: ${eventType}`, eventData.object);
@@ -552,8 +555,8 @@ export const chargeSucceeded = async (payload: any) => {
         if (transaction) {
             if (!payment.captured) {
 
-                const captureDetails = payload.payment_method_details.card
-                let capturableTransactionDto: ICaptureDetails = castPayloadToDTO(captureDetails, captureDetails as ICaptureDetails);
+                const capture = payload.payment_method_details.card
+                let capturableTransactionDto: ICapture = castPayloadToDTO(capture, capture as ICapture);
                 capturableTransactionDto.payment_intent = payload.payment_intent
                 capturableTransactionDto.payment_method = payload.payment_method
                 capturableTransactionDto.payment = payment.id
@@ -562,14 +565,14 @@ export const chargeSucceeded = async (payload: any) => {
                 capturableTransactionDto.currency = payment.currency
 
                 if (transaction) {
-                    transaction.captureDetails = capturableTransactionDto
+                    transaction.capture = capturableTransactionDto
                     transaction.save()
                 }
 
             } else {
-                const captureDetails = payload.payment_method_details.card
+                const capture = payload.payment_method_details.card
                 //save payment capture here
-                let capturableTransactionDto: ICaptureDetails = castPayloadToDTO(captureDetails, captureDetails as ICaptureDetails);
+                let capturableTransactionDto: ICapture = castPayloadToDTO(capture, capture as ICapture);
                 capturableTransactionDto.payment_intent = payload.payment_intent
                 capturableTransactionDto.payment_method = payload.payment_method
                 capturableTransactionDto.payment = payment.id
@@ -578,7 +581,7 @@ export const chargeSucceeded = async (payload: any) => {
                 capturableTransactionDto.captured_at = payment.created
                 capturableTransactionDto.currency = payment.currency
                 if (transaction) {
-                    transaction.captureDetails = capturableTransactionDto
+                    transaction.capture = capturableTransactionDto
                     transaction.status = TRANSACTION_STATUS.SUCCESSFUL
                     transaction.save()
                 }
@@ -696,5 +699,30 @@ export const chargeRefunded = async (payload: any) => {
         console.log('Error handling chargeRefunded stripe webhook event', error);
     }
 };
+
+export const chargeRefundUpdated = async (payload: any) => {
+    console.log('Stripe Event Handler: chargeRefundUpdated', payload);
+    
+    try {
+        if (payload.object !== 'refund') return;
+
+        const stripeRefundDTO: IRefund = castPayloadToDTO(payload, payload as IRefund);
+
+        const payment = await PaymentModel.findOne({ charge: stripeRefundDTO.charge });
+        const transaction = await TransactionModel.findOne({ 'metadata.charge': stripeRefundDTO.charge });
+
+        if (payment && transaction) {
+
+            if (transaction) {
+                // transaction.refund = stripeRefundDTO;
+                await Promise.all([transaction.save()]);
+            }
+        }
+    } catch (error: any) {
+        console.log('Error handling chargeRefundUpdated stripe webhook event', error);
+    }
+};
+
+
 
 
