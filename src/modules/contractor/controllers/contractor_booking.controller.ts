@@ -585,14 +585,6 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
             fee: 0, //
         }
 
-
-        if (timeDifferenceInHours < 24) {
-            refundPolicy = {
-                name: '50_dollar_policy',
-                fee: 50, //
-            }
-        }
-
         for (const payment of payments.payments) {
             if (payment.refunded) continue
             let refund = {

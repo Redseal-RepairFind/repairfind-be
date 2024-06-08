@@ -3,7 +3,6 @@ import { Request, Response } from "express";
 import {ContractorModel} from "../../../database/contractor/models/contractor.model";
 import CustomerRegModel from "../../../database/customer/models/customer.model";
 import JobModel from "../../../database/contractor/models/job.model";
-import ContractorDocumentValidateModel from "../../../database/contractor/models/contractorDocumentValidate.model";
 import PayoutModel from "../../../database/admin/models/payout.model";
 
 //get pending Payout detail /////////////
@@ -54,15 +53,12 @@ export const AdminGetPendingPayoutDetailController = async (
             const contractor = await ContractorModel.findOne({_id: job.contractorId})
             if (!contractor) continue
 
-            const contractorDocument = await ContractorDocumentValidateModel.findOne({contractorId: contractor._id})
-            if (!contractorDocument) continue
-
+          
             const obj = {
                 Payout,
                 job,
                 customer,
                 contractor,
-                contractorDocument
             }
 
             pendingPayout.push(obj)
@@ -128,15 +124,12 @@ export const AdminGetCompletedPayoutDetailController = async (
             const contractor = await ContractorModel.findOne({_id: job.contractorId})
             if (!contractor) continue
 
-            const contractorDocument = await ContractorDocumentValidateModel.findOne({contractorId: contractor._id})
-            if (!contractorDocument) continue
-
+         
             const obj = {
                 Payout,
                 job,
                 customer,
                 contractor,
-                contractorDocument
             }
 
             completedPayout.push(obj)
@@ -191,15 +184,13 @@ export const AdminGetSinglePayoutDetailController = async (
         const contractor = await ContractorModel.findOne({_id: job.contractorId})
         if (!contractor) return
 
-        const contractorDocument = await ContractorDocumentValidateModel.findOne({contractorId: contractor._id})
-        if (!contractorDocument) return
+      
 
         const obj = {
             payout,
             job,
             customer,
             contractor,
-            contractorDocument
         }
 
 

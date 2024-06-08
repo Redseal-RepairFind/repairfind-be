@@ -44,15 +44,14 @@ var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var job_model_1 = __importDefault(require("../../../database/contractor/models/job.model"));
-var contractorDocumentValidate_model_1 = __importDefault(require("../../../database/contractor/models/contractorDocumentValidate.model"));
 var payout_model_1 = __importDefault(require("../../../database/admin/models/payout.model"));
 //get pending Payout detail /////////////
 var AdminGetPendingPayoutDetailController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, page, limit, errors, admin, adminId, skip, Payouts, pendingPayout, totalPendigPayout, i, Payout, job, customer, contractor, contractorDocument, obj, err_1;
+    var _a, page, limit, errors, admin, adminId, skip, Payouts, pendingPayout, totalPendigPayout, i, Payout, job, customer, contractor, obj, err_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 10, , 11]);
+                _b.trys.push([0, 9, , 10]);
                 _a = req.query, page = _a.page, limit = _a.limit;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
@@ -76,63 +75,57 @@ var AdminGetPendingPayoutDetailController = function (req, res) { return __await
                 i = 0;
                 _b.label = 3;
             case 3:
-                if (!(i < Payouts.length)) return [3 /*break*/, 9];
+                if (!(i < Payouts.length)) return [3 /*break*/, 8];
                 Payout = Payouts[i];
                 return [4 /*yield*/, job_model_1.default.findOne({ _id: Payout.jobId })];
             case 4:
                 job = _b.sent();
                 if (!job)
-                    return [3 /*break*/, 8];
+                    return [3 /*break*/, 7];
                 return [4 /*yield*/, customer_model_1.default.findOne({ _id: job.customerId })];
             case 5:
                 customer = _b.sent();
                 if (!customer)
-                    return [3 /*break*/, 8];
+                    return [3 /*break*/, 7];
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: job.contractorId })];
             case 6:
                 contractor = _b.sent();
                 if (!contractor)
-                    return [3 /*break*/, 8];
-                return [4 /*yield*/, contractorDocumentValidate_model_1.default.findOne({ contractorId: contractor._id })];
-            case 7:
-                contractorDocument = _b.sent();
-                if (!contractorDocument)
-                    return [3 /*break*/, 8];
+                    return [3 /*break*/, 7];
                 obj = {
                     Payout: Payout,
                     job: job,
                     customer: customer,
                     contractor: contractor,
-                    contractorDocument: contractorDocument
                 };
                 pendingPayout.push(obj);
-                _b.label = 8;
-            case 8:
+                _b.label = 7;
+            case 7:
                 i++;
                 return [3 /*break*/, 3];
-            case 9:
+            case 8:
                 res.json({
                     totalPendigPayout: totalPendigPayout,
                     pendingPayout: pendingPayout
                 });
-                return [3 /*break*/, 11];
-            case 10:
+                return [3 /*break*/, 10];
+            case 9:
                 err_1 = _b.sent();
                 // signup error
                 res.status(500).json({ message: err_1.message });
-                return [3 /*break*/, 11];
-            case 11: return [2 /*return*/];
+                return [3 /*break*/, 10];
+            case 10: return [2 /*return*/];
         }
     });
 }); };
 exports.AdminGetPendingPayoutDetailController = AdminGetPendingPayoutDetailController;
 //get completed Payout detail /////////////
 var AdminGetCompletedPayoutDetailController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, page, limit, errors, admin, adminId, skip, Payouts, completedPayout, totalCompletedPayout, i, Payout, job, customer, contractor, contractorDocument, obj, err_2;
+    var _a, page, limit, errors, admin, adminId, skip, Payouts, completedPayout, totalCompletedPayout, i, Payout, job, customer, contractor, obj, err_2;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 10, , 11]);
+                _b.trys.push([0, 9, , 10]);
                 _a = req.query, page = _a.page, limit = _a.limit;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
@@ -156,63 +149,57 @@ var AdminGetCompletedPayoutDetailController = function (req, res) { return __awa
                 i = 0;
                 _b.label = 3;
             case 3:
-                if (!(i < Payouts.length)) return [3 /*break*/, 9];
+                if (!(i < Payouts.length)) return [3 /*break*/, 8];
                 Payout = Payouts[i];
                 return [4 /*yield*/, job_model_1.default.findOne({ _id: Payout.jobId })];
             case 4:
                 job = _b.sent();
                 if (!job)
-                    return [3 /*break*/, 8];
+                    return [3 /*break*/, 7];
                 return [4 /*yield*/, customer_model_1.default.findOne({ _id: job.customerId })];
             case 5:
                 customer = _b.sent();
                 if (!customer)
-                    return [3 /*break*/, 8];
+                    return [3 /*break*/, 7];
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: job.contractorId })];
             case 6:
                 contractor = _b.sent();
                 if (!contractor)
-                    return [3 /*break*/, 8];
-                return [4 /*yield*/, contractorDocumentValidate_model_1.default.findOne({ contractorId: contractor._id })];
-            case 7:
-                contractorDocument = _b.sent();
-                if (!contractorDocument)
-                    return [3 /*break*/, 8];
+                    return [3 /*break*/, 7];
                 obj = {
                     Payout: Payout,
                     job: job,
                     customer: customer,
                     contractor: contractor,
-                    contractorDocument: contractorDocument
                 };
                 completedPayout.push(obj);
-                _b.label = 8;
-            case 8:
+                _b.label = 7;
+            case 7:
                 i++;
                 return [3 /*break*/, 3];
-            case 9:
+            case 8:
                 res.json({
                     totalCompletedPayout: totalCompletedPayout,
                     completedPayout: completedPayout
                 });
-                return [3 /*break*/, 11];
-            case 10:
+                return [3 /*break*/, 10];
+            case 9:
                 err_2 = _b.sent();
                 // signup error
                 res.status(500).json({ message: err_2.message });
-                return [3 /*break*/, 11];
-            case 11: return [2 /*return*/];
+                return [3 /*break*/, 10];
+            case 10: return [2 /*return*/];
         }
     });
 }); };
 exports.AdminGetCompletedPayoutDetailController = AdminGetCompletedPayoutDetailController;
 //get single Payout detail /////////////
 var AdminGetSinglePayoutDetailController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var payoutId, errors, admin, adminId, payout, job, customer, contractor, contractorDocument, obj, err_3;
+    var payoutId, errors, admin, adminId, payout, job, customer, contractor, obj, err_3;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 6, , 7]);
+                _a.trys.push([0, 5, , 6]);
                 payoutId = req.query.payoutId;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
@@ -243,28 +230,22 @@ var AdminGetSinglePayoutDetailController = function (req, res) { return __awaite
                 contractor = _a.sent();
                 if (!contractor)
                     return [2 /*return*/];
-                return [4 /*yield*/, contractorDocumentValidate_model_1.default.findOne({ contractorId: contractor._id })];
-            case 5:
-                contractorDocument = _a.sent();
-                if (!contractorDocument)
-                    return [2 /*return*/];
                 obj = {
                     payout: payout,
                     job: job,
                     customer: customer,
                     contractor: contractor,
-                    contractorDocument: contractorDocument
                 };
                 res.json({
                     obj: obj
                 });
-                return [3 /*break*/, 7];
-            case 6:
+                return [3 /*break*/, 6];
+            case 5:
                 err_3 = _a.sent();
                 // signup error
                 res.status(500).json({ message: err_3.message });
-                return [3 /*break*/, 7];
-            case 7: return [2 /*return*/];
+                return [3 /*break*/, 6];
+            case 6: return [2 /*return*/];
         }
     });
 }); };

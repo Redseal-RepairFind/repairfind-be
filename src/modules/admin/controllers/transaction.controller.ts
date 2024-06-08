@@ -2,7 +2,6 @@ import { validationResult } from "express-validator";
 import { Request, Response } from "express";
 import {ContractorModel} from "../../../database/contractor/models/contractor.model";
 import CustomerRegModel from "../../../database/customer/models/customer.model";
-import ContractorDocumentValidateModel from "../../../database/contractor/models/contractorDocumentValidate.model";
 import TransactionModel from "../../../database/common/transaction.model";
 import { JobModel } from "../../../database/common/job.model";
 

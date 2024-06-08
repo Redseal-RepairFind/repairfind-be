@@ -552,7 +552,7 @@ export const declineJobQuotation = async (req: any, res: Response, next: NextFun
         // maybe send mail out ?
         await quotation.save()
 
-        const foundQuotationIndex = job.quotations.findIndex(quotation => quotation.id == quotationId);
+        const foundQuotationIndex = job.quotations.findIndex((quotation: { id: any; }) => quotation.id == quotationId);
         if (foundQuotationIndex !== -1) {
             job.quotations[foundQuotationIndex].status = JOB_QUOTATION_STATUS.DECLINED;
         }

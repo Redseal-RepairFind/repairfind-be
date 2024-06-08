@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var upload_utility_1 = require("../../../utils/upload.utility");
 var adminAddSkill_controller_1 = require("../controllers/adminAddSkill.controller");
-var adminContractorDocVal_controller_1 = require("../controllers/adminContractorDocVal.controller");
 var adminForgotPassword_1 = require("../controllers/adminForgotPassword");
 var adminGetContractorDetail_controller_1 = require("../controllers/adminGetContractorDetail.controller");
 var adminGetCustomerDetail_contractor_1 = require("../controllers/adminGetCustomerDetail.contractor");
@@ -47,9 +46,6 @@ router.get("/contractor/job/detail/:contractorId", adminRoleChecker_middleware_1
 router.get("/customer/detail", adminRoleChecker_middleware_1.checkAdminRole, adminGetCustomerDetail_contractor_1.AdminCustomerController.AdminGetCustomerDetailController); // admin get customer detail
 router.get("/customer/detail/:customerId", adminRoleChecker_middleware_1.checkAdminRole, adminGetCustomerDetail_contractor_1.AdminCustomerController.AdminGetSingleCustomerDetailController); // admin get single customer detail
 router.get("/customer/job/detail/:customerId", adminRoleChecker_middleware_1.checkAdminRole, adminGetCustomerDetail_contractor_1.AdminCustomerController.AdminGetSingleCustomerJobDetailController); // admin get single customer  job detail
-router.get("/admin_get_contractor_document", adminRoleChecker_middleware_1.checkAdminRole, adminContractorDocVal_controller_1.AdminGetContractorDocForValController); // admin get contractor pending document for validation
-router.get("/admin_get_single_contractor_document", adminValidate_middleware_1.validateContractoDocumentIdValidationParams, adminRoleChecker_middleware_1.checkAdminRole, adminContractorDocVal_controller_1.AdminGetSingleContractorDocForValController); // admin get single contractor pending document for validation
-router.post("/admin_validate_contractor_document", adminValidate_middleware_1.validateContractoDocumentIdValidationParams, adminRoleChecker_middleware_1.checkAdminRole, adminContractorDocVal_controller_1.AdminValidateContractorDocsController); // admin get validate contractor document 
 //done skill
 router.post("/skills", adminValidate_middleware_1.validateAddSkillParams, adminRoleChecker_middleware_1.checkAdminRole, adminAddSkill_controller_1.AdminAddNewSkillController); // admin add skill
 router.post("/add/skill", adminValidate_middleware_1.validateAddSkillParams, adminRoleChecker_middleware_1.checkAdminRole, adminAddSkill_controller_1.AdminAddNewSkillController); // admin add skilll

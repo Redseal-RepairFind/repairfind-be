@@ -671,12 +671,6 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
                     name: 'free_refund',
                     fee: 0, //
                 };
-                if (timeDifferenceInHours < 24) {
-                    refundPolicy = {
-                        name: '50_dollar_policy',
-                        fee: 50, //
-                    };
-                }
                 _i = 0, _b = payments.payments;
                 _d.label = 8;
             case 8:
