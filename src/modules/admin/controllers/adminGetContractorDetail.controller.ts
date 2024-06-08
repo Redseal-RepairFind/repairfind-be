@@ -1,12 +1,9 @@
 import { validationResult } from "express-validator";
 import { Request, Response } from "express";
 import AdminRegModel from "../../../database/admin/models/admin.model";
-import ContractorDocumentValidateModel from "../../../database/contractor/models/contractorDocumentValidate.model";
-import ContractorAvailabilityModel from "../../../database/contractor/models/contractorAvaliability.model";
 import {ContractorModel} from "../../../database/contractor/models/contractor.model";
 import { JobModel } from "../../../database/common/job.model";
 import CustomerRegModel from "../../../database/customer/models/customer.model";
-import ContractorRatingModel from "../../../database/contractor/models/contractorRating.model";
 import { sendEmail } from "../../../utils/send_email_utility";
 import { htmlAdminRquestGstStatuChangeTemplate } from "../../../templates/adminEmail/adminRequestGstStatusTemplate";
 import { OTP_EXPIRY_TIME, generateOTP } from "../../../utils/otpGenerator";

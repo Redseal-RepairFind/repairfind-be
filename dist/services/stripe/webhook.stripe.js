@@ -707,7 +707,7 @@ var paymentMethodDetached = function (payload) { return __awaiter(void 0, void 0
 exports.paymentMethodDetached = paymentMethodDetached;
 // Charge
 var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var userType, userId, user, stripeChargeDTO, payment, transactionId, transaction, capture, capturableTransactionDto, capture, capturableTransactionDto, metadata, jobId, paymentType, quotationId, job, quotation, changeOrderEstimate, error_11;
+    var userType, userId, user, stripeChargeDTO, payment, transactionId, transaction, capture, capturaDto, capture, capturaDto, metadata, jobId, paymentType, quotationId, job, quotation, changeOrderEstimate, onBehalf, destination, transferData, error_11;
     var _a, _b;
     return __generator(this, function (_c) {
         switch (_c.label) {
@@ -715,7 +715,7 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                 console.log('Stripe Event Handler: chargeSucceeded', payload);
                 _c.label = 1;
             case 1:
-                _c.trys.push([1, 10, , 11]);
+                _c.trys.push([1, 13, , 14]);
                 if (payload.object != 'charge')
                     return [2 /*return*/];
                 userType = 'customers';
@@ -751,49 +751,50 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                 return [4 /*yield*/, transaction_model_1.default.findById(transactionId)];
             case 4:
                 transaction = _c.sent();
-                if (transaction) {
-                    if (!payment.captured) {
-                        capture = payload.payment_method_details.card;
-                        capturableTransactionDto = (0, interface_dto_util_1.castPayloadToDTO)(capture, capture);
-                        capturableTransactionDto.payment_intent = payload.payment_intent;
-                        capturableTransactionDto.payment_method = payload.payment_method;
-                        capturableTransactionDto.payment = payment.id;
-                        capturableTransactionDto.status = transaction_model_1.TRANSACTION_STATUS.REQUIRES_CAPTURE;
-                        capturableTransactionDto.captured = false;
-                        capturableTransactionDto.currency = payment.currency;
-                        if (transaction) {
-                            transaction.capture = capturableTransactionDto;
-                            transaction.save();
-                        }
-                    }
-                    else {
-                        capture = payload.payment_method_details.card;
-                        capturableTransactionDto = (0, interface_dto_util_1.castPayloadToDTO)(capture, capture);
-                        capturableTransactionDto.payment_intent = payload.payment_intent;
-                        capturableTransactionDto.payment_method = payload.payment_method;
-                        capturableTransactionDto.payment = payment.id;
-                        capturableTransactionDto.status = transaction_model_1.TRANSACTION_STATUS.SUCCESSFUL;
-                        capturableTransactionDto.captured = payment.captured;
-                        capturableTransactionDto.captured_at = payment.created;
-                        capturableTransactionDto.currency = payment.currency;
-                        if (transaction) {
-                            transaction.capture = capturableTransactionDto;
-                            transaction.status = transaction_model_1.TRANSACTION_STATUS.SUCCESSFUL;
-                            transaction.save();
-                        }
-                    }
+                if (!transaction) return [3 /*break*/, 6];
+                if (!payment.captured) {
+                    capture = payload.payment_method_details.card;
+                    capturaDto = (0, interface_dto_util_1.castPayloadToDTO)(capture, capture);
+                    capturaDto.payment_intent = payload.payment_intent;
+                    capturaDto.payment_method = payload.payment_method;
+                    capturaDto.payment = payment.id;
+                    capturaDto.captured = false;
+                    capturaDto.currency = payment.currency;
+                    payment.capture = capturaDto;
+                    transaction.status = transaction_model_1.TRANSACTION_STATUS.PENDING;
                 }
+                else {
+                    capture = payload.payment_method_details.card;
+                    capturaDto = (0, interface_dto_util_1.castPayloadToDTO)(capture, capture);
+                    capturaDto.payment_intent = payload.payment_intent;
+                    capturaDto.payment_method = payload.payment_method;
+                    capturaDto.payment = payment.id;
+                    capturaDto.captured = payment.captured;
+                    capturaDto.captured_at = payment.created;
+                    capturaDto.currency = payment.currency;
+                    payment.capture = capturaDto;
+                    transaction.status = transaction_model_1.TRANSACTION_STATUS.SUCCESSFUL;
+                }
+                payment.transaction = transaction.id;
+                return [4 /*yield*/, Promise.all([
+                        payment.save(),
+                        transaction.save()
+                    ])];
+            case 5:
+                _c.sent();
+                _c.label = 6;
+            case 6:
                 metadata = payment.metadata;
-                if (!metadata.jobId) return [3 /*break*/, 9];
+                if (!metadata.jobId) return [3 /*break*/, 12];
                 jobId = metadata.jobId;
                 paymentType = metadata.type;
                 quotationId = metadata.quotationId;
-                if (!(jobId && paymentType && quotationId)) return [3 /*break*/, 9];
+                if (!(jobId && paymentType && quotationId)) return [3 /*break*/, 12];
                 return [4 /*yield*/, job_model_1.JobModel.findById(jobId)];
-            case 5:
+            case 7:
                 job = _c.sent();
                 return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findById(quotationId)];
-            case 6:
+            case 8:
                 quotation = _c.sent();
                 if (!job || !quotation)
                     return [2 /*return*/];
@@ -840,32 +841,67 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                 if (!job.payments.includes(payment.id))
                     job.payments.push(payment.id);
                 return [4 /*yield*/, quotation.save()];
-            case 7:
+            case 9:
                 _c.sent();
-                return [4 /*yield*/, job.save()];
-            case 8:
-                _c.sent();
-                _c.label = 9;
-            case 9: return [3 /*break*/, 11];
+                return [4 /*yield*/, job.save()
+                    //handle payout transaction schedule here if payment was made to platform
+                ];
             case 10:
+                _c.sent();
+                if (!payment) return [3 /*break*/, 12];
+                onBehalf = payment.on_behalf_of;
+                destination = payment.destination;
+                transferData = payment.transfer_data;
+                if (!(!onBehalf && destination && transferData)) return [3 /*break*/, 12];
+                //create payout transaction - 
+                return [4 /*yield*/, transaction_model_1.default.create({
+                        type: transaction_model_1.TRANSACTION_TYPE.PAYOUT,
+                        amount: payment.amount,
+                        // customer can initiate payout on job completetion or admin on dispute resolution
+                        // initiatorUser: customerId,
+                        // initiatorUserType: 'customers',
+                        fromUser: job.customer,
+                        fromUserType: 'customers',
+                        toUser: job.contractor,
+                        toUserType: 'contractors',
+                        description: "Payout for job: ".concat(job === null || job === void 0 ? void 0 : job.title),
+                        status: transaction_model_1.TRANSACTION_STATUS.PENDING,
+                        remark: 'job_payout',
+                        invoice: {
+                            items: [],
+                            charges: quotation.charges
+                        },
+                        metadata: {
+                            paymentType: paymentType,
+                            parentTransaction: transaction === null || transaction === void 0 ? void 0 : transaction.id
+                        },
+                        job: job.id,
+                        payment: payment.id,
+                    })];
+            case 11:
+                //create payout transaction - 
+                _c.sent();
+                _c.label = 12;
+            case 12: return [3 /*break*/, 14];
+            case 13:
                 error_11 = _c.sent();
                 // throw new BadRequestError(error.message || "Something went wrong");
                 console.log('Error handling chargeSucceeded stripe webhook event', error_11);
-                return [3 /*break*/, 11];
-            case 11: return [2 /*return*/];
+                return [3 /*break*/, 14];
+            case 14: return [2 /*return*/];
         }
     });
 }); };
 exports.chargeSucceeded = chargeSucceeded;
 var chargeRefunded = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var stripeChargeDTO, payment, transaction, error_12;
+    var stripeChargeDTO, payment, error_12;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 console.log('Stripe Event Handler: chargeRefunded', payload);
                 _a.label = 1;
             case 1:
-                _a.trys.push([1, 6, , 7]);
+                _a.trys.push([1, 5, , 6]);
                 if (payload.object !== 'charge')
                     return [2 /*return*/];
                 stripeChargeDTO = (0, interface_dto_util_1.castPayloadToDTO)(payload, payload);
@@ -874,52 +910,51 @@ var chargeRefunded = function (payload) { return __awaiter(void 0, void 0, void 
                 return [4 /*yield*/, payment_schema_1.PaymentModel.findOne({ charge: stripeChargeDTO.charge })];
             case 2:
                 payment = _a.sent();
-                if (!payment) return [3 /*break*/, 5];
-                return [4 /*yield*/, transaction_model_1.default.findOne({ type: transaction_model_1.TRANSACTION_TYPE.REFUND, payment: payment.id })];
-            case 3:
-                transaction = _a.sent();
-                if (!transaction) return [3 /*break*/, 5];
-                transaction.status = transaction_model_1.TRANSACTION_STATUS.SUCCESSFUL;
+                if (!payment) return [3 /*break*/, 4];
                 payment.amount_refunded = payload.amount_refunded / 100;
                 payment.refunded = payload.refunded;
-                return [4 /*yield*/, Promise.all([transaction.save(), payment.save()])];
-            case 4:
+                return [4 /*yield*/, Promise.all([payment.save()])];
+            case 3:
                 _a.sent();
-                _a.label = 5;
-            case 5: return [3 /*break*/, 7];
-            case 6:
+                _a.label = 4;
+            case 4: return [3 /*break*/, 6];
+            case 5:
                 error_12 = _a.sent();
                 console.log('Error handling chargeRefunded stripe webhook event', error_12);
-                return [3 /*break*/, 7];
-            case 7: return [2 /*return*/];
+                return [3 /*break*/, 6];
+            case 6: return [2 /*return*/];
         }
     });
 }); };
 exports.chargeRefunded = chargeRefunded;
 var chargeRefundUpdated = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var stripeRefundDTO, payment, transaction, error_13;
+    var metadata, stripeRefundDTO, payment, transaction, error_13;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                console.log('Stripe Event Handler: chargeRefundUpdated', payload);
+                console.log('Stripe Event Handler: chargeRefundUpdated', { object: payload.object, id: payload.id });
                 _a.label = 1;
             case 1:
                 _a.trys.push([1, 6, , 7]);
                 if (payload.object !== 'refund')
                     return [2 /*return*/];
+                metadata = payload.metadata;
+                console.log(metadata);
                 stripeRefundDTO = (0, interface_dto_util_1.castPayloadToDTO)(payload, payload);
                 return [4 /*yield*/, payment_schema_1.PaymentModel.findOne({ charge: stripeRefundDTO.charge })];
             case 2:
                 payment = _a.sent();
-                return [4 /*yield*/, transaction_model_1.default.findOne({ 'metadata.charge': stripeRefundDTO.charge })];
+                return [4 /*yield*/, transaction_model_1.default.findOne({ _id: metadata.transactionId })];
             case 3:
                 transaction = _a.sent();
+                console.log('transaction', transaction);
                 if (!(payment && transaction)) return [3 /*break*/, 5];
-                if (!transaction) return [3 /*break*/, 5];
-                // transaction.refund = stripeRefundDTO;
-                return [4 /*yield*/, Promise.all([transaction.save()])];
+                if (!payment.refunds.includes(stripeRefundDTO))
+                    payment.refunds.push(stripeRefundDTO);
+                if (payload.status == 'succeeded')
+                    transaction.status = transaction_model_1.TRANSACTION_STATUS.SUCCESSFUL;
+                return [4 /*yield*/, Promise.all([payment.save(), transaction.save()])];
             case 4:
-                // transaction.refund = stripeRefundDTO;
                 _a.sent();
                 _a.label = 5;
             case 5: return [3 /*break*/, 7];

@@ -71,67 +71,71 @@ var customer_model_1 = __importDefault(require("../../../database/customer/model
 var logger_1 = require("../../../utils/logger");
 var stripe_1 = require("../../stripe");
 var handleJobRefunds = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var transactions, _i, transactions_1, transaction, fromUser, _a, toUser, _b, payment, stripePayment, error_1, error_2;
-    return __generator(this, function (_c) {
-        switch (_c.label) {
+    var transactions, _i, transactions_1, transaction, fromUser, _a, toUser, _b, payment, amount, charge, metadata, stripePayment, error_1, error_2;
+    var _c;
+    return __generator(this, function (_d) {
+        switch (_d.label) {
             case 0:
-                _c.trys.push([0, 19, , 20]);
+                _d.trys.push([0, 19, , 20]);
                 return [4 /*yield*/, transaction_model_1.default.find({
                         type: transaction_model_1.TRANSACTION_TYPE.REFUND,
                         status: transaction_model_1.TRANSACTION_STATUS.PENDING
                     })];
             case 1:
-                transactions = _c.sent();
+                transactions = _d.sent();
                 _i = 0, transactions_1 = transactions;
-                _c.label = 2;
+                _d.label = 2;
             case 2:
                 if (!(_i < transactions_1.length)) return [3 /*break*/, 18];
                 transaction = transactions_1[_i];
-                _c.label = 3;
+                _d.label = 3;
             case 3:
-                _c.trys.push([3, 16, , 17]);
+                _d.trys.push([3, 16, , 17]);
                 if (!(transaction.fromUserType == 'customers')) return [3 /*break*/, 5];
                 return [4 /*yield*/, customer_model_1.default.findById(transaction.fromUser)];
             case 4:
-                _a = _c.sent();
+                _a = _d.sent();
                 return [3 /*break*/, 7];
             case 5: return [4 /*yield*/, contractor_model_1.ContractorModel.findById(transaction.fromUser)];
             case 6:
-                _a = _c.sent();
-                _c.label = 7;
+                _a = _d.sent();
+                _d.label = 7;
             case 7:
                 fromUser = _a;
                 if (!(transaction.toUserType == 'customers')) return [3 /*break*/, 9];
                 return [4 /*yield*/, customer_model_1.default.findById(transaction.toUser)];
             case 8:
-                _b = _c.sent();
+                _b = _d.sent();
                 return [3 /*break*/, 11];
             case 9: return [4 /*yield*/, contractor_model_1.ContractorModel.findById(transaction.toUser)];
             case 10:
-                _b = _c.sent();
-                _c.label = 11;
+                _b = _d.sent();
+                _d.label = 11;
             case 11:
                 toUser = _b;
                 if (!(fromUser && toUser)) return [3 /*break*/, 14];
                 return [4 /*yield*/, payment_schema_1.PaymentModel.findById(transaction.payment)];
             case 12:
-                payment = _c.sent();
+                payment = _d.sent();
                 if (!payment) {
                     return [2 /*return*/];
                 }
-                return [4 /*yield*/, stripe_1.StripeService.payment.refundCharge(payment.charge, (transaction.amount * 100))
-                    // }
-                ]; // convert to cent
+                amount = (transaction.amount * 100);
+                charge = payment.charge;
+                metadata = (_c = transaction.metadata) !== null && _c !== void 0 ? _c : {};
+                metadata.transactionId = transaction.id;
+                metadata.paymentId = payment.id;
+                return [4 /*yield*/, stripe_1.StripeService.payment.refundCharge(charge, amount, metadata)]; // convert to cent
             case 13:
-                stripePayment = _c.sent() // convert to cent
+                stripePayment = _d.sent() // convert to cent
                 ;
-                _c.label = 14;
+                _d.label = 14;
             case 14: return [4 /*yield*/, transaction.save()];
             case 15:
-                _c.sent();
+                _d.sent();
                 return [3 /*break*/, 17];
             case 16:
-                error_1 = _c.sent();
+                error_1 = _d.sent();
                 logger_1.Logger.error("Error processing refund transaction: ".concat(transaction.id), error_1);
                 return [3 /*break*/, 17];
             case 17:
@@ -139,7 +143,7 @@ var handleJobRefunds = function () { return __awaiter(void 0, void 0, void 0, fu
                 return [3 /*break*/, 2];
             case 18: return [3 /*break*/, 20];
             case 19:
-                error_2 = _c.sent();
+                error_2 = _d.sent();
                 logger_1.Logger.error('Error processing refund transaction:', error_2);
                 return [3 /*break*/, 20];
             case 20: return [2 /*return*/];

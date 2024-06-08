@@ -10,6 +10,29 @@ var __assign = (this && this.__assign) || function () {
     };
     return __assign.apply(this, arguments);
 };
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -57,6 +80,7 @@ var services_1 = require("../../../services");
 var job_model_1 = require("../../../database/common/job.model");
 var custom_errors_1 = require("../../../utils/custom.errors");
 var api_feature_1 = require("../../../utils/api.feature");
+var job_quotation_model_1 = require("../../../database/common/job_quotation.model");
 var events_1 = require("../../../events");
 var mongoose_1 = __importDefault(require("mongoose"));
 var contractor_interface_1 = require("../../../database/contractor/interface/contractor.interface");
@@ -65,6 +89,8 @@ var job_assigned_template_1 = require("../../../templates/contractorEmail/job_as
 var job_dispute_model_1 = require("../../../database/common/job_dispute.model");
 var review_model_1 = require("../../../database/common/review.model");
 var job_day_model_1 = require("../../../database/common/job_day.model");
+var payment_schema_1 = require("../../../database/common/payment.schema");
+var transaction_model_1 = __importStar(require("../../../database/common/transaction.model"));
 var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, _b, limit, _c, page, _d, sort, customerId, _e, status_1, startDate, endDate, date, type, contractorId_1, filter, start, end, selectedDate, startOfDay_1, endOfDay, _f, data, error, error_1;
     return __generator(this, function (_g) {
@@ -547,23 +573,30 @@ var assignJob = function (req, res, next) { return __awaiter(void 0, void 0, voi
 }); };
 exports.assignJob = assignJob;
 var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var contractorId, bookingId, reason, job_1, contractor, newReview, foundIndex, error_8;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var contractorId, bookingId, reason, job_1, _a, contractor, contract, newReview, foundIndex, jobDate, charges, paymentType, payments, currentTime, timeDifferenceInHours, refundPolicy, _i, _b, payment, refund, error_8;
+    var _c;
+    return __generator(this, function (_d) {
+        switch (_d.label) {
             case 0:
-                _a.trys.push([0, 6, , 7]);
+                _d.trys.push([0, 12, , 13]);
                 contractorId = req.contractor.id;
                 bookingId = req.params.bookingId;
                 reason = req.body.reason;
                 return [4 /*yield*/, job_model_1.JobModel.findById(bookingId)];
             case 1:
-                job_1 = _a.sent();
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
+                job_1 = _d.sent();
+                return [4 /*yield*/, Promise.all([
+                        contractor_model_1.ContractorModel.findById(job_1 === null || job_1 === void 0 ? void 0 : job_1.contractor),
+                        job_quotation_model_1.JobQuotationModel.findById(job_1 === null || job_1 === void 0 ? void 0 : job_1.contract)
+                    ])];
             case 2:
-                contractor = _a.sent();
+                _a = _d.sent(), contractor = _a[0], contract = _a[1];
                 // Check if the contractor exists
                 if (!contractor) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor not found' })];
+                }
+                if (!contract) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Contract not found' })];
                 }
                 // Check if the job exists
                 if (!job_1) {
@@ -601,9 +634,11 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
                     type: review_model_1.REVIEW_TYPE.JOB_CANCELETION,
                     createdAt: new Date(),
                 });
-                return [4 /*yield*/, newReview.save()];
+                return [4 /*yield*/, newReview.save()
+                    // intitiate a refund
+                ];
             case 3:
-                _a.sent();
+                _d.sent();
                 foundIndex = contractor.reviews.findIndex(function (review) { return review.review == job_1.id; });
                 if (foundIndex !== -1) {
                     contractor.reviews[foundIndex] = { averageRating: newReview.averageRating, review: newReview.id };
@@ -613,16 +648,84 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
                 }
                 return [4 /*yield*/, job_1.save()];
             case 4:
-                _a.sent();
+                _d.sent();
                 return [4 /*yield*/, contractor.save()];
             case 5:
-                _a.sent();
-                res.json({ success: true, message: 'Booking canceled successfully', data: job_1 });
-                return [3 /*break*/, 7];
+                _d.sent();
+                if (!((_c = job_1 === null || job_1 === void 0 ? void 0 : job_1.schedule) === null || _c === void 0 ? void 0 : _c.startDate)) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Booking has no associated schedule' })];
+                }
+                jobDate = job_1.schedule.startDate.getTime();
+                return [4 /*yield*/, contract.calculateCharges()
+                    // choose which payment to refund ? SITE_VISIT_PAYMENT, JOB_DAY_PAYMENT, CHANGE_ORDER_PAYMENT
+                ];
             case 6:
-                error_8 = _a.sent();
+                charges = _d.sent();
+                paymentType = (job_1.schedule.type == 'JOB_DAY') ? [payment_schema_1.PAYMENT_TYPE.JOB_DAY_PAYMENT, payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT] : [payment_schema_1.PAYMENT_TYPE.SITE_VISIT_PAYMENT];
+                return [4 /*yield*/, job_1.getPayments(paymentType)];
+            case 7:
+                payments = _d.sent();
+                currentTime = new Date().getTime();
+                timeDifferenceInHours = Math.abs(jobDate - currentTime) / (1000 * 60 * 60);
+                refundPolicy = {
+                    name: 'free_refund',
+                    fee: 0, //
+                };
+                _i = 0, _b = payments.payments;
+                _d.label = 8;
+            case 8:
+                if (!(_i < _b.length)) return [3 /*break*/, 11];
+                payment = _b[_i];
+                if (payment.refunded)
+                    return [3 /*break*/, 10];
+                refund = {
+                    refundAmount: payment.amount - refundPolicy.fee,
+                    totalAmount: payment.amount,
+                    fee: refundPolicy.fee,
+                    contractorAmount: refundPolicy.fee * 0.8,
+                    companyAmount: refundPolicy.fee * 0.2,
+                    intiatedBy: 'contractor',
+                    policyApplied: refundPolicy.name,
+                };
+                //create refund transaction - 
+                return [4 /*yield*/, transaction_model_1.default.create({
+                        type: transaction_model_1.TRANSACTION_TYPE.REFUND,
+                        amount: payments.totalAmount,
+                        initiatorUser: contractorId,
+                        initiatorUserType: 'contractors',
+                        fromUser: job_1.contractor,
+                        fromUserType: 'contractors',
+                        toUser: job_1.customer,
+                        toUserType: 'customers',
+                        description: "Refund from job: ".concat(job_1 === null || job_1 === void 0 ? void 0 : job_1.title, " payment"),
+                        status: transaction_model_1.TRANSACTION_STATUS.PENDING,
+                        remark: 'job_refund',
+                        invoice: {
+                            items: [],
+                            charges: refund
+                        },
+                        metadata: __assign(__assign({}, refund), { payment: payment.id.toString(), charge: payment.charge }),
+                        job: job_1.id,
+                        payment: payment.id,
+                    })
+                    //emit event here
+                ];
+            case 9:
+                //create refund transaction - 
+                _d.sent();
+                //emit event here
+                events_1.JobEvent.emit('JOB_REFUND_REQUESTED', { job: job_1, payment: payment, refund: refund });
+                _d.label = 10;
+            case 10:
+                _i++;
+                return [3 /*break*/, 8];
+            case 11:
+                res.json({ success: true, message: 'Booking canceled successfully', data: job_1 });
+                return [3 /*break*/, 13];
+            case 12:
+                error_8 = _d.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_8))];
-            case 7: return [2 /*return*/];
+            case 13: return [2 /*return*/];
         }
     });
 }); };

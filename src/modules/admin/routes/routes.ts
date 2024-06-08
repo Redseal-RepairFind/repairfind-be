@@ -1,6 +1,5 @@
 import { memoryUpload } from "../../../utils/upload.utility";
 import { AdminAddNewSkillController, AdminGetSkillController } from "../controllers/adminAddSkill.controller";
-import { AdminGetContractorDocForValController, AdminGetSingleContractorDocForValController, AdminValidateContractorDocsController } from "../controllers/adminContractorDocVal.controller";
 import { AdminEmailForgotPasswordController, AdminEmailResetPasswordController } from "../controllers/adminForgotPassword";
 import { AdminContractorDetail } from "../controllers/adminGetContractorDetail.controller";
 import { AdminCustomerController } from "../controllers/adminGetCustomerDetail.contractor";
@@ -56,9 +55,6 @@ router.get("/customer/detail/:customerId", checkAdminRole, AdminCustomerControll
 router.get("/customer/job/detail/:customerId", checkAdminRole, AdminCustomerController.AdminGetSingleCustomerJobDetailController ); // admin get single customer  job detail
 
 
-router.get("/admin_get_contractor_document", checkAdminRole, AdminGetContractorDocForValController ); // admin get contractor pending document for validation
-router.get("/admin_get_single_contractor_document", validateContractoDocumentIdValidationParams, checkAdminRole, AdminGetSingleContractorDocForValController ); // admin get single contractor pending document for validation
-router.post("/admin_validate_contractor_document", validateContractoDocumentIdValidationParams, checkAdminRole, AdminValidateContractorDocsController ); // admin get validate contractor document 
 
 //done skill
 router.post("/skills", validateAddSkillParams, checkAdminRole, AdminAddNewSkillController ); // admin add skill

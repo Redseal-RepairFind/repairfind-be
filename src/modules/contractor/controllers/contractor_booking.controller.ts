@@ -18,6 +18,8 @@ import { NewJobAssignedEmailTemplate } from "../../../templates/contractorEmail/
 import { JobDisputeModel } from "../../../database/common/job_dispute.model";
 import { REVIEW_TYPE, ReviewModel } from "../../../database/common/review.model";
 import { JobDayModel } from "../../../database/common/job_day.model";
+import { PAYMENT_TYPE } from "../../../database/common/payment.schema";
+import TransactionModel, { TRANSACTION_STATUS, TRANSACTION_TYPE } from "../../../database/common/transaction.model";
 
 
 
@@ -267,7 +269,7 @@ export const getSingleBooking = async (req: any, res: Response, next: NextFuncti
             return res.status(404).json({ success: false, message: 'Booking not found' });
         }
 
-       
+
         let responseData: any = { ...job.toJSON() };
         responseData.jobDay = await JobDayModel.findOne({ job: job.id, type: job.schedule.type });
         responseData.dispute = await JobDisputeModel.findOne({ job: job.id });
@@ -482,13 +484,21 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
         // Find the job
         const job = await JobModel.findById(bookingId);
 
-        const contractor = await ContractorModel.findById(contractorId);
+
+        const [contractor, contract] = await Promise.all([
+            ContractorModel.findById(job?.contractor),
+            JobQuotationModel.findById(job?.contract)
+        ]);
+
 
         // Check if the contractor exists
         if (!contractor) {
             return res.status(404).json({ success: false, message: 'Contractor not found' });
         }
 
+        if (!contract) {
+            return res.status(404).json({ success: false, message: 'Contract not found' });
+        }
 
         // Check if the job exists
         if (!job) {
@@ -527,9 +537,6 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
 
 
         // reduce contractor rating
-
-
-
         // Create a new review object
         const newReview = new ReviewModel({
             averageRating: 0,
@@ -544,6 +551,9 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
 
         await newReview.save()
 
+        // intitiate a refund
+
+
         const foundIndex = contractor.reviews.findIndex((review) => review.review == job.id);
         if (foundIndex !== -1) {
             contractor.reviews[foundIndex] = { averageRating: newReview.averageRating, review: newReview.id };
@@ -554,6 +564,74 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
 
         await job.save();
         await contractor.save()
+
+
+        if (!job?.schedule?.startDate) {
+            return res.status(400).json({ success: false, message: 'Booking has no associated schedule' });
+        }
+
+        const jobDate = job.schedule.startDate.getTime();
+        const charges = await contract.calculateCharges()
+
+        // choose which payment to refund ? SITE_VISIT_PAYMENT, JOB_DAY_PAYMENT, CHANGE_ORDER_PAYMENT
+        const paymentType = (job.schedule.type == 'JOB_DAY') ? [PAYMENT_TYPE.JOB_DAY_PAYMENT, PAYMENT_TYPE.CHANGE_ORDER_PAYMENT] : [PAYMENT_TYPE.SITE_VISIT_PAYMENT]
+        const payments = await job.getPayments(paymentType)
+
+        const currentTime = new Date().getTime();
+        const timeDifferenceInHours = Math.abs(jobDate - currentTime) / (1000 * 60 * 60);
+
+        let refundPolicy = {
+            name: 'free_refund',
+            fee: 0, //
+        }
+
+        for (const payment of payments.payments) {
+            if (payment.refunded) continue
+            let refund = {
+                refundAmount: payment.amount - refundPolicy.fee,
+                totalAmount: payment.amount,
+                fee: refundPolicy.fee,
+                contractorAmount: refundPolicy.fee * 0.8,
+                companyAmount: refundPolicy.fee * 0.2,
+                intiatedBy: 'contractor',
+                policyApplied: refundPolicy.name,
+            };
+
+            //create refund transaction - 
+            await TransactionModel.create({
+                type: TRANSACTION_TYPE.REFUND,
+                amount: payments.totalAmount,
+
+                initiatorUser: contractorId,
+                initiatorUserType: 'contractors',
+
+                fromUser: job.contractor,
+                fromUserType: 'contractors',
+
+                toUser: job.customer,
+                toUserType: 'customers',
+
+                description: `Refund from job: ${job?.title} payment`,
+                status: TRANSACTION_STATUS.PENDING,
+                remark: 'job_refund',
+                invoice: {
+                    items: [],
+                    charges: refund
+                },
+                metadata: {
+                    ...refund,
+                    payment: payment.id.toString(),
+                    charge: payment.charge
+                },
+                job: job.id,
+                payment: payment.id,
+            })
+
+            //emit event here
+            JobEvent.emit('JOB_REFUND_REQUESTED', { job, payment, refund })
+
+        }
+
 
 
         res.json({ success: true, message: 'Booking canceled successfully', data: job });

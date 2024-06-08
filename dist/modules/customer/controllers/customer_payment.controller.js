@@ -168,7 +168,6 @@ var prepareStripePayload = function (data) {
     //  Direct CHARGES
     // With Connect, you can make charges directly to the connected account and take fees in the process.
     // To create a direct charge on the connected account, create a PaymentIntent object and add the Stripe-Account header with a value of the connected account ID:
-    var _a;
     //  https://docs.stripe.com/connect/charges
     // When using Standard accounts, Stripe recommends that you create direct charges. Though uncommon, there are times when it’s appropriate to use direct charges on Express or Custom accounts.
     // With this charge type:
@@ -201,26 +200,23 @@ var prepareStripePayload = function (data) {
     // If the connected account is in a different country than the platform, the connected account’s address and phone number are displayed on the customer’s credit card statement.
     // The number of days that a pending balance is held before being paid out depends on the delay_days setting on the connected account.
     var paymentMethodId = data.paymentMethodId, customer = data.customer, contractor = data.contractor, charges = data.charges, transactionId = data.transactionId, jobId = data.jobId, metadata = data.metadata, manualCapture = data.manualCapture;
-    // metadata: {
-    //     customerId: customer.id,
-    //     constractorId: contractor?.id,
-    //     quotationId: charges.id,
-    //     type: 'job_payment',
-    //     jobId,
-    //     email: customer.email,
-    //     transactionId,
-    //     remark: 'initial_job_payment'
-    // },
+    // const repairfindStripeAccount = 'null'
     var payload = {
         payment_method_types: ['card'],
         payment_method: paymentMethodId,
         currency: 'usd',
         amount: Math.ceil(charges.totalAmount * 100),
-        application_fee_amount: Math.ceil(charges.processingFee * 100),
-        transfer_data: {
-            destination: (_a = contractor === null || contractor === void 0 ? void 0 : contractor.stripeAccount.id) !== null && _a !== void 0 ? _a : ''
-        },
-        on_behalf_of: contractor === null || contractor === void 0 ? void 0 : contractor.stripeAccount.id,
+        // send amount  minus processingFee to contractor
+        // application_fee_amount: Math.ceil(charges.processingFee * 100),
+        // transfer_data: {
+        //     destination: contractor?.stripeAccount.id ?? ''
+        // },
+        // on_behalf_of: contractor?.stripeAccount.id,
+        // send everything to repairfind connected account - serving as escrow
+        // transfer_data: {
+        //     destination: repairfindStripeAccount
+        // },
+        // on_behalf_of: repairfindStripeAccount,
         metadata: metadata,
         customer: customer.stripeCustomer.id,
         off_session: true,
@@ -276,7 +272,7 @@ var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0
                 charges = _b.sent();
                 metadata = {
                     customerId: customer.id,
-                    constractorId: contractor === null || contractor === void 0 ? void 0 : contractor.id,
+                    contractorId: contractor === null || contractor === void 0 ? void 0 : contractor.id,
                     quotationId: quotation.id,
                     type: paymentType,
                     jobId: jobId,
@@ -347,7 +343,7 @@ var makeChangeOrderEstimatePayment = function (req, res, next) { return __awaite
                 charges = _b.sent();
                 metadata = {
                     customerId: customer.id,
-                    constractorId: contractor === null || contractor === void 0 ? void 0 : contractor.id,
+                    contractorId: contractor === null || contractor === void 0 ? void 0 : contractor.id,
                     quotationId: quotation.id,
                     jobId: jobId,
                     type: paymentType,
@@ -421,7 +417,7 @@ var captureJobPayment = function (req, res, next) { return __awaiter(void 0, voi
                 charges = _b.sent();
                 metadata = {
                     customerId: customer.id,
-                    constractorId: contractor === null || contractor === void 0 ? void 0 : contractor.id,
+                    contractorId: contractor === null || contractor === void 0 ? void 0 : contractor.id,
                     quotationId: quotation.id,
                     type: paymentType,
                     jobId: jobId,

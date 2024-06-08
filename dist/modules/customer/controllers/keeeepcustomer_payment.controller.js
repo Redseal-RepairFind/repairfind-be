@@ -208,7 +208,7 @@ var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0
                     on_behalf_of: contractor === null || contractor === void 0 ? void 0 : contractor.stripeAccount.id,
                     metadata: {
                         customerId: customerId,
-                        constractorId: contractor === null || contractor === void 0 ? void 0 : contractor.id,
+                        contractorId: contractor === null || contractor === void 0 ? void 0 : contractor.id,
                         quotationId: quotationId,
                         type: "job_payment",
                         jobId: jobId,
@@ -381,7 +381,7 @@ var captureJobPayment = function (req, res, next) { return __awaiter(void 0, voi
                     on_behalf_of: contractor === null || contractor === void 0 ? void 0 : contractor.stripeAccount.id,
                     metadata: {
                         customerId: customerId,
-                        constractorId: contractor === null || contractor === void 0 ? void 0 : contractor.id,
+                        contractorId: contractor === null || contractor === void 0 ? void 0 : contractor.id,
                         quotationId: quotationId,
                         type: "job_payment",
                         jobId: jobId,

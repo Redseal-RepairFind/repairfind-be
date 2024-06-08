@@ -187,7 +187,7 @@ JobSchema.methods.getJobDay = function (scheduleType) {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    if (!scheduleType)
+                    if (!scheduleType && this.schedule)
                         scheduleType = this.schedule.type;
                     return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ job: this.id, type: scheduleType })];
                 case 1: return [2 /*return*/, _a.sent()];
