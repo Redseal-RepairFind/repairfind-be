@@ -46,6 +46,9 @@ router.get("/contractor/detail", checkAdminRole, AdminContractorDetail.AdminGetC
 router.get("/contractor/detail/:contractorId", checkAdminRole, AdminContractorDetail.AdminGetSingleContractorDetailController ); // admin get single contractor detail
 router.post("/validate/contractor/gst", validateContractorChangeStatusValidationParams, checkAdminRole, AdminContractorDetail.AdminChangeContractorGstStatusController ); // admin change contractor gst
 router.get("/contractor/detail/pending/gst", checkAdminRole, AdminContractorDetail.AdminGetContractorGstPendingController ); // admin get contractor detail with gst status pending
+router.get("/contractor/detail/approve/gst", checkAdminRole, AdminContractorDetail.AdminGetContractorGstApproveController ); // admin get contractor detail with gst status approve
+router.get("/contractor/detail/decline/gst", checkAdminRole, AdminContractorDetail.AdminGetContractorGstDecliningController ); // admin get contractor detail with gst status Decline
+router.get("/contractor/detail/review/gst", checkAdminRole, AdminContractorDetail.AdminGetContractorGstReviewingController ); // admin get contractor detail with gst status Reviewing
 router.get("/contractor/job/detail/:contractorId", checkAdminRole, AdminContractorDetail.AdminGetSingleContractorJonDetailController ); // admin get single contractor job detail
 
 
