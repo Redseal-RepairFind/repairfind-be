@@ -83,8 +83,8 @@ var createAccountLink = function (accountId) { return __awaiter(void 0, void 0, 
                 _a.trys.push([0, 2, , 3]);
                 return [4 /*yield*/, stripeClient.accountLinks.create({
                         account: accountId,
-                        refresh_url: 'https://example.com/reauth',
-                        return_url: 'https://example.com/return',
+                        refresh_url: 'https://repairfind.ca',
+                        return_url: 'https://repairfind.ca',
                         type: 'account_onboarding',
                     })];
             case 1:
