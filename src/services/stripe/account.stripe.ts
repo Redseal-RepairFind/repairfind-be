@@ -36,8 +36,8 @@ export const createAccountLink = async (accountId: any) => {
     
     const accountLink = await stripeClient.accountLinks.create({
         account: accountId,
-        refresh_url: 'https://example.com/reauth',
-        return_url: 'https://example.com/return',
+        refresh_url: 'https://repairfind.ca',
+        return_url: 'https://repairfind.ca',
         type: 'account_onboarding',
     });
     
