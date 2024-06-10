@@ -46,59 +46,35 @@ export const AdminGetContractorDetailController = async (
 
       const totalContractor = await ContractorModel.countDocuments()
   
-      // const artisans = [];
+      const artisans = [];
       
-      // for (let i = 0; i < contractors.length; i++) {
-      //   const contractor = contractors[i];
+      for (let i = 0; i < contractors.length; i++) {
+        const contractor = contractors[i];
+        const job = await JobModel.find({contractor: contractor._id}).sort({ createdAt: -1 }).populate("customer")
 
-      //   const document = await ContractorDocumentValidateModel.findOne({contractorId: contractor._id});
-
-      //   const availability = await ContractorAvailabilityModel.find({contractorId: contractor._id});
-
-      //   const jobRequests = await JobModel.find({contractorId: contractor._id}).sort({ createdAt: -1 })
-
-      //   let rating = null;
+        // let rating = null;
         
-      //   const contractorRating = await ContractorRatingModel.findOne({contractorId: contractor._id})
-      //   if (contractorRating) {
-      //     rating = contractorRating
-      //   }
+        // const contractorRating = await ContractorRatingModel.findOne({contractorId: contractor._id})
+        // if (contractorRating) {
+        //   rating = contractorRating
+        // }
 
-      //   let jobRequested = []
+        // let jobRequested = []
 
-      //   for (let i = 0; i < jobRequests.length; i++) {
-      //     const jobRequest = jobRequests[i];
-          
-      //     const customer = await CustomerRegModel.findOne({_id: jobRequest.customerId}).select('-password');
+        const objTwo = {
+            contractor: contractor,
+            job: job
+        };
 
-      //     const obj = {
-      //       job: jobRequest,
-      //       customer
-      //     }
-
-      //     jobRequested.push(obj)
-          
-      //   }
-
-      //   const objTwo = {
-
-      //       contractorProfile: contractor,
-      //       rating,
-      //       document,
-      //       availability,
-      //       jobHistory: jobRequested
-      //   };
-
-      //   artisans.push(objTwo)
-      // }
+        artisans.push(objTwo)
+      }
   
       res.json({ 
         currentPage: page,
         totalContractor,
         totalPages: Math.ceil(totalContractor / limit),
-        contractors,
-        // totalContractor, 
-        // artisans
+        contractors: artisans
+        
       });
       
     } catch (err: any) {
@@ -107,16 +83,11 @@ export const AdminGetContractorDetailController = async (
     }
 }
 
-
-
-
-
 //get  single contractor detail /////////////
 export const AdminGetSingleContractorDetailController = async (
   req: any,
   res: Response,
 ) => {
-
   try {
     const { contractorId } = req.params;
 
@@ -139,46 +110,11 @@ export const AdminGetSingleContractorDetailController = async (
         .json({ message: "invalid artisan ID" });
     }
 
-    // const document = await ContractorDocumentValidateModel.findOne({contractorId: contractor._id});
-
-    // const availability = await ContractorAvailabilityModel.find({contractorId: contractor._id});
-
-    // const jobRequests = await JobModel.find({contractorId: contractor._id}).sort({ createdAt: -1 })
-
-    // let rating = null;
-        
-    // const contractorRating = await ContractorRatingModel.findOne({contractorId: contractor._id})
-    // if (contractorRating) {
-    //   rating = contractorRating
-    // }
-
-    // let jobRequested = []
-
-    // for (let i = 0; i < jobRequests.length; i++) {
-    //   const jobRequest = jobRequests[i];
-      
-    //   const customer = await CustomerRegModel.findOne({_id: jobRequest.customerId}).select('-password');
-
-    //   const obj = {
-    //     job: jobRequest,
-    //     customer
-    //   }
-
-    //   jobRequested.push(obj)
-      
-    // }
-
-    // const objTwo = {
-    //     contractorProfile: contractor,
-    //     rating,
-    //     document,
-    //     availability,
-    //     jobHistory: jobRequested
-    // };
+    const job = await JobModel.find({contractor: contractor._id}).sort({ createdAt: -1 }).populate("customer")
 
     res.json({ 
       contractor, 
-      // artisan: objTwo
+      job
     });
     
   } catch (err: any) {
@@ -287,8 +223,9 @@ export const AdminGetContractorGstPendingController = async (
 
   try {
     let {  
-     
-    } = req.body;
+      page,
+      limit
+    } = req.query
 
     // Check for validation errors
     const errors = validationResult(req);
@@ -300,11 +237,172 @@ export const AdminGetContractorGstPendingController = async (
     const admin =  req.admin;
     const adminId = admin.id
 
+    page = page || 1;
+    limit = limit || 50;
+
+    const skip = (page - 1) * limit;
+
     const contractor = await ContractorModel.find({
-      "gstDetails.status": "PENDING"
+      "gstDetails.status": GST_STATUS.PENDING
+    }).skip(skip)
+    .limit(limit);
+
+    const totalContractor = await ContractorModel.countDocuments({
+      "gstDetails.status": GST_STATUS.PENDING
     })
   
     res.json({  
+      currentPage: page,
+      totalContractor,
+      totalPages: Math.ceil(totalContractor / limit),
+      contractor
+    });
+    
+  } catch (err: any) {
+    // signup error
+    res.status(500).json({ message: err.message });
+  }
+}
+
+
+//admin get contractor gst that is approve /////////////
+export const AdminGetContractorGstApproveController = async (
+  req: any,
+  res: Response,
+) => {
+  try {
+    let {  
+      page,
+      limit
+    } = req.query
+
+    // Check for validation errors
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const admin =  req.admin;
+    const adminId = admin.id
+
+    page = page || 1;
+    limit = limit || 50;
+
+    const skip = (page - 1) * limit;
+
+    const contractor = await ContractorModel.find({
+      "gstDetails.status": GST_STATUS.APPROVED
+    }).skip(skip)
+    .limit(limit);
+
+    const totalContractor = await ContractorModel.countDocuments({
+      "gstDetails.status": GST_STATUS.APPROVED
+    })
+  
+  
+    res.json({  
+      currentPage: page,
+      totalContractor,
+      totalPages: Math.ceil(totalContractor / limit),
+      contractor
+    });
+    
+  } catch (err: any) {
+    // signup error
+    res.status(500).json({ message: err.message });
+  }
+}
+
+//admin get contractor gst that is Reviewing /////////////
+export const AdminGetContractorGstReviewingController = async (
+  req: any,
+  res: Response,
+) => {
+
+  try {
+    let {  
+      page,
+      limit
+    } = req.query
+
+    // Check for validation errors
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const admin =  req.admin;
+    const adminId = admin.id
+
+    page = page || 1;
+    limit = limit || 50;
+
+    const skip = (page - 1) * limit;
+
+    const contractor = await ContractorModel.find({
+      "gstDetails.status": GST_STATUS.REVIEWING
+    }).skip(skip)
+    .limit(limit);
+
+    const totalContractor = await ContractorModel.countDocuments({
+      "gstDetails.status": GST_STATUS.REVIEWING
+    })
+  
+  
+    res.json({  
+      currentPage: page,
+      totalContractor,
+      totalPages: Math.ceil(totalContractor / limit),
+      contractor
+    });
+    
+  } catch (err: any) {
+    // signup error
+    res.status(500).json({ message: err.message });
+  }
+}
+
+//admin get contractor gst that is Decline /////////////
+export const AdminGetContractorGstDecliningController = async (
+  req: any,
+  res: Response,
+) => {
+
+  try {
+    let {  
+      page,
+      limit
+    } = req.query
+
+    // Check for validation errors
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const admin =  req.admin;
+    const adminId = admin.id
+
+    page = page || 1;
+    limit = limit || 50;
+
+    const skip = (page - 1) * limit;
+
+    const contractor = await ContractorModel.find({
+      "gstDetails.status": GST_STATUS.DECLINED
+    }).skip(skip)
+    .limit(limit);
+
+    const totalContractor = await ContractorModel.countDocuments({
+      "gstDetails.status": GST_STATUS.DECLINED
+    })
+    res.json({  
+      currentPage: page,
+      totalContractor,
+      totalPages: Math.ceil(totalContractor / limit),
       contractor
     });
     
@@ -380,7 +478,7 @@ export const AdminGetSingleContractorJonDetailController = async (
       currentPage: page,
       totalJob,
       totalPages: Math.ceil(totalJob / limit),
-      jobs
+      jobs: jobsDetails,
     });
     
   } catch (err: any) {
@@ -395,5 +493,8 @@ export const AdminContractorDetail = {
   AdminGetSingleContractorDetailController,
   AdminChangeContractorGstStatusController,
   AdminGetContractorGstPendingController,
+  AdminGetContractorGstReviewingController,
+  AdminGetContractorGstApproveController,
+  AdminGetContractorGstDecliningController,
   AdminGetSingleContractorJonDetailController
 }

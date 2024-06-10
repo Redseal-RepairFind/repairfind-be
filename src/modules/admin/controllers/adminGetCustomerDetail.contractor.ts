@@ -238,7 +238,7 @@ export const AdminGetSingleCustomerJobDetailController = async (
       currentPage: page,
       totalJob,
       totalPages: Math.ceil(totalJob / limit),
-      jobs
+      jobs: jobsDetails
     });
     
   } catch (err: any) {
