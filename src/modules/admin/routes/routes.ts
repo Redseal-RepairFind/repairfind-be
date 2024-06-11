@@ -8,6 +8,7 @@ import { AddStaffController, AdminSignInController, SuperAdminGetAllAdminControl
 import { AdminGetAppDetailController } from "../controllers/appDetails.Controller";
 import { AdminGetRevenueAnalysisControlleer, AdminsendEmailsControlleer } from "../controllers/averageRevenue.controller";
 import { AdminContractorController } from "../controllers/contractor.controller";
+import { dispute } from "../controllers/dispute.controller";
 import { ermergency } from "../controllers/emergency.controller";
 import {  AdminJobController, } from "../controllers/job.controller";
 import { AdminGetCompletedPayoutDetailController, AdminGetPendingPayoutDetailController, AdminGetSinglePayoutDetailController, AdminPayContractorController } from "../controllers/payout.controller";
@@ -29,7 +30,7 @@ router.post("/signin", validateAdminLoginParams, AdminSignInController ); // adm
 router.post("/forgot/password", validateAdminForgotPasswordParams, AdminEmailForgotPasswordController ); // admin forgot password
 router.post("/reset/password", validateAdminResetPasswprdParams, AdminEmailResetPasswordController ); // admin reset password
 
-
+//don staff
 router.post("/staff", Validations.AddStaffParams, checkAdminRole, AddStaffController ); // super admin add staff
 router.post("/staff/status", validateSuperAdmiCchangeStatusParams, checkAdminRole, SuperAdminChangeStaffStatusController ); // super admin change staff status
 router.get("/staffs", checkAdminRole, SuperAdminGetAllAdminController ); // super get the list of staff
@@ -69,7 +70,7 @@ router.post("/skills", validateAddSkillParams, checkAdminRole, AdminAddNewSkillC
 router.post("/add/skill", validateAddSkillParams, checkAdminRole, AdminAddNewSkillController ); // admin add skilll
 router.get("/skills", checkAdminRole, AdminGetSkillController ); // admin get all skill
 
-// done
+// done job
 router.get("/jobs/detail", checkAdminRole, AdminJobController.AdminGetJobsrDetailController ); // admin get job detail
 router.get("/jobs/detail/:jobId", checkAdminRole, AdminJobController.AdminGetSingleJobsrDetailController ); // admin get single job detail
 router.get("/total_job", checkAdminRole, AdminJobController.AdminGetTotalJobsrController); // admin get total job
@@ -87,6 +88,13 @@ router.get("/emergecy/resolve", checkAdminRole, ermergency.AdminGetResolveEmerge
 router.get("/emergecy/:emergencyId", checkAdminRole, ermergency.AdminGetSingleEmergencyJobController ); // admin get single emergency
 router.post("/emergecy/accept", validateEmergecyIdParams, checkAdminRole, ermergency.AdminAcceptEmergencyJobController  ); // admin accept emergecy
 router.post("/emergecy/resolved", validateResolvedEmergecyIdParams, checkAdminRole, ermergency.AdminResolvedEmergencyJobController  ); // admin resolved emergecy
+
+//done dispute
+router.get("/dispute", Validations.DisputeStatusParams, checkAdminRole, dispute.AdminJobDisputeByStatusController ); // admin get dispute by status
+router.get("/dispute/:disputeId", checkAdminRole, dispute.AdminGetSingleJobDisputeController ); // admin get single dispute
+router.post("/dispute/accept", Validations.AcceptDisputeParams, checkAdminRole, dispute.AdminAcceptJobDisputeController ); // admin accept dispute
+router.get("/dispute/admin", Validations.DisputeStatusParams, checkAdminRole, dispute.AdminGetJobDisputForAdminController ); // admin get dispute for himself
+router.post("/dispute/settle", Validations.SettleDisputeParams, checkAdminRole, dispute.AdminSettleJobDisputeController  ); // admin settle dispute
 
 
 router.post("/admin_add_question", validateAddQuestionParams, checkAdminRole, AdminQuizController.AddQuestion ); // admin add question

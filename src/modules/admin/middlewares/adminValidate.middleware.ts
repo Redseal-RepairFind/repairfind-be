@@ -1,5 +1,6 @@
 import { body, query } from "express-validator";
 import { AdminStatus } from "../../../database/admin/interface/admin.interface";
+import { JOB_DISPUTE_STATUS } from "../../../database/common/job_dispute.model";
 
 export const validateSignupParams = [
   body("email").isEmail(),
@@ -151,9 +152,25 @@ export const AddPermissionParams = [
     body("permision").notEmpty(),
 ];
 
+export const DisputeStatusParams = [
+    query("status").isIn(Object.values(JOB_DISPUTE_STATUS)),
+];
+
+export const AcceptDisputeParams = [
+    body("disputeId").notEmpty(),
+];
+
+export const SettleDisputeParams = [
+    body("disputeId").notEmpty(),
+    body("resolvedWay").notEmpty(),
+];
+
 export const Validations = {
     PermissionCreationParam,
     EditPermissionParams,
     AddStaffParams,
-    AddPermissionParams
+    AddPermissionParams,
+    DisputeStatusParams,
+    AcceptDisputeParams,
+    SettleDisputeParams
 }
