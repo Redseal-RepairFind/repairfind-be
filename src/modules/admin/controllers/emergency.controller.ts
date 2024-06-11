@@ -35,7 +35,7 @@ export const AdminGeNewEmergencyJobController = async (
       .limit(limit)
       .populate(['customer', 'contractor']);
 
-      const totalJobEmergency = await JobEmergencyModel.countDocuments()
+      const totalJobEmergency = await JobEmergencyModel.countDocuments({status: EmergencyStatus.PENDING})
 
       res.json({ 
         currentPage: page,
@@ -113,7 +113,13 @@ export const AdminAcceptEmergencyJobController = async (
       if (!jobEmergency) {
         return res
           .status(401)
-          .json({ message: "invalid emergencyId" });
+          .json({ message: "Invalid emergencyId" });
+      }
+
+      if (jobEmergency.status !== EmergencyStatus.PENDING) {
+        return res
+          .status(401)
+          .json({ message: "Job emergency not pending" });
       }
 
       jobEmergency.status = EmergencyStatus.IN_PROGRESS
@@ -121,7 +127,7 @@ export const AdminAcceptEmergencyJobController = async (
       await jobEmergency.save()
       
       res.json({ 
-        message: "emergency accepted successfully"    
+        message: "Emergency accepted successfully"    
       });
       
     } catch (err: any) {
@@ -220,9 +226,9 @@ export const AdminGetActiveEmergencyJobController = async (
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .populate(['customer', 'contractor']);
+      .populate(['customer', 'contractor', 'job']);
 
-      const totalJobEmergency = await JobEmergencyModel.countDocuments()
+      const totalJobEmergency = await JobEmergencyModel.countDocuments({acceptedBy: adminId, status: EmergencyStatus.IN_PROGRESS})
 
       res.json({ 
         currentPage: page,
@@ -268,9 +274,9 @@ export const AdminGetResolveEmergencyJobController = async (
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .populate(['customer', 'contractor']);
+      .populate(['customer', 'contractor', 'job']);
 
-      const totalJobEmergency = await JobEmergencyModel.countDocuments()
+      const totalJobEmergency = await JobEmergencyModel.countDocuments({acceptedBy: adminId, status: EmergencyStatus.RESOLVED})
 
       res.json({ 
         currentPage: page,

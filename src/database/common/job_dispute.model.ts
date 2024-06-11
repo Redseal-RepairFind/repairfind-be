@@ -22,6 +22,8 @@ export interface IJobDispute extends Document {
     filedBy: string; // Who filed the dispute (customer or contractor)
     evidence: Evidence[]; // Array of evidence URLs or references
     status: JOB_DISPUTE_STATUS;
+    acceptedBy: Types.ObjectId, 
+    resolvedWay: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -63,6 +65,12 @@ const JobDisputeSchema = new Schema<IJobDispute>(
             enum: Object.values(JOB_DISPUTE_STATUS),
             required: true,
             default: JOB_DISPUTE_STATUS.OPEN,
+        },
+        acceptedBy: {
+            type: Schema.Types.ObjectId
+        },
+        resolvedWay: {
+            type: String,
         },
         conversation: {
             type: Schema.Types.ObjectId
