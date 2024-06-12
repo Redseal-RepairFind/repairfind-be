@@ -51,6 +51,7 @@ router.get("/contractor/detail/approve/gst", checkAdminRole, AdminContractorDeta
 router.get("/contractor/detail/decline/gst", checkAdminRole, AdminContractorDetail.AdminGetContractorGstDecliningController ); // admin get contractor detail with gst status Decline
 router.get("/contractor/detail/review/gst", checkAdminRole, AdminContractorDetail.AdminGetContractorGstReviewingController ); // admin get contractor detail with gst status Reviewing
 router.get("/contractor/job/detail/:contractorId", checkAdminRole, AdminContractorDetail.AdminGetSingleContractorJonDetailController ); // admin get single contractor job detail
+router.post("/contractor/account/status", Validations.ContractorChangeStatusParams, checkAdminRole, AdminContractorDetail.AdminChangeContractorAccountStatusController); // admin change contractor account status
 
 
 //done

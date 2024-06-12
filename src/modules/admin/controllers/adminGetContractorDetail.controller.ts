@@ -488,6 +488,58 @@ export const AdminGetSingleContractorJonDetailController = async (
 }
 
 
+//admin change contractor account status  /////////////
+export const AdminChangeContractorAccountStatusController = async (
+  req: any,
+  res: Response,
+) => {
+
+  try {
+    let {  
+     status,
+     contractorId,
+    } = req.body;
+
+    // Check for validation errors
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    // const admin =  req.admin;
+    const adminId = req.admin.id
+
+    const admin = await AdminRegModel.findOne({_id: adminId})
+
+    if (!admin) {
+      return res
+        .status(401)
+        .json({ message: "Invalid admin ID" });
+    }
+
+    const contractor = await ContractorModel.findOne({_id: contractorId})
+
+    if (!contractor) {
+      return res
+        .status(401)
+        .json({ message: "Invalid contractor ID" });
+    }
+
+    contractor.status = status;
+    await contractor.save()
+
+    res.json({  
+      message: `Contractor account status successfully change to ${status}`
+    });
+    
+  } catch (err: any) {
+    // signup error
+    res.status(500).json({ message: err.message });
+  }
+}
+
+
 export const AdminContractorDetail = {
   AdminGetContractorDetailController,
   AdminGetSingleContractorDetailController,
@@ -496,5 +548,6 @@ export const AdminContractorDetail = {
   AdminGetContractorGstReviewingController,
   AdminGetContractorGstApproveController,
   AdminGetContractorGstDecliningController,
-  AdminGetSingleContractorJonDetailController
+  AdminGetSingleContractorJonDetailController,
+  AdminChangeContractorAccountStatusController
 }
