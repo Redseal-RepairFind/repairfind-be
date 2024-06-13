@@ -3,27 +3,14 @@
   "builds": [
     {
       "src": "src/index.ts",
-      "use": "@vercel/node"
+      "use": "@vercel/node",
+      "config": { "includeFiles": ["src/**"] }
     }
   ],
-  
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "src/index.ts",
-      "methods": [
-        "GET",
-        "POST",
-        "PUT",
-        "PATCH",
-        "DELETE",
-        "OPTIONS"
-      ]
+      "dest": "/dist/index.js"
     }
-  ],
-
-  "env": {
-    "NODE_ENV": "development",
-    "PORT": "3000"
-  }
+  ]
 }
