@@ -38,17 +38,44 @@ securityMiddleware(app);
 // Apply CSRF protection middleware
 csrfMiddleware(app);
 
+<<<<<<< HEAD
 // Apply sentry middleware
 sentryMiddleware(app)
 
 // Apply cors middleware
 corsMiddleware(app)
+=======
+// Sentry.init({
+//   dsn: 'https://8225b8a1b7344717b059046c31def1ab@o4504391847116800.ingest.us.sentry.io/4507232502087680',
+
+//   // We recommend adjusting this value in production, or using tracesSampler
+//   // for finer control
+//   tracesSampleRate: 1.0,
+// });
+>>>>>>> 3fbab43 (Testing deployement)
 
 // Api rate limite
 configureRateLimit(app)
 
+<<<<<<< HEAD
 // Parsers
 configureParsers(app);
+=======
+// Sentry.init({
+//   dsn: config.sentry.dsn,
+//   integrations: [
+//     // enable HTTP calls tracing
+//     new Sentry.Integrations.Http({ tracing: true }),
+//     // enable Express.js middleware tracing
+//     new Sentry.Integrations.Express({ app }),
+//     nodeProfilingIntegration(),
+//   ],
+//   // Performance Monitoring
+//   tracesSampleRate: 1.0, //  Capture 100% of the transactions
+//   // Set sampling rate for profiling - this is relative to tracesSampleRate
+//   profilesSampleRate: 1.0,
+// });
+>>>>>>> 3fbab43 (Testing deployement)
 
 
 // Database connection
