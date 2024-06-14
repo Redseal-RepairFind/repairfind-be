@@ -46,6 +46,12 @@ var JobDisputeSchema = new mongoose_1.Schema({
         required: true,
         default: JOB_DISPUTE_STATUS.OPEN,
     },
+    acceptedBy: {
+        type: mongoose_1.Schema.Types.ObjectId
+    },
+    resolvedWay: {
+        type: String,
+    },
     conversation: {
         type: mongoose_1.Schema.Types.ObjectId
     }

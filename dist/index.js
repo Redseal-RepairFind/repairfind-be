@@ -75,8 +75,14 @@ var server = http_1.default.createServer(app);
 (0, sentry_1.default)(app);
 // Apply cors middleware
 (0, cors_1.default)(app);
+// Apply sentry middleware
+(0, sentry_1.default)(app);
+// Apply cors middleware
+(0, cors_1.default)(app);
 // Api rate limite
 (0, ratelimit_1.default)(app);
+// Parsers
+(0, parsers_1.default)(app);
 // Parsers
 (0, parsers_1.default)(app);
 // Database connection

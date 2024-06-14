@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAccount = exports.createLoginLink = exports.createAccountLink = exports.createAccount = void 0;
+exports.getAccount = exports.createLoginLink = exports.createAccountLink = exports.createCustomAccount = exports.createAccount = void 0;
 var stripe_1 = __importDefault(require("stripe"));
 var custom_errors_1 = require("../../utils/custom.errors");
 var STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
@@ -75,8 +75,59 @@ var createAccount = function (payload) { return __awaiter(void 0, void 0, void 0
     });
 }); };
 exports.createAccount = createAccount;
+// https://docs.stripe.com/connect/custom-accounts
+// https://docs.stripe.com/connect/custom/hosted-onboarding
+// Paypal business account
+// https://www.paypal.com/c2/webapps/mpp/how-to-guides/sign-up-business-account?locale.x=en_C2
+var createCustomAccount = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
+    var account, error_2;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                return [4 /*yield*/, stripeClient.accounts.create({
+                        type: 'custom',
+                        country: 'US',
+                        business_type: 'individual',
+                        individual: {
+                            first_name: 'John',
+                            last_name: 'Doe',
+                            email: 'john.doe@example.com',
+                            dob: {
+                                day: 10,
+                                month: 6,
+                                year: 1985,
+                            },
+                            address: {
+                                line1: '123 Main St',
+                                city: 'Anytown',
+                                state: 'CA',
+                                postal_code: '12345',
+                            },
+                        },
+                        capabilities: {
+                            card_payments: {
+                                requested: true,
+                            },
+                            transfers: {
+                                requested: true,
+                            },
+                        },
+                    })];
+            case 1:
+                account = _a.sent();
+                console.log(account);
+                return [2 /*return*/, account];
+            case 2:
+                error_2 = _a.sent();
+                throw new custom_errors_1.BadRequestError(error_2.message || "Something went wrong");
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.createCustomAccount = createCustomAccount;
 var createAccountLink = function (accountId) { return __awaiter(void 0, void 0, void 0, function () {
-    var accountLink, error_2;
+    var accountLink, error_3;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -91,15 +142,15 @@ var createAccountLink = function (accountId) { return __awaiter(void 0, void 0, 
                 accountLink = _a.sent();
                 return [2 /*return*/, accountLink];
             case 2:
-                error_2 = _a.sent();
-                throw new custom_errors_1.BadRequestError(error_2.message || "Something went wrong");
+                error_3 = _a.sent();
+                throw new custom_errors_1.BadRequestError(error_3.message || "Something went wrong");
             case 3: return [2 /*return*/];
         }
     });
 }); };
 exports.createAccountLink = createAccountLink;
 var createLoginLink = function (accountId) { return __awaiter(void 0, void 0, void 0, function () {
-    var loginLink, error_3;
+    var loginLink, error_4;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -109,15 +160,15 @@ var createLoginLink = function (accountId) { return __awaiter(void 0, void 0, vo
                 loginLink = _a.sent();
                 return [2 /*return*/, loginLink];
             case 2:
-                error_3 = _a.sent();
-                throw new custom_errors_1.BadRequestError(error_3.message || "Something went wrong");
+                error_4 = _a.sent();
+                throw new custom_errors_1.BadRequestError(error_4.message || "Something went wrong");
             case 3: return [2 /*return*/];
         }
     });
 }); };
 exports.createLoginLink = createLoginLink;
 var getAccount = function (accountId) { return __awaiter(void 0, void 0, void 0, function () {
-    var error_4;
+    var error_5;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -125,8 +176,8 @@ var getAccount = function (accountId) { return __awaiter(void 0, void 0, void 0,
                 return [4 /*yield*/, stripeClient.accounts.retrieve(accountId)];
             case 1: return [2 /*return*/, _a.sent()];
             case 2:
-                error_4 = _a.sent();
-                console.log(error_4);
+                error_5 = _a.sent();
+                console.log(error_5);
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
         }
