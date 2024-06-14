@@ -2,7 +2,7 @@ import { validationResult } from "express-validator";
 import { Request, Response } from "express";
 import AdminRegModel from "../../../database/admin/models/admin.model";
 import CustomerRegModel from "../../../database/customer/models/customer.model";
-import {ContractorModel} from "../../../database/contractor/models/contractor.model";
+// import {ContractorModel} from "../../../database/contractor/models/contractor.model";
 import { JobModel } from "../../../database/common/job.model";
 import CustomerRatingModel from "../../../database/customer/models/customerRating.model";
 import { InvoiceModel } from "../../../database/common/invoices.shema";
@@ -245,11 +245,61 @@ export const AdminGetSingleCustomerJobDetailController = async (
     // signup error
     res.status(500).json({ message: err.message });
   }
+}
 
+//admin change customer account status  /////////////
+export const AdminChangeCustomerAccountStatusController = async (
+  req: any,
+  res: Response,
+) => {
+  try {
+    let {  
+     status,
+     customerId,
+    } = req.body;
+
+    // Check for validation errors
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    // const admin =  req.admin;
+    const adminId = req.admin.id
+
+    const admin = await AdminRegModel.findOne({_id: adminId})
+
+    if (!admin) {
+      return res
+        .status(401)
+        .json({ message: "Invalid admin ID" });
+    }
+
+    const customer = await CustomerRegModel.findOne({_id: customerId})
+
+    if (!customer) {
+      return res
+        .status(401)
+        .json({ message: "Invalid customer ID" });
+    }
+
+    customer.status = status;
+    await customer.save()
+
+    res.json({  
+      message: `Customer account status successfully change to ${status}`
+    });
+    
+  } catch (err: any) {
+    // signup error
+    res.status(500).json({ message: err.message });
+  }
 }
 
 export const AdminCustomerController = {
   AdminGetCustomerDetailController,
   AdminGetSingleCustomerDetailController,
   AdminGetSingleCustomerJobDetailController,
+  AdminChangeCustomerAccountStatusController,
 }
