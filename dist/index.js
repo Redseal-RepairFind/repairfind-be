@@ -115,6 +115,9 @@ var MONGODB_URI = process.env.MONGODB_URI;
 app.use("/health", function (req, res) {
     res.json({ success: true, message: "App is up and running:  ".concat(req.hostname).concat(req.originalUrl) });
 });
+app.use("/", function (req, res) {
+    res.json({ success: true, message: "Welcome to repairfind api:  ".concat(req.hostname).concat(req.originalUrl) });
+});
 app.use("/api/v1/contractor", routes_1.default);
 app.use("/api/v1/admin", routes_2.default);
 app.use("/api/v1/customer", routes_3.default);
