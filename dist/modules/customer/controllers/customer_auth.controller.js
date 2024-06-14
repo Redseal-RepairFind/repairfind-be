@@ -64,7 +64,7 @@ var signUp = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                 _a = req.body, email = _a.email, password = _a.password, firstName = _a.firstName, lastName = _a.lastName, acceptTerms = _a.acceptTerms, phoneNumber = _a.phoneNumber;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: "Validation errors occured", errors: errors.array() })];
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "Validation error occured", errors: errors.array() })];
                 }
                 return [4 /*yield*/, customer_model_1.default.findOne({ email: email })];
             case 1:
@@ -151,7 +151,7 @@ var verifyEmail = function (req, res) { return __awaiter(void 0, void 0, void 0,
                 _a = req.body, email = _a.email, otp = _a.otp;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: "Validation errors", errors: errors.array() })];
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "Validation error occured", errors: errors.array() })];
                 }
                 return [4 /*yield*/, customer_model_1.default.findOne({ email: email })];
             case 1:
@@ -212,7 +212,7 @@ var signIn = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                 _a = req.body, email = _a.email, password = _a.password;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "Validation error occured", errors: errors.array() })];
                 }
                 return [4 /*yield*/, customer_model_1.default.findOne({ email: email })];
             case 1:
@@ -235,10 +235,10 @@ var signIn = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                     return [2 /*return*/, res.status(401).json({ success: false, message: "Account is associated with ".concat(customer.provider, " account") })];
                 }
                 if (!isPasswordMatch) {
-                    return [2 /*return*/, res.status(401).json({ success: false, message: "incorrect credential." })];
+                    return [2 /*return*/, res.status(401).json({ success: false, message: "Incorrect credential." })];
                 }
                 if (!customer.emailOtp.verified) {
-                    return [2 /*return*/, res.status(401).json({ success: false, message: "email not verified." })];
+                    return [2 /*return*/, res.status(401).json({ success: false, message: "Email not verified." })];
                 }
                 return [4 /*yield*/, customer_model_1.default.findOne({ email: email }).select('-password')];
             case 3:
@@ -251,7 +251,7 @@ var signIn = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                 // return access token
                 res.json({
                     success: true,
-                    message: "Login successful",
+                    message: "Signin successful",
                     accessToken: accessToken,
                     expiresIn: config_1.config.jwt.tokenLifetime,
                     data: profile
@@ -276,7 +276,7 @@ var resendEmail = function (req, res) { return __awaiter(void 0, void 0, void 0,
                 email = req.body.email;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation error', errors: errors.array() })];
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation error occured', errors: errors.array() })];
                 }
                 return [4 /*yield*/, customer_model_1.default.findOne({ email: email })];
             case 1:
@@ -285,12 +285,12 @@ var resendEmail = function (req, res) { return __awaiter(void 0, void 0, void 0,
                 if (!customer) {
                     return [2 /*return*/, res
                             .status(401)
-                            .json({ success: false, message: "invalid email" })];
+                            .json({ success: false, message: "Invalid email" })];
                 }
                 if (customer.emailOtp.verified) {
                     return [2 /*return*/, res
                             .status(400)
-                            .json({ success: false, message: "email already verified" })];
+                            .json({ success: false, message: "Email already verified" })];
                 }
                 otp = (0, otpGenerator_1.generateOTP)();
                 createdTime = new Date();
@@ -329,7 +329,7 @@ var forgotPassword = function (req, res) { return __awaiter(void 0, void 0, void
                 email = req.body.email;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation errors', errors: errors.array() })];
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation error occured', errors: errors.array() })];
                 }
                 return [4 /*yield*/, customer_model_1.default.findOne({ email: email })];
             case 1:
@@ -337,7 +337,7 @@ var forgotPassword = function (req, res) { return __awaiter(void 0, void 0, void
                 if (!customer) {
                     return [2 /*return*/, res
                             .status(401)
-                            .json({ success: false, message: "invalid email" })];
+                            .json({ success: false, message: "Invalid email" })];
                 }
                 otp = (0, otpGenerator_1.generateOTP)();
                 createdTime = new Date();
@@ -352,7 +352,7 @@ var forgotPassword = function (req, res) { return __awaiter(void 0, void 0, void
                 html = (0, sendEmailTemplate_1.htmlMailTemplate)(otp, customer.firstName, "We have received a request to change your password");
                 emailData = {
                     emailTo: email,
-                    subject: "constractor password change",
+                    subject: "C password change",
                     html: html
                 };
                 (0, send_email_utility_1.sendEmail)(emailData);
@@ -375,7 +375,7 @@ var resetPassword = function (req, res) { return __awaiter(void 0, void 0, void 
                 _a = req.body, email = _a.email, otp = _a.otp, password = _a.password;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ success: false, errors: errors.array() })];
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "Validation error occured", errors: errors.array() })];
                 }
                 return [4 /*yield*/, customer_model_1.default.findOne({ email: email })];
             case 1:
@@ -384,14 +384,14 @@ var resetPassword = function (req, res) { return __awaiter(void 0, void 0, void 
                 if (!customer) {
                     return [2 /*return*/, res
                             .status(401)
-                            .json({ success: false, message: "invalid email" })];
+                            .json({ success: false, message: "Invalid email" })];
                 }
                 _b = customer.passwordOtp, createdTime = _b.createdTime, verified = _b.verified;
                 timeDiff = new Date().getTime() - createdTime.getTime();
                 if (!verified || timeDiff > otpGenerator_1.OTP_EXPIRY_TIME || otp !== customer.passwordOtp.otp) {
                     return [2 /*return*/, res
                             .status(401)
-                            .json({ success: false, message: "unable to reset password" })];
+                            .json({ success: false, message: "Unable to reset password" })];
                 }
                 return [4 /*yield*/, bcrypt_1.default.hash(password, 10)];
             case 2:
@@ -420,7 +420,7 @@ var verifyResetPasswordOtp = function (req, res) { return __awaiter(void 0, void
                 _a = req.body, email = _a.email, otp = _a.otp;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ success: false, errors: errors.array() })];
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "Validation error occured", errors: errors.array() })];
                 }
                 return [4 /*yield*/, customer_model_1.default.findOne({ email: email })];
             case 1:
@@ -459,7 +459,7 @@ var googleSignon = function (req, res) { return __awaiter(void 0, void 0, void 0
                 accessToken = req.body.accessToken;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: "Validation errors", errors: errors.array() })];
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "Validation error occured", errors: errors.array() })];
                 }
                 return [4 /*yield*/, google_1.GoogleServiceProvider.getUserInfo(accessToken)];
             case 1:
@@ -500,7 +500,7 @@ var googleSignon = function (req, res) { return __awaiter(void 0, void 0, void 0
                 }, process.env.JWT_CONTRACTOR_SECRET_KEY, { expiresIn: '24h' });
                 res.json({
                     status: true,
-                    message: 'Login successful',
+                    message: 'Signon successful',
                     accessToken: token,
                     data: {
                         id: user._id,
@@ -530,7 +530,7 @@ var facebookSignon = function (req, res) { return __awaiter(void 0, void 0, void
                 accessToken = req.body.accessToken;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation errors', errors: errors.array() })];
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation error occured', errors: errors.array() })];
                 }
                 return [4 /*yield*/, facebook_1.FacebookServiceProvider.getFacebookUserInfo(accessToken)];
             case 1:
@@ -571,7 +571,7 @@ var facebookSignon = function (req, res) { return __awaiter(void 0, void 0, void
                 }, process.env.JWT_CONTRACTOR_SECRET_KEY, { expiresIn: '24h' });
                 res.json({
                     status: true,
-                    message: 'Login successful',
+                    message: 'Signon successful',
                     accessToken: token,
                     data: {
                         id: user._id,
@@ -600,7 +600,7 @@ var appleSignon = function (req, res) { return __awaiter(void 0, void 0, void 0,
                 _a = req.body, accessToken = _a.accessToken, email = _a.email, firstName = _a.firstName, lastName = _a.lastName;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation errors', errors: errors.array() })];
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation error occured', errors: errors.array() })];
                 }
                 decodedToken = {
                     sub: 'customerrepairfind.com',
@@ -644,7 +644,7 @@ var appleSignon = function (req, res) { return __awaiter(void 0, void 0, void 0,
                 }, process.env.JWT_CONTRACTOR_SECRET_KEY, { expiresIn: '24h' });
                 res.json({
                     status: true,
-                    message: 'Login successful',
+                    message: 'Signon successful',
                     accessToken: token,
                     data: user,
                 });

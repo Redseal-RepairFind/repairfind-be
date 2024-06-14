@@ -1,27 +1,4 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -63,13 +40,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var express_1 = __importDefault(require("express"));
-var body_parser_1 = __importDefault(require("body-parser"));
-var cors_1 = __importDefault(require("cors"));
-var helmet_1 = __importDefault(require("helmet"));
 var mongoose_1 = __importDefault(require("mongoose"));
 var dotenv_1 = __importDefault(require("dotenv"));
-var csurf_1 = __importDefault(require("csurf"));
-var express_rate_limit_1 = __importDefault(require("express-rate-limit"));
 var http_1 = __importDefault(require("http"));
 var routes_1 = __importDefault(require("./modules/contractor/routes/routes"));
 var routes_2 = __importDefault(require("./modules/admin/routes/routes"));
@@ -80,58 +52,33 @@ var custom_errors_1 = require("./utils/custom.errors");
 var logger_1 = require("./utils/logger");
 var bullmq_1 = require("./services/bullmq");
 var worker_1 = require("./services/bullmq/worker");
-var socket_io_1 = require("socket.io");
 var socketio_1 = __importDefault(require("./services/socket/socketio"));
-var Sentry = __importStar(require("@sentry/node"));
-var profiling_node_1 = require("@sentry/profiling-node");
-var config_1 = require("./config");
+var security_1 = __importDefault(require("./modules/common/middlewares/security"));
+var csrf_1 = __importDefault(require("./modules/common/middlewares/csrf"));
+var sentry_1 = __importDefault(require("./modules/common/middlewares/sentry"));
+var cors_1 = __importDefault(require("./modules/common/middlewares/cors"));
+var parsers_1 = __importDefault(require("./modules/common/middlewares/parsers"));
+var ratelimit_1 = __importDefault(require("./modules/common/middlewares/ratelimit"));
 dotenv_1.default.config();
-// console.debug = Logger.debug.bind(Logger);
-// console.log = Logger.info.bind(Logger);
 console.warn = logger_1.Logger.warn.bind(logger_1.Logger);
 console.error = logger_1.Logger.error.bind(logger_1.Logger);
 console.trace = logger_1.Logger.trace.bind(logger_1.Logger);
+console.log = logger_1.Logger.trace.bind(logger_1.Logger);
+console.info = logger_1.Logger.trace.bind(logger_1.Logger);
 var app = (0, express_1.default)();
 var server = http_1.default.createServer(app);
-var csrfProtection = (0, csurf_1.default)({ cookie: true });
-Sentry.init({
-    dsn: 'https://8225b8a1b7344717b059046c31def1ab@o4504391847116800.ingest.us.sentry.io/4507232502087680',
-    // We recommend adjusting this value in production, or using tracesSampler
-    // for finer control
-    tracesSampleRate: 1.0,
-});
-Sentry.init({
-    dsn: config_1.config.sentry.dsn,
-    integrations: [
-        // enable HTTP calls tracing
-        new Sentry.Integrations.Http({ tracing: true }),
-        // enable Express.js middleware tracing
-        new Sentry.Integrations.Express({ app: app }),
-        (0, profiling_node_1.nodeProfilingIntegration)(),
-    ],
-    // Performance Monitoring
-    tracesSampleRate: 1.0, //  Capture 100% of the transactions
-    // Set sampling rate for profiling - this is relative to tracesSampleRate
-    profilesSampleRate: 1.0,
-});
-var limiter = (0, express_rate_limit_1.default)({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 1000, // limit each IP to 100 requests per windowMs
-});
-//@ts-ignore
-app.use(function (err, req, res, next) {
-    console.error(err.stack);
-    res.status(500).send('Something broke!');
-});
-// Middleware
-app.use(body_parser_1.default.json({ verify: function (req, res, buf, encoding) {
-        // @ts-ignore     
-        req.rawBody = buf.toString();
-    } }));
-app.use(express_1.default.urlencoded({ extended: true, limit: '50mb' }));
-app.use(express_1.default.static("../public"));
-app.use((0, cors_1.default)({ origin: "*" }));
-app.use((0, helmet_1.default)());
+// Apply security-related middleware
+(0, security_1.default)(app);
+// Apply CSRF protection middleware
+(0, csrf_1.default)(app);
+// Apply sentry middleware
+(0, sentry_1.default)(app);
+// Apply cors middleware
+(0, cors_1.default)(app);
+// Api rate limite
+(0, ratelimit_1.default)(app);
+// Parsers
+(0, parsers_1.default)(app);
 // Database connection
 var MONGODB_URI = process.env.MONGODB_URI;
 (function () { return __awaiter(void 0, void 0, void 0, function () {
@@ -160,32 +107,22 @@ var MONGODB_URI = process.env.MONGODB_URI;
 }); })();
 // Routes
 app.use("/health", function (req, res) {
-    res.json("App is up and running");
+    res.json({ success: true, message: "App is up and running:  ".concat(req.hostname).concat(req.originalUrl) });
 });
 app.use("/api/v1/contractor", routes_1.default);
 app.use("/api/v1/admin", routes_2.default);
 app.use("/api/v1/customer", routes_3.default);
 app.use("/api/v1/common", routes_4.default);
-bullmq_1.QueueService.attach(app); // Attach Bull Board middleware
+//Queue web route  // Attach Bull Board middleware
+bullmq_1.QueueService.attach(app);
 worker_1.RepairFindQueueWorker;
 // Middleware to handle non-existing pages (404)
 app.use(function (req, res, next) {
-    res.status(404).json({ success: false, message: "Not found:  ".concat(req.hostname).concat(req.originalUrl) });
+    res.status(404).json({ success: false, message: "Resource Not found:  ".concat(req.hostname).concat(req.originalUrl) });
 });
-app.use(Sentry.Handlers.errorHandler());
 app.use(custom_errors_1.errorHandler);
-// Websocket here
-// const wss = new WebSocket.Server({ server });
-// new WebSocketService(wss);
-// TODO:
-var io = new socket_io_1.Server(server, {
-    cors: {
-        origin: "*",
-    },
-});
 // Socket.IO event handlers
-socketio_1.default.initialize(io);
-//  TwilioService.initialize()
+socketio_1.default.initialize(server);
 // Initialize server
 var port = process.env.PORT || 3000;
 server.listen(port, function () {

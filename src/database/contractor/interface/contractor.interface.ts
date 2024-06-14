@@ -78,6 +78,16 @@ export interface IContractorCertnDetails {
 }
 
 
+export enum CONTRACTOR_STATUS {
+  APPROVED = "APPROVED",
+  PENDING = "PENDING",
+  REVIEWING = "REVIEWING",
+  REJECTED = "REJECTED",
+  SUSPENDED = "SUSPENDED",
+  BLACKLISTED = "BLACKLISTED",
+}
+
+
 export enum GST_STATUS {
   PENDING = "PENDING",
   REVIEWING = "REVIEWING",
@@ -98,29 +108,6 @@ export enum COMPANY_STATUS {
   DECLINED = "DECLINED"
 }
 
-
-
-// export enum CONTRACTOR_REVIEW_TYPE {
-//   JOB_COMPLETION = "JOB_COMPLETION",
-//   JOB_CANCELETION = "JOB_CANCELETION"
-// }
-
-
-
-// export interface IContractorReview {
-//   customer?: ObjectId; // Optional: ObjectId referencing the User who left the rating
-//   averageRating: number; // avaraged from the items in ratings array
-//   ratings?: Array<{ item: string; rating: number }>; //Rating value (e.g., 1-5 stars)
-//   review?: string; // Optional: Textual feedback
-//   job?: ObjectId; // Optional: Textual feedback
-//   createdAt: Date;
-//   type: string;
-// }
-
-// reviews?: Array<{ item: string; rating: number }> = [
-//   { item: "Professionalism", rating: 2 },
-//   { item: "Cleanliness", rating: 5 }
-// ];
 
 export interface IContractor extends Document {
   _id: ObjectId;
