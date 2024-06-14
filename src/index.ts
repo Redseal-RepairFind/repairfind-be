@@ -40,6 +40,7 @@ csrfMiddleware(app);
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 // Apply sentry middleware
 sentryMiddleware(app)
 
@@ -63,10 +64,18 @@ Sentry.init({
   tracesSampleRate: 1.0,
 });
 >>>>>>> 5e05ca4 (Update index.ts)
+=======
+// Apply sentry middleware
+sentryMiddleware(app)
+
+// Apply cors middleware
+corsMiddleware(app)
+>>>>>>> a3b4798 (cloudwatch config)
 
 // Api rate limite
 configureRateLimit(app)
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 // Parsers
@@ -103,6 +112,10 @@ Sentry.init({
   profilesSampleRate: 1.0,
 });
 >>>>>>> 5e05ca4 (Update index.ts)
+=======
+// Parsers
+configureParsers(app);
+>>>>>>> a3b4798 (cloudwatch config)
 
 
 // Database connection
