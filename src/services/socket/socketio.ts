@@ -13,7 +13,13 @@ interface CustomSocket extends Socket {
 class SocketIOService {
     private static io: Server;
 
-    static initialize(io: Server) {
+    static initialize(server: any) {
+        const io = new Server(server, {
+            cors: {
+              origin: "*",
+            },
+          });
+
         this.io = io;
         this.initializeSocketEvents();
     }

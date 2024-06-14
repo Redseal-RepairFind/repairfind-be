@@ -35,7 +35,7 @@ class AuthHandler extends Base {
                 return res.status(401).json({ success: false, message: "Email exists already" });
             }
 
-            
+
 
 
             const otp = generateOTP();
@@ -46,7 +46,7 @@ class AuthHandler extends Base {
                 verified: false
             };
 
-           
+
 
             const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -63,7 +63,7 @@ class AuthHandler extends Base {
                 companyName
             });
 
-            
+
 
 
             const html = htmlMailTemplate(otp, firstName ?? companyName, "We have received a request to verify your email");
@@ -157,7 +157,7 @@ class AuthHandler extends Base {
                     userType: 'contractors',
                 },
                 process.env.JWT_CONTRACTOR_SECRET_KEY!,
-                { expiresIn: config.jwt.tokenLifetime  }
+                { expiresIn: config.jwt.tokenLifetime }
             );
 
             const quiz = await contractor?.quiz ?? null
@@ -173,7 +173,7 @@ class AuthHandler extends Base {
                 success: true,
                 message: "Email verified successful",
                 accessToken: accessToken,
-                expiresIn: config.jwt.tokenLifetime, 
+                expiresIn: config.jwt.tokenLifetime,
                 user: contractorResponse
             });
 
@@ -205,7 +205,7 @@ class AuthHandler extends Base {
             }
 
             // try find user with the same email
-            let contractor = await ContractorModel.findOne({email}).populate('profile');
+            let contractor = await ContractorModel.findOne({ email }).populate('profile');
 
             // check if user exists
             if (!contractor) {
@@ -213,6 +213,11 @@ class AuthHandler extends Base {
                     .status(401)
                     .json({ success: false, message: "invalid credential" });
             }
+
+            // // Check if password is alphanumeric with symbols
+            // if (!/^[a-zA-Z0-9!@#$%^&*]+$/.test(password)) {
+            //     return res.status(400).json({ success: false, message: "Password must be alphanumeric with symbols." });
+            // }
 
             // compare password with hashed password in database
             const isPasswordMatch = await bcrypt.compare(password, contractor.password);
@@ -242,7 +247,7 @@ class AuthHandler extends Base {
                     userType: 'contractors',
                 },
                 process.env.JWT_CONTRACTOR_SECRET_KEY!,
-                { expiresIn: config.jwt.tokenLifetime  }
+                { expiresIn: config.jwt.tokenLifetime }
             );
 
             // return access token
@@ -250,7 +255,7 @@ class AuthHandler extends Base {
                 success: true,
                 message: "Login successful",
                 accessToken: accessToken,
-                expiresIn: config.jwt.tokenLifetime, 
+                expiresIn: config.jwt.tokenLifetime,
                 user: contractorResponse
             });
 
@@ -353,7 +358,7 @@ class AuthHandler extends Base {
 
             let emailData = {
                 emailTo: email,
-                subject: "constractor password change",
+                subject: "Contractor password change",
                 html
             };
 

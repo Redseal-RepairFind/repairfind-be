@@ -69,18 +69,6 @@ var CompanyDetailSchema = new mongoose_1.Schema({
     approvedAt: Date,
     recentRemark: String,
 });
-// const ContractorReviewSchema = new Schema<IContractorReview>({
-//   review: {
-//     type: Schema.Types.ObjectId,
-//     ref: 'reviews'
-//   },
-//   averageRating: {
-//     type: Number,
-//     required: true,
-//     min: 1,
-//     max: 5, // Adjust based on your rating scale
-//   },
-// });
 var CertnDetailSchema = new mongoose_1.Schema({
     created: String,
     modified: String,
@@ -234,10 +222,6 @@ var ContractorSchema = new mongoose_1.Schema({
     certnDetails: {
         type: CertnDetailSchema
     },
-    // reviews: {
-    //   type: [ContractorReviewSchema],
-    //   //select: false, // Don't include reviews by default
-    // },
     reviews: [{ review: { type: mongoose_1.Schema.Types.ObjectId, ref: 'reviews' }, averageRating: Number }],
     onboarding: {
         hasStripeAccount: { default: false, type: Boolean },
@@ -268,6 +252,16 @@ ContractorSchema.virtual('stripeAccountStatus').get(function () {
         card_payments_enabled: (_d = (_c = stripeAccount === null || stripeAccount === void 0 ? void 0 : stripeAccount.capabilities) === null || _c === void 0 ? void 0 : _c.card_payments) !== null && _d !== void 0 ? _d : 'inactive',
         status: ((_e = stripeAccount === null || stripeAccount === void 0 ? void 0 : stripeAccount.capabilities) === null || _e === void 0 ? void 0 : _e.card_payments) && ((_f = stripeAccount === null || stripeAccount === void 0 ? void 0 : stripeAccount.capabilities) === null || _f === void 0 ? void 0 : _f.transfers)
     } : null;
+});
+ContractorSchema.virtual('accountStatus').get(function () {
+    var _a, _b;
+    var stripeAccount = this.stripeAccount;
+    var stripeAccountStatus = (stripeAccount === null || stripeAccount === void 0 ? void 0 : stripeAccount.details_submitted) &&
+        (stripeAccount === null || stripeAccount === void 0 ? void 0 : stripeAccount.payouts_enabled) &&
+        (stripeAccount === null || stripeAccount === void 0 ? void 0 : stripeAccount.charges_enabled) &&
+        (((_a = stripeAccount === null || stripeAccount === void 0 ? void 0 : stripeAccount.capabilities) === null || _a === void 0 ? void 0 : _a.transfers) == 'active') &&
+        (((_b = stripeAccount === null || stripeAccount === void 0 ? void 0 : stripeAccount.capabilities) === null || _b === void 0 ? void 0 : _b.card_payments) == 'active');
+    return stripeAccountStatus;
 });
 ContractorSchema.virtual('certnStatus').get(function () {
     var certnDetails = this.certnDetails;

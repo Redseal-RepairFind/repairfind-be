@@ -82,6 +82,9 @@ export function errorHandler(err: CustomError, req: Request, res: Response, next
       }
 
      
+      if (err && err.error.code === 'EBADCSRFTOKEN') {
+         errorMessage ='Invalid CSRF token';
+       }
 
       return res.status(statusCode).json({ success: false, message: errorMessage });
 

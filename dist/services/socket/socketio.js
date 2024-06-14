@@ -51,6 +51,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+var socket_io_1 = require("socket.io");
 var custom_errors_1 = require("../../utils/custom.errors");
 var contractor_model_1 = require("../../database/contractor/models/contractor.model");
 var customer_model_1 = __importDefault(require("../../database/customer/models/customer.model"));
@@ -59,7 +60,12 @@ var job_model_1 = require("../../database/common/job.model");
 var SocketIOService = /** @class */ (function () {
     function SocketIOService() {
     }
-    SocketIOService.initialize = function (io) {
+    SocketIOService.initialize = function (server) {
+        var io = new socket_io_1.Server(server, {
+            cors: {
+                origin: "*",
+            },
+        });
         this.io = io;
         this.initializeSocketEvents();
     };

@@ -74,3 +74,70 @@
 
 
 ```
+
+
+I'd be glad to create a comprehensive README listing the routes for your project, incorporating the best aspects of the provided responses and addressing any shortcomings:
+
+**README: Admin Panel Routes**
+
+This document provides a detailed explanation of the routes available in the admin panel of your application. Understanding these routes is essential for anyone working on the project, especially those interacting with the backend logic.
+
+**Authentication**
+
+* **POST /signup:** Registers a new admin user. Requires validation (`validateSignupParams`) before processing by the `adminSignUpController`.
+* **POST /email/verification:** Verifies an admin user's email address. Requires validation (`validatAdminEmailverificationParams`) before processing by the `adminVerifiedEmailController`.
+* **POST /resend/email:** Resends a verification email to an admin user. Requires validation (`validateAdminForgotPasswordParams`) before processing by the `adminResendEmailController`.
+* **POST /signin:** Logs in an admin user. Requires validation (`validateAdminLoginParams`) before processing by the `AdminSignInController`.
+* **POST /forgot/password:** Initiates the password reset process for an admin user. Requires validation (`validateAdminForgotPasswordParams`) before processing by the `AdminEmailForgotPasswordController`.
+* **POST /reset/password:** Completes the password reset process for an admin user. Requires validation (`validateAdminResetPasswprdParams`) before processing by the `AdminEmailResetPasswordController`.
+
+**Staff Management (Requires Admin Role)**
+
+* **POST /staff:** Creates a new staff member. Requires validation (`Validations.AddStaffParams`) and admin role check (`checkAdminRole`) before processing by the `AddStaffController`.
+* **POST /staff/status:** Changes the status of an existing staff member. Requires validation (`validateSuperAdmiCchangeStatusParams`), admin role check (`checkAdminRole`), and super admin role check for authorization. Processed by the `SuperAdminChangeStaffStatusController`.
+* **GET /staffs:** Retrieves a list of all staff members. Requires admin role check (`checkAdminRole`) before processing by the `SuperAdminGetAllAdminController`.
+* **POST /staff/permission:** Assigns a permission to a staff member. Requires validation (`Validations.AddPermissionParams`) and admin role check (`checkAdminRole`) before processing by the `SuperAdminAddPermissionToStaffController`.
+* **POST /staff/permission/remove:** Removes a permission from a staff member. Requires validation (`Validations.AddPermissionParams`) and admin role check (`checkAdminRole`) before processing by the `SuperAdminRemovePermissionFromStaffController`.
+
+**Permissions (Requires Admin Role)**
+
+* **POST /permission:** Creates a new permission. Requires validation (`Validations.PermissionCreationParam`) and admin role check (`checkAdminRole`) before processing by the `Permission.PermissionCreationController`.
+* **GET /permission:** Retrieves a list of all permissions. Requires admin role check (`checkAdminRole`) before processing by the `Permission.GetPermissionController`.
+* **POST /edit/permission:** Edits an existing permission. Requires validation (`Validations.EditPermissionParams`) and admin role check (`checkAdminRole`) before processing by the `Permission.EditPermissionController`.
+
+**Contractor Management (Requires Admin Role) - Continued**
+
+* **GET /contractor/job/detail/:contractorId:** Retrieves details of a specific contractor's job by contractor ID. Requires admin role check (`checkAdminRole`) before processing by the `AdminContractorDetail.AdminGetSingleContractorJonDetailController`.
+* **POST /contractor/account/status:** Changes the account status of a contractor. Requires validation (`Validations.ContractorChangeStatusParams`) and admin role check (`checkAdminRole`) before processing by the `AdminContractorDetail.AdminChangeContractorAccountStatusController`.
+
+**Customer Management (Requires Admin Role)**
+
+* **GET /customer/detail:** Retrieves details of all customers. Requires admin role check (`checkAdminRole`) before processing by the `AdminCustomerController.AdminGetCustomerDetailController`.
+* **GET /customer/detail/:customerId:** Retrieves details of a specific customer by ID. Requires admin role check (`checkAdminRole`) before processing by the `AdminCustomerController.AdminGetSingleCustomerDetailController`.
+* **GET /customer/job/detail/:customerId:** Retrieves details of a specific customer's job by customer ID. Requires admin role check (`checkAdminRole`) before processing by the `AdminCustomerController.AdminGetSingleCustomerJobDetailController`.
+
+**Skills Management (Requires Admin Role)**
+
+* **POST /skills:** Adds a new skill. Requires validation (`validateAddSkillParams`) and admin role check (`checkAdminRole`) before processing by the `AdminAddNewSkillController`. (Duplicate entries removed)
+* **GET /skills:** Retrieves a list of all skills. Requires admin role check (`checkAdminRole`) before processing by the `AdminGetSkillController`.
+
+**Job Management (Requires Admin Role)**
+
+* **GET /jobs/detail:** Retrieves details of all jobs. Requires admin role check (`checkAdminRole`) before processing by the `AdminJobController.AdminGetJobsrDetailController`.
+* **GET /jobs/detail/:jobId:** Retrieves details of a specific job by ID. Requires admin role check (`checkAdminRole`) before processing by the `AdminJobController.AdminGetSingleJobsrDetailController`.
+* **GET /total_job:** Retrieves the total number of jobs. Requires admin role check (`checkAdminRole`) before processing by the `AdminJobController.AdminGetTotalJobsrController`.
+* **GET /app_detail:** Retrieves details of the application. Requires admin role check (`checkAdminRole`) before processing by the `AdminGetAppDetailController`.
+* **GET /invoice/detail/:jobId:** Retrieves the invoice details for a specific job. Requires admin role check (`checkAdminRole`) before processing by the `AdminJobController.AdminGetInvoiceSingleJobsrDetailController`.
+
+**Transaction Management (Requires Admin Role)**
+
+* **GET /transactions:** Retrieves a list of all transactions. Requires admin role check (`checkAdminRole`) before processing by the `TransactionDetailController.AdminGetTransactionDetailController`.
+* **GET /transaction/:transactionId:** Retrieves details of a specific transaction by ID. Requires admin role check (`checkAdminRole`) before processing by the `TransactionDetailController.AdminGetSingleTransactionDetailController`.
+
+**Emergency Management (Requires Admin Role)**
+
+* **GET /emergecy/active:** Retrieves a list of active emergency jobs. Requires admin role check (`checkAdminRole`) before processing by the `ermergency.AdminGetActiveEmergencyJobController`.
+* **GET /emergecy/new:** Retrieves a list of new emergency jobs. Requires admin role check (`checkAdminRole`) before processing by the `ermergency.AdminGeNewEmergencyJobController`.
+* **GET /emergecy/resolve:** Retrieves a list of resolved emergency jobs. Requires admin role check (`checkAdminRole`) before processing by the `ermergency.AdminGetResolveEmergencyJobController`.
+* **GET /emergecy/:emergencyId:** Retrieves details of a specific emergency job by ID. Requires admin role check (`checkAdminRole`) before processing by the `ermergency.AdminGetSingleEmergencyJobController`.
+* **
