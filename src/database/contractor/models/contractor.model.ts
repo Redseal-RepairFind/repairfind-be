@@ -8,7 +8,7 @@ import { StripePaymentMethodSchema } from "../../common/stripe_paymentmethod.sch
 import QuestionModel, { IQuestion } from "../../admin/models/question.model";
 import { CertnService } from "../../../services";
 import { deleteObjectFromS3 } from "../../../services/storage";
-import  MongooseDelete, { SoftDeleteModel } from 'mongoose-delete';
+import MongooseDelete, { SoftDeleteModel } from 'mongoose-delete';
 import { stringify } from "querystring";
 
 
@@ -35,21 +35,6 @@ const CompanyDetailSchema = new Schema<IContractorCompanyDetails>({
   approvedAt: Date,
   recentRemark: String,
 });
-
-
-// const ContractorReviewSchema = new Schema<IContractorReview>({
-//   review: {
-//     type: Schema.Types.ObjectId,
-//     ref: 'reviews'
-//   },
-//   averageRating: {
-//     type: Number,
-//     required: true,
-//     min: 1,
-//     max: 5, // Adjust based on your rating scale
-//   },
-  
-// });
 
 
 
@@ -107,7 +92,6 @@ const CertnDetailSchema = new Schema<IContractorCertnDetails>({
 
 const ContractorSchema = new Schema<IContractor>(
   {
-
     profile: {
       type: Schema.Types.ObjectId,
       ref: "contractor_profiles",
@@ -226,10 +210,7 @@ const ContractorSchema = new Schema<IContractor>(
     certnDetails: {
       type: CertnDetailSchema
     },
-    // reviews: {
-    //   type: [ContractorReviewSchema],
-    //   //select: false, // Don't include reviews by default
-    // },
+    
     reviews: [{ review: { type: Schema.Types.ObjectId, ref: 'reviews' }, averageRating: Number }],
 
     onboarding: {
@@ -241,7 +222,7 @@ const ContractorSchema = new Schema<IContractor>(
       hasGstDetails: { default: false, type: Boolean },
       hasCompanyDetails: { default: false, type: Boolean },
       hasPassedQuiz: { default: false, type: Boolean },
-      stage: { default: {status: 1, label: 'stripeIdentity'}, type: Object },
+      stage: { default: { status: 1, label: 'stripeIdentity' }, type: Object },
     }
 
   },
@@ -270,19 +251,32 @@ ContractorSchema.virtual('stripeAccountStatus').get(function (this: IContractor)
 });
 
 
+ContractorSchema.virtual('accountStatus').get(function (this: IContractor) {
+  const stripeAccount = this.stripeAccount;
+  const stripeAccountStatus =
+    stripeAccount?.details_submitted &&
+    stripeAccount?.payouts_enabled &&
+    stripeAccount?.charges_enabled &&
+    (stripeAccount?.capabilities?.transfers == 'active') &&
+    (stripeAccount?.capabilities?.card_payments == 'active')
+
+    return stripeAccountStatus
+});
+
+
 ContractorSchema.virtual('certnStatus').get(function (this: IContractor) {
   const certnDetails: IContractorCertnDetails = this.certnDetails;
 
   let status = 'NOT_STARTED'
   if (certnDetails) {
     if (!certnDetails.is_submitted) {
-      status=  'NOT_SUBMITTED'
+      status = 'NOT_SUBMITTED'
     } else {
       for (const execution of certnDetails.check_executions) {
-          if (execution.status !== 'COMPLETED') {
-              status = 'FAILED'; // If any check is not completed, status is failed
-              break; // No need to continue, we already found a failed check
-          }
+        if (execution.status !== 'COMPLETED') {
+          status = 'FAILED'; // If any check is not completed, status is failed
+          break; // No need to continue, we already found a failed check
+        }
       }
     }
   }
@@ -297,20 +291,20 @@ ContractorSchema.virtual('certnReport').get(function (this: IContractor) {
   let action = 'NONE'
   if (certnDetails) {
     if (!certnDetails.is_submitted) {
-      status=  'NOT_SUBMITTED'
+      status = 'NOT_SUBMITTED'
     } else {
       status = 'COMPLETED'
       for (const execution of certnDetails.check_executions) {
-          if (execution.status !== 'COMPLETED') {
-              status = 'FAILED'; // If any check is not completed, status is failed
-              break; // No need to continue, we already found a failed check
-          }
+        if (execution.status !== 'COMPLETED') {
+          status = 'FAILED'; // If any check is not completed, status is failed
+          break; // No need to continue, we already found a failed check
+        }
       }
     }
     action = certnDetails.application.applicant.application_url
   }
 
-  return {status, action}
+  return { status, action }
 });
 
 
@@ -330,7 +324,7 @@ ContractorSchema.virtual('rating').get(function () {
 
 ContractorSchema.virtual('reviewCount').get(function () {
   const reviews: any[] = this.get('reviews') || [];
-  return reviews.length ;
+  return reviews.length;
 });
 
 
@@ -341,8 +335,8 @@ ContractorSchema.methods.getOnboarding = async function () {
 
   const hasStripeIdentity = !!this.stripeIdentity;
   let stripeIdentityStatus = 'requires_input'
-  if(hasStripeIdentity && this.stripeIdentity.last_verification_report){
-      stripeIdentityStatus = this.stripeIdentity?.last_verification_report?.document?.status
+  if (hasStripeIdentity && this.stripeIdentity.last_verification_report) {
+    stripeIdentityStatus = this.stripeIdentity?.last_verification_report?.document?.status
   }
   const hasProfile = !!this.profile;
   const hasGstDetails = !!this.gstDetails;
@@ -360,31 +354,31 @@ ContractorSchema.methods.getOnboarding = async function () {
 
   }
 
-  let stage: any = {status: 1, label: 'stripeIdentity'};
+  let stage: any = { status: 1, label: 'stripeIdentity' };
 
   if (this.accountType == 'Company') {
-    if (stage.status == 1 && hasStripeIdentity && stripeIdentityStatus == 'verified') stage =  {status: 2, label: 'companyDetails'} 
-    if (stage.status == 2 && hasCompanyDetails) stage = {status: 3, label: 'profile'} // 
-    if (stage.status == 3 && hasProfile) stage = {status: 4, label: 'gstDetails'}
-    if (stage.status == 4 && hasGstDetails) stage = {status: 5, label: 'quiz'}
-    if (stage.status == 5 && hasPassedQuiz) stage = {status: 6, label: 'stripeAccount'}
-    if (stage.status == 6 && hasStripeAccount) stage = {status: 7, label: 'done'}
+    if (stage.status == 1 && hasStripeIdentity && stripeIdentityStatus == 'verified') stage = { status: 2, label: 'companyDetails' }
+    if (stage.status == 2 && hasCompanyDetails) stage = { status: 3, label: 'profile' } // 
+    if (stage.status == 3 && hasProfile) stage = { status: 4, label: 'gstDetails' }
+    if (stage.status == 4 && hasGstDetails) stage = { status: 5, label: 'quiz' }
+    if (stage.status == 5 && hasPassedQuiz) stage = { status: 6, label: 'stripeAccount' }
+    if (stage.status == 6 && hasStripeAccount) stage = { status: 7, label: 'done' }
 
   }
 
   if (this.accountType == 'Individual') {
-    if (stage.status == 1 && hasStripeIdentity && stripeIdentityStatus == 'verified') stage = {status: 2, label: 'profle'} 
-    if (stage.status == 2 && hasProfile) stage = {status: 3, label: 'quiz'} 
+    if (stage.status == 1 && hasStripeIdentity && stripeIdentityStatus == 'verified') stage = { status: 2, label: 'profle' }
+    if (stage.status == 2 && hasProfile) stage = { status: 3, label: 'quiz' }
     // if (stage.status == 3 && hasGstDetails) stage = {status: 4, label: 'quiz'} 
-    if (stage.status == 3 && hasPassedQuiz) stage = {status: 4, label: 'stripeAccount'}
-    if (stage.status == 4 && hasStripeAccount) stage = {status: 5, label: 'done'}
+    if (stage.status == 3 && hasPassedQuiz) stage = { status: 4, label: 'stripeAccount' }
+    if (stage.status == 4 && hasStripeAccount) stage = { status: 5, label: 'done' }
   }
 
 
   if (this.accountType == 'Employee') {
-    if (stage.status == 1 && hasStripeIdentity && stripeIdentityStatus == 'verified') stage = {status: 2, label: 'profle'} 
-    if (stage.status == 2 && hasProfile) stage = {status: 3, label: 'quiz'} 
-    if (stage.status == 3 && hasPassedQuiz) stage = {status: 4, label: 'done'} 
+    if (stage.status == 1 && hasStripeIdentity && stripeIdentityStatus == 'verified') stage = { status: 2, label: 'profle' }
+    if (stage.status == 2 && hasProfile) stage = { status: 3, label: 'quiz' }
+    if (stage.status == 3 && hasPassedQuiz) stage = { status: 4, label: 'done' }
   }
 
 
@@ -460,7 +454,7 @@ ContractorSchema.set('toJSON', {
       }
     }
 
-    if (ret.accountType  == CONTRACTOR_TYPES.Company && ret.companyDetails && ret.companyDetails.companyLogo) {
+    if (ret.accountType == CONTRACTOR_TYPES.Company && ret.companyDetails && ret.companyDetails.companyLogo) {
       ret.profilePhoto = {
         url: ret.companyDetails.companyLogo
       }
@@ -478,35 +472,35 @@ ContractorSchema.set('toJSON', {
 
 // ["updateOne", "findByIdAndUpdate", "findOneAndUpdate"]
 
-ContractorSchema.pre('findOneAndUpdate', async function(next) {
+ContractorSchema.pre('findOneAndUpdate', async function (next) {
   try {
-      const filterQuery: FilterQuery<Document> = this.getQuery();
-      const update = this.getUpdate();
-      
-      if (update && '$set' in update && typeof update.$set === 'object' && update.$set !== null) {
-          const profilePhoto = update.profilePhoto;
-          
-          if (profilePhoto) {
-              const documentBeforeUpdate = await ContractorModel.findOne(filterQuery).exec();
-              const previousProfilePhoto = documentBeforeUpdate?.profilePhoto;
+    const filterQuery: FilterQuery<Document> = this.getQuery();
+    const update = this.getUpdate();
 
-              if (previousProfilePhoto) {
-                  //use JOB here 
-                // await deleteObjectFromS3(previousProfilePhoto.url as string)
-              }
-              console.log('Previous Profile Photo:', previousProfilePhoto);
-              console.log('Updated Profile Photo:', profilePhoto);
-          }
+    if (update && '$set' in update && typeof update.$set === 'object' && update.$set !== null) {
+      const profilePhoto = update.profilePhoto;
+
+      if (profilePhoto) {
+        const documentBeforeUpdate = await ContractorModel.findOne(filterQuery).exec();
+        const previousProfilePhoto = documentBeforeUpdate?.profilePhoto;
+
+        if (previousProfilePhoto) {
+          //use JOB here 
+          // await deleteObjectFromS3(previousProfilePhoto.url as string)
+        }
+        console.log('Previous Profile Photo:', previousProfilePhoto);
+        console.log('Updated Profile Photo:', profilePhoto);
       }
-      
-      next();
+    }
+
+    next();
   } catch (error) {
-      next(error as Error); // Type assertion to Error
+    next(error as Error); // Type assertion to Error
   }
 });
 
 
-ContractorSchema.plugin(MongooseDelete, { deletedBy: true , overrideMethods: 'all'});
+ContractorSchema.plugin(MongooseDelete, { deletedBy: true, overrideMethods: 'all' });
 
 
 ContractorSchema.set('toObject', { virtuals: true });

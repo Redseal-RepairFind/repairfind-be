@@ -16,8 +16,8 @@ const config = {
          type: 'dateFile',
          filename: 'logs/app.log',
          pattern: 'yyyy-MM-dd.log', // Include date in the file name
-         daysToKeep: 7, // Number of days to keep old log files
-         compress: true,
+         numBackups: 7, // Number of days to keep old log files
+         compress: false,
          layout: {
             type: 'pattern',
             pattern: '%d{yyyy-MM-dd hh:mm:ss.SSS} [%p] %f{1}:%l - %m' // Include filename and line number

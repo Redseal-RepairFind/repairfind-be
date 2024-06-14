@@ -412,7 +412,7 @@ var AuthHandler = /** @class */ (function (_super) {
                         html = (0, sendEmailTemplate_1.htmlMailTemplate)(otp, contractor.firstName, "We have received a request to change your password");
                         emailData = {
                             emailTo: email,
-                            subject: "constractor password change",
+                            subject: "Contractor password change",
                             html: html
                         };
                         (0, send_email_utility_1.sendEmail)(emailData);

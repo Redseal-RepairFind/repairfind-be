@@ -63,7 +63,7 @@ var AdminGeNewEmergencyJobController = function (req, res) { return __awaiter(vo
                         .populate(['customer', 'contractor'])];
             case 1:
                 jobEmergencies = _b.sent();
-                return [4 /*yield*/, job_emergency_model_1.JobEmergencyModel.countDocuments()];
+                return [4 /*yield*/, job_emergency_model_1.JobEmergencyModel.countDocuments({ status: job_emergency_model_1.EmergencyStatus.PENDING })];
             case 2:
                 totalJobEmergency = _b.sent();
                 res.json({
@@ -138,7 +138,12 @@ var AdminAcceptEmergencyJobController = function (req, res) { return __awaiter(v
                 if (!jobEmergency) {
                     return [2 /*return*/, res
                             .status(401)
-                            .json({ message: "invalid emergencyId" })];
+                            .json({ message: "Invalid emergencyId" })];
+                }
+                if (jobEmergency.status !== job_emergency_model_1.EmergencyStatus.PENDING) {
+                    return [2 /*return*/, res
+                            .status(401)
+                            .json({ message: "Job emergency not pending" })];
                 }
                 jobEmergency.status = job_emergency_model_1.EmergencyStatus.IN_PROGRESS;
                 jobEmergency.acceptedBy = adminId;
@@ -146,7 +151,7 @@ var AdminAcceptEmergencyJobController = function (req, res) { return __awaiter(v
             case 2:
                 _a.sent();
                 res.json({
-                    message: "emergency accepted successfully"
+                    message: "Emergency accepted successfully"
                 });
                 return [3 /*break*/, 4];
             case 3:
@@ -231,10 +236,10 @@ var AdminGetActiveEmergencyJobController = function (req, res) { return __awaite
                         .sort({ createdAt: -1 })
                         .skip(skip)
                         .limit(limit)
-                        .populate(['customer', 'contractor'])];
+                        .populate(['customer', 'contractor', 'job'])];
             case 1:
                 jobEmergencies = _b.sent();
-                return [4 /*yield*/, job_emergency_model_1.JobEmergencyModel.countDocuments()];
+                return [4 /*yield*/, job_emergency_model_1.JobEmergencyModel.countDocuments({ acceptedBy: adminId, status: job_emergency_model_1.EmergencyStatus.IN_PROGRESS })];
             case 2:
                 totalJobEmergency = _b.sent();
                 res.json({
@@ -273,10 +278,10 @@ var AdminGetResolveEmergencyJobController = function (req, res) { return __await
                         .sort({ createdAt: -1 })
                         .skip(skip)
                         .limit(limit)
-                        .populate(['customer', 'contractor'])];
+                        .populate(['customer', 'contractor', 'job'])];
             case 1:
                 jobEmergencies = _b.sent();
-                return [4 /*yield*/, job_emergency_model_1.JobEmergencyModel.countDocuments()];
+                return [4 /*yield*/, job_emergency_model_1.JobEmergencyModel.countDocuments({ acceptedBy: adminId, status: job_emergency_model_1.EmergencyStatus.RESOLVED })];
             case 2:
                 totalJobEmergency = _b.sent();
                 res.json({

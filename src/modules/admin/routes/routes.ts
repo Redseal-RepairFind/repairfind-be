@@ -39,7 +39,7 @@ router.post("/staff/permission/remove", Validations.AddPermissionParams, checkAd
 
 // done permission
 router.post("/permission", Validations.PermissionCreationParam, checkAdminRole, Permission.PermissionCreationController ); // super admin create permission
-router.get("/permission", checkAdminRole, Permission.GetPermissionController ); // super admin get all permission
+router.get("/permissions", checkAdminRole, Permission.GetPermissionController ); // super admin get all permission
 router.post("/edit/permission", Validations.EditPermissionParams, checkAdminRole, Permission.EditPermissionController ); // super admin edit permission
 
 //don contractor

@@ -261,7 +261,7 @@ var AdminGetSingleCustomerJobDetailController = function (req, res) { return __a
                     currentPage: page,
                     totalJob: totalJob,
                     totalPages: Math.ceil(totalJob / limit),
-                    jobs: jobs
+                    jobs: jobsDetails
                 });
                 return [3 /*break*/, 9];
             case 8:

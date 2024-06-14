@@ -112,6 +112,9 @@ function errorHandler(err, req, res, next) {
             var errors = Object.values(err.error.errors).map(function (el) { return el.message; });
             errorMessage = "Invalid input data. ".concat(errors.join(". "));
         }
+        if (err && err.error.code === 'EBADCSRFTOKEN') {
+            errorMessage = 'Invalid CSRF token';
+        }
         return res.status(statusCode).json({ success: false, message: errorMessage });
     }
     return res.status(statusCode).json({ success: false, message: errorMessage });
