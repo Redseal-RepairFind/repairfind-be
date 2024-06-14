@@ -93,7 +93,7 @@ var attachStripeAccount = function (req, res, next) { return __awaiter(void 0, v
                 return [2 /*return*/, res.json({ success: true, message: 'Stripe account  attached', data: contractor })];
             case 4:
                 error_2 = _b.sent();
-                return [2 /*return*/, next(new custom_errors_1.InternalServerError('Error attaching stripe account', error_2))];
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError("Error attaching stripe account: ".concat(error_2.message), error_2))];
             case 5: return [2 /*return*/];
         }
     });
