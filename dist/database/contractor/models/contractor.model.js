@@ -254,14 +254,14 @@ ContractorSchema.virtual('stripeAccountStatus').get(function () {
     } : null;
 });
 ContractorSchema.virtual('accountStatus').get(function () {
-    var _a, _b;
     var stripeAccount = this.stripeAccount;
-    var stripeAccountStatus = (stripeAccount === null || stripeAccount === void 0 ? void 0 : stripeAccount.details_submitted) &&
-        (stripeAccount === null || stripeAccount === void 0 ? void 0 : stripeAccount.payouts_enabled) &&
-        (stripeAccount === null || stripeAccount === void 0 ? void 0 : stripeAccount.charges_enabled) &&
-        (((_a = stripeAccount === null || stripeAccount === void 0 ? void 0 : stripeAccount.capabilities) === null || _a === void 0 ? void 0 : _a.transfers) == 'active') &&
-        (((_b = stripeAccount === null || stripeAccount === void 0 ? void 0 : stripeAccount.capabilities) === null || _b === void 0 ? void 0 : _b.card_payments) == 'active');
-    return stripeAccountStatus;
+    // const stripeAccountStatus =
+    //   stripeAccount?.details_submitted &&
+    //   stripeAccount?.payouts_enabled &&
+    //   stripeAccount?.charges_enabled &&
+    //   (stripeAccount?.capabilities?.transfers == 'active') &&
+    //   (stripeAccount?.capabilities?.card_payments == 'active')
+    return contractor_interface_1.CONTRACTOR_STATUS.APPROVED;
 });
 ContractorSchema.virtual('certnStatus').get(function () {
     var certnDetails = this.certnDetails;
