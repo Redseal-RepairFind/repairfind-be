@@ -4,6 +4,7 @@ import { CustomerAuthProviders, ICustomer, ICustomerLocation } from "../interfac
 import { StripeCustomerSchema } from "../../common/stripe_customer.schema";
 import { StripePaymentMethodSchema } from "../../common/stripe_paymentmethod.schema";
 import  MongooseDelete, { SoftDeleteModel } from 'mongoose-delete';
+import { customerStatus } from "../../../constants/contractorStatus";
 
 
 
@@ -75,6 +76,11 @@ const CustomerSchema = new Schema<ICustomer>(
       otp: String,
       createdTime: Date,
       verified: Boolean,
+    },
+    status: {
+      type: String,
+      enum: Object.values(customerStatus),
+      default: customerStatus.REVIEWING,
     },
     acceptTerms: {
       otp: String,

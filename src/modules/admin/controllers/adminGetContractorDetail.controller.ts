@@ -42,7 +42,7 @@ export const AdminGetContractorDetailController = async (
       .select('-password')
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(limit);
+      .limit(limit).populate('profile');
 
       const totalContractor = await ContractorModel.countDocuments()
   
@@ -102,7 +102,7 @@ export const AdminGetSingleContractorDetailController = async (
     const adminId = admin.id
 
     const contractor = await ContractorModel.findOne({_id: contractorId})
-    .select('-password')
+    .select('-password').populate('profile');
 
     if (!contractor) {
       return res
@@ -245,7 +245,8 @@ export const AdminGetContractorGstPendingController = async (
     const contractor = await ContractorModel.find({
       "gstDetails.status": GST_STATUS.PENDING
     }).skip(skip)
-    .limit(limit);
+    .limit(limit)
+    .populate('profile');
 
     const totalContractor = await ContractorModel.countDocuments({
       "gstDetails.status": GST_STATUS.PENDING
@@ -294,7 +295,8 @@ export const AdminGetContractorGstApproveController = async (
     const contractor = await ContractorModel.find({
       "gstDetails.status": GST_STATUS.APPROVED
     }).skip(skip)
-    .limit(limit);
+    .limit(limit)
+    .populate('profile');
 
     const totalContractor = await ContractorModel.countDocuments({
       "gstDetails.status": GST_STATUS.APPROVED
@@ -344,7 +346,8 @@ export const AdminGetContractorGstReviewingController = async (
     const contractor = await ContractorModel.find({
       "gstDetails.status": GST_STATUS.REVIEWING
     }).skip(skip)
-    .limit(limit);
+    .limit(limit)
+    .populate('profile');
 
     const totalContractor = await ContractorModel.countDocuments({
       "gstDetails.status": GST_STATUS.REVIEWING
@@ -394,7 +397,8 @@ export const AdminGetContractorGstDecliningController = async (
     const contractor = await ContractorModel.find({
       "gstDetails.status": GST_STATUS.DECLINED
     }).skip(skip)
-    .limit(limit);
+    .limit(limit)
+    .populate('profile');
 
     const totalContractor = await ContractorModel.countDocuments({
       "gstDetails.status": GST_STATUS.DECLINED
@@ -439,7 +443,7 @@ export const AdminGetSingleContractorJonDetailController = async (
     limit = limit || 50;
 
     const contractor = await ContractorModel.findOne({_id: contractorId})
-    .select('-password')
+    .select('-password').populate('profile');
 
     if (!contractor) {
       return res
