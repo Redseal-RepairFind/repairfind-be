@@ -68,7 +68,6 @@ const MONGODB_URI = process.env.MONGODB_URI as string;
 (async () => {
   try {
     await mongoose.connect(MONGODB_URI, {
-      useNewUrlParser: true,
     } as ConnectOptions);
     await RunSeeders();
     console.log("Connected to Database");
@@ -92,16 +91,14 @@ app.use("/api/v1/common", commonRoute);
 QueueService.attach(app);
 RepairFindQueueWorker
 
-
-app.use("/", (req, res) => {
-  res.json({success: true, message: `Welcome to Repairfind API:  ${req.hostname}${req.originalUrl}`});
-});
-
 // Middleware to handle non-existing pages (404)
 app.use((req, res, next) => {
   res.status(404).json({success:false, message: `Resource Not found:  ${req.hostname}${req.originalUrl}` });
 });
 
+app.use("/", (req, res) => {
+  res.json({success: true, message: `Welcome to Repairfind API:  ${req.hostname}${req.originalUrl}`});
+});
 
 app.use(errorHandler)
 

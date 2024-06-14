@@ -9,6 +9,7 @@ import { StripeService } from "../../../services/stripe";
 import { castPayloadToDTO } from "../../../utils/interface_dto.util";
 import { IStripeCustomer } from "../../../database/common/stripe_customer.interface";
 import { JOB_STATUS, JobModel } from "../../../database/common/job.model";
+import BlacklistedToken from "../../../database/common/blacklisted_tokens.schema";
 
 
 export const updateAccount = async (
@@ -247,6 +248,8 @@ export const updateOrCreateDevice = async (
 
 }
 
+
+
 export const deleteAccount = async (
   req: any,
   res: Response,
@@ -282,6 +285,33 @@ export const deleteAccount = async (
 }
 
 
+export const signOut = async (
+  req: any,
+  res: Response,
+) => {
+
+  try {
+    const customerId = req.customer.id;
+    const customer = await CustomerModel.findOne({ _id: customerId });
+    if (!customer) {
+      return res.status(404).json({ success: false, message: 'Customer account not found' });
+    }
+
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(400).json({ success: false, message: 'Token not provided' });
+    }
+
+    await BlacklistedToken.create({ token });
+
+    res.json({ success: true, message: 'Sign out successful' });
+  } catch (err: any) {
+    console.log('error', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+
+}
+
 
 
 export const CustomerController = {
@@ -290,5 +320,6 @@ export const CustomerController = {
   getAccount,
   updateOrCreateDevice,
   myDevices,
-  deleteAccount
+  deleteAccount,
+  signOut
 }

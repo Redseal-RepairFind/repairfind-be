@@ -107,6 +107,10 @@ router.post("/me/stripe-identity", checkContractorRole, (req: Request, res: Resp
     ContractorController(req, res, next).createIdentitySession();
 });
 
+router.post("/signout", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
+    ContractorController(req, res, next).signOut();
+});
+
 
 //  QUiz
 router.get("/quiz-start", checkContractorRole, QuizController.StartQuiz );

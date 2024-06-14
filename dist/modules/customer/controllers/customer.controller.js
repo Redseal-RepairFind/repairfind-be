@@ -39,12 +39,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerController = exports.deleteAccount = exports.updateOrCreateDevice = exports.myDevices = exports.changePassword = exports.getAccount = exports.updateAccount = void 0;
+exports.CustomerController = exports.signOut = exports.deleteAccount = exports.updateOrCreateDevice = exports.myDevices = exports.changePassword = exports.getAccount = exports.updateAccount = void 0;
 var express_validator_1 = require("express-validator");
 var bcrypt_1 = __importDefault(require("bcrypt"));
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var customer_devices_model_1 = __importDefault(require("../../../database/customer/models/customer_devices.model"));
 var job_model_1 = require("../../../database/common/job.model");
+var blacklisted_tokens_schema_1 = __importDefault(require("../../../database/common/blacklisted_tokens.schema"));
 var updateAccount = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, firstName, lastName, location_1, phoneNumber, profilePhoto, errors, customerId, customer, updatedCustomer, err_1;
     return __generator(this, function (_b) {
@@ -266,11 +267,45 @@ var deleteAccount = function (req, res) { return __awaiter(void 0, void 0, void 
     });
 }); };
 exports.deleteAccount = deleteAccount;
+var signOut = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var customerId, customer, token, err_4;
+    var _a;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 3, , 4]);
+                customerId = req.customer.id;
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
+            case 1:
+                customer = _b.sent();
+                if (!customer) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Customer account not found' })];
+                }
+                token = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.split(' ')[1];
+                if (!token) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Token not provided' })];
+                }
+                return [4 /*yield*/, blacklisted_tokens_schema_1.default.create({ token: token })];
+            case 2:
+                _b.sent();
+                res.json({ success: true, message: 'Sign out successful' });
+                return [3 /*break*/, 4];
+            case 3:
+                err_4 = _b.sent();
+                console.log('error', err_4);
+                res.status(500).json({ success: false, message: err_4.message });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.signOut = signOut;
 exports.CustomerController = {
     changePassword: exports.changePassword,
     updateAccount: exports.updateAccount,
     getAccount: exports.getAccount,
     updateOrCreateDevice: exports.updateOrCreateDevice,
     myDevices: exports.myDevices,
-    deleteAccount: exports.deleteAccount
+    deleteAccount: exports.deleteAccount,
+    signOut: exports.signOut
 };

@@ -42,8 +42,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.checkCustomerRole = void 0;
 var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
+var blacklisted_tokens_schema_1 = __importDefault(require("../../../database/common/blacklisted_tokens.schema"));
 var checkCustomerRole = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var secret, authHeader, token, payload, customer, err_1;
+    var secret, authHeader, token, blacklistedToken, payload, customer, err_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -51,32 +52,36 @@ var checkCustomerRole = function (req, res, next) { return __awaiter(void 0, voi
                 authHeader = req.headers.authorization;
                 token = authHeader && authHeader.split(" ")[1];
                 if (!token) {
-                    return [2 /*return*/, res.status(401).json({ message: "Authorization token missing" })];
+                    return [2 /*return*/, res.status(401).json({ success: false, message: "Authorization token missing" })];
                 }
                 _a.label = 1;
             case 1:
-                _a.trys.push([1, 3, , 4]);
+                _a.trys.push([1, 4, , 5]);
+                return [4 /*yield*/, blacklisted_tokens_schema_1.default.findOne({ token: token })];
+            case 2:
+                blacklistedToken = _a.sent();
+                if (blacklistedToken) {
+                    return [2 /*return*/, res.status(401).json({ success: false, message: 'Invalid authorization token' })];
+                }
                 payload = jsonwebtoken_1.default.verify(token, secret);
                 return [4 /*yield*/, customer_model_1.default.findOne({
                         email: payload.email
                     })];
-            case 2:
+            case 3:
                 customer = _a.sent();
                 if (!customer) {
                     return [2 /*return*/, res
                             .status(403)
-                            .json({ message: "Access denied. customer role required." })];
+                            .json({ success: false, message: "Access denied. customer role required." })];
                 }
-                // Add the payload to the request object for later use
                 req.customer = payload;
-                // Call the next middleware function
                 next();
-                return [3 /*break*/, 4];
-            case 3:
+                return [3 /*break*/, 5];
+            case 4:
                 err_1 = _a.sent();
                 console.error(err_1);
-                return [2 /*return*/, res.status(401).json({ message: "Invalid authorization token" })];
-            case 4: return [2 /*return*/];
+                return [2 /*return*/, res.status(401).json({ success: false, message: "Invalid authorization token" })];
+            case 5: return [2 /*return*/];
         }
     });
 }); };

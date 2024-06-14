@@ -93,9 +93,7 @@ var MONGODB_URI = process.env.MONGODB_URI;
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 3, , 4]);
-                return [4 /*yield*/, mongoose_1.default.connect(MONGODB_URI, {
-                        useNewUrlParser: true,
-                    })];
+                return [4 /*yield*/, mongoose_1.default.connect(MONGODB_URI, {})];
             case 1:
                 _a.sent();
                 return [4 /*yield*/, (0, seeders_1.RunSeeders)()];
@@ -115,9 +113,6 @@ var MONGODB_URI = process.env.MONGODB_URI;
 app.use("/health", function (req, res) {
     res.json({ success: true, message: "App is up and running:  ".concat(req.hostname).concat(req.originalUrl) });
 });
-app.use("/", function (req, res) {
-    res.json({ success: true, message: "Welcome to repairfind api:  ".concat(req.hostname).concat(req.originalUrl) });
-});
 app.use("/api/v1/contractor", routes_1.default);
 app.use("/api/v1/admin", routes_2.default);
 app.use("/api/v1/customer", routes_3.default);
@@ -128,6 +123,9 @@ worker_1.RepairFindQueueWorker;
 // Middleware to handle non-existing pages (404)
 app.use(function (req, res, next) {
     res.status(404).json({ success: false, message: "Resource Not found:  ".concat(req.hostname).concat(req.originalUrl) });
+});
+app.use("/", function (req, res) {
+    res.json({ success: true, message: "Welcome to Repairfind API:  ".concat(req.hostname).concat(req.originalUrl) });
 });
 app.use(custom_errors_1.errorHandler);
 // Socket.IO event handlers
