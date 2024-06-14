@@ -75,16 +75,22 @@ var server = http_1.default.createServer(app);
 (0, sentry_1.default)(app);
 // Apply cors middleware
 (0, cors_1.default)(app);
+<<<<<<< HEAD
 // Apply sentry middleware
 (0, sentry_1.default)(app);
 // Apply cors middleware
 (0, cors_1.default)(app);
+=======
+>>>>>>> 05133c5 (cloudwatch config)
 // Api rate limite
 (0, ratelimit_1.default)(app);
 // Parsers
 (0, parsers_1.default)(app);
+<<<<<<< HEAD
 // Parsers
 (0, parsers_1.default)(app);
+=======
+>>>>>>> 05133c5 (cloudwatch config)
 // Database connection
 var MONGODB_URI = process.env.MONGODB_URI;
 (function () { return __awaiter(void 0, void 0, void 0, function () {
