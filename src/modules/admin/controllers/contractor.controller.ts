@@ -40,7 +40,7 @@ export const attachStripeAccount = async (
 
     try {
 
-        const {stripeAccountId = 'acct_1P4N6NRdmDaBvbML'} = req.body;
+        const {stripeAccountId} = req.body;
         const {contractorId} = req.params;
         const contractor = await ContractorModel.findById(contractorId);
         if (!contractor) {
