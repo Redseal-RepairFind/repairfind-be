@@ -82,9 +82,7 @@ const MONGODB_URI = process.env.MONGODB_URI as string;
 app.use("/health", (req, res) => {
   res.json({success: true, message: `App is up and running:  ${req.hostname}${req.originalUrl}`});
 });
-app.use("/", (req, res) => {
-  res.json({success: true, message: `Welcome to repairfind api:  ${req.hostname}${req.originalUrl}`});
-});
+
 app.use("/api/v1/contractor", contractorRoute);
 app.use("/api/v1/admin", adminRoute);
 app.use("/api/v1/customer", customerRoute);
