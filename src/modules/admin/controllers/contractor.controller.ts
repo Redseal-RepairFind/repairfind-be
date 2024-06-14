@@ -53,7 +53,7 @@ export const attachStripeAccount = async (
         await contractor.save()
         return res.json({ success: true, message: 'Stripe account  attached', data: contractor });
     } catch (error: any) {
-        return next(new InternalServerError( 'Error attaching stripe account', error))
+        return next(new InternalServerError( `Error attaching stripe account: ${error.message}`, error))
     }
 
 }
