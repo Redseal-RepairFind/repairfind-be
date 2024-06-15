@@ -33,10 +33,10 @@ const app = express();
 const server = http.createServer(app);
 
 // Apply security-related middleware
-securityMiddleware(app);
+// securityMiddleware(app);
 
 // Apply CSRF protection middleware
-csrfMiddleware(app);
+// csrfMiddleware(app);
 
 
 // Apply sentry middleware
@@ -46,21 +46,14 @@ sentryMiddleware(app)
 corsMiddleware(app)
 
 
-// Apply sentry middleware
-sentryMiddleware(app)
-
-// Apply cors middleware
-corsMiddleware(app)
 
 // Api rate limite
-configureRateLimit(app)
+// configureRateLimit(app)
 
 // Parsers
 configureParsers(app);
 
 
-// Parsers
-configureParsers(app);
 
 
 // Database connection
