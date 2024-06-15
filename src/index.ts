@@ -41,7 +41,7 @@ const server = http.createServer(app);
 
 
 // Apply sentry middleware
-sentryMiddleware(app)
+// sentryMiddleware(app)
 
 
 // Apply cors middleware
