@@ -35,6 +35,7 @@ const server = http.createServer(app);
 // Apply security-related middleware
 // securityMiddleware(app);
 
+
 // Apply CSRF protection middleware
 // csrfMiddleware(app);
 
@@ -42,9 +43,9 @@ const server = http.createServer(app);
 // Apply sentry middleware
 sentryMiddleware(app)
 
+
 // Apply cors middleware
 corsMiddleware(app)
-
 
 
 // Api rate limite
