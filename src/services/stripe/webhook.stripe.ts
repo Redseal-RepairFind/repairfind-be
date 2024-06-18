@@ -556,29 +556,29 @@ export const chargeSucceeded = async (payload: any) => {
             if (!payment.captured) {
 
                 const capture = payload.payment_method_details.card
-                let capturaDto: ICapture = castPayloadToDTO(capture, capture as ICapture);
+                let captureDto: ICapture = castPayloadToDTO(capture, capture as ICapture);
 
-                capturaDto.payment_intent = payload.payment_intent
-                capturaDto.payment_method = payload.payment_method
-                capturaDto.payment = payment.id
-                capturaDto.captured = false
-                capturaDto.currency = payment.currency
+                captureDto.payment_intent = payload.payment_intent
+                captureDto.payment_method = payload.payment_method
+                captureDto.payment = payment.id
+                captureDto.captured = false
+                captureDto.currency = payment.currency
 
-                payment.capture = capturaDto
+                payment.capture = captureDto
                 transaction.status = TRANSACTION_STATUS.PENDING
 
             } else {
                 const capture = payload.payment_method_details.card
                 //save payment capture here
-                let capturaDto: ICapture = castPayloadToDTO(capture, capture as ICapture);
-                capturaDto.payment_intent = payload.payment_intent
-                capturaDto.payment_method = payload.payment_method
-                capturaDto.payment = payment.id
-                capturaDto.captured = payment.captured
-                capturaDto.captured_at = payment.created
-                capturaDto.currency = payment.currency
+                let captureDto: ICapture = castPayloadToDTO(capture, capture as ICapture);
+                captureDto.payment_intent = payload.payment_intent
+                captureDto.payment_method = payload.payment_method
+                captureDto.payment = payment.id
+                captureDto.captured = payment.captured
+                captureDto.captured_at = payment.created
+                captureDto.currency = payment.currency
 
-                payment.capture = capturaDto
+                payment.capture = captureDto
                 transaction.status = TRANSACTION_STATUS.SUCCESSFUL
 
             }
@@ -667,8 +667,9 @@ export const chargeSucceeded = async (payload: any) => {
                     const destination = payment.destination
                     const transferData = payment.transfer_data
 
+                    // console.log(onBehalf,  destination, transferData)
                     // payment was made to platform ?
-                    if (!onBehalf && destination && transferData) {
+                    if (!onBehalf && !destination && !transferData) {
                         //create payout transaction - 
                         
                         await TransactionModel.create({

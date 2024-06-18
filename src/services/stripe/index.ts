@@ -5,6 +5,7 @@ import * as webhook from './webhook.stripe'
 import * as payment from './payment.stripe'
 import * as file from './file.stripe'
 import * as account from './account.stripe'
+import * as transfer from './transfer.stripe'
 
 export const StripeService = {
     session,
@@ -13,7 +14,8 @@ export const StripeService = {
     webhook,
     payment,
     file,
-    account
+    account,
+    transfer
 }
 
 

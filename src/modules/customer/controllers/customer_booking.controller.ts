@@ -849,6 +849,8 @@ export const acceptBookingComplete = async (req: any, res: Response, next: NextF
         JobEvent.emit('JOB_COMPLETED', { job })
         await job.save();
 
+        //release payout here  ?
+
         res.json({ success: true, message: 'Booking marked as completed successfully', data: job });
     } catch (error: any) {
         return next(new BadRequestError('An error occurred', error));
