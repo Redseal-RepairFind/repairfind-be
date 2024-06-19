@@ -124,7 +124,7 @@ const prepareStripePayload = (data:{paymentMethodId: string, customer: any, cont
     const payload: Stripe.PaymentIntentCreateParams = {
         payment_method_types: ['card'],
         payment_method: paymentMethodId,
-        currency: 'usd',
+        currency: 'cad',
         amount: Math.ceil(charges.totalAmount * 100),
         
         // send amount  minus processingFee to contractor

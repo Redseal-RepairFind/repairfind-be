@@ -49,6 +49,7 @@ var sync_certn_applications_1 = require("./jobs/sync_certn_applications");
 var expire_jobs_1 = require("./jobs/expire_jobs");
 var jobday_schedule_1 = require("./jobs/jobday_schedule");
 var job_refunds_1 = require("./jobs/job_refunds");
+var payout_transfers_1 = require("./jobs/payout_transfers");
 var redisConfig = {
     port: Number(config_1.config.redis.port),
     host: config_1.config.redis.host,
@@ -100,13 +101,16 @@ exports.RepairFindQueueWorker = new bullmq_1.Worker(config_1.config.redis.queueN
             case 9:
                 _a.sent();
                 _a.label = 10;
-            case 10: return [2 /*return*/];
+            case 10:
+                if (!(job.name == 'handlePayoutTransfer')) return [3 /*break*/, 12];
+                return [4 /*yield*/, (0, payout_transfers_1.handlePayoutTransfer)()];
+            case 11:
+                _a.sent();
+                _a.label = 12;
+            case 12: return [2 /*return*/];
         }
     });
 }); }, { connection: redisConnection });
-exports.RepairFindQueueWorker.on('completed', function (job) {
-    logger_1.Logger.info("Job Completed: ".concat(job.name, " - ").concat(job.id, " has completed!"));
-});
 exports.RepairFindQueueWorker.on('error', function (error) {
     logger_1.Logger.info("Job Errored: ".concat(error));
 });

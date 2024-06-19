@@ -707,7 +707,7 @@ var paymentMethodDetached = function (payload) { return __awaiter(void 0, void 0
 exports.paymentMethodDetached = paymentMethodDetached;
 // Charge
 var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var userType, userId, user, stripeChargeDTO, payment, transactionId, transaction, capture, capturaDto, capture, capturaDto, metadata, jobId, paymentType, quotationId, job, quotation, changeOrderEstimate, onBehalf, destination, transferData, error_11;
+    var userType, userId, user, stripeChargeDTO, payment, transactionId, transaction, capture, captureDto, capture, captureDto, metadata, jobId, paymentType, quotationId, job, quotation, changeOrderEstimate, onBehalf, destination, transferData, error_11;
     var _a, _b;
     return __generator(this, function (_c) {
         switch (_c.label) {
@@ -754,25 +754,25 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                 if (!transaction) return [3 /*break*/, 6];
                 if (!payment.captured) {
                     capture = payload.payment_method_details.card;
-                    capturaDto = (0, interface_dto_util_1.castPayloadToDTO)(capture, capture);
-                    capturaDto.payment_intent = payload.payment_intent;
-                    capturaDto.payment_method = payload.payment_method;
-                    capturaDto.payment = payment.id;
-                    capturaDto.captured = false;
-                    capturaDto.currency = payment.currency;
-                    payment.capture = capturaDto;
+                    captureDto = (0, interface_dto_util_1.castPayloadToDTO)(capture, capture);
+                    captureDto.payment_intent = payload.payment_intent;
+                    captureDto.payment_method = payload.payment_method;
+                    captureDto.payment = payment.id;
+                    captureDto.captured = false;
+                    captureDto.currency = payment.currency;
+                    payment.capture = captureDto;
                     transaction.status = transaction_model_1.TRANSACTION_STATUS.PENDING;
                 }
                 else {
                     capture = payload.payment_method_details.card;
-                    capturaDto = (0, interface_dto_util_1.castPayloadToDTO)(capture, capture);
-                    capturaDto.payment_intent = payload.payment_intent;
-                    capturaDto.payment_method = payload.payment_method;
-                    capturaDto.payment = payment.id;
-                    capturaDto.captured = payment.captured;
-                    capturaDto.captured_at = payment.created;
-                    capturaDto.currency = payment.currency;
-                    payment.capture = capturaDto;
+                    captureDto = (0, interface_dto_util_1.castPayloadToDTO)(capture, capture);
+                    captureDto.payment_intent = payload.payment_intent;
+                    captureDto.payment_method = payload.payment_method;
+                    captureDto.payment = payment.id;
+                    captureDto.captured = payment.captured;
+                    captureDto.captured_at = payment.created;
+                    captureDto.currency = payment.currency;
+                    payment.capture = captureDto;
                     transaction.status = transaction_model_1.TRANSACTION_STATUS.SUCCESSFUL;
                 }
                 payment.transaction = transaction.id;
@@ -852,7 +852,7 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                 onBehalf = payment.on_behalf_of;
                 destination = payment.destination;
                 transferData = payment.transfer_data;
-                if (!(!onBehalf && destination && transferData)) return [3 /*break*/, 12];
+                if (!(!onBehalf && !destination && !transferData)) return [3 /*break*/, 12];
                 //create payout transaction - 
                 return [4 /*yield*/, transaction_model_1.default.create({
                         type: transaction_model_1.TRANSACTION_TYPE.PAYOUT,

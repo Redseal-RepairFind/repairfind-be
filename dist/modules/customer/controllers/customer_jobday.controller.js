@@ -142,7 +142,7 @@ var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void
                 };
                 res.json({
                     success: true,
-                    message: "job day successfully initiated",
+                    message: "JobDay successfully initiated",
                     data: data
                 });
                 return [3 /*break*/, 10];
@@ -173,16 +173,16 @@ var confirmContractorArrival = function (req, res) { return __awaiter(void 0, vo
             case 1:
                 jobDay = _a.sent();
                 if (!jobDay) {
-                    return [2 /*return*/, res.status(403).json({ success: false, message: 'jobDay not found' })];
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'JobDay not found' })];
                 }
                 if (jobDay.status != job_day_model_1.JOB_DAY_STATUS.ARRIVED) {
-                    return [2 /*return*/, res.status(403).json({ success: false, message: 'contractor has not arrived yet' })];
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'Contractor has not arrived yet' })];
                 }
                 if (jobDay.verified) {
-                    return [2 /*return*/, res.status(403).json({ success: false, message: 'site already visited' })];
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'JobDay has already been verified' })];
                 }
                 if (jobDay.verificationCode !== verificationCode) {
-                    return [2 /*return*/, res.status(403).json({ success: false, message: 'incorrect verification code' })];
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'Incorrect verification code' })];
                 }
                 return [4 /*yield*/, job_model_1.JobModel.findById(jobDay.job)];
             case 2:
@@ -205,10 +205,10 @@ var confirmContractorArrival = function (req, res) { return __awaiter(void 0, vo
                 index_1.NotificationService.sendNotification({
                     user: jobDay.contractor.toString(),
                     userType: 'contractors',
-                    title: 'jobDay',
+                    title: 'JobDay confirmation',
                     heading: {},
                     type: 'JOB_DAY_CONFIRMED',
-                    message: 'Customer confirmed your arrival.',
+                    message: 'Customer has confirmed your arrival.',
                     payload: { event: 'JOB_DAY_CONFIRMED', jobDay: jobDay }
                 }, {
                     push: true,
@@ -219,10 +219,10 @@ var confirmContractorArrival = function (req, res) { return __awaiter(void 0, vo
                     index_1.NotificationService.sendNotification({
                         user: job.assignment.contractor,
                         userType: 'contractors',
-                        title: 'jobDay',
+                        title: 'JobDay confirmation',
                         heading: {},
                         type: 'JOB_DAY_CONFIRMED',
-                        message: 'Customer confirmed your arrival.',
+                        message: 'Customer has confirmed your arrival.',
                         payload: { event: 'JOB_DAY_CONFIRMED', jobDay: jobDay }
                     }, {
                         push: true,
@@ -234,7 +234,7 @@ var confirmContractorArrival = function (req, res) { return __awaiter(void 0, vo
                 index_1.NotificationService.sendNotification({
                     user: jobDay.customer,
                     userType: 'customers',
-                    title: 'jobDay',
+                    title: 'JobDay confirmation',
                     heading: {},
                     type: 'JOB_DAY_CONFIRMED',
                     message: "You successfully confirmed the contractor's arrival.",
@@ -246,7 +246,7 @@ var confirmContractorArrival = function (req, res) { return __awaiter(void 0, vo
                 });
                 res.json({
                     success: true,
-                    message: "contractor arrival successfully comfirmed",
+                    message: "Contractor arrival successfully confirmed",
                     data: jobDay
                 });
                 return [3 /*break*/, 6];
@@ -511,6 +511,9 @@ var confirmJobDayCompletion = function (req, res, next) { return __awaiter(void 
                 // Check if the contractor is the owner of the job
                 if (job.customer.toString() !== customerId) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'You are not authorized to mark  this booking as complete' })];
+                }
+                if (!job.statusUpdate) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Contractor has not yet created a status update' })];
                 }
                 if (!job.statusUpdate.awaitingConfirmation) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Contractor has not requested for a status update' })];

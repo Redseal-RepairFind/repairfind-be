@@ -87,6 +87,11 @@ var JobQueue = /** @class */ (function () {
                 every: 7200000, // 86400000 ms = 24 hours, 7200000= 12hours
             }
         });
+        exports.QueueService.addJob('handlePayoutTransfer', {}, {
+            repeat: {
+                every: 6000, // 86400000 ms = 24 hours, 7200000= 12hours
+            }
+        });
         exports.QueueService.addJob('jobDayScheduleCheck', {}, {
             repeat: {
                 cron: '0 0 * * *' // This cron expression triggers the job at midnight every day

@@ -164,7 +164,7 @@ export const makeJobPayment = async (
         let payload: Stripe.PaymentIntentCreateParams = {
             payment_method_types: ['card'],
             payment_method: paymentMethod.id,
-            currency: 'usd',
+            currency: 'cad',
             amount: (charges.totalAmount) * 100,
             application_fee_amount: (charges.processingFee) * 100, // send everthing to connected account and  application_fee_amount will be transfered back
             transfer_data: {
@@ -361,7 +361,7 @@ export const captureJobPayment = async (
             },
             expand: ['latest_charge'],
             payment_method: paymentMethod.id,
-            currency: 'usd',
+            currency: 'cad',
             // amount: (charges.totalAmount) * 100,
             // application_fee_amount: (charges.processingFee) * 100, 
             amount: Math.ceil(charges.totalAmount * 100),

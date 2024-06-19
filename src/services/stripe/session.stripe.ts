@@ -12,7 +12,7 @@ export const createSession = async (payload: any) => {
     console.log(payload)
     const session = await stripeClient.checkout.sessions.create({
         mode: payload.mode, // 'setup
-        currency: payload.currency, // usd
+        currency: payload.currency, // cad
         customer: payload.customer,
         metadata: payload.metadata,
         setup_intent_data: payload.setup_intent_data,

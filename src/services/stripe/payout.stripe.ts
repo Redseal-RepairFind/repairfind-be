@@ -6,7 +6,7 @@ export const createPayout = async (connectedAccountId: string, amount: number) =
   try {
     const payout = await stripe.payouts.create({
       amount,
-      currency: 'usd',
+      currency: 'cad',
     }, {
       stripeAccount: connectedAccountId,
     });

@@ -204,7 +204,7 @@ var prepareStripePayload = function (data) {
     var payload = {
         payment_method_types: ['card'],
         payment_method: paymentMethodId,
-        currency: 'usd',
+        currency: 'cad',
         amount: Math.ceil(charges.totalAmount * 100),
         // send amount  minus processingFee to contractor
         // application_fee_amount: Math.ceil(charges.processingFee * 100),

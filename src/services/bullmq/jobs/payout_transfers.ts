@@ -5,6 +5,7 @@ import TransactionModel, { TRANSACTION_STATUS, TRANSACTION_TYPE } from "../../..
 import { IContractor } from "../../../database/contractor/interface/contractor.interface";
 import { ContractorModel } from "../../../database/contractor/models/contractor.model";
 import { ICustomer } from "../../../database/customer/interface/customer.interface";
+import { TransactionEvent } from "../../../events/transaction.events";
 import { Logger } from "../../../utils/logger";
 import { StripeService } from "../../stripe";
 
@@ -17,6 +18,9 @@ export const handlePayoutTransfer = async () => {
         });
 
 
+        // to test, add money to account: 
+        // await StripeService.payment.createTestCharge()
+        
         for (const transaction of transactions) {
             try {
 
@@ -32,12 +36,13 @@ export const handlePayoutTransfer = async () => {
                 if (!payment) return
 
                 const amount = (transaction.amount * 100) // change to base currency
-                const capture = payment.capture
+
                 const transactionMeta = transaction.metadata
-                let metadata: any = {...capture, ...transactionMeta } ?? {}
+                let metadata: any = { ...transactionMeta } ?? {}
                 metadata.transactionId = transaction.id
                 metadata.paymentId = payment.id
-                const stripeTransfer = await StripeService.transfer.createTransfer(connectAccountId, amount, metadata)// convert to cent
+                
+                const stripeTransfer = await StripeService.transfer.createTransfer(connectAccountId, amount, metadata)
 
                 metadata.transfer = stripeTransfer
                 transaction.metadata = metadata
@@ -46,13 +51,15 @@ export const handlePayoutTransfer = async () => {
                 await transaction.save()
                 //emit event and handle notifications from there ?
 
+                TransactionEvent.emit('PAYOUT_TRANSFER_SUCCESSFUL', transaction)
                 
             } catch (error) {
-                Logger.error(`Error processing refund transaction: ${transaction.id}`, error);
+                Logger.error(`Error processing payout transfer: ${transaction.id}`, error);
             }
         }
+        
     } catch (error) {
-        Logger.error('Error processing refund transaction:', error);
+        Logger.error('Error processing payout transfer:', error);
     }
 };
 

@@ -919,6 +919,7 @@ var acceptBookingComplete = function (req, res, next) { return __awaiter(void 0,
                 return [4 /*yield*/, job.save()];
             case 3:
                 _a.sent();
+                //release payout here  ?
                 res.json({ success: true, message: 'Booking marked as completed successfully', data: job });
                 return [3 /*break*/, 5];
             case 4:

@@ -105,7 +105,7 @@ class JobQueue {
 
     QueueService.addJob('handlePayoutTransfer', {}, {
       repeat: {
-        every: 7200000 , // 86400000 ms = 24 hours, 7200000= 12hours
+        every: 6000 , // 86400000 ms = 24 hours, 7200000= 12hours
       }
     })
 

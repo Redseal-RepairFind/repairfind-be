@@ -222,13 +222,13 @@ var confirmArrival = function (req, res) { return __awaiter(void 0, void 0, void
             case 2:
                 jobDay = _a.sent();
                 if (!jobDay) {
-                    return [2 /*return*/, res.status(403).json({ success: false, message: 'jobDay not found' })];
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'JobDay not found' })];
                 }
                 if (!(jobDay.status === job_day_model_1.JOB_DAY_STATUS.STARTED || jobDay.status === job_day_model_1.JOB_DAY_STATUS.ARRIVED)) {
-                    return [2 /*return*/, res.status(403).json({ success: false, message: 'Trip not started yet' })];
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'JobDay trip not started yet' })];
                 }
                 if (jobDay.verified) {
-                    return [2 /*return*/, res.status(403).json({ success: false, message: 'Jobday trip already visited' })];
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'JobDay trip already verified' })];
                 }
                 verificationCode = (0, otpGenerator_1.generateOTP)();
                 jobDay.verificationCode = parseInt(verificationCode);
@@ -239,7 +239,7 @@ var confirmArrival = function (req, res) { return __awaiter(void 0, void 0, void
                 events_1.JobEvent.emit('JOB_DAY_ARRIVAL', { jobDay: jobDay, verificationCode: verificationCode });
                 res.json({
                     success: true,
-                    message: "you successfully arrrived at site, wait for comfirmation from customer",
+                    message: "You have arrived at site, awaiting customer confirmation",
                     data: { verificationCode: verificationCode }
                 });
                 return [3 /*break*/, 5];

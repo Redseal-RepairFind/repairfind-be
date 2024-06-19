@@ -45,7 +45,7 @@ export const createSession = async (req: any, res: Response) => {
         if (stripeCustomer) {
             const stripeSession = await StripeService.session.createSession({
                 mode: mode,
-                currency: 'usd',
+                currency: 'cad',
                 customer: stripeCustomer.id,
                 setup_intent_data: {
                     metadata: {
