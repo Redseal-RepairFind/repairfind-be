@@ -673,7 +673,7 @@ export const chargeSucceeded = async (payload: any) => {
                         //create payout transaction - 
                         
                         await TransactionModel.create({
-                            type: TRANSACTION_TYPE.TRANSFER,
+                            type: TRANSACTION_TYPE.ESCROW,
                             amount: payment.amount,
 
                             // customer can initiate payout on job completetion or admin on dispute resolution

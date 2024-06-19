@@ -855,7 +855,7 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                 if (!(!onBehalf && !destination && !transferData)) return [3 /*break*/, 12];
                 //create payout transaction - 
                 return [4 /*yield*/, transaction_model_1.default.create({
-                        type: transaction_model_1.TRANSACTION_TYPE.TRANSFER,
+                        type: transaction_model_1.TRANSACTION_TYPE.ESCROW,
                         amount: payment.amount,
                         // customer can initiate payout on job completetion or admin on dispute resolution
                         // initiatorUser: customerId,

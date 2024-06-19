@@ -13,7 +13,7 @@ import { StripeService } from "../../stripe";
 export const handlePayoutTransfer = async () => {
     try {
         const transactions = await TransactionModel.find({
-            type: TRANSACTION_TYPE.TRANSFER,
+            type: TRANSACTION_TYPE.ESCROW,
             status: TRANSACTION_STATUS.APPROVED
         });
 
