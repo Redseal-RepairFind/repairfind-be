@@ -53,8 +53,11 @@ var logger_1 = require("./utils/logger");
 var bullmq_1 = require("./services/bullmq");
 var worker_1 = require("./services/bullmq/worker");
 var socketio_1 = __importDefault(require("./services/socket/socketio"));
+var security_1 = __importDefault(require("./modules/common/middlewares/security"));
+var csrf_1 = __importDefault(require("./modules/common/middlewares/csrf"));
 var cors_1 = __importDefault(require("./modules/common/middlewares/cors"));
 var parsers_1 = __importDefault(require("./modules/common/middlewares/parsers"));
+var ratelimit_1 = __importDefault(require("./modules/common/middlewares/ratelimit"));
 dotenv_1.default.config();
 console.warn = logger_1.Logger.warn.bind(logger_1.Logger);
 console.error = logger_1.Logger.error.bind(logger_1.Logger);
@@ -64,15 +67,15 @@ console.info = logger_1.Logger.trace.bind(logger_1.Logger);
 var app = (0, express_1.default)();
 var server = http_1.default.createServer(app);
 // Apply security-related middleware
-// securityMiddleware(app);
+(0, security_1.default)(app);
 // Apply CSRF protection middleware
-// csrfMiddleware(app);
+(0, csrf_1.default)(app);
 // Apply sentry middleware
 // sentryMiddleware(app)
 // Apply cors middleware
 (0, cors_1.default)(app);
-// Api rate limite
-// configureRateLimit(app)
+// Api rate limit
+(0, ratelimit_1.default)(app);
 // Parsers
 (0, parsers_1.default)(app);
 // Database connection
