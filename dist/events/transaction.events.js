@@ -46,7 +46,7 @@ var contractor_model_1 = require("../database/contractor/models/contractor.model
 var services_1 = require("../services");
 var generic_email_1 = require("../templates/common/generic_email");
 exports.TransactionEvent = new events_1.EventEmitter();
-exports.TransactionEvent.on('PAYOUT_TRANSFER_SUCCESSFUL', function (transaction) {
+exports.TransactionEvent.on('ESCROW_TRANSFER_SUCCESSFUL', function (transaction) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
         var fromUser, _b, toUser, _c, emailSubject, emailContent, html, error_1;
@@ -54,7 +54,7 @@ exports.TransactionEvent.on('PAYOUT_TRANSFER_SUCCESSFUL', function (transaction)
             switch (_d.label) {
                 case 0:
                     _d.trys.push([0, 9, , 10]);
-                    console.log('handling PAYOUT_TRANSFER_SUCCESSFUL event', transaction.id);
+                    console.log('handling ESCROW_TRANSFER_SUCCESSFUL event', transaction.id);
                     if (!(transaction.fromUserType == 'customers')) return [3 /*break*/, 2];
                     return [4 /*yield*/, customer_model_1.default.findById(transaction.fromUser)];
                 case 1:
@@ -102,7 +102,7 @@ exports.TransactionEvent.on('PAYOUT_TRANSFER_SUCCESSFUL', function (transaction)
                     return [3 /*break*/, 10];
                 case 9:
                     error_1 = _d.sent();
-                    console.error("Error handling PAYOUT_TRANSFER_SUCCESSFUL event: ".concat(error_1));
+                    console.error("Error handling ESCROW_TRANSFER_SUCCESSFUL event: ".concat(error_1));
                     return [3 /*break*/, 10];
                 case 10: return [2 /*return*/];
             }

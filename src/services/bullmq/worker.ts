@@ -7,7 +7,7 @@ import { syncCertnApplications } from './jobs/sync_certn_applications';
 import { expireJobs } from './jobs/expire_jobs';
 import { jobDayScheduleCheck } from './jobs/jobday_schedule';
 import { handleJobRefunds } from './jobs/job_refunds';
-import { handlePayoutTransfer } from './jobs/payout_transfers';
+import { handleEscrowTransfer } from './jobs/escrow_transfer';
 
 const redisConfig = {
     port: Number(config.redis.port),
@@ -55,8 +55,8 @@ export const RepairFindQueueWorker = new Worker(config.redis.queueName, async jo
         await handleJobRefunds()
     }
 
-    if(job.name =='handlePayoutTransfer'){
-        await handlePayoutTransfer()
+    if(job.name =='handleEscrowTransfer'){
+        await handleEscrowTransfer()
     }
    
 }, { connection: redisConnection });

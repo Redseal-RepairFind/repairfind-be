@@ -70,15 +70,14 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.handlePayoutTransfer = void 0;
-var __1 = require("../..");
+exports.handleEscrowTransfer = void 0;
 var payment_schema_1 = require("../../../database/common/payment.schema");
 var transaction_model_1 = __importStar(require("../../../database/common/transaction.model"));
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var transaction_events_1 = require("../../../events/transaction.events");
 var logger_1 = require("../../../utils/logger");
 var stripe_1 = require("../../stripe");
-var handlePayoutTransfer = function () { return __awaiter(void 0, void 0, void 0, function () {
+var handleEscrowTransfer = function () { return __awaiter(void 0, void 0, void 0, function () {
     var transactions, _i, transactions_1, transaction, toUser, toUserStripeConnectAccount, connectAccountId, payment, amount, transactionMeta, metadata, stripeTransfer, error_1, error_2;
     var _a;
     return __generator(this, function (_b) {
@@ -131,7 +130,7 @@ var handlePayoutTransfer = function () { return __awaiter(void 0, void 0, void 0
             case 7:
                 _b.sent();
                 //emit event and handle notifications from there ?
-                transaction_events_1.TransactionEvent.emit('PAYOUT_TRANSFER_SUCCESSFUL', transaction);
+                transaction_events_1.TransactionEvent.emit('ESCROW_TRANSFER_SUCCESSFUL', transaction);
                 return [3 /*break*/, 9];
             case 8:
                 error_1 = _b.sent();
@@ -143,44 +142,10 @@ var handlePayoutTransfer = function () { return __awaiter(void 0, void 0, void 0
             case 10: return [3 /*break*/, 12];
             case 11:
                 error_2 = _b.sent();
-                logger_1.Logger.error('Error processing payout transfer:', error_2);
+                logger_1.Logger.error('Error processing handleEscrowTransfer:', error_2);
                 return [3 /*break*/, 12];
             case 12: return [2 /*return*/];
         }
     });
 }); };
-exports.handlePayoutTransfer = handlePayoutTransfer;
-function sendNotification(customer, contractor, job, message) {
-    var _a, _b;
-    __1.NotificationService.sendNotification({
-        user: contractor.id,
-        userType: 'contractors',
-        title: 'Job Schedule Reminder',
-        type: 'JOB_DAY_REMINDER', //
-        message: message,
-        heading: { name: "".concat(customer.name), image: (_a = customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
-        payload: {
-            entity: job.id,
-            entityType: 'jobs',
-            message: message,
-            contractor: contractor.id,
-            event: 'JOB_DAY_REMINDER',
-        }
-    }, { push: true, socket: true });
-    // reminder to customer
-    __1.NotificationService.sendNotification({
-        user: customer.id,
-        userType: 'customers',
-        title: 'Job Schedule Reminder',
-        type: 'JOB_DAY_REMINDER', //
-        message: message,
-        heading: { name: "".concat(contractor.name), image: (_b = contractor.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
-        payload: {
-            entity: job.id,
-            entityType: 'jobs',
-            message: message,
-            contractor: contractor.id,
-            event: 'JOB_DAY_REMINDER',
-        }
-    }, { push: true, socket: true });
-}
+exports.handleEscrowTransfer = handleEscrowTransfer;

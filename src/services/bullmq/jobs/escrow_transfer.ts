@@ -10,7 +10,7 @@ import { Logger } from "../../../utils/logger";
 import { StripeService } from "../../stripe";
 
 
-export const handlePayoutTransfer = async () => {
+export const handleEscrowTransfer = async () => {
     try {
         const transactions = await TransactionModel.find({
             type: TRANSACTION_TYPE.ESCROW,
@@ -51,7 +51,7 @@ export const handlePayoutTransfer = async () => {
                 await transaction.save()
                 //emit event and handle notifications from there ?
 
-                TransactionEvent.emit('PAYOUT_TRANSFER_SUCCESSFUL', transaction)
+                TransactionEvent.emit('ESCROW_TRANSFER_SUCCESSFUL', transaction)
                 
             } catch (error) {
                 Logger.error(`Error processing payout transfer: ${transaction.id}`, error);
@@ -59,44 +59,7 @@ export const handlePayoutTransfer = async () => {
         }
         
     } catch (error) {
-        Logger.error('Error processing payout transfer:', error);
+        Logger.error('Error processing handleEscrowTransfer:', error);
     }
 };
-
-
-
-function sendNotification(customer: ICustomer, contractor: IContractor, job: IJob, message: any) {
-    NotificationService.sendNotification({
-        user: contractor.id,
-        userType: 'contractors',
-        title: 'Job Schedule Reminder',
-        type: 'JOB_DAY_REMINDER', //
-        message: message,
-        heading: { name: `${customer.name}`, image: customer.profilePhoto?.url },
-        payload: {
-            entity: job.id,
-            entityType: 'jobs',
-            message: message,
-            contractor: contractor.id,
-            event: 'JOB_DAY_REMINDER',
-        }
-    }, { push: true, socket: true })
-
-    // reminder to customer
-    NotificationService.sendNotification({
-        user: customer.id,
-        userType: 'customers',
-        title: 'Job Schedule Reminder',
-        type: 'JOB_DAY_REMINDER', //
-        message: message,
-        heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
-        payload: {
-            entity: job.id,
-            entityType: 'jobs',
-            message: message,
-            contractor: contractor.id,
-            event: 'JOB_DAY_REMINDER',
-        }
-    }, { push: true, socket: true })
-}
 

@@ -49,7 +49,7 @@ var sync_certn_applications_1 = require("./jobs/sync_certn_applications");
 var expire_jobs_1 = require("./jobs/expire_jobs");
 var jobday_schedule_1 = require("./jobs/jobday_schedule");
 var job_refunds_1 = require("./jobs/job_refunds");
-var payout_transfers_1 = require("./jobs/payout_transfers");
+var escrow_transfer_1 = require("./jobs/escrow_transfer");
 var redisConfig = {
     port: Number(config_1.config.redis.port),
     host: config_1.config.redis.host,
@@ -102,8 +102,8 @@ exports.RepairFindQueueWorker = new bullmq_1.Worker(config_1.config.redis.queueN
                 _a.sent();
                 _a.label = 10;
             case 10:
-                if (!(job.name == 'handlePayoutTransfer')) return [3 /*break*/, 12];
-                return [4 /*yield*/, (0, payout_transfers_1.handlePayoutTransfer)()];
+                if (!(job.name == 'handleEscrowTransfer')) return [3 /*break*/, 12];
+                return [4 /*yield*/, (0, escrow_transfer_1.handleEscrowTransfer)()];
             case 11:
                 _a.sent();
                 _a.label = 12;

@@ -151,7 +151,7 @@ export const getCountries = async (
 
     res.json({
       success: true,
-      message: "Contries retrieved successful",
+      message: "Countries retrieved successful",
       data: [
 
         {

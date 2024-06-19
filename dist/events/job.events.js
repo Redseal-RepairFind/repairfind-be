@@ -574,7 +574,7 @@ exports.JobEvent.on('JOB_COMPLETED', function (payload) {
                             }
                         }, { push: true, socket: true });
                     }
-                    return [4 /*yield*/, transaction_model_1.default.findOne({ job: job.id, type: transaction_model_1.TRANSACTION_TYPE.TRANSFER })];
+                    return [4 /*yield*/, transaction_model_1.default.findOne({ job: job.id, type: transaction_model_1.TRANSACTION_TYPE.ESCROW })];
                 case 4:
                     transaction = _d.sent();
                     if (transaction) {

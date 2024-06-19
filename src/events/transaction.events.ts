@@ -7,9 +7,9 @@ import { GenericEmailTemplate } from '../templates/common/generic_email';
 
 export const TransactionEvent: EventEmitter = new EventEmitter();
 
-TransactionEvent.on('PAYOUT_TRANSFER_SUCCESSFUL', async function (transaction) {
+TransactionEvent.on('ESCROW_TRANSFER_SUCCESSFUL', async function (transaction) {
     try {
-        console.log('handling PAYOUT_TRANSFER_SUCCESSFUL event', transaction.id)
+        console.log('handling ESCROW_TRANSFER_SUCCESSFUL event', transaction.id)
 
         const fromUser = (transaction.fromUserType == 'customers') ? await CustomerModel.findById(transaction.fromUser) : await ContractorModel.findById(transaction.fromUser)
         const toUser = (transaction.toUserType == 'customers') ? await CustomerModel.findById(transaction.toUser) : await ContractorModel.findById(transaction.toUser)
@@ -53,6 +53,6 @@ TransactionEvent.on('PAYOUT_TRANSFER_SUCCESSFUL', async function (transaction) {
 
 
     } catch (error) {
-        console.error(`Error handling PAYOUT_TRANSFER_SUCCESSFUL event: ${error}`);
+        console.error(`Error handling ESCROW_TRANSFER_SUCCESSFUL event: ${error}`);
     }
 });
