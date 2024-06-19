@@ -2,7 +2,7 @@ import { Schema, model, Document, ObjectId } from 'mongoose';
 
 export enum TRANSACTION_STATUS {
   PENDING = "PENDING",
-  APPROVED = "APPROVED", // important for payout transactions
+  APPROVED = "APPROVED", // important for transfer transactions
   SUCCESSFUL = "SUCCESSFUL",
   FAILED = "FAILED",
   REFUNDED = "REFUNDED",
@@ -14,7 +14,7 @@ export enum TRANSACTION_TYPE {
   TRANSFER = "TRANSFER",
   JOB_PAYMENT = "JOB_PAYMENT",
   REFUND = "REFUND",
-  PAYOUT = "PAYOUT",
+  // PAYOUT = "PAYOUT",
   SITE_VISIT = 'SITE_VISIT',
   JOB_DAY = 'JOB_DAY',
   CHANGE_ORDER = 'CHANGE_ORDER',

@@ -475,7 +475,7 @@ JobEvent.on('JOB_COMPLETED', async function (payload: { job: IJob }) {
         }
 
          //approve payout here - change status to approved and use  cron jobs to schedule the transfer
-         const transaction = await TransactionModel.findOne({job: job.id, type: TRANSACTION_TYPE.PAYOUT})
+         const transaction = await TransactionModel.findOne({job: job.id, type: TRANSACTION_TYPE.TRANSFER})
          if(transaction){
             transaction.status = TRANSACTION_STATUS.APPROVED
             const metadata = transaction.metadata ?? {}

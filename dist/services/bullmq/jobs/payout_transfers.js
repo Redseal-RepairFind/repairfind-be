@@ -86,7 +86,7 @@ var handlePayoutTransfer = function () { return __awaiter(void 0, void 0, void 0
             case 0:
                 _b.trys.push([0, 11, , 12]);
                 return [4 /*yield*/, transaction_model_1.default.find({
-                        type: transaction_model_1.TRANSACTION_TYPE.PAYOUT,
+                        type: transaction_model_1.TRANSACTION_TYPE.TRANSFER,
                         status: transaction_model_1.TRANSACTION_STATUS.APPROVED
                     })];
             case 1:
