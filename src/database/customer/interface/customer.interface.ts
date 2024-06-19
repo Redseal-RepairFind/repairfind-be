@@ -60,6 +60,7 @@ export interface ICustomer extends Document {
     createdTime: Date;
     verified: boolean;
   };
+  status: string;
 
   stripeCustomer: IStripeCustomer
   stripePaymentMethods: Array<IStripePaymentMethod>
