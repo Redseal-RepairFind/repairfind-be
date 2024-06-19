@@ -17,6 +17,7 @@ import { COMPANY_STATUS, CONTRACTOR_TYPES, GST_STATUS, IContractorCompanyDetails
 import { BadRequestError } from "../../../utils/custom.errors";
 import { castPayloadToDTO } from "../../../utils/interface_dto.util";
 import { JOB_STATUS, JobModel } from "../../../database/common/job.model";
+import BlacklistedToken from "../../../database/common/blacklisted_tokens.schema";
 
 
 class ProfileHandler extends Base {
@@ -561,7 +562,7 @@ class ProfileHandler extends Base {
         stripeAccountLink = await StripeService.account.createAccountLink(contractor.stripeAccount.id)
       }
       else {
-        // should create account login link  here if account has already unboarded, but will need to check status shaaa
+        // should create account login link  here if account has already onboard, but will need to check status
         // @ts-ignore
         stripeAccountLink = await StripeService.account.createLoginLink(contractor.stripeAccount.id)
       }
@@ -664,7 +665,6 @@ class ProfileHandler extends Base {
         return res.status(404).json({ success: false, message: 'Contractor profile not found' });
       }
 
-      // Update the bankDetails subdocument
       profile.bankDetails = <IContractorBankDetails>{
         institutionName,
         transitNumber,
@@ -722,7 +722,7 @@ class ProfileHandler extends Base {
           return res.status(400).json({ success: false, message: 'GST has already been approved' });
         }
         if (contractor.gstDetails.status == GST_STATUS.REVIEWING) {
-          return res.status(400).json({ success: false, message: 'GST is curretnly been reviewed' });
+          return res.status(400).json({ success: false, message: 'GST is currently been reviewed' });
         }
       }
 
@@ -780,7 +780,7 @@ class ProfileHandler extends Base {
           return res.status(400).json({ success: false, message: 'Company details has already been approved' });
         }
         if (contractor.companyDetails.status == COMPANY_STATUS.REVIEWING) {
-          return res.status(400).json({ success: false, message: 'Company details are curretnly been reviewed' });
+          return res.status(400).json({ success: false, message: 'Company details are currently been reviewed' });
         }
       }
 
@@ -954,7 +954,7 @@ class ProfileHandler extends Base {
       }
 
       const devices = await ContractorDeviceModel.find({ contractor: contractorId })
-      return res.json({ success: true, message: 'Contractor deviced retrieved', data: devices });
+      return res.json({ success: true, message: 'Contractor devices retrieved', data: devices });
     } catch (error: any) {
       console.error('Error retrieving contractor devices:', error);
       return res.status(error.code ?? 500).json({ success: false, message: error.message ?? 'Internal Server Error' });
@@ -977,7 +977,7 @@ class ProfileHandler extends Base {
       // perform checks here
       const bookedAndDisputedJobs = await JobModel.find({ contractor: contractorId, status: { $in: [JOB_STATUS.BOOKED, JOB_STATUS.DISPUTED] } })
       if (bookedAndDisputedJobs.length > 0) {
-        return res.status(400).json({ success: false, message: 'You have an active Job, acount cannot be deleted' });
+        return res.status(400).json({ success: false, message: 'You have an active Job, account cannot be deleted' });
       }
 
       await ContractorModel.deleteById(contractorId)
@@ -987,6 +987,36 @@ class ProfileHandler extends Base {
       await account.save()
 
       res.json({ success: true, message: 'Account deleted successfully' });
+    } catch (err: any) {
+      console.log('error', err);
+      res.status(500).json({ success: false, message: err.message });
+    }
+  }
+
+  @handleAsyncError()
+  public async signOut(): Promise<Response | void> {
+    let req = <any>this.req;
+    let res = this.res;
+    try {
+      const contractorId = req.contractor.id;
+      const contractor = await ContractorModel.findOne({ _id: contractorId });
+      if (!contractor) {
+        return res.status(404).json({ success: false, message: 'Contractor account not found' });
+      }
+
+
+      // Assume the token is in the Authorization header (Bearer token)
+      const token = req.headers.authorization?.split(' ')[1];
+
+      if (!token) {
+        return res.status(400).json({ success: false, message: 'Token not provided' });
+      }
+
+      // Add the token to the blacklist
+      await BlacklistedToken.create({ token });
+
+
+      res.json({ success: true, message: 'Sign out successful' });
     } catch (err: any) {
       console.log('error', err);
       res.status(500).json({ success: false, message: err.message });

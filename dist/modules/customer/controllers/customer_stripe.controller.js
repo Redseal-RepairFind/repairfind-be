@@ -86,7 +86,7 @@ var createSession = function (req, res) { return __awaiter(void 0, void 0, void 
                 if (!stripeCustomer) return [3 /*break*/, 6];
                 return [4 /*yield*/, stripe_1.StripeService.session.createSession({
                         mode: mode,
-                        currency: 'usd',
+                        currency: 'cad',
                         customer: stripeCustomer.id,
                         setup_intent_data: {
                             metadata: {

@@ -180,7 +180,7 @@ var getCountries = function (req, res) { return __awaiter(void 0, void 0, void 0
         try {
             res.json({
                 success: true,
-                message: "Contries retrieved successful",
+                message: "Countries retrieved successful",
                 data: [
                     {
                         "iso2Code": "AF",

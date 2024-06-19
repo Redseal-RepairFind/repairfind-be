@@ -1,5 +1,5 @@
 import { Schema, model, ObjectId, FilterQuery } from "mongoose";
-import { COMPANY_STATUS, CONTRACTOR_TYPES, GST_STATUS, IContractor, IContractorCertnDetails, IContractorCompanyDetails, IContractorGstDetails } from "../interface/contractor.interface";
+import { COMPANY_STATUS, CONTRACTOR_STATUS, CONTRACTOR_TYPES, GST_STATUS, IContractor, IContractorCertnDetails, IContractorCompanyDetails, IContractorGstDetails } from "../interface/contractor.interface";
 import { contractorStatus } from "../../../constants/contractorStatus";
 import ContractorQuizModel from "./contractor_quiz.model";
 import { StripeCustomerSchema } from "../../common/stripe_customer.schema";
@@ -253,14 +253,14 @@ ContractorSchema.virtual('stripeAccountStatus').get(function (this: IContractor)
 
 ContractorSchema.virtual('accountStatus').get(function (this: IContractor) {
   const stripeAccount = this.stripeAccount;
-  const stripeAccountStatus =
-    stripeAccount?.details_submitted &&
-    stripeAccount?.payouts_enabled &&
-    stripeAccount?.charges_enabled &&
-    (stripeAccount?.capabilities?.transfers == 'active') &&
-    (stripeAccount?.capabilities?.card_payments == 'active')
+  // const stripeAccountStatus =
+  //   stripeAccount?.details_submitted &&
+  //   stripeAccount?.payouts_enabled &&
+  //   stripeAccount?.charges_enabled &&
+  //   (stripeAccount?.capabilities?.transfers == 'active') &&
+  //   (stripeAccount?.capabilities?.card_payments == 'active')
 
-    return stripeAccountStatus
+    return CONTRACTOR_STATUS.APPROVED
 });
 
 

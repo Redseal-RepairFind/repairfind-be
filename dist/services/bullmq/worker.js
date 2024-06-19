@@ -49,70 +49,84 @@ var sync_certn_applications_1 = require("./jobs/sync_certn_applications");
 var expire_jobs_1 = require("./jobs/expire_jobs");
 var jobday_schedule_1 = require("./jobs/jobday_schedule");
 var job_refunds_1 = require("./jobs/job_refunds");
-var redisConfig = {
-    port: Number(config_1.config.redis.port),
-    host: config_1.config.redis.host,
-    password: config_1.config.redis.password,
-    username: config_1.config.redis.username,
-    maxRetriesPerRequest: null,
-    // uri: config.redis.uri,
+var escrow_transfer_1 = require("./jobs/escrow_transfer");
+var getRedisConfig = function () {
+    var redisConfig = {
+        port: Number(config_1.config.redis.port),
+        host: config_1.config.redis.host,
+        password: config_1.config.redis.password,
+        username: config_1.config.redis.username,
+        maxRetriesPerRequest: null,
+    };
+    if (config_1.config.environment !== 'development') {
+        redisConfig.tls = {};
+    }
+    return redisConfig;
 };
-// console.log(config)
-// @ts-ignore
-if (!(config_1.config.environment == 'development')) {
-    console.log('not developement');
-    redisConfig.tls = {};
-}
-;
-// const redisConnection = createClient(redisConfig); // Create Redis client
-// this.repairFindQueue = new Queue('RepairFindQueue', { connection: redisConfig });
-var redisConnection = new ioredis_1.default(redisConfig);
-exports.RepairFindQueueWorker = new bullmq_1.Worker(config_1.config.redis.queueName, function (job) { return __awaiter(void 0, void 0, void 0, function () {
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+var processJob = function (job) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, error_1;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
-                if (!(job.name == 'CapturePayments')) return [3 /*break*/, 2];
-                return [4 /*yield*/, (0, capture_stripe_payments_1.captureStripePayments)()];
-            case 1:
-                _a.sent();
-                _a.label = 2;
+                _b.trys.push([0, 15, , 16]);
+                _a = job.name;
+                switch (_a) {
+                    case 'CapturePayments': return [3 /*break*/, 1];
+                    case 'expireJobs': return [3 /*break*/, 3];
+                    case 'syncCertnApplications': return [3 /*break*/, 5];
+                    case 'jobDayScheduleCheck': return [3 /*break*/, 7];
+                    case 'handleJobRefunds': return [3 /*break*/, 9];
+                    case 'handleEscrowTransfer': return [3 /*break*/, 11];
+                }
+                return [3 /*break*/, 13];
+            case 1: return [4 /*yield*/, (0, capture_stripe_payments_1.captureStripePayments)()];
             case 2:
-                if (!(job.name == 'expireJobs')) return [3 /*break*/, 4];
-                return [4 /*yield*/, (0, expire_jobs_1.expireJobs)()];
-            case 3:
-                _a.sent();
-                _a.label = 4;
+                _b.sent();
+                return [3 /*break*/, 14];
+            case 3: return [4 /*yield*/, (0, expire_jobs_1.expireJobs)()];
             case 4:
-                if (!(job.name == 'syncCertnApplications')) return [3 /*break*/, 6];
-                return [4 /*yield*/, (0, sync_certn_applications_1.syncCertnApplications)()];
-            case 5:
-                _a.sent();
-                _a.label = 6;
+                _b.sent();
+                return [3 /*break*/, 14];
+            case 5: return [4 /*yield*/, (0, sync_certn_applications_1.syncCertnApplications)()];
             case 6:
-                if (!(job.name == 'jobDayScheduleCheck')) return [3 /*break*/, 8];
-                return [4 /*yield*/, (0, jobday_schedule_1.jobDayScheduleCheck)()];
-            case 7:
-                _a.sent();
-                _a.label = 8;
+                _b.sent();
+                return [3 /*break*/, 14];
+            case 7: return [4 /*yield*/, (0, jobday_schedule_1.jobDayScheduleCheck)()];
             case 8:
-                if (!(job.name == 'handleJobRefunds')) return [3 /*break*/, 10];
-                return [4 /*yield*/, (0, job_refunds_1.handleJobRefunds)()];
-            case 9:
-                _a.sent();
-                _a.label = 10;
-            case 10: return [2 /*return*/];
+                _b.sent();
+                return [3 /*break*/, 14];
+            case 9: return [4 /*yield*/, (0, job_refunds_1.handleJobRefunds)()];
+            case 10:
+                _b.sent();
+                return [3 /*break*/, 14];
+            case 11: return [4 /*yield*/, (0, escrow_transfer_1.handleEscrowTransfer)()];
+            case 12:
+                _b.sent();
+                return [3 /*break*/, 14];
+            case 13:
+                logger_1.Logger.warn("Unknown job name: ".concat(job.name));
+                _b.label = 14;
+            case 14: return [3 /*break*/, 16];
+            case 15:
+                error_1 = _b.sent();
+                logger_1.Logger.error("Error processing job ".concat(job.name, ": ").concat(error_1));
+                throw error_1;
+            case 16: return [2 /*return*/];
         }
     });
-}); }, { connection: redisConnection });
-exports.RepairFindQueueWorker.on('completed', function (job) {
-    logger_1.Logger.info("Job Completed: ".concat(job.name, " - ").concat(job.id, " has completed!"));
-});
-exports.RepairFindQueueWorker.on('error', function (error) {
-    logger_1.Logger.info("Job Errored: ".concat(error));
-});
-exports.RepairFindQueueWorker.on('failed', function (error) {
-    logger_1.Logger.info("Job Failed: ".concat(error));
-});
-exports.RepairFindQueueWorker.on('completed', function (job) {
-    logger_1.Logger.info("Job Completed: ".concat(job.name, " - ").concat(job.id, " has completed!"));
-});
+}); };
+var setupWorkerEventListeners = function (worker) {
+    worker.on('error', function (error) {
+        logger_1.Logger.error("Job Errored: ".concat(error));
+    });
+    worker.on('failed', function (job) {
+        logger_1.Logger.error("Job Failed: ".concat(job === null || job === void 0 ? void 0 : job.name, " - ").concat(job === null || job === void 0 ? void 0 : job.id));
+    });
+    worker.on('completed', function (job) {
+        logger_1.Logger.info("Job Completed: ".concat(job.name, " - ").concat(job.id, " has completed!"));
+    });
+};
+var redisConfig = getRedisConfig();
+var redisConnection = new ioredis_1.default(redisConfig);
+exports.RepairFindQueueWorker = new bullmq_1.Worker(config_1.config.redis.queueName, processJob, { connection: redisConnection });
+setupWorkerEventListeners(exports.RepairFindQueueWorker);

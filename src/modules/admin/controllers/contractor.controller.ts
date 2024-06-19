@@ -40,7 +40,7 @@ export const attachStripeAccount = async (
 
     try {
 
-        const {stripeAccountId = 'acct_1P4N6NRdmDaBvbML'} = req.body;
+        const {stripeAccountId} = req.body;
         const {contractorId} = req.params;
         const contractor = await ContractorModel.findById(contractorId);
         if (!contractor) {
@@ -53,7 +53,7 @@ export const attachStripeAccount = async (
         await contractor.save()
         return res.json({ success: true, message: 'Stripe account  attached', data: contractor });
     } catch (error: any) {
-        return next(new InternalServerError( 'Error attaching stripe account', error))
+        return next(new InternalServerError( `Error attaching stripe account: ${error.message}`, error))
     }
 
 }

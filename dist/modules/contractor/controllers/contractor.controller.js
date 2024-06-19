@@ -99,6 +99,7 @@ var contractor_devices_model_1 = __importDefault(require("../../../database/cont
 var contractor_interface_1 = require("../../../database/contractor/interface/contractor.interface");
 var custom_errors_1 = require("../../../utils/custom.errors");
 var job_model_1 = require("../../../database/common/job.model");
+var blacklisted_tokens_schema_1 = __importDefault(require("../../../database/common/blacklisted_tokens.schema"));
 var ProfileHandler = /** @class */ (function (_super) {
     __extends(ProfileHandler, _super);
     function ProfileHandler() {
@@ -615,7 +616,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         return [3 /*break*/, 10];
                     case 8: return [4 /*yield*/, stripe_1.StripeService.account.createLoginLink(contractor.stripeAccount.id)];
                     case 9:
-                        // should create account login link  here if account has already unboarded, but will need to check status shaaa
+                        // should create account login link  here if account has already onboard, but will need to check status
                         // @ts-ignore
                         stripeAccountLink = _a.sent();
                         _a.label = 10;
@@ -732,7 +733,6 @@ var ProfileHandler = /** @class */ (function (_super) {
                         if (!profile) {
                             return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor profile not found' })];
                         }
-                        // Update the bankDetails subdocument
                         profile.bankDetails = {
                             institutionName: institutionName,
                             transitNumber: transitNumber,
@@ -790,7 +790,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                                 return [2 /*return*/, res.status(400).json({ success: false, message: 'GST has already been approved' })];
                             }
                             if (contractor.gstDetails.status == contractor_interface_1.GST_STATUS.REVIEWING) {
-                                return [2 /*return*/, res.status(400).json({ success: false, message: 'GST is curretnly been reviewed' })];
+                                return [2 /*return*/, res.status(400).json({ success: false, message: 'GST is currently been reviewed' })];
                             }
                         }
                         // Update the bankDetails subdocument
@@ -855,7 +855,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                                 return [2 /*return*/, res.status(400).json({ success: false, message: 'Company details has already been approved' })];
                             }
                             if (contractor.companyDetails.status == contractor_interface_1.COMPANY_STATUS.REVIEWING) {
-                                return [2 /*return*/, res.status(400).json({ success: false, message: 'Company details are curretnly been reviewed' })];
+                                return [2 /*return*/, res.status(400).json({ success: false, message: 'Company details are currently been reviewed' })];
                             }
                         }
                         // Update the bankDetails subdocument
@@ -1063,7 +1063,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         return [4 /*yield*/, contractor_devices_model_1.default.find({ contractor: contractorId })];
                     case 3:
                         devices = _c.sent();
-                        return [2 /*return*/, res.json({ success: true, message: 'Contractor deviced retrieved', data: devices })];
+                        return [2 /*return*/, res.json({ success: true, message: 'Contractor devices retrieved', data: devices })];
                     case 4:
                         error_4 = _c.sent();
                         console.error('Error retrieving contractor devices:', error_4);
@@ -1096,7 +1096,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                     case 3:
                         bookedAndDisputedJobs = _a.sent();
                         if (bookedAndDisputedJobs.length > 0) {
-                            return [2 /*return*/, res.status(400).json({ success: false, message: 'You have an active Job, acount cannot be deleted' })];
+                            return [2 /*return*/, res.status(400).json({ success: false, message: 'You have an active Job, account cannot be deleted' })];
                         }
                         return [4 /*yield*/, contractor_model_1.ContractorModel.deleteById(contractorId)];
                     case 4:
@@ -1114,6 +1114,46 @@ var ProfileHandler = /** @class */ (function (_super) {
                         res.status(500).json({ success: false, message: err_12.message });
                         return [3 /*break*/, 7];
                     case 7: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    ProfileHandler.prototype.signOut = function () {
+        var _a;
+        return __awaiter(this, void 0, void 0, function () {
+            var req, res, contractorId, contractor, token, err_13;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        req = this.req;
+                        res = this.res;
+                        _b.label = 1;
+                    case 1:
+                        _b.trys.push([1, 4, , 5]);
+                        contractorId = req.contractor.id;
+                        return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: contractorId })];
+                    case 2:
+                        contractor = _b.sent();
+                        if (!contractor) {
+                            return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor account not found' })];
+                        }
+                        token = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.split(' ')[1];
+                        if (!token) {
+                            return [2 /*return*/, res.status(400).json({ success: false, message: 'Token not provided' })];
+                        }
+                        // Add the token to the blacklist
+                        return [4 /*yield*/, blacklisted_tokens_schema_1.default.create({ token: token })];
+                    case 3:
+                        // Add the token to the blacklist
+                        _b.sent();
+                        res.json({ success: true, message: 'Sign out successful' });
+                        return [3 /*break*/, 5];
+                    case 4:
+                        err_13 = _b.sent();
+                        console.log('error', err_13);
+                        res.status(500).json({ success: false, message: err_13.message });
+                        return [3 /*break*/, 5];
+                    case 5: return [2 /*return*/];
                 }
             });
         });
@@ -1214,6 +1254,12 @@ var ProfileHandler = /** @class */ (function (_super) {
         __metadata("design:paramtypes", []),
         __metadata("design:returntype", Promise)
     ], ProfileHandler.prototype, "deleteAccount", null);
+    __decorate([
+        (0, decorators_abstract_1.handleAsyncError)(),
+        __metadata("design:type", Function),
+        __metadata("design:paramtypes", []),
+        __metadata("design:returntype", Promise)
+    ], ProfileHandler.prototype, "signOut", null);
     return ProfileHandler;
 }(base_abstract_1.Base));
 var ContractorController = function () {

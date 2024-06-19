@@ -35,32 +35,26 @@ const server = http.createServer(app);
 // Apply security-related middleware
 securityMiddleware(app);
 
+
 // Apply CSRF protection middleware
 csrfMiddleware(app);
 
 
 // Apply sentry middleware
-sentryMiddleware(app)
+// sentryMiddleware(app)
+
 
 // Apply cors middleware
 corsMiddleware(app)
 
 
-// Apply sentry middleware
-sentryMiddleware(app)
-
-// Apply cors middleware
-corsMiddleware(app)
-
-// Api rate limite
+// Api rate limit
 configureRateLimit(app)
 
 // Parsers
 configureParsers(app);
 
 
-// Parsers
-configureParsers(app);
 
 
 // Database connection
@@ -68,7 +62,6 @@ const MONGODB_URI = process.env.MONGODB_URI as string;
 (async () => {
   try {
     await mongoose.connect(MONGODB_URI, {
-      useNewUrlParser: true,
     } as ConnectOptions);
     await RunSeeders();
     console.log("Connected to Database");
@@ -82,9 +75,7 @@ const MONGODB_URI = process.env.MONGODB_URI as string;
 app.use("/health", (req, res) => {
   res.json({success: true, message: `App is up and running:  ${req.hostname}${req.originalUrl}`});
 });
-app.use("/", (req, res) => {
-  res.json({success: true, message: `Welcome to repairfind api:  ${req.hostname}${req.originalUrl}`});
-});
+
 app.use("/api/v1/contractor", contractorRoute);
 app.use("/api/v1/admin", adminRoute);
 app.use("/api/v1/customer", customerRoute);
@@ -94,12 +85,14 @@ app.use("/api/v1/common", commonRoute);
 QueueService.attach(app);
 RepairFindQueueWorker
 
-
 // Middleware to handle non-existing pages (404)
 app.use((req, res, next) => {
   res.status(404).json({success:false, message: `Resource Not found:  ${req.hostname}${req.originalUrl}` });
 });
 
+app.use("/", (req, res) => {
+  res.json({success: true, message: `Welcome to Repairfind API:  ${req.hostname}${req.originalUrl}`});
+});
 
 app.use(errorHandler)
 

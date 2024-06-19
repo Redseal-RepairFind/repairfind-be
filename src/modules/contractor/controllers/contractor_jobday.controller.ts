@@ -189,15 +189,15 @@ export const confirmArrival = async (
 
         const jobDay = await JobDayModel.findOne({ _id: jobDayId })
         if (!jobDay) {
-            return res.status(403).json({ success: false, message: 'jobDay not found' });
+            return res.status(403).json({ success: false, message: 'JobDay not found' });
         }
 
         if (!(jobDay.status === JOB_DAY_STATUS.STARTED || jobDay.status === JOB_DAY_STATUS.ARRIVED)) {
-            return res.status(403).json({ success: false, message: 'Trip not started yet' });
+            return res.status(403).json({ success: false, message: 'JobDay trip not started yet' });
         }
 
         if (jobDay.verified) {
-            return res.status(403).json({ success: false, message: 'Jobday trip already visited' });
+            return res.status(403).json({ success: false, message: 'JobDay trip already verified' });
         }
 
         const verificationCode = generateOTP()
@@ -211,7 +211,7 @@ export const confirmArrival = async (
 
         res.json({
             success: true,
-            message: "you successfully arrrived at site, wait for comfirmation from customer",
+            message: "You have arrived at site, awaiting customer confirmation",
             data: { verificationCode }
         });
 

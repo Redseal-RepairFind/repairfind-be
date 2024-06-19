@@ -52,7 +52,7 @@ var createSession = function (payload) { return __awaiter(void 0, void 0, void 0
                 console.log(payload);
                 return [4 /*yield*/, stripeClient.checkout.sessions.create({
                         mode: payload.mode, // 'setup
-                        currency: payload.currency, // usd
+                        currency: payload.currency, // cad
                         customer: payload.customer,
                         metadata: payload.metadata,
                         setup_intent_data: payload.setup_intent_data,

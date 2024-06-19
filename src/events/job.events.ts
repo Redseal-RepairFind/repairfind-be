@@ -16,6 +16,7 @@ import { JobEmergencyEmailTemplate } from '../templates/common/job_emergency_ema
 import { GenericEmailTemplate } from '../templates/common/generic_email';
 import { IJobDispute } from '../database/common/job_dispute.model';
 import { IExtraEstimate, IJobQuotation } from '../database/common/job_quotation.model';
+import TransactionModel, { TRANSACTION_STATUS, TRANSACTION_TYPE } from '../database/common/transaction.model';
 
 export const JobEvent: EventEmitter = new EventEmitter();
 
@@ -124,7 +125,7 @@ JobEvent.on('JOB_CANCELED', async function (payload: { job: IJob, canceledBy: st
 
 
 
-            // TODO: apply the guidline below and create cancelationData
+            // TODO: apply the guideline below and create cancelationData
             // Cancel jobs: Customers have the option to cancel jobs based on the following guidelines:
             // Free cancellation up to 48 hours before the scheduled job time..
             // For cancellations made within 24 hours, regardless of the job's cost, a $50 cancellation fee is applied. 80% of this fee is directed to the contractor, while the remaining 20% is retained by us.
@@ -168,7 +169,7 @@ JobEvent.on('JOB_DAY_EMERGENCY', async function (payload: { jobEmergency: IJobEm
             // send socket notification to general admins alert channel
             SocketService.broadcastChannel('admin_alerts', 'NEW_JOB_EMERGENCY', {
                 type: 'NEW_JOB_EMERGENCY',
-                message: 'A new Job emergenc has been reported',
+                message: 'A new Job emergency has been reported',
                 data: { emergency: payload.jobEmergency, job, customer: customer.toJSON(), contractor: contractor.toJSON() }
             });
 
@@ -181,9 +182,9 @@ JobEvent.on('JOB_DAY_EMERGENCY', async function (payload: { jobEmergency: IJobEm
 });
 
 
-JobEvent.on('JOB_RESHEDULE_DECLINED_ACCEPTED', async function (payload: { job: IJob, action: string }) {
+JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: IJob, action: string }) {
     try {
-        console.log('handling alert JOB_RESHEDULE_DECLINED_ACCEPTED event', payload.action)
+        console.log('handling alert JOB_RESCHEDULE_DECLINED_ACCEPTED event', payload.action)
 
         const customer = await CustomerModel.findById(payload.job.customer)
         const contractor = await ContractorModel.findById(payload.job.contractor)
@@ -216,14 +217,14 @@ JobEvent.on('JOB_RESHEDULE_DECLINED_ACCEPTED', async function (payload: { job: I
 
 
     } catch (error) {
-        console.error(`Error handling JOB_RESHEDULE_DECLINED_ACCEPTED event: ${error}`);
+        console.error(`Error handling JOB_RESCHEDULE_DECLINED_ACCEPTED event: ${error}`);
     }
 });
 
 
-JobEvent.on('NEW_JOB_RESHEDULE_REQUEST', async function (payload: { job: IJob, action: string }) {
+JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', async function (payload: { job: IJob, action: string }) {
     try {
-        console.log('handling alert NEW_JOB_RESHEDULE_REQUEST event', payload.action)
+        console.log('handling alert NEW_JOB_RESCHEDULE_REQUEST event', payload.action)
 
         const customer = await CustomerModel.findById(payload.job.customer)
         const contractor = await ContractorModel.findById(payload.job.contractor)
@@ -256,7 +257,7 @@ JobEvent.on('NEW_JOB_RESHEDULE_REQUEST', async function (payload: { job: IJob, a
 
 
     } catch (error) {
-        console.error(`Error handling NEW_JOB_RESHEDULE_REQUEST event: ${error}`);
+        console.error(`Error handling NEW_JOB_RESCHEDULE_REQUEST event: ${error}`);
     }
 });
 
@@ -435,7 +436,6 @@ JobEvent.on('JOB_COMPLETED', async function (payload: { job: IJob }) {
 
         const customer = await CustomerModel.findById(job.customer)
         const contractor = await ContractorModel.findById(job.contractor)
-
         const event = (job.schedule.type == JOB_SCHEDULE_TYPE.SITE_VISIT) ? 'COMPLETED_SITE_VISIT' : 'JOB_COMPLETED'
 
         if (!customer || !contractor) return
@@ -474,6 +474,14 @@ JobEvent.on('JOB_COMPLETED', async function (payload: { job: IJob }) {
             }, { push: true, socket: true })
         }
 
+         //approve payout here - change status to approved and use  cron jobs to schedule the transfer
+         const transaction = await TransactionModel.findOne({job: job.id, type: TRANSACTION_TYPE.ESCROW})
+         if(transaction){
+            transaction.status = TRANSACTION_STATUS.APPROVED
+            const metadata = transaction.metadata ?? {}
+            transaction.metadata = { ...metadata, event }
+            transaction.save()
+         }
 
     } catch (error) {
         console.error(`Error handling JOB_COMPLETED event: ${error}`);
@@ -618,12 +626,12 @@ JobEvent.on('CHANGE_ORDER_ESTIMATE_SUBMITTED', async function (payload: { job: I
             userType: 'customers',
             title: 'Change order estimate submitted',
             type: 'CHANGE_ORDER_ESTIMATE_SUBMITTED', //
-            message: `change order estimate has been submitted`,
+            message: `Change order estimate has been submitted`,
             heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
             payload: {
                 entity: job.id,
                 entityType: 'jobs',
-                message: `change order estimate has been submitted`,
+                message: `Change order estimate has been submitted`,
                 customer: customer.id,
                 event: 'CHANGE_ORDER_ESTIMATE_SUBMITTED',
                 jobDayId: jobDay?.id,
@@ -639,12 +647,12 @@ JobEvent.on('CHANGE_ORDER_ESTIMATE_SUBMITTED', async function (payload: { job: I
                 userType: 'contractors',
                 title: 'Change order estimate submitted',
                 type: 'CHANGE_ORDER_ESTIMATE_SUBMITTED', //
-                message: `change order estimate has been submitted`,
+                message: `Change order estimate has been submitted`,
                 heading: { name: `${customer.name}`, image: customer.profilePhoto?.url },
                 payload: {
                     entity: job.id,
                     entityType: 'jobs',
-                    message: `change order estimate has been submitted`,
+                    message: `Change order estimate has been submitted`,
                     customer: customer.id,
                     event: 'CHANGE_ORDER_ESTIMATE_SUBMITTED',
                     jobDayId: jobDay?.id,
@@ -702,7 +710,6 @@ JobEvent.on('CHANGE_ORDER_ESTIMATE_PAID', async function (payload: { job: IJob, 
 });
 
 
-
 // JOB DAY
 JobEvent.on('JOB_DAY_STARTED', async function (payload: { job: IJob, jobDay: IJobDay }) {
     try {
@@ -727,10 +734,10 @@ JobEvent.on('JOB_DAY_STARTED', async function (payload: { job: IJob, jobDay: IJo
             {
                 user: contractor.id,
                 userType: 'contractors',
-                title: 'jobDay',
+                title: 'JobDay',
                 heading: {},
                 type: 'JOB_DAY_STARTED',
-                message: 'jobday tripe successfully started',
+                message: 'JobDay Trip successfully started',
                 payload: { event: 'JOB_DAY_STARTED', jobDayId: jobDay._id }
             },
             {
@@ -746,10 +753,10 @@ JobEvent.on('JOB_DAY_STARTED', async function (payload: { job: IJob, jobDay: IJo
                 {
                     user: job.assignment.contractor,
                     userType: 'contractors',
-                    title: 'jobDay',
+                    title: 'JobDay',
                     heading: {},
                     type: 'JOB_DAY_STARTED',
-                    message: 'jobday tripe successfully started',
+                    message: 'JobDay Trip successfully started',
                     payload: { event: 'JOB_DAY_STARTED', jobDayId: jobDay._id }
                 },
                 {
@@ -768,7 +775,7 @@ JobEvent.on('JOB_DAY_STARTED', async function (payload: { job: IJob, jobDay: IJo
                 title: 'jobDay',
                 heading: {},
                 type: 'JOB_DAY_STARTED',
-                message: 'Contractor starts jobDay to your site.',
+                message: 'Contractor has started JobDay Trip to your site.',
                 payload: { event: 'JOB_DAY_STARTED', jobDayId: jobDay._id }
             },
             {
@@ -804,7 +811,7 @@ JobEvent.on('JOB_DAY_ARRIVAL', async function (payload: { jobDay: IJobDay, verif
             {
                 user: jobDay.customer.toString(),
                 userType: 'customers',
-                title: 'jobDay',
+                title: 'JobDay',
                 heading: { name: contractor.name, image: contractor.profilePhoto?.url },
                 type: 'JOB_DAY_ARRIVAL',
                 message: 'Contractor is at your site.',
@@ -821,10 +828,10 @@ JobEvent.on('JOB_DAY_ARRIVAL', async function (payload: { jobDay: IJobDay, verif
             {
                 user: contractor.id,
                 userType: 'contractors',
-                title: 'jobDay',
+                title: 'JobDay',
                 heading: {},
                 type: 'JOB_DAY_ARRIVAL',
-                message: 'Job Day arrival, waiting for comfirmation from customer.',
+                message: 'Job Day arrival, waiting for confirmation from customer.',
                 payload: { event: 'JOB_DAY_ARRIVAL', jobDayId: jobDay.id, verificationCode }
             },
             {
@@ -838,10 +845,10 @@ JobEvent.on('JOB_DAY_ARRIVAL', async function (payload: { jobDay: IJobDay, verif
                 {
                     user: job.assignment.contractor,
                     userType: 'contractors',
-                    title: 'jobDay',
+                    title: 'JobDay',
                     heading: {},
                     type: 'JOB_DAY_ARRIVAL',
-                    message: 'Job Day arrival, waiting for comfirmation from customer.',
+                    message: 'Job Day arrival, waiting for confirmation from customer.',
                     payload: { event: 'JOB_DAY_ARRIVAL', jobDayId: jobDay.id, verificationCode }
                 },
                 {
@@ -875,7 +882,7 @@ JobEvent.on('JOB_REFUND_REQUESTED', async function (payload: {job: any, payment:
         let emailSubject = 'Job Refund Requested'
         let emailContent = `
                 <p style="color: #333333;">A refund for your job on Repairfind has been requested </p>
-                <p style="color: #333333;">The refund should be completed in 3 business days </p>
+                <p style="color: #333333;">The refund should be completed in 24 hours </p>
                 <p><strong>Job Title:</strong> ${job.description}</p>
                 <p><strong>Job Amount</strong> ${payment.amount}</p>
                 <p><strong>Refund Amount:</strong> ${refund.refundAmount}</p>
@@ -888,7 +895,7 @@ JobEvent.on('JOB_REFUND_REQUESTED', async function (payload: {job: any, payment:
          emailSubject = 'Job Refund Requested'
          emailContent = `
                 <p style="color: #333333;">A refund for your job on Repairfind has been requested </p>
-                <p style="color: #333333;">The refund should be completed in 3 business days </p>
+                <p style="color: #333333;">The refund should be completed in 24 hours </p>
                 <p><strong>Job Title:</strong> ${job.description}</p>
                 <p><strong>Job Amount</strong> ${payment.amount}</p>
                 <p><strong>Refund Amount:</strong> ${refund.refundAmount}</p>

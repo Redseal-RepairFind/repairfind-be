@@ -42,8 +42,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.checkContractorRole = void 0;
 var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
+var blacklisted_tokens_schema_1 = __importDefault(require("../../../database/common/blacklisted_tokens.schema"));
 var checkContractorRole = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var secret, authHeader, token, payload, contractor, err_1;
+    var secret, authHeader, token, blacklistedToken, payload, contractor, err_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -55,28 +56,32 @@ var checkContractorRole = function (req, res, next) { return __awaiter(void 0, v
                 }
                 _a.label = 1;
             case 1:
-                _a.trys.push([1, 3, , 4]);
+                _a.trys.push([1, 4, , 5]);
+                return [4 /*yield*/, blacklisted_tokens_schema_1.default.findOne({ token: token })];
+            case 2:
+                blacklistedToken = _a.sent();
+                if (blacklistedToken) {
+                    return [2 /*return*/, res.status(401).json({ success: false, message: 'Invalid authorization token' })];
+                }
                 payload = jsonwebtoken_1.default.verify(token, secret);
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({
                         email: payload.email
                     })];
-            case 2:
+            case 3:
                 contractor = _a.sent();
                 if (!contractor) {
                     return [2 /*return*/, res
                             .status(403)
                             .json({ success: false, message: "Access denied. contractor role required." })];
                 }
-                // Add the payload to the request object for later use
                 req.contractor = contractor;
-                // Call the next middleware function
                 next();
-                return [3 /*break*/, 4];
-            case 3:
+                return [3 /*break*/, 5];
+            case 4:
                 err_1 = _a.sent();
                 console.error(err_1);
                 return [2 /*return*/, res.status(401).json({ success: false, message: "Invalid authorization token" })];
-            case 4: return [2 /*return*/];
+            case 5: return [2 /*return*/];
         }
     });
 }); };

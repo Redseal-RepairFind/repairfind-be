@@ -102,7 +102,7 @@ export const initiateJobDay = async (
 
         res.json({
             success: true,
-            message: "job day successfully initiated",
+            message: "JobDay successfully initiated",
             data: data
         });
 
@@ -133,19 +133,19 @@ export const confirmContractorArrival = async (
 
         const jobDay = await JobDayModel.findOne({ _id: jobDayId })
         if (!jobDay) {
-            return res.status(403).json({ success: false, message: 'jobDay not found' });
+            return res.status(403).json({ success: false, message: 'JobDay not found' });
         }
 
         if (jobDay.status != JOB_DAY_STATUS.ARRIVED) {
-            return res.status(403).json({ success: false, message: 'contractor has not arrived yet' });
+            return res.status(403).json({ success: false, message: 'Contractor has not arrived yet' });
         }
 
         if (jobDay.verified) {
-            return res.status(403).json({ success: false, message: 'site already visited' });
+            return res.status(403).json({ success: false, message: 'JobDay has already been verified' });
         }
 
         if (jobDay.verificationCode !== verificationCode) {
-            return res.status(403).json({ success: false, message: 'incorrect verification code' });
+            return res.status(403).json({ success: false, message: 'Incorrect verification code' });
         }
 
         const job = await JobModel.findById(jobDay.job)
@@ -167,10 +167,10 @@ export const confirmContractorArrival = async (
             {
                 user: jobDay.contractor.toString(),
                 userType: 'contractors',
-                title: 'jobDay',
+                title: 'JobDay confirmation',
                 heading: {},
                 type: 'JOB_DAY_CONFIRMED',
-                message: 'Customer confirmed your arrival.',
+                message: 'Customer has confirmed your arrival.',
                 payload: { event: 'JOB_DAY_CONFIRMED', jobDay }
             },
             {
@@ -185,10 +185,10 @@ export const confirmContractorArrival = async (
                 {
                     user: job.assignment.contractor,
                     userType: 'contractors',
-                    title: 'jobDay',
+                    title: 'JobDay confirmation',
                     heading: {},
                     type: 'JOB_DAY_CONFIRMED',
-                    message: 'Customer confirmed your arrival.',
+                    message: 'Customer has confirmed your arrival.',
                     payload: { event: 'JOB_DAY_CONFIRMED', jobDay }
                 },
                 {
@@ -205,7 +205,7 @@ export const confirmContractorArrival = async (
             {
                 user: jobDay.customer,
                 userType: 'customers',
-                title: 'jobDay',
+                title: 'JobDay confirmation',
                 heading: {},
                 type: 'JOB_DAY_CONFIRMED',
                 message: "You successfully confirmed the contractor's arrival.",
@@ -220,7 +220,7 @@ export const confirmContractorArrival = async (
 
         res.json({
             success: true,
-            message: "contractor arrival successfully comfirmed",
+            message: "Contractor arrival successfully confirmed",
             data: jobDay
         });
 
@@ -482,6 +482,10 @@ export const confirmJobDayCompletion = async (req: any, res: Response, next: Nex
         // Check if the contractor is the owner of the job
         if (job.customer.toString() !== customerId) {
             return res.status(403).json({ success: false, message: 'You are not authorized to mark  this booking as complete' });
+        }
+
+        if (!job.statusUpdate ) {
+            return res.status(400).json({ success: false, message: 'Contractor has not yet created a status update' });
         }
 
      

@@ -173,7 +173,7 @@
 //         line_items: [
 //             {
 //                 price_data: {
-//                     currency: 'usd', 
+//                     currency: 'cad', 
 //                     product_data: {
 //                         name: 'inspection fees'
 //                     },

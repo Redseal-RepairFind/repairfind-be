@@ -31,6 +31,7 @@ var webhook = __importStar(require("./webhook.stripe"));
 var payment = __importStar(require("./payment.stripe"));
 var file = __importStar(require("./file.stripe"));
 var account = __importStar(require("./account.stripe"));
+var transfer = __importStar(require("./transfer.stripe"));
 exports.StripeService = {
     session: session,
     customer: customer,
@@ -38,5 +39,6 @@ exports.StripeService = {
     webhook: webhook,
     payment: payment,
     file: file,
-    account: account
+    account: account,
+    transfer: transfer
 };

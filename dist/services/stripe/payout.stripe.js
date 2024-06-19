@@ -51,7 +51,7 @@ var createPayout = function (connectedAccountId, amount) { return __awaiter(void
                 _a.trys.push([0, 2, , 3]);
                 return [4 /*yield*/, stripe.payouts.create({
                         amount: amount,
-                        currency: 'usd',
+                        currency: 'cad',
                     }, {
                         stripeAccount: connectedAccountId,
                     })];

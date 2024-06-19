@@ -39,50 +39,33 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkCustomerRole = void 0;
-var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
-var blacklisted_tokens_schema_1 = __importDefault(require("../../../database/common/blacklisted_tokens.schema"));
-var checkCustomerRole = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var secret, authHeader, token, blacklistedToken, payload, customer, err_1;
+exports.createTransfer = void 0;
+var stripe_1 = __importDefault(require("stripe"));
+var STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
+var stripeClient = new stripe_1.default(STRIPE_SECRET_KEY);
+var createTransfer = function (connectedAccountId, amount, metadata) { return __awaiter(void 0, void 0, void 0, function () {
+    var payout, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                secret = process.env.JWT_CONTRACTOR_SECRET_KEY;
-                authHeader = req.headers.authorization;
-                token = authHeader && authHeader.split(" ")[1];
-                if (!token) {
-                    return [2 /*return*/, res.status(401).json({ success: false, message: "Authorization token missing" })];
-                }
-                _a.label = 1;
-            case 1:
-                _a.trys.push([1, 4, , 5]);
-                return [4 /*yield*/, blacklisted_tokens_schema_1.default.findOne({ token: token })];
-            case 2:
-                blacklistedToken = _a.sent();
-                if (blacklistedToken) {
-                    return [2 /*return*/, res.status(401).json({ success: false, message: 'Invalid authorization token' })];
-                }
-                payload = jsonwebtoken_1.default.verify(token, secret);
-                return [4 /*yield*/, customer_model_1.default.findOne({
-                        email: payload.email
+                _a.trys.push([0, 2, , 3]);
+                console.log(amount);
+                return [4 /*yield*/, stripeClient.transfers.create({
+                        amount: amount,
+                        currency: 'cad',
+                        destination: connectedAccountId,
+                        description: '',
+                        metadata: metadata
                     })];
-            case 3:
-                customer = _a.sent();
-                if (!customer) {
-                    return [2 /*return*/, res
-                            .status(403)
-                            .json({ success: false, message: "Access denied. customer role required." })];
-                }
-                req.customer = payload;
-                next();
-                return [3 /*break*/, 5];
-            case 4:
-                err_1 = _a.sent();
-                console.error(err_1);
-                return [2 /*return*/, res.status(401).json({ success: false, message: "Invalid authorization token" })];
-            case 5: return [2 /*return*/];
+            case 1:
+                payout = _a.sent();
+                console.log("Transfer created with ID ".concat(payout.id));
+                return [3 /*break*/, 3];
+            case 2:
+                error_1 = _a.sent();
+                throw error_1.message;
+            case 3: return [2 /*return*/];
         }
     });
 }); };
-exports.checkCustomerRole = checkCustomerRole;
+exports.createTransfer = createTransfer;

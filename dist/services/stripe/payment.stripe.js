@@ -50,7 +50,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.attachPaymentMethod = exports.detachPaymentMethod = exports.listPaymentMethods = exports.getPaymentMethod = exports.createPaymentIntent = exports.capturePayment = exports.refundCharge = exports.chargeCustomer = exports.chargeUserOnDemand = exports.createSetupIntent = void 0;
+exports.setManualPayouts = exports.createTestCharge = exports.attachPaymentMethod = exports.detachPaymentMethod = exports.listPaymentMethods = exports.getPaymentMethod = exports.createPaymentIntent = exports.capturePayment = exports.refundCharge = exports.chargeCustomer = exports.chargeUserOnDemand = exports.createSetupIntent = void 0;
 var stripe_1 = __importDefault(require("stripe"));
 var STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 var stripeClient = new stripe_1.default(STRIPE_SECRET_KEY);
@@ -72,7 +72,7 @@ var chargeUserOnDemand = function (setupIntentId) { return __awaiter(void 0, voi
         switch (_a.label) {
             case 0: return [4 /*yield*/, stripeClient.paymentIntents.create({
                     amount: 1000, // Amount in cents
-                    currency: 'usd',
+                    currency: 'cad',
                     payment_method: 'pm_card_visa', // Use the Payment Method ID obtained during authorization
                     confirmation_method: 'manual',
                     confirm: true,
@@ -190,3 +190,47 @@ var attachPaymentMethod = function (paymentMethodId, payload) { return __awaiter
     });
 }); };
 exports.attachPaymentMethod = attachPaymentMethod;
+var createTestCharge = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var charge, error_1;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                return [4 /*yield*/, stripeClient.charges.create({
+                        amount: 60000, // Amount in cents
+                        currency: 'cad',
+                        source: 'tok_bypassPending', // Test card token that bypasses pending state
+                        description: 'Test charge for insufficient funds'
+                    })];
+            case 1:
+                charge = _a.sent();
+                return [2 /*return*/, charge];
+            case 2:
+                error_1 = _a.sent();
+                console.error('Error creating test charge:', error_1);
+                throw error_1;
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.createTestCharge = createTestCharge;
+var setManualPayouts = function (connectAccountId) { return __awaiter(void 0, void 0, void 0, function () {
+    var account, error_2;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                return [4 /*yield*/, stripeClient.accounts.update(connectAccountId, { settings: { payouts: { schedule: { interval: 'manual' } } } })];
+            case 1:
+                account = _a.sent();
+                console.log('Account payout schedule updated to manual:', account);
+                return [3 /*break*/, 3];
+            case 2:
+                error_2 = _a.sent();
+                console.error('Error creating test charge:', error_2);
+                throw error_2;
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.setManualPayouts = setManualPayouts;

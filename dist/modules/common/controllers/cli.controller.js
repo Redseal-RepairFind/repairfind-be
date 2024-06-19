@@ -36,19 +36,42 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.BookingEvent = void 0;
-var events_1 = require("events");
-exports.BookingEvent = new events_1.EventEmitter();
-exports.BookingEvent.on('TestEvent', function (params) {
-    return __awaiter(this, void 0, void 0, function () {
-        return __generator(this, function (_a) {
-            try {
-                console.log("Notifications sent to participants of challenge");
-            }
-            catch (error) {
-                console.error("Error handling TestEvent event: ".concat(error));
-            }
-            return [2 /*return*/];
-        });
+exports.CliController = exports.clearQueue = void 0;
+var bullmq_1 = require("../../../services/bullmq");
+var config_1 = require("../../../config");
+var clearQueue = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var queueName, queue, error_1;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                queueName = config_1.config.redis.queueName;
+                _a.label = 1;
+            case 1:
+                _a.trys.push([1, 4, 5, 6]);
+                queue = bullmq_1.QueueService.getQueue(queueName);
+                if (!queue)
+                    return [2 /*return*/];
+                return [4 /*yield*/, queue.obliterate()];
+            case 2:
+                _a.sent();
+                console.log("Queue ".concat(queueName, " cleared successfully."));
+                return [4 /*yield*/, bullmq_1.QueueService.restartQueue()];
+            case 3:
+                _a.sent(); // Restart the queue after clearing
+                return [3 /*break*/, 6];
+            case 4:
+                error_1 = _a.sent();
+                console.error('Error clearing the queue:', error_1);
+                return [3 /*break*/, 6];
+            case 5: return [2 /*return*/, res.json({
+                    success: true,
+                    message: "".concat(queueName, " queue cleared successfully")
+                })];
+            case 6: return [2 /*return*/];
+        }
     });
-});
+}); };
+exports.clearQueue = clearQueue;
+exports.CliController = {
+    clearQueue: exports.clearQueue,
+};

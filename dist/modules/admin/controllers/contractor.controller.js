@@ -69,31 +69,31 @@ var removeStripeAccount = function (req, res, next) { return __awaiter(void 0, v
 }); };
 exports.removeStripeAccount = removeStripeAccount;
 var attachStripeAccount = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, stripeAccountId, contractorId, contractor, account, stripeAccount, error_2;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+    var stripeAccountId, contractorId, contractor, account, stripeAccount, error_2;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
             case 0:
-                _b.trys.push([0, 4, , 5]);
-                _a = req.body.stripeAccountId, stripeAccountId = _a === void 0 ? 'acct_1P4N6NRdmDaBvbML' : _a;
+                _a.trys.push([0, 4, , 5]);
+                stripeAccountId = req.body.stripeAccountId;
                 contractorId = req.params.contractorId;
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
             case 1:
-                contractor = _b.sent();
+                contractor = _a.sent();
                 if (!contractor) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor not found' })];
                 }
                 return [4 /*yield*/, stripe_1.StripeService.account.getAccount(stripeAccountId)];
             case 2:
-                account = _b.sent();
+                account = _a.sent();
                 stripeAccount = (0, interface_dto_util_1.castPayloadToDTO)(account, account);
                 contractor.stripeAccount = stripeAccount;
                 return [4 /*yield*/, contractor.save()];
             case 3:
-                _b.sent();
+                _a.sent();
                 return [2 /*return*/, res.json({ success: true, message: 'Stripe account  attached', data: contractor })];
             case 4:
-                error_2 = _b.sent();
-                return [2 /*return*/, next(new custom_errors_1.InternalServerError('Error attaching stripe account', error_2))];
+                error_2 = _a.sent();
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError("Error attaching stripe account: ".concat(error_2.message), error_2))];
             case 5: return [2 /*return*/];
         }
     });

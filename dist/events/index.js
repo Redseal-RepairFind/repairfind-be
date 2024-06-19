@@ -18,7 +18,6 @@ exports.eventEmitter = void 0;
 var events_1 = require("events");
 exports.eventEmitter = new events_1.EventEmitter();
 __exportStar(require("./auth.events"), exports);
-__exportStar(require("./booking.events"), exports);
 __exportStar(require("./conversation.events"), exports);
 __exportStar(require("./job.events"), exports);
 __exportStar(require("./profile.events"), exports);
