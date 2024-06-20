@@ -9,6 +9,7 @@ import { htmlAdminRquestGstStatuChangeTemplate } from "../../../templates/adminE
 import { OTP_EXPIRY_TIME, generateOTP } from "../../../utils/otpGenerator";
 import { GST_STATUS} from "../../../database/contractor/interface/contractor.interface";
 import { InvoiceModel } from "../../../database/common/invoices.shema";
+import { ContractorProfileModel } from "../../../database/contractor/models/contractor_profile.model";
 
 
 //get contractor detail /////////////
@@ -50,7 +51,8 @@ export const AdminGetContractorDetailController = async (
       
       for (let i = 0; i < contractors.length; i++) {
         const contractor = contractors[i];
-        const job = await JobModel.find({contractor: contractor._id}).sort({ createdAt: -1 }).populate("customer")
+        const job = await JobModel.find({contractor: contractor._id}).sort({ createdAt: -1 }).populate("customer");
+        const profile = await ContractorProfileModel.find({contractor: contractor._id})
 
         // let rating = null;
         
@@ -63,7 +65,8 @@ export const AdminGetContractorDetailController = async (
 
         const objTwo = {
             contractor: contractor,
-            job: job
+            job: job,
+            profile: profile
         };
 
         artisans.push(objTwo)
@@ -112,9 +115,12 @@ export const AdminGetSingleContractorDetailController = async (
 
     const job = await JobModel.find({contractor: contractor._id}).sort({ createdAt: -1 }).populate("customer")
 
+    const profile = await ContractorProfileModel.find({contractor: contractor._id})
+
     res.json({ 
       contractor, 
-      job
+      job,
+      profile
     });
     
   } catch (err: any) {
