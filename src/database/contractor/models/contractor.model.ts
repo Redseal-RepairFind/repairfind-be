@@ -238,17 +238,47 @@ ContractorSchema.virtual('stripeIdentityStatus').get(function (this: IContractor
 });
 
 
+
+// ContractorSchema.virtual('stripeAccountStatus').get(function (this: IContractor) {
+//   const stripeAccount = this.stripeAccount;
+//   return stripeAccount ? {
+//     details_submitted: stripeAccount.details_submitted,
+//     payouts_enabled: stripeAccount.payouts_enabled,
+//     charges_enabled: stripeAccount.charges_enabled,
+//     transfers_enabled: stripeAccount?.capabilities?.transfers === 'active',
+//     card_payments_enabled: stripeAccount?.capabilities?.card_payments === 'active',
+//     status: stripeAccount?.capabilities?.card_payments && stripeAccount?.capabilities?.transfers
+//   } : null;
+// });
+
+
+
 ContractorSchema.virtual('stripeAccountStatus').get(function (this: IContractor) {
   const stripeAccount = this.stripeAccount;
+  const detailsSubmitted = stripeAccount?.details_submitted || false;
+  const payoutsEnabled = stripeAccount?.payouts_enabled || false;
+  const chargesEnabled = stripeAccount?.charges_enabled || false;
+  const transfersEnabled = stripeAccount?.capabilities?.transfers === 'active' || false;
+  const cardPaymentsEnabled = stripeAccount?.capabilities?.card_payments === 'active' || false;
+  const status = detailsSubmitted && payoutsEnabled && chargesEnabled && transfersEnabled && cardPaymentsEnabled;
+
   return stripeAccount ? {
-    details_submitted: stripeAccount.details_submitted,
-    payouts_enabled: stripeAccount.payouts_enabled,
-    charges_enabled: stripeAccount.charges_enabled,
-    transfers_enabled: stripeAccount?.capabilities?.transfers === 'active',
-    card_payments_enabled: stripeAccount?.capabilities?.card_payments === 'active',
-    status: stripeAccount?.capabilities?.card_payments && stripeAccount?.capabilities?.transfers
-  } : null;
+    details_submitted: detailsSubmitted,
+    payouts_enabled: payoutsEnabled,
+    charges_enabled: chargesEnabled,
+    transfers_enabled: transfersEnabled,
+    card_payments_enabled: cardPaymentsEnabled,
+    status: status
+  } : {
+    details_submitted: detailsSubmitted,
+    payouts_enabled: payoutsEnabled,
+    charges_enabled: chargesEnabled,
+    transfers_enabled: transfersEnabled,
+    card_payments_enabled: cardPaymentsEnabled,
+    status: status
+  };
 });
+
 
 
 ContractorSchema.virtual('accountStatus').get(function (this: IContractor) {
