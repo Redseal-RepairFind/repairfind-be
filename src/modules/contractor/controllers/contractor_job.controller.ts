@@ -150,11 +150,11 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
 
 
     // Update the status of the job request to "Accepted"
-    job.status = JOB_STATUS.ACCEPTED;
+    job.status = JOB_STATUS.SUBMITTED;
 
     // Define the rejection event to be stored in the job history
     const jobEvent = {
-      eventType: JOB_STATUS.ACCEPTED,
+      eventType: JOB_STATUS.SUBMITTED,
       timestamp: new Date(),
       payload: {
         message: 'Contactor accepted this job'

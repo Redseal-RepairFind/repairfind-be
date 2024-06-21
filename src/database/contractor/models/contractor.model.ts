@@ -244,8 +244,8 @@ ContractorSchema.virtual('stripeAccountStatus').get(function (this: IContractor)
     details_submitted: stripeAccount.details_submitted,
     payouts_enabled: stripeAccount.payouts_enabled,
     charges_enabled: stripeAccount.charges_enabled,
-    transfers_enabled: stripeAccount?.capabilities?.transfers ?? 'inactive',
-    card_payments_enabled: stripeAccount?.capabilities?.card_payments ?? 'inactive',
+    transfers_enabled: stripeAccount?.capabilities?.transfers === 'active',
+    card_payments_enabled: stripeAccount?.capabilities?.card_payments === 'active',
     status: stripeAccount?.capabilities?.card_payments && stripeAccount?.capabilities?.transfers
   } : null;
 });
@@ -325,6 +325,12 @@ ContractorSchema.virtual('rating').get(function () {
 ContractorSchema.virtual('reviewCount').get(function () {
   const reviews: any[] = this.get('reviews') || [];
   return reviews.length;
+});
+
+
+ContractorSchema.virtual('stats').get(function () {
+  
+  return {responseTime: '10mins', jobsDone: 3, jobsCanceled: 2} ;
 });
 
 

@@ -101,7 +101,7 @@ var jobDayScheduleCheck = function () { return __awaiter(void 0, void 0, void 0,
                 // Example: Send a follow-up or feedback request to gather post-job information
                 // const message = `Action needed: Your job with ID ${job.id} was scheduled to start yesterday. Please provide feedback on the completed job.`;
                 // Code to send the follow-up message or trigger the feedback request
-                sendReminder(customer, contractor, job, "Your job scheduled for yesterda: ".concat(jobStartDate, " was not started"));
+                sendReminder(customer, contractor, job, "Your job scheduled for yesterday: ".concat(jobStartDate, " was not started"));
                 // move job status to NOT_STARTED
                 job.status = job_model_1.JOB_STATUS.NOT_STARTED;
                 return [4 /*yield*/, job.save()];

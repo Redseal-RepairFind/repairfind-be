@@ -242,15 +242,15 @@ ContractorSchema.virtual('stripeIdentityStatus').get(function () {
     return this.stripeIdentity ? this.stripeIdentity.status : 'unverified';
 });
 ContractorSchema.virtual('stripeAccountStatus').get(function () {
-    var _a, _b, _c, _d, _e, _f;
+    var _a, _b, _c, _d;
     var stripeAccount = this.stripeAccount;
     return stripeAccount ? {
         details_submitted: stripeAccount.details_submitted,
         payouts_enabled: stripeAccount.payouts_enabled,
         charges_enabled: stripeAccount.charges_enabled,
-        transfers_enabled: (_b = (_a = stripeAccount === null || stripeAccount === void 0 ? void 0 : stripeAccount.capabilities) === null || _a === void 0 ? void 0 : _a.transfers) !== null && _b !== void 0 ? _b : 'inactive',
-        card_payments_enabled: (_d = (_c = stripeAccount === null || stripeAccount === void 0 ? void 0 : stripeAccount.capabilities) === null || _c === void 0 ? void 0 : _c.card_payments) !== null && _d !== void 0 ? _d : 'inactive',
-        status: ((_e = stripeAccount === null || stripeAccount === void 0 ? void 0 : stripeAccount.capabilities) === null || _e === void 0 ? void 0 : _e.card_payments) && ((_f = stripeAccount === null || stripeAccount === void 0 ? void 0 : stripeAccount.capabilities) === null || _f === void 0 ? void 0 : _f.transfers)
+        transfers_enabled: ((_a = stripeAccount === null || stripeAccount === void 0 ? void 0 : stripeAccount.capabilities) === null || _a === void 0 ? void 0 : _a.transfers) === 'active',
+        card_payments_enabled: ((_b = stripeAccount === null || stripeAccount === void 0 ? void 0 : stripeAccount.capabilities) === null || _b === void 0 ? void 0 : _b.card_payments) === 'active',
+        status: ((_c = stripeAccount === null || stripeAccount === void 0 ? void 0 : stripeAccount.capabilities) === null || _c === void 0 ? void 0 : _c.card_payments) && ((_d = stripeAccount === null || stripeAccount === void 0 ? void 0 : stripeAccount.capabilities) === null || _d === void 0 ? void 0 : _d.transfers)
     } : null;
 });
 ContractorSchema.virtual('accountStatus').get(function () {
@@ -318,6 +318,9 @@ ContractorSchema.virtual('rating').get(function () {
 ContractorSchema.virtual('reviewCount').get(function () {
     var reviews = this.get('reviews') || [];
     return reviews.length;
+});
+ContractorSchema.virtual('stats').get(function () {
+    return { responseTime: '10mins', jobsDone: 3, jobsCanceled: 2 };
 });
 ContractorSchema.methods.getOnboarding = function () {
     var _a, _b, _c;

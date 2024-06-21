@@ -30,7 +30,6 @@ export const captureStripePayments = async () => {
                 // transaction.status = TRANSACTION_STATUS.SUCCESSFUL
                 // await transaction.save();
 
-                Logger.info(`Successfully captured payment for payment ID: ${payment.id}`);
             } catch (error) {
                 Logger.error(`Error capturing payment for payment ID: ${payment.id}`, error);
             }

@@ -82,7 +82,46 @@ export const exploreContractors = async (
                             else: '$companyName'
                         }
                     },
-                    rating: { $avg: '$reviews.averageRating' } // Calculate average rating using $avg
+                    rating: { $avg: '$reviews.averageRating' }, // Calculate average rating using $avg
+                    ratingCount: { $size: '$reviews' }, // Calculate average rating using $avg
+                    stripeAccountStatus: {
+                        details_submitted: "$stripeAccount.details_submitted",
+                        payouts_enabled: "$stripeAccount.payouts_enabled",
+                        charges_enabled: "$stripeAccount.charges_enabled",
+                        
+                        // transfers_enabled: { $ifNull: ["$stripeAccount.capabilities.transfers", "inactive"] },
+                        // card_payments_enabled: { $ifNull: ["$stripeAccount.capabilities.card_payments", "inactive"] },
+
+                        transfers_enabled: {
+                            $cond: {
+                              if: { $ifNull: ["$stripeAccount.capabilities.transfers", "inactive"] }, //{ $eq: ["$stripeAccount.capabilities.transfers", "active"] },
+                              then: true,
+                              else: false
+                            }
+                          },
+                          card_payments_enabled: {
+                            $cond: {
+                              if: { $ifNull: ["$stripeAccount.capabilities.card_payments", "inactive"] },//{ $eq: ["$stripeAccount.capabilities.card_payments", "active"] },
+                              then: true,
+                              else: false
+                            }
+                          },
+
+                          
+
+                        status: {
+                            $cond: {
+                              if: {
+                                $and: [
+                                  { $eq: ["$stripeAccount.capabilities.card_payments", "active"] },
+                                  { $eq: ["$stripeAccount.capabilities.transfers", "active"] }
+                                ]
+                              },
+                              then: 'active',
+                              else: 'inactive'
+                            }
+                          }
+                      }
 
                 }
             },
@@ -101,9 +140,17 @@ export const exploreContractors = async (
                     onboarding: 0,
 
                 }
-            }
+            },
+
+            //example filter out who do not have stripe account
+            { $match: { "stripeAccountStatus.status": 'active' } },
+
+             //example filter out employees and contractors 
+            { $match: { accountType: {$ne: CONTRACTOR_TYPES.Employee} } }
         ];
 
+
+  
         // Add stages conditionally based on query parameters
         if (category) {
             pipeline.push({ $match: { "profile.skill": { $regex: new RegExp(category, 'i') } } });

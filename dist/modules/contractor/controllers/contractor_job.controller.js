@@ -183,9 +183,9 @@ var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void
                     .json({ success: false, message: "Kindly connect your bank account to receive payment" })];
             case 7:
                 // Update the status of the job request to "Accepted"
-                job.status = job_model_1.JOB_STATUS.ACCEPTED;
+                job.status = job_model_1.JOB_STATUS.SUBMITTED;
                 jobEvent = {
-                    eventType: job_model_1.JOB_STATUS.ACCEPTED,
+                    eventType: job_model_1.JOB_STATUS.SUBMITTED,
                     timestamp: new Date(),
                     payload: {
                         message: 'Contactor accepted this job'

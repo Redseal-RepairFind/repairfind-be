@@ -631,7 +631,7 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
                     customer: job_1.customer,
                     contractor: job_1.contractor,
                     // comment: review,
-                    type: review_model_1.REVIEW_TYPE.JOB_CANCELETION,
+                    type: review_model_1.REVIEW_TYPE.JOB_CANCELATION,
                     createdAt: new Date(),
                 });
                 return [4 /*yield*/, newReview.save()

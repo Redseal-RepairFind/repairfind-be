@@ -129,7 +129,6 @@ var ProfileHandler = /** @class */ (function (_super) {
                             return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                         }
                         payload = {};
-                        console.log(contractor_1.accountType);
                         if ((contractor_1.accountType == contractor_interface_1.CONTRACTOR_TYPES.Company) || (contractor_1.accountType == contractor_interface_1.CONTRACTOR_TYPES.Individual)) {
                             payload = {
                                 contractor: contractorId,
