@@ -40,7 +40,7 @@ exports.syncCertnApplications = void 0;
 var __1 = require("../..");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var interface_dto_util_1 = require("../../../utils/interface_dto.util");
-var logger_1 = require("../../../utils/logger");
+var logger_1 = require("../../logger");
 var syncCertnApplications = function () { return __awaiter(void 0, void 0, void 0, function () {
     var contractors, _i, contractors_1, contractor, res, error_1, error_2;
     return __generator(this, function (_a) {

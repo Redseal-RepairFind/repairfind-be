@@ -1,7 +1,7 @@
 import { CertnService } from "../..";
 import { IJob, JOB_STATUS, JobModel } from "../../../database/common/job.model";
 import { IContractor, IContractorCertnDetails } from "../../../database/contractor/interface/contractor.interface";
-import { Logger } from "../../../utils/logger";
+import { Logger } from "../../logger";
 
 
 

@@ -2,7 +2,7 @@ import { RedisOptions, Worker } from 'bullmq';
 import { config } from '../../config';
 import Redis from 'ioredis';
 import { captureStripePayments } from './jobs/capture_stripe_payments';
-import { Logger } from '../../utils/logger';
+import { Logger } from '../logger';
 import { syncCertnApplications } from './jobs/sync_certn_applications';
 import { expireJobs } from './jobs/expire_jobs';
 import { jobDayScheduleCheck } from './jobs/jobday_schedule';

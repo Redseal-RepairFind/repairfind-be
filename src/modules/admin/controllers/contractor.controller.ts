@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from "express";
 import { StripeService } from "../../../services/stripe";
-import { Log } from "../../../utils/logger";
 import { ContractorModel } from "../../../database/contractor/models/contractor.model";
 import { castPayloadToDTO } from "../../../utils/interface_dto.util";
 import { IStripeAccount } from "../../../database/common/stripe_account.schema";

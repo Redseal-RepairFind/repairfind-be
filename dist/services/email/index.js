@@ -41,7 +41,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EmailService = void 0;
 var nodemailer_1 = __importDefault(require("nodemailer"));
-var logger_1 = require("../../utils/logger");
+var logger_1 = require("../logger");
 var EmailService = /** @class */ (function () {
     function EmailService() {
         this.from = process.env.EMAIL_FROM;

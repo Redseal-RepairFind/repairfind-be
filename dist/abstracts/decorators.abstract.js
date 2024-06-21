@@ -37,7 +37,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.handleAsyncError = void 0;
-var logger_1 = require("../utils/logger");
+var logger_1 = require("../services/logger");
 function handleAsyncError() {
     return function (target, propertyKey, descriptor) {
         var originalMethod = descriptor.value;

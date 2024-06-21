@@ -27,7 +27,7 @@ var __assign = (this && this.__assign) || function () {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.errorHandler = exports.InternalServerError = exports.NotFoundError = exports.ServiceUnavailableError = exports.ForbiddenError = exports.UnAuthorizedError = exports.BadRequestError = void 0;
-var logger_1 = require("./logger");
+var logger_1 = require("../services/logger");
 var CustomError = /** @class */ (function (_super) {
     __extends(CustomError, _super);
     function CustomError(message, code, type, error) {

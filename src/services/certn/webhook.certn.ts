@@ -1,7 +1,7 @@
 import { Request } from 'express';
 import { BadRequestError } from '../../utils/custom.errors';
-import { Log } from '../../utils/logger';
 import { CertnService } from '..';
+import { Logger } from '../logger';
 
 export const CertnWebhookHandler = async (req: Request) => {
     try {
@@ -27,7 +27,7 @@ export const CertnWebhookHandler = async (req: Request) => {
                 break;
         }
     } catch (error: any) {
-        console.error('Error handling Certn webhook:', error.message || "Something went wrong inside Certn webhook");
+        Logger.error('Error handling Certn webhook:', error.message || "Something went wrong inside Certn webhook");
     }
 };
 
@@ -38,9 +38,9 @@ const handleApplicantCreated = async (payload: any) => {
         // Fetch applicant details from Certn using CertnService
         const applicantDetails = await CertnService.initiateCertnInvite(applicantId);
         // Update database or perform other actions based on applicant details
-        console.log('applicantDetails')
+        Logger.info('handleApplicantCreated', applicantDetails)
     } catch (error: any) {
-        console.error('Error handling Certn applicant created event:', error.message || "Something went wrong");
+        Logger.error('Error handling Certn applicant created event:', error.message || "Something went wrong");
     }
 };
 
@@ -52,7 +52,7 @@ const handleReportCompleted = async (payload: any) => {
         // const reportDetails = await CertnService.getReportDetails(reportId);
         // Update database or perform other actions based on report details
     } catch (error: any) {
-        console.error('Error handling Certn report completed event:', error.message || "Something went wrong");
+        Logger.error('Error handling Certn report completed event:', error.message || "Something went wrong");
     }
 };
 
@@ -64,7 +64,7 @@ const handleReportFailed = async (payload: any) => {
         // const reportDetails = await CertnService.getReportDetails(reportId);
         // Update database or perform other actions based on report details
     } catch (error: any) {
-        console.error('Error handling Certn report failed event:', error.message || "Something went wrong");
+        Logger.error('Error handling Certn report failed event:', error.message || "Something went wrong");
        
     }
 };
@@ -77,8 +77,7 @@ const handleReportRetrieved = async (payload: any) => {
         // const reportDetails = await CertnService.getReportDetails(reportId);
         // Update database or perform other actions based on report details
     } catch (error: any) {
-        console.error('Error handling Certn report retrieved event:', error.message || "Something went wrong");
-       
+        Logger.error('Error handling Certn report retrieved event:', error.message || "Something went wrong");
     }
 };
 

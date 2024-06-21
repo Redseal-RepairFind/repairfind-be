@@ -1,5 +1,5 @@
 import { IPayment, PaymentModel } from "../../../database/common/payment.schema";
-import { Logger } from "../../../utils/logger";
+import { Logger } from "../../logger";
 import { StripeService } from "../../stripe";
 
 

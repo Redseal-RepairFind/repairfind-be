@@ -38,6 +38,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CertnWebhookHandler = void 0;
 var __1 = require("..");
+var logger_1 = require("../logger");
 var CertnWebhookHandler = function (req) { return __awaiter(void 0, void 0, void 0, function () {
     var eventType, eventData;
     return __generator(this, function (_a) {
@@ -64,7 +65,7 @@ var CertnWebhookHandler = function (req) { return __awaiter(void 0, void 0, void
             }
         }
         catch (error) {
-            console.error('Error handling Certn webhook:', error.message || "Something went wrong inside Certn webhook");
+            logger_1.Logger.error('Error handling Certn webhook:', error.message || "Something went wrong inside Certn webhook");
         }
         return [2 /*return*/];
     });
@@ -81,11 +82,11 @@ var handleApplicantCreated = function (payload) { return __awaiter(void 0, void 
             case 1:
                 applicantDetails = _a.sent();
                 // Update database or perform other actions based on applicant details
-                console.log('applicantDetails');
+                logger_1.Logger.info('handleApplicantCreated', applicantDetails);
                 return [3 /*break*/, 3];
             case 2:
                 error_1 = _a.sent();
-                console.error('Error handling Certn applicant created event:', error_1.message || "Something went wrong");
+                logger_1.Logger.error('Error handling Certn applicant created event:', error_1.message || "Something went wrong");
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
         }
@@ -101,7 +102,7 @@ var handleReportCompleted = function (payload) { return __awaiter(void 0, void 0
             // Update database or perform other actions based on report details
         }
         catch (error) {
-            console.error('Error handling Certn report completed event:', error.message || "Something went wrong");
+            logger_1.Logger.error('Error handling Certn report completed event:', error.message || "Something went wrong");
         }
         return [2 /*return*/];
     });
@@ -116,7 +117,7 @@ var handleReportFailed = function (payload) { return __awaiter(void 0, void 0, v
             // Update database or perform other actions based on report details
         }
         catch (error) {
-            console.error('Error handling Certn report failed event:', error.message || "Something went wrong");
+            logger_1.Logger.error('Error handling Certn report failed event:', error.message || "Something went wrong");
         }
         return [2 /*return*/];
     });
@@ -131,7 +132,7 @@ var handleReportRetrieved = function (payload) { return __awaiter(void 0, void 0
             // Update database or perform other actions based on report details
         }
         catch (error) {
-            console.error('Error handling Certn report retrieved event:', error.message || "Something went wrong");
+            logger_1.Logger.error('Error handling Certn report retrieved event:', error.message || "Something went wrong");
         }
         return [2 /*return*/];
     });

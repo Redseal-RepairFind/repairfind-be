@@ -3,7 +3,6 @@
 import Stripe from 'stripe';
 import { BadRequestError } from '../../utils/custom.errors';
 import { Request, Response } from "express";
-import { Log } from '../../utils/logger';
 import { EventEmitter } from 'events';
 import { eventEmitter } from '../../events';
 import { StripeService } from '.';
@@ -19,6 +18,7 @@ import { IJobQuotation, JobQuotationModel, JOB_QUOTATION_STATUS } from '../../da
 import { ObjectId } from 'mongoose';
 import { NotificationService } from '../notifications';
 import TransactionModel, { ITransaction, TRANSACTION_STATUS, TRANSACTION_TYPE } from '../../database/common/transaction.model';
+import { Logger } from '../logger';
 
 
 const STRIPE_SECRET_KEY = <string>process.env.STRIPE_SECRET_KEY;
@@ -41,9 +41,6 @@ export const StripeWebhookHandler = async (req: Request) => {
 
         const eventType = event.type;
         const eventData = event.data;
-
-        // console.log(event)
-        // Log.info(event)
 
         switch (eventType) {
 
@@ -107,12 +104,12 @@ export const StripeWebhookHandler = async (req: Request) => {
                 chargeRefundUpdated(eventData.object);
                 break;
             default:
-                console.log(`Unhandled event type: ${eventType}`, eventData.object);
+                Logger.info(`Unhandled event type: ${eventType}`, eventData.object);
                 break;
         }
     } catch (error: any) {
         // throw new BadRequestError(error.message || "Something went wrong");
-        console.log(error.message || "Something went wrong inside stripe webhook")
+        Logger.info(error.message || "Something went wrong inside stripe webhook")
         return
     }
 };
@@ -120,7 +117,7 @@ export const StripeWebhookHandler = async (req: Request) => {
 
 
 export const customerUpdated = async (payload: any) => {
-    console.log('Stripe Event Handler: customerUpdated', payload)
+    Logger.info('Stripe Event Handler: customerUpdated', payload)
     try {
 
         // if(payload.object != 'customer') return
@@ -138,7 +135,7 @@ export const customerUpdated = async (payload: any) => {
 };
 
 export const customerCreated = async (payload: any) => {
-    console.log('Stripe Event Handler: customerCreated', payload)
+    Logger.info('Stripe Event Handler: customerCreated', payload)
     try {
 
         // if(payload.object != 'customer') return
@@ -170,7 +167,7 @@ export const identityVerificationCreated = async (payload: any) => {
             user = await ContractorModel.findById(userId)
             devices = await ContractorDeviceModel.find({ contractor: user?.id }).select('deviceToken')
             deviceTokens = devices.map(device => device.deviceToken);
-            // console.log('deviceTokens', deviceTokens)
+            // Logger.info('deviceTokens', deviceTokens)
         } else {
             user = await CustomerModel.findById(userId)
         }
@@ -194,7 +191,7 @@ export const identityVerificationCreated = async (payload: any) => {
 export const identityVerificationRequiresInput = async (payload: any) => {
     try {
 
-        console.log('Verification check failed: ' + payload.last_error.reason);
+        Logger.info('Verification check failed: ' + payload.last_error.reason);
 
         const userType = payload?.metadata?.userType
         const userId = payload?.metadata?.userId
@@ -260,7 +257,7 @@ export const identityVerificationRequiresInput = async (payload: any) => {
 
         //fetch and expand
         let verification = await StripeService.identity.retrieveVerificationSession(payload.id)
-        console.log(verification)
+        Logger.info(verification)
 
         // update user profile picture here
         //@ts-ignore
@@ -269,8 +266,8 @@ export const identityVerificationRequiresInput = async (payload: any) => {
             file: verification?.last_verification_report?.selfie?.selfie,
             expires_at: Math.floor(Date.now() / 1000) + 30,  // link expires in 30 seconds
         }, true)
-        console.log('fileLink from stripe', fileLink)
-        console.log('s3fileUrl of file uploaded to s3', s3fileUrl)
+        Logger.info('fileLink from stripe', fileLink)
+        Logger.info('s3fileUrl of file uploaded to s3', s3fileUrl)
 
 
         //@ts-ignore
@@ -280,7 +277,7 @@ export const identityVerificationRequiresInput = async (payload: any) => {
 
 
     } catch (error: any) {
-        console.log(error)
+        Logger.info(error)
         // new BadRequestError(error.message || "Something went wrong");
     }
 };
@@ -288,8 +285,8 @@ export const identityVerificationRequiresInput = async (payload: any) => {
 export const identityVerificationVerified = async (payload: any) => {
     try {
 
-        console.log('Verification session verified: ' + payload.status);
-        console.log(payload)
+        Logger.info('Verification session verified: ' + payload.status);
+        Logger.info(payload)
         if (payload.object != 'identity.verification_session') return
 
         const userType = payload?.metadata?.userType
@@ -325,7 +322,7 @@ export const identityVerificationVerified = async (payload: any) => {
 
         //fetch and expand
         let verification = await StripeService.identity.retrieveVerificationSession(payload.id)
-        console.log(verification)
+        Logger.info(verification)
 
 
         // update user profile picture here
@@ -335,8 +332,8 @@ export const identityVerificationVerified = async (payload: any) => {
             file: verification?.last_verification_report?.selfie?.selfie,
             expires_at: Math.floor(Date.now() / 1000) + 30,  // link expires in 30 seconds
         }, true)
-        console.log('fileLink from stripe', fileLink)
-        console.log('s3fileUrl of file uploaded to s3', s3fileUrl)
+        Logger.info('fileLink from stripe', fileLink)
+        Logger.info('s3fileUrl of file uploaded to s3', s3fileUrl)
 
         //@ts-ignore
         user.stripeIdentity = verification
@@ -353,7 +350,7 @@ export const identityVerificationVerified = async (payload: any) => {
 
 // COnnect Account
 export const accountUpdated = async (payload: any) => {
-    console.log('Stripe Event Handler: accountUpdated', payload)
+    Logger.info('Stripe Event Handler: accountUpdated', payload)
     try {
 
         if (payload.object != 'account') return
@@ -372,7 +369,7 @@ export const accountUpdated = async (payload: any) => {
         await user.save()
     } catch (error: any) {
         // throw new BadRequestError(error.message || "Something went wrong");
-        console.log('accountUpdated', error)
+        Logger.info('accountUpdated', error)
     }
 
 };
@@ -380,7 +377,7 @@ export const accountUpdated = async (payload: any) => {
 
 // Payment Intent and Payment Method
 export const paymentIntentSucceeded = async (payload: any) => {
-    console.log('Stripe Event Handler: paymentIntentSucceeded', payload)
+    Logger.info('Stripe Event Handler: paymentIntentSucceeded', payload)
     try {
 
         if (payload.object != 'payment_intent') return
@@ -421,7 +418,7 @@ export const paymentIntentSucceeded = async (payload: any) => {
 export const setupIntentCreated = async (payload: any) => {
     try {
         //  const customer = await StripeService.customer.getCustomerById(payload.customer)
-        //  console.log('Customer from setupIntentCreated', customer)
+        //  Logger.info('Customer from setupIntentCreated', customer)
 
     } catch (error: any) {
         // throw new BadRequestError(error.message || "Something went wrong");
@@ -431,7 +428,7 @@ export const setupIntentCreated = async (payload: any) => {
 // only this send metadata
 export const setupIntentSucceeded = async (payload: any) => {
 
-    console.log('Stripe Event Handler: setupIntentSucceeded', payload)
+    Logger.info('Stripe Event Handler: setupIntentSucceeded', payload)
     try {
         const customer: any = await StripeService.customer.getCustomerById(payload.customer)
         const paymentMethod: any = await StripeService.payment.getPaymentMethod(payload.payment_method)
@@ -461,7 +458,7 @@ export const setupIntentSucceeded = async (payload: any) => {
 };
 
 export const paymentMethodAttached = async (payload: any) => {
-    console.log('Stripe Event Handler: paymentMethodAttached', payload)
+    Logger.info('Stripe Event Handler: paymentMethodAttached', payload)
     try {
 
         if (payload.object != 'payment_method') return
@@ -488,7 +485,7 @@ export const paymentMethodAttached = async (payload: any) => {
         await user.save()
     } catch (error: any) {
         // throw new BadRequestError(error.message || "Something went wrong");
-        console.log('Error on stripe webhook: paymentMethodAttached', error)
+        Logger.info('Error on stripe webhook: paymentMethodAttached', error)
     }
 
 };
@@ -511,7 +508,7 @@ export const paymentMethodDetached = async (payload: any) => {
 
 // Charge
 export const chargeSucceeded = async (payload: any) => {
-    console.log('Stripe Event Handler: chargeSucceeded', payload)
+    Logger.info('Stripe Event Handler: chargeSucceeded', payload)
     try {
 
         if (payload.object != 'charge') return
@@ -641,7 +638,7 @@ export const chargeSucceeded = async (payload: any) => {
                             remark: 'Site visit schedule'
                         };
                     } else {
-                        console.log('quotation.siteVisit.date is not a valid Date object.');
+                        Logger.info('quotation.siteVisit.date is not a valid Date object.');
                     }
 
                 }
@@ -667,7 +664,7 @@ export const chargeSucceeded = async (payload: any) => {
                     const destination = payment.destination
                     const transferData = payment.transfer_data
 
-                    // console.log(onBehalf,  destination, transferData)
+                    // Logger.info(onBehalf,  destination, transferData)
                     // payment was made to platform ?
                     if (!onBehalf && !destination && !transferData) {
                         //create payout transaction - 
@@ -713,13 +710,13 @@ export const chargeSucceeded = async (payload: any) => {
 
     } catch (error: any) {
         // throw new BadRequestError(error.message || "Something went wrong");
-        console.log('Error handling chargeSucceeded stripe webhook event', error)
+        Logger.info('Error handling chargeSucceeded stripe webhook event', error)
     }
 
 };
 
 export const chargeRefunded = async (payload: any) => {
-    console.log('Stripe Event Handler: chargeRefunded', payload);
+    Logger.info('Stripe Event Handler: chargeRefunded', payload);
 
     try {
         if (payload.object !== 'charge') return;
@@ -734,28 +731,28 @@ export const chargeRefunded = async (payload: any) => {
             await Promise.all([payment.save()]);
         }
     } catch (error: any) {
-        console.log('Error handling chargeRefunded stripe webhook event', error);
+        Logger.info('Error handling chargeRefunded stripe webhook event', error);
     }
 };
 
 export const chargeRefundUpdated = async (payload: any) => {
-    console.log('Stripe Event Handler: chargeRefundUpdated', { object: payload.object, id: payload.id });
+    Logger.info('Stripe Event Handler: chargeRefundUpdated', { object: payload.object, id: payload.id });
 
     try {
         if (payload.object !== 'refund') return;
         const metadata = payload.metadata as { charge: string, policyApplied: string, totalAmount: any, refundAmount: any, paymentId: ObjectId, transactionId: ObjectId }
-        console.log(metadata)
+        Logger.info(metadata)
         const stripeRefundDTO: IRefund = castPayloadToDTO(payload, payload as IRefund);
         const payment = await PaymentModel.findOne({ charge: stripeRefundDTO.charge });
         const transaction = await TransactionModel.findOne({ _id: metadata.transactionId });
-        console.log('transaction', transaction)
+        Logger.info('transaction', transaction)
         if (payment && transaction) {
             if (!payment.refunds.includes(stripeRefundDTO)) payment.refunds.push(stripeRefundDTO);
             if (payload.status == 'succeeded') transaction.status = TRANSACTION_STATUS.SUCCESSFUL
             await Promise.all([payment.save(), transaction.save()])
         }
     } catch (error: any) {
-        console.log('Error handling chargeRefundUpdated stripe webhook event', error);
+        Logger.info('Error handling chargeRefundUpdated stripe webhook event', error);
     }
 };
 

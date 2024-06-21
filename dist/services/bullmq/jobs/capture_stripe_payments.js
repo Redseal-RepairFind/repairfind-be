@@ -38,7 +38,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.captureStripePayments = void 0;
 var payment_schema_1 = require("../../../database/common/payment.schema");
-var logger_1 = require("../../../utils/logger");
+var logger_1 = require("../../logger");
 var stripe_1 = require("../../stripe");
 var captureStripePayments = function () { return __awaiter(void 0, void 0, void 0, function () {
     var oneDayInMillis, daysBeforeNow, dayFromNow, paymentCaptures, _i, paymentCaptures_1, payment, error_1, error_2;

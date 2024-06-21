@@ -1,5 +1,5 @@
 import nodemailer, { SendMailOptions, Transporter } from 'nodemailer';
-import { Logger } from '../../utils/logger';
+import { Logger } from '../logger';
 
 export class EmailService {
     protected readonly from: string = <string>process.env.EMAIL_FROM;

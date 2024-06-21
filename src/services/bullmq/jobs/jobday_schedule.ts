@@ -4,7 +4,7 @@ import { IContractor, IContractorCertnDetails } from "../../../database/contract
 import { ContractorModel } from "../../../database/contractor/models/contractor.model";
 import { ICustomer } from "../../../database/customer/interface/customer.interface";
 import CustomerModel from "../../../database/customer/models/customer.model";
-import { Logger } from "../../../utils/logger";
+import { Logger } from "../../logger";
 
 
 export const jobDayScheduleCheck = async () => {

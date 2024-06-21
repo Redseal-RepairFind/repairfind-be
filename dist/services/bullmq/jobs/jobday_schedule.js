@@ -44,7 +44,7 @@ var __1 = require("../..");
 var job_model_1 = require("../../../database/common/job.model");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
-var logger_1 = require("../../../utils/logger");
+var logger_1 = require("../../logger");
 var jobDayScheduleCheck = function () { return __awaiter(void 0, void 0, void 0, function () {
     var jobs, _i, jobs_1, job, customer, contractor, currentDate, jobStartDate, timeDifference, daysDifference, error_1, error_2;
     return __generator(this, function (_a) {

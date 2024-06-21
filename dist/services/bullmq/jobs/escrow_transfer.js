@@ -75,7 +75,7 @@ var payment_schema_1 = require("../../../database/common/payment.schema");
 var transaction_model_1 = __importStar(require("../../../database/common/transaction.model"));
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var transaction_events_1 = require("../../../events/transaction.events");
-var logger_1 = require("../../../utils/logger");
+var logger_1 = require("../../logger");
 var stripe_1 = require("../../stripe");
 var handleEscrowTransfer = function () { return __awaiter(void 0, void 0, void 0, function () {
     var transactions, _i, transactions_1, transaction, toUser, toUserStripeConnectAccount, connectAccountId, payment, amount, transactionMeta, metadata, stripeTransfer, error_1, error_2;
