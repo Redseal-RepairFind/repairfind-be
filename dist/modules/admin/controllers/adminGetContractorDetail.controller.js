@@ -46,13 +46,14 @@ var contractor_model_1 = require("../../../database/contractor/models/contractor
 var job_model_1 = require("../../../database/common/job.model");
 var contractor_interface_1 = require("../../../database/contractor/interface/contractor.interface");
 var invoices_shema_1 = require("../../../database/common/invoices.shema");
+var contractor_profile_model_1 = require("../../../database/contractor/models/contractor_profile.model");
 //get contractor detail /////////////
 var AdminGetContractorDetailController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, page, limit, errors, admin, adminId, skip, contractors, totalContractor, artisans, i, contractor, job, objTwo, err_1;
+    var _a, page, limit, errors, admin, adminId, skip, contractors, totalContractor, artisans, i, contractor, job, profile, objTwo, err_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 7, , 8]);
+                _b.trys.push([0, 8, , 9]);
                 _a = req.query, page = _a.page, limit = _a.limit;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
@@ -67,7 +68,7 @@ var AdminGetContractorDetailController = function (req, res) { return __awaiter(
                         .select('-password')
                         .sort({ createdAt: -1 })
                         .skip(skip)
-                        .limit(limit)];
+                        .limit(limit).populate('profile')];
             case 1:
                 contractors = _b.sent();
                 return [4 /*yield*/, contractor_model_1.ContractorModel.countDocuments()];
@@ -77,9 +78,12 @@ var AdminGetContractorDetailController = function (req, res) { return __awaiter(
                 i = 0;
                 _b.label = 3;
             case 3:
-                if (!(i < contractors.length)) return [3 /*break*/, 6];
+                if (!(i < contractors.length)) return [3 /*break*/, 7];
                 contractor = contractors[i];
-                return [4 /*yield*/, job_model_1.JobModel.find({ contractor: contractor._id }).sort({ createdAt: -1 }).populate("customer")
+                return [4 /*yield*/, job_model_1.JobModel.find({ contractor: contractor._id }).sort({ createdAt: -1 }).populate("customer")];
+            case 4:
+                job = _b.sent();
+                return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.find({ contractor: contractor._id })
                     // let rating = null;
                     // const contractorRating = await ContractorRatingModel.findOne({contractorId: contractor._id})
                     // if (contractorRating) {
@@ -87,42 +91,43 @@ var AdminGetContractorDetailController = function (req, res) { return __awaiter(
                     // }
                     // let jobRequested = []
                 ];
-            case 4:
-                job = _b.sent();
+            case 5:
+                profile = _b.sent();
                 objTwo = {
                     contractor: contractor,
-                    job: job
+                    job: job,
+                    profile: profile
                 };
                 artisans.push(objTwo);
-                _b.label = 5;
-            case 5:
+                _b.label = 6;
+            case 6:
                 i++;
                 return [3 /*break*/, 3];
-            case 6:
+            case 7:
                 res.json({
                     currentPage: page,
                     totalContractor: totalContractor,
                     totalPages: Math.ceil(totalContractor / limit),
                     contractors: artisans
                 });
-                return [3 /*break*/, 8];
-            case 7:
+                return [3 /*break*/, 9];
+            case 8:
                 err_1 = _b.sent();
                 // signup error
                 res.status(500).json({ message: err_1.message });
-                return [3 /*break*/, 8];
-            case 8: return [2 /*return*/];
+                return [3 /*break*/, 9];
+            case 9: return [2 /*return*/];
         }
     });
 }); };
 exports.AdminGetContractorDetailController = AdminGetContractorDetailController;
 //get  single contractor detail /////////////
 var AdminGetSingleContractorDetailController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var contractorId, errors, admin, adminId, contractor, job, err_2;
+    var contractorId, errors, admin, adminId, contractor, job, profile, err_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 3, , 4]);
+                _a.trys.push([0, 4, , 5]);
                 contractorId = req.params.contractorId;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
@@ -131,7 +136,7 @@ var AdminGetSingleContractorDetailController = function (req, res) { return __aw
                 admin = req.admin;
                 adminId = admin.id;
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: contractorId })
-                        .select('-password')];
+                        .select('-password').populate('profile')];
             case 1:
                 contractor = _a.sent();
                 if (!contractor) {
@@ -142,17 +147,21 @@ var AdminGetSingleContractorDetailController = function (req, res) { return __aw
                 return [4 /*yield*/, job_model_1.JobModel.find({ contractor: contractor._id }).sort({ createdAt: -1 }).populate("customer")];
             case 2:
                 job = _a.sent();
+                return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.find({ contractor: contractor._id })];
+            case 3:
+                profile = _a.sent();
                 res.json({
                     contractor: contractor,
-                    job: job
+                    job: job,
+                    profile: profile
                 });
-                return [3 /*break*/, 4];
-            case 3:
+                return [3 /*break*/, 5];
+            case 4:
                 err_2 = _a.sent();
                 // signup error
                 res.status(500).json({ message: err_2.message });
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/];
+                return [3 /*break*/, 5];
+            case 5: return [2 /*return*/];
         }
     });
 }); };
@@ -260,7 +269,8 @@ var AdminGetContractorGstPendingController = function (req, res) { return __awai
                 return [4 /*yield*/, contractor_model_1.ContractorModel.find({
                         "gstDetails.status": contractor_interface_1.GST_STATUS.PENDING
                     }).skip(skip)
-                        .limit(limit)];
+                        .limit(limit)
+                        .populate('profile')];
             case 1:
                 contractor = _b.sent();
                 return [4 /*yield*/, contractor_model_1.ContractorModel.countDocuments({
@@ -305,7 +315,8 @@ var AdminGetContractorGstApproveController = function (req, res) { return __awai
                 return [4 /*yield*/, contractor_model_1.ContractorModel.find({
                         "gstDetails.status": contractor_interface_1.GST_STATUS.APPROVED
                     }).skip(skip)
-                        .limit(limit)];
+                        .limit(limit)
+                        .populate('profile')];
             case 1:
                 contractor = _b.sent();
                 return [4 /*yield*/, contractor_model_1.ContractorModel.countDocuments({
@@ -350,7 +361,8 @@ var AdminGetContractorGstReviewingController = function (req, res) { return __aw
                 return [4 /*yield*/, contractor_model_1.ContractorModel.find({
                         "gstDetails.status": contractor_interface_1.GST_STATUS.REVIEWING
                     }).skip(skip)
-                        .limit(limit)];
+                        .limit(limit)
+                        .populate('profile')];
             case 1:
                 contractor = _b.sent();
                 return [4 /*yield*/, contractor_model_1.ContractorModel.countDocuments({
@@ -395,7 +407,8 @@ var AdminGetContractorGstDecliningController = function (req, res) { return __aw
                 return [4 /*yield*/, contractor_model_1.ContractorModel.find({
                         "gstDetails.status": contractor_interface_1.GST_STATUS.DECLINED
                     }).skip(skip)
-                        .limit(limit)];
+                        .limit(limit)
+                        .populate('profile')];
             case 1:
                 contractor = _b.sent();
                 return [4 /*yield*/, contractor_model_1.ContractorModel.countDocuments({
@@ -438,7 +451,7 @@ var AdminGetSingleContractorJonDetailController = function (req, res) { return _
                 page = page || 1;
                 limit = limit || 50;
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: contractorId })
-                        .select('-password')];
+                        .select('-password').populate('profile')];
             case 1:
                 contractor = _b.sent();
                 if (!contractor) {
