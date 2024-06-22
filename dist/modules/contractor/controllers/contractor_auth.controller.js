@@ -288,10 +288,10 @@ var AuthHandler = /** @class */ (function (_super) {
                     case 3:
                         isPasswordMatch = _d.sent();
                         if (!isPasswordMatch) {
-                            return [2 /*return*/, res.status(401).json({ success: false, message: "incorrect credential." })];
+                            return [2 /*return*/, res.status(401).json({ success: false, message: "Incorrect credential." })];
                         }
                         if (!contractor.emailOtp.verified) {
-                            return [2 /*return*/, res.status(401).json({ success: false, message: "email not verified." })];
+                            return [2 /*return*/, res.status(401).json({ success: false, message: "Email not verified." })];
                         }
                         return [4 /*yield*/, (contractor === null || contractor === void 0 ? void 0 : contractor.quiz)];
                     case 4:

@@ -4,7 +4,8 @@ import { ObjectId, Schema, model } from "mongoose";
 
 export enum REVIEW_TYPE {
     JOB_COMPLETION = "JOB_COMPLETION",
-    JOB_CANCELETION = "JOB_CANCELETION"
+    JOB_CANCELATION = "JOB_CANCELATION",
+    TRAINING_COMPLETION = "TRAINING_COMPLETION"
 }
 
 

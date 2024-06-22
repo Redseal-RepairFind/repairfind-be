@@ -21,10 +21,12 @@ import BlacklistedToken from "../../../database/common/blacklisted_tokens.schema
 
 
 class ProfileHandler extends Base {
+  
   @handleAsyncError()
   public async createProfile(): Promise<Response | void> {
     let req = <any>this.req
     let res = this.res
+    
     try {
       let {
         location,
@@ -59,7 +61,7 @@ class ProfileHandler extends Base {
       }
 
       let payload = {}
-      console.log(contractor.accountType)
+      
       if ((contractor.accountType == CONTRACTOR_TYPES.Company) || (contractor.accountType == CONTRACTOR_TYPES.Individual)) {
         payload = {
           contractor: contractorId,
@@ -622,11 +624,6 @@ class ProfileHandler extends Base {
         // @ts-ignore
         stripeAccountLink = await StripeService.account.createLoginLink(contractor.stripeAccount.id)
       }
-
-
-
-
-
 
       res.json({
         success: true,

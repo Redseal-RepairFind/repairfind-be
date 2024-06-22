@@ -19,7 +19,6 @@ export const expireJobs = async () => {
                 }
 
                 await job.save();
-                Logger.info(`Successfully processed job expiration for job: ${job.id}`);
             } catch (error) {
                 Logger.error(`Error processing job expiration for job: ${job.id}`, error);
             }

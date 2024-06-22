@@ -545,7 +545,7 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
             customer: job.customer,
             contractor: job.contractor,
             // comment: review,
-            type: REVIEW_TYPE.JOB_CANCELETION,
+            type: REVIEW_TYPE.JOB_CANCELATION,
             createdAt: new Date(),
         });
 

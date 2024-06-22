@@ -64,7 +64,6 @@ var expireJobs = function () { return __awaiter(void 0, void 0, void 0, function
                 return [4 /*yield*/, job.save()];
             case 4:
                 _a.sent();
-                logger_1.Logger.info("Successfully processed job expiration for job: ".concat(job.id));
                 return [3 /*break*/, 6];
             case 5:
                 error_1 = _a.sent();

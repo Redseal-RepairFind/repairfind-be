@@ -56,6 +56,7 @@ var question_model_1 = __importDefault(require("../../../database/admin/models/q
 var quiz_model_1 = __importDefault(require("../../../database/admin/models/quiz.model"));
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var contractor_quiz_model_1 = __importDefault(require("../../../database/contractor/models/contractor_quiz.model"));
+var review_model_1 = require("../../../database/common/review.model");
 var StartQuiz = function (_, res) { return __awaiter(void 0, void 0, void 0, function () {
     var randomQuizzes, randomQuiz, randomQuestions, error_1;
     return __generator(this, function (_a) {
@@ -142,33 +143,32 @@ var GetQuizResult = function (req, res) { return __awaiter(void 0, void 0, void 
 }); };
 exports.GetQuizResult = GetQuizResult;
 var SubmitQuiz = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, quizId, response, errors, contractor, contractorId, contractorExist, quiz, questions_1, quizResults, contractorQuiz, result, _b, err_2;
-    return __generator(this, function (_c) {
-        switch (_c.label) {
+    var _a, quizId, response, errors, contractorId, contractor, quiz, questions_1, quizResults, contractorQuiz, result, onboarding, ratings, review, existingReview, totalRatings, totalReviewScore, averageRating, newReview_1, foundIndex, err_2;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
-                _c.trys.push([0, 7, , 8]);
+                _b.trys.push([0, 11, , 12]);
                 _a = req.body, quizId = _a.quizId, response = _a.response;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
-                contractor = req.contractor;
-                contractorId = contractor.id;
+                contractorId = req.contractor.id;
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: contractorId })];
             case 1:
-                contractorExist = _c.sent();
-                if (!contractorExist) {
+                contractor = _b.sent();
+                if (!contractor) {
                     return [2 /*return*/, res.status(401).json({ message: 'Invalid credentials' })];
                 }
                 return [4 /*yield*/, quiz_model_1.default.findOne({ _id: quizId })];
             case 2:
-                quiz = _c.sent();
+                quiz = _b.sent();
                 if (!quiz) {
                     return [2 /*return*/, res.status(401).json({ message: 'Incorrect quiz ID' })];
                 }
                 return [4 /*yield*/, question_model_1.default.find({ quiz: quizId })];
             case 3:
-                questions_1 = _c.sent();
+                questions_1 = _b.sent();
                 quizResults = response.map(function (userReponse) {
                     var question = questions_1.find(function (q) { return q.question === userReponse.question; });
                     if (!question) {
@@ -188,28 +188,66 @@ var SubmitQuiz = function (req, res) { return __awaiter(void 0, void 0, void 0, 
                 });
                 return [4 /*yield*/, contractor_quiz_model_1.default.findOneAndUpdate({ contractor: contractorId, quiz: quizId }, { $set: { response: quizResults } }, { new: true, upsert: true })];
             case 4:
-                contractorQuiz = _c.sent();
+                contractorQuiz = _b.sent();
                 if (!contractorQuiz) {
                     return [2 /*return*/, res.status(500).json({ success: false, message: 'Failed to update or create ContractorQuiz' })];
                 }
                 return [4 /*yield*/, contractorQuiz.result];
             case 5:
-                result = _c.sent();
-                _b = contractor;
+                result = _b.sent();
                 return [4 /*yield*/, contractor.getOnboarding()];
             case 6:
-                _b.onboarding = _c.sent();
+                onboarding = _b.sent();
+                contractor.onboarding = onboarding;
+                if (!onboarding.hasPassedQuiz) return [3 /*break*/, 10];
+                ratings = [
+                    { item: "Cleanliness", rating: 5 },
+                    { item: "Skill", rating: 5 },
+                    { item: "Communication", rating: 5 },
+                    { item: "Timeliness", rating: 5 }
+                ];
+                review = 'Repairfind basic training';
+                return [4 /*yield*/, review_model_1.ReviewModel.findOne({ contractor: contractorId, type: review_model_1.REVIEW_TYPE.TRAINING_COMPLETION })];
+            case 7:
+                existingReview = _b.sent();
+                if (!!existingReview) return [3 /*break*/, 10];
+                totalRatings = ratings === null || ratings === void 0 ? void 0 : ratings.length;
+                totalReviewScore = totalRatings ? ratings.reduce(function (a, b) { return a + b.rating; }, 0) : 0;
+                averageRating = (totalRatings && totalReviewScore) > 0 ? totalReviewScore / totalRatings : 0;
+                return [4 /*yield*/, review_model_1.ReviewModel.findOneAndUpdate({ contractor: contractorId, type: review_model_1.REVIEW_TYPE.TRAINING_COMPLETION }, {
+                        averageRating: averageRating,
+                        ratings: ratings,
+                        // customer: job.customer,
+                        contractor: contractorId,
+                        comment: review,
+                        type: review_model_1.REVIEW_TYPE.TRAINING_COMPLETION,
+                        createdAt: new Date(),
+                    }, { new: true, upsert: true })];
+            case 8:
+                newReview_1 = _b.sent();
+                foundIndex = contractor.reviews.findIndex(function (review) { return review.review == newReview_1.id; });
+                if (foundIndex !== -1) {
+                    contractor.reviews[foundIndex] = { review: newReview_1.id, averageRating: averageRating };
+                }
+                else {
+                    contractor.reviews.push({ review: newReview_1.id, averageRating: averageRating });
+                }
+                return [4 /*yield*/, contractor.save()];
+            case 9:
+                _b.sent();
+                _b.label = 10;
+            case 10:
                 res.json({
                     success: true,
                     message: 'Quiz submitted successfully',
                     data: __assign(__assign({}, contractorQuiz.toJSON()), { result: result, contractor: contractor }),
                 });
-                return [3 /*break*/, 8];
-            case 7:
-                err_2 = _c.sent();
+                return [3 /*break*/, 12];
+            case 11:
+                err_2 = _b.sent();
                 res.status(500).json({ success: false, message: err_2.message });
-                return [3 /*break*/, 8];
-            case 8: return [2 /*return*/];
+                return [3 /*break*/, 12];
+            case 12: return [2 /*return*/];
         }
     });
 }); };

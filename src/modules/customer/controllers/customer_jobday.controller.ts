@@ -510,7 +510,7 @@ export const confirmJobDayCompletion = async (req: any, res: Response, next: Nex
         if(job.schedule.type == JOB_SCHEDULE_TYPE.SITE_VISIT){
             job.status = JOB_STATUS.PENDING
             quotation.type = JOB_QUOTATION_TYPE.JOB_DAY
-        }
+        } 
 
         job.status = jobStatus  // since its customer accepting job completion
         jobDay.status = JOB_DAY_STATUS.COMPLETED  

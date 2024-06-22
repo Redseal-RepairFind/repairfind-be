@@ -80,14 +80,14 @@ export const startCall = async (
             userType: toUserType,
             title: 'New Incoming Call',
             type: 'NEW_INCOMING_CALL', //
-            message: `You've an incomming call from ${fromUser.name}`,
+            message: `You've an incoming call from ${fromUser.name}`,
             heading: { name: `${fromUser.name}`, image: fromUser.profilePhoto?.url },
             payload: {
                 channel: channelName,
                 callId: call.id,
                 token: toUserToken,
                 uid: toUserUid,
-                message: `You've an incomming call from ${fromUser.name}`,
+                message: `You've an incoming call from ${fromUser.name}`,
                 name: `${fromUser.name}`,
                 image: fromUser.profilePhoto?.url,
                 event: 'NEW_INCOMING_CALL',

@@ -30,7 +30,7 @@ export const createJobRequest = async (
 
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            return res.status(400).json({ message: 'validatior error occured', errors: errors.array() });
+            return res.status(400).json({ message: 'Validation error occurred', errors: errors.array() });
         }
 
         const { contractorId, category, description, location, date, expiresIn = 7, emergency, media, voiceDescription, time } = req.body;
@@ -162,10 +162,10 @@ export const createJobListing = async (
 
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            return res.status(400).json({ message: 'validatior error occured', errors: errors.array() });
+            return res.status(400).json({success:false, message: 'Validation error occurred', errors: errors.array() });
         }
 
-        const { category, description, location, date, expiresIn, emergency, media, voiceDescription, time, contractorType } = req.body;
+        const { category, description, location, date, expiresIn = 7, emergency, media, voiceDescription, time, contractorType } = req.body;
         const customerId = req.customer.id
 
         const customer = await CustomerModel.findById(customerId)

@@ -141,14 +141,14 @@ var startCall = function (req, res, next) { return __awaiter(void 0, void 0, voi
                     userType: toUserType,
                     title: 'New Incoming Call',
                     type: 'NEW_INCOMING_CALL', //
-                    message: "You've an incomming call from ".concat(fromUser.name),
+                    message: "You've an incoming call from ".concat(fromUser.name),
                     heading: { name: "".concat(fromUser.name), image: (_c = fromUser.profilePhoto) === null || _c === void 0 ? void 0 : _c.url },
                     payload: {
                         channel: channelName,
                         callId: call.id,
                         uid: toUserUid,
                         token: toUserToken,
-                        message: "You've an incomming call from ".concat(fromUser.name),
+                        message: "You've an incoming call from ".concat(fromUser.name),
                         name: "".concat(fromUser.name),
                         image: (_d = fromUser.profilePhoto) === null || _d === void 0 ? void 0 : _d.url,
                         event: 'NEW_INCOMING_CALL',
