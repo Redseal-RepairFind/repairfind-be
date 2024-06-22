@@ -78,7 +78,7 @@ class JobQueue {
     this.addJob('handleJobRefunds', {}, { repeat: { every: 600000 } });
     this.addJob('syncCertnApplications', {}, { repeat: { every: 600000 }, jobId: 'syncCertnApplications' });
     this.addJob('expireJobs', {}, { repeat: { every: 7200000 } });
-    this.addJob('handleEscrowTransfer', {}, { repeat: { every: 60000 } });
+    this.addJob('handleEscrowTransfer', {}, { repeat: { every: 600000 } });
     this.addJob('jobDayScheduleCheck', {}, { repeat: { cron: '0 0 * * *', tz: 'Europe/Berlin',} });
   }
 
