@@ -72,7 +72,7 @@ var contractor_interface_1 = require("../../../database/contractor/interface/con
 var review_model_1 = require("../../../database/common/review.model");
 var customer_favorite_contractors_model_1 = __importDefault(require("../../../database/customer/models/customer_favorite_contractors.model"));
 var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, listing, distance, latitude, longitude, emergencyJobs, category, location_1, city, country, address, accountType, date, isOffDuty, availableDays, experienceYear, gstNumber, _b, page, _c, limit, sort // Sort field and order (-fieldName or fieldName)
+    var errors, _a, searchName, listing, distance, latitude, longitude, emergencyJobs, category, location_1, city, country, address, accountType, date, isOffDuty, availableDays, experienceYear, gstNumber, _b, page, _c, limit, sort // Sort field and order (-fieldName or fieldName)
     , availableDaysArray, skip, pipeline, contractorIdsWithDateInSchedule, _d, sortField, sortOrder, sortStage, result, contractors, metadata, err_1;
     var _e;
     return __generator(this, function (_f) {
@@ -85,7 +85,7 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
                 _f.label = 1;
             case 1:
                 _f.trys.push([1, 5, , 6]);
-                _a = req.query, listing = _a.listing, distance = _a.distance, latitude = _a.latitude, longitude = _a.longitude, emergencyJobs = _a.emergencyJobs, category = _a.category, location_1 = _a.location, city = _a.city, country = _a.country, address = _a.address, accountType = _a.accountType, date = _a.date, isOffDuty = _a.isOffDuty, availableDays = _a.availableDays, experienceYear = _a.experienceYear, gstNumber = _a.gstNumber, _b = _a.page, page = _b === void 0 ? 1 : _b, _c = _a.limit, limit = _c === void 0 ? 10 : _c, sort = _a.sort;
+                _a = req.query, searchName = _a.searchName, listing = _a.listing, distance = _a.distance, latitude = _a.latitude, longitude = _a.longitude, emergencyJobs = _a.emergencyJobs, category = _a.category, location_1 = _a.location, city = _a.city, country = _a.country, address = _a.address, accountType = _a.accountType, date = _a.date, isOffDuty = _a.isOffDuty, availableDays = _a.availableDays, experienceYear = _a.experienceYear, gstNumber = _a.gstNumber, _b = _a.page, page = _b === void 0 ? 1 : _b, _c = _a.limit, limit = _c === void 0 ? 10 : _c, sort = _a.sort;
                 availableDaysArray = availableDays ? availableDays.split(',') : [];
                 skip = (parseInt(page) - 1) * parseInt(limit);
                 pipeline = [
@@ -170,6 +170,9 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
                     { $match: { accountType: { $ne: contractor_interface_1.CONTRACTOR_TYPES.Employee } } }
                 ];
                 // Add stages conditionally based on query parameters
+                if (searchName) {
+                    pipeline.push({ $match: { "name": { $regex: new RegExp(searchName, 'i') } } });
+                }
                 if (category) {
                     pipeline.push({ $match: { "profile.skill": { $regex: new RegExp(category, 'i') } } });
                 }
