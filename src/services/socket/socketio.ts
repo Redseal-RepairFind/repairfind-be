@@ -5,6 +5,7 @@ import { ContractorModel } from "../../database/contractor/models/contractor.mod
 import CustomerModel from "../../database/customer/models/customer.model";
 import { JobDayModel } from "../../database/common/job_day.model";
 import { JobModel } from "../../database/common/job.model";
+import { Logger } from "../logger";
 
 interface CustomSocket extends Socket {
     user?: any; // Define a custom property to store user information
@@ -28,7 +29,7 @@ class SocketIOService {
         this.io.use((socket: CustomSocket, next) => {
             const token = socket.handshake.headers.token as string;
             if (!token) {
-                console.log('Authentication token is missing.')
+                Logger.info('Authentication token is missing.')
                 return next(new BadRequestError("Authentication token is missing."));
             }
             
@@ -36,11 +37,9 @@ class SocketIOService {
             jwt.verify(token, secret, (err: any, decoded: any) => {
                 if (err) {
                     // Authentication failed
-                    // console.log('Authentication failed:', err.message);
                     return next(new BadRequestError("Authentication error"));
                 }
                 // Authentication successful, attach user information to the socket
-                // console.log('Token decoded successfully:', decoded);
                 socket.user = decoded;
                 next();
             }); 
@@ -50,32 +49,28 @@ class SocketIOService {
             if (socket.user && socket.user.email) {
                 socket.join(socket.user.email);
                 socket.join('alerts'); // also join alerts channel
-                console.log(`User ${socket.user.email} joined channels:`);
-                console.log(socket.rooms)
+               
+                const channels: any =[]
+                socket.rooms.forEach(cha =>{
+                    channels.push( cha)
+                })
+                Logger.info(`User ${socket.user.email} joined channels: ${channels}`);
             }
 
             // Handle notification events from client here
             socket.on("join_channel", (channel: string) => {
-                console.log(`user explicitly joined a channel here ${channel}`)
+                Logger.info(`user explicitly joined a channel here ${channel}`)
                 socket.join(channel); // Join a room based on user email to enable private notifications
             });
 
             // Handle notification events from client here
             socket.on("start_call", async (payload: any) => {
-                // console.log(`user started a call `, payload)
-                // const { toUser, toUserType } = payload
-                // if (!toUserType || !toUser) return // Ensure userType and userId are valid
-                // const user = toUserType === 'contractors' ? await ContractorModel.findById(toUser) : await CustomerModel.findById(toUser)
-                // if (!user) return // Ensure user exists
-                
-                // this.io.to(socket.user.email).emit('OUTGOING_CALL', payload);
-                // this.io.to(user.email).emit('INCOMING_CALL', {name: 'Aaron', image: 'asdasd', channel: '234324234', });
 
             });
 
             // Handle notification events from client here
             socket.on("send_jobday_contractor_location", async (payload: any) => {
-                console.log(`Jobday contractor location update `, payload)
+                Logger.info(`Jobday contractor location update `, payload)
                 // JOB_DAY_UPDATES
                 
                 const { toUser, toUserType, jobdayId } = payload
@@ -93,8 +88,6 @@ class SocketIOService {
                 const job = await JobModel.findById(jobday.job)
                 if(!customer || !contractor)return
                 
-                // console.log(customer)
-
                 const  data = {
                     ...payload,
                     name:contractor.name,
@@ -112,9 +105,9 @@ class SocketIOService {
         });
     }
 
-    static sendNotification(channels: string | string[], type: string, payload: object) {
+    static sendNotification(channels: string | string[], type: string, payload: any) {
         const channelArray = typeof channels === 'string' ? [channels] : channels;
-        console.log('sendNotification socket event is fired inside socketio', {payload, channels, type})
+        Logger.info(`sendNotification socket event is fired inside socketio`, {payload: JSON.stringify(payload), channels, type})
         for (const channel of channelArray) {
             this.io.to(channel).emit(type, { payload });
         }
@@ -123,9 +116,9 @@ class SocketIOService {
         this.io.emit(type, payload);
     }
 
-    // defind broadcast channels = alerts
+    // defined broadcast channels = alerts
     static broadcastChannel(channel:string, type: string, payload: object) {
-        console.log(' broadcastChannel socket event is fired inside socketio', payload, channel)
+        Logger.info(' broadcastChannel socket event is fired inside socketio', {payload: JSON.stringify(payload), channel})
         this.io.to(channel).emit(type, payload);
     }
 }
