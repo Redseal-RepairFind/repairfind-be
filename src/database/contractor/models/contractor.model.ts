@@ -260,7 +260,7 @@ ContractorSchema.virtual('stripeAccountStatus').get(function (this: IContractor)
   const chargesEnabled = stripeAccount?.charges_enabled || false;
   const transfersEnabled = stripeAccount?.capabilities?.transfers === 'active' || false;
   const cardPaymentsEnabled = stripeAccount?.capabilities?.card_payments === 'active' || false;
-  const status = detailsSubmitted && payoutsEnabled && chargesEnabled && transfersEnabled && cardPaymentsEnabled;
+  const status = (detailsSubmitted && payoutsEnabled && chargesEnabled && transfersEnabled && cardPaymentsEnabled) ? 'active' : 'inactive'
 
   return stripeAccount ? {
     details_submitted: detailsSubmitted,

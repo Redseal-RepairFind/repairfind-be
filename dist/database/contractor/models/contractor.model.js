@@ -260,7 +260,7 @@ ContractorSchema.virtual('stripeAccountStatus').get(function () {
     var chargesEnabled = (stripeAccount === null || stripeAccount === void 0 ? void 0 : stripeAccount.charges_enabled) || false;
     var transfersEnabled = ((_a = stripeAccount === null || stripeAccount === void 0 ? void 0 : stripeAccount.capabilities) === null || _a === void 0 ? void 0 : _a.transfers) === 'active' || false;
     var cardPaymentsEnabled = ((_b = stripeAccount === null || stripeAccount === void 0 ? void 0 : stripeAccount.capabilities) === null || _b === void 0 ? void 0 : _b.card_payments) === 'active' || false;
-    var status = detailsSubmitted && payoutsEnabled && chargesEnabled && transfersEnabled && cardPaymentsEnabled;
+    var status = (detailsSubmitted && payoutsEnabled && chargesEnabled && transfersEnabled && cardPaymentsEnabled) ? 'active' : 'inactive';
     return stripeAccount ? {
         details_submitted: detailsSubmitted,
         payouts_enabled: payoutsEnabled,
