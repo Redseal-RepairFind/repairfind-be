@@ -222,11 +222,11 @@ class AuthHandler extends Base {
             // compare password with hashed password in database
             const isPasswordMatch = await bcrypt.compare(password, contractor.password);
             if (!isPasswordMatch) {
-                return res.status(401).json({ success: false, message: "incorrect credential." });
+                return res.status(401).json({ success: false, message: "Incorrect credential." });
             }
 
             if (!contractor.emailOtp.verified) {
-                return res.status(401).json({ success: false, message: "email not verified." });
+                return res.status(401).json({ success: false, message: "Email not verified." });
             }
 
 

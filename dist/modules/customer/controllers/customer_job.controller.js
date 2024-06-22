@@ -65,7 +65,7 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 _e.trys.push([0, 7, , 8]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ message: 'validatior error occured', errors: errors.array() })];
+                    return [2 /*return*/, res.status(400).json({ message: 'Validation error occurred', errors: errors.array() })];
                 }
                 _a = req.body, contractorId = _a.contractorId, category = _a.category, description = _a.description, location_1 = _a.location, date = _a.date, _b = _a.expiresIn, expiresIn = _b === void 0 ? 7 : _b, emergency = _a.emergency, media = _a.media, voiceDescription = _a.voiceDescription, time = _a.time;
                 customerId = req.customer.id;
@@ -171,20 +171,20 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
 }); };
 exports.createJobRequest = createJobRequest;
 var createJobListing = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, category, description, location_2, date, expiresIn, emergency, media, voiceDescription, time, contractorType, customerId, customer, startOfToday, existingJobRequest, dateTimeString, jobTime, dateTimeString_1, jobTime_1, currentDate, expiryDate, newJob, error_2;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+    var errors, _a, category, description, location_2, date, _b, expiresIn, emergency, media, voiceDescription, time, contractorType, customerId, customer, startOfToday, existingJobRequest, dateTimeString, jobTime, dateTimeString_1, jobTime_1, currentDate, expiryDate, newJob, error_2;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
             case 0:
-                _b.trys.push([0, 4, , 5]);
+                _c.trys.push([0, 4, , 5]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ message: 'validatior error occured', errors: errors.array() })];
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation error occurred', errors: errors.array() })];
                 }
-                _a = req.body, category = _a.category, description = _a.description, location_2 = _a.location, date = _a.date, expiresIn = _a.expiresIn, emergency = _a.emergency, media = _a.media, voiceDescription = _a.voiceDescription, time = _a.time, contractorType = _a.contractorType;
+                _a = req.body, category = _a.category, description = _a.description, location_2 = _a.location, date = _a.date, _b = _a.expiresIn, expiresIn = _b === void 0 ? 7 : _b, emergency = _a.emergency, media = _a.media, voiceDescription = _a.voiceDescription, time = _a.time, contractorType = _a.contractorType;
                 customerId = req.customer.id;
                 return [4 /*yield*/, customer_model_1.default.findById(customerId)];
             case 1:
-                customer = _b.sent();
+                customer = _c.sent();
                 if (!customer) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "Customer not found" })];
                 }
@@ -200,7 +200,7 @@ var createJobListing = function (req, res, next) { return __awaiter(void 0, void
                         createdAt: { $gte: (0, date_fns_1.addHours)(new Date(), -24) }, // Check for job requests within the last 72 hours
                     })];
             case 2:
-                existingJobRequest = _b.sent();
+                existingJobRequest = _c.sent();
                 if (existingJobRequest) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'A similar job has already been created within the last 24 hours' })];
                 }
@@ -233,12 +233,12 @@ var createJobListing = function (req, res, next) { return __awaiter(void 0, void
                 return [4 /*yield*/, newJob.save()];
             case 3:
                 // Save the job document to the database
-                _b.sent();
+                _c.sent();
                 events_1.JobEvent.emit('NEW_JOB_LISTING', { jobId: newJob.id });
                 res.status(201).json({ success: true, message: 'Job listing submitted successfully', data: newJob });
                 return [3 /*break*/, 5];
             case 4:
-                error_2 = _b.sent();
+                error_2 = _c.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_2))];
             case 5: return [2 /*return*/];
         }
