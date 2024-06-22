@@ -105,9 +105,9 @@ class SocketIOService {
         });
     }
 
-    static sendNotification(channels: string | string[], type: string, payload: object) {
+    static sendNotification(channels: string | string[], type: string, payload: any) {
         const channelArray = typeof channels === 'string' ? [channels] : channels;
-        Logger.info('sendNotification socket event is fired inside socketio', {payload, channels, type})
+        Logger.info(`sendNotification socket event is fired inside socketio`, {payload: JSON.stringify(payload), channels, type})
         for (const channel of channelArray) {
             this.io.to(channel).emit(type, { payload });
         }
@@ -116,9 +116,9 @@ class SocketIOService {
         this.io.emit(type, payload);
     }
 
-    // defind broadcast channels = alerts
+    // defined broadcast channels = alerts
     static broadcastChannel(channel:string, type: string, payload: object) {
-        Logger.info(' broadcastChannel socket event is fired inside socketio', payload, channel)
+        Logger.info(' broadcastChannel socket event is fired inside socketio', {payload: JSON.stringify(payload), channel})
         this.io.to(channel).emit(type, payload);
     }
 }

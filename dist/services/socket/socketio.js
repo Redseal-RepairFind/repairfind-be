@@ -152,7 +152,7 @@ var SocketIOService = /** @class */ (function () {
     };
     SocketIOService.sendNotification = function (channels, type, payload) {
         var channelArray = typeof channels === 'string' ? [channels] : channels;
-        logger_1.Logger.info('sendNotification socket event is fired inside socketio', { payload: payload, channels: channels, type: type });
+        logger_1.Logger.info("sendNotification socket event is fired inside socketio", { payload: JSON.stringify(payload), channels: channels, type: type });
         for (var _i = 0, channelArray_1 = channelArray; _i < channelArray_1.length; _i++) {
             var channel = channelArray_1[_i];
             this.io.to(channel).emit(type, { payload: payload });
@@ -161,9 +161,9 @@ var SocketIOService = /** @class */ (function () {
     SocketIOService.broadcastMessage = function (type, payload) {
         this.io.emit(type, payload);
     };
-    // defind broadcast channels = alerts
+    // defined broadcast channels = alerts
     SocketIOService.broadcastChannel = function (channel, type, payload) {
-        logger_1.Logger.info(' broadcastChannel socket event is fired inside socketio', payload, channel);
+        logger_1.Logger.info(' broadcastChannel socket event is fired inside socketio', { payload: JSON.stringify(payload), channel: channel });
         this.io.to(channel).emit(type, payload);
     };
     return SocketIOService;
