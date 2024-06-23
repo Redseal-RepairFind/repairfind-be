@@ -133,13 +133,16 @@ var findContractor = function (contractorId) { return __awaiter(void 0, void 0, 
         }
     });
 }); };
-var createTransaction = function (customerId, contractorId, jobId, charges, paymentMethod, metadata) {
+var createTransaction = function (customerId, contractorId, jobId, charges, paymentMethod, paymentType, metadata) {
     if (metadata === void 0) { metadata = null; }
     return __awaiter(void 0, void 0, void 0, function () {
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, transaction_model_1.default.create({
-                        type: transaction_model_1.TRANSACTION_TYPE.JOB_PAYMENT,
+                case 0: return [4 /*yield*/, transaction_model_1.default.findByIdAndUpdate({
+                        job: jobId,
+                        type: paymentType,
+                    }, {
+                        type: paymentType,
                         amount: charges.totalAmount,
                         currency: 'USD',
                         initiatorUser: customerId,
@@ -157,8 +160,8 @@ var createTransaction = function (customerId, contractorId, jobId, charges, paym
                         },
                         paymentMethod: paymentMethod,
                         job: jobId,
-                        status: transaction_model_1.TRANSACTION_STATUS.REQUIRES_CAPTURE
-                    })];
+                        status: transaction_model_1.TRANSACTION_STATUS.PENDING
+                    }, { new: true, upsert: true })];
                 case 1: return [2 /*return*/, _a.sent()];
             }
         });
@@ -279,7 +282,7 @@ var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0
                     email: customer.email,
                     remark: 'initial_job_payment',
                 };
-                return [4 /*yield*/, createTransaction(customerId, contractor.id, jobId, charges, paymentMethod)];
+                return [4 /*yield*/, createTransaction(customerId, contractor.id, jobId, charges, paymentMethod, paymentType)];
             case 6:
                 transaction = _b.sent();
                 metadata.transactionId = transaction.id;
@@ -350,7 +353,7 @@ var makeChangeOrderEstimatePayment = function (req, res, next) { return __awaite
                     email: customer.email,
                     remark: 'change_order_estimate_payment',
                 };
-                return [4 /*yield*/, createTransaction(customerId, contractor.id, jobId, charges, paymentMethod, metadata)];
+                return [4 /*yield*/, createTransaction(customerId, contractor.id, jobId, charges, paymentMethod, paymentType, metadata)];
             case 6:
                 transaction = _b.sent();
                 metadata.transactionId = transaction.id;
@@ -425,7 +428,7 @@ var captureJobPayment = function (req, res, next) { return __awaiter(void 0, voi
                     email: customer.email,
                     remark: 'initial_job_payment',
                 };
-                return [4 /*yield*/, createTransaction(customerId, contractor.id, jobId, charges, paymentMethod)];
+                return [4 /*yield*/, createTransaction(customerId, contractor.id, jobId, charges, paymentMethod, paymentType)];
             case 6:
                 transaction = _b.sent();
                 metadata.transactionId = transaction.id;

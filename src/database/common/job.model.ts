@@ -228,7 +228,6 @@ const JobSchema = new Schema<IJob>({
     location: { type: JobLocationSchema, required: true },
     date: { type: Date, required: true },
     time: { type: Date, required: false },
-    // expiresIn: { type: Number, default: 10 },
     startDate: { type: Date },
     expiryDate: { 
         type: Date,
@@ -270,9 +269,17 @@ JobSchema.virtual('totalQuotations').get(function () {
     return pendingQuotations.length;
 });
 
-JobSchema.virtual('expiresIn').get(function () {
-   return this.expiryDate ?  this.expiryDate.getDate() - this.createdAt.getDate() : null
+JobSchema.virtual('expiresIn').get(function() {
+    if(this.expiryDate && this.createdAt) {
+        const millisecondsPerDay = 1000 * 60 * 60 * 24;
+        const timeDifference = this.expiryDate.getTime() - new Date().getTime();
+        const daysDifference = Math.ceil(timeDifference / millisecondsPerDay);
+        return daysDifference;
+    }
+    
+    return null;
 });
+
 
 //get job day that match with the schedule type
  JobSchema.methods.getJobDay = async function (scheduleType = null) {

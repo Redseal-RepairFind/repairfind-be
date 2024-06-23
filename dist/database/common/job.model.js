@@ -141,7 +141,6 @@ var JobSchema = new mongoose_1.Schema({
     location: { type: JobLocationSchema, required: true },
     date: { type: Date, required: true },
     time: { type: Date, required: false },
-    // expiresIn: { type: Number, default: 10 },
     startDate: { type: Date },
     expiryDate: {
         type: Date,
@@ -179,7 +178,13 @@ JobSchema.virtual('totalQuotations').get(function () {
     return pendingQuotations.length;
 });
 JobSchema.virtual('expiresIn').get(function () {
-    return this.expiryDate ? this.expiryDate.getDate() - this.createdAt.getDate() : null;
+    if (this.expiryDate && this.createdAt) {
+        var millisecondsPerDay = 1000 * 60 * 60 * 24;
+        var timeDifference = this.expiryDate.getTime() - new Date().getTime();
+        var daysDifference = Math.ceil(timeDifference / millisecondsPerDay);
+        return daysDifference;
+    }
+    return null;
 });
 //get job day that match with the schedule type
 JobSchema.methods.getJobDay = function (scheduleType) {

@@ -47,9 +47,12 @@ const findContractor = async (contractorId: ObjectId) => {
     return contractor;
 };
 
-const createTransaction = async (customerId: string, contractorId: string, jobId: string, charges: any, paymentMethod: any, metadata: any = null) => {
-    return await TransactionModel.create({
-        type: TRANSACTION_TYPE.JOB_PAYMENT,
+const createTransaction = async (customerId: string, contractorId: string, jobId: string, charges: any, paymentMethod: any, paymentType: any, metadata: any = null) => {
+    return await TransactionModel.findByIdAndUpdate({
+        job: jobId,
+        type: paymentType,
+    },{
+        type: paymentType,
         amount: charges.totalAmount,
         currency: 'USD',
         initiatorUser: customerId,
@@ -67,8 +70,8 @@ const createTransaction = async (customerId: string, contractorId: string, jobId
         },
         paymentMethod: paymentMethod,
         job: jobId,
-        status: TRANSACTION_STATUS.REQUIRES_CAPTURE
-    });
+        status: TRANSACTION_STATUS.PENDING
+    }, {new: true, upsert: true});
 };
 
 const prepareStripePayload = (data:{paymentMethodId: string, customer: any, contractor: any, charges: any, transactionId: string, jobId: string, metadata: any, manualCapture: boolean}) => {
@@ -199,7 +202,7 @@ export const makeJobPayment = async (req: any, res: Response, next: NextFunction
 
      
 
-        const transaction = await createTransaction(customerId, contractor.id, jobId, charges, paymentMethod);
+        const transaction = await createTransaction(customerId, contractor.id, jobId, charges, paymentMethod, paymentType);
         metadata.transactionId = transaction.id
         const payload = prepareStripePayload({paymentMethodId: paymentMethod.id, customer, contractor, charges, transactionId:transaction.id, jobId, metadata, manualCapture:false});
 
@@ -258,7 +261,7 @@ export const makeChangeOrderEstimatePayment = async (req: any, res: Response, ne
             email: customer.email,
             remark: 'change_order_estimate_payment',
         } as any
-        const transaction = await createTransaction(customerId, contractor.id, jobId, charges, paymentMethod, metadata);
+        const transaction = await createTransaction(customerId, contractor.id, jobId, charges, paymentMethod, paymentType, metadata);
         metadata.transactionId = transaction.id
         const payload = prepareStripePayload({paymentMethodId: paymentMethod.id, customer, contractor, charges, transactionId:transaction.id, jobId, metadata, manualCapture:false});
 
@@ -319,7 +322,7 @@ export const captureJobPayment = async (req: any, res: Response, next: NextFunct
         } as any
         
       
-        const transaction = await createTransaction(customerId, contractor.id, jobId, charges, paymentMethod);
+        const transaction = await createTransaction(customerId, contractor.id, jobId, charges, paymentMethod, paymentType);
         metadata.transactionId = transaction.id
         const payload = prepareStripePayload({paymentMethodId: paymentMethod.id, customer, contractor, charges, transactionId:transaction.id, jobId, metadata, manualCapture:true});
         const stripePayment = await StripeService.payment.chargeCustomer(paymentMethod.customer, paymentMethod.id, payload);
