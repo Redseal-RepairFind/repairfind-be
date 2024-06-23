@@ -108,7 +108,7 @@ export const getMyBookings = async (req: any, res: Response, next: NextFunction)
         res.json({ success: true, message: 'Bookings retrieved', data: data });
 
     } catch (error: any) {
-        return next(new BadRequestError('An error occured ', error))
+        return next(new BadRequestError('An error occurred ', error))
     }
 };
 
@@ -259,7 +259,7 @@ export const getSingleBooking = async (req: any, res: Response, next: NextFuncti
         res.json({ success: true, message: 'Booking retrieved', data: responseData });
 
     } catch (error: any) {
-        return next(new BadRequestError('An error occured ', error))
+        return next(new BadRequestError('An error occurred ', error))
     }
 };
 

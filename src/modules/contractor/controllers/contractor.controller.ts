@@ -346,7 +346,7 @@ class ProfileHandler extends Base {
     } catch (err: any) {
       console.log('error', err);
       res.status(500).json({ success: false, message: err.message });
-      next(new BadRequestError('An error occured', err))
+      next(new BadRequestError('An error occurred', err))
     }
   }
 

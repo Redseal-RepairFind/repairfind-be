@@ -64,7 +64,7 @@ var signUp = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                 _a = req.body, email = _a.email, password = _a.password, firstName = _a.firstName, lastName = _a.lastName, acceptTerms = _a.acceptTerms, phoneNumber = _a.phoneNumber;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: "Validation error occured", errors: errors.array() })];
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "Validation error occurred", errors: errors.array() })];
                 }
                 return [4 /*yield*/, customer_model_1.default.findOne({ email: email })];
             case 1:
@@ -151,7 +151,7 @@ var verifyEmail = function (req, res) { return __awaiter(void 0, void 0, void 0,
                 _a = req.body, email = _a.email, otp = _a.otp;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: "Validation error occured", errors: errors.array() })];
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "Validation error occurred", errors: errors.array() })];
                 }
                 return [4 /*yield*/, customer_model_1.default.findOne({ email: email })];
             case 1:
@@ -212,7 +212,7 @@ var signIn = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                 _a = req.body, email = _a.email, password = _a.password;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: "Validation error occured", errors: errors.array() })];
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "Validation error occurred", errors: errors.array() })];
                 }
                 return [4 /*yield*/, customer_model_1.default.findOne({ email: email })];
             case 1:
@@ -276,7 +276,7 @@ var resendEmail = function (req, res) { return __awaiter(void 0, void 0, void 0,
                 email = req.body.email;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation error occured', errors: errors.array() })];
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation error occurred', errors: errors.array() })];
                 }
                 return [4 /*yield*/, customer_model_1.default.findOne({ email: email })];
             case 1:
@@ -329,7 +329,7 @@ var forgotPassword = function (req, res) { return __awaiter(void 0, void 0, void
                 email = req.body.email;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation error occured', errors: errors.array() })];
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation error occurred', errors: errors.array() })];
                 }
                 return [4 /*yield*/, customer_model_1.default.findOne({ email: email })];
             case 1:
@@ -375,7 +375,7 @@ var resetPassword = function (req, res) { return __awaiter(void 0, void 0, void 
                 _a = req.body, email = _a.email, otp = _a.otp, password = _a.password;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: "Validation error occured", errors: errors.array() })];
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "Validation error occurred", errors: errors.array() })];
                 }
                 return [4 /*yield*/, customer_model_1.default.findOne({ email: email })];
             case 1:
@@ -420,7 +420,7 @@ var verifyResetPasswordOtp = function (req, res) { return __awaiter(void 0, void
                 _a = req.body, email = _a.email, otp = _a.otp;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: "Validation error occured", errors: errors.array() })];
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "Validation error occurred", errors: errors.array() })];
                 }
                 return [4 /*yield*/, customer_model_1.default.findOne({ email: email })];
             case 1:
@@ -459,7 +459,7 @@ var googleSignon = function (req, res) { return __awaiter(void 0, void 0, void 0
                 accessToken = req.body.accessToken;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: "Validation error occured", errors: errors.array() })];
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "Validation error occurred", errors: errors.array() })];
                 }
                 return [4 /*yield*/, google_1.GoogleServiceProvider.getUserInfo(accessToken)];
             case 1:
@@ -530,7 +530,7 @@ var facebookSignon = function (req, res) { return __awaiter(void 0, void 0, void
                 accessToken = req.body.accessToken;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation error occured', errors: errors.array() })];
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation error occurred', errors: errors.array() })];
                 }
                 return [4 /*yield*/, facebook_1.FacebookServiceProvider.getFacebookUserInfo(accessToken)];
             case 1:
@@ -600,7 +600,7 @@ var appleSignon = function (req, res) { return __awaiter(void 0, void 0, void 0,
                 _a = req.body, accessToken = _a.accessToken, email = _a.email, firstName = _a.firstName, lastName = _a.lastName;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation error occured', errors: errors.array() })];
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation error occurred', errors: errors.array() })];
                 }
                 decodedToken = {
                     sub: 'customerrepairfind.com',

@@ -294,7 +294,7 @@ export const getSingleContractor = async (req: any, res: Response, next: NextFun
 
         return res.status(200).json({ success: true, message: 'Contractor  found', data: contractor })
     } catch (error: any) {
-        next(new BadRequestError('An error occured', error))
+        next(new BadRequestError('An error occurred', error))
     }
 }
 
@@ -315,7 +315,7 @@ export const getContractorReviews = async (req: any, res: Response, next: NextFu
         const { data, error } = await applyAPIFeature(ReviewModel.find(filter).populate(['customer']), req.query);
         return res.status(200).json({ success: true, message: 'Contractor reviews  retrieved', data: data })
     } catch (error: any) {
-        next(new BadRequestError('An error occured', error))
+        next(new BadRequestError('An error occurred', error))
     }
 }
 
@@ -333,7 +333,7 @@ export const getFavoriteContractors = async (req: any, res: Response, next: Next
         const { data, error } = await applyAPIFeature(ContractorModel.find(filter), req.query);
         return res.status(200).json({ success: true, message: 'Favorite contractors  retrieved', data: data })
     } catch (error: any) {
-        next(new BadRequestError('An error occured', error))
+        next(new BadRequestError('An error occurred', error))
     }
 }
 

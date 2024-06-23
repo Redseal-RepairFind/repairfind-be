@@ -239,7 +239,7 @@ var createJobListing = function (req, res, next) { return __awaiter(void 0, void
                 return [3 /*break*/, 5];
             case 4:
                 error_2 = _c.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_2))];
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_2))];
             case 5: return [2 /*return*/];
         }
     });
@@ -321,7 +321,7 @@ var getMyJobs = function (req, res, next) { return __awaiter(void 0, void 0, voi
                 return [3 /*break*/, 7];
             case 6:
                 error_3 = _f.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_3))];
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_3))];
             case 7: return [2 /*return*/];
         }
     });
@@ -383,7 +383,7 @@ var getJobHistory = function (req, res, next) { return __awaiter(void 0, void 0,
                 _g.label = 5;
             case 5:
                 if (error) {
-                    return [2 /*return*/, next(new custom_errors_1.BadRequestError('Unkowon error occured'))];
+                    return [2 /*return*/, next(new custom_errors_1.BadRequestError('Unkowon error occurred'))];
                 }
                 // Send response with job listings data
                 res.status(200).json({ success: true, data: data });
@@ -416,7 +416,7 @@ var getSingleJob = function (req, res, next) { return __awaiter(void 0, void 0, 
                 return [3 /*break*/, 3];
             case 2:
                 error_5 = _a.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_5))];
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_5))];
             case 3: return [2 /*return*/];
         }
     });
@@ -447,7 +447,7 @@ var getJobQuotations = function (req, res, next) { return __awaiter(void 0, void
                 return [3 /*break*/, 4];
             case 3:
                 error_6 = _a.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_6))];
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_6))];
             case 4: return [2 /*return*/];
         }
     });
@@ -476,7 +476,7 @@ var getSingleQuotation = function (req, res, next) { return __awaiter(void 0, vo
                 return [3 /*break*/, 4];
             case 3:
                 error_7 = _c.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_7))];
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_7))];
             case 4: return [2 /*return*/];
         }
     });
@@ -571,7 +571,7 @@ var acceptJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
                 return [3 /*break*/, 11];
             case 10:
                 error_8 = _c.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_8))];
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_8))];
             case 11: return [2 /*return*/];
         }
     });
@@ -631,7 +631,7 @@ var declineJobQuotation = function (req, res, next) { return __awaiter(void 0, v
                 return [3 /*break*/, 8];
             case 7:
                 error_9 = _b.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_9))];
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_9))];
             case 8: return [2 /*return*/];
         }
     });

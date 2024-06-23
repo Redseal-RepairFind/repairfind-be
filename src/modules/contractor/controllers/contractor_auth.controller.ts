@@ -73,7 +73,8 @@ class AuthHandler extends Base {
             };
 
             await sendEmail(emailData);
-            const welcomeHtml = htmlContractorWelcomeTemplate(firstName);
+
+            const welcomeHtml = htmlContractorWelcomeTemplate(firstName ?? companyName);
             let welcomeEmailData = {
                 emailTo: email,
                 subject: "Welcome",

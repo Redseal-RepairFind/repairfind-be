@@ -31,11 +31,11 @@ export const signUp = async (
       acceptTerms,
       phoneNumber,
     } = req.body;
-    // Check for Validation error occured
+    // Check for Validation error occurred
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-      return res.status(400).json({ success: false, message: "Validation error occured", errors: errors.array() });
+      return res.status(400).json({ success: false, message: "Validation error occurred", errors: errors.array() });
     }
 
     // try find user with the same email
@@ -137,11 +137,11 @@ export const verifyEmail = async (
       email,
       otp
     } = req.body;
-    // Check for Validation error occured
+    // Check for Validation error occurred
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-      return res.status(400).json({ success: false, message: "Validation error occured", errors: errors.array() });
+      return res.status(400).json({ success: false, message: "Validation error occurred", errors: errors.array() });
     }
 
     // try find customer with the same email
@@ -214,11 +214,11 @@ export const signIn = async (
       email,
       password,
     } = req.body;
-    // Check for Validation error occured
+    // Check for Validation error occurred
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-      return res.status(400).json({success: false, message: "Validation error occured", errors: errors.array() });
+      return res.status(400).json({success: false, message: "Validation error occurred", errors: errors.array() });
     }
 
     // try find user with the same email
@@ -293,11 +293,11 @@ export const resendEmail = async (
     const {
       email,
     } = req.body;
-    // Check for Validation error occured
+    // Check for Validation error occurred
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-      return res.status(400).json({ success: false, message: 'Validation error occured', errors: errors.array() });
+      return res.status(400).json({ success: false, message: 'Validation error occurred', errors: errors.array() });
     }
 
     // try find customer with the same email
@@ -361,7 +361,7 @@ export const forgotPassword = async (
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-      return res.status(400).json({ success: false, message: 'Validation error occured', errors: errors.array() });
+      return res.status(400).json({ success: false, message: 'Validation error occurred', errors: errors.array() });
     }
 
     // try find user with the same email
@@ -413,11 +413,11 @@ export const resetPassword = async (
       otp,
       password
     } = req.body;
-    // Check for Validation error occured
+    // Check for Validation error occurred
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-      return res.status(400).json({ success: false, message: "Validation error occured", errors: errors.array() });
+      return res.status(400).json({ success: false, message: "Validation error occurred", errors: errors.array() });
     }
 
     // try find customerr with the same email
@@ -464,11 +464,11 @@ export const verifyResetPasswordOtp = async (
   try {
     const { email, otp } = req.body;
 
-    // Check for Validation error occured
+    // Check for Validation error occurred
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-      return res.status(400).json({ success: false, message: "Validation error occured", errors: errors.array() });
+      return res.status(400).json({ success: false, message: "Validation error occurred", errors: errors.array() });
     }
 
     // Try to find customer with the given email
@@ -508,11 +508,11 @@ export const googleSignon = async (
     const {
       accessToken,
     } = req.body;
-    // Check for Validation error occured
+    // Check for Validation error occurred
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-      return res.status(400).json({ success: false, message: "Validation error occured", errors: errors.array() });
+      return res.status(400).json({ success: false, message: "Validation error occurred", errors: errors.array() });
     }
 
     // call google service here
@@ -591,11 +591,11 @@ export const facebookSignon = async (req: Request, res: Response) => {
   try {
     const { accessToken } = req.body;
 
-    // Check for Validation error occured
+    // Check for Validation error occurred
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-      return res.status(400).json({ success: false, message: 'Validation error occured', errors: errors.array() });
+      return res.status(400).json({ success: false, message: 'Validation error occurred', errors: errors.array() });
     }
 
     // call Facebook service here
@@ -668,11 +668,11 @@ export const appleSignon = async (req: Request, res: Response) => {
   try {
     const { accessToken, email, firstName, lastName } = req.body;
 
-    // Check for Validation error occured
+    // Check for Validation error occurred
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-      return res.status(400).json({ success: false, message: 'Validation error occured', errors: errors.array() });
+      return res.status(400).json({ success: false, message: 'Validation error occurred', errors: errors.array() });
     }
 
     // You need to verify the Apple ID token. You can use a library like `apple-authentication-jwt` for this.

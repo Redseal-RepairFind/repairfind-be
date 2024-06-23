@@ -118,7 +118,7 @@ export const sendMessage = async (req: any, res: Response, next: NextFunction) =
 
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            return res.status(400).json({ message: 'validatior error occured', errors: errors.array() });
+            return res.status(400).json({ message: 'Validation error occurred', errors: errors.array() });
         }
 
         // Find the conversation by ID

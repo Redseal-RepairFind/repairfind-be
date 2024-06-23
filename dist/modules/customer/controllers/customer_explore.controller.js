@@ -307,7 +307,7 @@ var getSingleContractor = function (req, res, next) { return __awaiter(void 0, v
                 return [2 /*return*/, res.status(200).json({ success: true, message: 'Contractor  found', data: contractor })];
             case 2:
                 error_1 = _a.sent();
-                next(new custom_errors_1.BadRequestError('An error occured', error_1));
+                next(new custom_errors_1.BadRequestError('An error occurred', error_1));
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
         }
@@ -336,7 +336,7 @@ var getContractorReviews = function (req, res, next) { return __awaiter(void 0, 
                 return [2 /*return*/, res.status(200).json({ success: true, message: 'Contractor reviews  retrieved', data: data })];
             case 3:
                 error_2 = _b.sent();
-                next(new custom_errors_1.BadRequestError('An error occured', error_2));
+                next(new custom_errors_1.BadRequestError('An error occurred', error_2));
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
         }
@@ -361,7 +361,7 @@ var getFavoriteContractors = function (req, res, next) { return __awaiter(void 0
                 return [2 /*return*/, res.status(200).json({ success: true, message: 'Favorite contractors  retrieved', data: data })];
             case 3:
                 error_3 = _b.sent();
-                next(new custom_errors_1.BadRequestError('An error occured', error_3));
+                next(new custom_errors_1.BadRequestError('An error occurred', error_3));
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
         }

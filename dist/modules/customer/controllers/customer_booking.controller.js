@@ -163,7 +163,7 @@ var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0,
                 return [3 /*break*/, 5];
             case 4:
                 error_1 = _g.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_1))];
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_1))];
             case 5: return [2 /*return*/];
         }
     });
@@ -345,7 +345,7 @@ var getSingleBooking = function (req, res, next) { return __awaiter(void 0, void
                 return [3 /*break*/, 6];
             case 5:
                 error_4 = _d.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_4))];
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_4))];
             case 6: return [2 /*return*/];
         }
     });
