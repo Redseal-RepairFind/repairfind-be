@@ -480,7 +480,7 @@ export const acceptJobQuotation = async (req: any, res: Response, next: NextFunc
             },
             {
                 members: conversationMembers,
-                lastMessage: 'I have accepted your qoutation for the Job', // Set the last message to the job description
+                lastMessage: 'I have accepted your quotation for the Job', // Set the last message to the job description
                 lastMessageAt: new Date() // Set the last message timestamp to now
             },
             { new: true, upsert: true });

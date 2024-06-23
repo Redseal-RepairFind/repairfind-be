@@ -516,7 +516,7 @@ var acceptJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
                         ]
                     }, {
                         members: conversationMembers,
-                        lastMessage: 'I have accepted your qoutation for the Job', // Set the last message to the job description
+                        lastMessage: 'I have accepted your quotation for the Job', // Set the last message to the job description
                         lastMessageAt: new Date() // Set the last message timestamp to now
                     }, { new: true, upsert: true })];
             case 3:

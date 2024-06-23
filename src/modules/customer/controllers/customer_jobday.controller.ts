@@ -506,7 +506,7 @@ export const confirmJobDayCompletion = async (req: any, res: Response, next: Nex
         }
 
         // if schedul was a site visit
-        //change job to pending and qoutation type to jobday
+        //change job to pending and quotation type to jobday
         if(job.schedule.type == JOB_SCHEDULE_TYPE.SITE_VISIT){
             job.status = JOB_STATUS.PENDING
             quotation.type = JOB_QUOTATION_TYPE.JOB_DAY
