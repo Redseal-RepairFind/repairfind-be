@@ -18,9 +18,9 @@ var TRANSACTION_TYPE;
     TRANSACTION_TYPE["JOB_PAYMENT"] = "JOB_PAYMENT";
     TRANSACTION_TYPE["REFUND"] = "REFUND";
     TRANSACTION_TYPE["ESCROW"] = "ESCROW";
-    TRANSACTION_TYPE["SITE_VISIT"] = "SITE_VISIT";
-    TRANSACTION_TYPE["JOB_DAY"] = "JOB_DAY";
-    TRANSACTION_TYPE["CHANGE_ORDER"] = "CHANGE_ORDER";
+    TRANSACTION_TYPE["SITE_VISIT"] = "SITE_VISIT_PAYMENT";
+    TRANSACTION_TYPE["JOB_DAY"] = "JOB_DAY_PAYMENT";
+    TRANSACTION_TYPE["CHANGE_ORDER"] = "CHANGE_ORDER_PAYMENT";
 })(TRANSACTION_TYPE || (exports.TRANSACTION_TYPE = TRANSACTION_TYPE = {}));
 var TransactionSchema = new mongoose_1.Schema({
     type: {
@@ -72,7 +72,7 @@ var TransactionSchema = new mongoose_1.Schema({
         type: {
             items: [],
             charges: mongoose_1.Schema.Types.Mixed,
-            id: mongoose_1.Schema.Types.ObjectId,
+            // id: Schema.Types.ObjectId,
         },
         default: null,
     },

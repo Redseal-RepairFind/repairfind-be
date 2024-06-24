@@ -74,7 +74,7 @@ const createTransaction = async (customerId: string, contractorId: string, jobId
     }, {new: true, upsert: true});
 };
 
-const prepareStripePayload = (data:{paymentMethodId: string, customer: any, contractor: any, charges: any, transactionId: string, jobId: string, metadata: any, manualCapture: boolean}) => {
+const prepareStripePayload = (data:{paymentMethodId: string, customer: any, contractor: any, charges: any, jobId: string, metadata: any, manualCapture: boolean}) => {
 
 
     //  Direct CHARGES
@@ -120,7 +120,7 @@ const prepareStripePayload = (data:{paymentMethodId: string, customer: any, cont
 
 
 
-    const {paymentMethodId, customer, contractor, charges, transactionId, jobId, metadata, manualCapture} = data
+    const {paymentMethodId, customer, contractor, charges, jobId, metadata, manualCapture} = data
 
     // const repairfindStripeAccount = 'null'
 
@@ -195,7 +195,8 @@ export const makeJobPayment = async (req: any, res: Response, next: NextFunction
             customerId: customer.id,
             contractorId: contractor?.id,
             quotationId: quotation.id,
-            type: paymentType,
+            paymentType,
+            paymentMethod: paymentMethod.id,
             jobId,
             email: customer.email,
             remark: 'initial_job_payment',
@@ -203,10 +204,9 @@ export const makeJobPayment = async (req: any, res: Response, next: NextFunction
 
      
 
-        const transaction = await createTransaction(customerId, contractor.id, jobId, charges, paymentMethod, transactionType, metadata  );
-        metadata.transactionId = transaction.id
-        const payload = prepareStripePayload({paymentMethodId: paymentMethod.id, customer, contractor, charges, transactionId:transaction.id, jobId, metadata, manualCapture:false});
-
+        // const transaction = await createTransaction(customerId, contractor.id, jobId, charges, paymentMethod, transactionType, metadata  );
+        // metadata.transactionId = transaction.id
+        const payload = prepareStripePayload({paymentMethodId: paymentMethod.id, customer, contractor, charges, jobId, metadata, manualCapture:false});
 
         const stripePayment = await StripeService.payment.chargeCustomer(paymentMethod.customer, paymentMethod.id, payload);
 
@@ -259,13 +259,14 @@ export const makeChangeOrderEstimatePayment = async (req: any, res: Response, ne
             contractorId: contractor?.id,
             quotationId: quotation.id,
             jobId,
-            type: paymentType,
+            paymentType,
+            paymentMethod: paymentMethod.id,
             email: customer.email,
             remark: 'change_order_estimate_payment',
         } as any
-        const transaction = await createTransaction(customerId, contractor.id, jobId, charges, paymentMethod, transactionType, metadata);
-        metadata.transactionId = transaction.id
-        const payload = prepareStripePayload({paymentMethodId: paymentMethod.id, customer, contractor, charges, transactionId:transaction.id, jobId, metadata, manualCapture:false});
+        // const transaction = await createTransaction(customerId, contractor.id, jobId, charges, paymentMethod, transactionType, metadata);
+        // metadata.transactionId = transaction.id
+        const payload = prepareStripePayload({paymentMethodId: paymentMethod.id, customer, contractor, charges, jobId, metadata, manualCapture:false});
 
         const stripePayment = await StripeService.payment.chargeCustomer(paymentMethod.customer, paymentMethod.id, payload);
         job.isChangeOrder = false;
@@ -316,17 +317,17 @@ export const captureJobPayment = async (req: any, res: Response, next: NextFunct
             customerId: customer.id,
             contractorId: contractor?.id,
             quotationId: quotation.id,
-            type: paymentType,
             jobId,
             paymentType,
+            paymentMethod: paymentMethod.id,
             email: customer.email,
             remark: 'initial_job_payment',
         } as any
         
       
-        const transaction = await createTransaction(customerId, contractor.id, jobId, charges, paymentMethod, paymentType);
-        metadata.transactionId = transaction.id
-        const payload = prepareStripePayload({paymentMethodId: paymentMethod.id, customer, contractor, charges, transactionId:transaction.id, jobId, metadata, manualCapture:true});
+        // const transaction = await createTransaction(customerId, contractor.id, jobId, charges, paymentMethod, paymentType);
+        // metadata.transactionId = transaction.id
+        const payload = prepareStripePayload({paymentMethodId: paymentMethod.id, customer, contractor, charges, jobId, metadata, manualCapture:true});
         const stripePayment = await StripeService.payment.chargeCustomer(paymentMethod.customer, paymentMethod.id, payload);
 
         job.status = JOB_STATUS.BOOKED;

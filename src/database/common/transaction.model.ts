@@ -15,9 +15,9 @@ export enum TRANSACTION_TYPE {
   JOB_PAYMENT = "JOB_PAYMENT",
   REFUND = "REFUND",
   ESCROW = "ESCROW",
-  SITE_VISIT = 'SITE_VISIT',
-  JOB_DAY = 'JOB_DAY',
-  CHANGE_ORDER = 'CHANGE_ORDER',
+  SITE_VISIT = 'SITE_VISIT_PAYMENT',
+  JOB_DAY = 'JOB_DAY_PAYMENT',
+  CHANGE_ORDER = 'CHANGE_ORDER_PAYMENT',
 }
 
 
@@ -42,7 +42,7 @@ export interface ITransaction extends Document {
   invoice?: {
     items: any;
     charges: Object;
-    id: ObjectId;
+    // id: ObjectId;
   };
   metadata?: Object;
   job?: ObjectId;
@@ -108,7 +108,7 @@ const TransactionSchema = new Schema<ITransaction>(
       type: {
         items: [],
         charges: Schema.Types.Mixed,
-        id: Schema.Types.ObjectId,
+        // id: Schema.Types.ObjectId,
       },
       default: null,
     },

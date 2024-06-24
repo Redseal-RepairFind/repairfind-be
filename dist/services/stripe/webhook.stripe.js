@@ -706,15 +706,15 @@ var paymentMethodDetached = function (payload) { return __awaiter(void 0, void 0
 exports.paymentMethodDetached = paymentMethodDetached;
 // Charge
 var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var userType, userId, user, stripeChargeDTO, payment, transactionId, transaction, capture, captureDto, capture, captureDto, metadata, jobId, paymentType, quotationId, job, quotation, changeOrderEstimate, onBehalf, destination, transferData, error_11;
-    var _a, _b;
-    return __generator(this, function (_c) {
-        switch (_c.label) {
+    var userType, userId, user, stripeChargeDTO, payment, transactionId, metadata, transaction, capture, captureDto, capture, captureDto, jobId, paymentType, quotationId, job, quotation, charges, changeOrderEstimate, onBehalf, destination, transferData, error_11;
+    var _a;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
                 logger_1.Logger.info('Stripe Event Handler: chargeSucceeded', payload);
-                _c.label = 1;
+                _b.label = 1;
             case 1:
-                _c.trys.push([1, 13, , 14]);
+                _b.trys.push([1, 13, , 14]);
                 if (payload.object != 'charge')
                     return [2 /*return*/];
                 userType = 'customers';
@@ -723,7 +723,7 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                     return [2 /*return*/]; // Ensure userType and userId are valid
                 return [4 /*yield*/, customer_model_1.default.findById(userId)];
             case 2:
-                user = _c.sent();
+                user = _b.sent();
                 if (!user)
                     return [2 /*return*/]; // Ensure user exists
                 //convert from base currency
@@ -742,15 +742,29 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                     })
                     // handle things here
                     //1 handle transfer payment method options if it requires future capturing to another model ?
-                    //@ts-ignore
                 ];
             case 3:
-                payment = _c.sent();
-                transactionId = (_b = payment === null || payment === void 0 ? void 0 : payment.metadata) === null || _b === void 0 ? void 0 : _b.transactionId;
-                return [4 /*yield*/, transaction_model_1.default.findById(transactionId)];
-            case 4:
-                transaction = _c.sent();
-                if (!transaction) return [3 /*break*/, 6];
+                payment = _b.sent();
+                transactionId = null;
+                if (!payment) return [3 /*break*/, 12];
+                metadata = payment.metadata;
+                transaction = new transaction_model_1.default({
+                    type: metadata.paymentType,
+                    amount: payment.amount,
+                    currency: payment.currency,
+                    initiatorUser: metadata.customerId,
+                    initiatorUserType: 'customers',
+                    fromUser: metadata.customerId,
+                    fromUserType: 'customers',
+                    toUser: metadata.contractorId,
+                    toUserType: 'contractors',
+                    description: metadata.paymentType.split('_').map(function (word) { return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(); }).join(' '),
+                    remark: metadata.remark,
+                    metadata: metadata,
+                    paymentMethod: metadata.paymentMethod,
+                    job: metadata.jobId,
+                    status: transaction_model_1.TRANSACTION_STATUS.PENDING
+                });
                 if (!payment.captured) {
                     capture = payload.payment_method_details.card;
                     captureDto = (0, interface_dto_util_1.castPayloadToDTO)(capture, capture);
@@ -774,29 +788,28 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                     payment.capture = captureDto;
                     transaction.status = transaction_model_1.TRANSACTION_STATUS.SUCCESSFUL;
                 }
+                // link transaction to payment
                 payment.transaction = transaction.id;
-                return [4 /*yield*/, Promise.all([
-                        payment.save(),
-                        transaction.save()
-                    ])];
-            case 5:
-                _c.sent();
-                _c.label = 6;
-            case 6:
-                metadata = payment.metadata;
-                if (!metadata.jobId) return [3 /*break*/, 12];
+                if (!metadata.jobId) return [3 /*break*/, 10];
                 jobId = metadata.jobId;
-                paymentType = metadata.type;
+                paymentType = metadata.paymentType;
                 quotationId = metadata.quotationId;
-                if (!(jobId && paymentType && quotationId)) return [3 /*break*/, 12];
+                if (!(jobId && paymentType && quotationId)) return [3 /*break*/, 10];
                 return [4 /*yield*/, job_model_1.JobModel.findById(jobId)];
-            case 7:
-                job = _c.sent();
+            case 4:
+                job = _b.sent();
                 return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findById(quotationId)];
-            case 8:
-                quotation = _c.sent();
+            case 5:
+                quotation = _b.sent();
                 if (!job || !quotation)
                     return [2 /*return*/];
+                return [4 /*yield*/, quotation.calculateCharges()];
+            case 6:
+                charges = _b.sent();
+                transaction.invoice = {
+                    items: quotation.estimates,
+                    charges: charges
+                };
                 if (paymentType == payment_schema_1.PAYMENT_TYPE.JOB_DAY_PAYMENT) {
                     job.status = job_model_1.JOB_STATUS.BOOKED;
                     job.contract = quotation.id;
@@ -839,51 +852,56 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                 }
                 if (!job.payments.includes(payment.id))
                     job.payments.push(payment.id);
-                return [4 /*yield*/, quotation.save()];
-            case 9:
-                _c.sent();
-                return [4 /*yield*/, job.save()
-                    //handle payout transaction schedule here if payment was made to platform
-                ];
-            case 10:
-                _c.sent();
-                if (!payment) return [3 /*break*/, 12];
                 onBehalf = payment.on_behalf_of;
                 destination = payment.destination;
                 transferData = payment.transfer_data;
-                if (!(!onBehalf && !destination && !transferData)) return [3 /*break*/, 12];
+                if (!(!onBehalf && !destination && !transferData)) return [3 /*break*/, 8];
                 //create payout transaction - 
                 return [4 /*yield*/, transaction_model_1.default.create({
                         type: transaction_model_1.TRANSACTION_TYPE.ESCROW,
                         amount: payment.amount,
-                        // customer can initiate payout on job completetion or admin on dispute resolution
+                        // customer can initiate payout on job completion or admin on dispute resolution
                         // initiatorUser: customerId,
                         // initiatorUserType: 'customers',
                         fromUser: job.customer,
                         fromUserType: 'customers',
                         toUser: job.contractor,
                         toUserType: 'contractors',
-                        description: "Payout for job: ".concat(job === null || job === void 0 ? void 0 : job.title),
+                        description: "Escrow Transaction for job: ".concat(job === null || job === void 0 ? void 0 : job.title),
                         status: transaction_model_1.TRANSACTION_STATUS.PENDING,
-                        remark: 'job_payout',
+                        remark: 'job_escrow_transaction',
                         invoice: {
                             items: [],
                             charges: quotation.charges
                         },
                         metadata: {
                             paymentType: paymentType,
-                            parentTransaction: transaction === null || transaction === void 0 ? void 0 : transaction.id
+                            parentTransaction: transactionId
                         },
                         job: job.id,
                         payment: payment.id,
                     })];
-            case 11:
+            case 7:
                 //create payout transaction - 
-                _c.sent();
-                _c.label = 12;
+                _b.sent();
+                _b.label = 8;
+            case 8: return [4 /*yield*/, Promise.all([
+                    quotation.save(),
+                    job.save()
+                ])];
+            case 9:
+                _b.sent();
+                _b.label = 10;
+            case 10: return [4 /*yield*/, Promise.all([
+                    payment.save(),
+                    transaction.save()
+                ])];
+            case 11:
+                _b.sent();
+                _b.label = 12;
             case 12: return [3 /*break*/, 14];
             case 13:
-                error_11 = _c.sent();
+                error_11 = _b.sent();
                 // throw new BadRequestError(error.message || "Something went wrong");
                 logger_1.Logger.info('Error handling chargeSucceeded stripe webhook event', error_11);
                 return [3 /*break*/, 14];
