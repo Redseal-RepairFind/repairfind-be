@@ -134,7 +134,7 @@ var handleEscrowTransfer = function () { return __awaiter(void 0, void 0, void 0
                 return [3 /*break*/, 9];
             case 8:
                 error_1 = _b.sent();
-                logger_1.Logger.error("Error processing payout transfer: ".concat(transaction.id), error_1);
+                logger_1.Logger.info("Error processing payout transfer: ".concat(transaction.id), error_1);
                 return [3 /*break*/, 9];
             case 9:
                 _i++;

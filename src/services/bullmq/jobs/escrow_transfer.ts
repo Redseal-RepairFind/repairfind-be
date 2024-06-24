@@ -54,11 +54,13 @@ export const handleEscrowTransfer = async () => {
                 TransactionEvent.emit('ESCROW_TRANSFER_SUCCESSFUL', transaction)
                 
             } catch (error) {
-                Logger.error(`Error processing payout transfer: ${transaction.id}`, error);
+                Logger.info(`Error processing payout transfer: ${transaction.id}`, error);
+               
             }
         }
         
     } catch (error) {
+       
         Logger.error('Error processing handleEscrowTransfer:', error);
     }
 };
