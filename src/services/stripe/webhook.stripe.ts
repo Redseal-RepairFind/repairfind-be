@@ -580,6 +580,8 @@ export const chargeSucceeded = async (payload: any) => {
 
             }
 
+            
+
             payment.transaction = transaction.id
             await Promise.all([
                 payment.save(),

@@ -133,16 +133,16 @@ var findContractor = function (contractorId) { return __awaiter(void 0, void 0, 
         }
     });
 }); };
-var createTransaction = function (customerId, contractorId, jobId, charges, paymentMethod, paymentType, metadata) {
+var createTransaction = function (customerId, contractorId, jobId, charges, paymentMethod, transactionType, metadata) {
     if (metadata === void 0) { metadata = null; }
     return __awaiter(void 0, void 0, void 0, function () {
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, transaction_model_1.default.findByIdAndUpdate({
+                case 0: return [4 /*yield*/, transaction_model_1.default.findOneAndUpdate({
                         job: jobId,
-                        type: paymentType,
+                        type: transactionType,
                     }, {
-                        type: paymentType,
+                        type: transactionType,
                         amount: charges.totalAmount,
                         currency: 'USD',
                         initiatorUser: customerId,
@@ -232,7 +232,7 @@ var prepareStripePayload = function (data) {
     return payload;
 };
 var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, quotationId, paymentMethodId_1, jobId, errors, customerId, customer, job, quotation, contractor, paymentMethod, paymentType, charges, metadata, transaction, payload, stripePayment, err_1;
+    var _a, quotationId, paymentMethodId_1, jobId, errors, customerId, customer, job, quotation, contractor, paymentMethod, paymentType, transactionType, charges, metadata, transaction, payload, stripePayment, err_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -266,9 +266,10 @@ var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'This job is not pending, so new payment is not possible' })];
                 }
                 paymentType = payment_schema_1.PAYMENT_TYPE.JOB_DAY_PAYMENT;
-                if (quotation.type == job_quotation_model_1.JOB_QUOTATION_TYPE.SITE_VISIT)
+                transactionType = quotation.type;
+                if (transactionType == job_quotation_model_1.JOB_QUOTATION_TYPE.SITE_VISIT)
                     paymentType = payment_schema_1.PAYMENT_TYPE.SITE_VISIT_PAYMENT;
-                if (quotation.type == job_quotation_model_1.JOB_QUOTATION_TYPE.JOB_DAY)
+                if (transactionType == job_quotation_model_1.JOB_QUOTATION_TYPE.JOB_DAY)
                     paymentType = payment_schema_1.PAYMENT_TYPE.JOB_DAY_PAYMENT;
                 return [4 /*yield*/, quotation.calculateCharges(paymentType)];
             case 5:
@@ -282,7 +283,7 @@ var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0
                     email: customer.email,
                     remark: 'initial_job_payment',
                 };
-                return [4 /*yield*/, createTransaction(customerId, contractor.id, jobId, charges, paymentMethod, paymentType)];
+                return [4 /*yield*/, createTransaction(customerId, contractor.id, jobId, charges, paymentMethod, transactionType, metadata)];
             case 6:
                 transaction = _b.sent();
                 metadata.transactionId = transaction.id;
@@ -305,7 +306,7 @@ var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0
 }); };
 exports.makeJobPayment = makeJobPayment;
 var makeChangeOrderEstimatePayment = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, quotationId, paymentMethodId_2, jobId, errors, customerId, customer, job, quotation, contractor, changeOrderEstimate, paymentMethod, paymentType, charges, metadata, transaction, payload, stripePayment, err_2;
+    var _a, quotationId, paymentMethodId_2, jobId, errors, customerId, customer, job, quotation, contractor, changeOrderEstimate, paymentMethod, paymentType, transactionType, charges, metadata, transaction, payload, stripePayment, err_2;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -341,6 +342,7 @@ var makeChangeOrderEstimatePayment = function (req, res, next) { return __awaite
                 if (!paymentMethod)
                     throw new Error('No such payment method');
                 paymentType = payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT;
+                transactionType = transaction_model_1.TRANSACTION_TYPE.CHANGE_ORDER;
                 return [4 /*yield*/, quotation.calculateCharges(paymentType)];
             case 5:
                 charges = _b.sent();
@@ -353,7 +355,7 @@ var makeChangeOrderEstimatePayment = function (req, res, next) { return __awaite
                     email: customer.email,
                     remark: 'change_order_estimate_payment',
                 };
-                return [4 /*yield*/, createTransaction(customerId, contractor.id, jobId, charges, paymentMethod, paymentType, metadata)];
+                return [4 /*yield*/, createTransaction(customerId, contractor.id, jobId, charges, paymentMethod, transactionType, metadata)];
             case 6:
                 transaction = _b.sent();
                 metadata.transactionId = transaction.id;
