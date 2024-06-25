@@ -157,7 +157,7 @@ var AuthHandler = /** @class */ (function (_super) {
                         return [4 /*yield*/, (0, send_email_utility_1.sendEmail)(emailData)];
                     case 5:
                         _b.sent();
-                        welcomeHtml = (0, contractorWelcomeTemplate_1.htmlContractorWelcomeTemplate)(firstName);
+                        welcomeHtml = (0, contractorWelcomeTemplate_1.htmlContractorWelcomeTemplate)(firstName !== null && firstName !== void 0 ? firstName : companyName);
                         welcomeEmailData = {
                             emailTo: email,
                             subject: "Welcome",

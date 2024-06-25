@@ -43,8 +43,8 @@ exports.AdminPayContractorController = exports.AdminGetSinglePayoutDetailControl
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
-var job_model_1 = __importDefault(require("../../../database/contractor/models/job.model"));
 var payout_model_1 = __importDefault(require("../../../database/admin/models/payout.model"));
+var job_model_1 = require("../../../database/common/job.model");
 //get pending Payout detail /////////////
 var AdminGetPendingPayoutDetailController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, page, limit, errors, admin, adminId, skip, Payouts, pendingPayout, totalPendigPayout, i, Payout, job, customer, contractor, obj, err_1;
@@ -77,17 +77,17 @@ var AdminGetPendingPayoutDetailController = function (req, res) { return __await
             case 3:
                 if (!(i < Payouts.length)) return [3 /*break*/, 8];
                 Payout = Payouts[i];
-                return [4 /*yield*/, job_model_1.default.findOne({ _id: Payout.jobId })];
+                return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: Payout.jobId })];
             case 4:
                 job = _b.sent();
                 if (!job)
                     return [3 /*break*/, 7];
-                return [4 /*yield*/, customer_model_1.default.findOne({ _id: job.customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: job.customer })];
             case 5:
                 customer = _b.sent();
                 if (!customer)
                     return [3 /*break*/, 7];
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: job.contractorId })];
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: job.contractor })];
             case 6:
                 contractor = _b.sent();
                 if (!contractor)
@@ -151,17 +151,17 @@ var AdminGetCompletedPayoutDetailController = function (req, res) { return __awa
             case 3:
                 if (!(i < Payouts.length)) return [3 /*break*/, 8];
                 Payout = Payouts[i];
-                return [4 /*yield*/, job_model_1.default.findOne({ _id: Payout.jobId })];
+                return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: Payout.jobId })];
             case 4:
                 job = _b.sent();
                 if (!job)
                     return [3 /*break*/, 7];
-                return [4 /*yield*/, customer_model_1.default.findOne({ _id: job.customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: job.customer })];
             case 5:
                 customer = _b.sent();
                 if (!customer)
                     return [3 /*break*/, 7];
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: job.contractorId })];
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: job.contractor })];
             case 6:
                 contractor = _b.sent();
                 if (!contractor)
@@ -215,17 +215,17 @@ var AdminGetSinglePayoutDetailController = function (req, res) { return __awaite
                             .status(401)
                             .json({ message: "incorrect payout Id" })];
                 }
-                return [4 /*yield*/, job_model_1.default.findOne({ _id: payout.jobId })];
+                return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: payout.jobId })];
             case 2:
                 job = _a.sent();
                 if (!job)
                     return [2 /*return*/];
-                return [4 /*yield*/, customer_model_1.default.findOne({ _id: job.customerId })];
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: job.customer })];
             case 3:
                 customer = _a.sent();
                 if (!customer)
                     return [2 /*return*/];
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: job.contractorId })];
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: job.contractor })];
             case 4:
                 contractor = _a.sent();
                 if (!contractor)

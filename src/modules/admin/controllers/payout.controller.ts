@@ -2,8 +2,8 @@ import { validationResult } from "express-validator";
 import { Request, Response } from "express";
 import {ContractorModel} from "../../../database/contractor/models/contractor.model";
 import CustomerRegModel from "../../../database/customer/models/customer.model";
-import JobModel from "../../../database/contractor/models/job.model";
 import PayoutModel from "../../../database/admin/models/payout.model";
+import { JobModel } from "../../../database/common/job.model";
 
 //get pending Payout detail /////////////
 export const AdminGetPendingPayoutDetailController = async (
@@ -47,10 +47,10 @@ export const AdminGetPendingPayoutDetailController = async (
             const job = await JobModel.findOne({_id: Payout.jobId})
             if (!job) continue
 
-            const customer = await CustomerRegModel.findOne({_id: job.customerId})
+            const customer = await CustomerRegModel.findOne({_id: job.customer})
             if (!customer) continue
 
-            const contractor = await ContractorModel.findOne({_id: job.contractorId})
+            const contractor = await ContractorModel.findOne({_id: job.contractor})
             if (!contractor) continue
 
           
@@ -118,10 +118,10 @@ export const AdminGetCompletedPayoutDetailController = async (
             const job = await JobModel.findOne({_id: Payout.jobId})
             if (!job) continue
 
-            const customer = await CustomerRegModel.findOne({_id: job.customerId})
+            const customer = await CustomerRegModel.findOne({_id: job.customer})
             if (!customer) continue
 
-            const contractor = await ContractorModel.findOne({_id: job.contractorId})
+            const contractor = await ContractorModel.findOne({_id: job.contractor})
             if (!contractor) continue
 
          
@@ -178,10 +178,10 @@ export const AdminGetSinglePayoutDetailController = async (
         const job = await JobModel.findOne({_id: payout.jobId})
         if (!job) return
 
-        const customer = await CustomerRegModel.findOne({_id: job.customerId})
+        const customer = await CustomerRegModel.findOne({_id: job.customer})
         if (!customer) return
 
-        const contractor = await ContractorModel.findOne({_id: job.contractorId})
+        const contractor = await ContractorModel.findOne({_id: job.contractor})
         if (!contractor) return
 
       

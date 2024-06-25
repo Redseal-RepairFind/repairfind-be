@@ -98,7 +98,7 @@ var getConversations = function (req, res, next) { return __awaiter(void 0, void
                 return [3 /*break*/, 5];
             case 4:
                 error_1 = _c.sent();
-                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occured ', error_1))];
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred ', error_1))];
             case 5: return [2 /*return*/];
         }
     });
@@ -134,7 +134,7 @@ var getSingleConversation = function (req, res, next) { return __awaiter(void 0,
                 return [3 /*break*/, 6];
             case 5:
                 error_2 = _c.sent();
-                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occured ', error_2))];
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred ', error_2))];
             case 6: return [2 /*return*/];
         }
     });
@@ -189,7 +189,7 @@ var getConversationMessages = function (req, res, next) { return __awaiter(void 
                 return [3 /*break*/, 6];
             case 5:
                 error_3 = _b.sent();
-                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occured ', error_3))];
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred ', error_3))];
             case 6: return [2 /*return*/];
         }
     });

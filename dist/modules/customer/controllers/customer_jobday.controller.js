@@ -521,7 +521,7 @@ var confirmJobDayCompletion = function (req, res, next) { return __awaiter(void 
                 jobStatus = (job.schedule.type == job_model_1.JOB_SCHEDULE_TYPE.SITE_VISIT) ? job_model_1.JOB_STATUS.COMPLETED_SITE_VISIT : job_model_1.JOB_STATUS.COMPLETED;
                 job.statusUpdate = __assign(__assign({}, job.statusUpdate), { status: jobStatus, isCustomerAccept: true, awaitingConfirmation: false });
                 // if schedul was a site visit
-                //change job to pending and qoutation type to jobday
+                //change job to pending and quotation type to jobday
                 if (job.schedule.type == job_model_1.JOB_SCHEDULE_TYPE.SITE_VISIT) {
                     job.status = job_model_1.JOB_STATUS.PENDING;
                     quotation.type = job_quotation_model_1.JOB_QUOTATION_TYPE.JOB_DAY;

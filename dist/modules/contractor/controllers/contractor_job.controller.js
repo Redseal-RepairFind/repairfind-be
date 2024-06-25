@@ -604,7 +604,7 @@ var getQuotationForJob = function (req, res, next) { return __awaiter(void 0, vo
                 return [3 /*break*/, 4];
             case 3:
                 error_6 = _b.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_6))];
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_6))];
             case 4: return [2 /*return*/];
         }
     });
@@ -682,7 +682,7 @@ var updateJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
                 return [3 /*break*/, 7];
             case 6:
                 error_7 = _c.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_7))];
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_7))];
             case 7: return [2 /*return*/];
         }
     });
@@ -818,7 +818,7 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                 return [3 /*break*/, 7];
             case 6:
                 error_8 = _g.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_8))];
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_8))];
             case 7: return [2 /*return*/];
         }
     });
@@ -886,7 +886,7 @@ var getMyJobs = function (req, res, next) { return __awaiter(void 0, void 0, voi
                 _e.label = 5;
             case 5:
                 if (error) {
-                    return [2 /*return*/, next(new custom_errors_1.BadRequestError('Unkowon error occured'))];
+                    return [2 /*return*/, next(new custom_errors_1.BadRequestError('Unknown error occurred'))];
                 }
                 // Send response with job listings data
                 res.status(200).json({ success: true, data: data });
@@ -961,7 +961,7 @@ var getJobHistory = function (req, res, next) { return __awaiter(void 0, void 0,
                 _f.label = 5;
             case 5:
                 if (error) {
-                    return [2 /*return*/, next(new custom_errors_1.BadRequestError('Unkowon error occured'))];
+                    return [2 /*return*/, next(new custom_errors_1.BadRequestError('Unknown error occurred'))];
                 }
                 // Send response with job listings data
                 res.status(200).json({ success: true, data: data });

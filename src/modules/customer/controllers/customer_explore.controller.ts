@@ -34,6 +34,7 @@ export const exploreContractors = async (
 
     try {
         const {
+            searchName,
             listing,
             distance,
             latitude,
@@ -88,40 +89,40 @@ export const exploreContractors = async (
                         details_submitted: "$stripeAccount.details_submitted",
                         payouts_enabled: "$stripeAccount.payouts_enabled",
                         charges_enabled: "$stripeAccount.charges_enabled",
-                        
+
                         // transfers_enabled: { $ifNull: ["$stripeAccount.capabilities.transfers", "inactive"] },
                         // card_payments_enabled: { $ifNull: ["$stripeAccount.capabilities.card_payments", "inactive"] },
 
                         transfers_enabled: {
                             $cond: {
-                              if: { $ifNull: ["$stripeAccount.capabilities.transfers", "inactive"] }, //{ $eq: ["$stripeAccount.capabilities.transfers", "active"] },
-                              then: true,
-                              else: false
+                                if: { $ifNull: ["$stripeAccount.capabilities.transfers", "inactive"] }, //{ $eq: ["$stripeAccount.capabilities.transfers", "active"] },
+                                then: true,
+                                else: false
                             }
-                          },
-                          card_payments_enabled: {
+                        },
+                        card_payments_enabled: {
                             $cond: {
-                              if: { $ifNull: ["$stripeAccount.capabilities.card_payments", "inactive"] },//{ $eq: ["$stripeAccount.capabilities.card_payments", "active"] },
-                              then: true,
-                              else: false
+                                if: { $ifNull: ["$stripeAccount.capabilities.card_payments", "inactive"] },//{ $eq: ["$stripeAccount.capabilities.card_payments", "active"] },
+                                then: true,
+                                else: false
                             }
-                          },
+                        },
 
-                          
+
 
                         status: {
                             $cond: {
-                              if: {
-                                $and: [
-                                  { $eq: ["$stripeAccount.capabilities.card_payments", "active"] },
-                                  { $eq: ["$stripeAccount.capabilities.transfers", "active"] }
-                                ]
-                              },
-                              then: 'active',
-                              else: 'inactive'
+                                if: {
+                                    $and: [
+                                        { $eq: ["$stripeAccount.capabilities.card_payments", "active"] },
+                                        { $eq: ["$stripeAccount.capabilities.transfers", "active"] }
+                                    ]
+                                },
+                                then: 'active',
+                                else: 'inactive'
                             }
-                          }
-                      }
+                        }
+                    }
 
                 }
             },
@@ -145,13 +146,16 @@ export const exploreContractors = async (
             //example filter out who do not have stripe account
             { $match: { "stripeAccountStatus.status": 'active' } },
 
-             //example filter out employees and contractors 
-            { $match: { accountType: {$ne: CONTRACTOR_TYPES.Employee} } }
+            //example filter out employees and contractors 
+            { $match: { accountType: { $ne: CONTRACTOR_TYPES.Employee } } }
         ];
 
 
-  
+
         // Add stages conditionally based on query parameters
+        if (searchName) {
+            pipeline.push({ $match: { "name": { $regex: new RegExp(searchName, 'i') } } });
+        }
         if (category) {
             pipeline.push({ $match: { "profile.skill": { $regex: new RegExp(category, 'i') } } });
         }
@@ -290,7 +294,7 @@ export const getSingleContractor = async (req: any, res: Response, next: NextFun
 
         return res.status(200).json({ success: true, message: 'Contractor  found', data: contractor })
     } catch (error: any) {
-        next(new BadRequestError('An error occured', error))
+        next(new BadRequestError('An error occurred', error))
     }
 }
 
@@ -306,12 +310,12 @@ export const getContractorReviews = async (req: any, res: Response, next: NextFu
             return res.status(400).json({ success: false, message: 'Contractor not found' })
         }
 
-         //reviews etc here
-         let filter: any = { contractor: contractorId, type: REVIEW_TYPE.JOB_COMPLETION  };
-         const { data, error } = await applyAPIFeature(ReviewModel.find(filter).populate(['customer']), req.query);
+        //reviews etc here
+        let filter: any = { contractor: contractorId, type: REVIEW_TYPE.JOB_COMPLETION };
+        const { data, error } = await applyAPIFeature(ReviewModel.find(filter).populate(['customer']), req.query);
         return res.status(200).json({ success: true, message: 'Contractor reviews  retrieved', data: data })
     } catch (error: any) {
-        next(new BadRequestError('An error occured', error))
+        next(new BadRequestError('An error occurred', error))
     }
 }
 
@@ -320,16 +324,16 @@ export const getContractorReviews = async (req: any, res: Response, next: NextFu
 export const getFavoriteContractors = async (req: any, res: Response, next: NextFunction) => {
     try {
         const customerId = req.customer.id
-        
-         //favorites etc here
-         const favorites = await CustomerFavoriteContractorModel.find({ customer: customerId }).select('contractor');
-         const favoriteIds = favorites.map((fav) => fav.contractor);
-         let filter: any = { _id: { $in: favoriteIds } };
-         
-         const { data, error } = await applyAPIFeature(ContractorModel.find(filter), req.query);
+
+        //favorites etc here
+        const favorites = await CustomerFavoriteContractorModel.find({ customer: customerId }).select('contractor');
+        const favoriteIds = favorites.map((fav) => fav.contractor);
+        let filter: any = { _id: { $in: favoriteIds } };
+
+        const { data, error } = await applyAPIFeature(ContractorModel.find(filter), req.query);
         return res.status(200).json({ success: true, message: 'Favorite contractors  retrieved', data: data })
     } catch (error: any) {
-        next(new BadRequestError('An error occured', error))
+        next(new BadRequestError('An error occurred', error))
     }
 }
 

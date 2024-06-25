@@ -108,7 +108,7 @@ export const getMyBookings = async (req: any, res: Response, next: NextFunction)
         res.json({ success: true, message: 'Bookings retrieved', data: data });
 
     } catch (error: any) {
-        return next(new BadRequestError('An error occured ', error))
+        return next(new BadRequestError('An error occurred ', error))
     }
 };
 
@@ -259,7 +259,7 @@ export const getSingleBooking = async (req: any, res: Response, next: NextFuncti
         res.json({ success: true, message: 'Booking retrieved', data: responseData });
 
     } catch (error: any) {
-        return next(new BadRequestError('An error occured ', error))
+        return next(new BadRequestError('An error occurred ', error))
     }
 };
 
@@ -823,7 +823,7 @@ export const acceptBookingComplete = async (req: any, res: Response, next: NextF
         //     return res.status(400).json({ success: false, message: 'The booking is already marked as complete' });
         // }
 
-        if (!job.statusUpdate.awaitingConfirmation) {
+        if (!job.statusUpdate || !job.statusUpdate.awaitingConfirmation) {
             return res.status(400).json({ success: false, message: 'Contractor has not requested for a status update' });
         }
 
@@ -853,7 +853,8 @@ export const acceptBookingComplete = async (req: any, res: Response, next: NextF
 
         res.json({ success: true, message: 'Booking marked as completed successfully', data: job });
     } catch (error: any) {
-        return next(new BadRequestError('An error occurred', error));
+        console.log(error)
+        return next(new InternalServerError('An error occurred', error));
     }
 };
 

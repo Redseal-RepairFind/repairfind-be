@@ -545,11 +545,33 @@ export const chargeSucceeded = async (payload: any) => {
 
         // handle things here
         //1 handle transfer payment method options if it requires future capturing to another model ?
-        //@ts-ignore
-        const transactionId = payment?.metadata?.transactionId
-        let transaction = await TransactionModel.findById(transactionId)
+        let transactionId = null
 
-        if (transaction) {
+
+        if (payment) {
+            // handle job booking creating here ?
+            const metadata = payment.metadata as { jobId: string, quotationId: string, contractorId: ObjectId, customerId: ObjectId, remark: string, extraEstimateId: ObjectId, paymentType: PAYMENT_TYPE, paymentMethod: string }
+
+
+            let transaction = new TransactionModel({
+                type: metadata.paymentType,
+                amount: payment.amount,
+                currency: payment.currency,
+                initiatorUser: metadata.customerId,
+                initiatorUserType: 'customers',
+                fromUser: metadata.customerId,
+                fromUserType: 'customers',
+                toUser: metadata.contractorId,
+                toUserType: 'contractors',
+                description: metadata.paymentType.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' '),
+                remark: metadata.remark,
+                metadata: metadata,
+
+                paymentMethod: metadata.paymentMethod,
+                job: metadata.jobId,
+                status: TRANSACTION_STATUS.PENDING
+            })
+
             if (!payment.captured) {
 
                 const capture = payload.payment_method_details.card
@@ -566,7 +588,6 @@ export const chargeSucceeded = async (payload: any) => {
 
             } else {
                 const capture = payload.payment_method_details.card
-                //save payment capture here
                 let captureDto: ICapture = castPayloadToDTO(capture, capture as ICapture);
                 captureDto.payment_intent = payload.payment_intent
                 captureDto.payment_method = payload.payment_method
@@ -580,100 +601,99 @@ export const chargeSucceeded = async (payload: any) => {
 
             }
 
+            // link transaction to payment
             payment.transaction = transaction.id
-            await Promise.all([
-                payment.save(),
-                transaction.save()
-            ])
-        }
-
-        // handle job booking creating here ?
-        const metadata = payment.metadata as { jobId: string, quotationId: string, contractorId: ObjectId, customerId: ObjectId, remark: string, extraEstimateId: ObjectId, type: PAYMENT_TYPE }
-        if (metadata.jobId) {
-            const jobId = metadata.jobId
-            const paymentType = metadata.type
-            const quotationId = metadata.quotationId
-
-            if (jobId && paymentType && quotationId) {
-
-                let job = await JobModel.findById(jobId)
-                let quotation = await JobQuotationModel.findById(quotationId)
-                if (!job || !quotation) return
 
 
-                if (paymentType == PAYMENT_TYPE.JOB_DAY_PAYMENT) {
-                    job.status = JOB_STATUS.BOOKED
-                    job.contract = quotation.id
-                    job.contractor = quotation.contractor
 
-                    quotation.isPaid = true
-                    quotation.payment = payment.id
-                    quotation.status = JOB_QUOTATION_STATUS.ACCEPTED
+            // make sure that  payment if for a job
+            if (metadata.jobId) {
+                const jobId = metadata.jobId
+                const paymentType = metadata.paymentType
+                const quotationId = metadata.quotationId
 
-                    if (quotation.startDate) {
-                        job.schedule = {
-                            startDate: quotation.startDate,
-                            type: JOB_SCHEDULE_TYPE.JOB_DAY,
-                            remark: 'Initial job schedule'
-                        };
+               
+
+                if (jobId && paymentType && quotationId) {
+
+                    let job = await JobModel.findById(jobId)
+                    let quotation = await JobQuotationModel.findById(quotationId)
+                    if (!job || !quotation) return
+                    const charges = await quotation.calculateCharges()
+
+                    transaction.invoice = {
+                        items: quotation.estimates,
+                        charges: charges
+                    }
+
+
+                    if (paymentType == PAYMENT_TYPE.JOB_DAY_PAYMENT) {
+                        job.status = JOB_STATUS.BOOKED
+                        job.contract = quotation.id
+                        job.contractor = quotation.contractor
+
+                        quotation.isPaid = true
+                        quotation.payment = payment.id
+                        quotation.status = JOB_QUOTATION_STATUS.ACCEPTED
+
+                        if (quotation.startDate) {
+                            job.schedule = {
+                                startDate: quotation.startDate,
+                                type: JOB_SCHEDULE_TYPE.JOB_DAY,
+                                remark: 'Initial job schedule'
+                            };
+
+                        }
 
                     }
 
-                }
 
+                    if (paymentType == PAYMENT_TYPE.SITE_VISIT_PAYMENT) {
+                        job.status = JOB_STATUS.BOOKED
+                        job.contract = quotation.id
+                        job.contractor = quotation.contractor
 
-                if (paymentType == PAYMENT_TYPE.SITE_VISIT_PAYMENT) {
-                    job.status = JOB_STATUS.BOOKED
-                    job.contract = quotation.id
-                    job.contractor = quotation.contractor
+                        quotation.siteVisitEstimate.isPaid = true
+                        quotation.siteVisitEstimate.payment = payment.id
+                        quotation.status = JOB_QUOTATION_STATUS.ACCEPTED
 
-                    quotation.siteVisitEstimate.isPaid = true
-                    quotation.siteVisitEstimate.payment = payment.id
-                    quotation.status = JOB_QUOTATION_STATUS.ACCEPTED
+                        if (quotation.siteVisit instanceof Date) {
+                            job.schedule = {
+                                startDate: quotation.siteVisit,
+                                type: JOB_SCHEDULE_TYPE.SITE_VISIT,
+                                remark: 'Site visit schedule'
+                            };
+                        } else {
+                            Logger.info('quotation.siteVisit.date is not a valid Date object.');
+                        }
 
-                    if (quotation.siteVisit instanceof Date) {
-                        job.schedule = {
-                            startDate: quotation.siteVisit,
-                            type: JOB_SCHEDULE_TYPE.SITE_VISIT,
-                            remark: 'Site visit schedule'
-                        };
-                    } else {
-                        Logger.info('quotation.siteVisit.date is not a valid Date object.');
                     }
 
-                }
+
+                    if (paymentType == PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) {
+                        const changeOrderEstimate: any = quotation.changeOrderEstimate
+                        if (!changeOrderEstimate) return
+                        changeOrderEstimate.isPaid = true
+                        changeOrderEstimate.payment = payment.id
+                    }
+
+                    if (!job.payments.includes(payment.id)) job.payments.push(payment.id)
 
 
-                if (paymentType == PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) {
-                    const changeOrderEstimate: any = quotation.changeOrderEstimate
-                    if (!changeOrderEstimate) return
-                    changeOrderEstimate.isPaid = true
-                    changeOrderEstimate.payment = payment.id
-                }
 
-                if (!job.payments.includes(payment.id)) job.payments.push(payment.id)
-
-
-                await quotation.save()
-                await job.save()
-
-
-                //handle payout transaction schedule here if payment was made to platform
-                if (payment) {
                     const onBehalf = payment.on_behalf_of
                     const destination = payment.destination
                     const transferData = payment.transfer_data
 
-                    // Logger.info(onBehalf,  destination, transferData)
                     // payment was made to platform ?
                     if (!onBehalf && !destination && !transferData) {
                         //create payout transaction - 
-                        
+
                         await TransactionModel.create({
                             type: TRANSACTION_TYPE.ESCROW,
                             amount: payment.amount,
 
-                            // customer can initiate payout on job completetion or admin on dispute resolution
+                            // customer can initiate payout on job completion or admin on dispute resolution
                             // initiatorUser: customerId,
                             // initiatorUserType: 'customers',
 
@@ -683,16 +703,16 @@ export const chargeSucceeded = async (payload: any) => {
                             toUser: job.contractor,
                             toUserType: 'contractors',
 
-                            description: `Payout for job: ${job?.title}`,
+                            description: `Escrow Transaction for job: ${job?.title}`,
                             status: TRANSACTION_STATUS.PENDING,
-                            remark: 'job_payout',
+                            remark: 'job_escrow_transaction',
                             invoice: {
                                 items: [],
                                 charges: quotation.charges
                             },
                             metadata: {
                                 paymentType,
-                                parentTransaction: transaction?.id
+                                parentTransaction: transactionId
                             },
                             job: job.id,
                             payment: payment.id,
@@ -700,11 +720,24 @@ export const chargeSucceeded = async (payload: any) => {
 
                     }
 
+
+                    await Promise.all([
+                        quotation.save(),
+                        job.save()
+                    ])
+
                 }
 
             }
 
+
+            await Promise.all([
+                payment.save(),
+                transaction.save()
+            ])
         }
+
+
 
 
 
