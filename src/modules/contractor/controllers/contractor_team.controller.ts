@@ -69,7 +69,7 @@ export const getTeam = async (req: any, res: Response) => {
 export const getTeamMembers = async (req: any, res: Response) => {
     try {
         const contractorId = req.contractor.id;
-        const { email } = req.query;
+        const { name, email } = req.query;
 
         const contractor = await ContractorModel.findById(contractorId);
         if (!contractor || contractor.accountType !== "Company") {
@@ -85,9 +85,32 @@ export const getTeamMembers = async (req: any, res: Response) => {
         let contractorIds = companyTeam.members.map((team: any) => team.contractor);
         let filter: any = { _id: { $in: contractorIds } };
 
-        if (email) {
-            filter.email = email;
+        // if (email) {
+        //     filter.email = email;
+        // }
+
+        // Get the search parameters (name and email)
+
+        // Define the search criteria based on name and email
+        // const searchCriteria: any = {
+        //     accountType: { $in: ['Individual', 'Employee'] },
+        //     _id: { $nin: companyTeam.members.map(member => member.contractor) }
+        // };
+
+        if (name) {
+            // Case-insensitive search by name
+            filter.$or = [
+                { firstName: { $regex: new RegExp(name, 'i') } },
+                { lastName: { $regex: new RegExp(name, 'i') } }
+            ];
         }
+
+        if (email) {
+            // Case-insensitive search by email
+            filter.email = { $regex: new RegExp(email, 'i') };
+        }
+
+        
 
         const contractors = await ContractorModel.find(filter).populate('profile');
 
