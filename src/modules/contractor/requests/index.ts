@@ -87,26 +87,26 @@ export const UpdateProfileRequest = [
 ];
 export const UpgradeEmployeeProfileRequest = [
 
-  body("location.address").notEmpty(),
-  body("location.latitude").notEmpty().isNumeric(),
-  body("location.longitude").notEmpty().isNumeric(),
+  body("location.address").optional(),
+  body("location.latitude").optional().isNumeric(),
+  body("location.longitude").optional().isNumeric(),
 
   // body('backgroundCheckConsent')
   //   .exists({ checkFalsy: true }).withMessage('Background consent is required')
   //   .custom((value) => value === true).withMessage('You must consent to us running a background check'),
-  body("skill").notEmpty(),
+  body("skill").optional(),
 
-  body("gstDetails.gstNumber").notEmpty(),
-  body("gstDetails.gstName").notEmpty(),
-  body("gstDetails.gstType").notEmpty(),
+  body("gstDetails.gstNumber").optional(),
+  body("gstDetails.gstName").optional(),
+  body("gstDetails.gstType").optional(),
 
   body("experienceYear").optional().isNumeric(),
   body("about").optional(),
   body("website").optional().isURL(),
   body("email").optional().isEmail(),
   body("phoneNumber").optional().isNumeric(),
-  body("emergencyJobs").notEmpty(),
-  body("availableDays").notEmpty().isArray(),
+  body("emergencyJobs").optional(),
+  body("availableDays").optional().isArray(),
   body("previousJobPhotos").optional().isArray().notEmpty().custom((value) => validateMediaArray(value)),
   body("previousJobVideos").optional().isArray().notEmpty().custom((value) => validateMediaArray(value)),
 

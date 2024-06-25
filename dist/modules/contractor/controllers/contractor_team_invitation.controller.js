@@ -298,7 +298,7 @@ var rejectInvitation = function (req, res) { return __awaiter(void 0, void 0, vo
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 2, , 3]);
+                _a.trys.push([0, 3, , 4]);
                 invitationId = req.params.invitationId;
                 return [4 /*yield*/, contractor_team_invitation_model_1.default.findById(invitationId)];
             case 1:
@@ -314,15 +314,17 @@ var rejectInvitation = function (req, res) { return __awaiter(void 0, void 0, vo
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Invitation is already rejected' })];
                 }
                 invitation.status = contractor_team_invitation_model_1.TeamInvitationStatus.REJECTED;
-                invitation.deleteOne();
-                res.json({ success: true, message: 'Invitation rejected successfully', data: invitation });
-                return [3 /*break*/, 3];
+                return [4 /*yield*/, invitation.deleteOne()];
             case 2:
+                _a.sent();
+                res.json({ success: true, message: 'Invitation rejected successfully', data: invitation });
+                return [3 /*break*/, 4];
+            case 3:
                 error_4 = _a.sent();
                 console.error('Error rejecting invitation:', error_4);
                 res.status(500).json({ success: false, message: 'Internal Server Error' });
-                return [3 /*break*/, 3];
-            case 3: return [2 /*return*/];
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
         }
     });
 }); };
