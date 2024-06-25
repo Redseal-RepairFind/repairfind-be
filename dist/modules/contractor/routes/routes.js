@@ -102,6 +102,7 @@ router.get("/teams/search-contractors", contractorRoleCheck_middleware_1.checkCo
 router.get("/teams/memberships", contractorRoleCheck_middleware_1.checkContractorRole, contractor_team_controller_1.TeamController.getTeamMemberships);
 router.delete("/teams/:teamId/leave", contractorRoleCheck_middleware_1.checkContractorRole, contractor_team_controller_1.TeamController.leaveTeam);
 router.delete("/teams/:teamId/remove-member", contractorRoleCheck_middleware_1.checkContractorRole, contractor_team_controller_1.TeamController.removeMemberFromTeam);
+router.post("/teams/:teamId/remove-member", contractorRoleCheck_middleware_1.checkContractorRole, contractor_team_controller_1.TeamController.removeMemberFromTeam);
 // Define routes for managing team invitations
 router.post("/teams/invitations", contractorRoleCheck_middleware_1.checkContractorRole, contractor_team_invitation_controller_1.TeamInvitationController.inviteToTeam);
 router.get("/teams/invitations", contractorRoleCheck_middleware_1.checkContractorRole, contractor_team_invitation_controller_1.TeamInvitationController.getInvitations);
