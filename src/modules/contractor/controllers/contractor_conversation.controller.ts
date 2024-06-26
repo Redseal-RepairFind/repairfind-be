@@ -84,7 +84,7 @@ export const getConversationMessages = async (req: any, res: Response, next: Nex
         // Retrieve messages for the conversation
         const { data, error } = await applyAPIFeature(
             MessageModel.find({ conversation: conversationId }),
-            req.query
+            req.query 
         );
 
         if(data){
