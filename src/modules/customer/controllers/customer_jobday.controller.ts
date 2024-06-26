@@ -165,7 +165,7 @@ export const confirmContractorArrival = async (
         // send notification to  contractor
         NotificationService.sendNotification(
             {
-                user: jobDay.contractor,
+                user: job.contractor,
                 userType: 'contractors',
                 title: 'JobDay confirmation',
                 heading: {},
@@ -203,7 +203,7 @@ export const confirmContractorArrival = async (
         // send notification to  customer
         NotificationService.sendNotification(
             {
-                user: jobDay.customer,
+                user: job.customer,
                 userType: 'customers',
                 title: 'JobDay confirmation',
                 heading: {},
