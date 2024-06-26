@@ -143,7 +143,7 @@ export const endCall = async (
 
         NotificationService.sendNotification({
             user: call.toUser,
-            userType: call.toUserType,
+            userType: call.toUserType, 
             title: 'Call Ended',
             type: 'CALL_ENDED',
             message: `Your call with ${fromUser.name} has ended`,
