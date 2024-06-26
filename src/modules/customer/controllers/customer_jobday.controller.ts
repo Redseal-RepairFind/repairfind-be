@@ -165,7 +165,7 @@ export const confirmContractorArrival = async (
         // send notification to  contractor
         NotificationService.sendNotification(
             {
-                user: jobDay.contractor.toString(),
+                user: jobDay.contractor,
                 userType: 'contractors',
                 title: 'JobDay confirmation',
                 heading: {},

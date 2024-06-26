@@ -203,7 +203,7 @@ var confirmContractorArrival = function (req, res) { return __awaiter(void 0, vo
                 _a.sent();
                 // send notification to  contractor
                 index_1.NotificationService.sendNotification({
-                    user: jobDay.contractor.toString(),
+                    user: jobDay.contractor,
                     userType: 'contractors',
                     title: 'JobDay confirmation',
                     heading: {},
