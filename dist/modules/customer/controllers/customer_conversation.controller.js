@@ -154,10 +154,11 @@ var getConversationMessages = function (req, res) { return __awaiter(void 0, voi
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'Unauthorized: You do not have access to this conversation' })];
                 }
                 return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(messages_schema_1.MessageModel.find({ conversation: conversationId })
-                        .populate({
-                        path: 'sender',
-                        select: 'firstName lastName profilePhoto', // Select the fields you want to populate
-                    }), req.query)];
+                    // .populate({
+                    //     path: 'sender',
+                    //     select: 'firstName lastName profilePhoto', // Select the fields you want to populate
+                    // })
+                    , req.query)];
             case 2:
                 _a = _b.sent(), data = _a.data, error = _a.error;
                 if (!data) return [3 /*break*/, 4];
