@@ -8,6 +8,7 @@ import { ContractorModel } from '../../../database/contractor/models/contractor.
 import { ContractorProfileModel } from '../../../database/contractor/models/contractor_profile.model';
 import { scheduler } from 'timers/promises';
 import { generateExpandedSchedule } from '../../../utils/schedule.util';
+import { JOB_STATUS, JobModel } from '../../../database/common/job.model';
 
 
 export const createSchedule = async (req: any, res: Response) => {
@@ -70,19 +71,19 @@ export const createSchedule = async (req: any, res: Response) => {
 
 export const setAvailability = async (req: any, res: Response) => {
   try {
-    const {days, unavailability } = req.body;
+    const { days, unavailability } = req.body;
     const contractorId = req.contractor.id;
 
     const year = new Date().getFullYear()
-    const contractorProfile = await ContractorProfileModel.findOne({contractor: contractorId})
+    const contractorProfile = await ContractorProfileModel.findOne({ contractor: contractorId })
 
-    
-    if(!contractorProfile){
+
+    if (!contractorProfile) {
       return res.status(400).json({ success: false, message: 'Contractor not found' });
     }
 
     contractorProfile.availableDays = days
-    if(unavailability){ 
+    if (unavailability) {
       contractorProfile.isOffDuty = unavailability
     }
     contractorProfile.save()
@@ -95,7 +96,7 @@ export const setAvailability = async (req: any, res: Response) => {
 
     startDate = startOfYear(new Date(`${year}-01-01`));
     endDate = endOfYear(new Date(`${year}-12-31`));
-    
+
 
 
     // Group schedules by year and month
@@ -110,10 +111,10 @@ export const setAvailability = async (req: any, res: Response) => {
       date: { $gte: startDate, $lte: endDate },
     });
 
-    
 
-     // Filter out dates that match existing schedules
-     const updatedSchedules: IContractorSchedule[] = expandedSchedules.filter(expandedSchedule => {
+
+    // Filter out dates that match existing schedules
+    const updatedSchedules: IContractorSchedule[] = expandedSchedules.filter(expandedSchedule => {
       return !existingSchedules.some((storedSchedule: { date: { toDateString: () => string; }; }) => {
         return storedSchedule.date.toDateString() === expandedSchedule.date.toDateString();
       });
@@ -202,9 +203,9 @@ export const getSchedulesByDate = async (req: any, res: Response) => {
     let { year, month } = req.query;
     const contractorId = req.contractor.id;
 
-    const contractorProfile = await ContractorProfileModel.findOne({contractor: contractorId})
+    const contractorProfile = await ContractorProfileModel.findOne({ contractor: contractorId })
 
-    if(!contractorProfile){
+    if (!contractorProfile) {
       return res.status(400).json({ success: false, message: 'Contractor not found' });
     }
     if (year && !isValid(new Date(`${year}-01-01`))) {
@@ -213,7 +214,7 @@ export const getSchedulesByDate = async (req: any, res: Response) => {
 
     let startDate: number | Date, endDate: number | Date;
 
-    if(!year){
+    if (!year) {
       year = new Date().getFullYear().toString();
     }
 
@@ -231,7 +232,7 @@ export const getSchedulesByDate = async (req: any, res: Response) => {
       endDate = endOfYear(new Date(`${year}-12-31`));
     }
 
-    
+
     // Group schedules by year and month
 
     const expandedSchedules = generateExpandedSchedule(contractorProfile.availableDays, year).filter(schedule => {
@@ -253,11 +254,11 @@ export const getSchedulesByDate = async (req: any, res: Response) => {
 
     // Remove duplicates based on the date, retaining existing schedules
     const uniqueSchedules = mergedSchedules.filter((schedule, index) => {
-        const date = schedule.date.toDateString();
-        // Check if the current schedule's date is unique within the mergedSchedules array
-        const isFirstOccurrence = mergedSchedules.findIndex((s) => s.date.toDateString() === date) === index;
-        // Retain the existing schedule and the first occurrence of other dates
-        return schedule.events ? schedule : isFirstOccurrence;
+      const date = schedule.date.toDateString();
+      // Check if the current schedule's date is unique within the mergedSchedules array
+      const isFirstOccurrence = mergedSchedules.findIndex((s) => s.date.toDateString() === date) === index;
+      // Retain the existing schedule and the first occurrence of other dates
+      return schedule.events ? schedule : isFirstOccurrence;
     });
 
 
@@ -455,38 +456,14 @@ export const getEventsByMonth = async (req: any, res: Response) => {
       endDate = endOfYear(new Date(`${year}-12-31`));
     }
 
-    const schedules = await ContractorScheduleModel.find({
-      contractor: contractorId,
-      date: { $gte: startDate, $lte: endDate },
-    });
+    // const jobs = await JobModel.find({ 'schedule.startDate': { $gte: startDate, $lte: endDate } }).select(['_id']).populate('contract')
 
-    // Group schedules by month
-    const groupedEvents = schedules.reduce((acc: any, schedule) => {
-      const key = format(new Date(schedule.date), 'yyyy-M');
-      if (!acc[key]) {
-        acc[key] = [];
-      }
+    const jobs = await JobModel.find({ 'schedule.startDate': { $gte: startDate, $lte: endDate } })
+            .select('_id contract customer contractor quotations category, schedule')
+            .populate('contract');
 
-      // Include only the necessary fields in the response
-      const formattedEvents = schedule.events?.map((event: any) => ({
-        _id: event._id,
-        date: event.date,
-        type: event.type,
-        booking: event.booking || {},
-        title: event.title || '',
-        note: event.note || '',
-        startTime: event.startTime || '',
-        endTime: event.endTime || '',
-      }));
 
-      if (formattedEvents) {
-        acc[key] = acc[key].concat(formattedEvents);
-      }
-
-      return acc;
-    }, {});
-
-    res.json({ success: true, message: 'Events retrieved successfully', data: groupedEvents });
+    res.json({ success: true, message: 'Events retrieved successfully', data: jobs });
   } catch (error) {
     console.error('Error retrieving events:', error);
     res.status(500).json({ success: false, message: 'Internal Server Error' });
@@ -497,10 +474,10 @@ export const getEventsByMonth = async (req: any, res: Response) => {
 
 export const isDateInExpandedSchedule = async (req: any, res: Response) => {
   try {
-    const {startDate, availabilityDays } = req.body;
+    const { startDate, availabilityDays } = req.body;
     const contractorId = req.contractor.id;
- 
-    const dateToCheck =  new Date('2024-12-08T23:00:00.000Z')
+
+    const dateToCheck = new Date('2024-12-08T23:00:00.000Z')
 
     // Check if the date falls within the expanded schedule
     const expandedSchedule = generateExpandedSchedule(availabilityDays);
