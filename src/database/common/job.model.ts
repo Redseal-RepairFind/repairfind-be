@@ -265,7 +265,7 @@ const JobSchema = new Schema<IJob>({
 
 
 JobSchema.virtual('totalQuotations').get(function () {
-    const pendingQuotations = this.quotations.filter(quote => quote.status !== JOB_QUOTATION_STATUS.DECLINED);
+    const pendingQuotations =  this.quotations ? this.quotations.filter(quote => quote.status !== JOB_QUOTATION_STATUS.DECLINED) : [];
     return pendingQuotations.length;
 });
 
