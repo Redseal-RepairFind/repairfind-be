@@ -174,7 +174,7 @@ var JobSchema = new mongoose_1.Schema({
     jobDay: { type: mongoose_1.Schema.Types.ObjectId, ref: 'job_days' },
 }, { timestamps: true });
 JobSchema.virtual('totalQuotations').get(function () {
-    var pendingQuotations = this.quotations.filter(function (quote) { return quote.status !== job_quotation_model_1.JOB_QUOTATION_STATUS.DECLINED; });
+    var pendingQuotations = this.quotations ? this.quotations.filter(function (quote) { return quote.status !== job_quotation_model_1.JOB_QUOTATION_STATUS.DECLINED; }) : [];
     return pendingQuotations.length;
 });
 JobSchema.virtual('expiresIn').get(function () {
