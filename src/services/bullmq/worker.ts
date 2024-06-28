@@ -8,6 +8,7 @@ import { expireJobs } from './jobs/expire_jobs';
 import { jobDayScheduleCheck } from './jobs/jobday_schedule';
 import { handleJobRefunds } from './jobs/job_refunds';
 import { handleEscrowTransfer } from './jobs/escrow_transfer';
+import { sendEmail } from './jobs/send_email';
 
 const getRedisConfig = (): RedisOptions => {
   const redisConfig: RedisOptions = {
@@ -43,6 +44,9 @@ const processJob = async (job:any): Promise<void> => {
       case 'handleJobRefunds':
         await handleJobRefunds();
         break;
+      case 'sendEmail':
+        await sendEmail(job);
+        break;
       case 'handleEscrowTransfer':
         await handleEscrowTransfer();
         break;
@@ -66,6 +70,9 @@ const setupWorkerEventListeners = (worker: Worker): void => {
 
   worker.on('completed', job => {
     Logger.info(`Job Completed: ${job.name} - ${job.id} has completed!`);
+    // const mailOptions = job.data;
+    // await EmailService.createTransport().sendMail(mailOptions);
+    // console.log(`Email sent successfully to ${mailOptions.to} with CC to ${mailOptions.cc}`);
   });
 };
 

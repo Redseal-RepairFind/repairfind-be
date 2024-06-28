@@ -72,7 +72,7 @@ class AuthHandler extends Base {
                 html
             };
 
-            await sendEmail(emailData);
+            await EmailService.send(email, 'Email Verification', html);
 
             const welcomeHtml = htmlContractorWelcomeTemplate(firstName ?? companyName);
             let welcomeEmailData = {
@@ -81,15 +81,16 @@ class AuthHandler extends Base {
                 html: welcomeHtml
             };
 
-            await sendEmail(welcomeEmailData);
+            // await sendEmail(welcomeEmailData);
+            await EmailService.send(email, 'Welcome', welcomeHtml);
 
-            const adminNoti = new AdminNoficationModel({
-                title: "New Account Created",
-                message: `A contractor - ${firstName} just created an account.`,
-                status: "unseen"
-            });
+            // const adminNoti = new AdminNoficationModel({
+            //     title: "New Account Created",
+            //     message: `A contractor - ${firstName} just created an account.`,
+            //     status: "unseen"
+            // });
 
-            await adminNoti.save();
+            // await adminNoti.save();
 
             return res.json({
                 success: true,
