@@ -459,7 +459,7 @@ ContractorSchema.set('toJSON', {
 
     // Check if the options include virtuals, if not, delete the fields
 
-
+ 
     // Check if the options include virtuals, if not, delete the stripeIdentity field
     //@ts-ignore
     if (!options.includeStripeIdentity) {
