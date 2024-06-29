@@ -100,6 +100,7 @@ MessageSchema.methods.getHeading = async function (loggedInUserId: string) {
 
     if (this.senderType == 'contractors') {
         const contractor = await ContractorModel.findById(this.sender) // Assuming your user model is named 'User'
+        
         if(!contractor)return {}
         return {
             name: contractor.name,
