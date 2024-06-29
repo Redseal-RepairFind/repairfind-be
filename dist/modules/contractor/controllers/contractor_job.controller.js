@@ -458,7 +458,7 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                 if (!contractor.onboarding.hasStripeAccount || !(((_d = contractor.stripeAccountStatus) === null || _d === void 0 ? void 0 : _d.card_payments_enabled) && ((_e = contractor.stripeAccountStatus) === null || _e === void 0 ? void 0 : _e.transfers_enabled))) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "Kindly connect your bank account to receive payment" })];
                 }
-                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOneAndUpdate({ job: jobId, contractor: contractorId }, { startDate: startDate ? new Date(startDate) : null, endDate: endDate ? new Date(startDate) : null, siteVisit: siteVisit ? new Date(siteVisit) : null, estimates: estimates, jobId: jobId, contractorId: contractorId }, { new: true, upsert: true })];
+                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOneAndUpdate({ job: jobId, contractor: contractorId }, { startDate: startDate ? new Date(startDate) : new Date(job.date), endDate: endDate ? new Date(startDate) : null, siteVisit: siteVisit ? new Date(siteVisit) : null, estimates: estimates, jobId: jobId, contractorId: contractorId }, { new: true, upsert: true })];
             case 6:
                 jobQuotation_1 = _f.sent();
                 // Prepare estimates

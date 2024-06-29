@@ -66,18 +66,19 @@ var api_feature_1 = require("../../../utils/api.feature");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 // Controller method to fetch customer transactions
 var getTransactions = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, filter, _a, data, error, error_1;
+    var contractorId, filter, _a, data, error, error_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                customerId = req.contractor.id;
+                contractorId = req.contractor.id;
                 _b.label = 1;
             case 1:
                 _b.trys.push([1, 5, , 6]);
                 filter = {
+                    type: { $ne: transaction_model_1.TRANSACTION_TYPE.ESCROW },
                     $or: [
-                        { fromUser: customerId, fromUserType: 'contractors' },
-                        { toUser: customerId, toUserType: 'contractors' }
+                        { fromUser: contractorId, fromUserType: 'contractors' },
+                        { toUser: contractorId, toUserType: 'contractors' }
                     ]
                 };
                 return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(transaction_model_1.default.find(filter).populate([{ path: 'fromUser' }, { path: 'toUser' }]), req.query)];
@@ -90,7 +91,7 @@ var getTransactions = function (req, res, next) { return __awaiter(void 0, void 
                             switch (_b.label) {
                                 case 0:
                                     _a = transaction;
-                                    return [4 /*yield*/, transaction.getIsCredit(customerId)];
+                                    return [4 /*yield*/, transaction.getIsCredit(contractorId)];
                                 case 1:
                                     _a.isCredit = _b.sent();
                                     return [2 /*return*/];
@@ -106,7 +107,7 @@ var getTransactions = function (req, res, next) { return __awaiter(void 0, void 
                 return [3 /*break*/, 6];
             case 5:
                 error_1 = _b.sent();
-                next(new custom_errors_1.InternalServerError('Error fetching customer transactions', error_1));
+                next(new custom_errors_1.InternalServerError('Error fetching contractor transactions', error_1));
                 return [3 /*break*/, 6];
             case 6: return [2 /*return*/];
         }
