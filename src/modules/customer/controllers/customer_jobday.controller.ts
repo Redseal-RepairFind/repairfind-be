@@ -46,10 +46,13 @@ export const initiateJobDay = async (
 
         const contractorId = job.contractor
 
-        const contractor = await ContractorModel.findById(job.contractor);
-        if (!contractor) {
+        const findContractor = await ContractorModel.findById(job.contractor);
+       
+        if (!findContractor) {
             return res.status(404).json({ success: false, message: 'Job Contractor not found' });
         }
+        
+        const contractor = findContractor?.toJSON()
 
         const customer = await CustomerModel.findOne({ _id: job.customer });
         if (!customer) {
