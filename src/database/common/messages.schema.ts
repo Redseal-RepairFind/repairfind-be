@@ -103,7 +103,7 @@ MessageSchema.methods.getHeading = async function (loggedInUserId: string) {
         if(!contractor)return {}
         return {
             name: contractor.name,
-            image: contractor.profilePhoto.url,
+            image: contractor?.profilePhoto?.url,
         };
 
     } else {
@@ -111,7 +111,7 @@ MessageSchema.methods.getHeading = async function (loggedInUserId: string) {
         if(!customer)return {}
         return {
             name: customer.name,
-            image: customer.profilePhoto?.url,
+            image: customer?.profilePhoto?.url,
         };
     }
 
