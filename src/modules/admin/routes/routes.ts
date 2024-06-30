@@ -99,12 +99,6 @@ router.get("/dispute/admin", Validations.DisputeStatusParams, checkAdminRole, di
 router.post("/dispute/settle", Validations.SettleDisputeParams, checkAdminRole, dispute.AdminSettleJobDisputeController  ); // admin settle dispute
 
 
-router.post("/admin_add_question", validateAddQuestionParams, checkAdminRole, AdminQuizController.AddQuestion ); // admin add question
-router.get("/admin_get_all_question", checkAdminRole, AdminQuizController.GetAllQuestions ); // admin get all question
-router.get("/admin_get_single_question", validateQuestionIdValidationParams, checkAdminRole, AdminQuizController.GetSingleQuestion ); // admin get single question
-router.post("/admin_edit_question", validateEditQuestionParams, checkAdminRole, AdminQuizController.EditQuestion ); // admin edit question
-router.post("/admin_delete_question", validateDeleteQuestionValidationParams, checkAdminRole, AdminQuizController.DeleteQuestion ); // admin delete question
-
 router.post("/update_profile", checkAdminRole, memoryUpload.single('profileImg'), adminUpdateBioController ); // admin update profile
 
 router.get("/get_all_notification", checkAdminRole,  adminGetNotificationrController ); // admin get all notification
@@ -130,6 +124,12 @@ router.post("/send_email", AdminsendEmailsControlleer ); // admin get total numb
 router.post("/quizzes", createQuizParams, checkAdminRole, AdminQuizController.CreateQuiz ); // admin create quiz
 router.get("/quizzes", checkAdminRole, AdminQuizController.getAllQuizzes ); // admin get quizes
 router.get("/random-quiz", checkAdminRole, AdminQuizController.getRandomQuiz ); // admin add question
+
+// router.post("/admin_add_question", validateAddQuestionParams, checkAdminRole, AdminQuizController.AddQuestion ); // admin add question
+router.get("/question", checkAdminRole, AdminQuizController.GetAllQuestions ); // admin get all question
+router.get("/question/:questionId", checkAdminRole, AdminQuizController.GetSingleQuestion ); // admin get single question
+router.post("/question/edit", validateEditQuestionParams, checkAdminRole, AdminQuizController.EditQuestion ); // admin edit question
+router.post("/question/delete", validateDeleteQuestionValidationParams, checkAdminRole, AdminQuizController.DeleteQuestion ); // admin delete question
 
 
 // CONTRACTOR
