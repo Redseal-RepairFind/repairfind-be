@@ -8,6 +8,7 @@ import { AddStaffController, AdminSignInController, SuperAdminGetAllAdminControl
 import { AdminGetAppDetailController } from "../controllers/appDetails.Controller";
 import { AdminGetRevenueAnalysisControlleer, AdminsendEmailsControlleer } from "../controllers/averageRevenue.controller";
 import { AdminContractorController } from "../controllers/contractor.controller";
+import { AdminConversation } from "../controllers/conversation.controller";
 import { dispute } from "../controllers/dispute.controller";
 import { ermergency } from "../controllers/emergency.controller";
 import {  AdminJobController, } from "../controllers/job.controller";
@@ -98,12 +99,14 @@ router.post("/dispute/accept", Validations.AcceptDisputeParams, checkAdminRole, 
 router.get("/dispute/admin", Validations.DisputeStatusParams, checkAdminRole, dispute.AdminGetJobDisputForAdminController ); // admin get dispute for himself
 router.post("/dispute/settle", Validations.SettleDisputeParams, checkAdminRole, dispute.AdminSettleJobDisputeController  ); // admin settle dispute
 
+//done conversation
+router.post("/conversation", Validations.StartCoversaionParams, checkAdminRole, AdminConversation.startConversation  ); // admin start conversation
+router.get("/conversation", checkAdminRole, AdminConversation.getConversations  ); // admin get conversation 
+router.get("/conversation/:conversationId", checkAdminRole, AdminConversation.getSingleConversation  ); // admin get single conversation 
+router.get("/conversation/meaasge/:conversationId", checkAdminRole, AdminConversation.getConversationMessages  ); // admin get  conversation message
+router.post("/conversation/meaasge/:conversationId", Validations.sendMessageParams, checkAdminRole, AdminConversation.sendMessage  ); // admin send message
 
-router.post("/admin_add_question", validateAddQuestionParams, checkAdminRole, AdminQuizController.AddQuestion ); // admin add question
-router.get("/admin_get_all_question", checkAdminRole, AdminQuizController.GetAllQuestions ); // admin get all question
-router.get("/admin_get_single_question", validateQuestionIdValidationParams, checkAdminRole, AdminQuizController.GetSingleQuestion ); // admin get single question
-router.post("/admin_edit_question", validateEditQuestionParams, checkAdminRole, AdminQuizController.EditQuestion ); // admin edit question
-router.post("/admin_delete_question", validateDeleteQuestionValidationParams, checkAdminRole, AdminQuizController.DeleteQuestion ); // admin delete question
+
 
 router.post("/update_profile", checkAdminRole, memoryUpload.single('profileImg'), adminUpdateBioController ); // admin update profile
 
@@ -130,6 +133,12 @@ router.post("/send_email", AdminsendEmailsControlleer ); // admin get total numb
 router.post("/quizzes", createQuizParams, checkAdminRole, AdminQuizController.CreateQuiz ); // admin create quiz
 router.get("/quizzes", checkAdminRole, AdminQuizController.getAllQuizzes ); // admin get quizes
 router.get("/random-quiz", checkAdminRole, AdminQuizController.getRandomQuiz ); // admin add question
+
+// router.post("/admin_add_question", validateAddQuestionParams, checkAdminRole, AdminQuizController.AddQuestion ); // admin add question
+router.get("/question", checkAdminRole, AdminQuizController.GetAllQuestions ); // admin get all question
+router.get("/question/:questionId", checkAdminRole, AdminQuizController.GetSingleQuestion ); // admin get single question
+router.post("/question/edit", validateEditQuestionParams, checkAdminRole, AdminQuizController.EditQuestion ); // admin edit question
+router.post("/question/delete", validateDeleteQuestionValidationParams, checkAdminRole, AdminQuizController.DeleteQuestion ); // admin delete question
 
 
 // CONTRACTOR

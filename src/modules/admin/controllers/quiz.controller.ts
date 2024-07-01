@@ -46,7 +46,7 @@ export const CreateQuiz = async (req: any, res: Response) => {
     }
 
     // Update the quiz with the references to the created questions
-    const quiz = await QuizModel.findByIdAndUpdate(newQuiz._id, { questions: createdQuestionRefs });
+    const quiz = await QuizModel.findByIdAndUpdate(newQuiz._id, { questions: createdQuestionRefs }, {new: true});
 
     res.json({
       status: true,
@@ -112,47 +112,47 @@ export const getRandomQuiz = async (_: any, res: Response) => {
 };
 
 
-//admin add question /////////////
-export const AddQuestion = async (
-    req: any,
-    res: Response,
-  ) => {
+// //admin add question /////////////
+// export const AddQuestion = async (
+//     req: any,
+//     res: Response,
+//   ) => {
   
-    try {
-      let {  
-        question,
-        options,
-        answer,
-      } = req.body;
+//     try {
+//       let {  
+//         question,
+//         options,
+//         answer,
+//       } = req.body;
   
-        // Check for validation errors
-        const errors = validationResult(req);
+//         // Check for validation errors
+//         const errors = validationResult(req);
     
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        }
+//         if (!errors.isEmpty()) {
+//             return res.status(400).json({ errors: errors.array() });
+//         }
     
-        const admin =  req.admin;
-        const adminId = admin.id
+//         const admin =  req.admin;
+//         const adminId = admin.id
 
-        const newQuestion = new QuestionModel({
-            question,
-            options,
-            answer
-        })
+//         const newQuestion = new QuestionModel({
+//             question,
+//             options,
+//             answer
+//         })
 
-        await newQuestion.save()
+//         await newQuestion.save()
 
-      res.json({  
-        message: "question successfully enterd"
-      });
+//       res.json({  
+//         message: "question successfully enterd"
+//       });
       
-    } catch (err: any) {
-      // signup error
-      res.status(500).json({ message: err.message });
-    }
+//     } catch (err: any) {
+//       // signup error
+//       res.status(500).json({ message: err.message });
+//     }
   
-}
+// }
 
 
 //admin get all question /////////////
@@ -167,31 +167,36 @@ export const GetAllQuestions = async (
        limit
       } = req.query;
   
-        // Check for validation errors
-        const errors = validationResult(req);
-    
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        }
-    
-        const admin =  req.admin;
-        const adminId = admin.id
+      // Check for validation errors
+      const errors = validationResult(req);
+  
+      if (!errors.isEmpty()) {
+          return res.status(400).json({ errors: errors.array() });
+      }
+  
+      const admin =  req.admin;
+      const adminId = admin.id
 
-        page = page || 1;
-        limit = limit || 50;
+      page = page || 1;
+      limit = limit || 50;
 
-        const skip = (page - 1) * limit;
+      const skip = (page - 1) * limit;
 
-        const questions = await QuestionModel.find()
-        .skip(skip)
-        .limit(limit);
+      const questions = await QuestionModel.find()
+      .skip(skip)
+      .limit(limit);
 
-        const totalQuestion = await QuestionModel.countDocuments()
+      const totalQuestion = await QuestionModel.countDocuments()
             
 
-      res.json({  
-        questions,
-        totalQuestion
+      res.json({ 
+        status: true,
+        data: {
+          currentPage: page, 
+          totalPages: Math.ceil( totalQuestion / limit),
+          totalQuestion,
+          questions,
+        }
       });
       
     } catch (err: any) {
@@ -211,31 +216,29 @@ export const GetSingleQuestion = async (
     try {
       let {  
         questionId
-      } = req.query;
+      } = req.params
   
-        // Check for validation errors
-        const errors = validationResult(req);
-    
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        }
-    
-        const admin =  req.admin;
-        const adminId = admin.id
+      // Check for validation errors
+      const errors = validationResult(req);
+  
+      if (!errors.isEmpty()) {
+          return res.status(400).json({ errors: errors.array() });
+      }
+      const admin =  req.admin;
+      const adminId = admin.id
 
-        const question = await QuestionModel.findOne({_id: questionId})
+      const question = await QuestionModel.findOne({_id: questionId})
 
-        if (!question) {
-            return res
-            .status(401)
-            .json({ message: "invalid question ID" });
-        }
-        
+      if (!question) {
+          return res
+          .status(401)
+          .json({ message: "invalid question ID" });
+      } 
 
-      res.json({  
+      res.json({ 
+        status: true, 
         question
-      });
-      
+      });  
     } catch (err: any) {
       // signup error
       res.status(500).json({ message: err.message });
@@ -282,7 +285,8 @@ export const EditQuestion = async (
 
         await questionDb.save();
 
-      res.json({  
+      res.json({ 
+        status: true, 
         message: "question successfully updated"
       });
       
@@ -326,6 +330,7 @@ export const DeleteQuestion = async (
         }
 
       res.json({  
+        status: true,
         message: "question successfully deleted"
       });
       
@@ -342,7 +347,7 @@ export const AdminQuizController = {
     EditQuestion,
     GetSingleQuestion,
     GetAllQuestions,
-    AddQuestion,
+    // AddQuestion,
     CreateQuiz,
     getAllQuizzes,
     getRandomQuiz

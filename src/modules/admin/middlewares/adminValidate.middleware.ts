@@ -176,6 +176,28 @@ export const CustomerChangeStatusParams = [
     body("customerId").notEmpty(),
 ];
 
+export const StartCoversaionParams = [
+    body("userId").notEmpty(),
+    body("userType").notEmpty(),
+    body("message").notEmpty(),
+];
+
+// Define the validation rules for the message request
+export const sendMessageParams = [
+    body('type').isIn(['TEXT', 'MEDIA', 'AUDIO', 'VIDEO', 'IMAGE']).withMessage('Invalid messageType'),
+    body('message').if(body('type').equals('TEXT')).notEmpty().withMessage('Message is required'),
+  
+    body('media').if(body('type').isIn(['MEDIA', 'AUDIO', 'VIDEO', 'IMAGE'])).isArray().withMessage('Media must be an object')
+      .bail() // Stop validation if media is not an object
+      .custom((value, { req }) => {
+        // Check if required properties exist in media object
+        if (!value.every((item: any) => typeof item === 'object' && 'url' in item && typeof item.url === 'string' && item.url.trim() !== '')) {
+          throw new Error('Media url is required');
+        }
+        return true;
+      }),
+  ];
+
 export const Validations = {
     PermissionCreationParam,
     EditPermissionParams,
@@ -185,5 +207,7 @@ export const Validations = {
     AcceptDisputeParams,
     SettleDisputeParams,
     ContractorChangeStatusParams,
-    CustomerChangeStatusParams
+    CustomerChangeStatusParams,
+    StartCoversaionParams,
+    sendMessageParams
 }
