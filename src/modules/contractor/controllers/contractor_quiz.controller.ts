@@ -6,6 +6,8 @@ import { ObjectId } from "mongoose";
 import { ContractorModel } from "../../../database/contractor/models/contractor.model";
 import ContractorQuizModel, { IContractorQuiz } from "../../../database/contractor/models/contractor_quiz.model";
 import { bool } from "aws-sdk/clients/signer";
+import { REVIEW_TYPE, ReviewModel } from "../../../database/common/review.model";
+import { Logger } from "../../../services/logger";
 
 
 
@@ -51,8 +53,8 @@ export const GetQuizResult = async (
 ) => {
 
   try {
-    const {  
-      
+    const {
+
     } = req.body;
 
     // Check for validation errors
@@ -61,12 +63,12 @@ export const GetQuizResult = async (
       return res.status(400).json({ errors: errors.array() });
     }
 
-    
-    const contractor =  req.contractor;
+
+    const contractor = req.contractor;
     const contractorId = contractor.id
 
     //get user info from databas
-    const contractorExist = await ContractorModel.findOne({_id: contractorId});
+    const contractorExist = await ContractorModel.findOne({ _id: contractorId });
 
     if (!contractorExist) {
       return res
@@ -85,15 +87,15 @@ export const GetQuizResult = async (
     // const totalPass = await ContractorQuizModel.countDocuments({contractorId, mark: "pass"})
 
     // const totalQustion = await ContractorQuizModel.countDocuments({contractorId,})
-     
-    
-    res.json({  
+
+
+    res.json({
       // totalPass,
       // totalQustion
-   });
-    
+    });
+
   } catch (err: any) {
-    res.status(500).json({status: false, message: err.message });
+    res.status(500).json({ status: false, message: err.message });
   }
 
 }
@@ -117,13 +119,12 @@ export const SubmitQuiz = async (
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const contractor = req.contractor;
-    const contractorId = contractor.id;
+    const contractorId = req.contractor.id;
 
     // Check if the contractor exists
-    const contractorExist = await ContractorModel.findOne({ _id: contractorId });
+    const contractor = await ContractorModel.findOne({ _id: contractorId });
 
-    if (!contractorExist) {
+    if (!contractor) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
@@ -137,10 +138,10 @@ export const SubmitQuiz = async (
     // Retrieve the associated questions for the quiz
     const questions: IQuestion[] = await QuestionModel.find({ quiz: quizId });
 
-  
+
 
     // Update the quiz results
-    const quizResults = response.map((userReponse: {  question: any; answer: any }) => {
+    const quizResults = response.map((userReponse: { question: any; answer: any }) => {
       const question = questions.find((q) => q.question === userReponse.question);
 
       if (!question) {
@@ -169,11 +170,59 @@ export const SubmitQuiz = async (
     );
 
     if (!contractorQuiz) {
-      return res.status(500).json({success:false, message: 'Failed to update or create ContractorQuiz' });
+      return res.status(500).json({ success: false, message: 'Failed to update or create ContractorQuiz' });
     }
 
     const result = await contractorQuiz.result
-    contractor.onboarding = await contractor.getOnboarding()
+    const onboarding = await contractor.getOnboarding()
+    contractor.onboarding = onboarding
+
+    if(onboarding.hasPassedQuiz){
+      // give rating here
+      // Check if the customer has already reviewed this job
+
+      const ratings: any = [
+        {item: "Cleanliness", rating: 5},
+        {item: "Skill", rating: 5},
+        {item: "Communication", rating: 5},
+        {item: "Timeliness", rating: 5}
+      ]
+      const review: string = 'Repairfind basic training'
+
+      const existingReview = await ReviewModel.findOne({ contractor: contractorId, type: REVIEW_TYPE.TRAINING_COMPLETION })
+
+      if (!existingReview) {
+        const totalRatings = ratings?.length;
+        const totalReviewScore = totalRatings ? ratings.reduce((a: any, b: any) => a + b.rating, 0) : 0;
+        const averageRating = (totalRatings && totalReviewScore) > 0 ? totalReviewScore / totalRatings : 0;
+  
+        // Create a new review object
+        const newReview = await ReviewModel.findOneAndUpdate({ contractor: contractorId, type: REVIEW_TYPE.TRAINING_COMPLETION }, {
+            averageRating,
+            ratings,
+            // customer: job.customer,
+            contractor: contractorId,
+            comment: review,
+            type: REVIEW_TYPE.TRAINING_COMPLETION,
+            createdAt: new Date(),
+        }, { new: true, upsert: true });
+  
+  
+        const foundIndex = contractor.reviews.findIndex((review) => review.review == newReview.id);
+        if (foundIndex !== -1) {
+            contractor.reviews[foundIndex] = { review: newReview.id, averageRating };
+        } else {
+            contractor.reviews.push({ review: newReview.id, averageRating });
+        }
+
+        await contractor.save();
+  
+      }
+
+      
+      
+    }
+
     res.json({
       success: true,
       message: 'Quiz submitted successfully',
@@ -184,14 +233,14 @@ export const SubmitQuiz = async (
       },
     });
   } catch (err: any) {
-    res.status(500).json({ success:false, message: err.message });
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 
 
 export const QuizController = {
-    StartQuiz,
-    SubmitQuiz,
-    GetQuizResult
+  StartQuiz,
+  SubmitQuiz,
+  GetQuizResult
 }
 

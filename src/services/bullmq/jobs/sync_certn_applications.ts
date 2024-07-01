@@ -3,7 +3,7 @@ import TransactionModel, { ITransaction, TRANSACTION_STATUS } from "../../../dat
 import { IContractor, IContractorCertnDetails } from "../../../database/contractor/interface/contractor.interface";
 import { ContractorModel } from "../../../database/contractor/models/contractor.model";
 import { castPayloadToDTO } from "../../../utils/interface_dto.util";
-import { Logger } from "../../../utils/logger";
+import { Logger } from "../../logger";
 import { StripeService } from "../../stripe";
 
 

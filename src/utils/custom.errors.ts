@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { Logger } from "./logger";
+import { Logger } from "../services/logger";
 
 export default class CustomError extends Error {
    code: number;

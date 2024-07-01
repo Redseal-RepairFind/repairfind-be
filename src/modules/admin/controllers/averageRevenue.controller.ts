@@ -1,7 +1,6 @@
 import { validationResult } from "express-validator";
 import { Request, Response } from "express";
 import {ContractorModel} from "../../../database/contractor/models/contractor.model";
-import JobModel from "../../../database/contractor/models/job.model";
 import CustomerRegModel from "../../../database/customer/models/customer.model";
 import * as nodemailer from 'nodemailer';
 import SMTPTransport from "nodemailer/lib/smtp-transport";
@@ -59,7 +58,7 @@ export const AdminGetRevenueAnalysisControlleer = async (
 
     //             if (day == dayCreated) {
                     
-    //                 if (transction.form == "qoutation") {
+    //                 if (transction.form == "quotation") {
     //                     job = job + 1
     //                 }
 

@@ -38,7 +38,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.captureStripePayments = void 0;
 var payment_schema_1 = require("../../../database/common/payment.schema");
-var logger_1 = require("../../../utils/logger");
+var logger_1 = require("../../logger");
 var stripe_1 = require("../../stripe");
 var captureStripePayments = function () { return __awaiter(void 0, void 0, void 0, function () {
     var oneDayInMillis, daysBeforeNow, dayFromNow, paymentCaptures, _i, paymentCaptures_1, payment, error_1, error_2;
@@ -70,11 +70,6 @@ var captureStripePayments = function () { return __awaiter(void 0, void 0, void 
                 return [4 /*yield*/, stripe_1.StripeService.payment.capturePayment(payment.capture.payment_intent)];
             case 4:
                 _a.sent();
-                // I should wait for webhook before updating transaction
-                // transaction.capture.captured = true;
-                // transaction.status = TRANSACTION_STATUS.SUCCESSFUL
-                // await transaction.save();
-                logger_1.Logger.info("Successfully captured payment for payment ID: ".concat(payment.id));
                 return [3 /*break*/, 6];
             case 5:
                 error_1 = _a.sent();

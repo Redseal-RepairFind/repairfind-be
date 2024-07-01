@@ -78,6 +78,10 @@ export const config = {
         appCertificate: <string>process.env.AGORA_APP_CERTIFICATE,
     },
 
+    logtail: {
+        token: <string>process.env.LOGTAIL_TOKEN,
+    },
+
 
     port: process.env.PORT as unknown as number,
     environment: <string>process.env.APN_ENV,

@@ -10,7 +10,7 @@ import customerRoute from "./modules/customer/routes/routes";
 import commonRoute from "./modules/common/routes/routes";
 import { RunSeeders } from "./database/seeders";
 import { errorHandler } from "./utils/custom.errors";
-import { Logger } from "./utils/logger";
+import { Logger } from "./services/logger";
 import { QueueService } from "./services/bullmq";
 import { RepairFindQueueWorker } from "./services/bullmq/worker";
 import SocketIOService from "./services/socket/socketio";
@@ -23,11 +23,11 @@ import configureRateLimit from "./modules/common/middlewares/ratelimit";
 
 
 dotenv.config();
+
+// intercept all console logs and bind it to configured log service
 console.warn = Logger.warn.bind(Logger);
 console.error = Logger.error.bind(Logger);
-console.trace = Logger.trace.bind(Logger);
-console.log = Logger.trace.bind(Logger);
-console.info = Logger.trace.bind(Logger);
+console.info = Logger.info.bind(Logger);
 
 const app = express();
 const server = http.createServer(app);
@@ -64,9 +64,9 @@ const MONGODB_URI = process.env.MONGODB_URI as string;
     await mongoose.connect(MONGODB_URI, {
     } as ConnectOptions);
     await RunSeeders();
-    console.log("Connected to Database");
+    Logger.info("Connected to Database");
   } catch (err) {
-    console.error("Database connection error:", err);
+    Logger.error("Database connection error:", err);
   }
 })();
 
@@ -104,5 +104,5 @@ app.use(errorHandler)
 // Initialize server
 const port = process.env.PORT || 3000;
 server.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
+  Logger.info(`Server listening on port ${port}`);
 });

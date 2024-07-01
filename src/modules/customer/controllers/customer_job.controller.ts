@@ -30,7 +30,7 @@ export const createJobRequest = async (
 
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            return res.status(400).json({ message: 'validatior error occured', errors: errors.array() });
+            return res.status(400).json({ message: 'Validation error occurred', errors: errors.array() });
         }
 
         const { contractorId, category, description, location, date, expiresIn = 7, emergency, media, voiceDescription, time } = req.body;
@@ -162,10 +162,10 @@ export const createJobListing = async (
 
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            return res.status(400).json({ message: 'validatior error occured', errors: errors.array() });
+            return res.status(400).json({success:false, message: 'Validation error occurred', errors: errors.array() });
         }
 
-        const { category, description, location, date, expiresIn, emergency, media, voiceDescription, time, contractorType } = req.body;
+        const { category, description, location, date, expiresIn = 7, emergency, media, voiceDescription, time, contractorType } = req.body;
         const customerId = req.customer.id
 
         const customer = await CustomerModel.findById(customerId)
@@ -235,7 +235,7 @@ export const createJobListing = async (
 
         res.status(201).json({ success: true, message: 'Job listing submitted successfully', data: newJob });
     } catch (error: any) {
-        return next(new BadRequestError('An error occured ', error))
+        return next(new BadRequestError('An error occurred ', error))
     }
 
 }
@@ -318,7 +318,7 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
         res.json({ success: true, message: 'Jobs retrieved', data: data });
 
     } catch (error: any) {
-        return next(new BadRequestError('An error occured ', error))
+        return next(new BadRequestError('An error occurred ', error))
     }
 };
 
@@ -372,7 +372,7 @@ export const getJobHistory = async (req: any, res: Response, next: NextFunction)
       }
   
       if (error) {
-        return next(new BadRequestError('Unkowon error occured'));
+        return next(new BadRequestError('Unkowon error occurred'));
       }
   
       // Send response with job listings data
@@ -398,7 +398,7 @@ export const getSingleJob = async (req: any, res: Response, next: NextFunction) 
         // If the job exists, return it as a response
         res.json({ success: true, message: 'Job retrieved', data: job });
     } catch (error: any) {
-        return next(new BadRequestError('An error occured ', error))
+        return next(new BadRequestError('An error occurred ', error))
     }
 };
 
@@ -419,7 +419,7 @@ export const getJobQuotations = async (req: any, res: Response, next: NextFuncti
         // If the job exists, return its quo as a response
         res.json({ success: true, message: 'Job quotations retrieved', data: quotations });
     } catch (error: any) {
-        return next(new BadRequestError('An error occured ', error))
+        return next(new BadRequestError('An error occurred ', error))
     }
 };
 
@@ -438,7 +438,7 @@ export const getSingleQuotation = async (req: any, res: Response, next: NextFunc
         quotation.charges = await quotation.calculateCharges()
         res.json({ success: true, message: 'Job quotation retrieved', data: quotation });
     } catch (error: any) {
-        return next(new BadRequestError('An error occured ', error))
+        return next(new BadRequestError('An error occurred ', error))
     }
 };
 
@@ -480,7 +480,7 @@ export const acceptJobQuotation = async (req: any, res: Response, next: NextFunc
             },
             {
                 members: conversationMembers,
-                lastMessage: 'I have accepted your qoutation for the Job', // Set the last message to the job description
+                lastMessage: 'I have accepted your quotation for the Job', // Set the last message to the job description
                 lastMessageAt: new Date() // Set the last message timestamp to now
             },
             { new: true, upsert: true });
@@ -525,7 +525,7 @@ export const acceptJobQuotation = async (req: any, res: Response, next: NextFunc
         quotation.charges = await quotation.calculateCharges()
         res.json({ success: true, message: 'Job quotation accepted' });
     } catch (error: any) {
-        return next(new BadRequestError('An error occured ', error))
+        return next(new BadRequestError('An error occurred ', error))
     }
 };
 
@@ -573,7 +573,7 @@ export const declineJobQuotation = async (req: any, res: Response, next: NextFun
 
         res.json({ success: true, message: 'Job quotation declined' });
     } catch (error: any) {
-        return next(new BadRequestError('An error occured ', error))
+        return next(new BadRequestError('An error occurred ', error))
     }
 };
 

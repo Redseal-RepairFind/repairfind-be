@@ -49,7 +49,7 @@ var routes_3 = __importDefault(require("./modules/customer/routes/routes"));
 var routes_4 = __importDefault(require("./modules/common/routes/routes"));
 var seeders_1 = require("./database/seeders");
 var custom_errors_1 = require("./utils/custom.errors");
-var logger_1 = require("./utils/logger");
+var logger_1 = require("./services/logger");
 var bullmq_1 = require("./services/bullmq");
 var worker_1 = require("./services/bullmq/worker");
 var socketio_1 = __importDefault(require("./services/socket/socketio"));
@@ -59,11 +59,10 @@ var cors_1 = __importDefault(require("./modules/common/middlewares/cors"));
 var parsers_1 = __importDefault(require("./modules/common/middlewares/parsers"));
 var ratelimit_1 = __importDefault(require("./modules/common/middlewares/ratelimit"));
 dotenv_1.default.config();
+// intercept all console logs and bind it to configured log service
 console.warn = logger_1.Logger.warn.bind(logger_1.Logger);
 console.error = logger_1.Logger.error.bind(logger_1.Logger);
-console.trace = logger_1.Logger.trace.bind(logger_1.Logger);
-console.log = logger_1.Logger.trace.bind(logger_1.Logger);
-console.info = logger_1.Logger.trace.bind(logger_1.Logger);
+console.info = logger_1.Logger.info.bind(logger_1.Logger);
 var app = (0, express_1.default)();
 var server = http_1.default.createServer(app);
 // Apply security-related middleware
@@ -92,11 +91,11 @@ var MONGODB_URI = process.env.MONGODB_URI;
                 return [4 /*yield*/, (0, seeders_1.RunSeeders)()];
             case 2:
                 _a.sent();
-                console.log("Connected to Database");
+                logger_1.Logger.info("Connected to Database");
                 return [3 /*break*/, 4];
             case 3:
                 err_1 = _a.sent();
-                console.error("Database connection error:", err_1);
+                logger_1.Logger.error("Database connection error:", err_1);
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
         }
@@ -126,5 +125,5 @@ socketio_1.default.initialize(server);
 // Initialize server
 var port = process.env.PORT || 3000;
 server.listen(port, function () {
-    console.log("Server listening on port ".concat(port));
+    logger_1.Logger.info("Server listening on port ".concat(port));
 });

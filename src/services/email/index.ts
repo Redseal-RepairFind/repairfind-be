@@ -1,5 +1,6 @@
 import nodemailer, { SendMailOptions, Transporter } from 'nodemailer';
-import { Logger } from '../../utils/logger';
+import { Logger } from '../logger';
+import { QueueService } from '../bullmq';
 
 export class EmailService {
     protected readonly from: string = <string>process.env.EMAIL_FROM;
@@ -47,7 +48,13 @@ export class EmailService {
                     html
                 };
 
-                await this.createTransport().sendMail(mailOptions);
+                // await this.createTransport().sendMail(mailOptions);
+
+                // Queue the email job
+                const jobId = `email-${to}-${subject}`;
+                await QueueService.addJob('sendEmail', mailOptions, { jobId, removeOnComplete: true } );
+                console.log(`Email job added to queue for ${to} with CC to ${ccAddresses.join(', ')}`);
+
                 console.log(`Email sent successfully to ${to} with CC to ${ccAddresses.join(', ')}`);
             }
         } catch (error: unknown) {

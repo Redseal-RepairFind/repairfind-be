@@ -46,10 +46,13 @@ export const initiateJobDay = async (
 
         const contractorId = job.contractor
 
-        const contractor = await ContractorModel.findById(job.contractor);
-        if (!contractor) {
+        const findContractor = await ContractorModel.findById(job.contractor);
+       
+        if (!findContractor) {
             return res.status(404).json({ success: false, message: 'Job Contractor not found' });
         }
+        
+        const contractor = findContractor?.toJSON()
 
         const customer = await CustomerModel.findOne({ _id: job.customer });
         if (!customer) {
@@ -165,7 +168,7 @@ export const confirmContractorArrival = async (
         // send notification to  contractor
         NotificationService.sendNotification(
             {
-                user: jobDay.contractor.toString(),
+                user: job.contractor,
                 userType: 'contractors',
                 title: 'JobDay confirmation',
                 heading: {},
@@ -203,7 +206,7 @@ export const confirmContractorArrival = async (
         // send notification to  customer
         NotificationService.sendNotification(
             {
-                user: jobDay.customer,
+                user: job.customer,
                 userType: 'customers',
                 title: 'JobDay confirmation',
                 heading: {},
@@ -506,11 +509,11 @@ export const confirmJobDayCompletion = async (req: any, res: Response, next: Nex
         }
 
         // if schedul was a site visit
-        //change job to pending and qoutation type to jobday
+        //change job to pending and quotation type to jobday
         if(job.schedule.type == JOB_SCHEDULE_TYPE.SITE_VISIT){
             job.status = JOB_STATUS.PENDING
             quotation.type = JOB_QUOTATION_TYPE.JOB_DAY
-        }
+        } 
 
         job.status = jobStatus  // since its customer accepting job completion
         jobDay.status = JOB_DAY_STATUS.COMPLETED  

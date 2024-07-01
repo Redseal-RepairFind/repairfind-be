@@ -39,9 +39,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AdminCustomerController = exports.AdminGetSingleCustomerJobDetailController = exports.AdminGetSingleCustomerDetailController = exports.AdminGetCustomerDetailController = void 0;
+exports.AdminCustomerController = exports.AdminChangeCustomerAccountStatusController = exports.AdminGetSingleCustomerJobDetailController = exports.AdminGetSingleCustomerDetailController = exports.AdminGetCustomerDetailController = void 0;
 var express_validator_1 = require("express-validator");
+var admin_model_1 = __importDefault(require("../../../database/admin/models/admin.model"));
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
+// import {ContractorModel} from "../../../database/contractor/models/contractor.model";
 var job_model_1 = require("../../../database/common/job.model");
 var invoices_shema_1 = require("../../../database/common/invoices.shema");
 //get customer detail /////////////
@@ -274,8 +276,56 @@ var AdminGetSingleCustomerJobDetailController = function (req, res) { return __a
     });
 }); };
 exports.AdminGetSingleCustomerJobDetailController = AdminGetSingleCustomerJobDetailController;
+//admin change customer account status  /////////////
+var AdminChangeCustomerAccountStatusController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, status_1, customerId, errors, adminId, admin, customer, err_4;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 4, , 5]);
+                _a = req.body, status_1 = _a.status, customerId = _a.customerId;
+                errors = (0, express_validator_1.validationResult)(req);
+                if (!errors.isEmpty()) {
+                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                }
+                adminId = req.admin.id;
+                return [4 /*yield*/, admin_model_1.default.findOne({ _id: adminId })];
+            case 1:
+                admin = _b.sent();
+                if (!admin) {
+                    return [2 /*return*/, res
+                            .status(401)
+                            .json({ message: "Invalid admin ID" })];
+                }
+                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
+            case 2:
+                customer = _b.sent();
+                if (!customer) {
+                    return [2 /*return*/, res
+                            .status(401)
+                            .json({ message: "Invalid customer ID" })];
+                }
+                customer.status = status_1;
+                return [4 /*yield*/, customer.save()];
+            case 3:
+                _b.sent();
+                res.json({
+                    message: "Customer account status successfully change to ".concat(status_1)
+                });
+                return [3 /*break*/, 5];
+            case 4:
+                err_4 = _b.sent();
+                // signup error
+                res.status(500).json({ message: err_4.message });
+                return [3 /*break*/, 5];
+            case 5: return [2 /*return*/];
+        }
+    });
+}); };
+exports.AdminChangeCustomerAccountStatusController = AdminChangeCustomerAccountStatusController;
 exports.AdminCustomerController = {
     AdminGetCustomerDetailController: exports.AdminGetCustomerDetailController,
     AdminGetSingleCustomerDetailController: exports.AdminGetSingleCustomerDetailController,
     AdminGetSingleCustomerJobDetailController: exports.AdminGetSingleCustomerJobDetailController,
+    AdminChangeCustomerAccountStatusController: exports.AdminChangeCustomerAccountStatusController,
 };

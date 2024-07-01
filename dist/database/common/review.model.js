@@ -5,7 +5,8 @@ var mongoose_1 = require("mongoose");
 var REVIEW_TYPE;
 (function (REVIEW_TYPE) {
     REVIEW_TYPE["JOB_COMPLETION"] = "JOB_COMPLETION";
-    REVIEW_TYPE["JOB_CANCELETION"] = "JOB_CANCELETION";
+    REVIEW_TYPE["JOB_CANCELATION"] = "JOB_CANCELATION";
+    REVIEW_TYPE["TRAINING_COMPLETION"] = "TRAINING_COMPLETION";
 })(REVIEW_TYPE || (exports.REVIEW_TYPE = REVIEW_TYPE = {}));
 var ReviewSchema = new mongoose_1.Schema({
     customer: {

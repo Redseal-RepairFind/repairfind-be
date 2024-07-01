@@ -65,7 +65,7 @@ var customer_model_1 = __importDefault(require("../../../database/customer/model
 var job_dispute_model_1 = require("../../../database/common/job_dispute.model");
 var job_quotation_model_1 = require("../../../database/common/job_quotation.model");
 var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var jobId, errors, customerId, job, jobDay, contractorId, contractor, customer, contractorProfile, conversationMembers, conversation, contractorLocation, data, err_1;
+    var jobId, errors, customerId, job, jobDay, contractorId, findContractor, contractor, customer, contractorProfile, conversationMembers, conversation, contractorLocation, data, err_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -91,10 +91,11 @@ var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void
                 contractorId = job.contractor;
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(job.contractor)];
             case 3:
-                contractor = _a.sent();
-                if (!contractor) {
+                findContractor = _a.sent();
+                if (!findContractor) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Job Contractor not found' })];
                 }
+                contractor = findContractor === null || findContractor === void 0 ? void 0 : findContractor.toJSON();
                 return [4 /*yield*/, customer_model_1.default.findOne({ _id: job.customer })];
             case 4:
                 customer = _a.sent();
@@ -203,7 +204,7 @@ var confirmContractorArrival = function (req, res) { return __awaiter(void 0, vo
                 _a.sent();
                 // send notification to  contractor
                 index_1.NotificationService.sendNotification({
-                    user: jobDay.contractor.toString(),
+                    user: job.contractor,
                     userType: 'contractors',
                     title: 'JobDay confirmation',
                     heading: {},
@@ -232,7 +233,7 @@ var confirmContractorArrival = function (req, res) { return __awaiter(void 0, vo
                 }
                 // send notification to  customer
                 index_1.NotificationService.sendNotification({
-                    user: jobDay.customer,
+                    user: job.customer,
                     userType: 'customers',
                     title: 'JobDay confirmation',
                     heading: {},
@@ -521,7 +522,7 @@ var confirmJobDayCompletion = function (req, res, next) { return __awaiter(void 
                 jobStatus = (job.schedule.type == job_model_1.JOB_SCHEDULE_TYPE.SITE_VISIT) ? job_model_1.JOB_STATUS.COMPLETED_SITE_VISIT : job_model_1.JOB_STATUS.COMPLETED;
                 job.statusUpdate = __assign(__assign({}, job.statusUpdate), { status: jobStatus, isCustomerAccept: true, awaitingConfirmation: false });
                 // if schedul was a site visit
-                //change job to pending and qoutation type to jobday
+                //change job to pending and quotation type to jobday
                 if (job.schedule.type == job_model_1.JOB_SCHEDULE_TYPE.SITE_VISIT) {
                     job.status = job_model_1.JOB_STATUS.PENDING;
                     quotation.type = job_quotation_model_1.JOB_QUOTATION_TYPE.JOB_DAY;

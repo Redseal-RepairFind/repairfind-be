@@ -92,7 +92,6 @@ var otpGenerator_1 = require("../../../utils/otpGenerator");
 var send_email_utility_1 = require("../../../utils/send_email_utility");
 var sendEmailTemplate_1 = require("../../../templates/sendEmailTemplate");
 var contractorWelcomeTemplate_1 = require("../../../templates/contractorEmail/contractorWelcomeTemplate");
-var admin_notification_model_1 = __importDefault(require("../../../database/admin/models/admin_notification.model"));
 var decorators_abstract_1 = require("../../../abstracts/decorators.abstract");
 var base_abstract_1 = require("../../../abstracts/base.abstract");
 var services_1 = require("../../../services");
@@ -104,7 +103,7 @@ var AuthHandler = /** @class */ (function (_super) {
     }
     AuthHandler.prototype.signUp = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _a, email, password, firstName, dateOfBirth, lastName, phoneNumber, acceptTerms, accountType, companyName, errors, userEmailExists, otp, createdTime, emailOtp, hashedPassword, contractor, html, emailData, welcomeHtml, welcomeEmailData, adminNoti, err_1;
+            var req, res, _a, email, password, firstName, dateOfBirth, lastName, phoneNumber, acceptTerms, accountType, companyName, errors, userEmailExists, otp, createdTime, emailOtp, hashedPassword, contractor, html, emailData, welcomeHtml, welcomeEmailData, err_1;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -112,7 +111,7 @@ var AuthHandler = /** @class */ (function (_super) {
                         res = this.res;
                         _b.label = 1;
                     case 1:
-                        _b.trys.push([1, 8, , 9]);
+                        _b.trys.push([1, 7, , 8]);
                         _a = req.body, email = _a.email, password = _a.password, firstName = _a.firstName, dateOfBirth = _a.dateOfBirth, lastName = _a.lastName, phoneNumber = _a.phoneNumber, acceptTerms = _a.acceptTerms, accountType = _a.accountType, companyName = _a.companyName;
                         errors = (0, express_validator_1.validationResult)(req);
                         if (!errors.isEmpty()) {
@@ -154,35 +153,35 @@ var AuthHandler = /** @class */ (function (_super) {
                             subject: "Email Verification",
                             html: html
                         };
-                        return [4 /*yield*/, (0, send_email_utility_1.sendEmail)(emailData)];
+                        return [4 /*yield*/, services_1.EmailService.send(email, 'Email Verification', html)];
                     case 5:
                         _b.sent();
-                        welcomeHtml = (0, contractorWelcomeTemplate_1.htmlContractorWelcomeTemplate)(firstName);
+                        welcomeHtml = (0, contractorWelcomeTemplate_1.htmlContractorWelcomeTemplate)(firstName !== null && firstName !== void 0 ? firstName : companyName);
                         welcomeEmailData = {
                             emailTo: email,
                             subject: "Welcome",
                             html: welcomeHtml
                         };
-                        return [4 /*yield*/, (0, send_email_utility_1.sendEmail)(welcomeEmailData)];
+                        // await sendEmail(welcomeEmailData);
+                        return [4 /*yield*/, services_1.EmailService.send(email, 'Welcome', welcomeHtml)];
                     case 6:
+                        // await sendEmail(welcomeEmailData);
                         _b.sent();
-                        adminNoti = new admin_notification_model_1.default({
-                            title: "New Account Created",
-                            message: "A contractor - ".concat(firstName, " just created an account."),
-                            status: "unseen"
-                        });
-                        return [4 /*yield*/, adminNoti.save()];
-                    case 7:
-                        _b.sent();
+                        // const adminNoti = new AdminNoficationModel({
+                        //     title: "New Account Created",
+                        //     message: `A contractor - ${firstName} just created an account.`,
+                        //     status: "unseen"
+                        // });
+                        // await adminNoti.save();
                         return [2 /*return*/, res.json({
                                 success: true,
                                 message: "Signup successful",
                                 data: contractor,
                             })];
-                    case 8:
+                    case 7:
                         err_1 = _b.sent();
                         return [2 /*return*/, res.status(500).json({ success: false, message: err_1.message })];
-                    case 9: return [2 /*return*/];
+                    case 8: return [2 /*return*/];
                 }
             });
         });
@@ -288,10 +287,10 @@ var AuthHandler = /** @class */ (function (_super) {
                     case 3:
                         isPasswordMatch = _d.sent();
                         if (!isPasswordMatch) {
-                            return [2 /*return*/, res.status(401).json({ success: false, message: "incorrect credential." })];
+                            return [2 /*return*/, res.status(401).json({ success: false, message: "Incorrect credential." })];
                         }
                         if (!contractor.emailOtp.verified) {
-                            return [2 /*return*/, res.status(401).json({ success: false, message: "email not verified." })];
+                            return [2 /*return*/, res.status(401).json({ success: false, message: "Email not verified." })];
                         }
                         return [4 /*yield*/, (contractor === null || contractor === void 0 ? void 0 : contractor.quiz)];
                     case 4:

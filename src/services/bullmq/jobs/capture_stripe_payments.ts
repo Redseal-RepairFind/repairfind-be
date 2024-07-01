@@ -1,5 +1,5 @@
 import { IPayment, PaymentModel } from "../../../database/common/payment.schema";
-import { Logger } from "../../../utils/logger";
+import { Logger } from "../../logger";
 import { StripeService } from "../../stripe";
 
 
@@ -30,7 +30,6 @@ export const captureStripePayments = async () => {
                 // transaction.status = TRANSACTION_STATUS.SUCCESSFUL
                 // await transaction.save();
 
-                Logger.info(`Successfully captured payment for payment ID: ${payment.id}`);
             } catch (error) {
                 Logger.error(`Error capturing payment for payment ID: ${payment.id}`, error);
             }

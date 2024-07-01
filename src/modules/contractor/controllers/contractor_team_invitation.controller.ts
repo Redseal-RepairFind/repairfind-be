@@ -219,7 +219,7 @@ export const rejectInvitation = async (req: Request, res: Response) => {
         }
 
         invitation.status =TeamInvitationStatus.REJECTED
-        invitation.deleteOne()
+        await invitation.deleteOne()
 
         res.json({ success: true, message: 'Invitation rejected successfully', data: invitation });
     } catch (error) {

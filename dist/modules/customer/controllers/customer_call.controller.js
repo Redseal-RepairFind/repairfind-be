@@ -141,14 +141,14 @@ var startCall = function (req, res, next) { return __awaiter(void 0, void 0, voi
                     userType: toUserType,
                     title: 'New Incoming Call',
                     type: 'NEW_INCOMING_CALL', //
-                    message: "You've an incomming call from ".concat(fromUser.name),
+                    message: "You've an incoming call from ".concat(fromUser.name),
                     heading: { name: "".concat(fromUser.name), image: (_c = fromUser.profilePhoto) === null || _c === void 0 ? void 0 : _c.url },
                     payload: {
                         channel: channelName,
                         callId: call.id,
                         token: toUserToken,
                         uid: toUserUid,
-                        message: "You've an incomming call from ".concat(fromUser.name),
+                        message: "You've an incoming call from ".concat(fromUser.name),
                         name: "".concat(fromUser.name),
                         image: (_d = fromUser.profilePhoto) === null || _d === void 0 ? void 0 : _d.url,
                         event: 'NEW_INCOMING_CALL',
@@ -166,16 +166,16 @@ var startCall = function (req, res, next) { return __awaiter(void 0, void 0, voi
 }); };
 exports.startCall = startCall;
 var endCall = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var callId, call, fromUser, toUser, _a, err_4;
-    var _b, _c, _d, _e;
-    return __generator(this, function (_f) {
-        switch (_f.label) {
+    var callId, call, fromUser, _a, toUser, _b, err_4;
+    var _c, _d, _e, _f;
+    return __generator(this, function (_g) {
+        switch (_g.label) {
             case 0:
-                _f.trys.push([0, 8, , 9]);
+                _g.trys.push([0, 11, , 12]);
                 callId = req.params.callId;
                 return [4 /*yield*/, call_schema_1.CallModel.findById(callId)];
             case 1:
-                call = _f.sent();
+                call = _g.sent();
                 if (!call)
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Call not found' })];
                 // Update the call status to ended
@@ -183,34 +183,42 @@ var endCall = function (req, res, next) { return __awaiter(void 0, void 0, void 
                 call.callStatus = 'ended';
                 return [4 /*yield*/, call.save()];
             case 2:
-                _f.sent();
+                _g.sent();
+                if (!(call.fromUserType === 'contractors')) return [3 /*break*/, 4];
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(call.fromUser)];
             case 3:
-                fromUser = _f.sent();
-                if (!(call.toUserType === 'contractors')) return [3 /*break*/, 5];
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(call.toUser)];
-            case 4:
-                _a = _f.sent();
-                return [3 /*break*/, 7];
-            case 5: return [4 /*yield*/, customer_model_1.default.findById(call.toUser)];
+                _a = _g.sent();
+                return [3 /*break*/, 6];
+            case 4: return [4 /*yield*/, customer_model_1.default.findById(call.fromUser)];
+            case 5:
+                _a = _g.sent();
+                _g.label = 6;
             case 6:
-                _a = _f.sent();
-                _f.label = 7;
+                fromUser = _a;
+                if (!(call.toUserType === 'contractors')) return [3 /*break*/, 8];
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(call.toUser)];
             case 7:
-                toUser = _a;
+                _b = _g.sent();
+                return [3 /*break*/, 10];
+            case 8: return [4 /*yield*/, customer_model_1.default.findById(call.toUser)];
+            case 9:
+                _b = _g.sent();
+                _g.label = 10;
+            case 10:
+                toUser = _b;
                 if (!fromUser || !toUser)
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Call parties not found' })];
                 services_1.NotificationService.sendNotification({
                     user: call.fromUser,
-                    userType: 'customers',
+                    userType: call.fromUserType,
                     title: 'Call Ended',
                     type: 'CALL_ENDED',
                     message: "Your call with ".concat(toUser.name, " has ended"),
-                    heading: { name: "".concat(toUser.name), image: (_b = toUser.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
+                    heading: { name: "".concat(toUser.name), image: (_c = toUser.profilePhoto) === null || _c === void 0 ? void 0 : _c.url },
                     payload: {
                         message: "Your call with ".concat(toUser.name, " has ended"),
                         name: "".concat(toUser.name),
-                        image: (_c = toUser.profilePhoto) === null || _c === void 0 ? void 0 : _c.url,
+                        image: (_d = toUser.profilePhoto) === null || _d === void 0 ? void 0 : _d.url,
                         event: 'CALL_ENDED',
                     },
                 }, { database: true, push: true, socket: true });
@@ -220,21 +228,21 @@ var endCall = function (req, res, next) { return __awaiter(void 0, void 0, void 
                     title: 'Call Ended',
                     type: 'CALL_ENDED',
                     message: "Your call with ".concat(fromUser.name, " has ended"),
-                    heading: { name: "".concat(fromUser.name), image: (_d = fromUser.profilePhoto) === null || _d === void 0 ? void 0 : _d.url },
+                    heading: { name: "".concat(fromUser.name), image: (_e = fromUser.profilePhoto) === null || _e === void 0 ? void 0 : _e.url },
                     payload: {
                         message: "Your call with ".concat(fromUser.name, " has ended"),
                         name: "".concat(fromUser.name),
-                        image: (_e = fromUser.profilePhoto) === null || _e === void 0 ? void 0 : _e.url,
+                        image: (_f = fromUser.profilePhoto) === null || _f === void 0 ? void 0 : _f.url,
                         event: 'CALL_ENDED',
                     },
                 }, { database: true, push: true, socket: true });
                 res.status(200).json({ success: true, message: 'Call ended successfully' });
-                return [3 /*break*/, 9];
-            case 8:
-                err_4 = _f.sent();
+                return [3 /*break*/, 12];
+            case 11:
+                err_4 = _g.sent();
                 res.status(500).json({ message: err_4.message });
-                return [3 /*break*/, 9];
-            case 9: return [2 /*return*/];
+                return [3 /*break*/, 12];
+            case 12: return [2 /*return*/];
         }
     });
 }); };

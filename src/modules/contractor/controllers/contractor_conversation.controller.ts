@@ -36,7 +36,7 @@ export const getConversations = async (req: any, res: Response, next: NextFuncti
             data: data
         });
     } catch (error: any) {
-        return next(new InternalServerError('An error occured ', error))
+        return next(new InternalServerError('An error occurred ', error))
     }
 };
 
@@ -57,7 +57,7 @@ export const getSingleConversation = async (req: any, res: Response, next: NextF
         }
         res.status(200).json({ success: true, message: "Conversation retrieved", data: conversation });
     } catch (error: any) {
-        return next(new InternalServerError('An error occured ', error))
+        return next(new InternalServerError('An error occurred ', error))
     }
 };
 
@@ -84,7 +84,7 @@ export const getConversationMessages = async (req: any, res: Response, next: Nex
         // Retrieve messages for the conversation
         const { data, error } = await applyAPIFeature(
             MessageModel.find({ conversation: conversationId }),
-            req.query
+            req.query 
         );
 
         if(data){
@@ -98,7 +98,7 @@ export const getConversationMessages = async (req: any, res: Response, next: Nex
 
         res.status(200).json({ success: true, message: 'Conversation messages retrieved', data:  data  });
     } catch (error: any) {
-        return next(new InternalServerError('An error occured ', error))
+        return next(new InternalServerError('An error occurred ', error))
     }
 };
 

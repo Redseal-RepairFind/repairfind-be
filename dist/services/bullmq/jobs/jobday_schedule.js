@@ -44,7 +44,7 @@ var __1 = require("../..");
 var job_model_1 = require("../../../database/common/job.model");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
-var logger_1 = require("../../../utils/logger");
+var logger_1 = require("../../logger");
 var jobDayScheduleCheck = function () { return __awaiter(void 0, void 0, void 0, function () {
     var jobs, _i, jobs_1, job, customer, contractor, currentDate, jobStartDate, timeDifference, daysDifference, error_1, error_2;
     return __generator(this, function (_a) {
@@ -101,7 +101,7 @@ var jobDayScheduleCheck = function () { return __awaiter(void 0, void 0, void 0,
                 // Example: Send a follow-up or feedback request to gather post-job information
                 // const message = `Action needed: Your job with ID ${job.id} was scheduled to start yesterday. Please provide feedback on the completed job.`;
                 // Code to send the follow-up message or trigger the feedback request
-                sendReminder(customer, contractor, job, "Your job scheduled for yesterda: ".concat(jobStartDate, " was not started"));
+                sendReminder(customer, contractor, job, "Your job scheduled for yesterday: ".concat(jobStartDate, " was not started"));
                 // move job status to NOT_STARTED
                 job.status = job_model_1.JOB_STATUS.NOT_STARTED;
                 return [4 /*yield*/, job.save()];

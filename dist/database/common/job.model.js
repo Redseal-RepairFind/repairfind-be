@@ -46,6 +46,7 @@ var JOB_STATUS;
     JOB_STATUS["PENDING"] = "PENDING";
     JOB_STATUS["DECLINED"] = "DECLINED";
     JOB_STATUS["ACCEPTED"] = "ACCEPTED";
+    JOB_STATUS["SUBMITTED"] = "SUBMITTED";
     JOB_STATUS["EXPIRED"] = "EXPIRED";
     JOB_STATUS["BOOKED"] = "BOOKED";
     JOB_STATUS["ONGOING"] = "ONGOING";
@@ -140,7 +141,6 @@ var JobSchema = new mongoose_1.Schema({
     location: { type: JobLocationSchema, required: true },
     date: { type: Date, required: true },
     time: { type: Date, required: false },
-    // expiresIn: { type: Number, default: 10 },
     startDate: { type: Date },
     expiryDate: {
         type: Date,
@@ -174,11 +174,17 @@ var JobSchema = new mongoose_1.Schema({
     jobDay: { type: mongoose_1.Schema.Types.ObjectId, ref: 'job_days' },
 }, { timestamps: true });
 JobSchema.virtual('totalQuotations').get(function () {
-    var pendingQuotations = this.quotations.filter(function (quote) { return quote.status !== job_quotation_model_1.JOB_QUOTATION_STATUS.DECLINED; });
+    var pendingQuotations = this.quotations ? this.quotations.filter(function (quote) { return quote.status !== job_quotation_model_1.JOB_QUOTATION_STATUS.DECLINED; }) : [];
     return pendingQuotations.length;
 });
 JobSchema.virtual('expiresIn').get(function () {
-    return this.expiryDate ? this.expiryDate.getDate() - this.createdAt.getDate() : null;
+    if (this.expiryDate && this.createdAt) {
+        var millisecondsPerDay = 1000 * 60 * 60 * 24;
+        var timeDifference = this.expiryDate.getTime() - new Date().getTime();
+        var daysDifference = Math.ceil(timeDifference / millisecondsPerDay);
+        return daysDifference;
+    }
+    return null;
 });
 //get job day that match with the schedule type
 JobSchema.methods.getJobDay = function (scheduleType) {

@@ -74,6 +74,7 @@ var job_model_1 = require("../../database/common/job.model");
 var job_quotation_model_1 = require("../../database/common/job_quotation.model");
 var notifications_1 = require("../notifications");
 var transaction_model_1 = __importStar(require("../../database/common/transaction.model"));
+var logger_1 = require("../logger");
 var STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 var STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
 var stripeClient = new stripe_1.default(STRIPE_SECRET_KEY);
@@ -88,8 +89,6 @@ var StripeWebhookHandler = function (req) { return __awaiter(void 0, void 0, voi
             req.rawBody, sig, STRIPE_WEBHOOK_SECRET);
             eventType = event_1.type;
             eventData = event_1.data;
-            // console.log(event)
-            // Log.info(event)
             switch (eventType) {
                 // Setup Intent
                 case 'setup_intent.created':
@@ -146,13 +145,13 @@ var StripeWebhookHandler = function (req) { return __awaiter(void 0, void 0, voi
                     (0, exports.chargeRefundUpdated)(eventData.object);
                     break;
                 default:
-                    console.log("Unhandled event type: ".concat(eventType), eventData.object);
+                    logger_1.Logger.info("Unhandled event type: ".concat(eventType), eventData.object);
                     break;
             }
         }
         catch (error) {
             // throw new BadRequestError(error.message || "Something went wrong");
-            console.log(error.message || "Something went wrong inside stripe webhook");
+            logger_1.Logger.info(error.message || "Something went wrong inside stripe webhook");
             return [2 /*return*/];
         }
         return [2 /*return*/];
@@ -165,7 +164,7 @@ var customerUpdated = function (payload) { return __awaiter(void 0, void 0, void
     return __generator(this, function (_d) {
         switch (_d.label) {
             case 0:
-                console.log('Stripe Event Handler: customerUpdated', payload);
+                logger_1.Logger.info('Stripe Event Handler: customerUpdated', payload);
                 _d.label = 1;
             case 1:
                 _d.trys.push([1, 7, , 8]);
@@ -205,7 +204,7 @@ var customerCreated = function (payload) { return __awaiter(void 0, void 0, void
     return __generator(this, function (_d) {
         switch (_d.label) {
             case 0:
-                console.log('Stripe Event Handler: customerCreated', payload);
+                logger_1.Logger.info('Stripe Event Handler: customerCreated', payload);
                 _d.label = 1;
             case 1:
                 _d.trys.push([1, 7, , 8]);
@@ -285,7 +284,7 @@ var identityVerificationRequiresInput = function (payload) { return __awaiter(vo
         switch (_g.label) {
             case 0:
                 _g.trys.push([0, 10, , 11]);
-                console.log('Verification check failed: ' + payload.last_error.reason);
+                logger_1.Logger.info('Verification check failed: ' + payload.last_error.reason);
                 userType = (_b = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _b === void 0 ? void 0 : _b.userType;
                 userId = (_c = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _c === void 0 ? void 0 : _c.userId;
                 user = null;
@@ -350,7 +349,7 @@ var identityVerificationRequiresInput = function (payload) { return __awaiter(vo
                 return [4 /*yield*/, _1.StripeService.identity.retrieveVerificationSession(payload.id)];
             case 7:
                 verification = _g.sent();
-                console.log(verification);
+                logger_1.Logger.info(verification);
                 return [4 /*yield*/, _1.StripeService.file.createFileLink({
                         //@ts-ignore
                         file: (_f = (_e = verification === null || verification === void 0 ? void 0 : verification.last_verification_report) === null || _e === void 0 ? void 0 : _e.selfie) === null || _f === void 0 ? void 0 : _f.selfie,
@@ -358,8 +357,8 @@ var identityVerificationRequiresInput = function (payload) { return __awaiter(vo
                     }, true)];
             case 8:
                 _a = _g.sent(), fileLink = _a.fileLink, s3fileUrl = _a.s3fileUrl;
-                console.log('fileLink from stripe', fileLink);
-                console.log('s3fileUrl of file uploaded to s3', s3fileUrl);
+                logger_1.Logger.info('fileLink from stripe', fileLink);
+                logger_1.Logger.info('s3fileUrl of file uploaded to s3', s3fileUrl);
                 //@ts-ignore
                 user.stripeIdentity = verification;
                 user.profilePhoto = { url: s3fileUrl };
@@ -369,7 +368,7 @@ var identityVerificationRequiresInput = function (payload) { return __awaiter(vo
                 return [3 /*break*/, 11];
             case 10:
                 error_4 = _g.sent();
-                console.log(error_4);
+                logger_1.Logger.info(error_4);
                 return [3 /*break*/, 11];
             case 11: return [2 /*return*/];
         }
@@ -383,8 +382,8 @@ var identityVerificationVerified = function (payload) { return __awaiter(void 0,
         switch (_g.label) {
             case 0:
                 _g.trys.push([0, 8, , 9]);
-                console.log('Verification session verified: ' + payload.status);
-                console.log(payload);
+                logger_1.Logger.info('Verification session verified: ' + payload.status);
+                logger_1.Logger.info(payload);
                 if (payload.object != 'identity.verification_session')
                     return [2 /*return*/];
                 userType = (_b = payload === null || payload === void 0 ? void 0 : payload.metadata) === null || _b === void 0 ? void 0 : _b.userType;
@@ -421,7 +420,7 @@ var identityVerificationVerified = function (payload) { return __awaiter(void 0,
                 return [4 /*yield*/, _1.StripeService.identity.retrieveVerificationSession(payload.id)];
             case 5:
                 verification = _g.sent();
-                console.log(verification);
+                logger_1.Logger.info(verification);
                 return [4 /*yield*/, _1.StripeService.file.createFileLink({
                         //@ts-ignore
                         file: (_f = (_e = verification === null || verification === void 0 ? void 0 : verification.last_verification_report) === null || _e === void 0 ? void 0 : _e.selfie) === null || _f === void 0 ? void 0 : _f.selfie,
@@ -429,8 +428,8 @@ var identityVerificationVerified = function (payload) { return __awaiter(void 0,
                     }, true)];
             case 6:
                 _a = _g.sent(), fileLink = _a.fileLink, s3fileUrl = _a.s3fileUrl;
-                console.log('fileLink from stripe', fileLink);
-                console.log('s3fileUrl of file uploaded to s3', s3fileUrl);
+                logger_1.Logger.info('fileLink from stripe', fileLink);
+                logger_1.Logger.info('s3fileUrl of file uploaded to s3', s3fileUrl);
                 //@ts-ignore
                 user.stripeIdentity = verification;
                 user.profilePhoto = { url: s3fileUrl };
@@ -454,7 +453,7 @@ var accountUpdated = function (payload) { return __awaiter(void 0, void 0, void 
     return __generator(this, function (_e) {
         switch (_e.label) {
             case 0:
-                console.log('Stripe Event Handler: accountUpdated', payload);
+                logger_1.Logger.info('Stripe Event Handler: accountUpdated', payload);
                 _e.label = 1;
             case 1:
                 _e.trys.push([1, 7, , 8]);
@@ -487,7 +486,7 @@ var accountUpdated = function (payload) { return __awaiter(void 0, void 0, void 
             case 7:
                 error_6 = _e.sent();
                 // throw new BadRequestError(error.message || "Something went wrong");
-                console.log('accountUpdated', error_6);
+                logger_1.Logger.info('accountUpdated', error_6);
                 return [3 /*break*/, 8];
             case 8: return [2 /*return*/];
         }
@@ -501,7 +500,7 @@ var paymentIntentSucceeded = function (payload) { return __awaiter(void 0, void 
     return __generator(this, function (_d) {
         switch (_d.label) {
             case 0:
-                console.log('Stripe Event Handler: paymentIntentSucceeded', payload);
+                logger_1.Logger.info('Stripe Event Handler: paymentIntentSucceeded', payload);
                 _d.label = 1;
             case 1:
                 _d.trys.push([1, 9, , 10]);
@@ -560,7 +559,7 @@ var setupIntentCreated = function (payload) { return __awaiter(void 0, void 0, v
     return __generator(this, function (_a) {
         try {
             //  const customer = await StripeService.customer.getCustomerById(payload.customer)
-            //  console.log('Customer from setupIntentCreated', customer)
+            //  Logger.info('Customer from setupIntentCreated', customer)
         }
         catch (error) {
             // throw new BadRequestError(error.message || "Something went wrong");
@@ -576,7 +575,7 @@ var setupIntentSucceeded = function (payload) { return __awaiter(void 0, void 0,
     return __generator(this, function (_d) {
         switch (_d.label) {
             case 0:
-                console.log('Stripe Event Handler: setupIntentSucceeded', payload);
+                logger_1.Logger.info('Stripe Event Handler: setupIntentSucceeded', payload);
                 _d.label = 1;
             case 1:
                 _d.trys.push([1, 9, , 10]);
@@ -632,7 +631,7 @@ var paymentMethodAttached = function (payload) { return __awaiter(void 0, void 0
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
-                console.log('Stripe Event Handler: paymentMethodAttached', payload);
+                logger_1.Logger.info('Stripe Event Handler: paymentMethodAttached', payload);
                 _c.label = 1;
             case 1:
                 _c.trys.push([1, 6, , 7]);
@@ -670,7 +669,7 @@ var paymentMethodAttached = function (payload) { return __awaiter(void 0, void 0
             case 6:
                 error_9 = _c.sent();
                 // throw new BadRequestError(error.message || "Something went wrong");
-                console.log('Error on stripe webhook: paymentMethodAttached', error_9);
+                logger_1.Logger.info('Error on stripe webhook: paymentMethodAttached', error_9);
                 return [3 /*break*/, 7];
             case 7: return [2 /*return*/];
         }
@@ -707,15 +706,15 @@ var paymentMethodDetached = function (payload) { return __awaiter(void 0, void 0
 exports.paymentMethodDetached = paymentMethodDetached;
 // Charge
 var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var userType, userId, user, stripeChargeDTO, payment, transactionId, transaction, capture, captureDto, capture, captureDto, metadata, jobId, paymentType, quotationId, job, quotation, changeOrderEstimate, onBehalf, destination, transferData, error_11;
-    var _a, _b;
-    return __generator(this, function (_c) {
-        switch (_c.label) {
+    var userType, userId, user, stripeChargeDTO, payment, transactionId, metadata, transaction, capture, captureDto, capture, captureDto, jobId, paymentType, quotationId, job, quotation, charges, changeOrderEstimate, onBehalf, destination, transferData, error_11;
+    var _a;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
-                console.log('Stripe Event Handler: chargeSucceeded', payload);
-                _c.label = 1;
+                logger_1.Logger.info('Stripe Event Handler: chargeSucceeded', payload);
+                _b.label = 1;
             case 1:
-                _c.trys.push([1, 13, , 14]);
+                _b.trys.push([1, 13, , 14]);
                 if (payload.object != 'charge')
                     return [2 /*return*/];
                 userType = 'customers';
@@ -724,7 +723,7 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                     return [2 /*return*/]; // Ensure userType and userId are valid
                 return [4 /*yield*/, customer_model_1.default.findById(userId)];
             case 2:
-                user = _c.sent();
+                user = _b.sent();
                 if (!user)
                     return [2 /*return*/]; // Ensure user exists
                 //convert from base currency
@@ -743,15 +742,29 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                     })
                     // handle things here
                     //1 handle transfer payment method options if it requires future capturing to another model ?
-                    //@ts-ignore
                 ];
             case 3:
-                payment = _c.sent();
-                transactionId = (_b = payment === null || payment === void 0 ? void 0 : payment.metadata) === null || _b === void 0 ? void 0 : _b.transactionId;
-                return [4 /*yield*/, transaction_model_1.default.findById(transactionId)];
-            case 4:
-                transaction = _c.sent();
-                if (!transaction) return [3 /*break*/, 6];
+                payment = _b.sent();
+                transactionId = null;
+                if (!payment) return [3 /*break*/, 12];
+                metadata = payment.metadata;
+                transaction = new transaction_model_1.default({
+                    type: metadata.paymentType,
+                    amount: payment.amount,
+                    currency: payment.currency,
+                    initiatorUser: metadata.customerId,
+                    initiatorUserType: 'customers',
+                    fromUser: metadata.customerId,
+                    fromUserType: 'customers',
+                    toUser: metadata.contractorId,
+                    toUserType: 'contractors',
+                    description: metadata.paymentType.split('_').map(function (word) { return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(); }).join(' '),
+                    remark: metadata.remark,
+                    metadata: metadata,
+                    paymentMethod: metadata.paymentMethod,
+                    job: metadata.jobId,
+                    status: transaction_model_1.TRANSACTION_STATUS.PENDING
+                });
                 if (!payment.captured) {
                     capture = payload.payment_method_details.card;
                     captureDto = (0, interface_dto_util_1.castPayloadToDTO)(capture, capture);
@@ -775,29 +788,28 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                     payment.capture = captureDto;
                     transaction.status = transaction_model_1.TRANSACTION_STATUS.SUCCESSFUL;
                 }
+                // link transaction to payment
                 payment.transaction = transaction.id;
-                return [4 /*yield*/, Promise.all([
-                        payment.save(),
-                        transaction.save()
-                    ])];
-            case 5:
-                _c.sent();
-                _c.label = 6;
-            case 6:
-                metadata = payment.metadata;
-                if (!metadata.jobId) return [3 /*break*/, 12];
+                if (!metadata.jobId) return [3 /*break*/, 10];
                 jobId = metadata.jobId;
-                paymentType = metadata.type;
+                paymentType = metadata.paymentType;
                 quotationId = metadata.quotationId;
-                if (!(jobId && paymentType && quotationId)) return [3 /*break*/, 12];
+                if (!(jobId && paymentType && quotationId)) return [3 /*break*/, 10];
                 return [4 /*yield*/, job_model_1.JobModel.findById(jobId)];
-            case 7:
-                job = _c.sent();
+            case 4:
+                job = _b.sent();
                 return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findById(quotationId)];
-            case 8:
-                quotation = _c.sent();
+            case 5:
+                quotation = _b.sent();
                 if (!job || !quotation)
                     return [2 /*return*/];
+                return [4 /*yield*/, quotation.calculateCharges()];
+            case 6:
+                charges = _b.sent();
+                transaction.invoice = {
+                    items: quotation.estimates,
+                    charges: charges
+                };
                 if (paymentType == payment_schema_1.PAYMENT_TYPE.JOB_DAY_PAYMENT) {
                     job.status = job_model_1.JOB_STATUS.BOOKED;
                     job.contract = quotation.id;
@@ -828,7 +840,7 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                         };
                     }
                     else {
-                        console.log('quotation.siteVisit.date is not a valid Date object.');
+                        logger_1.Logger.info('quotation.siteVisit.date is not a valid Date object.');
                     }
                 }
                 if (paymentType == payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) {
@@ -840,53 +852,58 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                 }
                 if (!job.payments.includes(payment.id))
                     job.payments.push(payment.id);
-                return [4 /*yield*/, quotation.save()];
-            case 9:
-                _c.sent();
-                return [4 /*yield*/, job.save()
-                    //handle payout transaction schedule here if payment was made to platform
-                ];
-            case 10:
-                _c.sent();
-                if (!payment) return [3 /*break*/, 12];
                 onBehalf = payment.on_behalf_of;
                 destination = payment.destination;
                 transferData = payment.transfer_data;
-                if (!(!onBehalf && !destination && !transferData)) return [3 /*break*/, 12];
+                if (!(!onBehalf && !destination && !transferData)) return [3 /*break*/, 8];
                 //create payout transaction - 
                 return [4 /*yield*/, transaction_model_1.default.create({
                         type: transaction_model_1.TRANSACTION_TYPE.ESCROW,
                         amount: payment.amount,
-                        // customer can initiate payout on job completetion or admin on dispute resolution
+                        // customer can initiate payout on job completion or admin on dispute resolution
                         // initiatorUser: customerId,
                         // initiatorUserType: 'customers',
                         fromUser: job.customer,
                         fromUserType: 'customers',
                         toUser: job.contractor,
                         toUserType: 'contractors',
-                        description: "Payout for job: ".concat(job === null || job === void 0 ? void 0 : job.title),
+                        description: "Escrow Transaction for job: ".concat(job === null || job === void 0 ? void 0 : job.title),
                         status: transaction_model_1.TRANSACTION_STATUS.PENDING,
-                        remark: 'job_payout',
+                        remark: 'job_escrow_transaction',
                         invoice: {
                             items: [],
                             charges: quotation.charges
                         },
                         metadata: {
                             paymentType: paymentType,
-                            parentTransaction: transaction === null || transaction === void 0 ? void 0 : transaction.id
+                            parentTransaction: transactionId
                         },
                         job: job.id,
                         payment: payment.id,
                     })];
-            case 11:
+            case 7:
                 //create payout transaction - 
-                _c.sent();
-                _c.label = 12;
+                _b.sent();
+                _b.label = 8;
+            case 8: return [4 /*yield*/, Promise.all([
+                    quotation.save(),
+                    job.save()
+                ])];
+            case 9:
+                _b.sent();
+                _b.label = 10;
+            case 10: return [4 /*yield*/, Promise.all([
+                    payment.save(),
+                    transaction.save()
+                ])];
+            case 11:
+                _b.sent();
+                _b.label = 12;
             case 12: return [3 /*break*/, 14];
             case 13:
-                error_11 = _c.sent();
+                error_11 = _b.sent();
                 // throw new BadRequestError(error.message || "Something went wrong");
-                console.log('Error handling chargeSucceeded stripe webhook event', error_11);
+                logger_1.Logger.info('Error handling chargeSucceeded stripe webhook event', error_11);
                 return [3 /*break*/, 14];
             case 14: return [2 /*return*/];
         }
@@ -898,7 +915,7 @@ var chargeRefunded = function (payload) { return __awaiter(void 0, void 0, void 
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                console.log('Stripe Event Handler: chargeRefunded', payload);
+                logger_1.Logger.info('Stripe Event Handler: chargeRefunded', payload);
                 _a.label = 1;
             case 1:
                 _a.trys.push([1, 5, , 6]);
@@ -920,7 +937,7 @@ var chargeRefunded = function (payload) { return __awaiter(void 0, void 0, void 
             case 4: return [3 /*break*/, 6];
             case 5:
                 error_12 = _a.sent();
-                console.log('Error handling chargeRefunded stripe webhook event', error_12);
+                logger_1.Logger.info('Error handling chargeRefunded stripe webhook event', error_12);
                 return [3 /*break*/, 6];
             case 6: return [2 /*return*/];
         }
@@ -932,14 +949,14 @@ var chargeRefundUpdated = function (payload) { return __awaiter(void 0, void 0, 
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                console.log('Stripe Event Handler: chargeRefundUpdated', { object: payload.object, id: payload.id });
+                logger_1.Logger.info('Stripe Event Handler: chargeRefundUpdated', { object: payload.object, id: payload.id });
                 _a.label = 1;
             case 1:
                 _a.trys.push([1, 6, , 7]);
                 if (payload.object !== 'refund')
                     return [2 /*return*/];
                 metadata = payload.metadata;
-                console.log(metadata);
+                logger_1.Logger.info(metadata);
                 stripeRefundDTO = (0, interface_dto_util_1.castPayloadToDTO)(payload, payload);
                 return [4 /*yield*/, payment_schema_1.PaymentModel.findOne({ charge: stripeRefundDTO.charge })];
             case 2:
@@ -947,7 +964,7 @@ var chargeRefundUpdated = function (payload) { return __awaiter(void 0, void 0, 
                 return [4 /*yield*/, transaction_model_1.default.findOne({ _id: metadata.transactionId })];
             case 3:
                 transaction = _a.sent();
-                console.log('transaction', transaction);
+                logger_1.Logger.info('transaction', transaction);
                 if (!(payment && transaction)) return [3 /*break*/, 5];
                 if (!payment.refunds.includes(stripeRefundDTO))
                     payment.refunds.push(stripeRefundDTO);
@@ -960,7 +977,7 @@ var chargeRefundUpdated = function (payload) { return __awaiter(void 0, void 0, 
             case 5: return [3 /*break*/, 7];
             case 6:
                 error_13 = _a.sent();
-                console.log('Error handling chargeRefundUpdated stripe webhook event', error_13);
+                logger_1.Logger.info('Error handling chargeRefundUpdated stripe webhook event', error_13);
                 return [3 /*break*/, 7];
             case 7: return [2 /*return*/];
         }

@@ -1,10 +1,6 @@
 import { validationResult } from "express-validator";
 import { NextFunction, Request, Response } from "express";
 import { ContractorModel } from "../../../database/contractor/models/contractor.model";
-import CustomerRegModel from "../../../database/customer/models/customer.model";
-import { sendEmail } from "../../../utils/send_email_utility";
-import { htmlJobQoutationTemplate } from "../../../templates/customerEmail/jobQoutationTemplate";
-import AdminNoficationModel from "../../../database/admin/models/admin_notification.model";
 import { JobModel, JOB_STATUS, JobType, IJob } from "../../../database/common/job.model";
 import { applyAPIFeature } from "../../../utils/api.feature";
 import { BadRequestError, InternalServerError, NotFoundError } from "../../../utils/custom.errors";
@@ -150,11 +146,11 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
 
 
     // Update the status of the job request to "Accepted"
-    job.status = JOB_STATUS.ACCEPTED;
+    job.status = JOB_STATUS.SUBMITTED;
 
     // Define the rejection event to be stored in the job history
     const jobEvent = {
-      eventType: JOB_STATUS.ACCEPTED,
+      eventType: JOB_STATUS.SUBMITTED,
       timestamp: new Date(),
       payload: {
         message: 'Contactor accepted this job'
@@ -443,7 +439,7 @@ export const sendJobQuotation = async (
     // Create or update job quotation
     let jobQuotation = await JobQuotationModel.findOneAndUpdate(
       { job: jobId, contractor: contractorId },
-      { startDate: startDate ? new Date(startDate) : null, endDate: endDate ? new Date(startDate) : null, siteVisit: siteVisit ? new Date(siteVisit) : null, estimates, jobId, contractorId },
+      { startDate: startDate ? new Date(startDate) : new Date(job.date), endDate: endDate ? new Date(startDate) : null, siteVisit: siteVisit ? new Date(siteVisit) : null, estimates, jobId, contractorId },
       { new: true, upsert: true }
     );
 
@@ -578,7 +574,7 @@ export const getQuotationForJob = async (req: any, res: Response, next: NextFunc
 
     res.status(200).json({ success: true, message: 'Job quotation retrieved successfully', data: jobQuotation });
   } catch (error: any) {
-    return next(new BadRequestError('An error occured ', error))
+    return next(new BadRequestError('An error occurred ', error))
   }
 };
 
@@ -665,7 +661,7 @@ export const updateJobQuotation = async (req: any, res: Response, next: NextFunc
 
     res.status(200).json({ success: true, message: 'Job application updated successfully', data: jobQuotation });
   } catch (error: any) {
-    return next(new BadRequestError('An error occured ', error))
+    return next(new BadRequestError('An error occurred ', error))
   }
 };
 
@@ -839,7 +835,7 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
     // Send response with job listings data
     res.status(200).json({ success: true, data: { ...metadata, data: jobs } });
   } catch (error: any) {
-    return next(new BadRequestError('An error occured ', error))
+    return next(new BadRequestError('An error occurred ', error))
   }
 };
 
@@ -897,7 +893,7 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
     }
 
     if (error) {
-      return next(new BadRequestError('Unkowon error occured'));
+      return next(new BadRequestError('Unknown error occurred'));
     }
 
     // Send response with job listings data
@@ -962,7 +958,7 @@ export const getJobHistory = async (req: any, res: Response, next: NextFunction)
     }
 
     if (error) {
-      return next(new BadRequestError('Unkowon error occured'));
+      return next(new BadRequestError('Unknown error occurred'));
     }
 
     // Send response with job listings data

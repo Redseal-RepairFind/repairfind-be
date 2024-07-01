@@ -84,14 +84,15 @@ export const getConversationMessages = async (req: any, res: Response) => {
             return res.status(403).json({ success: false, message: 'Unauthorized: You do not have access to this conversation' });
         }
 
-
+  
         // Retrieve messages for the conversation
         const { data, error } = await applyAPIFeature(
             MessageModel.find({ conversation: conversationId })
-                .populate({
-                    path: 'sender',
-                    select: 'firstName lastName profilePhoto', // Select the fields you want to populate
-                }),
+                // .populate({
+                //     path: 'sender',
+                //     select: 'firstName lastName profilePhoto', // Select the fields you want to populate
+                // })
+            ,
             req.query
         );
 
@@ -118,7 +119,7 @@ export const sendMessage = async (req: any, res: Response, next: NextFunction) =
 
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            return res.status(400).json({ message: 'validatior error occured', errors: errors.array() });
+            return res.status(400).json({ message: 'Validation error occurred', errors: errors.array() });
         }
 
         // Find the conversation by ID

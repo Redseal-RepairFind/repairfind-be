@@ -6,7 +6,7 @@ import { IContractor } from "../../../database/contractor/interface/contractor.i
 import { ContractorModel } from "../../../database/contractor/models/contractor.model";
 import { ICustomer } from "../../../database/customer/interface/customer.interface";
 import CustomerModel from "../../../database/customer/models/customer.model";
-import { Logger } from "../../../utils/logger";
+import { Logger } from "../../logger";
 import { StripeService } from "../../stripe";
 
 
@@ -24,10 +24,7 @@ export const handleJobRefunds = async () => {
                 const fromUser = (transaction.fromUserType == 'customers') ? await CustomerModel.findById(transaction.fromUser) : await ContractorModel.findById(transaction.fromUser)
                 const toUser = (transaction.toUserType == 'customers') ? await CustomerModel.findById(transaction.toUser) : await ContractorModel.findById(transaction.toUser)
 
-
                 if (fromUser && toUser) {
-
-
                     const payment = await PaymentModel.findById(transaction.payment)
                     if (!payment) {
                         return

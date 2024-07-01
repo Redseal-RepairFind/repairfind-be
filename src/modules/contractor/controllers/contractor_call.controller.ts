@@ -84,14 +84,14 @@ export const startCall = async (
             userType: toUserType,
             title: 'New Incoming Call',
             type: 'NEW_INCOMING_CALL', //
-            message: `You've an incomming call from ${fromUser.name}`,
+            message: `You've an incoming call from ${fromUser.name}`,
             heading: { name: `${fromUser.name}`, image: fromUser.profilePhoto?.url },
             payload: {
                 channel: channelName,
                 callId: call.id,
                 uid: toUserUid,
                 token: toUserToken,
-                message: `You've an incomming call from ${fromUser.name}`,
+                message: `You've an incoming call from ${fromUser.name}`,
                 name: `${fromUser.name}`,
                 image: fromUser.profilePhoto?.url,
                 event: 'NEW_INCOMING_CALL',
@@ -121,13 +121,14 @@ export const endCall = async (
         await call.save();
 
         // Send notifications to call parties
-        const fromUser = await ContractorModel.findById(call.fromUser);
+    
+        const fromUser = call.fromUserType === 'contractors' ? await ContractorModel.findById(call.fromUser) : await CustomerModel.findById(call.fromUser);
         const toUser = call.toUserType === 'contractors' ? await ContractorModel.findById(call.toUser) : await CustomerModel.findById(call.toUser);
         if (!fromUser || !toUser) return res.status(404).json({ success: false, message: 'Call parties not found' });
 
         NotificationService.sendNotification({
             user: call.fromUser,
-            userType: 'contractors', // Assuming fromUser is always a contractor
+            userType: call.fromUserType,
             title: 'Call Ended',
             type: 'CALL_ENDED',
             message: `Your call with ${toUser.name} has ended`,
@@ -142,7 +143,7 @@ export const endCall = async (
 
         NotificationService.sendNotification({
             user: call.toUser,
-            userType: call.toUserType,
+            userType: call.toUserType, 
             title: 'Call Ended',
             type: 'CALL_ENDED',
             message: `Your call with ${fromUser.name} has ended`,

@@ -72,7 +72,7 @@ var contractor_interface_1 = require("../../../database/contractor/interface/con
 var review_model_1 = require("../../../database/common/review.model");
 var customer_favorite_contractors_model_1 = __importDefault(require("../../../database/customer/models/customer_favorite_contractors.model"));
 var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, listing, distance, latitude, longitude, emergencyJobs, category, location_1, city, country, address, accountType, date, isOffDuty, availableDays, experienceYear, gstNumber, _b, page, _c, limit, sort // Sort field and order (-fieldName or fieldName)
+    var errors, _a, searchName, listing, distance, latitude, longitude, emergencyJobs, category, location_1, city, country, address, accountType, date, isOffDuty, availableDays, experienceYear, gstNumber, _b, page, _c, limit, sort // Sort field and order (-fieldName or fieldName)
     , availableDaysArray, skip, pipeline, contractorIdsWithDateInSchedule, _d, sortField, sortOrder, sortStage, result, contractors, metadata, err_1;
     var _e;
     return __generator(this, function (_f) {
@@ -85,7 +85,7 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
                 _f.label = 1;
             case 1:
                 _f.trys.push([1, 5, , 6]);
-                _a = req.query, listing = _a.listing, distance = _a.distance, latitude = _a.latitude, longitude = _a.longitude, emergencyJobs = _a.emergencyJobs, category = _a.category, location_1 = _a.location, city = _a.city, country = _a.country, address = _a.address, accountType = _a.accountType, date = _a.date, isOffDuty = _a.isOffDuty, availableDays = _a.availableDays, experienceYear = _a.experienceYear, gstNumber = _a.gstNumber, _b = _a.page, page = _b === void 0 ? 1 : _b, _c = _a.limit, limit = _c === void 0 ? 10 : _c, sort = _a.sort;
+                _a = req.query, searchName = _a.searchName, listing = _a.listing, distance = _a.distance, latitude = _a.latitude, longitude = _a.longitude, emergencyJobs = _a.emergencyJobs, category = _a.category, location_1 = _a.location, city = _a.city, country = _a.country, address = _a.address, accountType = _a.accountType, date = _a.date, isOffDuty = _a.isOffDuty, availableDays = _a.availableDays, experienceYear = _a.experienceYear, gstNumber = _a.gstNumber, _b = _a.page, page = _b === void 0 ? 1 : _b, _c = _a.limit, limit = _c === void 0 ? 10 : _c, sort = _a.sort;
                 availableDaysArray = availableDays ? availableDays.split(',') : [];
                 skip = (parseInt(page) - 1) * parseInt(limit);
                 pipeline = [
@@ -112,7 +112,41 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
                                     else: '$companyName'
                                 }
                             },
-                            rating: { $avg: '$reviews.averageRating' } // Calculate average rating using $avg
+                            rating: { $avg: '$reviews.averageRating' }, // Calculate average rating using $avg
+                            ratingCount: { $size: '$reviews' }, // Calculate average rating using $avg
+                            stripeAccountStatus: {
+                                details_submitted: "$stripeAccount.details_submitted",
+                                payouts_enabled: "$stripeAccount.payouts_enabled",
+                                charges_enabled: "$stripeAccount.charges_enabled",
+                                // transfers_enabled: { $ifNull: ["$stripeAccount.capabilities.transfers", "inactive"] },
+                                // card_payments_enabled: { $ifNull: ["$stripeAccount.capabilities.card_payments", "inactive"] },
+                                transfers_enabled: {
+                                    $cond: {
+                                        if: { $ifNull: ["$stripeAccount.capabilities.transfers", "inactive"] }, //{ $eq: ["$stripeAccount.capabilities.transfers", "active"] },
+                                        then: true,
+                                        else: false
+                                    }
+                                },
+                                card_payments_enabled: {
+                                    $cond: {
+                                        if: { $ifNull: ["$stripeAccount.capabilities.card_payments", "inactive"] }, //{ $eq: ["$stripeAccount.capabilities.card_payments", "active"] },
+                                        then: true,
+                                        else: false
+                                    }
+                                },
+                                status: {
+                                    $cond: {
+                                        if: {
+                                            $and: [
+                                                { $eq: ["$stripeAccount.capabilities.card_payments", "active"] },
+                                                { $eq: ["$stripeAccount.capabilities.transfers", "active"] }
+                                            ]
+                                        },
+                                        then: 'active',
+                                        else: 'inactive'
+                                    }
+                                }
+                            }
                         }
                     },
                     {
@@ -129,9 +163,16 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
                             reviews: 0,
                             onboarding: 0,
                         }
-                    }
+                    },
+                    //example filter out who do not have stripe account
+                    { $match: { "stripeAccountStatus.status": 'active' } },
+                    //example filter out employees and contractors 
+                    { $match: { accountType: { $ne: contractor_interface_1.CONTRACTOR_TYPES.Employee } } }
                 ];
                 // Add stages conditionally based on query parameters
+                if (searchName) {
+                    pipeline.push({ $match: { "name": { $regex: new RegExp(searchName, 'i') } } });
+                }
                 if (category) {
                     pipeline.push({ $match: { "profile.skill": { $regex: new RegExp(category, 'i') } } });
                 }
@@ -266,7 +307,7 @@ var getSingleContractor = function (req, res, next) { return __awaiter(void 0, v
                 return [2 /*return*/, res.status(200).json({ success: true, message: 'Contractor  found', data: contractor })];
             case 2:
                 error_1 = _a.sent();
-                next(new custom_errors_1.BadRequestError('An error occured', error_1));
+                next(new custom_errors_1.BadRequestError('An error occurred', error_1));
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
         }
@@ -295,7 +336,7 @@ var getContractorReviews = function (req, res, next) { return __awaiter(void 0, 
                 return [2 /*return*/, res.status(200).json({ success: true, message: 'Contractor reviews  retrieved', data: data })];
             case 3:
                 error_2 = _b.sent();
-                next(new custom_errors_1.BadRequestError('An error occured', error_2));
+                next(new custom_errors_1.BadRequestError('An error occurred', error_2));
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
         }
@@ -320,7 +361,7 @@ var getFavoriteContractors = function (req, res, next) { return __awaiter(void 0
                 return [2 /*return*/, res.status(200).json({ success: true, message: 'Favorite contractors  retrieved', data: data })];
             case 3:
                 error_3 = _b.sent();
-                next(new custom_errors_1.BadRequestError('An error occured', error_3));
+                next(new custom_errors_1.BadRequestError('An error occurred', error_3));
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
         }

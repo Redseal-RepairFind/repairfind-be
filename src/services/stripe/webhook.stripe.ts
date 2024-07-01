@@ -3,7 +3,6 @@
 import Stripe from 'stripe';
 import { BadRequestError } from '../../utils/custom.errors';
 import { Request, Response } from "express";
-import { Log } from '../../utils/logger';
 import { EventEmitter } from 'events';
 import { eventEmitter } from '../../events';
 import { StripeService } from '.';
@@ -19,6 +18,7 @@ import { IJobQuotation, JobQuotationModel, JOB_QUOTATION_STATUS } from '../../da
 import { ObjectId } from 'mongoose';
 import { NotificationService } from '../notifications';
 import TransactionModel, { ITransaction, TRANSACTION_STATUS, TRANSACTION_TYPE } from '../../database/common/transaction.model';
+import { Logger } from '../logger';
 
 
 const STRIPE_SECRET_KEY = <string>process.env.STRIPE_SECRET_KEY;
@@ -41,9 +41,6 @@ export const StripeWebhookHandler = async (req: Request) => {
 
         const eventType = event.type;
         const eventData = event.data;
-
-        // console.log(event)
-        // Log.info(event)
 
         switch (eventType) {
 
@@ -107,12 +104,12 @@ export const StripeWebhookHandler = async (req: Request) => {
                 chargeRefundUpdated(eventData.object);
                 break;
             default:
-                console.log(`Unhandled event type: ${eventType}`, eventData.object);
+                Logger.info(`Unhandled event type: ${eventType}`, eventData.object);
                 break;
         }
     } catch (error: any) {
         // throw new BadRequestError(error.message || "Something went wrong");
-        console.log(error.message || "Something went wrong inside stripe webhook")
+        Logger.info(error.message || "Something went wrong inside stripe webhook")
         return
     }
 };
@@ -120,7 +117,7 @@ export const StripeWebhookHandler = async (req: Request) => {
 
 
 export const customerUpdated = async (payload: any) => {
-    console.log('Stripe Event Handler: customerUpdated', payload)
+    Logger.info('Stripe Event Handler: customerUpdated', payload)
     try {
 
         // if(payload.object != 'customer') return
@@ -138,7 +135,7 @@ export const customerUpdated = async (payload: any) => {
 };
 
 export const customerCreated = async (payload: any) => {
-    console.log('Stripe Event Handler: customerCreated', payload)
+    Logger.info('Stripe Event Handler: customerCreated', payload)
     try {
 
         // if(payload.object != 'customer') return
@@ -170,7 +167,7 @@ export const identityVerificationCreated = async (payload: any) => {
             user = await ContractorModel.findById(userId)
             devices = await ContractorDeviceModel.find({ contractor: user?.id }).select('deviceToken')
             deviceTokens = devices.map(device => device.deviceToken);
-            // console.log('deviceTokens', deviceTokens)
+            // Logger.info('deviceTokens', deviceTokens)
         } else {
             user = await CustomerModel.findById(userId)
         }
@@ -194,7 +191,7 @@ export const identityVerificationCreated = async (payload: any) => {
 export const identityVerificationRequiresInput = async (payload: any) => {
     try {
 
-        console.log('Verification check failed: ' + payload.last_error.reason);
+        Logger.info('Verification check failed: ' + payload.last_error.reason);
 
         const userType = payload?.metadata?.userType
         const userId = payload?.metadata?.userId
@@ -260,7 +257,7 @@ export const identityVerificationRequiresInput = async (payload: any) => {
 
         //fetch and expand
         let verification = await StripeService.identity.retrieveVerificationSession(payload.id)
-        console.log(verification)
+        Logger.info(verification)
 
         // update user profile picture here
         //@ts-ignore
@@ -269,8 +266,8 @@ export const identityVerificationRequiresInput = async (payload: any) => {
             file: verification?.last_verification_report?.selfie?.selfie,
             expires_at: Math.floor(Date.now() / 1000) + 30,  // link expires in 30 seconds
         }, true)
-        console.log('fileLink from stripe', fileLink)
-        console.log('s3fileUrl of file uploaded to s3', s3fileUrl)
+        Logger.info('fileLink from stripe', fileLink)
+        Logger.info('s3fileUrl of file uploaded to s3', s3fileUrl)
 
 
         //@ts-ignore
@@ -280,7 +277,7 @@ export const identityVerificationRequiresInput = async (payload: any) => {
 
 
     } catch (error: any) {
-        console.log(error)
+        Logger.info(error)
         // new BadRequestError(error.message || "Something went wrong");
     }
 };
@@ -288,8 +285,8 @@ export const identityVerificationRequiresInput = async (payload: any) => {
 export const identityVerificationVerified = async (payload: any) => {
     try {
 
-        console.log('Verification session verified: ' + payload.status);
-        console.log(payload)
+        Logger.info('Verification session verified: ' + payload.status);
+        Logger.info(payload)
         if (payload.object != 'identity.verification_session') return
 
         const userType = payload?.metadata?.userType
@@ -325,7 +322,7 @@ export const identityVerificationVerified = async (payload: any) => {
 
         //fetch and expand
         let verification = await StripeService.identity.retrieveVerificationSession(payload.id)
-        console.log(verification)
+        Logger.info(verification)
 
 
         // update user profile picture here
@@ -335,8 +332,8 @@ export const identityVerificationVerified = async (payload: any) => {
             file: verification?.last_verification_report?.selfie?.selfie,
             expires_at: Math.floor(Date.now() / 1000) + 30,  // link expires in 30 seconds
         }, true)
-        console.log('fileLink from stripe', fileLink)
-        console.log('s3fileUrl of file uploaded to s3', s3fileUrl)
+        Logger.info('fileLink from stripe', fileLink)
+        Logger.info('s3fileUrl of file uploaded to s3', s3fileUrl)
 
         //@ts-ignore
         user.stripeIdentity = verification
@@ -353,7 +350,7 @@ export const identityVerificationVerified = async (payload: any) => {
 
 // COnnect Account
 export const accountUpdated = async (payload: any) => {
-    console.log('Stripe Event Handler: accountUpdated', payload)
+    Logger.info('Stripe Event Handler: accountUpdated', payload)
     try {
 
         if (payload.object != 'account') return
@@ -372,7 +369,7 @@ export const accountUpdated = async (payload: any) => {
         await user.save()
     } catch (error: any) {
         // throw new BadRequestError(error.message || "Something went wrong");
-        console.log('accountUpdated', error)
+        Logger.info('accountUpdated', error)
     }
 
 };
@@ -380,7 +377,7 @@ export const accountUpdated = async (payload: any) => {
 
 // Payment Intent and Payment Method
 export const paymentIntentSucceeded = async (payload: any) => {
-    console.log('Stripe Event Handler: paymentIntentSucceeded', payload)
+    Logger.info('Stripe Event Handler: paymentIntentSucceeded', payload)
     try {
 
         if (payload.object != 'payment_intent') return
@@ -421,7 +418,7 @@ export const paymentIntentSucceeded = async (payload: any) => {
 export const setupIntentCreated = async (payload: any) => {
     try {
         //  const customer = await StripeService.customer.getCustomerById(payload.customer)
-        //  console.log('Customer from setupIntentCreated', customer)
+        //  Logger.info('Customer from setupIntentCreated', customer)
 
     } catch (error: any) {
         // throw new BadRequestError(error.message || "Something went wrong");
@@ -431,7 +428,7 @@ export const setupIntentCreated = async (payload: any) => {
 // only this send metadata
 export const setupIntentSucceeded = async (payload: any) => {
 
-    console.log('Stripe Event Handler: setupIntentSucceeded', payload)
+    Logger.info('Stripe Event Handler: setupIntentSucceeded', payload)
     try {
         const customer: any = await StripeService.customer.getCustomerById(payload.customer)
         const paymentMethod: any = await StripeService.payment.getPaymentMethod(payload.payment_method)
@@ -461,7 +458,7 @@ export const setupIntentSucceeded = async (payload: any) => {
 };
 
 export const paymentMethodAttached = async (payload: any) => {
-    console.log('Stripe Event Handler: paymentMethodAttached', payload)
+    Logger.info('Stripe Event Handler: paymentMethodAttached', payload)
     try {
 
         if (payload.object != 'payment_method') return
@@ -488,7 +485,7 @@ export const paymentMethodAttached = async (payload: any) => {
         await user.save()
     } catch (error: any) {
         // throw new BadRequestError(error.message || "Something went wrong");
-        console.log('Error on stripe webhook: paymentMethodAttached', error)
+        Logger.info('Error on stripe webhook: paymentMethodAttached', error)
     }
 
 };
@@ -511,7 +508,7 @@ export const paymentMethodDetached = async (payload: any) => {
 
 // Charge
 export const chargeSucceeded = async (payload: any) => {
-    console.log('Stripe Event Handler: chargeSucceeded', payload)
+    Logger.info('Stripe Event Handler: chargeSucceeded', payload)
     try {
 
         if (payload.object != 'charge') return
@@ -548,11 +545,33 @@ export const chargeSucceeded = async (payload: any) => {
 
         // handle things here
         //1 handle transfer payment method options if it requires future capturing to another model ?
-        //@ts-ignore
-        const transactionId = payment?.metadata?.transactionId
-        let transaction = await TransactionModel.findById(transactionId)
+        let transactionId = null
 
-        if (transaction) {
+
+        if (payment) {
+            // handle job booking creating here ?
+            const metadata = payment.metadata as { jobId: string, quotationId: string, contractorId: ObjectId, customerId: ObjectId, remark: string, extraEstimateId: ObjectId, paymentType: PAYMENT_TYPE, paymentMethod: string }
+
+
+            let transaction = new TransactionModel({
+                type: metadata.paymentType,
+                amount: payment.amount,
+                currency: payment.currency,
+                initiatorUser: metadata.customerId,
+                initiatorUserType: 'customers',
+                fromUser: metadata.customerId,
+                fromUserType: 'customers',
+                toUser: metadata.contractorId,
+                toUserType: 'contractors',
+                description: metadata.paymentType.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' '),
+                remark: metadata.remark,
+                metadata: metadata,
+
+                paymentMethod: metadata.paymentMethod,
+                job: metadata.jobId,
+                status: TRANSACTION_STATUS.PENDING
+            })
+
             if (!payment.captured) {
 
                 const capture = payload.payment_method_details.card
@@ -569,7 +588,6 @@ export const chargeSucceeded = async (payload: any) => {
 
             } else {
                 const capture = payload.payment_method_details.card
-                //save payment capture here
                 let captureDto: ICapture = castPayloadToDTO(capture, capture as ICapture);
                 captureDto.payment_intent = payload.payment_intent
                 captureDto.payment_method = payload.payment_method
@@ -583,100 +601,99 @@ export const chargeSucceeded = async (payload: any) => {
 
             }
 
+            // link transaction to payment
             payment.transaction = transaction.id
-            await Promise.all([
-                payment.save(),
-                transaction.save()
-            ])
-        }
-
-        // handle job booking creating here ?
-        const metadata = payment.metadata as { jobId: string, quotationId: string, contractorId: ObjectId, customerId: ObjectId, remark: string, extraEstimateId: ObjectId, type: PAYMENT_TYPE }
-        if (metadata.jobId) {
-            const jobId = metadata.jobId
-            const paymentType = metadata.type
-            const quotationId = metadata.quotationId
-
-            if (jobId && paymentType && quotationId) {
-
-                let job = await JobModel.findById(jobId)
-                let quotation = await JobQuotationModel.findById(quotationId)
-                if (!job || !quotation) return
 
 
-                if (paymentType == PAYMENT_TYPE.JOB_DAY_PAYMENT) {
-                    job.status = JOB_STATUS.BOOKED
-                    job.contract = quotation.id
-                    job.contractor = quotation.contractor
 
-                    quotation.isPaid = true
-                    quotation.payment = payment.id
-                    quotation.status = JOB_QUOTATION_STATUS.ACCEPTED
+            // make sure that  payment if for a job
+            if (metadata.jobId) {
+                const jobId = metadata.jobId
+                const paymentType = metadata.paymentType
+                const quotationId = metadata.quotationId
 
-                    if (quotation.startDate) {
-                        job.schedule = {
-                            startDate: quotation.startDate,
-                            type: JOB_SCHEDULE_TYPE.JOB_DAY,
-                            remark: 'Initial job schedule'
-                        };
+               
+
+                if (jobId && paymentType && quotationId) {
+
+                    let job = await JobModel.findById(jobId)
+                    let quotation = await JobQuotationModel.findById(quotationId)
+                    if (!job || !quotation) return
+                    const charges = await quotation.calculateCharges()
+
+                    transaction.invoice = {
+                        items: quotation.estimates,
+                        charges: charges
+                    }
+
+
+                    if (paymentType == PAYMENT_TYPE.JOB_DAY_PAYMENT) {
+                        job.status = JOB_STATUS.BOOKED
+                        job.contract = quotation.id
+                        job.contractor = quotation.contractor
+
+                        quotation.isPaid = true
+                        quotation.payment = payment.id
+                        quotation.status = JOB_QUOTATION_STATUS.ACCEPTED
+
+                        if (quotation.startDate) {
+                            job.schedule = {
+                                startDate: quotation.startDate,
+                                type: JOB_SCHEDULE_TYPE.JOB_DAY,
+                                remark: 'Initial job schedule'
+                            };
+
+                        }
 
                     }
 
-                }
 
+                    if (paymentType == PAYMENT_TYPE.SITE_VISIT_PAYMENT) {
+                        job.status = JOB_STATUS.BOOKED
+                        job.contract = quotation.id
+                        job.contractor = quotation.contractor
 
-                if (paymentType == PAYMENT_TYPE.SITE_VISIT_PAYMENT) {
-                    job.status = JOB_STATUS.BOOKED
-                    job.contract = quotation.id
-                    job.contractor = quotation.contractor
+                        quotation.siteVisitEstimate.isPaid = true
+                        quotation.siteVisitEstimate.payment = payment.id
+                        quotation.status = JOB_QUOTATION_STATUS.ACCEPTED
 
-                    quotation.siteVisitEstimate.isPaid = true
-                    quotation.siteVisitEstimate.payment = payment.id
-                    quotation.status = JOB_QUOTATION_STATUS.ACCEPTED
+                        if (quotation.siteVisit instanceof Date) {
+                            job.schedule = {
+                                startDate: quotation.siteVisit,
+                                type: JOB_SCHEDULE_TYPE.SITE_VISIT,
+                                remark: 'Site visit schedule'
+                            };
+                        } else {
+                            Logger.info('quotation.siteVisit.date is not a valid Date object.');
+                        }
 
-                    if (quotation.siteVisit instanceof Date) {
-                        job.schedule = {
-                            startDate: quotation.siteVisit,
-                            type: JOB_SCHEDULE_TYPE.SITE_VISIT,
-                            remark: 'Site visit schedule'
-                        };
-                    } else {
-                        console.log('quotation.siteVisit.date is not a valid Date object.');
                     }
 
-                }
+
+                    if (paymentType == PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) {
+                        const changeOrderEstimate: any = quotation.changeOrderEstimate
+                        if (!changeOrderEstimate) return
+                        changeOrderEstimate.isPaid = true
+                        changeOrderEstimate.payment = payment.id
+                    }
+
+                    if (!job.payments.includes(payment.id)) job.payments.push(payment.id)
 
 
-                if (paymentType == PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) {
-                    const changeOrderEstimate: any = quotation.changeOrderEstimate
-                    if (!changeOrderEstimate) return
-                    changeOrderEstimate.isPaid = true
-                    changeOrderEstimate.payment = payment.id
-                }
 
-                if (!job.payments.includes(payment.id)) job.payments.push(payment.id)
-
-
-                await quotation.save()
-                await job.save()
-
-
-                //handle payout transaction schedule here if payment was made to platform
-                if (payment) {
                     const onBehalf = payment.on_behalf_of
                     const destination = payment.destination
                     const transferData = payment.transfer_data
 
-                    // console.log(onBehalf,  destination, transferData)
                     // payment was made to platform ?
                     if (!onBehalf && !destination && !transferData) {
                         //create payout transaction - 
-                        
+
                         await TransactionModel.create({
                             type: TRANSACTION_TYPE.ESCROW,
                             amount: payment.amount,
 
-                            // customer can initiate payout on job completetion or admin on dispute resolution
+                            // customer can initiate payout on job completion or admin on dispute resolution
                             // initiatorUser: customerId,
                             // initiatorUserType: 'customers',
 
@@ -686,16 +703,16 @@ export const chargeSucceeded = async (payload: any) => {
                             toUser: job.contractor,
                             toUserType: 'contractors',
 
-                            description: `Payout for job: ${job?.title}`,
+                            description: `Escrow Transaction for job: ${job?.title}`,
                             status: TRANSACTION_STATUS.PENDING,
-                            remark: 'job_payout',
+                            remark: 'job_escrow_transaction',
                             invoice: {
                                 items: [],
                                 charges: quotation.charges
                             },
                             metadata: {
                                 paymentType,
-                                parentTransaction: transaction?.id
+                                parentTransaction: transactionId
                             },
                             job: job.id,
                             payment: payment.id,
@@ -703,23 +720,36 @@ export const chargeSucceeded = async (payload: any) => {
 
                     }
 
+
+                    await Promise.all([
+                        quotation.save(),
+                        job.save()
+                    ])
+
                 }
 
             }
 
+
+            await Promise.all([
+                payment.save(),
+                transaction.save()
+            ])
         }
+
+
 
 
 
     } catch (error: any) {
         // throw new BadRequestError(error.message || "Something went wrong");
-        console.log('Error handling chargeSucceeded stripe webhook event', error)
+        Logger.info('Error handling chargeSucceeded stripe webhook event', error)
     }
 
 };
 
 export const chargeRefunded = async (payload: any) => {
-    console.log('Stripe Event Handler: chargeRefunded', payload);
+    Logger.info('Stripe Event Handler: chargeRefunded', payload);
 
     try {
         if (payload.object !== 'charge') return;
@@ -734,28 +764,28 @@ export const chargeRefunded = async (payload: any) => {
             await Promise.all([payment.save()]);
         }
     } catch (error: any) {
-        console.log('Error handling chargeRefunded stripe webhook event', error);
+        Logger.info('Error handling chargeRefunded stripe webhook event', error);
     }
 };
 
 export const chargeRefundUpdated = async (payload: any) => {
-    console.log('Stripe Event Handler: chargeRefundUpdated', { object: payload.object, id: payload.id });
+    Logger.info('Stripe Event Handler: chargeRefundUpdated', { object: payload.object, id: payload.id });
 
     try {
         if (payload.object !== 'refund') return;
         const metadata = payload.metadata as { charge: string, policyApplied: string, totalAmount: any, refundAmount: any, paymentId: ObjectId, transactionId: ObjectId }
-        console.log(metadata)
+        Logger.info(metadata)
         const stripeRefundDTO: IRefund = castPayloadToDTO(payload, payload as IRefund);
         const payment = await PaymentModel.findOne({ charge: stripeRefundDTO.charge });
         const transaction = await TransactionModel.findOne({ _id: metadata.transactionId });
-        console.log('transaction', transaction)
+        Logger.info('transaction', transaction)
         if (payment && transaction) {
             if (!payment.refunds.includes(stripeRefundDTO)) payment.refunds.push(stripeRefundDTO);
             if (payload.status == 'succeeded') transaction.status = TRANSACTION_STATUS.SUCCESSFUL
             await Promise.all([payment.save(), transaction.save()])
         }
     } catch (error: any) {
-        console.log('Error handling chargeRefundUpdated stripe webhook event', error);
+        Logger.info('Error handling chargeRefundUpdated stripe webhook event', error);
     }
 };
 

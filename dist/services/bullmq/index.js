@@ -102,11 +102,11 @@ var JobQueue = /** @class */ (function () {
         //every: 600000 ms = 10 minutes, 86400000 ms = 24 hours, 7200000= 12hours
         // cron: '*/5 * * * * *' = Every 5 seconds, 
         // cron: 0 0 * * *'  = This cron expression triggers the job at midnight every day, 
-        this.addJob('CapturePayments', {}, { repeat: { every: 600000 }, jobId: 'CapturePayments' });
+        this.addJob('CapturePayments', {}, { repeat: { every: 600000 } });
         this.addJob('handleJobRefunds', {}, { repeat: { every: 600000 } });
-        this.addJob('syncCertnApplications', {}, { repeat: { every: 600000 }, jobId: 'syncCertnApplications' });
+        this.addJob('syncCertnApplications', {}, { repeat: { every: 600000 } });
         this.addJob('expireJobs', {}, { repeat: { every: 7200000 } });
-        this.addJob('handleEscrowTransfer', {}, { repeat: { every: 60000 } });
+        this.addJob('handleEscrowTransfer', {}, { repeat: { every: 600000 } });
         this.addJob('jobDayScheduleCheck', {}, { repeat: { cron: '0 0 * * *', tz: 'Europe/Berlin', } });
     };
     JobQueue.prototype.getQueue = function (queueName) {

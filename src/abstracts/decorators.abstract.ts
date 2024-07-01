@@ -1,4 +1,4 @@
-import { Logger } from "../utils/logger";
+import { Logger } from "../services/logger";
 
 export function handleAsyncError() {
   return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {

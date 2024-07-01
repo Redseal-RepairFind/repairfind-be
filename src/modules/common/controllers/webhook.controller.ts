@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import { StripeService } from "../../../services/stripe";
-import { Log } from "../../../utils/logger";
 
 
 export const stripeWebook = async (
@@ -11,7 +10,6 @@ export const stripeWebook = async (
   try {
     const sig = <string>req.headers['stripe-signature'];
     const payload = req.body;
-    // Log.info([sig, payload])
     
     StripeService.webhook.StripeWebhookHandler(req)
     res.status(200).end() 
@@ -30,7 +28,6 @@ export const certnWebook = async (
   try {
     // const sig = <string>req.headers['stripe-signature'];
     // const payload = req.body;
-    // Log.info([sig, payload])
     
     // StripeService.webhook.StripeWebhookHandler(req)
     console.log(req)

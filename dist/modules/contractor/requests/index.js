@@ -154,23 +154,23 @@ exports.UpdateProfileRequest = [
     }).optional().isArray().notEmpty().custom(function (value) { return validateMediaArray(value); }),
 ];
 exports.UpgradeEmployeeProfileRequest = [
-    (0, express_validator_1.body)("location.address").notEmpty(),
-    (0, express_validator_1.body)("location.latitude").notEmpty().isNumeric(),
-    (0, express_validator_1.body)("location.longitude").notEmpty().isNumeric(),
+    (0, express_validator_1.body)("location.address").optional(),
+    (0, express_validator_1.body)("location.latitude").optional().isNumeric(),
+    (0, express_validator_1.body)("location.longitude").optional().isNumeric(),
     // body('backgroundCheckConsent')
     //   .exists({ checkFalsy: true }).withMessage('Background consent is required')
     //   .custom((value) => value === true).withMessage('You must consent to us running a background check'),
-    (0, express_validator_1.body)("skill").notEmpty(),
-    (0, express_validator_1.body)("gstDetails.gstNumber").notEmpty(),
-    (0, express_validator_1.body)("gstDetails.gstName").notEmpty(),
-    (0, express_validator_1.body)("gstDetails.gstType").notEmpty(),
+    (0, express_validator_1.body)("skill").optional(),
+    (0, express_validator_1.body)("gstDetails.gstNumber").optional(),
+    (0, express_validator_1.body)("gstDetails.gstName").optional(),
+    (0, express_validator_1.body)("gstDetails.gstType").optional(),
     (0, express_validator_1.body)("experienceYear").optional().isNumeric(),
     (0, express_validator_1.body)("about").optional(),
     (0, express_validator_1.body)("website").optional().isURL(),
     (0, express_validator_1.body)("email").optional().isEmail(),
     (0, express_validator_1.body)("phoneNumber").optional().isNumeric(),
-    (0, express_validator_1.body)("emergencyJobs").notEmpty(),
-    (0, express_validator_1.body)("availableDays").notEmpty().isArray(),
+    (0, express_validator_1.body)("emergencyJobs").optional(),
+    (0, express_validator_1.body)("availableDays").optional().isArray(),
     (0, express_validator_1.body)("previousJobPhotos").optional().isArray().notEmpty().custom(function (value) { return validateMediaArray(value); }),
     (0, express_validator_1.body)("previousJobVideos").optional().isArray().notEmpty().custom(function (value) { return validateMediaArray(value); }),
 ];

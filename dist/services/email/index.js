@@ -41,7 +41,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EmailService = void 0;
 var nodemailer_1 = __importDefault(require("nodemailer"));
-var logger_1 = require("../../utils/logger");
+var logger_1 = require("../logger");
+var bullmq_1 = require("../bullmq");
 var EmailService = /** @class */ (function () {
     function EmailService() {
         this.from = process.env.EMAIL_FROM;
@@ -69,7 +70,7 @@ var EmailService = /** @class */ (function () {
     };
     EmailService.send = function (recipients, subject, html, cc) {
         return __awaiter(this, void 0, void 0, function () {
-            var from, toAddresses, ccAddresses, _i, toAddresses_1, to, mailOptions, error_1;
+            var from, toAddresses, ccAddresses, _i, toAddresses_1, to, mailOptions, jobId, error_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -89,9 +90,11 @@ var EmailService = /** @class */ (function () {
                             subject: subject,
                             html: html
                         };
-                        return [4 /*yield*/, this.createTransport().sendMail(mailOptions)];
+                        jobId = "email-".concat(to, "-").concat(subject);
+                        return [4 /*yield*/, bullmq_1.QueueService.addJob('sendEmail', mailOptions, { jobId: jobId, removeOnComplete: true })];
                     case 2:
                         _a.sent();
+                        console.log("Email job added to queue for ".concat(to, " with CC to ").concat(ccAddresses.join(', ')));
                         console.log("Email sent successfully to ".concat(to, " with CC to ").concat(ccAddresses.join(', ')));
                         _a.label = 3;
                     case 3:

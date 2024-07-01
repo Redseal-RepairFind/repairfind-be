@@ -44,12 +44,13 @@ var bullmq_1 = require("bullmq");
 var config_1 = require("../../config");
 var ioredis_1 = __importDefault(require("ioredis"));
 var capture_stripe_payments_1 = require("./jobs/capture_stripe_payments");
-var logger_1 = require("../../utils/logger");
+var logger_1 = require("../logger");
 var sync_certn_applications_1 = require("./jobs/sync_certn_applications");
 var expire_jobs_1 = require("./jobs/expire_jobs");
 var jobday_schedule_1 = require("./jobs/jobday_schedule");
 var job_refunds_1 = require("./jobs/job_refunds");
 var escrow_transfer_1 = require("./jobs/escrow_transfer");
+var send_email_1 = require("./jobs/send_email");
 var getRedisConfig = function () {
     var redisConfig = {
         port: Number(config_1.config.redis.port),
@@ -68,7 +69,7 @@ var processJob = function (job) { return __awaiter(void 0, void 0, void 0, funct
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 15, , 16]);
+                _b.trys.push([0, 17, , 18]);
                 _a = job.name;
                 switch (_a) {
                     case 'CapturePayments': return [3 /*break*/, 1];
@@ -76,42 +77,47 @@ var processJob = function (job) { return __awaiter(void 0, void 0, void 0, funct
                     case 'syncCertnApplications': return [3 /*break*/, 5];
                     case 'jobDayScheduleCheck': return [3 /*break*/, 7];
                     case 'handleJobRefunds': return [3 /*break*/, 9];
-                    case 'handleEscrowTransfer': return [3 /*break*/, 11];
+                    case 'sendEmail': return [3 /*break*/, 11];
+                    case 'handleEscrowTransfer': return [3 /*break*/, 13];
                 }
-                return [3 /*break*/, 13];
+                return [3 /*break*/, 15];
             case 1: return [4 /*yield*/, (0, capture_stripe_payments_1.captureStripePayments)()];
             case 2:
                 _b.sent();
-                return [3 /*break*/, 14];
+                return [3 /*break*/, 16];
             case 3: return [4 /*yield*/, (0, expire_jobs_1.expireJobs)()];
             case 4:
                 _b.sent();
-                return [3 /*break*/, 14];
+                return [3 /*break*/, 16];
             case 5: return [4 /*yield*/, (0, sync_certn_applications_1.syncCertnApplications)()];
             case 6:
                 _b.sent();
-                return [3 /*break*/, 14];
+                return [3 /*break*/, 16];
             case 7: return [4 /*yield*/, (0, jobday_schedule_1.jobDayScheduleCheck)()];
             case 8:
                 _b.sent();
-                return [3 /*break*/, 14];
+                return [3 /*break*/, 16];
             case 9: return [4 /*yield*/, (0, job_refunds_1.handleJobRefunds)()];
             case 10:
                 _b.sent();
-                return [3 /*break*/, 14];
-            case 11: return [4 /*yield*/, (0, escrow_transfer_1.handleEscrowTransfer)()];
+                return [3 /*break*/, 16];
+            case 11: return [4 /*yield*/, (0, send_email_1.sendEmail)(job)];
             case 12:
                 _b.sent();
-                return [3 /*break*/, 14];
-            case 13:
-                logger_1.Logger.warn("Unknown job name: ".concat(job.name));
-                _b.label = 14;
-            case 14: return [3 /*break*/, 16];
+                return [3 /*break*/, 16];
+            case 13: return [4 /*yield*/, (0, escrow_transfer_1.handleEscrowTransfer)()];
+            case 14:
+                _b.sent();
+                return [3 /*break*/, 16];
             case 15:
+                logger_1.Logger.warn("Unknown job name: ".concat(job.name));
+                _b.label = 16;
+            case 16: return [3 /*break*/, 18];
+            case 17:
                 error_1 = _b.sent();
                 logger_1.Logger.error("Error processing job ".concat(job.name, ": ").concat(error_1));
                 throw error_1;
-            case 16: return [2 /*return*/];
+            case 18: return [2 /*return*/];
         }
     });
 }); };
@@ -124,6 +130,9 @@ var setupWorkerEventListeners = function (worker) {
     });
     worker.on('completed', function (job) {
         logger_1.Logger.info("Job Completed: ".concat(job.name, " - ").concat(job.id, " has completed!"));
+        // const mailOptions = job.data;
+        // await EmailService.createTransport().sendMail(mailOptions);
+        // console.log(`Email sent successfully to ${mailOptions.to} with CC to ${mailOptions.cc}`);
     });
 };
 var redisConfig = getRedisConfig();

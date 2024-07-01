@@ -9,14 +9,15 @@ import { ContractorModel } from "../../../database/contractor/models/contractor.
 
 // Controller method to fetch customer transactions
 export const getTransactions = async (req: any, res: Response, next: NextFunction) => {
-    const customerId = req.contractor.id; // Assuming customerId is passed in the request params
+    const contractorId = req.contractor.id; // Assuming contractorId is passed in the request params
 
     try {
 
         let filter: any = {
+            type: {$ne: TRANSACTION_TYPE.ESCROW},
             $or: [
-                { fromUser: customerId, fromUserType: 'contractors' },
-                { toUser: customerId, toUserType: 'contractors' }
+                { fromUser: contractorId, fromUserType: 'contractors' },
+                { toUser: contractorId, toUserType: 'contractors' }
             ]
         }
 
@@ -25,14 +26,14 @@ export const getTransactions = async (req: any, res: Response, next: NextFunctio
 
         if (data) {
             await Promise.all(data.data.map(async (transaction: ITransaction) => {
-                transaction.isCredit = await transaction.getIsCredit(customerId)
+                transaction.isCredit = await transaction.getIsCredit(contractorId)
             }));
         }
 
         // Return the transactions in the response
         res.status(200).json({ success: true, data });
     } catch (error: any) {
-        next(new InternalServerError('Error fetching customer transactions', error))
+        next(new InternalServerError('Error fetching contractor transactions', error))
     }
 };
 
@@ -71,7 +72,7 @@ export const getTransactionSummary = async (req: any, res: Response, next: NextF
 
 
         // Calculate amount in holding from TransactionModel
-        const transactions: ITransaction[] = await TransactionModel.find({ toUser: contractorId, status: TRANSACTION_STATUS.REQUIRES_CAPTURE });
+        const transactions: ITransaction[] = await TransactionModel.find({ toUser: contractorId, type: TRANSACTION_TYPE.ESCROW, status: TRANSACTION_STATUS.PENDING });
         const amountInHoldingFromTransactions: number = transactions.reduce((total, transaction) => {
             if (transaction.toUser.toString() === contractorId && transaction.getIsCredit(contractorId)) {
                 return total + transaction.amount;

@@ -9,7 +9,6 @@ import { uploadToS3 } from "../../../utils/upload.utility";
 import { v4 as uuidv4 } from "uuid";
 import { htmlMailTemplate } from "../../../templates/sendEmailTemplate";
 import { htmlContractorWelcomeTemplate } from "../../../templates/contractorEmail/contractorWelcomeTemplate";
-import JobModel from "../../../database/contractor/models/job.model";
 import AdminNoficationModel from "../../../database/admin/models/admin_notification.model";
 import { handleAsyncError } from "../../../abstracts/decorators.abstract";
 import { Base } from "../../../abstracts/base.abstract";
@@ -73,23 +72,25 @@ class AuthHandler extends Base {
                 html
             };
 
-            await sendEmail(emailData);
-            const welcomeHtml = htmlContractorWelcomeTemplate(firstName);
+            await EmailService.send(email, 'Email Verification', html);
+
+            const welcomeHtml = htmlContractorWelcomeTemplate(firstName ?? companyName);
             let welcomeEmailData = {
                 emailTo: email,
                 subject: "Welcome",
                 html: welcomeHtml
             };
 
-            await sendEmail(welcomeEmailData);
+            // await sendEmail(welcomeEmailData);
+            await EmailService.send(email, 'Welcome', welcomeHtml);
 
-            const adminNoti = new AdminNoficationModel({
-                title: "New Account Created",
-                message: `A contractor - ${firstName} just created an account.`,
-                status: "unseen"
-            });
+            // const adminNoti = new AdminNoficationModel({
+            //     title: "New Account Created",
+            //     message: `A contractor - ${firstName} just created an account.`,
+            //     status: "unseen"
+            // });
 
-            await adminNoti.save();
+            // await adminNoti.save();
 
             return res.json({
                 success: true,
@@ -222,11 +223,11 @@ class AuthHandler extends Base {
             // compare password with hashed password in database
             const isPasswordMatch = await bcrypt.compare(password, contractor.password);
             if (!isPasswordMatch) {
-                return res.status(401).json({ success: false, message: "incorrect credential." });
+                return res.status(401).json({ success: false, message: "Incorrect credential." });
             }
 
             if (!contractor.emailOtp.verified) {
-                return res.status(401).json({ success: false, message: "email not verified." });
+                return res.status(401).json({ success: false, message: "Email not verified." });
             }
 
 

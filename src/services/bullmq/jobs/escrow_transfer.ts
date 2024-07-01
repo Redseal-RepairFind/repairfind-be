@@ -6,7 +6,7 @@ import { IContractor } from "../../../database/contractor/interface/contractor.i
 import { ContractorModel } from "../../../database/contractor/models/contractor.model";
 import { ICustomer } from "../../../database/customer/interface/customer.interface";
 import { TransactionEvent } from "../../../events/transaction.events";
-import { Logger } from "../../../utils/logger";
+import { Logger } from "../../logger";
 import { StripeService } from "../../stripe";
 
 
@@ -54,11 +54,13 @@ export const handleEscrowTransfer = async () => {
                 TransactionEvent.emit('ESCROW_TRANSFER_SUCCESSFUL', transaction)
                 
             } catch (error) {
-                Logger.error(`Error processing payout transfer: ${transaction.id}`, error);
+                Logger.info(`Error processing payout transfer: ${transaction.id}`, error);
+               
             }
         }
         
     } catch (error) {
+       
         Logger.error('Error processing handleEscrowTransfer:', error);
     }
 };

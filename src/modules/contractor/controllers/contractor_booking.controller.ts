@@ -116,7 +116,7 @@ export const getMyBookings = async (req: any, res: Response, next: NextFunction)
         res.json({ success: true, message: 'Bookings retrieved', data: data });
 
     } catch (error: any) {
-        return next(new BadRequestError('An error occured ', error))
+        return next(new BadRequestError('An error occurred ', error))
     }
 };
 
@@ -175,7 +175,7 @@ export const getBookingHistory = async (req: any, res: Response, next: NextFunct
         }
 
         if (error) {
-            return next(new BadRequestError('Unkowon error occured', error as Error));
+            return next(new BadRequestError('Unknown error occurred', error as Error));
         }
 
         // Send response with job listings data
@@ -239,7 +239,7 @@ export const getBookingDisputes = async (req: any, res: Response, next: NextFunc
         }
 
         if (error) {
-            return next(new BadRequestError('Unkowon error occured', error as Error));
+            return next(new BadRequestError('Unknown error occurred', error as Error));
         }
 
         // Send response with job listings data
@@ -279,7 +279,7 @@ export const getSingleBooking = async (req: any, res: Response, next: NextFuncti
         // If the job exists, return it as a response
         res.json({ success: true, message: 'Booking retrieved', data: responseData });
     } catch (error: any) {
-        return next(new BadRequestError('An error occured ', error))
+        return next(new BadRequestError('An error occurred ', error))
     }
 };
 
@@ -545,7 +545,7 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
             customer: job.customer,
             contractor: job.contractor,
             // comment: review,
-            type: REVIEW_TYPE.JOB_CANCELETION,
+            type: REVIEW_TYPE.JOB_CANCELATION,
             createdAt: new Date(),
         });
 

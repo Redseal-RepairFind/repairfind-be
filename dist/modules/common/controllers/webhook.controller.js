@@ -44,7 +44,6 @@ var stripeWebook = function (req, res) { return __awaiter(void 0, void 0, void 0
         try {
             sig = req.headers['stripe-signature'];
             payload = req.body;
-            // Log.info([sig, payload])
             stripe_1.StripeService.webhook.StripeWebhookHandler(req);
             res.status(200).end();
         }
@@ -60,7 +59,6 @@ var certnWebook = function (req, res) { return __awaiter(void 0, void 0, void 0,
         try {
             // const sig = <string>req.headers['stripe-signature'];
             // const payload = req.body;
-            // Log.info([sig, payload])
             // StripeService.webhook.StripeWebhookHandler(req)
             console.log(req);
             res.status(200).end();

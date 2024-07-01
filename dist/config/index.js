@@ -93,6 +93,9 @@ exports.config = {
         appId: process.env.AGORA_APP_ID,
         appCertificate: process.env.AGORA_APP_CERTIFICATE,
     },
+    logtail: {
+        token: process.env.LOGTAIL_TOKEN,
+    },
     port: process.env.PORT,
     environment: process.env.APN_ENV,
 };

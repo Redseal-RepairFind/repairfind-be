@@ -68,7 +68,7 @@ var payment_schema_1 = require("../../../database/common/payment.schema");
 var transaction_model_1 = __importStar(require("../../../database/common/transaction.model"));
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
-var logger_1 = require("../../../utils/logger");
+var logger_1 = require("../../logger");
 var stripe_1 = require("../../stripe");
 var handleJobRefunds = function () { return __awaiter(void 0, void 0, void 0, function () {
     var transactions, _i, transactions_1, transaction, fromUser, _a, toUser, _b, payment, amount, charge, metadata, stripePayment, error_1, error_2;

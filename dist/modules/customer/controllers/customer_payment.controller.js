@@ -133,13 +133,16 @@ var findContractor = function (contractorId) { return __awaiter(void 0, void 0, 
         }
     });
 }); };
-var createTransaction = function (customerId, contractorId, jobId, charges, paymentMethod, metadata) {
+var createTransaction = function (customerId, contractorId, jobId, charges, paymentMethod, transactionType, metadata) {
     if (metadata === void 0) { metadata = null; }
     return __awaiter(void 0, void 0, void 0, function () {
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, transaction_model_1.default.create({
-                        type: transaction_model_1.TRANSACTION_TYPE.JOB_PAYMENT,
+                case 0: return [4 /*yield*/, transaction_model_1.default.findOneAndUpdate({
+                        job: jobId,
+                        type: transactionType,
+                    }, {
+                        type: transactionType,
                         amount: charges.totalAmount,
                         currency: 'USD',
                         initiatorUser: customerId,
@@ -157,8 +160,8 @@ var createTransaction = function (customerId, contractorId, jobId, charges, paym
                         },
                         paymentMethod: paymentMethod,
                         job: jobId,
-                        status: transaction_model_1.TRANSACTION_STATUS.REQUIRES_CAPTURE
-                    })];
+                        status: transaction_model_1.TRANSACTION_STATUS.PENDING
+                    }, { new: true, upsert: true })];
                 case 1: return [2 /*return*/, _a.sent()];
             }
         });
@@ -199,7 +202,7 @@ var prepareStripePayload = function (data) {
     // The connected account’s statement descriptor is displayed on the customer’s credit card statement.
     // If the connected account is in a different country than the platform, the connected account’s address and phone number are displayed on the customer’s credit card statement.
     // The number of days that a pending balance is held before being paid out depends on the delay_days setting on the connected account.
-    var paymentMethodId = data.paymentMethodId, customer = data.customer, contractor = data.contractor, charges = data.charges, transactionId = data.transactionId, jobId = data.jobId, metadata = data.metadata, manualCapture = data.manualCapture;
+    var paymentMethodId = data.paymentMethodId, customer = data.customer, contractor = data.contractor, charges = data.charges, jobId = data.jobId, metadata = data.metadata, manualCapture = data.manualCapture;
     // const repairfindStripeAccount = 'null'
     var payload = {
         payment_method_types: ['card'],
@@ -229,11 +232,11 @@ var prepareStripePayload = function (data) {
     return payload;
 };
 var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, quotationId, paymentMethodId_1, jobId, errors, customerId, customer, job, quotation, contractor, paymentMethod, paymentType, charges, metadata, transaction, payload, stripePayment, err_1;
+    var _a, quotationId, paymentMethodId_1, jobId, errors, customerId, customer, job, quotation, contractor, paymentMethod, paymentType, transactionType, charges, metadata, payload, stripePayment, err_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 9, , 10]);
+                _b.trys.push([0, 8, , 9]);
                 _a = req.body, quotationId = _a.quotationId, paymentMethodId_1 = _a.paymentMethodId;
                 jobId = req.params.jobId;
                 errors = (0, express_validator_1.validationResult)(req);
@@ -263,9 +266,10 @@ var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'This job is not pending, so new payment is not possible' })];
                 }
                 paymentType = payment_schema_1.PAYMENT_TYPE.JOB_DAY_PAYMENT;
-                if (quotation.type == job_quotation_model_1.JOB_QUOTATION_TYPE.SITE_VISIT)
+                transactionType = quotation.type;
+                if (transactionType == job_quotation_model_1.JOB_QUOTATION_TYPE.SITE_VISIT)
                     paymentType = payment_schema_1.PAYMENT_TYPE.SITE_VISIT_PAYMENT;
-                if (quotation.type == job_quotation_model_1.JOB_QUOTATION_TYPE.JOB_DAY)
+                if (transactionType == job_quotation_model_1.JOB_QUOTATION_TYPE.JOB_DAY)
                     paymentType = payment_schema_1.PAYMENT_TYPE.JOB_DAY_PAYMENT;
                 return [4 /*yield*/, quotation.calculateCharges(paymentType)];
             case 5:
@@ -274,39 +278,36 @@ var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0
                     customerId: customer.id,
                     contractorId: contractor === null || contractor === void 0 ? void 0 : contractor.id,
                     quotationId: quotation.id,
-                    type: paymentType,
+                    paymentType: paymentType,
+                    paymentMethod: paymentMethod.id,
                     jobId: jobId,
                     email: customer.email,
                     remark: 'initial_job_payment',
                 };
-                return [4 /*yield*/, createTransaction(customerId, contractor.id, jobId, charges, paymentMethod)];
-            case 6:
-                transaction = _b.sent();
-                metadata.transactionId = transaction.id;
-                payload = prepareStripePayload({ paymentMethodId: paymentMethod.id, customer: customer, contractor: contractor, charges: charges, transactionId: transaction.id, jobId: jobId, metadata: metadata, manualCapture: false });
+                payload = prepareStripePayload({ paymentMethodId: paymentMethod.id, customer: customer, contractor: contractor, charges: charges, jobId: jobId, metadata: metadata, manualCapture: false });
                 return [4 /*yield*/, stripe_1.StripeService.payment.chargeCustomer(paymentMethod.customer, paymentMethod.id, payload)];
-            case 7:
+            case 6:
                 stripePayment = _b.sent();
                 job.status = job_model_1.JOB_STATUS.BOOKED;
                 return [4 /*yield*/, job.save()];
-            case 8:
+            case 7:
                 _b.sent();
                 res.json({ success: true, message: 'Payment intent created', data: stripePayment });
-                return [3 /*break*/, 10];
-            case 9:
+                return [3 /*break*/, 9];
+            case 8:
                 err_1 = _b.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError(err_1.message, err_1))];
-            case 10: return [2 /*return*/];
+            case 9: return [2 /*return*/];
         }
     });
 }); };
 exports.makeJobPayment = makeJobPayment;
 var makeChangeOrderEstimatePayment = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, quotationId, paymentMethodId_2, jobId, errors, customerId, customer, job, quotation, contractor, changeOrderEstimate, paymentMethod, paymentType, charges, metadata, transaction, payload, stripePayment, err_2;
+    var _a, quotationId, paymentMethodId_2, jobId, errors, customerId, customer, job, quotation, contractor, changeOrderEstimate, paymentMethod, paymentType, transactionType, charges, metadata, payload, stripePayment, err_2;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 9, , 10]);
+                _b.trys.push([0, 8, , 9]);
                 _a = req.body, quotationId = _a.quotationId, paymentMethodId_2 = _a.paymentMethodId;
                 jobId = req.params.jobId;
                 errors = (0, express_validator_1.validationResult)(req);
@@ -338,6 +339,7 @@ var makeChangeOrderEstimatePayment = function (req, res, next) { return __awaite
                 if (!paymentMethod)
                     throw new Error('No such payment method');
                 paymentType = payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT;
+                transactionType = transaction_model_1.TRANSACTION_TYPE.CHANGE_ORDER;
                 return [4 /*yield*/, quotation.calculateCharges(paymentType)];
             case 5:
                 charges = _b.sent();
@@ -346,39 +348,36 @@ var makeChangeOrderEstimatePayment = function (req, res, next) { return __awaite
                     contractorId: contractor === null || contractor === void 0 ? void 0 : contractor.id,
                     quotationId: quotation.id,
                     jobId: jobId,
-                    type: paymentType,
+                    paymentType: paymentType,
+                    paymentMethod: paymentMethod.id,
                     email: customer.email,
                     remark: 'change_order_estimate_payment',
                 };
-                return [4 /*yield*/, createTransaction(customerId, contractor.id, jobId, charges, paymentMethod, metadata)];
-            case 6:
-                transaction = _b.sent();
-                metadata.transactionId = transaction.id;
-                payload = prepareStripePayload({ paymentMethodId: paymentMethod.id, customer: customer, contractor: contractor, charges: charges, transactionId: transaction.id, jobId: jobId, metadata: metadata, manualCapture: false });
+                payload = prepareStripePayload({ paymentMethodId: paymentMethod.id, customer: customer, contractor: contractor, charges: charges, jobId: jobId, metadata: metadata, manualCapture: false });
                 return [4 /*yield*/, stripe_1.StripeService.payment.chargeCustomer(paymentMethod.customer, paymentMethod.id, payload)];
-            case 7:
+            case 6:
                 stripePayment = _b.sent();
                 job.isChangeOrder = false;
                 return [4 /*yield*/, job.save()];
-            case 8:
+            case 7:
                 _b.sent();
                 events_1.JobEvent.emit('CHANGE_ORDER_ESTIMATE_PAID', { job: job, quotation: quotation, changeOrderEstimate: changeOrderEstimate });
                 res.json({ success: true, message: 'Payment intent created', data: stripePayment });
-                return [3 /*break*/, 10];
-            case 9:
+                return [3 /*break*/, 9];
+            case 8:
                 err_2 = _b.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError(err_2.message, err_2))];
-            case 10: return [2 /*return*/];
+            case 9: return [2 /*return*/];
         }
     });
 }); };
 exports.makeChangeOrderEstimatePayment = makeChangeOrderEstimatePayment;
 var captureJobPayment = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, quotationId, paymentMethodId_3, jobId, errors, customerId, customer, job, quotation, contractor, paymentMethod, paymentType, charges, metadata, transaction, payload, stripePayment, err_3;
+    var _a, quotationId, paymentMethodId_3, jobId, errors, customerId, customer, job, quotation, contractor, paymentMethod, paymentType, charges, metadata, payload, stripePayment, err_3;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 9, , 10]);
+                _b.trys.push([0, 8, , 9]);
                 _a = req.body, quotationId = _a.quotationId, paymentMethodId_3 = _a.paymentMethodId;
                 jobId = req.params.jobId;
                 errors = (0, express_validator_1.validationResult)(req);
@@ -419,30 +418,26 @@ var captureJobPayment = function (req, res, next) { return __awaiter(void 0, voi
                     customerId: customer.id,
                     contractorId: contractor === null || contractor === void 0 ? void 0 : contractor.id,
                     quotationId: quotation.id,
-                    type: paymentType,
                     jobId: jobId,
                     paymentType: paymentType,
+                    paymentMethod: paymentMethod.id,
                     email: customer.email,
                     remark: 'initial_job_payment',
                 };
-                return [4 /*yield*/, createTransaction(customerId, contractor.id, jobId, charges, paymentMethod)];
-            case 6:
-                transaction = _b.sent();
-                metadata.transactionId = transaction.id;
-                payload = prepareStripePayload({ paymentMethodId: paymentMethod.id, customer: customer, contractor: contractor, charges: charges, transactionId: transaction.id, jobId: jobId, metadata: metadata, manualCapture: true });
+                payload = prepareStripePayload({ paymentMethodId: paymentMethod.id, customer: customer, contractor: contractor, charges: charges, jobId: jobId, metadata: metadata, manualCapture: true });
                 return [4 /*yield*/, stripe_1.StripeService.payment.chargeCustomer(paymentMethod.customer, paymentMethod.id, payload)];
-            case 7:
+            case 6:
                 stripePayment = _b.sent();
                 job.status = job_model_1.JOB_STATUS.BOOKED;
                 return [4 /*yield*/, job.save()];
-            case 8:
+            case 7:
                 _b.sent();
                 res.json({ success: true, message: 'Payment intent created', data: stripePayment });
-                return [3 /*break*/, 10];
-            case 9:
+                return [3 /*break*/, 9];
+            case 8:
                 err_3 = _b.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError(err_3.message, err_3))];
-            case 10: return [2 /*return*/];
+            case 9: return [2 /*return*/];
         }
     });
 }); };

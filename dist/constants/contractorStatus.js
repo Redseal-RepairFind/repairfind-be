@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.contractorStatus = void 0;
+exports.customerStatus = exports.contractorStatus = void 0;
 var contractorStatus;
 (function (contractorStatus) {
     contractorStatus["SUSPENDED"] = "suspend";
@@ -9,3 +9,11 @@ var contractorStatus;
     contractorStatus["ACTIVE"] = "active";
     contractorStatus["CLOSED"] = "closed";
 })(contractorStatus || (exports.contractorStatus = contractorStatus = {}));
+var customerStatus;
+(function (customerStatus) {
+    customerStatus["SUSPENDED"] = "suspend";
+    customerStatus["REVIEWING"] = "in-review";
+    customerStatus["DECLINED"] = "declined";
+    customerStatus["ACTIVE"] = "active";
+    customerStatus["CLOSED"] = "closed";
+})(customerStatus || (exports.customerStatus = customerStatus = {}));

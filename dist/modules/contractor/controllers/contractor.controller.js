@@ -129,7 +129,6 @@ var ProfileHandler = /** @class */ (function (_super) {
                             return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                         }
                         payload = {};
-                        console.log(contractor_1.accountType);
                         if ((contractor_1.accountType == contractor_interface_1.CONTRACTOR_TYPES.Company) || (contractor_1.accountType == contractor_interface_1.CONTRACTOR_TYPES.Individual)) {
                             payload = {
                                 contractor: contractorId,
@@ -385,7 +384,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         err_4 = _c.sent();
                         console.log('error', err_4);
                         res.status(500).json({ success: false, message: err_4.message });
-                        next(new custom_errors_1.BadRequestError('An error occured', err_4));
+                        next(new custom_errors_1.BadRequestError('An error occurred', err_4));
                         return [3 /*break*/, 6];
                     case 6: return [2 /*return*/];
                 }

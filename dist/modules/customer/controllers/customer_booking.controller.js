@@ -163,7 +163,7 @@ var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0,
                 return [3 /*break*/, 5];
             case 4:
                 error_1 = _g.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_1))];
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_1))];
             case 5: return [2 /*return*/];
         }
     });
@@ -345,7 +345,7 @@ var getSingleBooking = function (req, res, next) { return __awaiter(void 0, void
                 return [3 /*break*/, 6];
             case 5:
                 error_4 = _d.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occured ', error_4))];
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_4))];
             case 6: return [2 /*return*/];
         }
     });
@@ -904,7 +904,7 @@ var acceptBookingComplete = function (req, res, next) { return __awaiter(void 0,
                 // if (job.status === JOB_STATUS.COMPLETED) {
                 //     return res.status(400).json({ success: false, message: 'The booking is already marked as complete' });
                 // }
-                if (!job.statusUpdate.awaitingConfirmation) {
+                if (!job.statusUpdate || !job.statusUpdate.awaitingConfirmation) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Contractor has not requested for a status update' })];
                 }
                 jobStatus = (job.schedule.type == job_model_1.JOB_SCHEDULE_TYPE.SITE_VISIT) ? job_model_1.JOB_STATUS.COMPLETED_SITE_VISIT : job_model_1.JOB_STATUS.COMPLETED;
@@ -924,7 +924,8 @@ var acceptBookingComplete = function (req, res, next) { return __awaiter(void 0,
                 return [3 /*break*/, 5];
             case 4:
                 error_11 = _a.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_11))];
+                console.log(error_11);
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred', error_11))];
             case 5: return [2 /*return*/];
         }
     });
