@@ -139,25 +139,24 @@ MessageSchema.methods.getIsOwn = function (loggedInUserId) {
 MessageSchema.methods.getHeading = function (loggedInUserId) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var contractor, customer;
+        var findContractor, contractor, customer;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
                     if (!(this.senderType == 'contractors')) return [3 /*break*/, 2];
-                    return [4 /*yield*/, contractor_model_1.ContractorModel.findById(this.sender)]; // Assuming your user model is named 'User'
+                    return [4 /*yield*/, contractor_model_1.ContractorModel.findById(this.sender)];
                 case 1:
-                    contractor = _c.sent() // Assuming your user model is named 'User'
-                    ;
+                    findContractor = _c.sent();
+                    contractor = findContractor === null || findContractor === void 0 ? void 0 : findContractor.toJSON();
                     if (!contractor)
                         return [2 /*return*/, {}];
                     return [2 /*return*/, {
                             name: contractor.name,
                             image: (_a = contractor === null || contractor === void 0 ? void 0 : contractor.profilePhoto) === null || _a === void 0 ? void 0 : _a.url,
                         }];
-                case 2: return [4 /*yield*/, customer_model_1.default.findById(this.sender)]; // Assuming your user model is named 'User'
+                case 2: return [4 /*yield*/, customer_model_1.default.findById(this.sender)];
                 case 3:
-                    customer = _c.sent() // Assuming your user model is named 'User'
-                    ;
+                    customer = _c.sent();
                     if (!customer)
                         return [2 /*return*/, {}];
                     return [2 /*return*/, {

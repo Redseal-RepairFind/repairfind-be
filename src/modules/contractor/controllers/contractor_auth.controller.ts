@@ -267,6 +267,85 @@ class AuthHandler extends Base {
     }
 
     @handleAsyncError()
+    public async signinWithPhone(): Promise<Response> {
+        let req = this.req
+        let res = this.res
+        try {
+            const {
+                password,
+                number,
+                code,
+            } = req.body;
+            // Check for validation errors
+            const errors = validationResult(req);
+
+            if (!errors.isEmpty()) {
+                return res.status(400).json({ success: false, message: 'Validation errors', errors: errors.array() });
+            }
+
+            // try find user with the same email
+            const contractor = await ContractorModel.findOne({ 'phoneNumber.number': number, 'phoneNumber.code': code  });
+
+
+            // check if user exists
+            if (!contractor) {
+                return res
+                    .status(401)
+                    .json({ success: false, message: "Invalid credential" });
+            }
+
+            // // Check if password is alphanumeric with symbols
+            // if (!/^[a-zA-Z0-9!@#$%^&*]+$/.test(password)) {
+            //     return res.status(400).json({ success: false, message: "Password must be alphanumeric with symbols." });
+            // }
+
+            // compare password with hashed password in database
+            const isPasswordMatch = await bcrypt.compare(password, contractor.password);
+            if (!isPasswordMatch) {
+                return res.status(401).json({ success: false, message: "Incorrect credential." });
+            }
+
+            if (!contractor.emailOtp.verified) {
+                return res.status(401).json({ success: false, message: "Email not verified." });
+            }
+
+
+
+            const quiz = await contractor?.quiz ?? null
+            contractor.onboarding = await contractor.getOnboarding()
+            const contractorResponse = {
+                ...contractor.toJSON(), // Convert to plain JSON object
+                quiz,
+            };
+
+
+            // generate access token
+            const accessToken = jwt.sign(
+                {
+                    id: contractor?._id,
+                    email: contractor.email,
+                    userType: 'contractors',
+                },
+                process.env.JWT_CONTRACTOR_SECRET_KEY!,
+                { expiresIn: config.jwt.tokenLifetime }
+            );
+
+            // return access token
+            return res.json({
+                success: true,
+                message: "Login successful",
+                accessToken: accessToken,
+                expiresIn: config.jwt.tokenLifetime,
+                user: contractorResponse
+            });
+
+
+        } catch (err: any) {
+            return res.status(500).json({ success: false, message: err.message });
+        }
+    }
+
+    @handleAsyncError()
     public async resendEmail(): Promise<Response> {
         let req = this.req
         let res = this.res

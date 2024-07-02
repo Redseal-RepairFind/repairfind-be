@@ -22,6 +22,7 @@ const router = express.Router();
 // Auth
 router.post("/signup", CustomerHttpRequest.signupParams, CustomerAuthController.signUp ); // customer signup
 router.post("/login", CustomerHttpRequest.loginParams, CustomerAuthController.signIn ); // customer signup
+router.post("/login-phone", CustomerHttpRequest.loginWithPhoneParams, CustomerAuthController.signInWithPhone ); // customer signup
 router.post("/email-verification", CustomerHttpRequest.emailVerificationParams, CustomerAuthController.verifyEmail ); // customer verified email
 router.post("/resend-email-verification", CustomerHttpRequest.forgotPasswordParams, CustomerAuthController.resendEmail ); // customer resend email
 router.post("/forgot-password", CustomerHttpRequest.forgotPasswordParams, CustomerAuthController.forgotPassword ); // customer forgot passwor
