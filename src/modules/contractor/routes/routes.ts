@@ -33,6 +33,10 @@ router.post("/signin", ContractorHttpRequest.LoginRequest, (req: Request, res: R
     AuthController(req, res, next).signin();
 });
 
+router.post("/signin-phone", ContractorHttpRequest.LoginWithPhoneRequest, (req: Request, res: Response, next: NextFunction) => {
+    AuthController(req, res, next).signinWithPhone();
+});
+
 router.post("/resend-email", ContractorHttpRequest.ResendEmailRequest, (req: Request, res: Response, next: NextFunction) => {
     AuthController(req, res, next).resendEmail();
 });

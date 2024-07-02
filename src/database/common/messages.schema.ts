@@ -99,8 +99,10 @@ MessageSchema.methods.getIsOwn = async function (loggedInUserId: string) {
 MessageSchema.methods.getHeading = async function (loggedInUserId: string) {
 
     if (this.senderType == 'contractors') {
-        const contractor = await ContractorModel.findById(this.sender) // Assuming your user model is named 'User'
+
         
+        const findContractor = await ContractorModel.findById(this.sender) 
+        const contractor = findContractor?.toJSON()
         if(!contractor)return {}
         return {
             name: contractor.name,
@@ -108,7 +110,7 @@ MessageSchema.methods.getHeading = async function (loggedInUserId: string) {
         };
 
     } else {
-        const customer = await CustomerModel.findById(this.sender) // Assuming your user model is named 'User'
+        const customer = await CustomerModel.findById(this.sender)
         if(!customer)return {}
         return {
             name: customer.name,

@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerAuthController = exports.appleSignon = exports.facebookSignon = exports.googleSignon = exports.verifyResetPasswordOtp = exports.resetPassword = exports.forgotPassword = exports.resendEmail = exports.signIn = exports.verifyEmail = exports.signUp = void 0;
+exports.CustomerAuthController = exports.appleSignon = exports.facebookSignon = exports.googleSignon = exports.verifyResetPasswordOtp = exports.resetPassword = exports.forgotPassword = exports.resendEmail = exports.signInWithPhone = exports.signIn = exports.verifyEmail = exports.signUp = void 0;
 var express_validator_1 = require("express-validator");
 var bcrypt_1 = __importDefault(require("bcrypt"));
 var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
@@ -221,7 +221,7 @@ var signIn = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                 if (!customer) {
                     return [2 /*return*/, res
                             .status(401)
-                            .json({ success: false, message: "invalid credential" })];
+                            .json({ success: false, message: "Invalid credential" })];
                 }
                 if (!customer.password && customer.provider !== customer_interface_1.CustomerAuthProviders.PASSWORD) {
                     return [2 /*return*/, res
@@ -266,9 +266,72 @@ var signIn = function (req, res) { return __awaiter(void 0, void 0, void 0, func
     });
 }); };
 exports.signIn = signIn;
+var signInWithPhone = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, number, code, password, errors, customer, isPasswordMatch, profile, accessToken, err_4;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 4, , 5]);
+                _a = req.body, number = _a.number, code = _a.code, password = _a.password;
+                errors = (0, express_validator_1.validationResult)(req);
+                if (!errors.isEmpty()) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "Validation error occurred", errors: errors.array() })];
+                }
+                return [4 /*yield*/, customer_model_1.default.findOne({ 'phoneNumber.number': number, 'phoneNumber.code': code })];
+            case 1:
+                customer = _b.sent();
+                // check if user exists
+                if (!customer) {
+                    return [2 /*return*/, res
+                            .status(401)
+                            .json({ success: false, message: "Invalid credential" })];
+                }
+                if (!customer.password && customer.provider !== customer_interface_1.CustomerAuthProviders.PASSWORD) {
+                    return [2 /*return*/, res
+                            .status(401)
+                            .json({ success: false, message: "The email is associated with a social signon" })];
+                }
+                return [4 /*yield*/, bcrypt_1.default.compare(password, customer.password)];
+            case 2:
+                isPasswordMatch = _b.sent();
+                if (!customer.password && customer.provider) {
+                    return [2 /*return*/, res.status(401).json({ success: false, message: "Account is associated with ".concat(customer.provider, " account") })];
+                }
+                if (!isPasswordMatch) {
+                    return [2 /*return*/, res.status(401).json({ success: false, message: "Incorrect credential." })];
+                }
+                if (!customer.emailOtp.verified) {
+                    return [2 /*return*/, res.status(401).json({ success: false, message: "Email not verified." })];
+                }
+                return [4 /*yield*/, customer_model_1.default.findById(customer.id).select('-password')];
+            case 3:
+                profile = _b.sent();
+                accessToken = jsonwebtoken_1.default.sign({
+                    id: customer === null || customer === void 0 ? void 0 : customer._id,
+                    email: customer.email,
+                    userType: 'customers',
+                }, process.env.JWT_CONTRACTOR_SECRET_KEY, { expiresIn: config_1.config.jwt.tokenLifetime });
+                // return access token
+                res.json({
+                    success: true,
+                    message: "Signin successful",
+                    accessToken: accessToken,
+                    expiresIn: config_1.config.jwt.tokenLifetime,
+                    data: profile
+                });
+                return [3 /*break*/, 5];
+            case 4:
+                err_4 = _b.sent();
+                res.status(500).json({ success: false, message: err_4.message });
+                return [3 /*break*/, 5];
+            case 5: return [2 /*return*/];
+        }
+    });
+}); };
+exports.signInWithPhone = signInWithPhone;
 //customer resend for verification email /////////////
 var resendEmail = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var email, errors, customer, otp, createdTime, html, emailData, err_4;
+    var email, errors, customer, otp, createdTime, html, emailData, err_5;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -311,9 +374,9 @@ var resendEmail = function (req, res) { return __awaiter(void 0, void 0, void 0,
                 (0, send_email_utility_1.sendEmail)(emailData);
                 return [2 /*return*/, res.status(200).json({ success: true, message: "OTP sent successfully to your email." })];
             case 3:
-                err_4 = _a.sent();
+                err_5 = _a.sent();
                 // signup error
-                res.status(500).json({ message: err_4.message });
+                res.status(500).json({ message: err_5.message });
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
         }
@@ -321,7 +384,7 @@ var resendEmail = function (req, res) { return __awaiter(void 0, void 0, void 0,
 }); };
 exports.resendEmail = resendEmail;
 var forgotPassword = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var email, errors, customer, otp, createdTime, html, emailData, err_5;
+    var email, errors, customer, otp, createdTime, html, emailData, err_6;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -358,8 +421,8 @@ var forgotPassword = function (req, res) { return __awaiter(void 0, void 0, void
                 (0, send_email_utility_1.sendEmail)(emailData);
                 return [2 /*return*/, res.status(200).json({ success: true, message: "OTP sent successfully to your email." })];
             case 3:
-                err_5 = _a.sent();
-                res.status(500).json({ success: false, message: err_5.message });
+                err_6 = _a.sent();
+                res.status(500).json({ success: false, message: err_6.message });
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
         }
@@ -367,7 +430,7 @@ var forgotPassword = function (req, res) { return __awaiter(void 0, void 0, void
 }); };
 exports.forgotPassword = forgotPassword;
 var resetPassword = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, email, otp, password, errors, customer, _b, createdTime, verified, timeDiff, hashedPassword, err_6;
+    var _a, email, otp, password, errors, customer, _b, createdTime, verified, timeDiff, hashedPassword, err_7;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
@@ -403,8 +466,8 @@ var resetPassword = function (req, res) { return __awaiter(void 0, void 0, void 
                 _c.sent();
                 return [2 /*return*/, res.status(200).json({ success: true, message: "password successfully change" })];
             case 4:
-                err_6 = _c.sent();
-                res.status(500).json({ success: false, message: err_6.message });
+                err_7 = _c.sent();
+                res.status(500).json({ success: false, message: err_7.message });
                 return [3 /*break*/, 5];
             case 5: return [2 /*return*/];
         }
@@ -412,7 +475,7 @@ var resetPassword = function (req, res) { return __awaiter(void 0, void 0, void 
 }); };
 exports.resetPassword = resetPassword;
 var verifyResetPasswordOtp = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, email, otp, errors, customer, _b, createdTime, verified, timeDiff, err_7;
+    var _a, email, otp, errors, customer, _b, createdTime, verified, timeDiff, err_8;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
@@ -441,8 +504,8 @@ var verifyResetPasswordOtp = function (req, res) { return __awaiter(void 0, void
                 _c.sent();
                 return [2 /*return*/, res.status(200).json({ success: true, message: "OTP verified successfully" })];
             case 3:
-                err_7 = _c.sent();
-                res.status(500).json({ success: false, message: err_7.message });
+                err_8 = _c.sent();
+                res.status(500).json({ success: false, message: err_8.message });
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
         }
@@ -451,7 +514,7 @@ var verifyResetPasswordOtp = function (req, res) { return __awaiter(void 0, void
 exports.verifyResetPasswordOtp = verifyResetPasswordOtp;
 //customer signup /////////////
 var googleSignon = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var accessToken, errors, providerUser, email, name_1, picture, sub, firstName, lastName, createdTime, emailOtp, user, token, err_8;
+    var accessToken, errors, providerUser, email, name_1, picture, sub, firstName, lastName, createdTime, emailOtp, user, token, err_9;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -511,9 +574,9 @@ var googleSignon = function (req, res) { return __awaiter(void 0, void 0, void 0
                 });
                 return [3 /*break*/, 4];
             case 3:
-                err_8 = _a.sent();
+                err_9 = _a.sent();
                 // signup error
-                res.status(500).json({ success: false, message: err_8.message });
+                res.status(500).json({ success: false, message: err_9.message });
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
         }
@@ -521,7 +584,7 @@ var googleSignon = function (req, res) { return __awaiter(void 0, void 0, void 0
 }); };
 exports.googleSignon = googleSignon;
 var facebookSignon = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var accessToken, errors, providerUser, id, name_2, email, picture, firstName, lastName, createdTime, emailOtp, user, token, err_9;
+    var accessToken, errors, providerUser, id, name_2, email, picture, firstName, lastName, createdTime, emailOtp, user, token, err_10;
     var _a;
     return __generator(this, function (_b) {
         switch (_b.label) {
@@ -582,9 +645,9 @@ var facebookSignon = function (req, res) { return __awaiter(void 0, void 0, void
                 });
                 return [3 /*break*/, 4];
             case 3:
-                err_9 = _b.sent();
+                err_10 = _b.sent();
                 // signup error
-                res.status(500).json({ success: false, message: err_9.message });
+                res.status(500).json({ success: false, message: err_10.message });
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
         }
@@ -592,7 +655,7 @@ var facebookSignon = function (req, res) { return __awaiter(void 0, void 0, void
 }); };
 exports.facebookSignon = facebookSignon;
 var appleSignon = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, accessToken, email, firstName, lastName, errors, decodedToken, decodedIdToken, decodedAccessToken, appleUserId, appleEmail, createdTime, emailOtp, user, token, err_10;
+    var _a, accessToken, email, firstName, lastName, errors, decodedToken, decodedIdToken, decodedAccessToken, appleUserId, appleEmail, createdTime, emailOtp, user, token, err_11;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -650,9 +713,9 @@ var appleSignon = function (req, res) { return __awaiter(void 0, void 0, void 0,
                 });
                 return [3 /*break*/, 5];
             case 4:
-                err_10 = _b.sent();
+                err_11 = _b.sent();
                 // Handle errors appropriately
-                res.status(400).json({ success: false, message: err_10.message });
+                res.status(400).json({ success: false, message: err_11.message });
                 return [3 /*break*/, 5];
             case 5: return [2 /*return*/];
         }
@@ -669,5 +732,6 @@ exports.CustomerAuthController = {
     verifyResetPasswordOtp: exports.verifyResetPasswordOtp,
     googleSignon: exports.googleSignon,
     facebookSignon: exports.facebookSignon,
-    appleSignon: exports.appleSignon
+    appleSignon: exports.appleSignon,
+    signInWithPhone: exports.signInWithPhone
 };

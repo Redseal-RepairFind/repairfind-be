@@ -228,7 +228,7 @@ export const signIn = async (
     if (!customer) {
       return res
         .status(401)
-        .json({success: false, message: "invalid credential" });
+        .json({success: false, message: "Invalid credential" });
     }
 
     if (!customer.password && customer.provider !==  CustomerAuthProviders.PASSWORD) {
@@ -254,6 +254,84 @@ export const signIn = async (
     }
 
     const profile = await CustomerModel.findOne({ email }).select('-password');
+
+    // generate access token
+    const accessToken = jwt.sign(
+      {
+        id: customer?._id,
+        email: customer.email,
+        userType: 'customers',
+      },
+      process.env.JWT_CONTRACTOR_SECRET_KEY!,
+      { expiresIn: config.jwt.tokenLifetime  }
+    );
+
+    // return access token
+    res.json({
+      success: true,
+      message: "Signin successful",
+      accessToken,
+      expiresIn: config.jwt.tokenLifetime, 
+      data: profile
+    });
+
+
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+
+}
+
+export const signInWithPhone = async (
+  req: Request,
+  res: Response,
+) => {
+
+  try {
+    const {
+      number,
+      code,
+      password,
+    } = req.body;
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      return res.status(400).json({success: false, message: "Validation error occurred", errors: errors.array() });
+    }
+
+    // try find user with the same email
+    const customer = await CustomerModel.findOne({ 'phoneNumber.number': number, 'phoneNumber.code': code  });
+
+    // check if user exists
+    if (!customer) {
+      return res
+        .status(401)
+        .json({success: false, message: "Invalid credential" });
+    }
+
+    if (!customer.password && customer.provider !==  CustomerAuthProviders.PASSWORD) {
+      return res
+        .status(401)
+        .json({success: false, message: "The email is associated with a social signon" });
+    }
+
+
+    // compare password with hashed password in database
+    const isPasswordMatch = await bcrypt.compare(password, customer.password);
+    
+    if (!customer.password && customer.provider) {
+      return res.status(401).json({success: false, message: `Account is associated with ${customer.provider} account` });
+    }
+
+    if (!isPasswordMatch) {
+      return res.status(401).json({success: false, message: "Incorrect credential." });
+    }
+
+    if (!customer.emailOtp.verified) {
+      return res.status(401).json({success: false, message: "Email not verified." });
+    }
+
+    const profile = await CustomerModel.findById(customer.id).select('-password');
 
     // generate access token
     const accessToken = jwt.sign(
@@ -756,5 +834,6 @@ export const CustomerAuthController = {
   verifyResetPasswordOtp,
   googleSignon,
   facebookSignon,
-  appleSignon
+  appleSignon,
+  signInWithPhone
 }

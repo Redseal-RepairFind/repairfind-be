@@ -131,6 +131,13 @@ export const LoginRequest = [
 ];
 
 
+export const LoginWithPhoneRequest = [
+  body("number").notEmpty(),
+  body("code").notEmpty(),
+  body("password").notEmpty(),
+];
+
+
 export const ResendEmailRequest = [
   body("email").isEmail(),
 ];
@@ -256,6 +263,7 @@ export const ContractorHttpRequest = {
   CreateContractorRequest,
   EmailVerificationRequest,
   LoginRequest,
+  LoginWithPhoneRequest,
   ResendEmailRequest,
   PasswordResetRequest,
   UpdateBankDetailRequest,
