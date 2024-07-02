@@ -31,6 +31,12 @@ export const loginParams = [
   body("password").notEmpty(),
 ];
 
+export const loginWithPhoneParams = [
+  body("number").notEmpty(),
+  body("code").notEmpty(),
+  body("password").notEmpty(),
+];
+
 export const forgotPasswordParams = [
   body("email").isEmail(),
 ];
@@ -273,6 +279,7 @@ export const CustomerHttpRequest = {
   signupParams,
   emailVerificationParams,
   loginParams,
+  loginWithPhoneParams,
   forgotPasswordParams,
   resetPasswordParams,
   changePasswordParams,

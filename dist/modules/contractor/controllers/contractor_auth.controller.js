@@ -322,9 +322,74 @@ var AuthHandler = /** @class */ (function (_super) {
             });
         });
     };
+    AuthHandler.prototype.signinWithPhone = function () {
+        var _a;
+        return __awaiter(this, void 0, void 0, function () {
+            var req, res, _b, password, number, code, errors, contractor, isPasswordMatch, quiz, _c, contractorResponse, accessToken, err_4;
+            return __generator(this, function (_d) {
+                switch (_d.label) {
+                    case 0:
+                        req = this.req;
+                        res = this.res;
+                        _d.label = 1;
+                    case 1:
+                        _d.trys.push([1, 6, , 7]);
+                        _b = req.body, password = _b.password, number = _b.number, code = _b.code;
+                        errors = (0, express_validator_1.validationResult)(req);
+                        if (!errors.isEmpty()) {
+                            return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation errors', errors: errors.array() })];
+                        }
+                        return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ 'phoneNumber.number': number, 'phoneNumber.code': code })];
+                    case 2:
+                        contractor = _d.sent();
+                        // check if user exists
+                        if (!contractor) {
+                            return [2 /*return*/, res
+                                    .status(401)
+                                    .json({ success: false, message: "Invalid credential" })];
+                        }
+                        return [4 /*yield*/, bcrypt_1.default.compare(password, contractor.password)];
+                    case 3:
+                        isPasswordMatch = _d.sent();
+                        if (!isPasswordMatch) {
+                            return [2 /*return*/, res.status(401).json({ success: false, message: "Incorrect credential." })];
+                        }
+                        if (!contractor.emailOtp.verified) {
+                            return [2 /*return*/, res.status(401).json({ success: false, message: "Email not verified." })];
+                        }
+                        return [4 /*yield*/, (contractor === null || contractor === void 0 ? void 0 : contractor.quiz)];
+                    case 4:
+                        quiz = (_a = _d.sent()) !== null && _a !== void 0 ? _a : null;
+                        _c = contractor;
+                        return [4 /*yield*/, contractor.getOnboarding()];
+                    case 5:
+                        _c.onboarding = _d.sent();
+                        contractorResponse = __assign(__assign({}, contractor.toJSON()), { // Convert to plain JSON object
+                            quiz: quiz });
+                        accessToken = jsonwebtoken_1.default.sign({
+                            id: contractor === null || contractor === void 0 ? void 0 : contractor._id,
+                            email: contractor.email,
+                            userType: 'contractors',
+                        }, process.env.JWT_CONTRACTOR_SECRET_KEY, { expiresIn: config_1.config.jwt.tokenLifetime });
+                        // return access token
+                        return [2 /*return*/, res.json({
+                                success: true,
+                                message: "Login successful",
+                                accessToken: accessToken,
+                                expiresIn: config_1.config.jwt.tokenLifetime,
+                                user: contractorResponse
+                            })];
+                    case 6:
+                        err_4 = _d.sent();
+                        return [2 /*return*/, res.status(500).json({ success: false, message: err_4.message })];
+                    case 7: return [2 /*return*/];
+                }
+            });
+        });
+    };
     AuthHandler.prototype.resendEmail = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, email, errors, contractor, otp, createdTime, html, err_4;
+            var req, res, email, errors, contractor, otp, createdTime, html, err_5;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -366,8 +431,8 @@ var AuthHandler = /** @class */ (function (_super) {
                         services_1.EmailService.send(email, "Email Verification", html);
                         return [2 /*return*/, res.status(200).json({ success: true, message: "OTP sent successfully to your email." })];
                     case 4:
-                        err_4 = _a.sent();
-                        return [2 /*return*/, res.status(500).json({ success: false, message: err_4.message })];
+                        err_5 = _a.sent();
+                        return [2 /*return*/, res.status(500).json({ success: false, message: err_5.message })];
                     case 5: return [2 /*return*/];
                 }
             });
@@ -375,7 +440,7 @@ var AuthHandler = /** @class */ (function (_super) {
     };
     AuthHandler.prototype.forgotPassword = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, email, errors, contractor, otp, createdTime, html, emailData, err_5;
+            var req, res, email, errors, contractor, otp, createdTime, html, emailData, err_6;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -417,8 +482,8 @@ var AuthHandler = /** @class */ (function (_super) {
                         (0, send_email_utility_1.sendEmail)(emailData);
                         return [2 /*return*/, res.status(200).json({ success: true, message: "OTP sent successfully to your email." })];
                     case 4:
-                        err_5 = _a.sent();
-                        return [2 /*return*/, res.status(500).json({ success: false, message: err_5.message })];
+                        err_6 = _a.sent();
+                        return [2 /*return*/, res.status(500).json({ success: false, message: err_6.message })];
                     case 5: return [2 /*return*/];
                 }
             });
@@ -426,7 +491,7 @@ var AuthHandler = /** @class */ (function (_super) {
     };
     AuthHandler.prototype.resetPassword = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _a, email, otp, password, errors, contractor, _b, createdTime, verified, timeDiff, hashedPassword, err_6;
+            var req, res, _a, email, otp, password, errors, contractor, _b, createdTime, verified, timeDiff, hashedPassword, err_7;
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
@@ -466,9 +531,9 @@ var AuthHandler = /** @class */ (function (_super) {
                         _c.sent();
                         return [2 /*return*/, res.status(200).json({ success: true, message: "password successfully change" })];
                     case 5:
-                        err_6 = _c.sent();
+                        err_7 = _c.sent();
                         // signup error
-                        return [2 /*return*/, res.status(500).json({ success: false, message: err_6.message })];
+                        return [2 /*return*/, res.status(500).json({ success: false, message: err_7.message })];
                     case 6: return [2 /*return*/];
                 }
             });
@@ -476,7 +541,7 @@ var AuthHandler = /** @class */ (function (_super) {
     };
     AuthHandler.prototype.verifyResetPasswordOtp = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _a, email, otp, errors, contractor, createdTime, timeDiff, err_7;
+            var req, res, _a, email, otp, errors, contractor, createdTime, timeDiff, err_8;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -513,8 +578,8 @@ var AuthHandler = /** @class */ (function (_super) {
                         }
                         return [2 /*return*/, res.status(200).json({ success: true, message: "password reset otp verified" })];
                     case 3:
-                        err_7 = _b.sent();
-                        return [2 /*return*/, res.status(500).json({ success: false, message: err_7.message })];
+                        err_8 = _b.sent();
+                        return [2 /*return*/, res.status(500).json({ success: false, message: err_8.message })];
                     case 4: return [2 /*return*/];
                 }
             });
@@ -538,6 +603,12 @@ var AuthHandler = /** @class */ (function (_super) {
         __metadata("design:paramtypes", []),
         __metadata("design:returntype", Promise)
     ], AuthHandler.prototype, "signin", null);
+    __decorate([
+        (0, decorators_abstract_1.handleAsyncError)(),
+        __metadata("design:type", Function),
+        __metadata("design:paramtypes", []),
+        __metadata("design:returntype", Promise)
+    ], AuthHandler.prototype, "signinWithPhone", null);
     __decorate([
         (0, decorators_abstract_1.handleAsyncError)(),
         __metadata("design:type", Function),

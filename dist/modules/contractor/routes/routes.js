@@ -28,6 +28,9 @@ router.post("/email-verification", requests_1.ContractorHttpRequest.EmailVerific
 router.post("/signin", requests_1.ContractorHttpRequest.LoginRequest, function (req, res, next) {
     (0, contractor_auth_controller_1.AuthController)(req, res, next).signin();
 });
+router.post("/signin-phone", requests_1.ContractorHttpRequest.LoginWithPhoneRequest, function (req, res, next) {
+    (0, contractor_auth_controller_1.AuthController)(req, res, next).signinWithPhone();
+});
 router.post("/resend-email", requests_1.ContractorHttpRequest.ResendEmailRequest, function (req, res, next) {
     (0, contractor_auth_controller_1.AuthController)(req, res, next).resendEmail();
 });

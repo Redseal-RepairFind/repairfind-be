@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorHttpRequest = exports.CreateJobDisputeRequest = exports.sendMessageParams = exports.CreateExtraJobQuotationRequest = exports.CreateJobQuotationRequest = exports.CreateScheduleRequest = exports.UpdateOrDevice = exports.CreateStripeSessionRequest = exports.InviteToTeam = exports.CreateCompanyDetailsRequest = exports.CreateGstDetailsRequest = exports.UpdateBankDetailRequest = exports.PasswordChangeRequest = exports.PasswordResetRequest = exports.ResendEmailRequest = exports.LoginRequest = exports.EmailVerificationRequest = exports.UpgradeEmployeeProfileRequest = exports.UpdateProfileRequest = exports.CreateProfileRequest = exports.CreateContractorRequest = void 0;
+exports.ContractorHttpRequest = exports.CreateJobDisputeRequest = exports.sendMessageParams = exports.CreateExtraJobQuotationRequest = exports.CreateJobQuotationRequest = exports.CreateScheduleRequest = exports.UpdateOrDevice = exports.CreateStripeSessionRequest = exports.InviteToTeam = exports.CreateCompanyDetailsRequest = exports.CreateGstDetailsRequest = exports.UpdateBankDetailRequest = exports.PasswordChangeRequest = exports.PasswordResetRequest = exports.ResendEmailRequest = exports.LoginWithPhoneRequest = exports.LoginRequest = exports.EmailVerificationRequest = exports.UpgradeEmployeeProfileRequest = exports.UpdateProfileRequest = exports.CreateProfileRequest = exports.CreateContractorRequest = void 0;
 var express_validator_1 = require("express-validator");
 exports.CreateContractorRequest = [
     (0, express_validator_1.body)('email').isEmail(),
@@ -186,6 +186,11 @@ exports.LoginRequest = [
     (0, express_validator_1.body)("email").notEmpty(),
     (0, express_validator_1.body)("password").notEmpty(),
 ];
+exports.LoginWithPhoneRequest = [
+    (0, express_validator_1.body)("number").notEmpty(),
+    (0, express_validator_1.body)("code").notEmpty(),
+    (0, express_validator_1.body)("password").notEmpty(),
+];
 exports.ResendEmailRequest = [
     (0, express_validator_1.body)("email").isEmail(),
 ];
@@ -289,6 +294,7 @@ exports.ContractorHttpRequest = {
     CreateContractorRequest: exports.CreateContractorRequest,
     EmailVerificationRequest: exports.EmailVerificationRequest,
     LoginRequest: exports.LoginRequest,
+    LoginWithPhoneRequest: exports.LoginWithPhoneRequest,
     ResendEmailRequest: exports.ResendEmailRequest,
     PasswordResetRequest: exports.PasswordResetRequest,
     UpdateBankDetailRequest: exports.UpdateBankDetailRequest,
