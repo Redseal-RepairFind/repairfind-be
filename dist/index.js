@@ -122,8 +122,10 @@ app.use("/", function (req, res) {
 app.use(custom_errors_1.errorHandler);
 // Socket.IO event handlers
 socketio_1.default.initialize(server);
+// Set the default timezone to PST (Pacific Standard Time)
+process.env.TZ = 'America/Los_Angeles';
 // Initialize server
 var port = process.env.PORT || 3000;
 server.listen(port, function () {
-    logger_1.Logger.info("Server listening on port ".concat(port));
+    logger_1.Logger.info("Server listening on port ".concat(port, " - Timezone: ").concat(process.env.TZ));
 });

@@ -319,7 +319,7 @@ var getContractorReviews = function (req, res, next) { return __awaiter(void 0, 
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 3, , 4]);
+                _b.trys.push([0, 5, , 6]);
                 contractorId = req.params.contractorId;
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId).populate([
                         { path: 'profile' },
@@ -329,16 +329,33 @@ var getContractorReviews = function (req, res, next) { return __awaiter(void 0, 
                 if (!contractor) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Contractor not found' })];
                 }
-                filter = { contractor: contractorId, type: review_model_1.REVIEW_TYPE.JOB_COMPLETION };
+                filter = { contractor: contractorId };
                 return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(review_model_1.ReviewModel.find(filter).populate(['customer']), req.query)];
             case 2:
                 _a = _b.sent(), data = _a.data, error = _a.error;
-                return [2 /*return*/, res.status(200).json({ success: true, message: 'Contractor reviews  retrieved', data: data })];
+                if (!data) return [3 /*break*/, 4];
+                return [4 /*yield*/, Promise.all(data.data.map(function (review) { return __awaiter(void 0, void 0, void 0, function () {
+                        var _a;
+                        return __generator(this, function (_b) {
+                            switch (_b.label) {
+                                case 0:
+                                    _a = review;
+                                    return [4 /*yield*/, review.getHeading()];
+                                case 1:
+                                    _a.heading = _b.sent();
+                                    return [2 /*return*/];
+                            }
+                        });
+                    }); }))];
             case 3:
+                _b.sent();
+                _b.label = 4;
+            case 4: return [2 /*return*/, res.status(200).json({ success: true, message: 'Contractor reviews  retrieved', data: data })];
+            case 5:
                 error_2 = _b.sent();
                 next(new custom_errors_1.BadRequestError('An error occurred', error_2));
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/];
+                return [3 /*break*/, 6];
+            case 6: return [2 /*return*/];
         }
     });
 }); };
