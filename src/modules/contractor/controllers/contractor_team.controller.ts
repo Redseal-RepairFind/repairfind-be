@@ -5,10 +5,10 @@ import ContractorTeamModel, { IContractorTeam } from '../../../database/contract
 import { ContractorModel } from '../../../database/contractor/models/contractor.model';
 import { validationResult } from 'express-validator';
 import { EmailService } from '../../../services';
-import { NewTeamInvitationEmail } from '../../../templates/contractorEmail/team_invitation_email.template';
+import { NewTeamInvitationEmail } from '../../../templates/contractor/team_invitation_email.template';
 import { IContractor } from '../../../database/contractor/interface/contractor.interface';
 import { InternalServerError } from '../../../utils/custom.errors';
-import { RemovedFromTeamEmail } from '../../../templates/contractorEmail/team_removal_email.template';
+import { RemovedFromTeamEmail } from '../../../templates/contractor/team_removal_email.template';
 
 
 

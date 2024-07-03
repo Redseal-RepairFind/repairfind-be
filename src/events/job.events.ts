@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events';
 import { EmailService, NotificationService } from '../services';
-import { htmlJobRequestTemplate } from '../templates/contractorEmail/jobRequestTemplate';
+import { htmlJobRequestTemplate } from '../templates/contractor/jobRequestTemplate';
 import CustomerModel from '../database/customer/models/customer.model';
 import { ContractorModel } from '../database/contractor/models/contractor.model';
 import { IJob, JOB_SCHEDULE_TYPE, JOB_STATUS, JobModel } from '../database/common/job.model';
@@ -8,7 +8,7 @@ import { ConversationModel } from '../database/common/conversations.schema';
 import { SocketService } from '../services/socket';
 import { IContractor } from '../database/contractor/interface/contractor.interface';
 import { ICustomer } from '../database/customer/interface/customer.interface';
-import { NewJobAssignedEmailTemplate } from '../templates/contractorEmail/job_assigned.template';
+import { NewJobAssignedEmailTemplate } from '../templates/contractor/job_assigned.template';
 import { JobCanceledEmailTemplate } from '../templates/common/job_canceled.template';
 import { IJobDay, JobDayModel } from '../database/common/job_day.model';
 import { IJobEmergency } from '../database/common/job_emergency.model';

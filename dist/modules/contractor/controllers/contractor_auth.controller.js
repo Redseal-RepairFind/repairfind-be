@@ -91,11 +91,12 @@ var contractor_model_1 = require("../../../database/contractor/models/contractor
 var otpGenerator_1 = require("../../../utils/otpGenerator");
 var send_email_utility_1 = require("../../../utils/send_email_utility");
 var sendEmailTemplate_1 = require("../../../templates/sendEmailTemplate");
-var contractorWelcomeTemplate_1 = require("../../../templates/contractorEmail/contractorWelcomeTemplate");
+var contractorWelcomeTemplate_1 = require("../../../templates/contractor/contractorWelcomeTemplate");
 var decorators_abstract_1 = require("../../../abstracts/decorators.abstract");
 var base_abstract_1 = require("../../../abstracts/base.abstract");
 var services_1 = require("../../../services");
 var config_1 = require("../../../config");
+var email_verification_1 = require("../../../templates/common/email_verification");
 var AuthHandler = /** @class */ (function (_super) {
     __extends(AuthHandler, _super);
     function AuthHandler() {
@@ -103,7 +104,7 @@ var AuthHandler = /** @class */ (function (_super) {
     }
     AuthHandler.prototype.signUp = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _a, email, password, firstName, dateOfBirth, lastName, phoneNumber, acceptTerms, accountType, companyName, errors, userEmailExists, otp, createdTime, emailOtp, hashedPassword, contractor, html, emailData, welcomeHtml, welcomeEmailData, err_1;
+            var req, res, _a, email, password, firstName, dateOfBirth, lastName, phoneNumber, acceptTerms, accountType, companyName, errors, userEmailExists, otp, createdTime, emailOtp, hashedPassword, contractor, html, welcomeHtml, welcomeEmailData, err_1;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -147,12 +148,7 @@ var AuthHandler = /** @class */ (function (_super) {
                             })];
                     case 4:
                         contractor = _b.sent();
-                        html = (0, sendEmailTemplate_1.htmlMailTemplate)(otp, firstName !== null && firstName !== void 0 ? firstName : companyName, "We have received a request to verify your email");
-                        emailData = {
-                            emailTo: email,
-                            subject: "Email Verification",
-                            html: html
-                        };
+                        html = (0, email_verification_1.EmailVerificationTemplate)(otp, firstName !== null && firstName !== void 0 ? firstName : companyName);
                         return [4 /*yield*/, services_1.EmailService.send(email, 'Email Verification', html)];
                     case 5:
                         _b.sent();

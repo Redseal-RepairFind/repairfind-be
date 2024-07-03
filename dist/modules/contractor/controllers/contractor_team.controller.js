@@ -44,7 +44,7 @@ var contractor_team_model_1 = __importDefault(require("../../../database/contrac
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var services_1 = require("../../../services");
 var custom_errors_1 = require("../../../utils/custom.errors");
-var team_removal_email_template_1 = require("../../../templates/contractorEmail/team_removal_email.template");
+var team_removal_email_template_1 = require("../../../templates/contractor/team_removal_email.template");
 var getTeam = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var contractorId, contractor, companyTeam, error_1;
     return __generator(this, function (_a) {

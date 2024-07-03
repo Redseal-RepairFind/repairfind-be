@@ -1,7 +1,7 @@
 import { validationResult } from "express-validator";
 import { NextFunction, Request, Response } from "express";
 import { ContractorModel } from "../../../database/contractor/models/contractor.model";
-import { htmlJobRequestTemplate } from "../../../templates/contractorEmail/jobRequestTemplate";
+import { htmlJobRequestTemplate } from "../../../templates/contractor/jobRequestTemplate";
 import CustomerModel from "../../../database/customer/models/customer.model";
 import { EmailService, NotificationService } from "../../../services";
 import { addHours, isFuture, isValid, startOfDay } from "date-fns";
@@ -12,8 +12,8 @@ import { ConversationModel } from "../../../database/common/conversations.schema
 import { IMessage, MessageModel, MessageType } from "../../../database/common/messages.schema";
 import { JOB_QUOTATION_STATUS, JobQuotationModel } from "../../../database/common/job_quotation.model";
 import { JobEvent } from "../../../events";
-import { htmlJobQuotationAcceptedContractorEmailTemplate } from "../../../templates/contractorEmail/job_quotation_accepted.template";
-import { htmlJobQuotationDeclinedContractorEmailTemplate } from "../../../templates/contractorEmail/job_quotation_declined.template";
+import { htmlJobQuotationAcceptedContractorEmailTemplate } from "../../../templates/contractor/job_quotation_accepted.template";
+import { htmlJobQuotationDeclinedContractorEmailTemplate } from "../../../templates/contractor/job_quotation_declined.template";
 import mongoose from "mongoose";
 
 

@@ -42,7 +42,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CustomerJobController = exports.declineJobQuotation = exports.acceptJobQuotation = exports.getSingleQuotation = exports.getJobQuotations = exports.getSingleJob = exports.getJobHistory = exports.getMyJobs = exports.createJobListing = exports.createJobRequest = void 0;
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
-var jobRequestTemplate_1 = require("../../../templates/contractorEmail/jobRequestTemplate");
+var jobRequestTemplate_1 = require("../../../templates/contractor/jobRequestTemplate");
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var services_1 = require("../../../services");
 var date_fns_1 = require("date-fns");
@@ -53,8 +53,8 @@ var conversations_schema_1 = require("../../../database/common/conversations.sch
 var messages_schema_1 = require("../../../database/common/messages.schema");
 var job_quotation_model_1 = require("../../../database/common/job_quotation.model");
 var events_1 = require("../../../events");
-var job_quotation_accepted_template_1 = require("../../../templates/contractorEmail/job_quotation_accepted.template");
-var job_quotation_declined_template_1 = require("../../../templates/contractorEmail/job_quotation_declined.template");
+var job_quotation_accepted_template_1 = require("../../../templates/contractor/job_quotation_accepted.template");
+var job_quotation_declined_template_1 = require("../../../templates/contractor/job_quotation_declined.template");
 var mongoose_1 = __importDefault(require("mongoose"));
 var createJobRequest = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, contractorId, category, description, location_1, date, _b, expiresIn, emergency, media, voiceDescription, time, customerId, customer, contractor, startOfToday, existingJobRequest, dateTimeString, jobTime, currentDate, expiryDate, newJob, conversationMembers, conversation, newMessage, html, error_1;
