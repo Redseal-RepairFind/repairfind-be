@@ -725,11 +725,10 @@ var updateJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
 }); };
 exports.updateJobQuotation = updateJobQuotation;
 var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, contractorId, profile, _a, distance, latitude, longitude, emergency, _b, category, city, country, address, startDate, endDate, _c, page, _d, limit, sort // Sort field and order (-fieldName or fieldName)
-    , pipeline, contractor, quotations, jobIdsWithQuotations, _e, sortField, sortOrder, sortStage, skip, result, jobs, metadata, error_9;
-    var _f;
-    return __generator(this, function (_g) {
-        switch (_g.label) {
+    var errors, contractorId, profile, _a, distance, latitude, longitude, emergency, _b, category, city, country, address, startDate, endDate, _c, page, _d, limit, sort, _e, showHidden, pipeline, contractor, quotations, jobIdsWithQuotations, _f, sortField, sortOrder, sortStage, skip, result, jobs, metadata, error_9;
+    var _g;
+    return __generator(this, function (_h) {
+        switch (_h.label) {
             case 0:
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
@@ -738,11 +737,11 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                 contractorId = req.contractor.id;
                 return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: contractorId })];
             case 1:
-                profile = _g.sent();
-                _g.label = 2;
+                profile = _h.sent();
+                _h.label = 2;
             case 2:
-                _g.trys.push([2, 6, , 7]);
-                _a = req.query, distance = _a.distance, latitude = _a.latitude, longitude = _a.longitude, emergency = _a.emergency, _b = _a.category, category = _b === void 0 ? profile === null || profile === void 0 ? void 0 : profile.skill : _b, city = _a.city, country = _a.country, address = _a.address, startDate = _a.startDate, endDate = _a.endDate, _c = _a.page, page = _c === void 0 ? 1 : _c, _d = _a.limit, limit = _d === void 0 ? 10 : _d, sort = _a.sort;
+                _h.trys.push([2, 6, , 7]);
+                _a = req.query, distance = _a.distance, latitude = _a.latitude, longitude = _a.longitude, emergency = _a.emergency, _b = _a.category, category = _b === void 0 ? profile === null || profile === void 0 ? void 0 : profile.skill : _b, city = _a.city, country = _a.country, address = _a.address, startDate = _a.startDate, endDate = _a.endDate, _c = _a.page, page = _c === void 0 ? 1 : _c, _d = _a.limit, limit = _d === void 0 ? 10 : _d, sort = _a.sort, _e = _a.showHidden, showHidden = _e === void 0 ? false : _e;
                 limit = limit > 0 ? parseInt(limit) : 10; // Handle null limit
                 pipeline = [
                     {
@@ -768,17 +767,19 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                 ];
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
             case 3:
-                contractor = _g.sent();
+                contractor = _h.sent();
                 return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.find({ contractor: contractorId }, { job: 1 })];
             case 4:
-                quotations = _g.sent();
+                quotations = _h.sent();
                 jobIdsWithQuotations = quotations.map(function (quotation) { return quotation.job; });
                 pipeline.push({ $match: { _id: { $nin: jobIdsWithQuotations } } });
                 pipeline.push({ $match: { type: job_model_1.JobType.LISTING } });
                 pipeline.push({ $match: { category: category } });
                 pipeline.push({ $match: { status: job_model_1.JOB_STATUS.PENDING } });
-                // Add a new $match stage to filter out jobs with contractorId in hideFrom array
-                pipeline.push({ $match: { hideFrom: { $nin: [contractorId] } } });
+                if (!showHidden) {
+                    // Add a new $match stage to filter out jobs with contractorId in hideFrom array
+                    pipeline.push({ $match: { hideFrom: { $nin: [contractorId] } } });
+                }
                 if (category) {
                     pipeline.push({ $match: { category: { $regex: new RegExp(category, 'i') } } });
                 }
@@ -821,10 +822,10 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                 }
                 // Add sorting stage if specified
                 if (sort) {
-                    _e = sort.startsWith('-') ? [sort.slice(1), -1] : [sort, 1], sortField = _e[0], sortOrder = _e[1];
+                    _f = sort.startsWith('-') ? [sort.slice(1), -1] : [sort, 1], sortField = _f[0], sortOrder = _f[1];
                     sortStage = {
                         //@ts-ignore
-                        $sort: (_f = {}, _f[sortField] = sortOrder, _f)
+                        $sort: (_g = {}, _g[sortField] = sortOrder, _g)
                     };
                     pipeline.push(sortStage);
                 }
@@ -841,7 +842,7 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                 });
                 return [4 /*yield*/, job_model_1.JobModel.aggregate(pipeline)];
             case 5:
-                result = _g.sent();
+                result = _h.sent();
                 jobs = result[0].data;
                 if (jobs) {
                     //NO longer neccessary since applied jobs don't show up again
@@ -855,7 +856,7 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                 res.status(200).json({ success: true, data: __assign(__assign({}, metadata), { data: jobs }) });
                 return [3 /*break*/, 7];
             case 6:
-                error_9 = _g.sent();
+                error_9 = _h.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_9))];
             case 7: return [2 /*return*/];
         }
