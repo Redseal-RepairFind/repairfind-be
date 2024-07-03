@@ -55,7 +55,7 @@ export class EmailService {
                 await QueueService.addJob('sendEmail', mailOptions, { jobId, removeOnComplete: true } );
                 console.log(`Email job added to queue for ${to} with CC to ${ccAddresses.join(', ')}`);
 
-                console.log(`Email sent successfully to ${to} with CC to ${ccAddresses.join(', ')}`);
+                console.log(`Email sent successfully to ${to} with CC to ${ccAddresses.join(', ')} | ${subject}`);
             }
         } catch (error: unknown) {
             console.error(error);

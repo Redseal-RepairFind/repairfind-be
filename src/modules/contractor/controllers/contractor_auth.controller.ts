@@ -8,12 +8,13 @@ import { sendEmail } from "../../../utils/send_email_utility";
 import { uploadToS3 } from "../../../utils/upload.utility";
 import { v4 as uuidv4 } from "uuid";
 import { htmlMailTemplate } from "../../../templates/sendEmailTemplate";
-import { htmlContractorWelcomeTemplate } from "../../../templates/contractorEmail/contractorWelcomeTemplate";
+import { htmlContractorWelcomeTemplate } from "../../../templates/contractor/contractorWelcomeTemplate";
 import AdminNoficationModel from "../../../database/admin/models/admin_notification.model";
 import { handleAsyncError } from "../../../abstracts/decorators.abstract";
 import { Base } from "../../../abstracts/base.abstract";
 import { EmailService } from "../../../services";
 import { config } from "../../../config";
+import { EmailVerificationTemplate } from "../../../templates/common/email_verification";
 
 class AuthHandler extends Base {
     @handleAsyncError()
@@ -65,13 +66,7 @@ class AuthHandler extends Base {
 
 
 
-            const html = htmlMailTemplate(otp, firstName ?? companyName, "We have received a request to verify your email");
-            let emailData = {
-                emailTo: email,
-                subject: "Email Verification",
-                html
-            };
-
+            const html = EmailVerificationTemplate(otp, firstName ?? companyName);
             await EmailService.send(email, 'Email Verification', html);
 
             const welcomeHtml = htmlContractorWelcomeTemplate(firstName ?? companyName);

@@ -3,7 +3,7 @@ import { validationResult } from 'express-validator';
 import { ContractorModel } from '../../../database/contractor/models/contractor.model';
 import TeamInvitationModel, { ITeamInvitation, TeamInvitationStatus } from '../../../database/contractor/models/contractor_team_invitation.model';
 import ContractorTeamModel, { IContractorTeam, TeamMemberStatus } from '../../../database/contractor/models/contractor_team.model';
-import { NewTeamInvitationEmail } from '../../../templates/contractorEmail/team_invitation_email.template';
+import { NewTeamInvitationEmail } from '../../../templates/contractor/team_invitation_email.template';
 import { EmailService } from '../../../services';
 import { IContractor } from '../../../database/contractor/interface/contractor.interface';
 

@@ -75,7 +75,7 @@ var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var contractor_team_invitation_model_1 = __importStar(require("../../../database/contractor/models/contractor_team_invitation.model"));
 var contractor_team_model_1 = __importStar(require("../../../database/contractor/models/contractor_team.model"));
-var team_invitation_email_template_1 = require("../../../templates/contractorEmail/team_invitation_email.template");
+var team_invitation_email_template_1 = require("../../../templates/contractor/team_invitation_email.template");
 var services_1 = require("../../../services");
 // Controller method to invite a user to join a team
 var inviteToTeam = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {

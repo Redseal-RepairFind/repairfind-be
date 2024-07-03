@@ -95,7 +95,7 @@ var EmailService = /** @class */ (function () {
                     case 2:
                         _a.sent();
                         console.log("Email job added to queue for ".concat(to, " with CC to ").concat(ccAddresses.join(', ')));
-                        console.log("Email sent successfully to ".concat(to, " with CC to ").concat(ccAddresses.join(', ')));
+                        console.log("Email sent successfully to ".concat(to, " with CC to ").concat(ccAddresses.join(', '), " | ").concat(subject));
                         _a.label = 3;
                     case 3:
                         _i++;

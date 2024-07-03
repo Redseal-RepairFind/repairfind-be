@@ -1,7 +1,7 @@
 import { validationResult } from "express-validator";
 import { NextFunction, Request, Response } from "express";
 import { ContractorModel } from "../../../database/contractor/models/contractor.model";
-import { htmlJobRequestTemplate } from "../../../templates/contractorEmail/jobRequestTemplate";
+import { htmlJobRequestTemplate } from "../../../templates/contractor/jobRequestTemplate";
 import { EmailService, NotificationService } from "../../../services";
 import { addHours, isFuture, isValid, startOfDay } from "date-fns";
 import { IJob, JobModel, JOB_STATUS, JobType, IJobSchedule, JOB_SCHEDULE_TYPE, IJobAssignment, IJobReSchedule } from "../../../database/common/job.model";
@@ -14,7 +14,7 @@ import { JobEvent } from "../../../events";
 import mongoose from "mongoose";
 import { CONTRACTOR_TYPES } from "../../../database/contractor/interface/contractor.interface";
 import ContractorTeamModel, { IContractorTeam } from "../../../database/contractor/models/contractor_team.model";
-import { NewJobAssignedEmailTemplate } from "../../../templates/contractorEmail/job_assigned.template";
+import { NewJobAssignedEmailTemplate } from "../../../templates/contractor/job_assigned.template";
 import { JobDisputeModel } from "../../../database/common/job_dispute.model";
 import { REVIEW_TYPE, ReviewModel } from "../../../database/common/review.model";
 import { JobDayModel } from "../../../database/common/job_day.model";

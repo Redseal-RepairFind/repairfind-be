@@ -8,13 +8,14 @@ import { sendEmail } from "../../../utils/send_email_utility";
 import { htmlMailTemplate } from "../../../templates/sendEmailTemplate";
 import { uploadToS3 } from "../../../utils/upload.utility";
 import { v4 as uuidv4 } from "uuid";
-import { htmlcustomerWelcomTemplate } from "../../../templates/customerEmail/customerWelcomTemplate";
 import AdminNoficationModel from "../../../database/admin/models/admin_notification.model";
 import { GoogleServiceProvider } from "../../../services/google";
 import { CustomerAuthProviders } from "../../../database/customer/interface/customer.interface";
 import { FacebookServiceProvider } from "../../../services/facebook";
-import { AppleIdServiceProvider } from "../../../services";
+import { AppleIdServiceProvider, EmailService } from "../../../services";
 import { config } from "../../../config";
+import { CustomerWelcomeEmailTemplate } from "../../../templates/customer/welcome_email";
+import { EmailVerificationTemplate } from "../../../templates/common/email_verification";
 
 //customer signup /////////////
 export const signUp = async (
@@ -58,25 +59,14 @@ export const signUp = async (
       verified: false
     }
 
-    const html = htmlMailTemplate(otp, firstName, "We have received a request to verify your email");
+    
 
-    const welcomeHtml = htmlcustomerWelcomTemplate(lastName)
+    const welcomeHtml = CustomerWelcomeEmailTemplate(lastName)
+    EmailService.send(email, welcomeHtml, 'Welcome to Repairfind' )
 
-    const welcomeEmailData = {
-      emailTo: email,
-      subject: "welcome",
-      html: welcomeHtml
-    }
-
-    let emailData = {
-      emailTo: email,
-      subject: "email verification",
-      html
-    };
-
-    sendEmail(welcomeEmailData)
-
-    sendEmail(emailData);
+  
+    const emailVerificationHtml = EmailVerificationTemplate(otp, firstName);
+    EmailService.send(email, emailVerificationHtml, 'Email Verification' )
 
 
 

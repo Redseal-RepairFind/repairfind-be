@@ -5,7 +5,7 @@ import {ContractorModel} from "../../../database/contractor/models/contractor.mo
 import { JobModel } from "../../../database/common/job.model";
 import CustomerRegModel from "../../../database/customer/models/customer.model";
 import { sendEmail } from "../../../utils/send_email_utility";
-import { htmlAdminRquestGstStatuChangeTemplate } from "../../../templates/adminEmail/adminRequestGstStatusTemplate";
+import { htmlAdminRquestGstStatuChangeTemplate } from "../../../templates/admin/adminRequestGstStatusTemplate";
 import { OTP_EXPIRY_TIME, generateOTP } from "../../../utils/otpGenerator";
 import { GST_STATUS} from "../../../database/contractor/interface/contractor.interface";
 import { InvoiceModel } from "../../../database/common/invoices.shema";
