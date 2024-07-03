@@ -90,7 +90,7 @@ export const createJobRequest = async (
             location,
             date,
             type: JobType.REQUEST,
-            time: jobTime,
+            time: time? jobTime : date,
             expiresIn,
             expiryDate,
             emergency: emergency || false,

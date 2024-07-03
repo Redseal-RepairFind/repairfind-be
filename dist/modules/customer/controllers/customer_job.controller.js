@@ -116,7 +116,7 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                     location: location_1,
                     date: date,
                     type: job_model_1.JobType.REQUEST,
-                    time: jobTime,
+                    time: time ? jobTime : date,
                     expiresIn: expiresIn,
                     expiryDate: expiryDate,
                     emergency: emergency || false,

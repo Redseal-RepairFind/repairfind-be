@@ -9,10 +9,12 @@ export const generateExpandedSchedule = function (availabilityDays: Array<string
     const expandedSchedule: IContractorSchedule[] = [];
     let currentYear = new Date().getFullYear();
 
+   
     if(year){
-        currentYear = new Date(`${year}-01-01`).getFullYear();
+        currentYear = new Date(`${year}-01-02`).getFullYear();
     }
 
+   
     // Iterate over each weekday in the availability days array
     availabilityDays.forEach(day => {
 
@@ -21,6 +23,8 @@ export const generateExpandedSchedule = function (availabilityDays: Array<string
         if (!currentDate) {
             return
         }
+
+        
         // Find all occurrences of the current weekday in the year
         while (currentDate.getFullYear() === currentYear) {
             if (currentDate.toLocaleString('en-us', { weekday: 'long' }) === day) {
@@ -108,7 +112,7 @@ export const getContractorIdsWithDateInSchedule = async (dateToCheck: Date): Pro
 function firstWeekdayDate(day: string, year?:string): Date | null {
     let today = new Date();
     if(year){
-        today =new Date(`${year}-01-01`)
+        today =new Date(`${year}-01-02`)
     }
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     const weekdayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];

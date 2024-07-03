@@ -178,15 +178,17 @@ export const getSchedulesByDate = async (req: any, res: Response) => {
     });
 
 
-    const existingSchedules = await JobModel.find({
+    const jobSchedules = await JobModel.find({
       contractor: contractorId,
       'schedule.startDate': { $gte: startDate, $lte: endDate },
     }).then(jobs => jobs.map(job => ({ date: job.schedule.startDate, type: job.schedule.type, contractor: job.contractor, events: [{ job: job.id }] })));
 
 
+    const existingSchedules = await ContractorScheduleModel.find({contractor: contractorId})
+
 
     // Concatenate expandedSchedules and existingSchedules
-    const mergedSchedules = [...expandedSchedules, ...existingSchedules];
+    const mergedSchedules = [...expandedSchedules, ...jobSchedules, ...existingSchedules];
 
 
     let uniqueSchedules: any = [];
