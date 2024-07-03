@@ -127,5 +127,5 @@ process.env.TZ = 'America/Los_Angeles';
 // Initialize server
 var port = process.env.PORT || 3000;
 server.listen(port, function () {
-    logger_1.Logger.info("Server listening on port ".concat(port, " - Timezone: ").concat(process.env.TZ));
+    logger_1.Logger.info("Server listening on port ".concat(port, " - Timezone::: ").concat(process.env.TZ));
 });
