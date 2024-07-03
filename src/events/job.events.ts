@@ -567,12 +567,12 @@ JobEvent.on('SITE_VISIT_ESTIMATE_SUBMITTED', async function (payload: { job: IJo
             userType: 'customers',
             title: 'Job Completed',
             type: 'SITE_VISIT_ESTIMATE_SUBMITTED', //
-            message: `change order estimate has been submitted`,
+            message: `Site visit estimate has been submitted`,
             heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
             payload: {
                 entity: job.id,
                 entityType: 'jobs',
-                message: `site visit estimate has been submitted`,
+                message: `Site visit estimate has been submitted`,
                 customer: customer.id,
                 event: 'SITE_VISIT_ESTIMATE_SUBMITTED',
                 jobDayId: jobDay?.id,
@@ -585,12 +585,12 @@ JobEvent.on('SITE_VISIT_ESTIMATE_SUBMITTED', async function (payload: { job: IJo
             userType: 'contractors',
             title: 'Job Completed',
             type: 'SITE_VISIT_ESTIMATE_SUBMITTED', //
-            message: `change order estimate has been submitted`,
+            message: `Site visit estimate has been submitted`,
             heading: { name: `${customer.name}`, image: customer.profilePhoto?.url },
             payload: {
                 entity: job.id,
                 entityType: 'jobs',
-                message: `site visit estimate has been submitted`,
+                message: `Site visit estimate has been submitted`,
                 customer: customer.id,
                 event: 'SITE_VISIT_ESTIMATE_SUBMITTED',
                 jobDayId: jobDay?.id,

@@ -311,8 +311,15 @@ export const getContractorReviews = async (req: any, res: Response, next: NextFu
         }
 
         //reviews etc here
-        let filter: any = { contractor: contractorId, type: REVIEW_TYPE.JOB_COMPLETION };
+        let filter: any = { contractor: contractorId };
         const { data, error } = await applyAPIFeature(ReviewModel.find(filter).populate(['customer']), req.query);
+       
+        if (data) {
+            await Promise.all(data.data.map(async (review: any) => {
+                review.heading = await review.getHeading()
+            }));
+        }
+
         return res.status(200).json({ success: true, message: 'Contractor reviews  retrieved', data: data })
     } catch (error: any) {
         next(new BadRequestError('An error occurred', error))

@@ -689,12 +689,12 @@ exports.JobEvent.on('SITE_VISIT_ESTIMATE_SUBMITTED', function (payload) {
                         userType: 'customers',
                         title: 'Job Completed',
                         type: 'SITE_VISIT_ESTIMATE_SUBMITTED', //
-                        message: "change order estimate has been submitted",
+                        message: "Site visit estimate has been submitted",
                         heading: { name: "".concat(contractor.name), image: (_a = contractor.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
                         payload: {
                             entity: job.id,
                             entityType: 'jobs',
-                            message: "site visit estimate has been submitted",
+                            message: "Site visit estimate has been submitted",
                             customer: customer.id,
                             event: 'SITE_VISIT_ESTIMATE_SUBMITTED',
                             jobDayId: jobDay === null || jobDay === void 0 ? void 0 : jobDay.id,
@@ -706,12 +706,12 @@ exports.JobEvent.on('SITE_VISIT_ESTIMATE_SUBMITTED', function (payload) {
                         userType: 'contractors',
                         title: 'Job Completed',
                         type: 'SITE_VISIT_ESTIMATE_SUBMITTED', //
-                        message: "change order estimate has been submitted",
+                        message: "Site visit estimate has been submitted",
                         heading: { name: "".concat(customer.name), image: (_b = customer.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
                         payload: {
                             entity: job.id,
                             entityType: 'jobs',
-                            message: "site visit estimate has been submitted",
+                            message: "Site visit estimate has been submitted",
                             customer: customer.id,
                             event: 'SITE_VISIT_ESTIMATE_SUBMITTED',
                             jobDayId: jobDay === null || jobDay === void 0 ? void 0 : jobDay.id,

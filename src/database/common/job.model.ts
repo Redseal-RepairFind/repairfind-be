@@ -128,6 +128,7 @@ export interface IJob extends Document {
     isAssigned: boolean;
     review: ObjectId;
     isChangeOrder: boolean;
+    hideFrom: string[];
     jobDay: ObjectId;
     getMyQoutation: (contractorId: ObjectId) => {
     };
@@ -259,6 +260,9 @@ const JobSchema = new Schema<IJob>({
     review: { type: Schema.Types.ObjectId, ref: 'reviews' },
     isChangeOrder: { type: Boolean, default: false },
     jobDay: { type: Schema.Types.ObjectId, ref: 'job_days' },
+    hideFrom: {
+        type: [String]
+    },
 }, { timestamps: true });
 
 

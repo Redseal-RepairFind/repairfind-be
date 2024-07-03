@@ -11,7 +11,7 @@ export class APIFeatures {
     }
 
     filter() {
-        const queryObj = {...this.queryString};
+        const queryObj = { ...this.queryString };
         const excludedFields = ['page', 'sort', 'limit', 'fields'];
         excludedFields.forEach(el => delete queryObj[el]);
 
@@ -28,7 +28,7 @@ export class APIFeatures {
         if (this.queryString.sort) {
             const sortBy = this.queryString.sort.split(',');
             let sortOptions = '';
-    
+
             sortBy.forEach((sortField: string) => {
                 if (sortField.startsWith('-')) {
                     // Sort in descending order
@@ -39,13 +39,13 @@ export class APIFeatures {
                     sortOptions += `${sortField} `;
                 }
             });
-    
+
             this.query = this.query.sort(sortOptions.trim());
         } else {
             // Default sorting by createdAt field in descending order
             this.query = this.query.sort('-createdAt');
         }
-    
+
         return this;
     }
 
@@ -73,13 +73,13 @@ export class APIFeatures {
         return totalItems;
     }
 
-    
+
 
     search() {
 
         if (this.queryString.search && this.queryString.searchFields) {
 
-            let searchRegex: RegExp | null ;
+            let searchRegex: RegExp | null;
 
             if (mongoose.Types.ObjectId.isValid(this.queryString.search)) {
                 searchRegex = this.queryString.search; // Use ObjectId directly
@@ -112,20 +112,38 @@ export const applyAPIFeature = async (model: any, query: any) => {
         const features = new APIFeatures(model, query);
         features.filter().search().sort().limitFields().paginate();
         const dataQuery = await features.query;
+
+
+
+        // Handle async virtuals and methods
+        // if (dataQuery && dataQuery.length > 0) {
+        //     dataQuery.map(async (doc: any) => {
+        //         const methods = Object.keys(doc.schema.methods);
+        //         methods.map(async (method) => {
+        //             if (typeof doc[method] === 'function') {
+        //                 const result = await doc[method]();
+        //                 const methodName = method.charAt(3).toLowerCase() + method.slice(4);
+        //                 doc[methodName] = result; // Assign the resolved result to the document
+        //             }
+        //         })
+        //     })
+        // }
+
+
         const limit = features.queryString.limit;
         const currentPage = features.queryString.page;
         const totalItems = await features.getTotalItems();
         const lastPage = Math.ceil(totalItems / limit);
-        const data =  {
+        const data = {
             totalItems,
             limit,
             currentPage,
             lastPage,
             data: dataQuery,
         };
-        return {data, error: null}
+        return { data, error: null }
     } catch (error) {
         console.log(error)
-        return {data: null, error: error}
+        return { data: null, error: error }
     }
 };
