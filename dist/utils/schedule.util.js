@@ -42,7 +42,7 @@ var generateExpandedSchedule = function (availabilityDays, year) {
     var expandedSchedule = [];
     var currentYear = new Date().getFullYear();
     if (year) {
-        currentYear = new Date("".concat(year, "-01-01")).getFullYear();
+        currentYear = new Date("".concat(year, "-01-02")).getFullYear();
     }
     // Iterate over each weekday in the availability days array
     availabilityDays.forEach(function (day) {
@@ -164,7 +164,7 @@ exports.getContractorIdsWithDateInSchedule = getContractorIdsWithDateInSchedule;
 function firstWeekdayDate(day, year) {
     var today = new Date();
     if (year) {
-        today = new Date("".concat(year, "-01-01"));
+        today = new Date("".concat(year, "-01-02"));
     }
     var firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     var weekdayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
