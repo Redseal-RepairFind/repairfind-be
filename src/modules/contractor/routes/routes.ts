@@ -167,6 +167,7 @@ router.get('/jobs', checkContractorRole, ContractorJobController.getJobRequests)
 router.get('/jobs/my-jobs', checkContractorRole, ContractorJobController.getMyJobs)
 router.get('/jobs/listings', checkContractorRole, ContractorJobController.getJobListings)
 router.get('/jobs/listings/:jobId', checkContractorRole, ContractorJobController.getJobListingById)
+router.post('/jobs/listings/:jobId/hide-listing', checkContractorRole, ContractorJobController.hideJobListing)
 
 // Job Request
 router.get('/jobs/requests', checkContractorRole, ContractorJobController.getJobRequests)

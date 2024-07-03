@@ -172,6 +172,9 @@ var JobSchema = new mongoose_1.Schema({
     review: { type: mongoose_1.Schema.Types.ObjectId, ref: 'reviews' },
     isChangeOrder: { type: Boolean, default: false },
     jobDay: { type: mongoose_1.Schema.Types.ObjectId, ref: 'job_days' },
+    hideFrom: {
+        type: [String]
+    },
 }, { timestamps: true });
 JobSchema.virtual('totalQuotations').get(function () {
     var pendingQuotations = this.quotations ? this.quotations.filter(function (quote) { return quote.status !== job_quotation_model_1.JOB_QUOTATION_STATUS.DECLINED; }) : [];

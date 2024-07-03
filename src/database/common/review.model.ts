@@ -1,4 +1,5 @@
 import { ObjectId, Schema, model } from "mongoose";
+import CustomerModel from "../customer/models/customer.model";
 
 
 
@@ -18,6 +19,7 @@ export interface IReview {
     job?: ObjectId; // Optional: Textual feedback
     createdAt: Date;
     type: string;
+    heading: object;
 }
 
 const ReviewSchema = new Schema<IReview>({
@@ -47,11 +49,37 @@ const ReviewSchema = new Schema<IReview>({
         enum: Object.values(REVIEW_TYPE),
         default: REVIEW_TYPE.JOB_COMPLETION
     },
+    heading: Object,
     createdAt: {
         type: Date,
         default: Date.now,
     },
 });
 
+
+
+
+
+// Define a method for the virtual field
+ReviewSchema.methods.getHeading = async function() {
+    if (this.customer) {
+        const customer = await CustomerModel.findById(this.customer)
+        if (customer) {
+            return { name: customer.name, image: customer?.profilePhoto?.url };
+        }
+    }
+    
+    return {
+        name: "Repairfind",
+        image: "https://ipalas3bucket.s3.us-east-2.amazonaws.com/avatar.png"
+    };
+};
+
+
+
+
+
+ReviewSchema.set('toObject', { virtuals: true });
+ReviewSchema.set('toJSON', { virtuals: true });
 
 export const ReviewModel = model<IReview>("reviews", ReviewSchema);

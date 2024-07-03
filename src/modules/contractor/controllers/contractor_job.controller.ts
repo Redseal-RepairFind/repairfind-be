@@ -146,11 +146,11 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
 
 
     // Update the status of the job request to "Accepted"
-    job.status = JOB_STATUS.SUBMITTED;
+    job.status = JOB_STATUS.ACCEPTED;
 
     // Define the rejection event to be stored in the job history
     const jobEvent = {
-      eventType: JOB_STATUS.SUBMITTED,
+      eventType: JOB_STATUS.ACCEPTED,
       timestamp: new Date(),
       payload: {
         message: 'Contactor accepted this job'
@@ -202,6 +202,8 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
     return next(new BadRequestError('Something went wrong', error));
   }
 };
+
+
 
 
 export const rejectJobRequest = async (req: any, res: Response) => {
@@ -374,6 +376,38 @@ export const getJobListingById = async (req: any, res: Response, next: NextFunct
 };
 
 
+export const hideJobListing = async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    const { jobId } = req.params;
+    const contractorId = req.contractor.id;
+
+
+    const job = await JobModel.findById(jobId)
+
+    if (!job) {
+      return next(new NotFoundError('Job listing not found'));
+    }
+
+    if (!job.hideFrom.includes(contractorId)) {
+      job.hideFrom.push(contractorId);
+    }
+  
+    await job.save();
+
+    
+    // Return the job request payload
+    res.json({ success: true, message: 'Job removed from listing successfully', data: job });
+  } catch (error) {
+    console.error('Error retrieving job listing:', error);
+    return next(new BadRequestError('Bad Request'));
+  }
+};
+
+
 export const sendJobQuotation = async (
   req: any,
   res: Response,
@@ -462,8 +496,8 @@ export const sendJobQuotation = async (
 
     // Update job status and history if needed
     if (job.type === JobType.REQUEST) {
-      job.status = JOB_STATUS.ACCEPTED;
-      if (!job.jobHistory.some(jobEvent => jobEvent.eventType === JOB_STATUS.ACCEPTED)) {
+      job.status = JOB_STATUS.SUBMITTED;
+      if (!job.jobHistory.some(jobEvent => jobEvent.eventType === JOB_STATUS.SUBMITTED)) {
         job.jobHistory.push({ eventType: JOB_STATUS.ACCEPTED, timestamp: new Date(), payload: { message: 'Contractor accepted this job' } });
       }
     }
@@ -702,7 +736,8 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
       endDate,
       page = 1, // Default to page 1
       limit = 10, // Default to 10 items per page
-      sort // Sort field and order (-fieldName or fieldName)
+      sort, // Sort field and order (-fieldName or fieldName)
+      showHidden = false,
     } = req.query;
 
     limit = limit > 0 ? parseInt(limit) : 10; // Handle null limit
@@ -744,6 +779,15 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
     pipeline.push({ $match: { type: JobType.LISTING } });
     pipeline.push({ $match: { category: category } });
     pipeline.push({ $match: { status: JOB_STATUS.PENDING } });
+
+
+    if(!showHidden){
+      // Add a new $match stage to filter out jobs with contractorId in hideFrom array
+      pipeline.push({ $match: { hideFrom: { $nin: [contractorId] }} });
+    }
+   
+
+
 
     if (category) {
       pipeline.push({ $match: { category: { $regex: new RegExp(category, 'i') } } });
@@ -981,7 +1025,8 @@ export const ContractorJobController = {
   getJobListingById,
   getMyJobs,
   getJobHistory,
-  sendChangeOrderEstimate
+  sendChangeOrderEstimate,
+  hideJobListing
 }
 
 

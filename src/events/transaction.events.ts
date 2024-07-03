@@ -16,7 +16,7 @@ TransactionEvent.on('ESCROW_TRANSFER_SUCCESSFUL', async function (transaction) {
         if(toUser){
             NotificationService.sendNotification({
                 user: toUser.id,
-                userType: 'customers',
+                userType: transaction.toUserType,
                 title: 'Fund transfer',
                 type: 'FUND_TRANSFER', //
                 message: `Fund transfer successful`,

@@ -50,7 +50,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorJobController = exports.getJobHistory = exports.getMyJobs = exports.getJobListings = exports.updateJobQuotation = exports.getQuotationForJob = exports.sendChangeOrderEstimate = exports.sendJobQuotation = exports.getJobListingById = exports.getJobRequestById = exports.rejectJobRequest = exports.acceptJobRequest = exports.getJobRequests = void 0;
+exports.ContractorJobController = exports.getJobHistory = exports.getMyJobs = exports.getJobListings = exports.updateJobQuotation = exports.getQuotationForJob = exports.sendChangeOrderEstimate = exports.sendJobQuotation = exports.hideJobListing = exports.getJobListingById = exports.getJobRequestById = exports.rejectJobRequest = exports.acceptJobRequest = exports.getJobRequests = void 0;
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var job_model_1 = require("../../../database/common/job.model");
@@ -183,9 +183,9 @@ var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void
                     .json({ success: false, message: "Kindly connect your bank account to receive payment" })];
             case 7:
                 // Update the status of the job request to "Accepted"
-                job.status = job_model_1.JOB_STATUS.SUBMITTED;
+                job.status = job_model_1.JOB_STATUS.ACCEPTED;
                 jobEvent = {
-                    eventType: job_model_1.JOB_STATUS.SUBMITTED,
+                    eventType: job_model_1.JOB_STATUS.ACCEPTED,
                     timestamp: new Date(),
                     payload: {
                         message: 'Contactor accepted this job'
@@ -402,6 +402,42 @@ var getJobListingById = function (req, res, next) { return __awaiter(void 0, voi
     });
 }); };
 exports.getJobListingById = getJobListingById;
+var hideJobListing = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var errors, jobId, contractorId, job, error_6;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 3, , 4]);
+                errors = (0, express_validator_1.validationResult)(req);
+                if (!errors.isEmpty()) {
+                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                }
+                jobId = req.params.jobId;
+                contractorId = req.contractor.id;
+                return [4 /*yield*/, job_model_1.JobModel.findById(jobId)];
+            case 1:
+                job = _a.sent();
+                if (!job) {
+                    return [2 /*return*/, next(new custom_errors_1.NotFoundError('Job listing not found'))];
+                }
+                if (!job.hideFrom.includes(contractorId)) {
+                    job.hideFrom.push(contractorId);
+                }
+                return [4 /*yield*/, job.save()];
+            case 2:
+                _a.sent();
+                // Return the job request payload
+                res.json({ success: true, message: 'Job removed from listing successfully', data: job });
+                return [3 /*break*/, 4];
+            case 3:
+                error_6 = _a.sent();
+                console.error('Error retrieving job listing:', error_6);
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('Bad Request'))];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.hideJobListing = hideJobListing;
 var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var jobId, contractorId, _a, startDate, endDate, siteVisit, _b, estimates, errors, _c, contractor, job, customer, previousQuotation, appliedQuotationsCount, quotation, jobQuotation_1, siteVisitEstimate, err_1;
     var _d, _e;
@@ -477,8 +513,8 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                 }
                 // Update job status and history if needed
                 if (job.type === job_model_1.JobType.REQUEST) {
-                    job.status = job_model_1.JOB_STATUS.ACCEPTED;
-                    if (!job.jobHistory.some(function (jobEvent) { return jobEvent.eventType === job_model_1.JOB_STATUS.ACCEPTED; })) {
+                    job.status = job_model_1.JOB_STATUS.SUBMITTED;
+                    if (!job.jobHistory.some(function (jobEvent) { return jobEvent.eventType === job_model_1.JOB_STATUS.SUBMITTED; })) {
                         job.jobHistory.push({ eventType: job_model_1.JOB_STATUS.ACCEPTED, timestamp: new Date(), payload: { message: 'Contractor accepted this job' } });
                     }
                 }
@@ -578,7 +614,7 @@ var sendChangeOrderEstimate = function (req, res, next) { return __awaiter(void 
 }); };
 exports.sendChangeOrderEstimate = sendChangeOrderEstimate;
 var getQuotationForJob = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var jobId, contractorId, jobQuotation, _a, error_6;
+    var jobId, contractorId, jobQuotation, _a, error_7;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -603,15 +639,15 @@ var getQuotationForJob = function (req, res, next) { return __awaiter(void 0, vo
                 res.status(200).json({ success: true, message: 'Job quotation retrieved successfully', data: jobQuotation });
                 return [3 /*break*/, 4];
             case 3:
-                error_6 = _b.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_6))];
+                error_7 = _b.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_7))];
             case 4: return [2 /*return*/];
         }
     });
 }); };
 exports.getQuotationForJob = getQuotationForJob;
 var updateJobQuotation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var jobId, contractorId, _a, startDate, endDate, siteVisit, estimates, errors, job, jobQuotation, _b, conversationMembers, conversation, message, error_7;
+    var jobId, contractorId, _a, startDate, endDate, siteVisit, estimates, errors, job, jobQuotation, _b, conversationMembers, conversation, message, error_8;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
@@ -681,8 +717,8 @@ var updateJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
                 res.status(200).json({ success: true, message: 'Job application updated successfully', data: jobQuotation });
                 return [3 /*break*/, 7];
             case 6:
-                error_7 = _c.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_7))];
+                error_8 = _c.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_8))];
             case 7: return [2 /*return*/];
         }
     });
@@ -690,7 +726,7 @@ var updateJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
 exports.updateJobQuotation = updateJobQuotation;
 var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, contractorId, profile, _a, distance, latitude, longitude, emergency, _b, category, city, country, address, startDate, endDate, _c, page, _d, limit, sort // Sort field and order (-fieldName or fieldName)
-    , pipeline, contractor, quotations, jobIdsWithQuotations, _e, sortField, sortOrder, sortStage, skip, result, jobs, metadata, error_8;
+    , pipeline, contractor, quotations, jobIdsWithQuotations, _e, sortField, sortOrder, sortStage, skip, result, jobs, metadata, error_9;
     var _f;
     return __generator(this, function (_g) {
         switch (_g.label) {
@@ -741,6 +777,8 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                 pipeline.push({ $match: { type: job_model_1.JobType.LISTING } });
                 pipeline.push({ $match: { category: category } });
                 pipeline.push({ $match: { status: job_model_1.JOB_STATUS.PENDING } });
+                // Add a new $match stage to filter out jobs with contractorId in hideFrom array
+                pipeline.push({ $match: { hideFrom: { $nin: [contractorId] } } });
                 if (category) {
                     pipeline.push({ $match: { category: { $regex: new RegExp(category, 'i') } } });
                 }
@@ -817,15 +855,15 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                 res.status(200).json({ success: true, data: __assign(__assign({}, metadata), { data: jobs }) });
                 return [3 /*break*/, 7];
             case 6:
-                error_8 = _g.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_8))];
+                error_9 = _g.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_9))];
             case 7: return [2 /*return*/];
         }
     });
 }); };
 exports.getJobListings = getJobListings;
 var getMyJobs = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var contractorId, _a, type, _b, page, _c, limit, sort, customerId, quotations, jobIds, _d, data, error, error_9;
+    var contractorId, _a, type, _b, page, _c, limit, sort, customerId, quotations, jobIds, _d, data, error, error_10;
     return __generator(this, function (_e) {
         switch (_e.label) {
             case 0:
@@ -892,15 +930,15 @@ var getMyJobs = function (req, res, next) { return __awaiter(void 0, void 0, voi
                 res.status(200).json({ success: true, data: data });
                 return [3 /*break*/, 7];
             case 6:
-                error_9 = _e.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_9))];
+                error_10 = _e.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_10))];
             case 7: return [2 /*return*/];
         }
     });
 }); };
 exports.getMyJobs = getMyJobs;
 var getJobHistory = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var contractorId, _a, type, _b, page, _c, limit, _d, sort, customerId, quotations, jobIds, _e, data, error, error_10;
+    var contractorId, _a, type, _b, page, _c, limit, _d, sort, customerId, quotations, jobIds, _e, data, error, error_11;
     return __generator(this, function (_f) {
         switch (_f.label) {
             case 0:
@@ -967,8 +1005,8 @@ var getJobHistory = function (req, res, next) { return __awaiter(void 0, void 0,
                 res.status(200).json({ success: true, data: data });
                 return [3 /*break*/, 7];
             case 6:
-                error_10 = _f.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_10))];
+                error_11 = _f.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_11))];
             case 7: return [2 /*return*/];
         }
     });
@@ -986,5 +1024,6 @@ exports.ContractorJobController = {
     getJobListingById: exports.getJobListingById,
     getMyJobs: exports.getMyJobs,
     getJobHistory: exports.getJobHistory,
-    sendChangeOrderEstimate: exports.sendChangeOrderEstimate
+    sendChangeOrderEstimate: exports.sendChangeOrderEstimate,
+    hideJobListing: exports.hideJobListing
 };
