@@ -271,7 +271,6 @@ export const getSingleBooking = async (req: any, res: Response, next: NextFuncti
 
 
         let responseData: any = { ...job.toJSON() };
-        responseData.jobDay = await JobDayModel.findOne({ job: job.id, type: job.schedule.type });
         responseData.dispute = await JobDisputeModel.findOne({ job: job.id });
         responseData.jobDay = await job.getJobDay()
 
