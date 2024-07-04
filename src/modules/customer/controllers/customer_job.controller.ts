@@ -4,7 +4,7 @@ import { ContractorModel } from "../../../database/contractor/models/contractor.
 import { htmlJobRequestTemplate } from "../../../templates/contractor/jobRequestTemplate";
 import CustomerModel from "../../../database/customer/models/customer.model";
 import { EmailService, NotificationService } from "../../../services";
-import { addHours, isFuture, isValid, startOfDay } from "date-fns";
+import { addHours, isFuture, isPast, isValid, startOfDay } from "date-fns";
 import { IJob, JobModel, JOB_STATUS, JobType } from "../../../database/common/job.model";
 import { BadRequestError } from "../../../utils/custom.errors";
 import { applyAPIFeature } from "../../../utils/api.feature";
@@ -57,9 +57,18 @@ export const createJobRequest = async (
 
         // Get the end of the current day (11:59:59 PM)
         const startOfToday = startOfDay(new Date());
-        if (!isValid(new Date(date)) || (!isFuture(new Date(date)) && new Date(date) < startOfToday)) {
-            return res.status(400).json({ success: false, message: 'Invalid date format or date is in the past' });
+        // if (!isValid(new Date(date)) || (!isFuture(new Date(date)) && new Date(date) < startOfToday)) {
+        //     return res.status(400).json({ success: false, message: 'Invalid date format or date is in the past' });
+        // }
+
+        if (!isValid(new Date(date)) ) {
+            return res.status(400).json({ success: false, message: 'Invalid date format' });
         }
+
+        if ( isPast(new Date(date)) ) {
+            return res.status(400).json({ success: false, message: 'Selected Job Date is in the past' });
+        }
+
 
         // Check if there is a similar job request sent to the same contractor within the last 72 hours
         const existingJobRequest = await JobModel.findOne({
@@ -177,8 +186,12 @@ export const createJobListing = async (
 
         // Get the end of the current day (11:59:59 PM)
         const startOfToday = startOfDay(new Date());
-        if (!isValid(new Date(date)) || (!isFuture(new Date(date)) && new Date(date) < startOfToday)) {
-            return res.status(400).json({ success: false, message: 'Invalid date format or date is in the past' });
+        if (!isValid(new Date(date)) ) {
+            return res.status(400).json({ success: false, message: 'Invalid date format' });
+        }
+
+        if ( isPast(new Date(date)) ) {
+            return res.status(400).json({ success: false, message: 'Selected Job Date is in the past' });
         }
 
         // Check if there is a similar job request sent to the same contractor within the last 72 hours

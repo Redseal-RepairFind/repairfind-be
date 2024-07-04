@@ -89,8 +89,14 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                     return [2 /*return*/, res.status(400).json({ success: false, message: "You cannot send a job request to this contractor because  stripe account is not set up" })];
                 }
                 startOfToday = (0, date_fns_1.startOfDay)(new Date());
-                if (!(0, date_fns_1.isValid)(new Date(date)) || (!(0, date_fns_1.isFuture)(new Date(date)) && new Date(date) < startOfToday)) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid date format or date is in the past' })];
+                // if (!isValid(new Date(date)) || (!isFuture(new Date(date)) && new Date(date) < startOfToday)) {
+                //     return res.status(400).json({ success: false, message: 'Invalid date format or date is in the past' });
+                // }
+                if (!(0, date_fns_1.isValid)(new Date(date))) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid date format' })];
+                }
+                if ((0, date_fns_1.isPast)(new Date(date))) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Selected Job Date is in the past' })];
                 }
                 return [4 /*yield*/, job_model_1.JobModel.findOne({
                         customer: customerId,
@@ -189,8 +195,11 @@ var createJobListing = function (req, res, next) { return __awaiter(void 0, void
                     return [2 /*return*/, res.status(400).json({ success: false, message: "Customer not found" })];
                 }
                 startOfToday = (0, date_fns_1.startOfDay)(new Date());
-                if (!(0, date_fns_1.isValid)(new Date(date)) || (!(0, date_fns_1.isFuture)(new Date(date)) && new Date(date) < startOfToday)) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid date format or date is in the past' })];
+                if (!(0, date_fns_1.isValid)(new Date(date))) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid date format' })];
+                }
+                if ((0, date_fns_1.isPast)(new Date(date))) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Selected Job Date is in the past' })];
                 }
                 return [4 /*yield*/, job_model_1.JobModel.findOne({
                         customer: customerId,
