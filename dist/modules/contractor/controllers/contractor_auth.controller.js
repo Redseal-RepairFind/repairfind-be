@@ -104,7 +104,7 @@ var AuthHandler = /** @class */ (function (_super) {
     }
     AuthHandler.prototype.signUp = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _a, email, password, firstName, dateOfBirth, lastName, phoneNumber, acceptTerms, accountType, companyName, errors, userEmailExists, otp, createdTime, emailOtp, hashedPassword, contractor, html, welcomeHtml, welcomeEmailData, err_1;
+            var req, res, _a, email, password, firstName, dateOfBirth, lastName, phoneNumber, acceptTerms, accountType, companyName, errors, userEmailExists, otp, createdTime, emailOtp, hashedPassword, contractor, html, welcomeHtml, err_1;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -153,15 +153,8 @@ var AuthHandler = /** @class */ (function (_super) {
                     case 5:
                         _b.sent();
                         welcomeHtml = (0, contractorWelcomeTemplate_1.htmlContractorWelcomeTemplate)(firstName !== null && firstName !== void 0 ? firstName : companyName);
-                        welcomeEmailData = {
-                            emailTo: email,
-                            subject: "Welcome",
-                            html: welcomeHtml
-                        };
-                        // await sendEmail(welcomeEmailData);
-                        return [4 /*yield*/, services_1.EmailService.send(email, 'Welcome', welcomeHtml)];
+                        return [4 /*yield*/, services_1.EmailService.send(email, 'Welcome to Repairfind', welcomeHtml)];
                     case 6:
-                        // await sendEmail(welcomeEmailData);
                         _b.sent();
                         // const adminNoti = new AdminNoficationModel({
                         //     title: "New Account Created",

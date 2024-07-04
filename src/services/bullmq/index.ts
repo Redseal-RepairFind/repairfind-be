@@ -48,6 +48,7 @@ class JobQueue {
 
   public addJob(jobName: string, jobPayload: any, options: any): void {
     const jobOptions = {
+      jobId: options.jobId,
       attempts: options.attempts ?? 2,
       priority: options.priority ?? 10,
       repeat: options.repeat ?? null,
