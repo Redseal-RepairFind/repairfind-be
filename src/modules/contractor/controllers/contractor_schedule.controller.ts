@@ -1,12 +1,10 @@
 
 
-import { Request, Response } from 'express';
-import { ContractorScheduleModel, IContractorSchedule, IEvent } from '../../../database/contractor/models/contractor_schedule.model';
+import { Response } from 'express';
+import { ContractorScheduleModel, IContractorSchedule } from '../../../database/contractor/models/contractor_schedule.model';
 import { validationResult } from 'express-validator';
 import { isValid, startOfMonth, endOfMonth, startOfYear, endOfYear, format, getDate } from 'date-fns';
-import { ContractorModel } from '../../../database/contractor/models/contractor.model';
 import { ContractorProfileModel } from '../../../database/contractor/models/contractor_profile.model';
-import { scheduler } from 'timers/promises';
 import { generateExpandedSchedule } from '../../../utils/schedule.util';
 import { JOB_STATUS, JobModel } from '../../../database/common/job.model';
 
