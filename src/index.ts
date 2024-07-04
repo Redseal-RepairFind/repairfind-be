@@ -102,12 +102,22 @@ app.use(errorHandler)
 // Socket.IO event handlers
  SocketIOService.initialize(server)
 
+
+const InittimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+Logger.info(`Current timezone: ${InittimeZone}`);
+
+
 // Set the default timezone to PST (Pacific Standard Time)
 process.env.TZ = 'America/Los_Angeles';
 
 
 // Initialize server
 const port = process.env.PORT || 3000;
+
+
+const FirsttimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+Logger.info(`Current timezone: ${FirsttimeZone}`);
+
 server.listen(port, () => {
   Logger.info(`Server listening on port ${port} - Timezone::: ${process.env.TZ}`);
 });
