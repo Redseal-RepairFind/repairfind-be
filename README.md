@@ -146,3 +146,10 @@ This document provides a detailed explanation of the routes available in the adm
 * **GET /dispute/active:** Retrieves a list of active emergency jobs. Requires admin role check (`checkAdminRole`) before processing by the `ermergency.AdminGetActiveEmergencyJobController`.
 * **GET /dispute/new:** Retrieves a list of new emergency jobs. Requires admin role check (`checkAdminRole`) before processing by the `ermergency.AdminGeNewEmergencyJobController`.
 * **GET /dispute/resolve:** Retrieves a list of resolved emergency jobs. Requires admin role check (`checkAdminRole`) before processing by the `ermergency.AdminGetResolveEmergencyJobController`.
+
+
+
+
+startDate:2024-07-05T00:00:00.000+00:00,
+type:"JOB_DAY",
+remark:"Initial job schedule",

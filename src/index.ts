@@ -49,7 +49,7 @@ corsMiddleware(app)
 
 
 // Api rate limit
-configureRateLimit(app)
+// configureRateLimit(app)
 
 // Parsers
 configureParsers(app);
