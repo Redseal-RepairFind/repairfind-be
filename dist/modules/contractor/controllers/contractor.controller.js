@@ -180,7 +180,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                                     last_name: contractor_1.lastName,
                                 }
                             };
-                            if (['Electrical', '⁠⁠Mechanical (HVAC)'].includes(skill)) {
+                            if (['Electrical', '⁠⁠Mechanical (HVAC)'].includes(skill.trim())) {
                                 data.request_credential_verification = true;
                                 data.information.credentials = [
                                     { certification: 'Certificate of Qualification', description: skill }
