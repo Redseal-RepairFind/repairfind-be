@@ -636,14 +636,14 @@ export const chargeSucceeded = async (payload: any) => {
                         quotation.payment = payment.id
                         quotation.status = JOB_QUOTATION_STATUS.ACCEPTED
 
-                        if (quotation.startDate) {
-                            job.schedule = {
-                                startDate: quotation.startDate,
-                                type: JOB_SCHEDULE_TYPE.JOB_DAY,
-                                remark: 'Initial job schedule'
-                            };
+                        
+                        job.schedule = {
+                            startDate: quotation.startDate ?? job.date,
+                            type: JOB_SCHEDULE_TYPE.JOB_DAY,
+                            remark: 'Initial job schedule'
+                        };
 
-                        }
+                       
 
                     }
 

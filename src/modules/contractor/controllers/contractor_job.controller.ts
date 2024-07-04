@@ -470,10 +470,14 @@ export const sendJobQuotation = async (
     }
 
 
+    const scheduleStartDate = startDate ? new Date(startDate) : new Date(job.date)
+    const  scheduleEndDate  = endDate ? new Date(startDate) : null
+    const  scheduleSiteVisitDate  = siteVisit ? new Date(siteVisit) : null
+
     // Create or update job quotation
     let jobQuotation = await JobQuotationModel.findOneAndUpdate(
       { job: jobId, contractor: contractorId },
-      { startDate: startDate ? new Date(startDate) : new Date(job.date), endDate: endDate ? new Date(startDate) : null, siteVisit: siteVisit ? new Date(siteVisit) : null, estimates, jobId, contractorId },
+      { startDate: scheduleStartDate, endDate: scheduleEndDate , siteVisit: scheduleSiteVisitDate, estimates, jobId, contractorId },
       { new: true, upsert: true }
     );
 
