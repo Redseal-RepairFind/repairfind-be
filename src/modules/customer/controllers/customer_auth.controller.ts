@@ -62,11 +62,11 @@ export const signUp = async (
     
 
     const welcomeHtml = CustomerWelcomeEmailTemplate(lastName)
-    EmailService.send(email, welcomeHtml, 'Welcome to Repairfind' )
+    EmailService.send(email, 'Welcome to Repairfind', welcomeHtml,  )
 
   
     const emailVerificationHtml = EmailVerificationTemplate(otp, firstName);
-    EmailService.send(email, emailVerificationHtml, 'Email Verification' )
+    EmailService.send(email, 'Email Verification', emailVerificationHtml  )
 
 
 
