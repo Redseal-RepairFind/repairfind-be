@@ -80,6 +80,7 @@ var JobQueue = /** @class */ (function () {
     JobQueue.prototype.addJob = function (jobName, jobPayload, options) {
         var _a, _b, _c;
         var jobOptions = {
+            jobId: options.jobId,
             attempts: (_a = options.attempts) !== null && _a !== void 0 ? _a : 2,
             priority: (_b = options.priority) !== null && _b !== void 0 ? _b : 10,
             repeat: (_c = options.repeat) !== null && _c !== void 0 ? _c : null,

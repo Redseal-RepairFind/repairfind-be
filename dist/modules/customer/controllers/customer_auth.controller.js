@@ -84,9 +84,9 @@ var signUp = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                     verified: false
                 };
                 welcomeHtml = (0, welcome_email_1.CustomerWelcomeEmailTemplate)(lastName);
-                services_1.EmailService.send(email, welcomeHtml, 'Welcome to Repairfind');
+                services_1.EmailService.send(email, 'Welcome to Repairfind', welcomeHtml);
                 emailVerificationHtml = (0, email_verification_1.EmailVerificationTemplate)(otp, firstName);
-                services_1.EmailService.send(email, emailVerificationHtml, 'Email Verification');
+                services_1.EmailService.send(email, 'Email Verification', emailVerificationHtml);
                 return [4 /*yield*/, bcrypt_1.default.hash(password, 10)];
             case 2:
                 hashedPassword = _b.sent();

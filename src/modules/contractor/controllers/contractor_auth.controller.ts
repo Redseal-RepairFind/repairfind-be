@@ -70,7 +70,7 @@ class AuthHandler extends Base {
             await EmailService.send(email, 'Email Verification', html);
 
             const welcomeHtml = htmlContractorWelcomeTemplate(firstName ?? companyName);
-            await EmailService.send(email, 'Welcome', welcomeHtml);
+            await EmailService.send(email, 'Welcome to Repairfind', welcomeHtml);
 
             // const adminNoti = new AdminNoficationModel({
             //     title: "New Account Created",
