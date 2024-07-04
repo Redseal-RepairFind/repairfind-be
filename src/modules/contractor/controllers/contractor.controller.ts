@@ -18,6 +18,8 @@ import { BadRequestError } from "../../../utils/custom.errors";
 import { castPayloadToDTO } from "../../../utils/interface_dto.util";
 import { JOB_STATUS, JobModel } from "../../../database/common/job.model";
 import BlacklistedToken from "../../../database/common/blacklisted_tokens.schema";
+import { credential } from "firebase-admin";
+import { Logger } from "../../../services/logger";
 
 
 class ProfileHandler extends Base {
@@ -107,17 +109,28 @@ class ProfileHandler extends Base {
 
 
       if (contractor.accountType == CONTRACTOR_TYPES.Individual) {
-        const data = {
+        const data: any = {
           request_enhanced_identity_verification: true,
           request_enhanced_criminal_record_check: true,
-          email: contractor.email
+          email: contractor.email,
+          information: {
+            first_name: contractor.firstName,
+            last_name: contractor.lastName,
+          }
         };
+
+        if(['Electrical', '⁠⁠Mechanical (HVAC)'].includes(skill)){
+          data.request_credential_verification = true
+          data.information.credentials =  [
+            {certification: 'Certificate of Qualification', description: skill}
+          ]
+        }
 
         if (!contractor.certnId) {
           CertnService.initiateCertnInvite(data).then(res => {
             contractor.certnId = res.applicant.id
             contractor.save()
-            console.log('Certn invitation sent', contractor.certnId)
+            Logger.info('Certn invitation sent', contractor.certnId)
           })
         }
 
@@ -142,7 +155,7 @@ class ProfileHandler extends Base {
         .catch(error => console.error('Error sending emails:', error));
 
 
-      res.json({
+      return res.json({
         success: true,
         message: "Profile created successfully",
         data: contractorResponse
@@ -150,7 +163,7 @@ class ProfileHandler extends Base {
 
     } catch (err: any) {
       console.log("error", err)
-      res.status(500).json({ success: false, message: err.message });
+      return res.status(500).json({ success: false, message: err.message });
     }
   }
 
@@ -450,40 +463,9 @@ class ProfileHandler extends Base {
 
       // check if connected account
       if (!contractor.stripeAccount) {
-        // const stripeAccount = await StripeService.account.createAccount({
-        //   userType: 'contractors',
-        //   userId: contractorId,
-        //   email: contractor.email
-        // })
-
-        // contractor.stripeAccount = {
-        //   id: stripeAccount.id,
-        //   type: stripeAccount.type,
-        //   details_submitted: stripeAccount.details_submitted,
-        //   tos_acceptance: stripeAccount.tos_acceptance,
-        //   payouts_enabled: stripeAccount.payouts_enabled,
-        //   charges_enabled: stripeAccount.charges_enabled,
-        //   country: stripeAccount.country,
-        //   external_accounts: stripeAccount.external_accounts,
-        // } as IStripeAccount;
-
-
       }
 
       if (contractor.accountType == CONTRACTOR_TYPES.Individual) {
-        const data = {
-          request_enhanced_identity_verification: true,
-          request_enhanced_criminal_record_check: true,
-          email: contractor.email
-        };
-
-        if (!contractor.certnId) {
-          CertnService.initiateCertnInvite(data).then(res => {
-            contractor.certnId = res.applicant.id
-            console.log('Certn invitation sent', contractor.certnId)
-          })
-        }
-
       }
 
 
