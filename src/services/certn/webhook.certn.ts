@@ -8,6 +8,8 @@ export const CertnWebhookHandler = async (req: Request) => {
         const eventType = req.headers['event-type'];
         const eventData = req.body;
 
+        Logger.info(`Certn Webhook Event: ${eventType}`, eventData);
+
         switch (eventType) {
             case 'applicant_created':
                 handleApplicantCreated(eventData);
@@ -57,6 +59,7 @@ const handleReportCompleted = async (payload: any) => {
 };
 
 const handleReportFailed = async (payload: any) => {
+    
     try {
         // Handle report failed event
         const reportId = payload.report_id;

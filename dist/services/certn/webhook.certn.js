@@ -45,6 +45,7 @@ var CertnWebhookHandler = function (req) { return __awaiter(void 0, void 0, void
         try {
             eventType = req.headers['event-type'];
             eventData = req.body;
+            logger_1.Logger.info("Certn Webhook Event: ".concat(eventType), eventData);
             switch (eventType) {
                 case 'applicant_created':
                     handleApplicantCreated(eventData);

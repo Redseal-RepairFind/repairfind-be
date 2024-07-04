@@ -100,6 +100,7 @@ var contractor_interface_1 = require("../../../database/contractor/interface/con
 var custom_errors_1 = require("../../../utils/custom.errors");
 var job_model_1 = require("../../../database/common/job.model");
 var blacklisted_tokens_schema_1 = __importDefault(require("../../../database/common/blacklisted_tokens.schema"));
+var logger_1 = require("../../../services/logger");
 var ProfileHandler = /** @class */ (function (_super) {
     __extends(ProfileHandler, _super);
     function ProfileHandler() {
@@ -173,13 +174,23 @@ var ProfileHandler = /** @class */ (function (_super) {
                             data = {
                                 request_enhanced_identity_verification: true,
                                 request_enhanced_criminal_record_check: true,
-                                email: contractor_1.email
+                                email: contractor_1.email,
+                                information: {
+                                    first_name: contractor_1.firstName,
+                                    last_name: contractor_1.lastName,
+                                }
                             };
+                            if (['Electrical', '⁠⁠Mechanical (HVAC)'].includes(skill)) {
+                                data.request_credential_verification = true;
+                                data.information.credentials = [
+                                    { certification: 'Certificate of Qualification', description: skill }
+                                ];
+                            }
                             if (!contractor_1.certnId) {
                                 services_1.CertnService.initiateCertnInvite(data).then(function (res) {
                                     contractor_1.certnId = res.applicant.id;
                                     contractor_1.save();
-                                    console.log('Certn invitation sent', contractor_1.certnId);
+                                    logger_1.Logger.info('Certn invitation sent', contractor_1.certnId);
                                 });
                             }
                         }
@@ -195,17 +206,15 @@ var ProfileHandler = /** @class */ (function (_super) {
                         services_1.EmailService.send(adminEmails, 'New Profile Registered', html, adminEmails)
                             .then(function () { return console.log('Emails sent successfully with CC'); })
                             .catch(function (error) { return console.error('Error sending emails:', error); });
-                        res.json({
-                            success: true,
-                            message: "Profile created successfully",
-                            data: contractorResponse
-                        });
-                        return [3 /*break*/, 8];
+                        return [2 /*return*/, res.json({
+                                success: true,
+                                message: "Profile created successfully",
+                                data: contractorResponse
+                            })];
                     case 7:
                         err_1 = _c.sent();
                         console.log("error", err_1);
-                        res.status(500).json({ success: false, message: err_1.message });
-                        return [3 /*break*/, 8];
+                        return [2 /*return*/, res.status(500).json({ success: false, message: err_1.message })];
                     case 8: return [2 /*return*/];
                 }
             });
@@ -447,7 +456,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     ProfileHandler.prototype.getAccount = function () {
         var _a;
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, contractorId, includeStripeIdentity, includeStripeCustomer, includeStripePaymentMethods, includeStripeAccount, includedFields, contractor_2, _b, quiz, contractorResponse, data, err_6;
+            var req, res, contractorId, includeStripeIdentity, includeStripeCustomer, includeStripePaymentMethods, includeStripeAccount, includedFields, contractor, _b, quiz, contractorResponse, err_6;
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
@@ -471,72 +480,46 @@ var ProfileHandler = /** @class */ (function (_super) {
                         }
                         return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId).populate('profile')];
                     case 2:
-                        contractor_2 = _c.sent();
-                        if (!contractor_2) {
+                        contractor = _c.sent();
+                        if (!contractor) {
                             return [2 /*return*/, res.status(404).json({ success: false, message: 'Account not found' })];
                         }
-                        _b = contractor_2;
-                        return [4 /*yield*/, contractor_2.getOnboarding()];
+                        _b = contractor;
+                        return [4 /*yield*/, contractor.getOnboarding()];
                     case 3:
                         _b.onboarding = _c.sent();
-                        return [4 /*yield*/, contractor_2.quiz];
+                        return [4 /*yield*/, contractor.quiz];
                     case 4:
                         quiz = (_a = _c.sent()) !== null && _a !== void 0 ? _a : null;
-                        contractorResponse = __assign(__assign({}, contractor_2.toJSON({ includeStripeIdentity: true, includeStripeCustomer: true, includeStripePaymentMethods: true, includeStripeAccount: true, includeReviews: { status: true, limit: 20 } })), { // Convert to plain JSON object
+                        contractorResponse = __assign(__assign({}, contractor.toJSON({ includeStripeIdentity: true, includeStripeCustomer: true, includeStripePaymentMethods: true, includeStripeAccount: true, includeReviews: { status: true, limit: 20 } })), { // Convert to plain JSON object
                             quiz: quiz });
-                        if (!contractor_2) {
+                        if (!contractor) {
                             return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor not found' })];
                         }
                         // check if connected account
-                        if (!contractor_2.stripeAccount) {
-                            // const stripeAccount = await StripeService.account.createAccount({
-                            //   userType: 'contractors',
-                            //   userId: contractorId,
-                            //   email: contractor.email
-                            // })
-                            // contractor.stripeAccount = {
-                            //   id: stripeAccount.id,
-                            //   type: stripeAccount.type,
-                            //   details_submitted: stripeAccount.details_submitted,
-                            //   tos_acceptance: stripeAccount.tos_acceptance,
-                            //   payouts_enabled: stripeAccount.payouts_enabled,
-                            //   charges_enabled: stripeAccount.charges_enabled,
-                            //   country: stripeAccount.country,
-                            //   external_accounts: stripeAccount.external_accounts,
-                            // } as IStripeAccount;
+                        if (!contractor.stripeAccount) {
                         }
-                        if (contractor_2.accountType == contractor_interface_1.CONTRACTOR_TYPES.Individual) {
-                            data = {
-                                request_enhanced_identity_verification: true,
-                                request_enhanced_criminal_record_check: true,
-                                email: contractor_2.email
-                            };
-                            if (!contractor_2.certnId) {
-                                services_1.CertnService.initiateCertnInvite(data).then(function (res) {
-                                    contractor_2.certnId = res.applicant.id;
-                                    console.log('Certn invitation sent', contractor_2.certnId);
-                                });
-                            }
+                        if (contractor.accountType == contractor_interface_1.CONTRACTOR_TYPES.Individual) {
                         }
                         //TODO: for now always update the meta data of stripe customer with this email address
-                        if (contractor_2.stripeCustomer) {
-                            stripe_1.StripeService.customer.updateCustomer(contractor_2.stripeCustomer.id, {
-                                metadata: { userType: 'contractors', userId: contractor_2.id }
+                        if (contractor.stripeCustomer) {
+                            stripe_1.StripeService.customer.updateCustomer(contractor.stripeCustomer.id, {
+                                metadata: { userType: 'contractors', userId: contractor.id }
                             });
                         }
                         else {
                             stripe_1.StripeService.customer.createCustomer({
-                                email: contractor_2.email,
+                                email: contractor.email,
                                 metadata: {
                                     userType: 'contractors',
-                                    userId: contractor_2.id,
+                                    userId: contractor.id,
                                 },
                                 //@ts-ignore
-                                name: "".concat(contractor_2.name, " "),
-                                phone: "".concat(contractor_2.phoneNumber.code).concat(contractor_2.phoneNumber.number, " "),
+                                name: "".concat(contractor.name, " "),
+                                phone: "".concat(contractor.phoneNumber.code).concat(contractor.phoneNumber.number, " "),
                             });
                         }
-                        return [4 /*yield*/, contractor_2.save()];
+                        return [4 /*yield*/, contractor.save()];
                     case 5:
                         _c.sent();
                         res.json({
