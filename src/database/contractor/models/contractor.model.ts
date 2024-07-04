@@ -212,7 +212,10 @@ const ContractorSchema = new Schema<IContractor>(
     },
     
     reviews: [{ review: { type: Schema.Types.ObjectId, ref: 'reviews' }, averageRating: Number }],
-     badge: {label: {type: String, default: CONTRACTOR_BADGE.PROSPECT}, icon: {type: String, default: null} },
+    badge: {
+      label: { type: String, default: CONTRACTOR_BADGE.PROSPECT },
+      icon: { type: String, default: null  },
+    },
     onboarding: {
       hasStripeAccount: { default: false, type: Boolean },
       hasStripeIdentity: { default: false, type: Boolean },
