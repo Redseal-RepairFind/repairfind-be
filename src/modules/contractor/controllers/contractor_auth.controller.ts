@@ -8,7 +8,7 @@ import { sendEmail } from "../../../utils/send_email_utility";
 import { uploadToS3 } from "../../../utils/upload.utility";
 import { v4 as uuidv4 } from "uuid";
 import { htmlMailTemplate } from "../../../templates/sendEmailTemplate";
-import { htmlContractorWelcomeTemplate } from "../../../templates/contractor/contractorWelcomeTemplate";
+import { ContractorWelcomeTemplate } from "../../../templates/contractor/welcome_email";
 import AdminNoficationModel from "../../../database/admin/models/admin_notification.model";
 import { handleAsyncError } from "../../../abstracts/decorators.abstract";
 import { Base } from "../../../abstracts/base.abstract";
@@ -69,7 +69,7 @@ class AuthHandler extends Base {
             const html = EmailVerificationTemplate(otp, firstName ?? companyName);
             await EmailService.send(email, 'Email Verification', html);
 
-            const welcomeHtml = htmlContractorWelcomeTemplate(firstName ?? companyName);
+            const welcomeHtml = ContractorWelcomeTemplate(firstName ?? companyName);
             await EmailService.send(email, 'Welcome to Repairfind', welcomeHtml);
 
             // const adminNoti = new AdminNoficationModel({

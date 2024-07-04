@@ -91,7 +91,7 @@ var contractor_model_1 = require("../../../database/contractor/models/contractor
 var otpGenerator_1 = require("../../../utils/otpGenerator");
 var send_email_utility_1 = require("../../../utils/send_email_utility");
 var sendEmailTemplate_1 = require("../../../templates/sendEmailTemplate");
-var contractorWelcomeTemplate_1 = require("../../../templates/contractor/contractorWelcomeTemplate");
+var welcome_email_1 = require("../../../templates/contractor/welcome_email");
 var decorators_abstract_1 = require("../../../abstracts/decorators.abstract");
 var base_abstract_1 = require("../../../abstracts/base.abstract");
 var services_1 = require("../../../services");
@@ -152,7 +152,7 @@ var AuthHandler = /** @class */ (function (_super) {
                         return [4 /*yield*/, services_1.EmailService.send(email, 'Email Verification', html)];
                     case 5:
                         _b.sent();
-                        welcomeHtml = (0, contractorWelcomeTemplate_1.htmlContractorWelcomeTemplate)(firstName !== null && firstName !== void 0 ? firstName : companyName);
+                        welcomeHtml = (0, welcome_email_1.ContractorWelcomeTemplate)(firstName !== null && firstName !== void 0 ? firstName : companyName);
                         return [4 /*yield*/, services_1.EmailService.send(email, 'Welcome to Repairfind', welcomeHtml)];
                     case 6:
                         _b.sent();
