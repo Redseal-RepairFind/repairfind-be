@@ -57,7 +57,7 @@ var job_quotation_accepted_template_1 = require("../../../templates/contractor/j
 var job_quotation_declined_template_1 = require("../../../templates/contractor/job_quotation_declined.template");
 var mongoose_1 = __importDefault(require("mongoose"));
 var createJobRequest = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, contractorId, category, description, location_1, date, _b, expiresIn, emergency, media, voiceDescription, time, customerId, customer, contractor, startOfToday, existingJobRequest, dateTimeString, jobTime, currentDate, expiryDate, newJob, conversationMembers, conversation, newMessage, html, error_1;
+    var errors, _a, contractorId, category, description, location_1, date, _b, expiresIn, emergency, media, voiceDescription, time, customerId, customer, contractor, dateParts, formattedDate, startOfToday, existingJobRequest, dateTimeString, jobTime, currentDate, expiryDate, newJob, conversationMembers, conversation, newMessage, html, error_1;
     var _c, _d;
     return __generator(this, function (_e) {
         switch (_e.label) {
@@ -88,21 +88,20 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 if (!contractor.onboarding.hasStripeAccount || !(((_c = contractor.stripeAccountStatus) === null || _c === void 0 ? void 0 : _c.card_payments_enabled) && ((_d = contractor.stripeAccountStatus) === null || _d === void 0 ? void 0 : _d.transfers_enabled))) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "You cannot send a job request to this contractor because  stripe account is not set up" })];
                 }
+                dateParts = date.split('-').map(function (part) { return part.replace(/^0+/, ''); });
+                formattedDate = dateParts.join('-');
                 startOfToday = (0, date_fns_1.startOfDay)(new Date());
-                // if (!isValid(new Date(date)) || (!isFuture(new Date(date)) && new Date(date) < startOfToday)) {
-                //     return res.status(400).json({ success: false, message: 'Invalid date format or date is in the past' });
-                // }
-                if (!(0, date_fns_1.isValid)(new Date(date))) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid date format' })];
+                if (!(0, date_fns_1.isValid)(new Date(formattedDate))) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid date format or date is in the past' })];
                 }
-                if ((0, date_fns_1.isPast)(new Date(date))) {
+                if ((!(0, date_fns_1.isFuture)(new Date(formattedDate)) && new Date(formattedDate) < startOfToday)) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Selected Job Date is in the past' })];
                 }
                 return [4 /*yield*/, job_model_1.JobModel.findOne({
                         customer: customerId,
                         contractor: contractorId,
                         status: job_model_1.JOB_STATUS.PENDING,
-                        date: { $eq: new Date(date) }, // consider all past jobs
+                        date: { $eq: new Date(formattedDate) }, // consider all past jobs
                         createdAt: { $gte: (0, date_fns_1.addHours)(new Date(), -24) }, // Check for job requests within the last 72 hours
                     })];
             case 3:
@@ -177,7 +176,7 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
 }); };
 exports.createJobRequest = createJobRequest;
 var createJobListing = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, category, description, location_2, date, _b, expiresIn, emergency, media, voiceDescription, time, contractorType, customerId, customer, startOfToday, existingJobRequest, dateTimeString, jobTime, dateTimeString_1, jobTime_1, currentDate, expiryDate, newJob, error_2;
+    var errors, _a, category, description, location_2, date, _b, expiresIn, emergency, media, voiceDescription, time, contractorType, customerId, customer, dateParts, formattedDate, startOfToday, existingJobRequest, dateTimeString, jobTime, dateTimeString_1, jobTime_1, currentDate, expiryDate, newJob, error_2;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
@@ -194,18 +193,20 @@ var createJobListing = function (req, res, next) { return __awaiter(void 0, void
                 if (!customer) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "Customer not found" })];
                 }
+                dateParts = date.split('-').map(function (part) { return part.replace(/^0+/, ''); });
+                formattedDate = dateParts.join('-');
                 startOfToday = (0, date_fns_1.startOfDay)(new Date());
-                if (!(0, date_fns_1.isValid)(new Date(date))) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid date format' })];
+                if (!(0, date_fns_1.isValid)(new Date(formattedDate))) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid date format or date is in the past' })];
                 }
-                if ((0, date_fns_1.isPast)(new Date(date))) {
+                if ((!(0, date_fns_1.isFuture)(new Date(formattedDate)) && new Date(formattedDate) < startOfToday)) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Selected Job Date is in the past' })];
                 }
                 return [4 /*yield*/, job_model_1.JobModel.findOne({
                         customer: customerId,
                         status: job_model_1.JOB_STATUS.PENDING,
                         category: category,
-                        date: { $eq: new Date(date) }, // consider all past jobs
+                        date: { $eq: new Date(formattedDate) }, // consider all past jobs
                         createdAt: { $gte: (0, date_fns_1.addHours)(new Date(), -24) }, // Check for job requests within the last 72 hours
                     })];
             case 2:

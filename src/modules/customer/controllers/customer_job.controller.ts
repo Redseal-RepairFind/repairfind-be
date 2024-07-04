@@ -4,7 +4,7 @@ import { ContractorModel } from "../../../database/contractor/models/contractor.
 import { htmlJobRequestTemplate } from "../../../templates/contractor/jobRequestTemplate";
 import CustomerModel from "../../../database/customer/models/customer.model";
 import { EmailService, NotificationService } from "../../../services";
-import { addHours, isFuture, isPast, isValid, startOfDay } from "date-fns";
+import { addHours, isFuture, isValid, startOfDay } from "date-fns";
 import { IJob, JobModel, JOB_STATUS, JobType } from "../../../database/common/job.model";
 import { BadRequestError } from "../../../utils/custom.errors";
 import { applyAPIFeature } from "../../../utils/api.feature";
@@ -55,27 +55,26 @@ export const createJobRequest = async (
         }
 
 
+        const dateParts = date.split('-').map( (part: any) => part.replace(/^0+/, ''));
+        const formattedDate = dateParts.join('-');
+
+
         // Get the end of the current day (11:59:59 PM)
         const startOfToday = startOfDay(new Date());
-        // if (!isValid(new Date(date)) || (!isFuture(new Date(date)) && new Date(date) < startOfToday)) {
-        //     return res.status(400).json({ success: false, message: 'Invalid date format or date is in the past' });
-        // }
-
-        if (!isValid(new Date(date)) ) {
-            return res.status(400).json({ success: false, message: 'Invalid date format' });
+        if (!isValid(new Date(formattedDate)) ) {
+            return res.status(400).json({ success: false, message: 'Invalid date format or date is in the past' });
         }
 
-        if ( isPast(new Date(date)) ) {
+        if ( (!isFuture(new Date(formattedDate)) && new Date(formattedDate) < startOfToday)) {
             return res.status(400).json({ success: false, message: 'Selected Job Date is in the past' });
         }
-
 
         // Check if there is a similar job request sent to the same contractor within the last 72 hours
         const existingJobRequest = await JobModel.findOne({
             customer: customerId,
             contractor: contractorId,
             status: JOB_STATUS.PENDING,
-            date: { $eq: new Date(date) }, // consider all past jobs
+            date: { $eq: new Date(formattedDate) }, // consider all past jobs
             createdAt: { $gte: addHours(new Date(), -24) }, // Check for job requests within the last 72 hours
         });
 
@@ -183,14 +182,17 @@ export const createJobListing = async (
             return res.status(400).json({ success: false, message: "Customer not found" })
         }
 
+        const dateParts = date.split('-').map( (part: any) => part.replace(/^0+/, ''));
+        const formattedDate = dateParts.join('-');
+
 
         // Get the end of the current day (11:59:59 PM)
         const startOfToday = startOfDay(new Date());
-        if (!isValid(new Date(date)) ) {
-            return res.status(400).json({ success: false, message: 'Invalid date format' });
+        if (!isValid(new Date(formattedDate)) ) {
+            return res.status(400).json({ success: false, message: 'Invalid date format or date is in the past' });
         }
 
-        if ( isPast(new Date(date)) ) {
+        if ( (!isFuture(new Date(formattedDate)) && new Date(formattedDate) < startOfToday)) {
             return res.status(400).json({ success: false, message: 'Selected Job Date is in the past' });
         }
 
@@ -199,7 +201,7 @@ export const createJobListing = async (
             customer: customerId,
             status: JOB_STATUS.PENDING,
             category: category,
-            date: { $eq: new Date(date) }, // consider all past jobs
+            date: { $eq: new Date(formattedDate) }, // consider all past jobs
             createdAt: { $gte: addHours(new Date(), -24) }, // Check for job requests within the last 72 hours
         });
 
