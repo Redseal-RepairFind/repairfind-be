@@ -88,6 +88,16 @@ export enum CONTRACTOR_STATUS {
 }
 
 
+export enum CONTRACTOR_BADGE {
+  PROSPECT = "PROSPECT",
+  TRAINING = "TRAINING",
+  VERIFIED = "VERIFIED",
+  EXPERIENCED = "EXPERIENCED",
+  TOP_RATED = "TOP RATED",
+  SPECIALIST = "SPECIALIST",
+}
+
+
 export enum GST_STATUS {
   PENDING = "PENDING",
   REVIEWING = "REVIEWING",
@@ -177,6 +187,7 @@ export interface IContractor extends Document {
     stage: Object
   };
   certnId: string;
+  badge: {label?: string, icon?: string };
   getOnboarding: () => {
     hasStripeAccount: boolean,
     hasStripeIdentity: boolean,

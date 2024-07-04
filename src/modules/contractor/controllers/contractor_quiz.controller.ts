@@ -8,6 +8,7 @@ import ContractorQuizModel, { IContractorQuiz } from "../../../database/contract
 import { bool } from "aws-sdk/clients/signer";
 import { REVIEW_TYPE, ReviewModel } from "../../../database/common/review.model";
 import { Logger } from "../../../services/logger";
+import { CONTRACTOR_BADGE } from "../../../database/contractor/interface/contractor.interface";
 
 
 
@@ -214,6 +215,8 @@ export const SubmitQuiz = async (
         } else {
             contractor.reviews.push({ review: newReview.id, averageRating });
         }
+
+        contractor.badge = {label: CONTRACTOR_BADGE.TRAINING}
 
         await contractor.save();
   
