@@ -54,7 +54,8 @@ export const jobDayScheduleCheck = async () => {
                             sendReminderContractor(customer, contractor, job, `Your job with ${customer.name} scheduled for yesterday: ${jobStartDate} was not started`)
                             job.status = JOB_STATUS.NOT_STARTED
                             job.reminders.push(JOB_SCHEDULE_REMINDER.NOT_STARTED) 
-                            // job.save()
+                            job.save()
+                            continue
                         }
                     }
                     
@@ -65,7 +66,7 @@ export const jobDayScheduleCheck = async () => {
                              sendReminderContractor(customer, contractor, job, `You have a job with ${customer.name} scheduled for today ${formattedJobStartDate}`)
                              sendReminderCustomer(customer, contractor, job, `You have a job with ${contractor.name} scheduled for today ${formattedJobStartDate}`)
                              job.reminders.push(JOB_SCHEDULE_REMINDER.HOURS_1) 
-                            // job.save() 
+                            job.save() 
                             continue
                         }
                      }
@@ -77,7 +78,7 @@ export const jobDayScheduleCheck = async () => {
                             sendReminderContractor(customer, contractor, job, `You have a job with ${customer.name} scheduled for today ${formattedJobStartDate}`)
                             sendReminderCustomer(customer, contractor, job, `You have a job with ${contractor.name} scheduled for today ${formattedJobStartDate}`)
                             job.reminders.push(JOB_SCHEDULE_REMINDER.HOURS_6) 
-                            // job.save() 
+                            job.save() 
                             continue
                        }
                     }
@@ -87,7 +88,7 @@ export const jobDayScheduleCheck = async () => {
                             sendReminderContractor(customer, contractor, job, `You have a job with ${customer.name} scheduled for today ${formattedJobStartDate}`)
                             sendReminderCustomer(customer, contractor, job, `You have a job with ${contractor.name} scheduled for today ${formattedJobStartDate}`)
                             job.reminders.push(JOB_SCHEDULE_REMINDER.HOURS_12) 
-                            // job.save() 
+                            job.save() 
                             continue
                        }
                     }
@@ -97,7 +98,7 @@ export const jobDayScheduleCheck = async () => {
                             sendReminderContractor(customer, contractor, job, `You have a job with ${customer.name} scheduled for tomorrow ${jobStartDate.toDateString()}`)
                             sendReminderCustomer(customer, contractor, job, `You have a job with ${contractor.name} scheduled for tomorrow ${jobStartDate.toDateString()}`)
                             job.reminders.push(JOB_SCHEDULE_REMINDER.HOURS_24) 
-                            // job.save() 
+                            job.save() 
                             continue
                         }
                         
@@ -108,14 +109,15 @@ export const jobDayScheduleCheck = async () => {
                             sendReminderContractor(customer, contractor, job, `You have a job with ${customer.name} scheduled for ${jobStartDate.toDateString()}`)
                             sendReminderCustomer(customer, contractor, job, `You have a job with ${contractor.name} scheduled for  ${formattedJobStartDate}`) 
                             job.reminders.push(JOB_SCHEDULE_REMINDER.HOURS_48) 
-                            // job.save() 
+                            job.save() 
                             continue
                         }                       
                     }
+
                     
                 }
 
-                await job.save()
+                
 
             } catch (error) {
                 Logger.error(`Error sending job day reminder: ${job.id}`, error);
