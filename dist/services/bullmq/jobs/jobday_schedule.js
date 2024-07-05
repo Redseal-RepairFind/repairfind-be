@@ -142,7 +142,6 @@ var jobDayScheduleCheck = function () { return __awaiter(void 0, void 0, void 0,
                         }
                     }
                 }
-                job.save();
                 return [3 /*break*/, 7];
             case 6:
                 error_1 = _a.sent();

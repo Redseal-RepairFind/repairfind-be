@@ -115,7 +115,7 @@ export const jobDayScheduleCheck = async () => {
                     
                 }
 
-                job.save()
+                // job.save()
 
             } catch (error) {
                 Logger.error(`Error sending job day reminder: ${job.id}`, error);
