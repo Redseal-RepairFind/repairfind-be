@@ -96,44 +96,49 @@ var jobDayScheduleCheck = function () { return __awaiter(void 0, void 0, void 0,
                         }
                     }
                     //
-                    if (hourDifference === 1) {
+                    if (hourDifference <= 1) {
                         if (!job.reminders.includes(job_model_1.JOB_SCHEDULE_REMINDER.HOURS_1)) {
                             sendReminderContractor(customer, contractor, job, "You have a job with ".concat(customer.name, " scheduled for today ").concat(formattedJobStartDate));
                             sendReminderCustomer(customer, contractor, job, "You have a job with ".concat(contractor.name, " scheduled for today ").concat(formattedJobStartDate));
                             job.reminders.push(job_model_1.JOB_SCHEDULE_REMINDER.HOURS_1);
                             job.save();
+                            return [3 /*break*/, 7];
                         }
                     }
-                    if (hourDifference === 6) {
+                    if (hourDifference <= 6) {
                         if (!job.reminders.includes(job_model_1.JOB_SCHEDULE_REMINDER.HOURS_6)) {
                             sendReminderContractor(customer, contractor, job, "You have a job with ".concat(customer.name, " scheduled for today ").concat(formattedJobStartDate));
                             sendReminderCustomer(customer, contractor, job, "You have a job with ".concat(contractor.name, " scheduled for today ").concat(formattedJobStartDate));
                             job.reminders.push(job_model_1.JOB_SCHEDULE_REMINDER.HOURS_6);
                             job.save();
+                            return [3 /*break*/, 7];
                         }
                     }
-                    if (hourDifference === 12) {
+                    if (hourDifference <= 12) {
                         if (!job.reminders.includes(job_model_1.JOB_SCHEDULE_REMINDER.HOURS_12)) {
                             sendReminderContractor(customer, contractor, job, "You have a job with ".concat(customer.name, " scheduled for today ").concat(formattedJobStartDate));
                             sendReminderCustomer(customer, contractor, job, "You have a job with ".concat(contractor.name, " scheduled for today ").concat(formattedJobStartDate));
                             job.reminders.push(job_model_1.JOB_SCHEDULE_REMINDER.HOURS_12);
                             job.save();
+                            return [3 /*break*/, 7];
                         }
                     }
-                    if (hourDifference === 24) {
+                    if (hourDifference <= 24) {
                         if (!job.reminders.includes(job_model_1.JOB_SCHEDULE_REMINDER.HOURS_24)) {
                             sendReminderContractor(customer, contractor, job, "You have a job with ".concat(customer.name, " scheduled for tomorrow ").concat(jobStartDate.toDateString()));
                             sendReminderCustomer(customer, contractor, job, "You have a job with ".concat(contractor.name, " scheduled for tomorrow ").concat(jobStartDate.toDateString()));
                             job.reminders.push(job_model_1.JOB_SCHEDULE_REMINDER.HOURS_24);
                             job.save();
+                            return [3 /*break*/, 7];
                         }
                     }
-                    if (daysDifference === 48) {
+                    if (daysDifference <= 48) {
                         if (!job.reminders.includes(job_model_1.JOB_SCHEDULE_REMINDER.HOURS_48)) {
                             sendReminderContractor(customer, contractor, job, "You have a job with ".concat(customer.name, " scheduled for ").concat(jobStartDate.toDateString()));
                             sendReminderCustomer(customer, contractor, job, "You have a job with ".concat(contractor.name, " scheduled for  ").concat(formattedJobStartDate));
                             job.reminders.push(job_model_1.JOB_SCHEDULE_REMINDER.HOURS_48);
                             job.save();
+                            return [3 /*break*/, 7];
                         }
                     }
                 }
