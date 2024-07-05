@@ -60,6 +60,16 @@ export const jobDayScheduleCheck = async () => {
                     
 
                     //
+                    if (hourDifference === 1 ) {
+                        if(!job.reminders.includes(JOB_SCHEDULE_REMINDER.HOURS_1)){
+                             sendReminderContractor(customer, contractor, job, `You have a job with ${customer.name} scheduled for today ${formattedJobStartDate}`)
+                             sendReminderCustomer(customer, contractor, job, `You have a job with ${contractor.name} scheduled for today ${formattedJobStartDate}`)
+                             job.reminders.push(JOB_SCHEDULE_REMINDER.HOURS_1) 
+                             await job.save() 
+                        }
+                     }
+
+                     
 
                     if (hourDifference === 6 ) {
                        if(!job.reminders.includes(JOB_SCHEDULE_REMINDER.HOURS_6)){
