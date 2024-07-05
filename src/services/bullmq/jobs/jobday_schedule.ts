@@ -31,37 +31,38 @@ export const jobDayScheduleCheck = async () => {
                 console.log(`${0} jobStartDate you have a bla bla: ${formattedJobStartDate}`,  daysDifference, hourDifference, currentDate, jobStartDate);
 
                 if (customer && contractor) {
-                    if (daysDifference === -1) {
+                    if (daysDifference <= -1) {
                         if (!job.reminders.includes(JOB_SCHEDULE_REMINDER.NOT_STARTED)) {
                             sendReminderContractor(customer, contractor, job, `Your job with ${customer.name} scheduled for yesterday: ${formattedJobStartDate} was not started`);
                             job.status = JOB_STATUS.NOT_STARTED;
                             job.reminders.push(JOB_SCHEDULE_REMINDER.NOT_STARTED);
                             await job.save();
-                            continue;
                         }
+                        continue;
                     }
 
-                    if (hourDifference === 1) {
+                    if (hourDifference <= 1) {
                         if (!job.reminders.includes(JOB_SCHEDULE_REMINDER.HOURS_1)) {
                             sendReminderContractor(customer, contractor, job, `You have a job with ${customer.name} scheduled for today ${formattedJobStartDate}`);
                             sendReminderCustomer(customer, contractor, job, `You have a job with ${contractor.name} scheduled for today ${formattedJobStartDate}`);
                             job.reminders.push(JOB_SCHEDULE_REMINDER.HOURS_1);
                             await job.save();
-                            continue;
                         }
+                        continue;
                     }
 
-                    if (hourDifference === 6) {
+                    if (hourDifference <= 6) {
                         if (!job.reminders.includes(JOB_SCHEDULE_REMINDER.HOURS_6)) {
                             sendReminderContractor(customer, contractor, job, `You have a job with ${customer.name} scheduled for today ${formattedJobStartDate}`);
                             sendReminderCustomer(customer, contractor, job, `You have a job with ${contractor.name} scheduled for today ${formattedJobStartDate}`);
                             job.reminders.push(JOB_SCHEDULE_REMINDER.HOURS_6);
                             await job.save();
-                            continue;
                         }
+                        continue;
+
                     }
 
-                    if (hourDifference === 12) {
+                    if (hourDifference <= 12) {
                         if (!job.reminders.includes(JOB_SCHEDULE_REMINDER.HOURS_12)) {
                             sendReminderContractor(customer, contractor, job, `You have a job with ${customer.name} scheduled for today ${formattedJobStartDate}`);
                             sendReminderCustomer(customer, contractor, job, `You have a job with ${contractor.name} scheduled for today ${formattedJobStartDate}`);
@@ -71,24 +72,24 @@ export const jobDayScheduleCheck = async () => {
                         }
                     }
 
-                    if (hourDifference === 24) {
+                    if (hourDifference <= 24) {
                         if (!job.reminders.includes(JOB_SCHEDULE_REMINDER.HOURS_24)) {
                             sendReminderContractor(customer, contractor, job, `You have a job with ${customer.name} scheduled for tomorrow ${jobStartDate.toDateString()}`);
                             sendReminderCustomer(customer, contractor, job, `You have a job with ${contractor.name} scheduled for tomorrow ${jobStartDate.toDateString()}`);
                             job.reminders.push(JOB_SCHEDULE_REMINDER.HOURS_24);
                             await job.save();
-                            continue;
                         }
+                        continue;
                     }
 
-                    if (daysDifference === 2) {
+                    if (hourDifference <= 48) {
                         if (!job.reminders.includes(JOB_SCHEDULE_REMINDER.HOURS_48)) {
                             sendReminderContractor(customer, contractor, job, `You have a job with ${customer.name} scheduled for ${jobStartDate.toDateString()}`);
                             sendReminderCustomer(customer, contractor, job, `You have a job with ${contractor.name} scheduled for ${formattedJobStartDate}`);
                             job.reminders.push(JOB_SCHEDULE_REMINDER.HOURS_48);
                             await job.save();
-                            continue;
                         }
+                        continue;
                     }
                 }
 
