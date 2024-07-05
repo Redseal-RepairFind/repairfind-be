@@ -28,7 +28,7 @@ export const jobDayScheduleCheck = async () => {
 
                 const formattedJobStartDate = `${jobStartDate.toDateString()} at ${get12HourFormat(jobStartDate)}`;
 
-                console.log(`${0} jobStartDate you have a bla bla: ${formattedJobStartDate}`,  daysDifference, hourDifference, currentDate, jobStartDate);
+                Logger.info(`JobSchedule Reminder: currentDate: ${currentDate} jobStartDate: ${jobStartDate} formattedJobStartDate: ${formattedJobStartDate} daysDifference: ${daysDifference} hourDifference: ${hourDifference}`);
 
                 if (customer && contractor) {
                     if (daysDifference <= -1) {
@@ -68,8 +68,8 @@ export const jobDayScheduleCheck = async () => {
                             sendReminderCustomer(customer, contractor, job, `You have a job with ${contractor.name} scheduled for today ${formattedJobStartDate}`);
                             job.reminders.push(JOB_SCHEDULE_REMINDER.HOURS_12);
                             await job.save();
-                            continue;
                         }
+                        continue;
                     }
 
                     if (hourDifference <= 24) {
