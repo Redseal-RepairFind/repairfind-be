@@ -15,6 +15,7 @@ import { JobEvent } from "../../../events";
 import { htmlJobQuotationAcceptedContractorEmailTemplate } from "../../../templates/contractor/job_quotation_accepted.template";
 import { htmlJobQuotationDeclinedContractorEmailTemplate } from "../../../templates/contractor/job_quotation_declined.template";
 import mongoose from "mongoose";
+import { ContractorProfileModel } from "../../../database/contractor/models/contractor_profile.model";
 
 
 
@@ -48,6 +49,8 @@ export const createJobRequest = async (
         if (!contractor) {
             return res.status(400).json({ success: false, message: "Contractor not found" })
         }
+        const contractorProfile = await ContractorProfileModel.findOne({contractor: contractorId})
+
 
         // Check if contractor has a verified connected account
         if (!contractor.onboarding.hasStripeAccount || !(contractor.stripeAccountStatus?.card_payments_enabled && contractor.stripeAccountStatus?.transfers_enabled)) {
@@ -104,10 +107,8 @@ export const createJobRequest = async (
             emergency: emergency || false,
             voiceDescription,
             media: media || [],
-            //@ts-ignore
-            title: `${contractor.profile.skill} Service`,
-            //@ts-ignore
-            category: `${contractor.profile.skill}`
+            title: `${contractorProfile?.skill} Service`,
+            category: `${contractorProfile?.skill}`
 
         });
 
@@ -173,7 +174,7 @@ export const createJobListing = async (
             return res.status(400).json({success:false, message: 'Validation error occurred', errors: errors.array() });
         }
 
-        const { category, description, location, date, expiresIn = 7, emergency, media, voiceDescription, time, contractorType } = req.body;
+        const { category, description, location, date, expiresIn = 7, emergency, media, voiceDescription, time, contractorType = "Both" } = req.body;
         const customerId = req.customer.id
 
         const customer = await CustomerModel.findById(customerId)
@@ -226,7 +227,7 @@ export const createJobListing = async (
         // Create a new job document
         const newJob: IJob = new JobModel({
             customer: customer.id,
-            contractorType,
+            // contractorType,
             description,
             category,
             location,

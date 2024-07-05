@@ -215,7 +215,7 @@ export const createJobRequestParams = [
 ];
 
 export const createJoListingParams = [
-  body("contractorType").notEmpty(),
+  body("contractorType").optional(),
   body("description").notEmpty(),
   body("expiresIn").notEmpty(),
   body("category").notEmpty(),
