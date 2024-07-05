@@ -120,9 +120,9 @@ const contractors = [
       gstNumber: "4442223",
       gstType: "Type",
       location: {
-        address: "Logics Senct",
-        latitude: "12323123123",
-        longitude: "2123213213213",
+          address: "Toronto, Ontario, Canada",
+          latitude: 43.65107,
+          longitude: -79.347015
       },
       phoneNumber: "3234234",
       previousJobPhotos: [
@@ -199,7 +199,8 @@ export const ContractorSeeder = async (options: Object) => {
     contractors.forEach(async (contractor) => {
       let existingContractor = await ContractorModel.findOne({ email: contractor.email });   
       if(existingContractor)return 
-      let newContractor = await ContractorModel.findOneAndUpdate({ email: contractor.email }, contractor, { upsert: true, new: true, setDefaultsOnInsert: true });      
+      let newContractor = await ContractorModel.findOneAndUpdate({ email: contractor.email }, contractor, { upsert: true, new: true, setDefaultsOnInsert: true });   
+      console.log('newContractor', newContractor)   
       if (newContractor) {
         let newProfile = await ContractorProfileModel.findOneAndUpdate({ contractor: newContractor.id }, {
           contractor: newContractor.id,

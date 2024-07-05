@@ -1,4 +1,5 @@
 import { Expo, ExpoPushMessage, ExpoPushTicket, ExpoPushReceipt, ExpoPushSuccessTicket } from 'expo-server-sdk';
+import { Logger } from '../logger';
 
 const expo = new Expo({ accessToken: process.env.EXPO_ACCESS_TOKEN });
 
@@ -21,11 +22,9 @@ export async function sendPushNotifications(pushTokens: string[], message: any):
   for (const chunk of chunks) {
     try {
       const ticketChunk = await expo.sendPushNotificationsAsync(chunk);
-      console.log('ticketChunk line 24', ticketChunk);
       tickets.push(...ticketChunk);
-      console.log('tickets line 26', tickets);
     } catch (error) {
-      console.error(error);
+      Logger.error(error);
     }
   }
 
@@ -38,28 +37,26 @@ export async function sendPushNotifications(pushTokens: string[], message: any):
   // Split receipt IDs into chunks to retrieve receipt information
   const receiptIdChunks = expo.chunkPushNotificationReceiptIds(receiptIds);
 
-  console.log('receiptIds', receiptIds)
 
   // Retrieve receipt information for each receipt ID chunk
   for (const chunk of receiptIdChunks) {
     try {
       const receipts = await expo.getPushNotificationReceiptsAsync(chunk);
-      console.log('receipts 47', receipts);
 
       // Process receipt information
       for (const receiptId in receipts) {
         const { status, details }: ExpoPushReceipt = receipts[receiptId];
         if (status == 'error') {
-          console.error(`There was an error sending a notification: ${message}`);
+          Logger.error(`There was an error sending a notification: ${message}`);
           if (details && details.error) {
-            console.error(`The error code is ${details.error}`);
+            Logger.error(`The error code is ${details.error}`);
           }
         }else{
-          console.error(`Nofication sent ${status}`);
+          Logger.info(`Nofication sent ${status}`);
         }
       }
     } catch (error) {
-      console.error(error);
+      Logger.error(error);
     }
   }
 }

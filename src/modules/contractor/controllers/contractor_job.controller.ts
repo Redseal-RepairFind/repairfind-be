@@ -205,7 +205,6 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
 
 
 
-
 export const rejectJobRequest = async (req: any, res: Response) => {
   try {
     // Validate incoming request
@@ -718,19 +717,22 @@ type PipelineStage =
 export const getJobListings = async (req: any, res: Response, next: NextFunction) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    return res.status(400).json({success:false, errors: errors.array() });
   }
 
   const contractorId = req.contractor.id
-  // const contractor = await ContractorModel.findById(contractorId);
-
   const profile = await ContractorProfileModel.findOne({ contractor: contractorId });
+
+  if(!profile){
+    return res.status(404).json({success:false, message: 'Contractor profile not found' });
+  }
+
   try {
     // Extract query parameters
     let {
-      distance,
-      latitude,
-      longitude,
+      radius,
+      latitude = Number(profile.location.latitude),
+      longitude = Number(profile.location.longitude),
       emergency,
       category = profile?.skill,
       city,
@@ -745,6 +747,8 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
     } = req.query;
 
     limit = limit > 0 ? parseInt(limit) : 10; // Handle null limit
+
+    const toRadians = (degrees: number) => degrees * (Math.PI / 180);
 
     // Construct aggregation pipeline
     const pipeline: PipelineStage[] = [
@@ -766,6 +770,32 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
               endDate: "$expiryDate",
             },
           },
+
+          distance: {
+            $multiply: [
+              6371, // Earth's radius in km
+              {
+                $acos: {
+                  $add: [
+                    {
+                      $multiply: [
+                        { $sin: toRadians(latitude) },
+                        { $sin: { $toDouble: { $multiply: [{ $toDouble: "$location.latitude" }, (Math.PI / 180)] } } }
+                      ]
+                    },
+                    {
+                      $multiply: [
+                        { $cos: toRadians(latitude) },
+                        { $cos: { $toDouble: { $multiply: [{ $toDouble: "$location.latitude" }, (Math.PI / 180)] } } },
+                        { $cos: { $subtract: [{ $toDouble: { $multiply: [{ $toDouble: "$location.longitude" }, (Math.PI / 180)] } }, toRadians(longitude)] } }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+
         }
       },
     ];
@@ -822,20 +852,8 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
     }
 
 
-    if (distance && latitude && longitude) {
-      pipeline.push({
-        $addFields: {
-          distance: {
-            $sqrt: {
-              $sum: [
-                { $pow: [{ $subtract: [{ $toDouble: "$location.latitude" }, parseFloat(latitude)] }, 2] },
-                { $pow: [{ $subtract: [{ $toDouble: "$location.longitude" }, parseFloat(longitude)] }, 2] }
-              ]
-            }
-          }
-        }
-      });
-      pipeline.push({ $match: { "distance": { $lte: parseInt(distance) } } });
+    if (radius) {
+      pipeline.push({ $match: { "distance": { $lte: parseInt(radius) } } });
     }
 
     // Add sorting stage if specified

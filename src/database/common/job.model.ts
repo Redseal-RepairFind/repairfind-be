@@ -49,6 +49,19 @@ export enum JobType {
 }
 
 
+
+export enum JOB_SCHEDULE_REMINDER {
+    HOURS_120 = 'HOURS_120', // 5 days
+    HOURS_72 = 'HOURS_72', // 3days
+    HOURS_48 = 'HOURS_48', // 2days
+    HOURS_24 = 'HOURS_24',
+    HOURS_12 = 'HOURS_12',
+    HOURS_6 = 'HOURS_6',
+    HOURS_1 = 'HOURS_1',
+    NOT_STARTED = 'NOT_STARTED',
+}
+
+
 export interface IJobSchedule {
     startDate: Date;
     endDate?: Date;
@@ -130,6 +143,7 @@ export interface IJob extends Document {
     isChangeOrder: boolean;
     hideFrom: string[];
     jobDay: ObjectId;
+    reminders: JOB_SCHEDULE_REMINDER[];
     getMyQoutation: (contractorId: ObjectId) => {
     };
     getJobDay: (scheduleType?: JOB_SCHEDULE_TYPE) => {
@@ -262,6 +276,10 @@ const JobSchema = new Schema<IJob>({
     jobDay: { type: Schema.Types.ObjectId, ref: 'job_days' },
     hideFrom: {
         type: [String]
+    },
+    reminders: {
+        type: [String],
+        enum: Object.values(JOB_SCHEDULE_REMINDER)
     },
 }, { timestamps: true });
 

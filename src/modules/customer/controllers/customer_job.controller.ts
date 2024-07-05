@@ -221,7 +221,7 @@ export const createJobListing = async (
         // Calculate the expiry date
         const currentDate = new Date();
         const expiryDate = new Date(currentDate);
-        expiryDate.setDate(currentDate.getDate() + expiresIn);
+        expiryDate.setDate(currentDate.getDate() + Number(expiresIn));
 
         // Create a new job document
         const newJob: IJob = new JobModel({
@@ -232,7 +232,7 @@ export const createJobListing = async (
             location,
             date,
             time: jobTime,
-            expiresIn,
+            expiresIn: Number(expiresIn),
             expiryDate: expiryDate,
             emergency: emergency || false,
             voiceDescription,
