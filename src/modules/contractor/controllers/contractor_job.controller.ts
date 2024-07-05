@@ -28,6 +28,8 @@ export const getJobRequests = async (req: any, res: Response) => {
     // Extract query parameters
     const { customerId, status, startDate, endDate, date } = req.query;
     const contractorId = req.contractor.id;
+    const contractorProfile = await ContractorProfileModel.findOne({contractor: contractorId})
+
 
     // Construct filter object based on query parameters
     const filter: any = {
@@ -64,6 +66,19 @@ export const getJobRequests = async (req: any, res: Response) => {
     const jobRequests = JobModel.find(filter);
 
     const { data, error } = await applyAPIFeature(jobRequests, req.query)
+    if (data) {
+      
+      await Promise.all(data.data.map(async (job: any) => {
+        if(contractorProfile){
+          const lat = Number(contractorProfile.location.latitude ?? 0)
+          const lng = Number(contractorProfile.location.longitude ?? 0)
+          job.distance = await job.getDistance(lat, lng);
+        }
+    
+      }));
+    }
+
+
     res.status(200).json({
       success: true, message: "Job requests retrieved",
       data: data
@@ -204,7 +219,6 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
 };
 
 
-
 export const rejectJobRequest = async (req: any, res: Response) => {
   try {
     // Validate incoming request
@@ -299,7 +313,7 @@ export const getJobRequestById = async (req: any, res: Response, next: NextFunct
     }
     const { jobId } = req.params;
     const contractorId = req.contractor.id;
-
+    const contractorProfile = await ContractorProfileModel.findOne({contractor: contractorId})
 
     const options = {
       contractorId: contractorId, // Define other options here if needed
@@ -325,6 +339,11 @@ export const getJobRequestById = async (req: any, res: Response, next: NextFunct
     }
 
     job.myQuotation = await job.getMyQoutation(contractorId);
+    if(contractorProfile){
+      const lat = Number(contractorProfile.location.latitude ?? 0)
+      const lng = Number(contractorProfile.location.longitude ?? 0)
+      job.distance = await job.getDistance(lat, lng);
+    }
 
     // Return the job request payload
     res.json({ success: true, data: job });
@@ -343,8 +362,9 @@ export const getJobListingById = async (req: any, res: Response, next: NextFunct
     }
     const { jobId } = req.params;
     const contractorId = req.contractor.id;
-
-
+    const contractorProfile = await ContractorProfileModel.findOne({contractor: contractorId})
+    
+    
     const options = {
       contractorId: contractorId, // Define other options here if needed
       //@ts-ignore
@@ -364,6 +384,12 @@ export const getJobListingById = async (req: any, res: Response, next: NextFunct
     }
 
     job.myQuotation = await job.getMyQoutation(contractorId);
+
+    if(contractorProfile){
+      const lat = Number(contractorProfile.location.latitude ?? 0)
+      const lng = Number(contractorProfile.location.longitude ?? 0)
+      job.distance = await job.getDistance(lat, lng);
+    }
 
 
     // Return the job request payload
@@ -772,30 +798,35 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
           },
 
           distance: {
-            $multiply: [
-              6371, // Earth's radius in km
+            $round: [
               {
-                $acos: {
-                  $add: [
-                    {
-                      $multiply: [
-                        { $sin: toRadians(latitude) },
-                        { $sin: { $toDouble: { $multiply: [{ $toDouble: "$location.latitude" }, (Math.PI / 180)] } } }
-                      ]
-                    },
-                    {
-                      $multiply: [
-                        { $cos: toRadians(latitude) },
-                        { $cos: { $toDouble: { $multiply: [{ $toDouble: "$location.latitude" }, (Math.PI / 180)] } } },
-                        { $cos: { $subtract: [{ $toDouble: { $multiply: [{ $toDouble: "$location.longitude" }, (Math.PI / 180)] } }, toRadians(longitude)] } }
+                $multiply: [
+                  6371, // Earth's radius in km
+                  {
+                    $acos: {
+                      $add: [
+                        {
+                          $multiply: [
+                            { $sin: toRadians(latitude) },
+                            { $sin: { $toDouble: { $multiply: [{ $toDouble: "$location.latitude" }, (Math.PI / 180)] } } }
+                          ]
+                        },
+                        {
+                          $multiply: [
+                            { $cos: toRadians(latitude) },
+                            { $cos: { $toDouble: { $multiply: [{ $toDouble: "$location.latitude" }, (Math.PI / 180)] } } },
+                            { $cos: { $subtract: [{ $toDouble: { $multiply: [{ $toDouble: "$location.longitude" }, (Math.PI / 180)] } }, toRadians(longitude)] } }
+                          ]
+                        }
                       ]
                     }
-                  ]
-                }
-              }
+                  }
+                ]
+              },
+              4
             ]
           },
-
+          
         }
       },
     ];

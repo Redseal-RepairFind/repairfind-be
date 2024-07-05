@@ -143,15 +143,18 @@ export interface IJob extends Document {
     isChangeOrder: boolean;
     hideFrom: string[];
     jobDay: ObjectId;
+    distance: any;
     reminders: JOB_SCHEDULE_REMINDER[];
     getMyQoutation: (contractorId: ObjectId) => {
     };
     getJobDay: (scheduleType?: JOB_SCHEDULE_TYPE) => {
     };
+    getDistance: (contractorLatitude: number, contractorLongitude: number) => {
+    };
     getPayments: (types?: PAYMENT_TYPE[]) => {
         paymentCount: number;
         totalAmount: number;
-        payments: Array<{id: ObjectId, transaction: ObjectId, amount: number, charge: string, status: string, refunded: boolean, paid: boolean, amount_refunded: number, captured: boolean }>;
+        payments: Array<{ id: ObjectId, transaction: ObjectId, amount: number, charge: string, status: string, refunded: boolean, paid: boolean, amount_refunded: number, captured: boolean }>;
     };
 }
 
@@ -244,13 +247,13 @@ const JobSchema = new Schema<IJob>({
     date: { type: Date, required: true },
     time: { type: Date, required: false },
     startDate: { type: Date },
-    expiryDate: { 
+    expiryDate: {
         type: Date,
-        default: function() {
+        default: function () {
             const now = new Date();
             return new Date(now.setDate(now.getDate() + 7));
         }
-     },
+    },
     endDate: { type: Date },
     media: { type: [String], default: [] },
     tags: { type: [String] },
@@ -274,6 +277,7 @@ const JobSchema = new Schema<IJob>({
     review: { type: Schema.Types.ObjectId, ref: 'reviews' },
     isChangeOrder: { type: Boolean, default: false },
     jobDay: { type: Schema.Types.ObjectId, ref: 'job_days' },
+    distance: { type: Schema.Types.Mixed, default: 0 },
     hideFrom: {
         type: [String]
     },
@@ -287,25 +291,55 @@ const JobSchema = new Schema<IJob>({
 
 
 JobSchema.virtual('totalQuotations').get(function () {
-    const pendingQuotations =  this.quotations ? this.quotations.filter(quote => quote.status !== JOB_QUOTATION_STATUS.DECLINED) : [];
+    const pendingQuotations = this.quotations ? this.quotations.filter(quote => quote.status !== JOB_QUOTATION_STATUS.DECLINED) : [];
     return pendingQuotations.length;
 });
 
-JobSchema.virtual('expiresIn').get(function() {
-    if(this.expiryDate && this.createdAt) {
+JobSchema.virtual('expiresIn').get(function () {
+    if (this.expiryDate && this.createdAt) {
         const millisecondsPerDay = 1000 * 60 * 60 * 24;
         const timeDifference = this.expiryDate.getTime() - new Date().getTime();
         const daysDifference = Math.ceil(timeDifference / millisecondsPerDay);
         return daysDifference;
     }
-    
     return null;
 });
 
 
+JobSchema.methods.getDistance = async function (contractorLatitude: number, contractorLongitude: number) {
+
+    let distance = 0
+    if (contractorLatitude && contractorLongitude) {
+        // Contractor location (Toronto, Ontario, Canada)
+        // const contractorLatitude = 43.65107;
+        // const contractorLongitude = -79.347015;
+
+        // Job location
+        const { latitude, longitude } = this.location;
+
+        // Distance calculation using Haversine formula
+        const earthRadius = 6371; // Earth's radius in kilometers
+        const lat1 = Math.PI * Number(latitude) / 180;
+        const lat2 = Math.PI * contractorLatitude / 180;
+        const deltaLat = Math.PI * (contractorLatitude - Number(latitude)) / 180;
+        const deltaLon = Math.PI * (Number(contractorLongitude) - Number(longitude)) / 180;
+
+        const a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+            Math.cos(lat1) * Math.cos(lat2) *
+            Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        distance = earthRadius * c;
+    }
+
+
+    return distance.toFixed(4); // Distance in kilometers
+};
+
+
+
 //get job day that match with the schedule type
- JobSchema.methods.getJobDay = async function (scheduleType = null) {
-    if(!scheduleType && this.schedule) scheduleType = this.schedule?.type;
+JobSchema.methods.getJobDay = async function (scheduleType = null) {
+    if (!scheduleType && this.schedule) scheduleType = this.schedule?.type;
     return await JobDayModel.findOne({ job: this.id, type: scheduleType })
 };
 
@@ -326,17 +360,17 @@ JobSchema.methods.getPayments = async function (types = null) {
     const paymentIds = await this.payments
 
 
-    if(!paymentIds)return  { totalAmount: 0, paymentCount:0,  payments: null }
+    if (!paymentIds) return { totalAmount: 0, paymentCount: 0, payments: null }
 
 
     let jobPayments = null
-    if(types){
-        jobPayments = await PaymentModel.find({_id: {$in: paymentIds}, type: {$in: types } })
-    }else{
-        jobPayments = await PaymentModel.find({_id: {$in: paymentIds} })
+    if (types) {
+        jobPayments = await PaymentModel.find({ _id: { $in: paymentIds }, type: { $in: types } })
+    } else {
+        jobPayments = await PaymentModel.find({ _id: { $in: paymentIds } })
     }
 
-    if(!jobPayments)return  { totalAmount: 0, paymentCount:0,  payments: null }
+    if (!jobPayments) return { totalAmount: 0, paymentCount: 0, payments: null }
 
     totalAmount = jobPayments.reduce((acc: number, payment: any) => acc + payment.amount, 0);
     const payments = jobPayments.map((payment: any) => {
@@ -352,9 +386,9 @@ JobSchema.methods.getPayments = async function (types = null) {
             captured: payment.captured,
         }
     })
-   
 
-    return { totalAmount, paymentCount:payments.length,  payments };
+
+    return { totalAmount, paymentCount: payments.length, payments };
 };
 
 
