@@ -90,7 +90,7 @@ var EmailService = /** @class */ (function () {
                             subject: subject,
                             html: html
                         };
-                        jobId = "email-".concat(to, "-").concat(subject);
+                        jobId = "email-".concat(to, "-").concat(subject, "-").concat(new Date());
                         return [4 /*yield*/, bullmq_1.QueueService.addJob('sendEmail', mailOptions, { jobId: jobId, removeOnComplete: true })];
                     case 2:
                         _a.sent();

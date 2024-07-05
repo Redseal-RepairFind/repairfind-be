@@ -223,6 +223,10 @@ var ContractorSchema = new mongoose_1.Schema({
         type: CertnDetailSchema
     },
     reviews: [{ review: { type: mongoose_1.Schema.Types.ObjectId, ref: 'reviews' }, averageRating: Number }],
+    badge: {
+        label: { type: String, default: contractor_interface_1.CONTRACTOR_BADGE.PROSPECT },
+        icon: { type: String, default: null },
+    },
     onboarding: {
         hasStripeAccount: { default: false, type: Boolean },
         hasStripeIdentity: { default: false, type: Boolean },
@@ -278,13 +282,6 @@ ContractorSchema.virtual('stripeAccountStatus').get(function () {
     };
 });
 ContractorSchema.virtual('accountStatus').get(function () {
-    var stripeAccount = this.stripeAccount;
-    // const stripeAccountStatus =
-    //   stripeAccount?.details_submitted &&
-    //   stripeAccount?.payouts_enabled &&
-    //   stripeAccount?.charges_enabled &&
-    //   (stripeAccount?.capabilities?.transfers == 'active') &&
-    //   (stripeAccount?.capabilities?.card_payments == 'active')
     return contractor_interface_1.CONTRACTOR_STATUS.APPROVED;
 });
 ContractorSchema.virtual('certnStatus').get(function () {

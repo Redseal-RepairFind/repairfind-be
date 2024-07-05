@@ -66,17 +66,22 @@ var interface_dto_util_1 = require("../../../utils/interface_dto.util");
 var stripe_1 = require("../../../services/stripe");
 var events_1 = require("../../../events");
 var getJobRequests = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, customerId, status_1, startDate, endDate, date, contractorId, filter, start, end, selectedDate, startOfDay, endOfDay, jobRequests, _b, data, error, error_1;
+    var errors, _a, customerId, status_1, startDate, endDate, date, contractorId, contractorProfile_1, filter, start, end, selectedDate, startOfDay, endOfDay, jobRequests, _b, data, error, error_1;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
-                _c.trys.push([0, 2, , 3]);
+                _c.trys.push([0, 5, , 6]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
                 _a = req.query, customerId = _a.customerId, status_1 = _a.status, startDate = _a.startDate, endDate = _a.endDate, date = _a.date;
                 contractorId = req.contractor.id;
+                return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: contractorId })
+                    // Construct filter object based on query parameters
+                ];
+            case 1:
+                contractorProfile_1 = _c.sent();
                 filter = {
                     type: job_model_1.JobType.REQUEST
                 };
@@ -105,19 +110,42 @@ var getJobRequests = function (req, res) { return __awaiter(void 0, void 0, void
                 }
                 jobRequests = job_model_1.JobModel.find(filter);
                 return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(jobRequests, req.query)];
-            case 1:
+            case 2:
                 _b = _c.sent(), data = _b.data, error = _b.error;
+                if (!data) return [3 /*break*/, 4];
+                return [4 /*yield*/, Promise.all(data.data.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
+                        var lat, lng, _a;
+                        var _b, _c;
+                        return __generator(this, function (_d) {
+                            switch (_d.label) {
+                                case 0:
+                                    if (!contractorProfile_1) return [3 /*break*/, 2];
+                                    lat = Number((_b = contractorProfile_1.location.latitude) !== null && _b !== void 0 ? _b : 0);
+                                    lng = Number((_c = contractorProfile_1.location.longitude) !== null && _c !== void 0 ? _c : 0);
+                                    _a = job;
+                                    return [4 /*yield*/, job.getDistance(lat, lng)];
+                                case 1:
+                                    _a.distance = _d.sent();
+                                    _d.label = 2;
+                                case 2: return [2 /*return*/];
+                            }
+                        });
+                    }); }))];
+            case 3:
+                _c.sent();
+                _c.label = 4;
+            case 4:
                 res.status(200).json({
                     success: true, message: "Job requests retrieved",
                     data: data
                 });
-                return [3 /*break*/, 3];
-            case 2:
+                return [3 /*break*/, 6];
+            case 5:
                 error_1 = _c.sent();
                 console.error('Error retrieving job requests:', error_1);
                 res.status(500).json({ success: false, message: 'Internal Server Error' });
-                return [3 /*break*/, 3];
-            case 3: return [2 /*return*/];
+                return [3 /*break*/, 6];
+            case 6: return [2 /*return*/];
         }
     });
 }); };
@@ -310,17 +338,21 @@ var rejectJobRequest = function (req, res) { return __awaiter(void 0, void 0, vo
 }); };
 exports.rejectJobRequest = rejectJobRequest;
 var getJobRequestById = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, jobId, contractorId, options_1, job, _a, error_4;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+    var errors, jobId, contractorId, contractorProfile, options_1, job, _a, lat, lng, _b, error_4;
+    var _c, _d;
+    return __generator(this, function (_e) {
+        switch (_e.label) {
             case 0:
-                _b.trys.push([0, 3, , 4]);
+                _e.trys.push([0, 6, , 7]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
                 jobId = req.params.jobId;
                 contractorId = req.contractor.id;
+                return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: contractorId })];
+            case 1:
+                contractorProfile = _e.sent();
                 options_1 = {
                     contractorId: contractorId, // Define other options here if needed
                     //@ts-ignore
@@ -337,39 +369,52 @@ var getJobRequestById = function (req, res, next) { return __awaiter(void 0, voi
                     })
                         .populate(['contractor', 'customer', 'assignment.contractor'])
                         .exec()];
-            case 1:
-                job = _b.sent();
+            case 2:
+                job = _e.sent();
                 if (!job) {
                     return [2 /*return*/, next(new custom_errors_1.NotFoundError('Job request not found'))];
                 }
                 _a = job;
                 return [4 /*yield*/, job.getMyQoutation(contractorId)];
-            case 2:
-                _a.myQuotation = _b.sent();
+            case 3:
+                _a.myQuotation = _e.sent();
+                if (!contractorProfile) return [3 /*break*/, 5];
+                lat = Number((_c = contractorProfile.location.latitude) !== null && _c !== void 0 ? _c : 0);
+                lng = Number((_d = contractorProfile.location.longitude) !== null && _d !== void 0 ? _d : 0);
+                _b = job;
+                return [4 /*yield*/, job.getDistance(lat, lng)];
+            case 4:
+                _b.distance = _e.sent();
+                _e.label = 5;
+            case 5:
                 // Return the job request payload
                 res.json({ success: true, data: job });
-                return [3 /*break*/, 4];
-            case 3:
-                error_4 = _b.sent();
+                return [3 /*break*/, 7];
+            case 6:
+                error_4 = _e.sent();
                 console.error('Error retrieving job request:', error_4);
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('Bad Request'))];
-            case 4: return [2 /*return*/];
+            case 7: return [2 /*return*/];
         }
     });
 }); };
 exports.getJobRequestById = getJobRequestById;
 var getJobListingById = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, jobId, contractorId, options_2, job, _a, error_5;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+    var errors, jobId, contractorId, contractorProfile, options_2, job, _a, lat, lng, _b, error_5;
+    var _c, _d;
+    return __generator(this, function (_e) {
+        switch (_e.label) {
             case 0:
-                _b.trys.push([0, 3, , 4]);
+                _e.trys.push([0, 6, , 7]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
                 jobId = req.params.jobId;
                 contractorId = req.contractor.id;
+                return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: contractorId })];
+            case 1:
+                contractorProfile = _e.sent();
                 options_2 = {
                     contractorId: contractorId, // Define other options here if needed
                     //@ts-ignore
@@ -381,23 +426,32 @@ var getJobListingById = function (req, res, next) { return __awaiter(void 0, voi
                 return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobId, type: job_model_1.JobType.LISTING })
                         .populate(['contractor', 'assignment.contractor', 'customer', { path: 'myQuotation', options: options_2 }])
                         .exec()];
-            case 1:
-                job = _b.sent();
+            case 2:
+                job = _e.sent();
                 if (!job) {
                     return [2 /*return*/, next(new custom_errors_1.NotFoundError('Job listing not found'))];
                 }
                 _a = job;
                 return [4 /*yield*/, job.getMyQoutation(contractorId)];
-            case 2:
-                _a.myQuotation = _b.sent();
+            case 3:
+                _a.myQuotation = _e.sent();
+                if (!contractorProfile) return [3 /*break*/, 5];
+                lat = Number((_c = contractorProfile.location.latitude) !== null && _c !== void 0 ? _c : 0);
+                lng = Number((_d = contractorProfile.location.longitude) !== null && _d !== void 0 ? _d : 0);
+                _b = job;
+                return [4 /*yield*/, job.getDistance(lat, lng)];
+            case 4:
+                _b.distance = _e.sent();
+                _e.label = 5;
+            case 5:
                 // Return the job request payload
                 res.json({ success: true, data: job });
-                return [3 /*break*/, 4];
-            case 3:
-                error_5 = _b.sent();
+                return [3 /*break*/, 7];
+            case 6:
+                error_5 = _e.sent();
                 console.error('Error retrieving job listing:', error_5);
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('Bad Request'))];
-            case 4: return [2 /*return*/];
+            case 7: return [2 /*return*/];
         }
     });
 }); };
@@ -728,24 +782,28 @@ var updateJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
 }); };
 exports.updateJobQuotation = updateJobQuotation;
 var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, contractorId, profile, _a, distance, latitude, longitude, emergency, _b, category, city, country, address, startDate, endDate, _c, page, _d, limit, sort, _e, showHidden, pipeline, contractor, quotations, jobIdsWithQuotations, _f, sortField, sortOrder, sortStage, skip, result, jobs, metadata, error_9;
-    var _g;
-    return __generator(this, function (_h) {
-        switch (_h.label) {
+    var errors, contractorId, profile, _a, radius, _b, latitude, _c, longitude, emergency, _d, category, city, country, address, startDate, endDate, _e, page, _f, limit, sort, _g, showHidden, toRadians, pipeline, contractor, quotations, jobIdsWithQuotations, _h, sortField, sortOrder, sortStage, skip, result, jobs, metadata, error_9;
+    var _j;
+    return __generator(this, function (_k) {
+        switch (_k.label) {
             case 0:
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                    return [2 /*return*/, res.status(400).json({ success: false, errors: errors.array() })];
                 }
                 contractorId = req.contractor.id;
                 return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: contractorId })];
             case 1:
-                profile = _h.sent();
-                _h.label = 2;
+                profile = _k.sent();
+                if (!profile) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor profile not found' })];
+                }
+                _k.label = 2;
             case 2:
-                _h.trys.push([2, 6, , 7]);
-                _a = req.query, distance = _a.distance, latitude = _a.latitude, longitude = _a.longitude, emergency = _a.emergency, _b = _a.category, category = _b === void 0 ? profile === null || profile === void 0 ? void 0 : profile.skill : _b, city = _a.city, country = _a.country, address = _a.address, startDate = _a.startDate, endDate = _a.endDate, _c = _a.page, page = _c === void 0 ? 1 : _c, _d = _a.limit, limit = _d === void 0 ? 10 : _d, sort = _a.sort, _e = _a.showHidden, showHidden = _e === void 0 ? false : _e;
+                _k.trys.push([2, 6, , 7]);
+                _a = req.query, radius = _a.radius, _b = _a.latitude, latitude = _b === void 0 ? Number(profile.location.latitude) : _b, _c = _a.longitude, longitude = _c === void 0 ? Number(profile.location.longitude) : _c, emergency = _a.emergency, _d = _a.category, category = _d === void 0 ? profile === null || profile === void 0 ? void 0 : profile.skill : _d, city = _a.city, country = _a.country, address = _a.address, startDate = _a.startDate, endDate = _a.endDate, _e = _a.page, page = _e === void 0 ? 1 : _e, _f = _a.limit, limit = _f === void 0 ? 10 : _f, sort = _a.sort, _g = _a.showHidden, showHidden = _g === void 0 ? false : _g;
                 limit = limit > 0 ? parseInt(limit) : 10; // Handle null limit
+                toRadians = function (degrees) { return degrees * (Math.PI / 180); };
                 pipeline = [
                     {
                         $lookup: {
@@ -765,15 +823,44 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                                     endDate: "$expiryDate",
                                 },
                             },
+                            distance: {
+                                $round: [
+                                    {
+                                        $multiply: [
+                                            6371, // Earth's radius in km
+                                            {
+                                                $acos: {
+                                                    $add: [
+                                                        {
+                                                            $multiply: [
+                                                                { $sin: toRadians(latitude) },
+                                                                { $sin: { $toDouble: { $multiply: [{ $toDouble: "$location.latitude" }, (Math.PI / 180)] } } }
+                                                            ]
+                                                        },
+                                                        {
+                                                            $multiply: [
+                                                                { $cos: toRadians(latitude) },
+                                                                { $cos: { $toDouble: { $multiply: [{ $toDouble: "$location.latitude" }, (Math.PI / 180)] } } },
+                                                                { $cos: { $subtract: [{ $toDouble: { $multiply: [{ $toDouble: "$location.longitude" }, (Math.PI / 180)] } }, toRadians(longitude)] } }
+                                                            ]
+                                                        }
+                                                    ]
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    4
+                                ]
+                            },
                         }
                     },
                 ];
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
             case 3:
-                contractor = _h.sent();
+                contractor = _k.sent();
                 return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.find({ contractor: contractorId }, { job: 1 })];
             case 4:
-                quotations = _h.sent();
+                quotations = _k.sent();
                 jobIdsWithQuotations = quotations.map(function (quotation) { return quotation.job; });
                 pipeline.push({ $match: { _id: { $nin: jobIdsWithQuotations } } });
                 pipeline.push({ $match: { type: job_model_1.JobType.LISTING } });
@@ -808,27 +895,15 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                         }
                     });
                 }
-                if (distance && latitude && longitude) {
-                    pipeline.push({
-                        $addFields: {
-                            distance: {
-                                $sqrt: {
-                                    $sum: [
-                                        { $pow: [{ $subtract: [{ $toDouble: "$location.latitude" }, parseFloat(latitude)] }, 2] },
-                                        { $pow: [{ $subtract: [{ $toDouble: "$location.longitude" }, parseFloat(longitude)] }, 2] }
-                                    ]
-                                }
-                            }
-                        }
-                    });
-                    pipeline.push({ $match: { "distance": { $lte: parseInt(distance) } } });
+                if (radius) {
+                    pipeline.push({ $match: { "distance": { $lte: parseInt(radius) } } });
                 }
                 // Add sorting stage if specified
                 if (sort) {
-                    _f = sort.startsWith('-') ? [sort.slice(1), -1] : [sort, 1], sortField = _f[0], sortOrder = _f[1];
+                    _h = sort.startsWith('-') ? [sort.slice(1), -1] : [sort, 1], sortField = _h[0], sortOrder = _h[1];
                     sortStage = {
                         //@ts-ignore
-                        $sort: (_g = {}, _g[sortField] = sortOrder, _g)
+                        $sort: (_j = {}, _j[sortField] = sortOrder, _j)
                     };
                     pipeline.push(sortStage);
                 }
@@ -845,7 +920,7 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                 });
                 return [4 /*yield*/, job_model_1.JobModel.aggregate(pipeline)];
             case 5:
-                result = _h.sent();
+                result = _k.sent();
                 jobs = result[0].data;
                 if (jobs) {
                     //NO longer neccessary since applied jobs don't show up again
@@ -859,7 +934,7 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                 res.status(200).json({ success: true, data: __assign(__assign({}, metadata), { data: jobs }) });
                 return [3 /*break*/, 7];
             case 6:
-                error_9 = _h.sent();
+                error_9 = _k.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_9))];
             case 7: return [2 /*return*/];
         }

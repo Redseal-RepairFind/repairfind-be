@@ -197,7 +197,7 @@ exports.createJobRequestParams = [
     (0, express_validator_1.body)("time").optional(),
 ];
 exports.createJoListingParams = [
-    (0, express_validator_1.body)("contractorType").notEmpty(),
+    (0, express_validator_1.body)("contractorType").optional(),
     (0, express_validator_1.body)("description").notEmpty(),
     (0, express_validator_1.body)("expiresIn").notEmpty(),
     (0, express_validator_1.body)("category").notEmpty(),

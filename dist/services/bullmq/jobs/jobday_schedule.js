@@ -46,11 +46,11 @@ var contractor_model_1 = require("../../../database/contractor/models/contractor
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var logger_1 = require("../../logger");
 var jobDayScheduleCheck = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var jobs, _i, jobs_1, job, customer, contractor, currentDate, jobStartDate, timeDifference, daysDifference, error_1, error_2;
+    var jobs, _i, jobs_1, job, customer, contractor, currentDate, jobStartDate, timeDifference, daysDifference, hourDifference, minuteDifference, get12HourFormat, formattedJobStartDate, error_1, error_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 11, , 12]);
+                _a.trys.push([0, 9, , 10]);
                 return [4 /*yield*/, job_model_1.JobModel.find({
                         status: { $in: ['BOOKED'] },
                         'schedule.startDate': { $exists: true }
@@ -60,11 +60,11 @@ var jobDayScheduleCheck = function () { return __awaiter(void 0, void 0, void 0,
                 _i = 0, jobs_1 = jobs;
                 _a.label = 2;
             case 2:
-                if (!(_i < jobs_1.length)) return [3 /*break*/, 10];
+                if (!(_i < jobs_1.length)) return [3 /*break*/, 8];
                 job = jobs_1[_i];
                 _a.label = 3;
             case 3:
-                _a.trys.push([3, 8, , 9]);
+                _a.trys.push([3, 6, , 7]);
                 return [4 /*yield*/, customer_model_1.default.findById(job.customer)];
             case 4:
                 customer = _a.sent();
@@ -72,62 +72,82 @@ var jobDayScheduleCheck = function () { return __awaiter(void 0, void 0, void 0,
             case 5:
                 contractor = _a.sent();
                 currentDate = new Date();
-                jobStartDate = job.schedule.startDate;
+                jobStartDate = new Date(job.schedule.startDate);
                 timeDifference = jobStartDate.getTime() - currentDate.getTime();
                 daysDifference = Math.ceil(timeDifference / (1000 * 60 * 60 * 24));
-                if (!(customer && contractor)) return [3 /*break*/, 7];
-                if (daysDifference <= 5) {
-                    // Perform action for being close within 5 days
-                    sendReminder(customer, contractor, job, "You have a job schedule for ".concat(jobStartDate));
+                hourDifference = Math.ceil(timeDifference / (1000 * 60 * 60));
+                minuteDifference = Math.ceil(timeDifference / (1000 * 60));
+                get12HourFormat = function (jobStartDate) {
+                    var hours = jobStartDate.getHours();
+                    var period = hours >= 12 ? 'PM' : 'AM';
+                    var formattedHours = hours % 12 || 12;
+                    var minutes = String(jobStartDate.getMinutes()).padStart(2, '0');
+                    return "".concat(formattedHours, ":").concat(minutes, " ").concat(period);
+                };
+                formattedJobStartDate = "".concat(jobStartDate.toDateString(), " at ").concat(get12HourFormat(jobStartDate));
+                console.log("".concat(0, " jobStartDate you have a bla bla: ").concat(formattedJobStartDate), daysDifference, hourDifference, currentDate, jobStartDate);
+                if (customer && contractor) {
+                    if (daysDifference === -1) {
+                        if (!job.reminders.includes(job_model_1.JOB_SCHEDULE_REMINDER.NOT_STARTED)) {
+                            sendReminderContractor(customer, contractor, job, "Your job with ".concat(customer.name, " scheduled for yesterday: ").concat(jobStartDate, " was not started"));
+                            job.status = job_model_1.JOB_STATUS.NOT_STARTED;
+                            job.reminders.push(job_model_1.JOB_SCHEDULE_REMINDER.NOT_STARTED);
+                            job.save();
+                        }
+                    }
+                    if (hourDifference === 6) {
+                        if (!job.reminders.includes(job_model_1.JOB_SCHEDULE_REMINDER.HOURS_6)) {
+                            sendReminderContractor(customer, contractor, job, "You have a job with ".concat(customer.name, " scheduled for today ").concat(formattedJobStartDate));
+                            sendReminderCustomer(customer, contractor, job, "You have a job with ".concat(contractor.name, " scheduled for today ").concat(formattedJobStartDate));
+                            job.reminders.push(job_model_1.JOB_SCHEDULE_REMINDER.HOURS_6);
+                            job.save();
+                        }
+                    }
+                    if (hourDifference === 12) {
+                        if (!job.reminders.includes(job_model_1.JOB_SCHEDULE_REMINDER.HOURS_12)) {
+                            sendReminderContractor(customer, contractor, job, "You have a job with ".concat(customer.name, " scheduled for today ").concat(formattedJobStartDate));
+                            sendReminderCustomer(customer, contractor, job, "You have a job with ".concat(contractor.name, " scheduled for today ").concat(formattedJobStartDate));
+                            job.reminders.push(job_model_1.JOB_SCHEDULE_REMINDER.HOURS_12);
+                            job.save();
+                        }
+                    }
+                    if (hourDifference === 24) {
+                        if (!job.reminders.includes(job_model_1.JOB_SCHEDULE_REMINDER.HOURS_24)) {
+                            sendReminderContractor(customer, contractor, job, "You have a job with ".concat(customer.name, " scheduled for tomorrow ").concat(jobStartDate.toDateString()));
+                            sendReminderCustomer(customer, contractor, job, "You have a job with ".concat(contractor.name, " scheduled for tomorrow ").concat(jobStartDate.toDateString()));
+                            job.reminders.push(job_model_1.JOB_SCHEDULE_REMINDER.HOURS_24);
+                            job.save();
+                        }
+                    }
+                    if (daysDifference === 48) {
+                        if (!job.reminders.includes(job_model_1.JOB_SCHEDULE_REMINDER.HOURS_48)) {
+                            sendReminderContractor(customer, contractor, job, "You have an upcoming job scheduled for ".concat(jobStartDate.toDateString()));
+                            sendReminderCustomer(customer, contractor, job, "You have a job with ".concat(contractor.name, " scheduled for today ").concat(formattedJobStartDate));
+                            job.reminders.push(job_model_1.JOB_SCHEDULE_REMINDER.HOURS_48);
+                            job.save();
+                        }
+                    }
                 }
-                if (daysDifference <= 3) {
-                    // Perform action for being close within 3 days
-                    sendReminder(customer, contractor, job, "You have a job schedule for ".concat(jobStartDate));
-                }
-                if (daysDifference <= 2) {
-                    // Perform action for being close within 2 days
-                    sendReminder(customer, contractor, job, "You have a job schedule in ".concat(2, " days time"));
-                }
-                if (daysDifference <= 1) {
-                    // Perform action for being close within 1 day
-                    sendReminder(customer, contractor, job, "You have a job scheduled for tommorow ".concat(jobStartDate));
-                }
-                if (daysDifference == 0) {
-                    // Perform action for being close within 1 day
-                    sendReminder(customer, contractor, job, "You have a job scheduled for today ".concat(currentDate));
-                }
-                if (!(daysDifference === -1)) return [3 /*break*/, 7];
-                // Perform action for being 1 day after the job's start date
-                // Example: Send a follow-up or feedback request to gather post-job information
-                // const message = `Action needed: Your job with ID ${job.id} was scheduled to start yesterday. Please provide feedback on the completed job.`;
-                // Code to send the follow-up message or trigger the feedback request
-                sendReminder(customer, contractor, job, "Your job scheduled for yesterday: ".concat(jobStartDate, " was not started"));
-                // move job status to NOT_STARTED
-                job.status = job_model_1.JOB_STATUS.NOT_STARTED;
-                return [4 /*yield*/, job.save()];
+                return [3 /*break*/, 7];
             case 6:
-                _a.sent();
-                _a.label = 7;
-            case 7: return [3 /*break*/, 9];
-            case 8:
                 error_1 = _a.sent();
                 logger_1.Logger.error("Error sending job day reminder: ".concat(job.id), error_1);
-                return [3 /*break*/, 9];
-            case 9:
+                return [3 /*break*/, 7];
+            case 7:
                 _i++;
                 return [3 /*break*/, 2];
-            case 10: return [3 /*break*/, 12];
-            case 11:
+            case 8: return [3 /*break*/, 10];
+            case 9:
                 error_2 = _a.sent();
                 logger_1.Logger.error('Error sending job day reminder:', error_2);
-                return [3 /*break*/, 12];
-            case 12: return [2 /*return*/];
+                return [3 /*break*/, 10];
+            case 10: return [2 /*return*/];
         }
     });
 }); };
 exports.jobDayScheduleCheck = jobDayScheduleCheck;
-function sendReminder(customer, contractor, job, message) {
-    var _a, _b;
+function sendReminderContractor(customer, contractor, job, message) {
+    var _a;
     __1.NotificationService.sendNotification({
         user: contractor.id,
         userType: 'contractors',
@@ -143,6 +163,9 @@ function sendReminder(customer, contractor, job, message) {
             event: 'JOB_DAY_REMINDER',
         }
     }, { push: true, socket: true });
+}
+function sendReminderCustomer(customer, contractor, job, message) {
+    var _a;
     // reminder to customer
     __1.NotificationService.sendNotification({
         user: customer.id,
@@ -150,7 +173,7 @@ function sendReminder(customer, contractor, job, message) {
         title: 'Job Schedule Reminder',
         type: 'JOB_DAY_REMINDER', //
         message: message,
-        heading: { name: "".concat(contractor.name), image: (_b = contractor.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
+        heading: { name: "".concat(contractor.name), image: (_a = contractor.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
         payload: {
             entity: job.id,
             entityType: 'jobs',

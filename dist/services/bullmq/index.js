@@ -108,7 +108,8 @@ var JobQueue = /** @class */ (function () {
         this.addJob('syncCertnApplications', {}, { repeat: { every: 600000 } });
         this.addJob('expireJobs', {}, { repeat: { every: 7200000 } });
         this.addJob('handleEscrowTransfer', {}, { repeat: { every: 600000 } });
-        this.addJob('jobDayScheduleCheck', {}, { repeat: { cron: '0 0 * * *', tz: 'Europe/Berlin', } });
+        // this.addJob('jobDayScheduleCheck', {}, { repeat: { cron: '0 0 * * *', tz: 'America/Los_Angeles',} }); //America/Los_Angeles
+        this.addJob('jobDayScheduleCheck', {}, { repeat: { cron: '* * * * *' } }); //America/Los_Angeles
     };
     JobQueue.prototype.getQueue = function (queueName) {
         return queueName === config_1.config.redis.queueName ? this.queue : undefined;

@@ -57,6 +57,7 @@ var quiz_model_1 = __importDefault(require("../../../database/admin/models/quiz.
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var contractor_quiz_model_1 = __importDefault(require("../../../database/contractor/models/contractor_quiz.model"));
 var review_model_1 = require("../../../database/common/review.model");
+var contractor_interface_1 = require("../../../database/contractor/interface/contractor.interface");
 var StartQuiz = function (_, res) { return __awaiter(void 0, void 0, void 0, function () {
     var randomQuizzes, randomQuiz, randomQuestions, error_1;
     return __generator(this, function (_a) {
@@ -232,6 +233,7 @@ var SubmitQuiz = function (req, res) { return __awaiter(void 0, void 0, void 0, 
                 else {
                     contractor.reviews.push({ review: newReview_1.id, averageRating: averageRating });
                 }
+                contractor.badge = { label: contractor_interface_1.CONTRACTOR_BADGE.TRAINING };
                 return [4 /*yield*/, contractor.save()];
             case 9:
                 _b.sent();

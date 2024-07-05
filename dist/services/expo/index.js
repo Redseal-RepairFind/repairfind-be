@@ -49,6 +49,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendPushNotifications = void 0;
 var expo_server_sdk_1 = require("expo-server-sdk");
+var logger_1 = require("../logger");
 var expo = new expo_server_sdk_1.Expo({ accessToken: process.env.EXPO_ACCESS_TOKEN });
 function sendPushNotifications(pushTokens, message) {
     return __awaiter(this, void 0, void 0, function () {
@@ -72,13 +73,11 @@ function sendPushNotifications(pushTokens, message) {
                     return [4 /*yield*/, expo.sendPushNotificationsAsync(chunk)];
                 case 3:
                     ticketChunk = _c.sent();
-                    console.log('ticketChunk line 24', ticketChunk);
                     tickets.push.apply(tickets, ticketChunk);
-                    console.log('tickets line 26', tickets);
                     return [3 /*break*/, 5];
                 case 4:
                     error_1 = _c.sent();
-                    console.error(error_1);
+                    logger_1.Logger.error(error_1);
                     return [3 /*break*/, 5];
                 case 5:
                     _i++;
@@ -89,7 +88,6 @@ function sendPushNotifications(pushTokens, message) {
                         //@ts-ignore
                         .map(function (ticket) { return ticket.id; });
                     receiptIdChunks = expo.chunkPushNotificationReceiptIds(receiptIds);
-                    console.log('receiptIds', receiptIds);
                     _a = 0, receiptIdChunks_1 = receiptIdChunks;
                     _c.label = 7;
                 case 7:
@@ -101,24 +99,23 @@ function sendPushNotifications(pushTokens, message) {
                     return [4 /*yield*/, expo.getPushNotificationReceiptsAsync(chunk)];
                 case 9:
                     receipts = _c.sent();
-                    console.log('receipts 47', receipts);
                     // Process receipt information
                     for (receiptId in receipts) {
                         _b = receipts[receiptId], status_1 = _b.status, details = _b.details;
                         if (status_1 == 'error') {
-                            console.error("There was an error sending a notification: ".concat(message));
+                            logger_1.Logger.error("There was an error sending a notification: ".concat(message));
                             if (details && details.error) {
-                                console.error("The error code is ".concat(details.error));
+                                logger_1.Logger.error("The error code is ".concat(details.error));
                             }
                         }
                         else {
-                            console.error("Nofication sent ".concat(status_1));
+                            logger_1.Logger.info("Nofication sent ".concat(status_1));
                         }
                     }
                     return [3 /*break*/, 11];
                 case 10:
                     error_2 = _c.sent();
-                    console.error(error_2);
+                    logger_1.Logger.error(error_2);
                     return [3 /*break*/, 11];
                 case 11:
                     _a++;

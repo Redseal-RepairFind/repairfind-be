@@ -36,7 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.JobModel = exports.JobType = exports.JOB_SCHEDULE_TYPE = exports.JOB_STATUS = void 0;
+exports.JobModel = exports.JOB_SCHEDULE_REMINDER = exports.JobType = exports.JOB_SCHEDULE_TYPE = exports.JOB_STATUS = void 0;
 var mongoose_1 = require("mongoose");
 var job_quotation_model_1 = require("./job_quotation.model");
 var payment_schema_1 = require("./payment.schema");
@@ -67,6 +67,17 @@ var JobType;
     JobType["LISTING"] = "LISTING";
     JobType["REQUEST"] = "REQUEST";
 })(JobType || (exports.JobType = JobType = {}));
+var JOB_SCHEDULE_REMINDER;
+(function (JOB_SCHEDULE_REMINDER) {
+    JOB_SCHEDULE_REMINDER["HOURS_120"] = "HOURS_120";
+    JOB_SCHEDULE_REMINDER["HOURS_72"] = "HOURS_72";
+    JOB_SCHEDULE_REMINDER["HOURS_48"] = "HOURS_48";
+    JOB_SCHEDULE_REMINDER["HOURS_24"] = "HOURS_24";
+    JOB_SCHEDULE_REMINDER["HOURS_12"] = "HOURS_12";
+    JOB_SCHEDULE_REMINDER["HOURS_6"] = "HOURS_6";
+    JOB_SCHEDULE_REMINDER["HOURS_1"] = "HOURS_1";
+    JOB_SCHEDULE_REMINDER["NOT_STARTED"] = "NOT_STARTED";
+})(JOB_SCHEDULE_REMINDER || (exports.JOB_SCHEDULE_REMINDER = JOB_SCHEDULE_REMINDER = {}));
 var VoiceDescriptionSchema = new mongoose_1.Schema({
     url: {
         type: String,
@@ -172,8 +183,13 @@ var JobSchema = new mongoose_1.Schema({
     review: { type: mongoose_1.Schema.Types.ObjectId, ref: 'reviews' },
     isChangeOrder: { type: Boolean, default: false },
     jobDay: { type: mongoose_1.Schema.Types.ObjectId, ref: 'job_days' },
+    distance: { type: mongoose_1.Schema.Types.Mixed, default: 0 },
     hideFrom: {
         type: [String]
+    },
+    reminders: {
+        type: [String],
+        enum: Object.values(JOB_SCHEDULE_REMINDER)
     },
 }, { timestamps: true });
 JobSchema.virtual('totalQuotations').get(function () {
@@ -189,17 +205,40 @@ JobSchema.virtual('expiresIn').get(function () {
     }
     return null;
 });
+JobSchema.methods.getDistance = function (contractorLatitude, contractorLongitude) {
+    return __awaiter(this, void 0, void 0, function () {
+        var distance, _a, latitude, longitude, earthRadius, lat1, lat2, deltaLat, deltaLon, a, c;
+        return __generator(this, function (_b) {
+            distance = 0;
+            if (contractorLatitude && contractorLongitude) {
+                _a = this.location, latitude = _a.latitude, longitude = _a.longitude;
+                earthRadius = 6371;
+                lat1 = Math.PI * Number(latitude) / 180;
+                lat2 = Math.PI * contractorLatitude / 180;
+                deltaLat = Math.PI * (contractorLatitude - Number(latitude)) / 180;
+                deltaLon = Math.PI * (Number(contractorLongitude) - Number(longitude)) / 180;
+                a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+                    Math.cos(lat1) * Math.cos(lat2) *
+                        Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
+                c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                distance = earthRadius * c;
+            }
+            return [2 /*return*/, distance.toFixed(4)]; // Distance in kilometers
+        });
+    });
+};
 //get job day that match with the schedule type
 JobSchema.methods.getJobDay = function (scheduleType) {
+    var _a;
     if (scheduleType === void 0) { scheduleType = null; }
     return __awaiter(this, void 0, void 0, function () {
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        return __generator(this, function (_b) {
+            switch (_b.label) {
                 case 0:
                     if (!scheduleType && this.schedule)
-                        scheduleType = this.schedule.type;
+                        scheduleType = (_a = this.schedule) === null || _a === void 0 ? void 0 : _a.type;
                     return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ job: this.id, type: scheduleType })];
-                case 1: return [2 /*return*/, _a.sent()];
+                case 1: return [2 /*return*/, _b.sent()];
             }
         });
     });

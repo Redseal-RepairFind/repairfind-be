@@ -167,9 +167,9 @@ var contractors = [
             gstNumber: "4442223",
             gstType: "Type",
             location: {
-                address: "Logics Senct",
-                latitude: "12323123123",
-                longitude: "2123213213213",
+                address: "Toronto, Ontario, Canada",
+                latitude: 43.65107,
+                longitude: -79.347015
             },
             phoneNumber: "3234234",
             previousJobPhotos: [
@@ -255,6 +255,7 @@ var ContractorSeeder = function (options) { return __awaiter(void 0, void 0, voi
                             return [4 /*yield*/, contractor_model_1.ContractorModel.findOneAndUpdate({ email: contractor.email }, contractor, { upsert: true, new: true, setDefaultsOnInsert: true })];
                         case 2:
                             newContractor = _a.sent();
+                            console.log('newContractor', newContractor);
                             if (!newContractor) return [3 /*break*/, 5];
                             return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOneAndUpdate({ contractor: newContractor.id }, __assign({ contractor: newContractor.id }, contractor.profileData), { upsert: true, new: true, setDefaultsOnInsert: true })];
                         case 3:

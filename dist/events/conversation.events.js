@@ -48,35 +48,47 @@ var customer_model_1 = __importDefault(require("../database/customer/models/cust
 exports.ConversationEvent = new events_1.EventEmitter();
 exports.ConversationEvent.on('NEW_MESSAGE', function (params) {
     return __awaiter(this, void 0, void 0, function () {
-        var message_1, conversation_1, members, error_1;
+        var message_1, senderId, senderType, conversation_1, members, sender_1, _a, error_1;
         var _this = this;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        return __generator(this, function (_b) {
+            switch (_b.label) {
                 case 0:
-                    _a.trys.push([0, 2, , 3]);
-                    console.log("Notifications sent to participants of challenge");
+                    _b.trys.push([0, 6, , 7]);
                     message_1 = params.message;
+                    senderId = message_1.sender;
+                    senderType = message_1.senderType;
                     return [4 /*yield*/, conversations_schema_1.ConversationModel.findById(message_1.conversation)];
                 case 1:
-                    conversation_1 = _a.sent();
+                    conversation_1 = _b.sent();
                     members = conversation_1 === null || conversation_1 === void 0 ? void 0 : conversation_1.members;
-                    if (!conversation_1 || !members)
+                    if (!(senderType === 'contractors')) return [3 /*break*/, 3];
+                    return [4 /*yield*/, contractor_model_1.ContractorModel.findById(senderId)];
+                case 2:
+                    _a = _b.sent();
+                    return [3 /*break*/, 5];
+                case 3: return [4 /*yield*/, customer_model_1.default.findById(senderId)];
+                case 4:
+                    _a = _b.sent();
+                    _b.label = 5;
+                case 5:
+                    sender_1 = _a;
+                    if (!conversation_1 || !members || !sender_1)
                         return [2 /*return*/];
                     members.forEach(function (member) { return __awaiter(_this, void 0, void 0, function () {
-                        var user, _a, _b;
-                        var _c;
-                        return __generator(this, function (_d) {
-                            switch (_d.label) {
+                        var user, _a, _b, toUserId, toUserType;
+                        var _c, _d;
+                        return __generator(this, function (_e) {
+                            switch (_e.label) {
                                 case 0:
                                     if (!(member.memberType === 'contractors')) return [3 /*break*/, 2];
                                     return [4 /*yield*/, contractor_model_1.ContractorModel.findById(member.member)];
                                 case 1:
-                                    _a = _d.sent();
+                                    _a = _e.sent();
                                     return [3 /*break*/, 4];
                                 case 2: return [4 /*yield*/, customer_model_1.default.findById(member.member)];
                                 case 3:
-                                    _a = _d.sent();
-                                    _d.label = 4;
+                                    _a = _e.sent();
+                                    _e.label = 4;
                                 case 4:
                                     user = _a;
                                     if (!user)
@@ -84,14 +96,15 @@ exports.ConversationEvent.on('NEW_MESSAGE', function (params) {
                                     _b = message_1;
                                     return [4 /*yield*/, message_1.getIsOwn(user.id)];
                                 case 5:
-                                    _b.isOwn = _d.sent();
+                                    _b.isOwn = _e.sent();
+                                    toUserId = member.member;
+                                    toUserType = member.memberType;
                                     notifications_1.NotificationService.sendNotification({
-                                        user: user.id.toString(),
-                                        userType: member.memberType,
-                                        title: 'New Job Request',
+                                        user: toUserId,
+                                        userType: toUserType,
+                                        title: 'New Conversation Message',
                                         type: 'Conversation',
                                         message: "You have a new message",
-                                        //@ts-ignore
                                         heading: { name: "".concat(user.name), image: (_c = user.profilePhoto) === null || _c === void 0 ? void 0 : _c.url },
                                         payload: {
                                             entity: conversation_1.id,
@@ -100,18 +113,63 @@ exports.ConversationEvent.on('NEW_MESSAGE', function (params) {
                                             event: 'NEW_MESSAGE',
                                         }
                                     }, { socket: true });
+                                    // send push notification and unread message alert to the other user
+                                    if (!message_1.isOwn) {
+                                        //TODO: still separate this and only send push for aggregated unread message notification user
+                                        notifications_1.NotificationService.sendNotification({
+                                            user: toUserId,
+                                            userType: toUserType,
+                                            title: 'New unread message',
+                                            type: 'NEW_UNREAD_MESSAGE',
+                                            message: "You have a new unread message from ".concat(sender_1.name),
+                                            heading: { name: "".concat(user.name), image: (_d = user.profilePhoto) === null || _d === void 0 ? void 0 : _d.url },
+                                            payload: {
+                                                entity: conversation_1.id,
+                                                entityType: 'conversations',
+                                                message: message_1,
+                                                event: 'NEW_UNREAD_MESSAGE',
+                                            }
+                                        }, { socket: true, push: true });
+                                    }
                                     message_1.isOwn = false;
                                     return [2 /*return*/];
                             }
                         });
                     }); });
-                    return [3 /*break*/, 3];
-                case 2:
-                    error_1 = _a.sent();
-                    console.error("Error handling TestEvent event: ".concat(error_1));
-                    return [3 /*break*/, 3];
-                case 3: return [2 /*return*/];
+                    return [3 /*break*/, 7];
+                case 6:
+                    error_1 = _b.sent();
+                    console.error("Error handling NEW_MESSAGE event: ".concat(error_1));
+                    return [3 /*break*/, 7];
+                case 7: return [2 /*return*/];
             }
         });
     });
 });
+// ConversationEvent.on('NEW_UNREAD_MESSAGE', async function (params:{conversationId:any,  message: string, toUserId: any, toUserType: any }) {
+//     try {
+//         const message = params.message
+//         const toUserId = params.toUserId
+//         const toUserType = params.toUserType
+//         const conversationId = params.conversationId
+//         const conversation = await ConversationModel.findById(conversationId)
+//         const user = toUserType === 'contractors' ? await ContractorModel.findById(toUserId) : await CustomerModel.findById(toUserId)
+//         if (!conversation || !user || !toUserType) return
+//         NotificationService.sendNotification({
+//             user: toUserId,
+//             userType: toUserType,
+//             title: 'New unread message',
+//             type: 'NEW_UNREAD_MESSAGE', 
+//             message: `You have a new unread message`,
+//             heading: { name: `${user.name}`, image: user.profilePhoto?.url },
+//             payload: {
+//                 entity: conversation.id,
+//                 entityType: 'conversations',
+//                 message: message,
+//                 event: 'NEW_UNREAD_MESSAGE',
+//             }
+//         }, { socket: true, push: true })
+//     } catch (error) {
+//         console.error(`Error handling NEW_UNREAD_MESSAGE event: ${error}`);
+//     }
+// });
