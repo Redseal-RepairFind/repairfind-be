@@ -1,72 +1,91 @@
-import { IJobEmergency } from "../../database/common/job_emergency.model";
-import { IJob } from "../../database/contractor/interface/job.interface";
-
-export const GenericEmailTemplate = (payload: {name: string, subject: string, content: any }) => `
+export const GenericEmailTemplate = (payload: {name: string, subject: string, content: any }) =>  `
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Job Quotation Accepted</title>
-  <link href="https://fonts.googleapis.com/css2?family=Jost&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Jost', Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-      line-height: 1.6;
-    }
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-      border-collapse: collapse;
-      width: 100%;
-    }
-    .header {
-      background-color: #f3f3f3;
-      text-align: center;
-      padding: 20px;
-    }
-    .content {
-      padding: 20px;
-      background-color: #fff;
-    }
-    .logo {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .logo img {
-      max-width: 200px;
-      height: auto;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Verification</title>
+
+    <style>
+        /* Font import */
+        @import url('https://fonts.googleapis.com/css2?family=Jost&display=swap');
+
+        /* Email body styles */
+        body {
+            font-family: 'Jost', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+
+        /* Wrapper styles */
+        .email-wrapper {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+
+        /* Header styles */
+        .header {
+            text-align: center;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        /* Content styles */
+        .content {
+            padding: 30px;
+        }
+
+
+        .otp {
+          display: inline-block;
+          padding: 10px;
+          border-radius: 5px;
+          background-color: #ddd;
+          box-shadow: 0px 0px 5px 1px rgba(0, 0, 0, 0.1);
+          backdrop-filter: blur(5px);
+          font-family: 'Inconsolata', monospace;
+          font-size: 24px;
+          font-weight: bold;
+          color: #333333;
+          cursor: pointer;
+        }
+
+
+        /* Footer styles */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+    </style>
 </head>
+
 <body>
-
-  <table class="container">
-    <tr>
-      <td class="header">
-        <div class="logo">
-          <img src="https://repairfindtwo.s3.us-east-2.amazonaws.com/repairfind-logo.png" alt="Company Logo">
+    <div class="email-wrapper">
+        <div class="header">
+            <img  src="https://repairfindtwo.s3.us-east-2.amazonaws.com/repairfind-logo.png" alt="Repairfind Logo">
         </div>
-        <h1> ${payload.subject}</h1>
-      </td>
-    </tr>
-    <tr>
-      <td class="content">
-        <h2 style="color: #333333;text-transform:capitalize">Dear ${payload.name},</h2>
-        ${payload.content}
-        <p style="color: #333333;">Thank you for choosing RepairFind</p>
-        <p style="color: #333333;">Best regards,</p>
-        <p style="color: #333333;">RepairFind</p>
-      </td>
-    </tr>
-  </table>
 
+        <div class="content">
+            <h2>${payload.subject}</h2>
+            <p>Hello ${payload.name},</p>
+            ${payload.content}
+            
+            <p>Thank you for being a part of the Repairfind community!</p>
+        </div>
+
+        <div class="footer">
+            <p style="color: #999999;">Best Regards,</p>
+            <p style="color: #999999;">Repairfind Team</p>
+        </div>
+    </div>
 </body>
+
 </html>
 
-
 `;
-
-

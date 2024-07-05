@@ -51,7 +51,7 @@ export class EmailService {
                 // await this.createTransport().sendMail(mailOptions);
 
                 // Queue the email job
-                const jobId = `email-${to}-${subject}`;
+                const jobId = `email-${to}-${subject}-${new Date()}`;
                 await QueueService.addJob('sendEmail', mailOptions, { jobId, removeOnComplete: true } );
                 console.log(`Email job added to queue for ${to} with CC to ${ccAddresses.join(', ')}`);
 

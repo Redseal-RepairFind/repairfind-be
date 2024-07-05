@@ -525,18 +525,13 @@ export const acceptJobQuotation = async (req: any, res: Response, next: NextFunc
         await job.save()
 
 
+    
         const contractor = await ContractorModel.findById(quotation.contractor)
         const customer = await CustomerModel.findById(customerId)
-        //emit event - mail should be sent from event handler shaa
-        JobEvent.emit('JOB_QOUTATION_ACCEPTED', { jobId, contractorId: quotation.contractor, customerId, conversationId: conversation.id })
-
-        // send mail to contractor
         if (contractor && customer) {
-            const html = htmlJobQuotationAcceptedContractorEmailTemplate(contractor.name, customer.name, job)
-            EmailService.send(contractor.email, 'Job Quotation Accepted', html)
+            JobEvent.emit('JOB_QUOTATION_ACCEPTED', { jobId, contractorId: quotation.contractor, customerId })
         }
-
-
+        
 
         quotation.charges = await quotation.calculateCharges()
         res.json({ success: true, message: 'Job quotation accepted' });
@@ -549,6 +544,7 @@ export const declineJobQuotation = async (req: any, res: Response, next: NextFun
     try {
         const customerId = req.customer.id;
         const { jobId, quotationId } = req.params;
+        const { reason } = req.body;
 
         const quotation = await JobQuotationModel.findOne({ _id: quotationId, job: jobId });
         const job = await JobModel.findById(jobId);
@@ -577,13 +573,10 @@ export const declineJobQuotation = async (req: any, res: Response, next: NextFun
 
         const contractor = await ContractorModel.findById(quotation.contractor)
         const customer = await CustomerModel.findById(customerId)
-        //emit event - mail should be sent from event handler shaa
-        JobEvent.emit('JOB_QOUTATION_DECLINED', { jobId, contractorId: quotation.contractor, customerId })
 
-        // send mail to contractor
         if (contractor && customer) {
-            const html = htmlJobQuotationDeclinedContractorEmailTemplate(contractor.name, customer.name, job)
-            EmailService.send(contractor.email, 'Job Quotation Declined', html)
+            //emit event - mail should be sent from event handler shaa
+            JobEvent.emit('JOB_QUOTATION_DECLINED', { jobId, contractorId: quotation.contractor, customerId, reason })
         }
 
 

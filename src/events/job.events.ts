@@ -17,6 +17,11 @@ import { GenericEmailTemplate } from '../templates/common/generic_email';
 import { IJobDispute } from '../database/common/job_dispute.model';
 import { IExtraEstimate, IJobQuotation } from '../database/common/job_quotation.model';
 import TransactionModel, { TRANSACTION_STATUS, TRANSACTION_TYPE } from '../database/common/transaction.model';
+import { ObjectId } from 'mongoose';
+import { sendPushNotifications } from '../services/expo';
+import { ContractorProfileModel } from '../database/contractor/models/contractor_profile.model';
+import { profile } from 'console';
+import ContractorDeviceModel from '../database/contractor/models/contractor_devices.model';
 
 export const JobEvent: EventEmitter = new EventEmitter();
 
@@ -88,6 +93,23 @@ JobEvent.on('NEW_JOB_LISTING', async function (payload) {
                 data: job
             });
 
+            // send push to all contractors that match the job ?
+            const contractorProfiles = await ContractorProfileModel.find({ skill: job.category });
+            const contractorIds = contractorProfiles.map(profile => profile.contractor);
+
+            const devices = await ContractorDeviceModel.find({ contractor: {$in: contractorIds } })
+            const deviceTokens = devices.map(device => device.deviceToken);
+
+            console.log(contractorIds, deviceTokens)
+
+            sendPushNotifications( deviceTokens , {
+                title: 'New job listing', 
+                type: 'NEW_JOB_LISTING', 
+                icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
+                body: 'There is a new job listing  that match your profile',
+                data: {},
+            })
+
         }
 
 
@@ -138,6 +160,111 @@ JobEvent.on('JOB_CANCELED', async function (payload: { job: IJob, canceledBy: st
 
     } catch (error) {
         console.error(`Error handling JOB_CANCELED event: ${error}`);
+    }
+});
+
+
+
+JobEvent.on('JOB_QUOTATION_DECLINED', async function (payload: { jobId: ObjectId, contractorId: ObjectId, customerId: ObjectId, reason: string }) {
+    try {
+
+        console.log('handling alert JOB_QUOTATION_DECLINED event')
+
+        const customer = await CustomerModel.findById(payload.customerId) as ICustomer
+        const contractor = await ContractorModel.findById(payload.contractorId) as IContractor
+        const job = await JobModel.findById(payload.jobId) as IJob
+
+        if (contractor) {
+            let emailSubject = 'Job Quotation Decline'
+            let emailContent = `
+                <p style="color: #333333;">Your job  quotation for a job  on RepairFind was declined.</p>
+                <p>
+                    <strong>Job Title:</strong> ${job.title} </br>
+                    <strong>Customer:</strong> ${customer.name} </br>
+                    <strong>Reason:</strong> ${payload.reason}  </br>
+                </p>
+              
+                <p>Login to our app to follow up </p>
+                `
+            let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
+            EmailService.send(contractor.email, emailSubject, html)
+
+
+            NotificationService.sendNotification({
+                user: contractor.id,
+                userType: 'contractors',
+                title: 'Job quotation declined',
+                type: 'JOB_QUOTATION_DECLINED', // Conversation, Conversation_Notification
+                message: `Your job quotation for a job on RepairFind was decline`,
+                heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
+                payload: {
+                    entity: job.id,
+                    entityType: 'jobs',
+                    message: `Your job quotation for a job  on RepairFind was decline`,
+                    customer: customer.id,
+                    event: 'JOB_QUOTATION_DECLINED',
+                }
+            }, {push: true, socket: true })
+
+        }
+
+
+
+
+    } catch (error) {
+        console.error(`Error handling JOB_QUOTATION_DECLINED event: ${error}`);
+    }
+});
+
+
+JobEvent.on('JOB_QUOTATION_ACCEPTED', async function (payload: { jobId: ObjectId, contractorId: ObjectId, customerId: ObjectId, reason: string }) {
+    try {
+
+        console.log('handling alert JOB_QUOTATION_ACCEPTED event')
+
+        const customer = await CustomerModel.findById(payload.customerId) as ICustomer
+        const contractor = await ContractorModel.findById(payload.contractorId) as IContractor
+        const job = await JobModel.findById(payload.jobId) as IJob
+
+        if (contractor) {
+            let emailSubject = 'Job Quotation Accepted'
+            let emailContent = `
+                <p style="color: #333333;">Congratulations! your job quotation for a job  on RepairFind was accepted.</p>
+                <p>
+                    <strong>Job Title:</strong> ${job.title} </br>
+                    <strong>Customer:</strong> ${customer.name} </br>
+                    <strong>Job date:</strong> ${new Date(job.date).toDateString()}  </br>
+                </p>
+              
+                <p>Login to our app to follow up </p>
+                `
+            let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
+            EmailService.send(contractor.email, emailSubject, html)
+
+
+            NotificationService.sendNotification({
+                user: contractor.id,
+                userType: 'contractors',
+                title: 'Job quotation accepted',
+                type: 'JOB_QUOTATION_ACCEPTED', // Conversation, Conversation_Notification
+                message: `Your job quotation for a job on RepairFind was accepted`,
+                heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
+                payload: {
+                    entity: job.id,
+                    entityType: 'jobs',
+                    message: `Your job quotation for a job  on RepairFind was accepted`,
+                    customer: customer.id,
+                    event: 'JOB_QUOTATION_ACCEPTED',
+                }
+            }, {push: true, socket: true })
+
+        }
+
+
+
+
+    } catch (error) {
+        console.error(`Error handling JOB_QUOTATION_ACCEPTED event: ${error}`);
     }
 });
 
@@ -474,14 +601,14 @@ JobEvent.on('JOB_COMPLETED', async function (payload: { job: IJob }) {
             }, { push: true, socket: true })
         }
 
-         //approve payout here - change status to approved and use  cron jobs to schedule the transfer
-         const transaction = await TransactionModel.findOne({job: job.id, type: TRANSACTION_TYPE.ESCROW})
-         if(transaction){
+        //approve payout here - change status to approved and use  cron jobs to schedule the transfer
+        const transaction = await TransactionModel.findOne({ job: job.id, type: TRANSACTION_TYPE.ESCROW })
+        if (transaction) {
             transaction.status = TRANSACTION_STATUS.APPROVED
             const metadata = transaction.metadata ?? {}
             transaction.metadata = { ...metadata, event }
             transaction.save()
-         }
+        }
 
     } catch (error) {
         console.error(`Error handling JOB_COMPLETED event: ${error}`);
@@ -865,7 +992,7 @@ JobEvent.on('JOB_DAY_ARRIVAL', async function (payload: { jobDay: IJobDay, verif
 
 
 
-JobEvent.on('JOB_REFUND_REQUESTED', async function (payload: {job: any, payment: any, refund: any }) {
+JobEvent.on('JOB_REFUND_REQUESTED', async function (payload: { job: any, payment: any, refund: any }) {
     try {
         console.log('handling alert JOB_REFUND_REQUESTED event', payload.payment.id)
 
@@ -892,8 +1019,8 @@ JobEvent.on('JOB_REFUND_REQUESTED', async function (payload: {job: any, payment:
 
 
         // send notification to  contractor
-         emailSubject = 'Job Refund Requested'
-         emailContent = `
+        emailSubject = 'Job Refund Requested'
+        emailContent = `
                 <p style="color: #333333;">A refund for your job on Repairfind has been requested </p>
                 <p style="color: #333333;">The refund should be completed in 24 hours </p>
                 <p><strong>Job Title:</strong> ${job.description}</p>
