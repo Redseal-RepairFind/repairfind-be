@@ -499,7 +499,7 @@ export const getRefundable = async (req: any, res: Response, next: NextFunction)
 
         } else if (timeDifferenceInHours < 24) {
             // For cancellations made within 24 hours, apply cancellation fees.
-            const canceletionFee = 50;
+            const canceletionFee = 1//50;
             const contractorShare = 0.8 * canceletionFee;
             const companyShare = 0.2 * canceletionFee;
 
@@ -602,7 +602,7 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
             // For cancellations made within 24 hours, apply cancellation fees.
             refundPolicy = {
                 name: '50_dollar_policy',
-                fee: 50, //
+                fee: 1//50, //
             }
         }
 

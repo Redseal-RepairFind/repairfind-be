@@ -580,7 +580,8 @@ var getRefundable = function (req, res, next) { return __awaiter(void 0, void 0,
                     // Free cancellation up to 48 hours before the scheduled job time.
                 }
                 else if (timeDifferenceInHours < 24) {
-                    canceletionFee = 50;
+                    canceletionFee = 1 //50;
+                    ;
                     contractorShare = 0.8 * canceletionFee;
                     companyShare = 0.2 * canceletionFee;
                     refundAmount = payments.totalAmount - canceletionFee;
@@ -682,7 +683,7 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
                     // For cancellations made within 24 hours, apply cancellation fees.
                     refundPolicy = {
                         name: '50_dollar_policy',
-                        fee: 50, //
+                        fee: 1 //50, //
                     };
                 }
                 _i = 0, _b = payments.payments;
