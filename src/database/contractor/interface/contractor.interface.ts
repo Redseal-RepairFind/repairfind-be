@@ -199,5 +199,14 @@ export interface IContractor extends Document {
     hasPassedQuiz: boolean
     stage: number
   };
+  stats: {formattedResponseTime?: any, responseTime?: any, jobsCompleted?: any, jobsCanceled?: any,  jobsPending?: any};
+
+  getStats: () => {
+    formattedResponseTime: any,
+    responseTime: any,
+    jobsDone: any,
+    jobsCanceled: any,
+  };
+
 
 }

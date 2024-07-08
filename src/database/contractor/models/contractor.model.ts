@@ -10,6 +10,8 @@ import { CertnService } from "../../../services";
 import { deleteObjectFromS3 } from "../../../services/storage";
 import MongooseDelete, { SoftDeleteModel } from 'mongoose-delete';
 import { stringify } from "querystring";
+import { JobQuotationModel } from "../../common/job_quotation.model";
+import { JOB_STATUS, JobModel } from "../../common/job.model";
 
 
 
@@ -210,12 +212,16 @@ const ContractorSchema = new Schema<IContractor>(
     certnDetails: {
       type: CertnDetailSchema
     },
-    
+
     reviews: [{ review: { type: Schema.Types.ObjectId, ref: 'reviews' }, averageRating: Number }],
+    stats: { formattedResponseTime: { type: Schema.Types.Mixed }, responseTime: { type: Schema.Types.Mixed }, jobsCompleted: { type: Schema.Types.Mixed }, jobsCanceled: { type: Schema.Types.Mixed }, jobsPending: { type: Schema.Types.Mixed } },
+
+
     badge: {
       label: { type: String, default: CONTRACTOR_BADGE.PROSPECT },
-      icon: { type: String, default: null  },
+      icon: { type: String, default: null },
     },
+
     onboarding: {
       hasStripeAccount: { default: false, type: Boolean },
       hasStripeIdentity: { default: false, type: Boolean },
@@ -272,7 +278,7 @@ ContractorSchema.virtual('stripeAccountStatus').get(function (this: IContractor)
 
 
 ContractorSchema.virtual('accountStatus').get(function (this: IContractor) {
-    return CONTRACTOR_STATUS.APPROVED
+  return CONTRACTOR_STATUS.APPROVED
 });
 
 
@@ -340,10 +346,10 @@ ContractorSchema.virtual('reviewCount').get(function () {
 });
 
 
-ContractorSchema.virtual('stats').get(function () {
-  
-  return {responseTime: '10mins', jobsDone: 3, jobsCanceled: 2} ;
-});
+// ContractorSchema.virtual('stats').get(function () {
+
+//   return { responseTime: '10mins', jobsDone: 3, jobsCanceled: 2 };
+// });
 
 
 ContractorSchema.methods.getOnboarding = async function () {
@@ -418,6 +424,57 @@ ContractorSchema.methods.getOnboarding = async function () {
 };
 
 
+// Instance method to get formatted response time
+ContractorSchema.methods.getStats = async function () {
+
+
+  // Access the quotations of this contractor instance
+  const quotations = await JobQuotationModel.find({ contractor: this._id });
+
+
+  // Calculate the average response time
+  let totalResponseTime = 0;
+  let count: number = 0;
+
+  quotations.forEach(quotation => {
+    totalResponseTime += quotation.responseTime;
+    count++;
+  });
+
+  const responseTime = totalResponseTime / count;
+
+  // Format the response time
+  let formattedResponseTime = '';
+
+  if (!responseTime) {
+    formattedResponseTime = "Not available";
+  }
+  else if (responseTime <= 2 * 60) {
+    formattedResponseTime = "Less than 2 mins";
+  } else if (responseTime <= 10 * 60) {
+    formattedResponseTime = "Within 10 mins";
+  } else if (responseTime <= 60 * 60) {
+    formattedResponseTime = `${Math.round(responseTime / (60))} mins`;
+  } else if (responseTime <= 2 * 60 * 60) {
+    formattedResponseTime = "Greater than 2 hours";
+  } else if (responseTime <= 24 * 60 * 60) {
+    formattedResponseTime = `${Math.round(responseTime / (60 * 60))} hours`;
+  } else if (responseTime <= 48 * 60 * 60) {
+    formattedResponseTime = "Greater than 1 day";
+  } else {
+    formattedResponseTime = "More than 2 days";
+  }
+
+
+  //count jobs
+  const jobsCompleted = await JobModel.countDocuments({ contractor: this._id, status: JOB_STATUS.COMPLETED })
+  const jobsCanceled = await JobModel.countDocuments({ contractor: this._id, status: JOB_STATUS.CANCELED })
+  const jobsPending = await JobModel.countDocuments({ contractor: this._id, status: JOB_STATUS.PENDING })
+
+  return { formattedResponseTime, responseTime, jobsCompleted, jobsCanceled, jobsPending };
+};
+
+
 
 ContractorSchema.virtual('quiz').get(async function () {
   const latestQuiz: any = await ContractorQuizModel.findOne({ contractor: this._id }).sort({ createdAt: -1 });
@@ -441,7 +498,7 @@ ContractorSchema.set('toJSON', {
 
     // Check if the options include virtuals, if not, delete the fields
 
- 
+
     // Check if the options include virtuals, if not, delete the stripeIdentity field
     //@ts-ignore
     if (!options.includeStripeIdentity) {

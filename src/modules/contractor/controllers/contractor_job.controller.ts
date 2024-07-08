@@ -28,7 +28,7 @@ export const getJobRequests = async (req: any, res: Response) => {
     // Extract query parameters
     const { customerId, status, startDate, endDate, date } = req.query;
     const contractorId = req.contractor.id;
-    const contractorProfile = await ContractorProfileModel.findOne({contractor: contractorId})
+    const contractorProfile = await ContractorProfileModel.findOne({ contractor: contractorId })
 
 
     // Construct filter object based on query parameters
@@ -67,14 +67,14 @@ export const getJobRequests = async (req: any, res: Response) => {
 
     const { data, error } = await applyAPIFeature(jobRequests, req.query)
     if (data) {
-      
+
       await Promise.all(data.data.map(async (job: any) => {
-        if(contractorProfile){
+        if (contractorProfile) {
           const lat = Number(contractorProfile.location.latitude ?? 0)
           const lng = Number(contractorProfile.location.longitude ?? 0)
           job.distance = await job.getDistance(lat, lng);
         }
-    
+
       }));
     }
 
@@ -313,7 +313,7 @@ export const getJobRequestById = async (req: any, res: Response, next: NextFunct
     }
     const { jobId } = req.params;
     const contractorId = req.contractor.id;
-    const contractorProfile = await ContractorProfileModel.findOne({contractor: contractorId})
+    const contractorProfile = await ContractorProfileModel.findOne({ contractor: contractorId })
 
     const options = {
       contractorId: contractorId, // Define other options here if needed
@@ -339,7 +339,7 @@ export const getJobRequestById = async (req: any, res: Response, next: NextFunct
     }
 
     job.myQuotation = await job.getMyQoutation(contractorId);
-    if(contractorProfile){
+    if (contractorProfile) {
       const lat = Number(contractorProfile.location.latitude ?? 0)
       const lng = Number(contractorProfile.location.longitude ?? 0)
       job.distance = await job.getDistance(lat, lng);
@@ -362,9 +362,9 @@ export const getJobListingById = async (req: any, res: Response, next: NextFunct
     }
     const { jobId } = req.params;
     const contractorId = req.contractor.id;
-    const contractorProfile = await ContractorProfileModel.findOne({contractor: contractorId})
-    
-    
+    const contractorProfile = await ContractorProfileModel.findOne({ contractor: contractorId })
+
+
     const options = {
       contractorId: contractorId, // Define other options here if needed
       //@ts-ignore
@@ -385,7 +385,7 @@ export const getJobListingById = async (req: any, res: Response, next: NextFunct
 
     job.myQuotation = await job.getMyQoutation(contractorId);
 
-    if(contractorProfile){
+    if (contractorProfile) {
       const lat = Number(contractorProfile.location.latitude ?? 0)
       const lng = Number(contractorProfile.location.longitude ?? 0)
       job.distance = await job.getDistance(lat, lng);
@@ -420,10 +420,10 @@ export const hideJobListing = async (req: any, res: Response, next: NextFunction
     if (!job.hideFrom.includes(contractorId)) {
       job.hideFrom.push(contractorId);
     }
-  
+
     await job.save();
 
-    
+
     // Return the job request payload
     res.json({ success: true, message: 'Job removed from listing successfully', data: job });
   } catch (error) {
@@ -474,6 +474,9 @@ export const sendJobQuotation = async (
     }
 
 
+
+
+
     // Check maximum number of applied quotations
     const appliedQuotationsCount = await JobQuotationModel.countDocuments({
       job: jobId,
@@ -489,6 +492,7 @@ export const sendJobQuotation = async (
       return res.status(400).json({ success: false, message: "You have already submitted a quotation for this job" });
     }
 
+
     // Check if contractor has a verified connected account
     if (!contractor.onboarding.hasStripeAccount || !(contractor.stripeAccountStatus?.card_payments_enabled && contractor.stripeAccountStatus?.transfers_enabled)) {
       return res.status(400).json({ success: false, message: "Kindly connect your bank account to receive payment" });
@@ -496,13 +500,13 @@ export const sendJobQuotation = async (
 
 
     const scheduleStartDate = startDate ? new Date(startDate) : new Date(job.date)
-    const  scheduleEndDate  = endDate ? new Date(startDate) : null
-    const  scheduleSiteVisitDate  = siteVisit ? new Date(siteVisit) : null
+    const scheduleEndDate = endDate ? new Date(startDate) : null
+    const scheduleSiteVisitDate = siteVisit ? new Date(siteVisit) : null
 
     // Create or update job quotation
     let jobQuotation = await JobQuotationModel.findOneAndUpdate(
       { job: jobId, contractor: contractorId },
-      { startDate: scheduleStartDate, endDate: scheduleEndDate , siteVisit: scheduleSiteVisitDate, estimates, jobId, contractorId },
+      { startDate: scheduleStartDate, endDate: scheduleEndDate, siteVisit: scheduleSiteVisitDate, estimates, jobId, contractorId },
       { new: true, upsert: true }
     );
 
@@ -530,6 +534,15 @@ export const sendJobQuotation = async (
         job.jobHistory.push({ eventType: JOB_STATUS.ACCEPTED, timestamp: new Date(), payload: { message: 'Contractor accepted this job' } });
       }
     }
+
+
+    // Calculate response time
+    const jobCreationTime = new Date(job.createdAt);
+    const quotationTime = new Date();
+    const responseTimeJob = (quotationTime.getTime() - jobCreationTime.getTime()) / 1000; // time difference in seconds
+
+
+    jobQuotation.responseTime = responseTimeJob
 
     // Save changes to the job
     await job.save();
@@ -743,14 +756,14 @@ type PipelineStage =
 export const getJobListings = async (req: any, res: Response, next: NextFunction) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({success:false, errors: errors.array() });
+    return res.status(400).json({ success: false, errors: errors.array() });
   }
 
   const contractorId = req.contractor.id
   const profile = await ContractorProfileModel.findOne({ contractor: contractorId });
 
-  if(!profile){
-    return res.status(404).json({success:false, message: 'Contractor profile not found' });
+  if (!profile) {
+    return res.status(404).json({ success: false, message: 'Contractor profile not found' });
   }
 
   try {
@@ -826,13 +839,13 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
               4
             ]
           },
-          
+
         }
       },
     ];
 
 
-    
+
 
 
     // THis logic is to remove jobs that the contractor has already submitted quotation for 
@@ -846,11 +859,11 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
     pipeline.push({ $match: { status: JOB_STATUS.PENDING } });
 
 
-    if(!showHidden){
+    if (!showHidden) {
       // Add a new $match stage to filter out jobs with contractorId in hideFrom array
-      pipeline.push({ $match: { hideFrom: { $nin: [contractorId] }} });
+      pipeline.push({ $match: { hideFrom: { $nin: [contractorId] } } });
     }
-   
+
 
 
 

@@ -1,5 +1,4 @@
 import { IJobEmergency } from "../../database/common/job_emergency.model";
-import { IJob } from "../../database/contractor/interface/job.interface";
 
 export const JobEmergencyEmailTemplate = (payload: {name: string, emergency: IJobEmergency, job: any}) => `
 <!DOCTYPE html>
