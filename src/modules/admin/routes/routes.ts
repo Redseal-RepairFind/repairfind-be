@@ -1,5 +1,6 @@
 import { memoryUpload } from "../../../utils/upload.utility";
-import { AdminAddNewSkillController, AdminGetSkillController } from "../controllers/adminAddSkill.controller";
+import { AdminJobController } from "../controllers/admin_job.controller";
+import { AdminSkillController } from "../controllers/admin_skill.controller";
 import { AdminEmailForgotPasswordController, AdminEmailResetPasswordController } from "../controllers/adminForgotPassword";
 import { AdminContractorDetail } from "../controllers/adminGetContractorDetail.controller";
 import { AdminCustomerController } from "../controllers/adminGetCustomerDetail.contractor";
@@ -11,7 +12,7 @@ import { AdminContractorController } from "../controllers/contractor.controller"
 import { AdminConversation } from "../controllers/conversation.controller";
 import { dispute } from "../controllers/dispute.controller";
 import { ermergency } from "../controllers/emergency.controller";
-import {  AdminJobController, } from "../controllers/job.controller";
+// import {  AdminJobController, } from "../controllers/job.controller";
 import { AdminGetCompletedPayoutDetailController, AdminGetPendingPayoutDetailController, AdminGetSinglePayoutDetailController, AdminPayContractorController } from "../controllers/payout.controller";
 import { Permission } from "../controllers/permission.controller";
 import { AdminQuizController } from "../controllers/quiz.controller";
@@ -64,21 +65,26 @@ router.post("/customer/account/status", Validations.CustomerChangeStatusParams, 
 
 
 //done skill
-router.post("/skills", validateAddSkillParams, checkAdminRole, AdminAddNewSkillController ); // admin add skill
-router.post("/add/skill", validateAddSkillParams, checkAdminRole, AdminAddNewSkillController ); // admin add skilll
-router.get("/skills", checkAdminRole, AdminGetSkillController ); // admin get all skill
+router.post("/skills", validateAddSkillParams, checkAdminRole, AdminSkillController.AddNew ); // admin add skill
+// router.post("/skill/bulk", validateAddSkillParams, checkAdminRole, AdminSkillController ); // admin add skilll
+router.get("/skills", checkAdminRole, AdminSkillController.GetSkills ); // admin get all skill
 
-router.post("/skills", validateAddSkillParams, checkAdminRole, AdminAddNewSkillController ); // admin add skilll
-//done
-router.post("/add/skill", validateAddSkillParams, checkAdminRole, AdminAddNewSkillController ); // admin add skilll
-router.get("/skills", checkAdminRole, AdminGetSkillController ); // admin get all skill
 
 // done job
-router.get("/jobs/detail", checkAdminRole, AdminJobController.AdminGetJobsrDetailController ); // admin get job detail
-router.get("/jobs/detail/:jobId", checkAdminRole, AdminJobController.AdminGetSingleJobsrDetailController ); // admin get single job detail
-router.get("/total_job", checkAdminRole, AdminJobController.AdminGetTotalJobsrController); // admin get total job
-router.get("/app_detail", checkAdminRole, AdminGetAppDetailController ); // admin get app detail
-router.get("/invoice/detail/:jobId", checkAdminRole, AdminJobController.AdminGetInvoiceSingleJobsrDetailController ); // admin get invoices for single job detail
+// router.get("/jobs/detail", checkAdminRole, AdminJobController.AdminGetJobsrDetailController ); 
+// router.get("/jobs/detail/:jobId", checkAdminRole, AdminJobController.AdminGetSingleJobsrDetailController ); 
+// router.get("/total_job", checkAdminRole, AdminJobController.AdminGetTotalJobsrController); 
+// router.get("/app_detail", checkAdminRole, AdminGetAppDetailController ); 
+// router.get("/invoice/detail/:jobId", checkAdminRole, AdminJobController.AdminGetInvoiceSingleJobsrDetailController ); 
+
+// jobsairon
+router.get("/jobs", checkAdminRole, AdminJobController.getJobs ); 
+router.get("/jobs/stats", checkAdminRole, AdminJobController.getJobStats); 
+router.get("/jobs/:jobId", checkAdminRole, AdminJobController.getSingleJob ); 
+router.get("/app_detail", checkAdminRole, AdminGetAppDetailController ); 
+// router.get("/invoice/detail/:jobId", checkAdminRole, AdminJobController.AdminGetInvoiceSingleJobsrDetailController ); 
+
+
 
 //done transaction
 router.get("/transactions", checkAdminRole,TransactionDetailController.AdminGetTransactionDetailController ); // admin get transaction detail

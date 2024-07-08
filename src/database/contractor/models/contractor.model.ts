@@ -242,19 +242,6 @@ ContractorSchema.virtual('stripeIdentityStatus').get(function (this: IContractor
 
 
 
-// ContractorSchema.virtual('stripeAccountStatus').get(function (this: IContractor) {
-//   const stripeAccount = this.stripeAccount;
-//   return stripeAccount ? {
-//     details_submitted: stripeAccount.details_submitted,
-//     payouts_enabled: stripeAccount.payouts_enabled,
-//     charges_enabled: stripeAccount.charges_enabled,
-//     transfers_enabled: stripeAccount?.capabilities?.transfers === 'active',
-//     card_payments_enabled: stripeAccount?.capabilities?.card_payments === 'active',
-//     status: stripeAccount?.capabilities?.card_payments && stripeAccount?.capabilities?.transfers
-//   } : null;
-// });
-
-
 
 ContractorSchema.virtual('stripeAccountStatus').get(function (this: IContractor) {
   const stripeAccount = this.stripeAccount;

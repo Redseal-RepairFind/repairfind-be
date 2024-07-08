@@ -65,7 +65,7 @@ export const createJobRequest = async (
         // Get the end of the current day (11:59:59 PM)
         const startOfToday = startOfDay(new Date());
         if (!isValid(new Date(formattedDate)) ) {
-            return res.status(400).json({ success: false, message: 'Invalid date format or date is in the past' });
+            return res.status(400).json({ success: false, message: 'Invalid date format' });
         }
 
         if ( (!isFuture(new Date(formattedDate)) && new Date(formattedDate) < startOfToday)) {
@@ -190,7 +190,7 @@ export const createJobListing = async (
         // Get the end of the current day (11:59:59 PM)
         const startOfToday = startOfDay(new Date());
         if (!isValid(new Date(formattedDate)) ) {
-            return res.status(400).json({ success: false, message: 'Invalid date format or date is in the past' });
+            return res.status(400).json({ success: false, message: 'Invalid date format' });
         }
 
         if ( (!isFuture(new Date(formattedDate)) && new Date(formattedDate) < startOfToday)) {
