@@ -49,6 +49,8 @@ var stripe_account_schema_1 = require("../../common/stripe_account.schema");
 var stripe_paymentmethod_schema_1 = require("../../common/stripe_paymentmethod.schema");
 var question_model_1 = __importDefault(require("../../admin/models/question.model"));
 var mongoose_delete_1 = __importDefault(require("mongoose-delete"));
+var job_quotation_model_1 = require("../../common/job_quotation.model");
+var job_model_1 = require("../../common/job.model");
 var GstDetailSchema = new mongoose_1.Schema({
     gstName: String,
     gstNumber: String,
@@ -223,6 +225,7 @@ var ContractorSchema = new mongoose_1.Schema({
         type: CertnDetailSchema
     },
     reviews: [{ review: { type: mongoose_1.Schema.Types.ObjectId, ref: 'reviews' }, averageRating: Number }],
+    stats: { formattedResponseTime: { type: mongoose_1.Schema.Types.Mixed }, responseTime: { type: mongoose_1.Schema.Types.Mixed }, jobsCompleted: { type: mongoose_1.Schema.Types.Mixed }, jobsCanceled: { type: mongoose_1.Schema.Types.Mixed }, jobsPending: { type: mongoose_1.Schema.Types.Mixed } },
     badge: {
         label: { type: String, default: contractor_interface_1.CONTRACTOR_BADGE.PROSPECT },
         icon: { type: String, default: null },
@@ -245,17 +248,6 @@ ContractorSchema.virtual('stripeIdentityStatus').get(function () {
     //@ts-ignore
     return this.stripeIdentity ? this.stripeIdentity.status : 'unverified';
 });
-// ContractorSchema.virtual('stripeAccountStatus').get(function (this: IContractor) {
-//   const stripeAccount = this.stripeAccount;
-//   return stripeAccount ? {
-//     details_submitted: stripeAccount.details_submitted,
-//     payouts_enabled: stripeAccount.payouts_enabled,
-//     charges_enabled: stripeAccount.charges_enabled,
-//     transfers_enabled: stripeAccount?.capabilities?.transfers === 'active',
-//     card_payments_enabled: stripeAccount?.capabilities?.card_payments === 'active',
-//     status: stripeAccount?.capabilities?.card_payments && stripeAccount?.capabilities?.transfers
-//   } : null;
-// });
 ContractorSchema.virtual('stripeAccountStatus').get(function () {
     var _a, _b;
     var stripeAccount = this.stripeAccount;
@@ -340,9 +332,9 @@ ContractorSchema.virtual('reviewCount').get(function () {
     var reviews = this.get('reviews') || [];
     return reviews.length;
 });
-ContractorSchema.virtual('stats').get(function () {
-    return { responseTime: '10mins', jobsDone: 3, jobsCanceled: 2 };
-});
+// ContractorSchema.virtual('stats').get(function () {
+//   return { responseTime: '10mins', jobsDone: 3, jobsCanceled: 2 };
+// });
 ContractorSchema.methods.getOnboarding = function () {
     var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function () {
@@ -421,6 +413,61 @@ ContractorSchema.methods.getOnboarding = function () {
                             hasPassedQuiz: hasPassedQuiz,
                             stage: stage,
                         }];
+            }
+        });
+    });
+};
+// Instance method to get formatted response time
+ContractorSchema.methods.getStats = function () {
+    return __awaiter(this, void 0, void 0, function () {
+        var quotations, totalResponseTime, count, responseTime, formattedResponseTime, jobsCompleted, jobsCanceled, jobsPending;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.find({ contractor: this._id })];
+                case 1:
+                    quotations = _a.sent();
+                    totalResponseTime = 0;
+                    count = 0;
+                    quotations.forEach(function (quotation) {
+                        totalResponseTime += quotation.responseTime;
+                        count++;
+                    });
+                    responseTime = totalResponseTime / count;
+                    formattedResponseTime = '';
+                    if (!responseTime) {
+                        formattedResponseTime = "Not available";
+                    }
+                    else if (responseTime <= 2 * 60) {
+                        formattedResponseTime = "Less than 2 mins";
+                    }
+                    else if (responseTime <= 10 * 60) {
+                        formattedResponseTime = "Within 10 mins";
+                    }
+                    else if (responseTime <= 60 * 60) {
+                        formattedResponseTime = "".concat(Math.round(responseTime / (60)), " mins");
+                    }
+                    else if (responseTime <= 2 * 60 * 60) {
+                        formattedResponseTime = "Greater than 2 hours";
+                    }
+                    else if (responseTime <= 24 * 60 * 60) {
+                        formattedResponseTime = "".concat(Math.round(responseTime / (60 * 60)), " hours");
+                    }
+                    else if (responseTime <= 48 * 60 * 60) {
+                        formattedResponseTime = "Greater than 1 day";
+                    }
+                    else {
+                        formattedResponseTime = "More than 2 days";
+                    }
+                    return [4 /*yield*/, job_model_1.JobModel.countDocuments({ contractor: this._id, status: job_model_1.JOB_STATUS.COMPLETED })];
+                case 2:
+                    jobsCompleted = _a.sent();
+                    return [4 /*yield*/, job_model_1.JobModel.countDocuments({ contractor: this._id, status: job_model_1.JOB_STATUS.CANCELED })];
+                case 3:
+                    jobsCanceled = _a.sent();
+                    return [4 /*yield*/, job_model_1.JobModel.countDocuments({ contractor: this._id, status: job_model_1.JOB_STATUS.PENDING })];
+                case 4:
+                    jobsPending = _a.sent();
+                    return [2 /*return*/, { formattedResponseTime: formattedResponseTime, responseTime: responseTime, jobsCompleted: jobsCompleted, jobsCanceled: jobsCanceled, jobsPending: jobsPending }];
             }
         });
     });

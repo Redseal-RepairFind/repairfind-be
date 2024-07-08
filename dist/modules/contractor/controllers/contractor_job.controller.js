@@ -493,7 +493,7 @@ var hideJobListing = function (req, res, next) { return __awaiter(void 0, void 0
 }); };
 exports.hideJobListing = hideJobListing;
 var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var jobId, contractorId, _a, startDate, endDate, siteVisit, _b, estimates, errors, _c, contractor, job, customer, previousQuotation, appliedQuotationsCount, quotation, scheduleStartDate, scheduleEndDate, scheduleSiteVisitDate, jobQuotation_1, siteVisitEstimate, err_1;
+    var jobId, contractorId, _a, startDate, endDate, siteVisit, _b, estimates, errors, _c, contractor, job, customer, previousQuotation, appliedQuotationsCount, quotation, scheduleStartDate, scheduleEndDate, scheduleSiteVisitDate, jobQuotation_1, siteVisitEstimate, jobCreationTime, quotationTime, responseTimeJob, err_1;
     var _d, _e;
     return __generator(this, function (_f) {
         switch (_f.label) {
@@ -575,6 +575,10 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                         job.jobHistory.push({ eventType: job_model_1.JOB_STATUS.ACCEPTED, timestamp: new Date(), payload: { message: 'Contractor accepted this job' } });
                     }
                 }
+                jobCreationTime = new Date(job.createdAt);
+                quotationTime = new Date();
+                responseTimeJob = (quotationTime.getTime() - jobCreationTime.getTime()) / 1000;
+                jobQuotation_1.responseTime = responseTimeJob;
                 // Save changes to the job
                 return [4 /*yield*/, job.save()];
             case 7:
