@@ -20,6 +20,7 @@ import sentryMiddleware from "./modules/common/middlewares/sentry";
 import corsMiddleware from "./modules/common/middlewares/cors";
 import configureParsers from "./modules/common/middlewares/parsers";
 import configureRateLimit from "./modules/common/middlewares/ratelimit";
+import TwilioService from "./services/twillio";
 
 
 dotenv.config();
@@ -101,6 +102,8 @@ app.use(errorHandler)
 
 // Socket.IO event handlers
  SocketIOService.initialize(server)
+ TwilioService.initialize();
+
 
 
 const InittimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;

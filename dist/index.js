@@ -57,6 +57,7 @@ var security_1 = __importDefault(require("./modules/common/middlewares/security"
 var csrf_1 = __importDefault(require("./modules/common/middlewares/csrf"));
 var cors_1 = __importDefault(require("./modules/common/middlewares/cors"));
 var parsers_1 = __importDefault(require("./modules/common/middlewares/parsers"));
+var twillio_1 = __importDefault(require("./services/twillio"));
 dotenv_1.default.config();
 // intercept all console logs and bind it to configured log service
 console.warn = logger_1.Logger.warn.bind(logger_1.Logger);
@@ -123,6 +124,7 @@ app.use(function (req, res, next) {
 app.use(custom_errors_1.errorHandler);
 // Socket.IO event handlers
 socketio_1.default.initialize(server);
+twillio_1.default.initialize();
 var InittimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 logger_1.Logger.info("Current timezone: ".concat(InittimeZone));
 // Set the default timezone to PST (Pacific Standard Time)

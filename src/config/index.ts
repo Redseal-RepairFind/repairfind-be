@@ -70,7 +70,8 @@ export const config = {
     twilio: {
         accountSid: <string>process.env.TWILIO_ACCOUNT_SID,
         authToken: <string>process.env.TWILIO_AUTH_TOKEN,
-        twilioPhoneNumber: <string>process.env.TWILIO_PHONE_NUMBER
+        twilioPhoneNumber: <string>process.env.TWILIO_PHONE_NUMBER,
+        verificationServiceSid: <string>process.env.TWILIO_VERIFICATION_SERVICE_SID
     },
 
     agora: {

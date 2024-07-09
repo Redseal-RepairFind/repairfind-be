@@ -15,6 +15,7 @@ import { Base } from "../../../abstracts/base.abstract";
 import { EmailService } from "../../../services";
 import { config } from "../../../config";
 import { EmailVerificationTemplate } from "../../../templates/common/email_verification";
+import TwilioService from "../../../services/twillio";
 
 class AuthHandler extends Base {
     @handleAsyncError()
@@ -30,12 +31,15 @@ class AuthHandler extends Base {
             }
 
             const userEmailExists = await ContractorModel.findOne({ email });
+            const userPhoneExists = await ContractorModel.findOne({ phoneNumber });
 
             if (userEmailExists) {
                 return res.status(401).json({ success: false, message: "Email exists already" });
             }
 
-
+            if (userPhoneExists) {
+                return res.status(401).json({ success: false, message: "Phone exists already" });
+            }
 
 
             const otp = generateOTP();
@@ -170,6 +174,91 @@ class AuthHandler extends Base {
             //     success: true,
             //     message: "email verified successfully",
             // });
+
+        } catch (err: any) {
+            return res.status(500).json({ success: false, message: err.message });
+        }
+    }
+
+    @handleAsyncError()
+    public async sendPhoneOtp(): Promise<Response> {
+        let req = <any>this.req
+        let res = this.res
+        try {
+            
+            const contractorId = req.contractor.id
+            const contractor = await ContractorModel.findById(contractorId);
+
+            // check if contractor exists
+            if (!contractor) {
+                return res
+                    .status(404)
+                    .json({ success: false, message: "Account not found" });
+            }
+
+            if (contractor.phoneNumber && contractor?.phoneNumber.verifiedAt) {
+                return res
+                    .status(401)
+                    .json({ success: false, message: "Phone already verified" });
+            }
+
+            const phoneNumber = `${contractor.phoneNumber.code}${contractor.phoneNumber.number}`
+            await TwilioService.sendVerificationCode(phoneNumber)
+
+
+
+            return res.status(200).json({ success: true, message: "OTP sent successfully to your phone." });
+
+        } catch (err: any) {
+            return res.status(500).json({ success: false, message: err.message });
+        }
+    }
+
+    @handleAsyncError()
+    public async verifyPhone(): Promise<Response> {
+        let req = <any>this.req
+        let res = this.res
+        try {
+            const {
+                otp
+            } = req.body;
+           
+
+
+            if (!otp) {
+                return res.status(400).json({ success: false, message: "Otp is required",  });
+            }
+
+            const contractorId = req.contractor.id
+            const contractor = await ContractorModel.findById(contractorId);
+
+            if (!contractor) {
+                return res
+                    .status(404)
+                    .json({ success: false, message: "Account not found" });
+            }
+
+
+            const phoneNumber = `${contractor.phoneNumber.code}${contractor.phoneNumber.number}`
+            const verified = await TwilioService.verifyCode(phoneNumber, otp)
+            if(!verified){
+                return res.status(422).json({
+                    success: false,
+                    message: "Phone verification failed",
+                });
+            }
+            
+            if (contractor.phoneNumber) {
+                contractor.phoneNumber.verifiedAt = new Date();
+            }
+
+            await contractor.save();
+
+            
+            return res.json({
+                success: true,
+                message: "Phone verified successful",
+            });
 
         } catch (err: any) {
             return res.status(500).json({ success: false, message: err.message });

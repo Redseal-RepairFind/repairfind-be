@@ -166,12 +166,9 @@ var ContractorSchema = new mongoose_1.Schema({
         type: Object
     },
     phoneNumber: {
-        code: {
-            type: String
-        },
-        number: {
-            type: String
-        },
+        code: { type: String },
+        number: { type: String, unique: true, },
+        verifiedAt: { type: Date, default: null },
     },
     passwordOtp: {
         otp: String,
@@ -179,11 +176,6 @@ var ContractorSchema = new mongoose_1.Schema({
         verified: Boolean,
     },
     emailOtp: {
-        otp: String,
-        createdTime: Date,
-        verified: Boolean,
-    },
-    phoneNumberOtp: {
         otp: String,
         createdTime: Date,
         verified: Boolean,

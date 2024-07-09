@@ -150,12 +150,10 @@ const ContractorSchema = new Schema<IContractor>(
     },
 
     phoneNumber: {
-      code: {
-        type: String
-      },
-      number: {
-        type: String
-      },
+      code: {type: String}, 
+      number: {type: String, unique: true, }, 
+      verifiedAt: {type: Date, default: null },
+      
     },
 
     passwordOtp: {
@@ -168,11 +166,8 @@ const ContractorSchema = new Schema<IContractor>(
       createdTime: Date,
       verified: Boolean,
     },
-    phoneNumberOtp: {
-      otp: String,
-      createdTime: Date,
-      verified: Boolean,
-    },
+    
+    
 
     createdAt: {
       type: Date,
