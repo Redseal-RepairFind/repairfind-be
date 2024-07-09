@@ -152,7 +152,8 @@ const ContractorSchema = new Schema<IContractor>(
         type: String
       },
       number: {
-        type: String
+        type: String,
+        unique: true
       },
     },
 

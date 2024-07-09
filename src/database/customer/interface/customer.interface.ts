@@ -35,11 +35,9 @@ export interface ICustomer extends Document {
   profilePhoto: {
     url: {
       type: String,
-      required: true,
     },
     label?: {
       type: String,
-      unique: true,
     },
     descriptions?: {
       type: Array<string>,
