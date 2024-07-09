@@ -39,12 +39,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AdminGetSkillController = exports.AdminAddNewSkillController = void 0;
+exports.AdminSkillController = exports.GetSkills = exports.AddNew = void 0;
 var express_validator_1 = require("express-validator");
 var skill_model_1 = __importDefault(require("../../../database/admin/models/skill.model"));
-//admin add new skill to database/////////////
-var AdminAddNewSkillController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var name_1, errors, admin, adminId, checkSkill, newSkill, err_1;
+var custom_errors_1 = require("../../../utils/custom.errors");
+var AddNew = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var name_1, errors, checkSkill, newSkill, err_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -52,39 +52,29 @@ var AdminAddNewSkillController = function (req, res) { return __awaiter(void 0, 
                 name_1 = req.body.name;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation error occurred', errors: errors.array() })];
                 }
-                admin = req.admin;
-                adminId = admin.id;
                 return [4 /*yield*/, skill_model_1.default.findOne({ name: name_1 })];
             case 1:
                 checkSkill = _a.sent();
                 if (checkSkill) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ message: "skill already exist" })];
+                    return [2 /*return*/, res.status(401).json({ success: false, message: "skill already exist" })];
                 }
                 newSkill = new skill_model_1.default({ name: name_1 });
                 return [4 /*yield*/, newSkill.save()];
             case 2:
                 _a.sent();
-                res.json({
-                    message: "skill successfully added."
-                });
-                return [3 /*break*/, 4];
+                return [2 /*return*/, res.json({ success: true, message: "skill successfully added." })];
             case 3:
                 err_1 = _a.sent();
-                // signup error
-                res.status(500).json({ message: err_1.message });
-                return [3 /*break*/, 4];
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError("Error occurred adding skill", err_1))];
             case 4: return [2 /*return*/];
         }
     });
 }); };
-exports.AdminAddNewSkillController = AdminAddNewSkillController;
-//admin get all skill/////////////
-var AdminGetSkillController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, errors, admin, adminId, skills, err_2;
+exports.AddNew = AddNew;
+var GetSkills = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, errors, skills, err_2;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -94,22 +84,20 @@ var AdminGetSkillController = function (req, res) { return __awaiter(void 0, voi
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
-                admin = req.admin;
-                adminId = admin.id;
                 return [4 /*yield*/, skill_model_1.default.find()];
             case 1:
                 skills = _b.sent();
-                res.json({
-                    skills: skills
-                });
+                res.json({ success: true, message: "Skills retrieved successfully", data: skills });
                 return [3 /*break*/, 3];
             case 2:
                 err_2 = _b.sent();
-                // signup error
-                res.status(500).json({ message: err_2.message });
-                return [3 /*break*/, 3];
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError("Error occurred adding skill", err_2))];
             case 3: return [2 /*return*/];
         }
     });
 }); };
-exports.AdminGetSkillController = AdminGetSkillController;
+exports.GetSkills = GetSkills;
+exports.AdminSkillController = {
+    AddNew: exports.AddNew,
+    GetSkills: exports.GetSkills,
+};

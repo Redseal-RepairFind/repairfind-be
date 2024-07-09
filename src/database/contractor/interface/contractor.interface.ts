@@ -131,8 +131,9 @@ export interface IContractor extends Document {
   dateOfBirth?: string;
   status: string;
   phoneNumber: {
-    code: string,
-    number: string
+    code: string;
+    number: string;
+    verifiedAt: Date;
   };
   accountType: string;
   profilePhoto: {
@@ -151,11 +152,7 @@ export interface IContractor extends Document {
     createdTime: Date;
     verified: boolean;
   };
-  phoneNumberOtp: {
-    otp: string;
-    createdTime: Date;
-    verified: boolean;
-  };
+ 
   stripeCustomer: IStripeCustomer
   stripeIdentity: object,
   stripeAccount: IStripeAccount,
@@ -199,5 +196,14 @@ export interface IContractor extends Document {
     hasPassedQuiz: boolean
     stage: number
   };
+  stats: {formattedResponseTime?: any, responseTime?: any, jobsCompleted?: any, jobsCanceled?: any,  jobsPending?: any};
+
+  getStats: () => {
+    formattedResponseTime: any,
+    responseTime: any,
+    jobsDone: any,
+    jobsCanceled: any,
+  };
+
 
 }

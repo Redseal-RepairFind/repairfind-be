@@ -456,15 +456,15 @@ var ProfileHandler = /** @class */ (function (_super) {
     ProfileHandler.prototype.getAccount = function () {
         var _a;
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, contractorId, includeStripeIdentity, includeStripeCustomer, includeStripePaymentMethods, includeStripeAccount, includedFields, contractor, _b, quiz, contractorResponse, err_6;
-            return __generator(this, function (_c) {
-                switch (_c.label) {
+            var req, res, contractorId, includeStripeIdentity, includeStripeCustomer, includeStripePaymentMethods, includeStripeAccount, includedFields, contractor, _b, quiz, _c, contractorResponse, err_6;
+            return __generator(this, function (_d) {
+                switch (_d.label) {
                     case 0:
                         req = this.req;
                         res = this.res;
-                        _c.label = 1;
+                        _d.label = 1;
                     case 1:
-                        _c.trys.push([1, 6, , 7]);
+                        _d.trys.push([1, 7, , 8]);
                         contractorId = req.contractor.id;
                         includeStripeIdentity = false;
                         includeStripeCustomer = false;
@@ -480,17 +480,21 @@ var ProfileHandler = /** @class */ (function (_super) {
                         }
                         return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId).populate('profile')];
                     case 2:
-                        contractor = _c.sent();
+                        contractor = _d.sent();
                         if (!contractor) {
                             return [2 /*return*/, res.status(404).json({ success: false, message: 'Account not found' })];
                         }
                         _b = contractor;
                         return [4 /*yield*/, contractor.getOnboarding()];
                     case 3:
-                        _b.onboarding = _c.sent();
+                        _b.onboarding = _d.sent();
                         return [4 /*yield*/, contractor.quiz];
                     case 4:
-                        quiz = (_a = _c.sent()) !== null && _a !== void 0 ? _a : null;
+                        quiz = (_a = _d.sent()) !== null && _a !== void 0 ? _a : null;
+                        _c = contractor;
+                        return [4 /*yield*/, contractor.getStats()];
+                    case 5:
+                        _c.stats = _d.sent();
                         contractorResponse = __assign(__assign({}, contractor.toJSON({ includeStripeIdentity: true, includeStripeCustomer: true, includeStripePaymentMethods: true, includeStripeAccount: true, includeReviews: { status: true, limit: 20 } })), { // Convert to plain JSON object
                             quiz: quiz });
                         if (!contractor) {
@@ -520,20 +524,20 @@ var ProfileHandler = /** @class */ (function (_super) {
                             });
                         }
                         return [4 /*yield*/, contractor.save()];
-                    case 5:
-                        _c.sent();
+                    case 6:
+                        _d.sent();
                         res.json({
                             success: true,
                             message: 'Account fetched successfully',
                             data: contractorResponse,
                         });
-                        return [3 /*break*/, 7];
-                    case 6:
-                        err_6 = _c.sent();
+                        return [3 /*break*/, 8];
+                    case 7:
+                        err_6 = _d.sent();
                         console.log('error', err_6);
                         res.status(500).json({ success: false, message: err_6.message });
-                        return [3 /*break*/, 7];
-                    case 7: return [2 /*return*/];
+                        return [3 /*break*/, 8];
+                    case 8: return [2 /*return*/];
                 }
             });
         });

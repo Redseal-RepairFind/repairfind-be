@@ -451,6 +451,8 @@ class ProfileHandler extends Base {
       contractor.onboarding = await contractor.getOnboarding()
       const quiz = await contractor.quiz ?? null;
 
+      contractor.stats = await contractor.getStats();
+
       const contractorResponse = {
         //@ts-ignore
         ...contractor.toJSON({ includeStripeIdentity: true, includeStripeCustomer: true, includeStripePaymentMethods: true, includeStripeAccount: true, includeReviews: { status: true, limit: 20 } }), // Convert to plain JSON object

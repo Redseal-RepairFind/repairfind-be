@@ -9,7 +9,12 @@ const express = require("express");
 const router = express.Router();
 
 router.get("/bank-lists",  CommonController.getBankList ); // customer update is profile
+router.get("/countries",  CommonController.getCountries ); // customer update is profile
 router.get("/skills",  CommonController.getSkills ); // customer update is profile
+router.get("/options",  CommonController.getOptions ); // customer update is profile
+
+
+
 router.post("/webhooks/stripe",  WebhookController.stripeWebook ); // stripe webhook
 router.post("/webhooks/certn",  WebhookController.certnWebook ); //  certn webhook
 

@@ -29,6 +29,11 @@ router.post("/email-verification", ContractorHttpRequest.EmailVerificationReques
     AuthController(req, res, next).verifyEmail();
 });
 
+router.post("/resend-email", ContractorHttpRequest.ResendEmailRequest, (req: Request, res: Response, next: NextFunction) => {
+    AuthController(req, res, next).resendEmail();
+});
+
+
 router.post("/signin", ContractorHttpRequest.LoginRequest, (req: Request, res: Response, next: NextFunction) => {
     AuthController(req, res, next).signin();
 });
@@ -37,9 +42,15 @@ router.post("/signin-phone", ContractorHttpRequest.LoginWithPhoneRequest, (req: 
     AuthController(req, res, next).signinWithPhone();
 });
 
-router.post("/resend-email", ContractorHttpRequest.ResendEmailRequest, (req: Request, res: Response, next: NextFunction) => {
-    AuthController(req, res, next).resendEmail();
+router.post("/resend-phone-otp",checkContractorRole , ContractorHttpRequest.LoginWithPhoneRequest, (req: Request, res: Response, next: NextFunction) => {
+    AuthController(req, res, next).sendPhoneOtp();
 });
+
+router.post("/phone-verification",checkContractorRole,  (req: Request, res: Response, next: NextFunction) => {
+    AuthController(req, res, next).verifyPhone();
+});
+
+
 router.post("/forgot-password", ContractorHttpRequest.ResendEmailRequest, (req: Request, res: Response, next: NextFunction) => {
     AuthController(req, res, next).forgotPassword();
 });

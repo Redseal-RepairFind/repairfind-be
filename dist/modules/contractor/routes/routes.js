@@ -25,14 +25,20 @@ router.post("/signup", requests_1.ContractorHttpRequest.CreateContractorRequest,
 router.post("/email-verification", requests_1.ContractorHttpRequest.EmailVerificationRequest, function (req, res, next) {
     (0, contractor_auth_controller_1.AuthController)(req, res, next).verifyEmail();
 });
+router.post("/resend-email", requests_1.ContractorHttpRequest.ResendEmailRequest, function (req, res, next) {
+    (0, contractor_auth_controller_1.AuthController)(req, res, next).resendEmail();
+});
 router.post("/signin", requests_1.ContractorHttpRequest.LoginRequest, function (req, res, next) {
     (0, contractor_auth_controller_1.AuthController)(req, res, next).signin();
 });
 router.post("/signin-phone", requests_1.ContractorHttpRequest.LoginWithPhoneRequest, function (req, res, next) {
     (0, contractor_auth_controller_1.AuthController)(req, res, next).signinWithPhone();
 });
-router.post("/resend-email", requests_1.ContractorHttpRequest.ResendEmailRequest, function (req, res, next) {
-    (0, contractor_auth_controller_1.AuthController)(req, res, next).resendEmail();
+router.post("/resend-phone-otp", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.LoginWithPhoneRequest, function (req, res, next) {
+    (0, contractor_auth_controller_1.AuthController)(req, res, next).sendPhoneOtp();
+});
+router.post("/phone-verification", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
+    (0, contractor_auth_controller_1.AuthController)(req, res, next).verifyPhone();
 });
 router.post("/forgot-password", requests_1.ContractorHttpRequest.ResendEmailRequest, function (req, res, next) {
     (0, contractor_auth_controller_1.AuthController)(req, res, next).forgotPassword();

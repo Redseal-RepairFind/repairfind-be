@@ -97,6 +97,7 @@ var base_abstract_1 = require("../../../abstracts/base.abstract");
 var services_1 = require("../../../services");
 var config_1 = require("../../../config");
 var email_verification_1 = require("../../../templates/common/email_verification");
+var twillio_1 = __importDefault(require("../../../services/twillio"));
 var AuthHandler = /** @class */ (function (_super) {
     __extends(AuthHandler, _super);
     function AuthHandler() {
@@ -104,7 +105,7 @@ var AuthHandler = /** @class */ (function (_super) {
     }
     AuthHandler.prototype.signUp = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _a, email, password, firstName, dateOfBirth, lastName, phoneNumber, acceptTerms, accountType, companyName, errors, userEmailExists, otp, createdTime, emailOtp, hashedPassword, contractor, html, welcomeHtml, err_1;
+            var req, res, _a, email, password, firstName, dateOfBirth, lastName, phoneNumber, acceptTerms, accountType, companyName, errors, userEmailExists, userPhoneExists, otp, createdTime, emailOtp, hashedPassword, contractor, html, welcomeHtml, err_1;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -112,7 +113,7 @@ var AuthHandler = /** @class */ (function (_super) {
                         res = this.res;
                         _b.label = 1;
                     case 1:
-                        _b.trys.push([1, 7, , 8]);
+                        _b.trys.push([1, 8, , 9]);
                         _a = req.body, email = _a.email, password = _a.password, firstName = _a.firstName, dateOfBirth = _a.dateOfBirth, lastName = _a.lastName, phoneNumber = _a.phoneNumber, acceptTerms = _a.acceptTerms, accountType = _a.accountType, companyName = _a.companyName;
                         errors = (0, express_validator_1.validationResult)(req);
                         if (!errors.isEmpty()) {
@@ -121,8 +122,14 @@ var AuthHandler = /** @class */ (function (_super) {
                         return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ email: email })];
                     case 2:
                         userEmailExists = _b.sent();
+                        return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ phoneNumber: phoneNumber })];
+                    case 3:
+                        userPhoneExists = _b.sent();
                         if (userEmailExists) {
                             return [2 /*return*/, res.status(401).json({ success: false, message: "Email exists already" })];
+                        }
+                        if (userPhoneExists) {
+                            return [2 /*return*/, res.status(401).json({ success: false, message: "Phone exists already" })];
                         }
                         otp = (0, otpGenerator_1.generateOTP)();
                         createdTime = new Date();
@@ -132,7 +139,7 @@ var AuthHandler = /** @class */ (function (_super) {
                             verified: false
                         };
                         return [4 /*yield*/, bcrypt_1.default.hash(password, 10)];
-                    case 3:
+                    case 4:
                         hashedPassword = _b.sent();
                         return [4 /*yield*/, contractor_model_1.ContractorModel.create({
                                 email: email,
@@ -146,15 +153,15 @@ var AuthHandler = /** @class */ (function (_super) {
                                 accountType: accountType,
                                 companyName: companyName
                             })];
-                    case 4:
+                    case 5:
                         contractor = _b.sent();
                         html = (0, email_verification_1.EmailVerificationTemplate)(otp, firstName !== null && firstName !== void 0 ? firstName : companyName);
                         return [4 /*yield*/, services_1.EmailService.send(email, 'Email Verification', html)];
-                    case 5:
+                    case 6:
                         _b.sent();
                         welcomeHtml = (0, welcome_email_1.ContractorWelcomeTemplate)(firstName !== null && firstName !== void 0 ? firstName : companyName);
                         return [4 /*yield*/, services_1.EmailService.send(email, 'Welcome to Repairfind', welcomeHtml)];
-                    case 6:
+                    case 7:
                         _b.sent();
                         // const adminNoti = new AdminNoficationModel({
                         //     title: "New Account Created",
@@ -167,10 +174,10 @@ var AuthHandler = /** @class */ (function (_super) {
                                 message: "Signup successful",
                                 data: contractor,
                             })];
-                    case 7:
+                    case 8:
                         err_1 = _b.sent();
                         return [2 /*return*/, res.status(500).json({ success: false, message: err_1.message })];
-                    case 8: return [2 /*return*/];
+                    case 9: return [2 /*return*/];
                 }
             });
         });
@@ -246,10 +253,101 @@ var AuthHandler = /** @class */ (function (_super) {
             });
         });
     };
+    AuthHandler.prototype.sendPhoneOtp = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var req, res, contractorId, contractor, phoneNumber, err_3;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        req = this.req;
+                        res = this.res;
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 4, , 5]);
+                        contractorId = req.contractor.id;
+                        return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
+                    case 2:
+                        contractor = _a.sent();
+                        // check if contractor exists
+                        if (!contractor) {
+                            return [2 /*return*/, res
+                                    .status(404)
+                                    .json({ success: false, message: "Account not found" })];
+                        }
+                        if (contractor.phoneNumber && (contractor === null || contractor === void 0 ? void 0 : contractor.phoneNumber.verifiedAt)) {
+                            return [2 /*return*/, res
+                                    .status(401)
+                                    .json({ success: false, message: "Phone already verified" })];
+                        }
+                        phoneNumber = "".concat(contractor.phoneNumber.code).concat(contractor.phoneNumber.number);
+                        return [4 /*yield*/, twillio_1.default.sendVerificationCode(phoneNumber)];
+                    case 3:
+                        _a.sent();
+                        return [2 /*return*/, res.status(200).json({ success: true, message: "OTP sent successfully to your phone." })];
+                    case 4:
+                        err_3 = _a.sent();
+                        return [2 /*return*/, res.status(500).json({ success: false, message: err_3.message })];
+                    case 5: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    AuthHandler.prototype.verifyPhone = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var req, res, otp, contractorId, contractor, phoneNumber, verified, err_4;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        req = this.req;
+                        res = this.res;
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 5, , 6]);
+                        otp = req.body.otp;
+                        if (!otp) {
+                            return [2 /*return*/, res.status(400).json({ success: false, message: "Otp is required", })];
+                        }
+                        contractorId = req.contractor.id;
+                        return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
+                    case 2:
+                        contractor = _a.sent();
+                        if (!contractor) {
+                            return [2 /*return*/, res
+                                    .status(404)
+                                    .json({ success: false, message: "Account not found" })];
+                        }
+                        phoneNumber = "".concat(contractor.phoneNumber.code).concat(contractor.phoneNumber.number);
+                        return [4 /*yield*/, twillio_1.default.verifyCode(phoneNumber, otp)];
+                    case 3:
+                        verified = _a.sent();
+                        if (!verified) {
+                            return [2 /*return*/, res.status(422).json({
+                                    success: false,
+                                    message: "Phone verification failed",
+                                })];
+                        }
+                        if (contractor.phoneNumber) {
+                            contractor.phoneNumber.verifiedAt = new Date();
+                        }
+                        return [4 /*yield*/, contractor.save()];
+                    case 4:
+                        _a.sent();
+                        return [2 /*return*/, res.json({
+                                success: true,
+                                message: "Phone verified successful",
+                            })];
+                    case 5:
+                        err_4 = _a.sent();
+                        return [2 /*return*/, res.status(500).json({ success: false, message: err_4.message })];
+                    case 6: return [2 /*return*/];
+                }
+            });
+        });
+    };
     AuthHandler.prototype.signin = function () {
         var _a;
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _b, email, password, phoneNumber, errors, contractor, isPasswordMatch, quiz, _c, contractorResponse, accessToken, err_3;
+            var req, res, _b, email, password, phoneNumber, errors, contractor, isPasswordMatch, quiz, _c, contractorResponse, accessToken, err_5;
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
@@ -304,8 +402,8 @@ var AuthHandler = /** @class */ (function (_super) {
                                 user: contractorResponse
                             })];
                     case 6:
-                        err_3 = _d.sent();
-                        return [2 /*return*/, res.status(500).json({ success: false, message: err_3.message })];
+                        err_5 = _d.sent();
+                        return [2 /*return*/, res.status(500).json({ success: false, message: err_5.message })];
                     case 7: return [2 /*return*/];
                 }
             });
@@ -314,7 +412,7 @@ var AuthHandler = /** @class */ (function (_super) {
     AuthHandler.prototype.signinWithPhone = function () {
         var _a;
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _b, password, number, code, errors, contractor, isPasswordMatch, quiz, _c, contractorResponse, accessToken, err_4;
+            var req, res, _b, password, number, code, errors, contractor, isPasswordMatch, quiz, _c, contractorResponse, accessToken, err_6;
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
@@ -369,8 +467,8 @@ var AuthHandler = /** @class */ (function (_super) {
                                 user: contractorResponse
                             })];
                     case 6:
-                        err_4 = _d.sent();
-                        return [2 /*return*/, res.status(500).json({ success: false, message: err_4.message })];
+                        err_6 = _d.sent();
+                        return [2 /*return*/, res.status(500).json({ success: false, message: err_6.message })];
                     case 7: return [2 /*return*/];
                 }
             });
@@ -378,7 +476,7 @@ var AuthHandler = /** @class */ (function (_super) {
     };
     AuthHandler.prototype.resendEmail = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, email, errors, contractor, otp, createdTime, html, err_5;
+            var req, res, email, errors, contractor, otp, createdTime, html, err_7;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -420,8 +518,8 @@ var AuthHandler = /** @class */ (function (_super) {
                         services_1.EmailService.send(email, "Email Verification", html);
                         return [2 /*return*/, res.status(200).json({ success: true, message: "OTP sent successfully to your email." })];
                     case 4:
-                        err_5 = _a.sent();
-                        return [2 /*return*/, res.status(500).json({ success: false, message: err_5.message })];
+                        err_7 = _a.sent();
+                        return [2 /*return*/, res.status(500).json({ success: false, message: err_7.message })];
                     case 5: return [2 /*return*/];
                 }
             });
@@ -429,7 +527,7 @@ var AuthHandler = /** @class */ (function (_super) {
     };
     AuthHandler.prototype.forgotPassword = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, email, errors, contractor, otp, createdTime, html, emailData, err_6;
+            var req, res, email, errors, contractor, otp, createdTime, html, emailData, err_8;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -471,8 +569,8 @@ var AuthHandler = /** @class */ (function (_super) {
                         (0, send_email_utility_1.sendEmail)(emailData);
                         return [2 /*return*/, res.status(200).json({ success: true, message: "OTP sent successfully to your email." })];
                     case 4:
-                        err_6 = _a.sent();
-                        return [2 /*return*/, res.status(500).json({ success: false, message: err_6.message })];
+                        err_8 = _a.sent();
+                        return [2 /*return*/, res.status(500).json({ success: false, message: err_8.message })];
                     case 5: return [2 /*return*/];
                 }
             });
@@ -480,7 +578,7 @@ var AuthHandler = /** @class */ (function (_super) {
     };
     AuthHandler.prototype.resetPassword = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _a, email, otp, password, errors, contractor, _b, createdTime, verified, timeDiff, hashedPassword, err_7;
+            var req, res, _a, email, otp, password, errors, contractor, _b, createdTime, verified, timeDiff, hashedPassword, err_9;
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
@@ -520,9 +618,9 @@ var AuthHandler = /** @class */ (function (_super) {
                         _c.sent();
                         return [2 /*return*/, res.status(200).json({ success: true, message: "password successfully change" })];
                     case 5:
-                        err_7 = _c.sent();
+                        err_9 = _c.sent();
                         // signup error
-                        return [2 /*return*/, res.status(500).json({ success: false, message: err_7.message })];
+                        return [2 /*return*/, res.status(500).json({ success: false, message: err_9.message })];
                     case 6: return [2 /*return*/];
                 }
             });
@@ -530,7 +628,7 @@ var AuthHandler = /** @class */ (function (_super) {
     };
     AuthHandler.prototype.verifyResetPasswordOtp = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _a, email, otp, errors, contractor, createdTime, timeDiff, err_8;
+            var req, res, _a, email, otp, errors, contractor, createdTime, timeDiff, err_10;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -567,8 +665,8 @@ var AuthHandler = /** @class */ (function (_super) {
                         }
                         return [2 /*return*/, res.status(200).json({ success: true, message: "password reset otp verified" })];
                     case 3:
-                        err_8 = _b.sent();
-                        return [2 /*return*/, res.status(500).json({ success: false, message: err_8.message })];
+                        err_10 = _b.sent();
+                        return [2 /*return*/, res.status(500).json({ success: false, message: err_10.message })];
                     case 4: return [2 /*return*/];
                 }
             });
@@ -586,6 +684,18 @@ var AuthHandler = /** @class */ (function (_super) {
         __metadata("design:paramtypes", []),
         __metadata("design:returntype", Promise)
     ], AuthHandler.prototype, "verifyEmail", null);
+    __decorate([
+        (0, decorators_abstract_1.handleAsyncError)(),
+        __metadata("design:type", Function),
+        __metadata("design:paramtypes", []),
+        __metadata("design:returntype", Promise)
+    ], AuthHandler.prototype, "sendPhoneOtp", null);
+    __decorate([
+        (0, decorators_abstract_1.handleAsyncError)(),
+        __metadata("design:type", Function),
+        __metadata("design:paramtypes", []),
+        __metadata("design:returntype", Promise)
+    ], AuthHandler.prototype, "verifyPhone", null);
     __decorate([
         (0, decorators_abstract_1.handleAsyncError)(),
         __metadata("design:type", Function),

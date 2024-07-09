@@ -96,7 +96,7 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 formattedDate = dateParts.join('-');
                 startOfToday = (0, date_fns_1.startOfDay)(new Date());
                 if (!(0, date_fns_1.isValid)(new Date(formattedDate))) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid date format or date is in the past' })];
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid date format' })];
                 }
                 if ((!(0, date_fns_1.isFuture)(new Date(formattedDate)) && new Date(formattedDate) < startOfToday)) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Selected Job Date is in the past' })];
@@ -199,7 +199,7 @@ var createJobListing = function (req, res, next) { return __awaiter(void 0, void
                 formattedDate = dateParts.join('-');
                 startOfToday = (0, date_fns_1.startOfDay)(new Date());
                 if (!(0, date_fns_1.isValid)(new Date(formattedDate))) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid date format or date is in the past' })];
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid date format' })];
                 }
                 if ((!(0, date_fns_1.isFuture)(new Date(formattedDate)) && new Date(formattedDate) < startOfToday)) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Selected Job Date is in the past' })];

@@ -11,6 +11,7 @@ import { ContractorScheduleModel } from "../../../database/contractor/models/con
 import { CONTRACTOR_TYPES } from "../../../database/contractor/interface/contractor.interface";
 import { REVIEW_TYPE, ReviewModel } from "../../../database/common/review.model";
 import CustomerFavoriteContractorModel from "../../../database/customer/models/customer_favorite_contractors.model";
+import CustomerModel from "../../../database/customer/models/customer.model";
 
 
 type PipelineStage =
@@ -31,14 +32,19 @@ export const exploreContractors = async (
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
     }
+    const customerId = req.customer.id
+
+    const customer = await CustomerModel.findById(customerId);
 
     try {
-        const {
+        let {
             searchName,
             listing,
-            distance,
-            latitude,
-            longitude,
+            minDistance,
+            maxDistance,
+            radius,
+            latitude = Number(customer?.location?.latitude), //if latitude is not provided, use the stored location of the customer
+            longitude = Number(customer?.location?.longitude),
             emergencyJobs,
             category,
             location,
@@ -53,12 +59,19 @@ export const exploreContractors = async (
             gstNumber,
             page = 1, // Default to page 1
             limit = 10, // Default to 10 items per page
-            sort // Sort field and order (-fieldName or fieldName)
+            sort, // Sort field and order (-fieldName or fieldName)
+            minResponseTime,
+            maxResponseTime,
+            sortByResponseTime,
         } = req.query;
+
+
+        console.log(latitude, longitude)
 
         const availableDaysArray = availableDays ? availableDays.split(',') : [];
         const skip = (parseInt(page) - 1) * parseInt(limit);
 
+        const toRadians = (degrees: number) => degrees * (Math.PI / 180);
         const pipeline: PipelineStage[] = [
             {
                 $lookup: {
@@ -127,6 +140,103 @@ export const exploreContractors = async (
                 }
             },
             {
+                $lookup: {
+                    from: "job_quotations",
+                    localField: "_id",
+                    foreignField: "contractor",
+                    as: "quotations"
+                }
+            },
+            {
+                $addFields: {
+                    distance: {
+                        $round: [
+                            {
+                                $multiply: [
+                                    6371, // Earth's radius in km
+                                    {
+                                        $acos: {
+                                            $add: [
+                                                {
+                                                    $multiply: [
+                                                        { $sin: toRadians(latitude) },
+                                                        { $sin: { $toDouble: { $multiply: [{ $toDouble: "$profile.location.latitude" }, (Math.PI / 180)] } } }
+                                                    ]
+                                                },
+                                                {
+                                                    $multiply: [
+                                                        { $cos: toRadians(latitude) },
+                                                        { $cos: { $toDouble: { $multiply: [{ $toDouble: "$profile.location.latitude" }, (Math.PI / 180)] } } },
+                                                        { $cos: { $subtract: [{ $toDouble: { $multiply: [{ $toDouble: "$profile.location.longitude" }, (Math.PI / 180)] } }, toRadians(longitude)] } }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            },
+                            0
+                        ]
+                    },
+
+                }
+            },
+            {
+                $addFields: {
+                    avgResponseTime: {
+                        $avg: "$quotations.responseTime"
+                    }
+                }
+            },
+
+            {
+                $addFields: {
+                    formattedResponseTime: {
+                        $switch: {
+                            branches: [
+                                {
+                                    case: { $lte: ["$avgResponseTime", 2 * 60 ] },
+                                    then: "Less than 2 mins"
+                                },
+                                {
+                                    case: { $lte: ["$avgResponseTime", 10 * 60 ] },
+                                    then: "Within 10 mins"
+                                },
+                                {
+                                    case: { $lte: ["$avgResponseTime", 60 * 60 ] },
+                                    then: {
+                                        $concat: [
+                                            { $toString: { $round: [{ $divide: ["$avgResponseTime", 60 ] }, 0] } },
+                                            " mins"
+                                        ]
+                                    }
+                                },
+                                {
+                                    case: { $lte: ["$avgResponseTime", 2 * 60 * 60] },
+                                    then: "Greater than 2 hours"
+                                },
+                                {
+                                    case: { $lte: ["$avgResponseTime", 24 * 60 * 60 ] },
+                                    then: {
+                                        $concat: [
+                                            { $toString: { $round: [{ $divide: ["$avgResponseTime", 60 * 60 ] }, 0] } },
+                                            " hours"
+                                        ]
+                                    }
+                                },
+                                {
+                                    case: { $lte: ["$avgResponseTime", 48 * 60 * 60 ] },
+                                    then: "Greater than 1 day"
+                                }
+                            ],
+                            default: "More than 2 days"
+                        }
+                    }
+                }
+            },
+
+
+            {
                 $project: {
                     stripeIdentity: 0,
                     stripeCustomer: 0,
@@ -190,21 +300,34 @@ export const exploreContractors = async (
         if (availableDays) {
             pipeline.push({ $match: { "profile.availableDays": { $in: availableDaysArray } } });
         }
-        if (distance && latitude && longitude) {
-            pipeline.push({
-                $addFields: {
-                    distance: {
-                        $sqrt: {
-                            $sum: [
-                                { $pow: [{ $subtract: [{ $toDouble: "$profile.location.latitude" }, parseFloat(latitude)] }, 2] },
-                                { $pow: [{ $subtract: [{ $toDouble: "$profile.location.longitude" }, parseFloat(longitude)] }, 2] }
-                            ]
-                        }
-                    }
-                }
-            });
-            pipeline.push({ $match: { "distance": { $lte: parseInt(distance) } } });
+        if (radius) {
+            pipeline.push({ $match: { "distance": { $lte: parseInt(radius) } } });
         }
+
+        if (minDistance !== undefined) {
+            pipeline.push({ $match: { "distance": { $gte: parseInt(minDistance) } } });
+        }
+
+        if (maxDistance !== undefined) {
+            pipeline.push({ $match: { "distance": { $lte: parseInt(maxDistance) } } });
+        }
+
+
+        if (minResponseTime !== undefined) {
+            minResponseTime = minResponseTime * 1000
+            pipeline.push({ $match: { "avgResponseTime": { $gte: parseInt(minResponseTime) } } });
+        }
+
+        if (maxResponseTime !== undefined) {
+            maxResponseTime = maxResponseTime * 1000
+            pipeline.push({ $match: { "avgResponseTime": { $lte: parseInt(maxResponseTime) } } });
+        }
+
+        // if (sortByResponseTime !== undefined) {
+        //     const sortOrder = sortByResponseTime === "asc" ? 1 : -1;
+        //     pipeline.push({ $sort: { avgResponseTime: sortOrder } });
+        // }
+
 
         if (sort) {
             const [sortField, sortOrder] = sort.startsWith('-') ? [sort.slice(1), -1] : [sort, 1];
@@ -277,9 +400,6 @@ export const exploreContractors = async (
 
 
 
-
-
-
 export const getSingleContractor = async (req: any, res: Response, next: NextFunction) => {
     try {
         const contractorId = req.params.contractorId
@@ -291,6 +411,7 @@ export const getSingleContractor = async (req: any, res: Response, next: NextFun
             return res.status(400).json({ success: false, message: 'Contractor not found' })
         }
 
+        contractor.stats = await contractor.getStats();
 
         return res.status(200).json({ success: true, message: 'Contractor  found', data: contractor })
     } catch (error: any) {
@@ -313,7 +434,7 @@ export const getContractorReviews = async (req: any, res: Response, next: NextFu
         //reviews etc here
         let filter: any = { contractor: contractorId };
         const { data, error } = await applyAPIFeature(ReviewModel.find(filter).populate(['customer']), req.query);
-       
+
         if (data) {
             await Promise.all(data.data.map(async (review: any) => {
                 review.heading = await review.getHeading()

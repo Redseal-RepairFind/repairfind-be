@@ -47,6 +47,7 @@ export interface IJobQuotation extends Document {
     isPaid: boolean;
     changeOrderEstimate: IExtraEstimate;
     siteVisitEstimate: IExtraEstimate;
+    responseTime: number;
     calculateCharges: (type?: string) => {
         subtotal: number;
         processingFee: number;
@@ -87,7 +88,8 @@ const JobQuotationSchema = new Schema<IJobQuotation>({
     payment: { type: Schema.Types.ObjectId, ref: 'payments' },
     isPaid: { type: Boolean, default: false },
     changeOrderEstimate: { type: ExtraEstimateSchema },
-    siteVisitEstimate: { type: ExtraEstimateSchema }
+    siteVisitEstimate: { type: ExtraEstimateSchema },
+    responseTime: { type: Number, default: 0 },
 }, { timestamps: true });
 
 

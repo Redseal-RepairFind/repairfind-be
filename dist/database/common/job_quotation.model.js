@@ -76,7 +76,8 @@ var JobQuotationSchema = new mongoose_1.Schema({
     payment: { type: mongoose_1.Schema.Types.ObjectId, ref: 'payments' },
     isPaid: { type: Boolean, default: false },
     changeOrderEstimate: { type: exports.ExtraEstimateSchema },
-    siteVisitEstimate: { type: exports.ExtraEstimateSchema }
+    siteVisitEstimate: { type: exports.ExtraEstimateSchema },
+    responseTime: { type: Number, default: 0 },
 }, { timestamps: true });
 // Define the static method to calculate charges
 JobQuotationSchema.methods.calculateCharges = function (type) {
