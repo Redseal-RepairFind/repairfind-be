@@ -4,7 +4,6 @@ var upload_utility_1 = require("../../../utils/upload.utility");
 var admin_job_controller_1 = require("../controllers/admin_job.controller");
 var admin_skill_controller_1 = require("../controllers/admin_skill.controller");
 var adminForgotPassword_1 = require("../controllers/adminForgotPassword");
-var adminGetContractorDetail_controller_1 = require("../controllers/adminGetContractorDetail.controller");
 var adminGetCustomerDetail_contractor_1 = require("../controllers/adminGetCustomerDetail.contractor");
 var adminNotification_controller_1 = require("../controllers/adminNotification.controller");
 var adminReg_controller_1 = require("../controllers/adminReg.controller");
@@ -41,15 +40,15 @@ router.post("/permission", adminValidate_middleware_1.Validations.PermissionCrea
 router.get("/permissions", adminRoleChecker_middleware_1.checkAdminRole, permission_controller_1.Permission.GetPermissionController); // super admin get all permission
 router.post("/edit/permission", adminValidate_middleware_1.Validations.EditPermissionParams, adminRoleChecker_middleware_1.checkAdminRole, permission_controller_1.Permission.EditPermissionController); // super admin edit permission
 //don contractor
-router.get("/contractor/detail", adminRoleChecker_middleware_1.checkAdminRole, adminGetContractorDetail_controller_1.AdminContractorDetail.AdminGetContractorDetailController); // admin get contractor detail
-router.get("/contractor/detail/:contractorId", adminRoleChecker_middleware_1.checkAdminRole, adminGetContractorDetail_controller_1.AdminContractorDetail.AdminGetSingleContractorDetailController); // admin get single contractor detail
-router.post("/validate/contractor/gst", adminValidate_middleware_1.validateContractorChangeStatusValidationParams, adminRoleChecker_middleware_1.checkAdminRole, adminGetContractorDetail_controller_1.AdminContractorDetail.AdminChangeContractorGstStatusController); // admin change contractor gst
-router.get("/contractor/detail/pending/gst", adminRoleChecker_middleware_1.checkAdminRole, adminGetContractorDetail_controller_1.AdminContractorDetail.AdminGetContractorGstPendingController); // admin get contractor detail with gst status pending
-router.get("/contractor/detail/approve/gst", adminRoleChecker_middleware_1.checkAdminRole, adminGetContractorDetail_controller_1.AdminContractorDetail.AdminGetContractorGstApproveController); // admin get contractor detail with gst status approve
-router.get("/contractor/detail/decline/gst", adminRoleChecker_middleware_1.checkAdminRole, adminGetContractorDetail_controller_1.AdminContractorDetail.AdminGetContractorGstDecliningController); // admin get contractor detail with gst status Decline
-router.get("/contractor/detail/review/gst", adminRoleChecker_middleware_1.checkAdminRole, adminGetContractorDetail_controller_1.AdminContractorDetail.AdminGetContractorGstReviewingController); // admin get contractor detail with gst status Reviewing
-router.get("/contractor/job/detail/:contractorId", adminRoleChecker_middleware_1.checkAdminRole, adminGetContractorDetail_controller_1.AdminContractorDetail.AdminGetSingleContractorJonDetailController); // admin get single contractor job detail
-router.post("/contractor/account/status", adminValidate_middleware_1.Validations.ContractorChangeStatusParams, adminRoleChecker_middleware_1.checkAdminRole, adminGetContractorDetail_controller_1.AdminContractorDetail.AdminChangeContractorAccountStatusController); // admin change contractor account status
+// router.get("/contractor/detail", checkAdminRole, AdminContractorDetail.AdminGetContractorDetailController ); // admin get contractor detail
+// router.get("/contractor/detail/:contractorId", checkAdminRole, AdminContractorDetail.AdminGetSingleContractorDetailController ); // admin get single contractor detail
+// router.post("/validate/contractor/gst", validateContractorChangeStatusValidationParams, checkAdminRole, AdminContractorDetail.AdminChangeContractorGstStatusController ); // admin change contractor gst
+// router.get("/contractor/detail/pending/gst", checkAdminRole, AdminContractorDetail.AdminGetContractorGstPendingController ); // admin get contractor detail with gst status pending
+// router.get("/contractor/detail/approve/gst", checkAdminRole, AdminContractorDetail.AdminGetContractorGstApproveController ); // admin get contractor detail with gst status approve
+// router.get("/contractor/detail/decline/gst", checkAdminRole, AdminContractorDetail.AdminGetContractorGstDecliningController ); // admin get contractor detail with gst status Decline
+// router.get("/contractor/detail/review/gst", checkAdminRole, AdminContractorDetail.AdminGetContractorGstReviewingController ); // admin get contractor detail with gst status Reviewing
+// router.get("/contractor/job/detail/:contractorId", checkAdminRole, AdminContractorDetail.AdminGetSingleContractorJonDetailController ); // admin get single contractor job detail
+// router.post("/contractor/account/status", Validations.ContractorChangeStatusParams, checkAdminRole, AdminContractorDetail.AdminChangeContractorAccountStatusController); // admin change contractor account status
 //done
 router.get("/customer/detail", adminRoleChecker_middleware_1.checkAdminRole, adminGetCustomerDetail_contractor_1.AdminCustomerController.AdminGetCustomerDetailController); // admin get customer detail
 router.get("/customer/detail/:customerId", adminRoleChecker_middleware_1.checkAdminRole, adminGetCustomerDetail_contractor_1.AdminCustomerController.AdminGetSingleCustomerDetailController); // admin get single customer detail
@@ -65,7 +64,7 @@ router.get("/skills", adminRoleChecker_middleware_1.checkAdminRole, admin_skill_
 // router.get("/total_job", checkAdminRole, AdminJobController.AdminGetTotalJobsrController); 
 // router.get("/app_detail", checkAdminRole, AdminGetAppDetailController ); 
 // router.get("/invoice/detail/:jobId", checkAdminRole, AdminJobController.AdminGetInvoiceSingleJobsrDetailController ); 
-// jobsairon
+// jobs aaron
 router.get("/jobs", adminRoleChecker_middleware_1.checkAdminRole, admin_job_controller_1.AdminJobController.getJobs);
 router.get("/jobs/stats", adminRoleChecker_middleware_1.checkAdminRole, admin_job_controller_1.AdminJobController.getJobStats);
 router.get("/jobs/:jobId", adminRoleChecker_middleware_1.checkAdminRole, admin_job_controller_1.AdminJobController.getSingleJob);

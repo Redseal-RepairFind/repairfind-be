@@ -6,14 +6,13 @@ import { JobModel } from "../../../database/common/job.model";
 import CustomerRegModel from "../../../database/customer/models/customer.model";
 import { sendEmail } from "../../../utils/send_email_utility";
 import { htmlAdminRquestGstStatuChangeTemplate } from "../../../templates/admin/adminRequestGstStatusTemplate";
-import { OTP_EXPIRY_TIME, generateOTP } from "../../../utils/otpGenerator";
 import { GST_STATUS} from "../../../database/contractor/interface/contractor.interface";
 import { InvoiceModel } from "../../../database/common/invoices.shema";
 import { ContractorProfileModel } from "../../../database/contractor/models/contractor_profile.model";
 
 
 //get contractor detail /////////////
-export const AdminGetContractorDetailController = async (
+export const getContractors = async (
     req: any,
     res: Response,
   ) => {
@@ -34,51 +33,9 @@ export const AdminGetContractorDetailController = async (
       const admin =  req.admin;
       const adminId = admin.id
 
-      page = page || 1;
-      limit = limit || 50;
-
-      const skip = (page - 1) * limit;
-
-      const contractors = await ContractorModel.find()
-      .select('-password')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit).populate('profile');
-
-      const totalContractor = await ContractorModel.countDocuments()
-  
-      const artisans = [];
       
-      for (let i = 0; i < contractors.length; i++) {
-        const contractor = contractors[i];
-        const job = await JobModel.find({contractor: contractor._id}).sort({ createdAt: -1 }).populate("customer");
-        const profile = await ContractorProfileModel.find({contractor: contractor._id})
-
-        // let rating = null;
-        
-        // const contractorRating = await ContractorRatingModel.findOne({contractorId: contractor._id})
-        // if (contractorRating) {
-        //   rating = contractorRating
-        // }
-
-        // let jobRequested = []
-
-        const objTwo = {
-            contractor: contractor,
-            job: job,
-            profile: profile
-        };
-
-        artisans.push(objTwo)
-      }
   
-      res.json({ 
-        currentPage: page,
-        totalContractor,
-        totalPages: Math.ceil(totalContractor / limit),
-        contractors: artisans
-        
-      });
+      return res.json({success: true, message: "Contractors retrieved", data: ""});
       
     } catch (err: any) {
       // signup error
@@ -551,7 +508,7 @@ export const AdminChangeContractorAccountStatusController = async (
 
 
 export const AdminContractorDetail = {
-  AdminGetContractorDetailController,
+  getContractors,
   AdminGetSingleContractorDetailController,
   AdminChangeContractorGstStatusController,
   AdminGetContractorGstPendingController,
