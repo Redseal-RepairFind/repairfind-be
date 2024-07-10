@@ -1,6 +1,4 @@
 "use strict";
-// import { Expo, ExpoPushMessage, ExpoPushTicket, ExpoPushReceipt, ExpoPushSuccessTicket } from 'expo-server-sdk';
-// import { Logger } from '../logger';
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
         for (var s, i = 1, n = arguments.length; i < n; i++) {
@@ -50,58 +48,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendPushNotifications = void 0;
-// const expo = new Expo({ accessToken: process.env.EXPO_ACCESS_TOKEN });
-// export async function sendPushNotifications(pushTokens: string[], message: any): Promise<void> {
-//   // Prepare push notification messages
-//   const messages: ExpoPushMessage[] = pushTokens
-//     .filter(token => Expo.isExpoPushToken(token)) // Filter out invalid tokens
-//     .map(token => ({
-//       to: token,
-//       sound: 'default',
-//       ...message,
-//       _displayInForeground: true // Ensures the notification is displayed in foreground
-//     }));
-//   // Split messages into chunks to send in batches
-//   const chunks = expo.chunkPushNotifications(messages);
-//   const tickets: ExpoPushTicket[] = [];
-//   // Send each chunk of messages
-//   for (const chunk of chunks) {
-//     try {
-//       const ticketChunk = await expo.sendPushNotificationsAsync(chunk);
-//       tickets.push(...ticketChunk);
-//     } catch (error) {
-//       Logger.error(error);
-//     }
-//   }
-//   // Extract receipt IDs for error notifications
-//   const receiptIds: string[] = tickets
-//     .filter(ticket => ticket.status !== 'error')
-//     //@ts-ignore
-//     .map(ticket => (ticket as ExpoPushReceipt).id); // Access id property for error receipts
-//   // Split receipt IDs into chunks to retrieve receipt information
-//   const receiptIdChunks = expo.chunkPushNotificationReceiptIds(receiptIds);
-//   // Retrieve receipt information for each receipt ID chunk
-//   for (const chunk of receiptIdChunks) {
-//     try {
-//       const receipts = await expo.getPushNotificationReceiptsAsync(chunk);
-//       // Process receipt information
-//       for (const receiptId in receipts) {
-//         const { status, details }: ExpoPushReceipt = receipts[receiptId];
-//         if (status == 'error') {
-//           Logger.error(`There was an error sending a notification: ${message}`);
-//           if (details && details.error) {
-//             Logger.error(`The error code is ${details.error}`);
-//           }
-//         }else{
-//           Logger.info(`Nofication sent ${status}`);
-//         }
-//       }
-//     } catch (error) {
-//       Logger.error(error);
-//     }
-//   }
-// }
-// @ts-nocheck
 var expo_server_sdk_1 = require("expo-server-sdk");
 var logger_1 = require("../logger");
 var expo = new expo_server_sdk_1.Expo({ accessToken: process.env.EXPO_ACCESS_TOKEN });
@@ -132,14 +78,15 @@ function sendPushNotifications(pushTokens, message) {
                     return [3 /*break*/, 5];
                 case 4:
                     error_1 = _c.sent();
-                    logger_1.Logger.error('Error sending push notifications', error_1);
+                    logger_1.Logger.error(error_1);
                     return [3 /*break*/, 5];
                 case 5:
                     _i++;
                     return [3 /*break*/, 1];
                 case 6:
                     receiptIds = tickets
-                        .filter(function (ticket) { return ticket.status === 'ok'; })
+                        .filter(function (ticket) { return ticket.status !== 'error'; })
+                        //@ts-ignore
                         .map(function (ticket) { return ticket.id; });
                     receiptIdChunks = expo.chunkPushNotificationReceiptIds(receiptIds);
                     _a = 0, receiptIdChunks_1 = receiptIdChunks;
@@ -156,20 +103,20 @@ function sendPushNotifications(pushTokens, message) {
                     // Process receipt information
                     for (receiptId in receipts) {
                         _b = receipts[receiptId], status_1 = _b.status, details = _b.details;
-                        if (status_1 === 'error') {
+                        if (status_1 == 'error') {
                             logger_1.Logger.error("There was an error sending a notification: ".concat(message));
                             if (details && details.error) {
                                 logger_1.Logger.error("The error code is ".concat(details.error));
                             }
                         }
                         else {
-                            logger_1.Logger.info("Notification sent successfully: ".concat(status_1));
+                            logger_1.Logger.info("Nofication sent ".concat(status_1));
                         }
                     }
                     return [3 /*break*/, 11];
                 case 10:
                     error_2 = _c.sent();
-                    logger_1.Logger.error('Error retrieving push notification receipts', error_2);
+                    logger_1.Logger.error(error_2);
                     return [3 /*break*/, 11];
                 case 11:
                     _a++;
@@ -180,3 +127,56 @@ function sendPushNotifications(pushTokens, message) {
     });
 }
 exports.sendPushNotifications = sendPushNotifications;
+// @ts-nocheck
+// import { Expo, ExpoPushMessage, ExpoPushTicket, ExpoPushReceipt } from 'expo-server-sdk';
+// import { Logger } from '../logger';
+// const expo = new Expo({ accessToken: process.env.EXPO_ACCESS_TOKEN });
+// export async function sendPushNotifications(pushTokens: string[], message: any): Promise<void> {
+//   // Prepare push notification messages
+//   const messages: ExpoPushMessage[] = pushTokens
+//     .filter(token => Expo.isExpoPushToken(token)) // Filter out invalid tokens
+//     .map(token => ({
+//       to: token,
+//       sound: 'default',
+//       ...message,
+//       _displayInForeground: true // Ensures the notification is displayed in foreground
+//     }));
+//   // Split messages into chunks to send in batches
+//   const chunks = expo.chunkPushNotifications(messages);
+//   const tickets: ExpoPushTicket[] = [];
+//   // Send each chunk of messages
+//   for (const chunk of chunks) {
+//     try {
+//       const ticketChunk = await expo.sendPushNotificationsAsync(chunk);
+//       tickets.push(...ticketChunk);
+//     } catch (error) {
+//       Logger.error('Error sending push notifications', error);
+//     }
+//   }
+//   // Extract receipt IDs for successful notifications only
+//   const receiptIds: string[] = tickets
+//     .filter(ticket => ticket.status === 'ok')
+//     .map(ticket => ticket.id);
+//   // Split receipt IDs into chunks to retrieve receipt information
+//   const receiptIdChunks = expo.chunkPushNotificationReceiptIds(receiptIds);
+//   // Retrieve receipt information for each receipt ID chunk
+//   for (const chunk of receiptIdChunks) {
+//     try {
+//       const receipts = await expo.getPushNotificationReceiptsAsync(chunk);
+//       // Process receipt information
+//       for (const receiptId in receipts) {
+//         const { status, details } = receipts[receiptId];
+//         if (status === 'error') {
+//           Logger.error(`There was an error sending a notification: ${message}`);
+//           if (details && details.error) {
+//             Logger.error(`The error code is ${details.error}`);
+//           }
+//         } else {
+//           Logger.info(`Notification sent successfully: ${status}`);
+//         }
+//       }
+//     } catch (error) {
+//       Logger.error('Error retrieving push notification receipts', error);
+//     }
+//   }
+// }
