@@ -7,6 +7,7 @@ import CustomerDeviceModel from '../../database/customer/models/customer_devices
 import { sendPushNotifications } from '../expo';
 import { SocketService } from '../socket';
 import { ObjectId } from 'mongoose';
+import { url } from 'inspector';
 
 
 
@@ -72,10 +73,15 @@ export class NotificationService  {
             sendPushNotifications( deviceTokens , {
                 title: params.title, 
                 type: params.type, 
-                icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
-                body: params.message,
+                // content_available: true,
+                // mutable_content: true,
+                // icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
+                // image: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
+                body:   params.message,
+                attachments: [{url: "'https://cdn-icons-png.flaticon.com/512/1077/1077114.png'"}],
                 data: { 
-                    ...params.payload
+                    ...params.payload,
+                    // image: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png' // URL of the image
                 },
             })
 

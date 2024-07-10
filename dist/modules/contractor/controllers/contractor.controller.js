@@ -101,6 +101,8 @@ var custom_errors_1 = require("../../../utils/custom.errors");
 var job_model_1 = require("../../../database/common/job.model");
 var blacklisted_tokens_schema_1 = __importDefault(require("../../../database/common/blacklisted_tokens.schema"));
 var logger_1 = require("../../../services/logger");
+var api_feature_1 = require("../../../utils/api.feature");
+var review_model_1 = require("../../../database/common/review.model");
 var ProfileHandler = /** @class */ (function (_super) {
     __extends(ProfileHandler, _super);
     function ProfileHandler() {
@@ -1059,6 +1061,58 @@ var ProfileHandler = /** @class */ (function (_super) {
             });
         });
     };
+    ProfileHandler.prototype.myReviews = function () {
+        var _a, _b;
+        return __awaiter(this, void 0, void 0, function () {
+            var req, res, contractorId, contractor, filter, _c, data, error, error_5;
+            var _this = this;
+            return __generator(this, function (_d) {
+                switch (_d.label) {
+                    case 0:
+                        req = this.req;
+                        res = this.res;
+                        _d.label = 1;
+                    case 1:
+                        _d.trys.push([1, 6, , 7]);
+                        contractorId = req.contractor.id;
+                        return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
+                    case 2:
+                        contractor = _d.sent();
+                        // Check if the user exists
+                        if (!contractor) {
+                            return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor not found' })];
+                        }
+                        filter = { contractor: contractorId };
+                        return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(review_model_1.ReviewModel.find(filter).populate(['customer']), req.query)];
+                    case 3:
+                        _c = _d.sent(), data = _c.data, error = _c.error;
+                        if (!data) return [3 /*break*/, 5];
+                        return [4 /*yield*/, Promise.all(data.data.map(function (review) { return __awaiter(_this, void 0, void 0, function () {
+                                var _a;
+                                return __generator(this, function (_b) {
+                                    switch (_b.label) {
+                                        case 0:
+                                            _a = review;
+                                            return [4 /*yield*/, review.getHeading()];
+                                        case 1:
+                                            _a.heading = _b.sent();
+                                            return [2 /*return*/];
+                                    }
+                                });
+                            }); }))];
+                    case 4:
+                        _d.sent();
+                        _d.label = 5;
+                    case 5: return [2 /*return*/, res.json({ success: true, message: 'Contractor reviews retrieved', data: data })];
+                    case 6:
+                        error_5 = _d.sent();
+                        console.error('Error retrieving contractor devices:', error_5);
+                        return [2 /*return*/, res.status((_a = error_5.code) !== null && _a !== void 0 ? _a : 500).json({ success: false, message: (_b = error_5.message) !== null && _b !== void 0 ? _b : 'Internal Server Error' })];
+                    case 7: return [2 /*return*/];
+                }
+            });
+        });
+    };
     ProfileHandler.prototype.deleteAccount = function () {
         return __awaiter(this, void 0, void 0, function () {
             var req, res, contractor, contractorId, account, bookedAndDisputedJobs, err_12;
@@ -1234,6 +1288,12 @@ var ProfileHandler = /** @class */ (function (_super) {
         __metadata("design:paramtypes", []),
         __metadata("design:returntype", Promise)
     ], ProfileHandler.prototype, "myDevices", null);
+    __decorate([
+        (0, decorators_abstract_1.handleAsyncError)(),
+        __metadata("design:type", Function),
+        __metadata("design:paramtypes", []),
+        __metadata("design:returntype", Promise)
+    ], ProfileHandler.prototype, "myReviews", null);
     __decorate([
         (0, decorators_abstract_1.handleAsyncError)(),
         __metadata("design:type", Function),

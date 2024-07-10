@@ -113,8 +113,12 @@ var NotificationService = /** @class */ (function () {
                             (0, expo_1.sendPushNotifications)(deviceTokens, {
                                 title: params.title,
                                 type: params.type,
-                                icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
+                                // content_available: true,
+                                // mutable_content: true,
+                                // icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
+                                // image: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
                                 body: params.message,
+                                attachments: [{ url: "'https://cdn-icons-png.flaticon.com/512/1077/1077114.png'" }],
                                 data: __assign({}, params.payload),
                             });
                         }

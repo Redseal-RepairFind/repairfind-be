@@ -12,6 +12,7 @@ export async function sendPushNotifications(pushTokens: string[], message: any):
       to: token,
       sound: 'default',
       ...message,
+      _displayInForeground: true // Ensures the notification is displayed in foreground
     }));
 
   // Split messages into chunks to send in batches

@@ -20,6 +20,8 @@ import { JOB_STATUS, JobModel } from "../../../database/common/job.model";
 import BlacklistedToken from "../../../database/common/blacklisted_tokens.schema";
 import { credential } from "firebase-admin";
 import { Logger } from "../../../services/logger";
+import { applyAPIFeature } from "../../../utils/api.feature";
+import { ReviewModel } from "../../../database/common/review.model";
 
 
 class ProfileHandler extends Base {
@@ -938,6 +940,38 @@ class ProfileHandler extends Base {
 
       const devices = await ContractorDeviceModel.find({ contractor: contractorId })
       return res.json({ success: true, message: 'Contractor devices retrieved', data: devices });
+    } catch (error: any) {
+      console.error('Error retrieving contractor devices:', error);
+      return res.status(error.code ?? 500).json({ success: false, message: error.message ?? 'Internal Server Error' });
+    }
+  }
+
+  @handleAsyncError()
+  public async myReviews(): Promise<Response> {
+    let req = <any>this.req
+    let res = this.res
+    try {
+
+      const contractorId = req.contractor.id;
+
+      // Retrieve the user from the database
+      const contractor = await ContractorModel.findById(contractorId);
+
+      // Check if the user exists
+      if (!contractor) {
+        return res.status(404).json({ success: false, message: 'Contractor not found' });
+      }
+
+       let filter: any = { contractor: contractorId };
+       const { data, error } = await applyAPIFeature(ReviewModel.find(filter).populate(['customer']), req.query);
+
+       if (data) {
+           await Promise.all(data.data.map(async (review: any) => {
+               review.heading = await review.getHeading()
+           }));
+       }
+       
+      return res.json({ success: true, message: 'Contractor reviews retrieved', data: data });
     } catch (error: any) {
       console.error('Error retrieving contractor devices:', error);
       return res.status(error.code ?? 500).json({ success: false, message: error.message ?? 'Internal Server Error' });

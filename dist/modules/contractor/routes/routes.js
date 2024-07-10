@@ -81,6 +81,9 @@ router.post("/me/devices", contractorRoleCheck_middleware_1.checkContractorRole,
 router.get("/me/devices", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
     (0, contractor_controller_1.ContractorController)(req, res, next).myDevices();
 });
+router.get("/me/reviews", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
+    (0, contractor_controller_1.ContractorController)(req, res, next).myReviews();
+});
 router.post("/me/stripe-account", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
     (0, contractor_controller_1.ContractorController)(req, res, next).createStripeAccount();
 });

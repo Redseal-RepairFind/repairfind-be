@@ -103,6 +103,10 @@ router.get("/me/devices", checkContractorRole, (req: Request, res: Response, nex
     ContractorController(req, res, next).myDevices();
 });
 
+router.get("/me/reviews", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
+    ContractorController(req, res, next).myReviews();
+});
+
 router.post("/me/stripe-account", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
     ContractorController(req, res, next).createStripeAccount();
 });
