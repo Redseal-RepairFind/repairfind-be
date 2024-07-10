@@ -165,7 +165,7 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
             case 7:
                 newMessage = _e.sent();
                 events_1.JobEvent.emit('NEW_JOB_REQUEST', { jobId: newJob.id, contractorId: contractorId, customerId: customerId, conversationId: conversation.id });
-                html = (0, jobRequestTemplate_1.htmlJobRequestTemplate)(customer.firstName, customer.firstName, "".concat(date, " ").concat(time), description);
+                html = (0, jobRequestTemplate_1.htmlJobRequestTemplate)(customer.firstName, customer.firstName, "".concat(date), description);
                 services_1.EmailService.send(contractor.email, 'Job request from customer', html);
                 res.status(201).json({ success: true, message: 'Job request submitted successfully', data: newJob });
                 return [3 /*break*/, 9];

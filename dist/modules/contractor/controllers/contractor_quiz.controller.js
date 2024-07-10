@@ -207,7 +207,7 @@ var SubmitQuiz = function (req, res) { return __awaiter(void 0, void 0, void 0, 
                     { item: "Communication", rating: 5 },
                     { item: "Timeliness", rating: 5 }
                 ];
-                review = 'Repairfind basic training';
+                review = 'Contractor has completed Repairfind basic training';
                 return [4 /*yield*/, review_model_1.ReviewModel.findOne({ contractor: contractorId, type: review_model_1.REVIEW_TYPE.TRAINING_COMPLETION })];
             case 7:
                 existingReview = _b.sent();

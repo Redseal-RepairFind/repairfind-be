@@ -288,6 +288,7 @@ var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0
                 return [4 /*yield*/, stripe_1.StripeService.payment.chargeCustomer(paymentMethod.customer, paymentMethod.id, payload)];
             case 6:
                 stripePayment = _b.sent();
+                //TODO: Check status of stripePayment before changing to booked here
                 job.status = job_model_1.JOB_STATUS.BOOKED;
                 return [4 /*yield*/, job.save()];
             case 7:
