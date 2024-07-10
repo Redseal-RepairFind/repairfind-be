@@ -56,7 +56,7 @@ var events_1 = require("../../../events");
 var mongoose_1 = __importDefault(require("mongoose"));
 var contractor_profile_model_1 = require("../../../database/contractor/models/contractor_profile.model");
 var createJobRequest = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, contractorId, category, description, location_1, date, _b, expiresIn, emergency, media, voiceDescription, time, customerId, customer, contractor, contractorProfile, dateParts, formattedDate, startOfToday, existingJobRequest, dateTimeString, jobTime, currentDate, expiryDate, newJob, conversationMembers, conversation, newMessage, html, error_1;
+    var errors, _a, contractorId, category, description, location_1, date, _b, expiresIn, emergency, media, voiceDescription, time, customerId, customer, contractor, contractorProfile, dateParts, formattedDate, startOfToday, existingJobRequest, dateTimeString, jobTime, jobDate, currentDate, expiryDate, newJob, conversationMembers, conversation, newMessage, html, error_1;
     var _c, _d;
     return __generator(this, function (_e) {
         switch (_e.label) {
@@ -113,21 +113,25 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 if (existingJobRequest) {
                     // return res.status(400).json({ success: false, message: 'A similar job request has already been sent to this contractor within the last 24 hours' });
                 }
-                dateTimeString = "".concat(new Date(date).toISOString().split('T')[0], "T").concat(time);
+                dateTimeString = "".concat(new Date(date).toISOString().split('T')[0], "T").concat('23:59:59.000Z');
                 jobTime = new Date(dateTimeString);
+                jobDate = new Date(date);
+                jobDate.setHours(23, 59, 59, 999);
+                if (time) {
+                    dateTimeString = "".concat(new Date(date).toISOString().split('T')[0], "T").concat(time); // Combine date and time
+                    jobTime = new Date(dateTimeString);
+                }
                 currentDate = new Date();
                 expiryDate = new Date(currentDate);
                 expiryDate.setDate(currentDate.getDate() + Number(expiresIn));
-                // make the time to be end of the day
-                date.setHours(23, 59, 59, 999);
                 newJob = new job_model_1.JobModel({
                     customer: customer.id,
                     contractor: contractorId,
                     description: description,
                     location: location_1,
-                    date: date,
+                    date: jobDate,
+                    time: time ? jobTime : jobDate,
                     type: job_model_1.JobType.REQUEST,
-                    time: time ? jobTime : date,
                     expiresIn: Number(expiresIn),
                     expiryDate: expiryDate,
                     emergency: emergency || false,
@@ -180,7 +184,7 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
 }); };
 exports.createJobRequest = createJobRequest;
 var createJobListing = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, category, description, location_2, date, _b, expiresIn, emergency, media, voiceDescription, time, _c, contractorType, customerId, customer, dateParts, formattedDate, startOfToday, existingJobRequest, dateTimeString, jobTime, dateTimeString_1, jobTime_1, currentDate, expiryDate, newJob, error_2;
+    var errors, _a, category, description, location_2, date, _b, expiresIn, emergency, media, voiceDescription, time, _c, contractorType, customerId, customer, dateParts, formattedDate, startOfToday, existingJobRequest, dateTimeString, jobTime, jobDate, currentDate, expiryDate, newJob, error_2;
     return __generator(this, function (_d) {
         switch (_d.label) {
             case 0:
@@ -218,11 +222,13 @@ var createJobListing = function (req, res, next) { return __awaiter(void 0, void
                 if (existingJobRequest) {
                     // return res.status(400).json({ success: false, message: 'A similar job has already been created within the last 24 hours' });
                 }
-                dateTimeString = "".concat(new Date(date).toISOString().split('T')[0], "T").concat('00:00:00.000Z');
+                dateTimeString = "".concat(new Date(date).toISOString().split('T')[0], "T").concat('23:59:59.000Z');
                 jobTime = new Date(dateTimeString);
+                jobDate = new Date(date);
+                jobDate.setHours(23, 59, 59, 999);
                 if (time) {
-                    dateTimeString_1 = "".concat(new Date(date).toISOString().split('T')[0], "T").concat(time);
-                    jobTime_1 = new Date(dateTimeString_1);
+                    dateTimeString = "".concat(new Date(date).toISOString().split('T')[0], "T").concat(time); // Combine date and time
+                    jobTime = new Date(dateTimeString);
                 }
                 currentDate = new Date();
                 expiryDate = new Date(currentDate);
@@ -235,8 +241,8 @@ var createJobListing = function (req, res, next) { return __awaiter(void 0, void
                     description: description,
                     category: category,
                     location: location_2,
-                    date: date,
-                    time: jobTime,
+                    date: jobDate,
+                    time: time ? jobTime : jobDate,
                     expiresIn: Number(expiresIn),
                     expiryDate: expiryDate,
                     emergency: emergency || false,

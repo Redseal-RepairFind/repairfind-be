@@ -85,8 +85,17 @@ export const createJobRequest = async (
             // return res.status(400).json({ success: false, message: 'A similar job request has already been sent to this contractor within the last 24 hours' });
         }
 
-        const dateTimeString = `${new Date(date).toISOString().split('T')[0]}T${time}`; // Combine date and time
-        const jobTime = new Date(dateTimeString);
+        let dateTimeString = `${new Date(date).toISOString().split('T')[0]}T${'23:59:59.000Z'}`; // Combine date and time
+        let jobTime = new Date(dateTimeString);
+        const jobDate = new Date(date)
+        jobDate.setHours(23, 59, 59, 999);
+
+        if (time) {
+            dateTimeString = `${new Date(date).toISOString().split('T')[0]}T${time}`; // Combine date and time
+            jobTime = new Date(dateTimeString);
+        }
+
+
 
           // Calculate the expiry date
           const currentDate = new Date();
@@ -94,18 +103,15 @@ export const createJobRequest = async (
           expiryDate.setDate(currentDate.getDate() + Number(expiresIn));
 
 
-        // make the time to be end of the day
-        date.setHours(23, 59, 59, 999);
-
         // Create a new job document
         const newJob: IJob = new JobModel({
             customer: customer.id,
             contractor: contractorId,
             description,
             location,
-            date,
+            date: jobDate,
+            time: time? jobTime : jobDate,
             type: JobType.REQUEST,
-            time: time? jobTime : date,
             expiresIn:  Number(expiresIn),
             expiryDate,
             emergency: emergency || false,
@@ -214,12 +220,14 @@ export const createJobListing = async (
             // return res.status(400).json({ success: false, message: 'A similar job has already been created within the last 24 hours' });
         }
 
-        let dateTimeString = `${new Date(date).toISOString().split('T')[0]}T${'00:00:00.000Z'}`; // Combine date and time
+        let dateTimeString = `${new Date(date).toISOString().split('T')[0]}T${'23:59:59.000Z'}`; // Combine date and time
         let jobTime = new Date(dateTimeString);
+        const jobDate = new Date(date)
+        jobDate.setHours(23, 59, 59, 999);
 
         if (time) {
-            let dateTimeString = `${new Date(date).toISOString().split('T')[0]}T${time}`; // Combine date and time
-            let jobTime = new Date(dateTimeString);
+            dateTimeString = `${new Date(date).toISOString().split('T')[0]}T${time}`; // Combine date and time
+            jobTime = new Date(dateTimeString);
         }
 
 
@@ -238,8 +246,8 @@ export const createJobListing = async (
             description,
             category,
             location,
-            date,
-            time: jobTime,
+            date: jobDate,
+            time: time? jobTime : jobDate,
             expiresIn: Number(expiresIn),
             expiryDate: expiryDate,
             emergency: emergency || false,
