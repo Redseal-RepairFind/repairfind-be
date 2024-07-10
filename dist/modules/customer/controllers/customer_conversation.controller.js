@@ -196,7 +196,7 @@ var sendMessage = function (req, res, next) { return __awaiter(void 0, void 0, v
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 5, , 6]);
+                _b.trys.push([0, 6, , 7]);
                 conversationId = req.params.conversationId;
                 _a = req.body, message = _a.message, media = _a.media, type = _a.type;
                 customerId_3 = req.customer.id;
@@ -226,7 +226,7 @@ var sendMessage = function (req, res, next) { return __awaiter(void 0, void 0, v
                     })];
             case 2:
                 newMessage = _b.sent();
-                if (!newMessage) return [3 /*break*/, 4];
+                if (!newMessage) return [3 /*break*/, 5];
                 return [4 /*yield*/, conversations_schema_1.ConversationModel.updateOne({ _id: conversationId }, // Filter criteria to find the conversation document
                     {
                         $set: {
@@ -236,15 +236,20 @@ var sendMessage = function (req, res, next) { return __awaiter(void 0, void 0, v
                     })];
             case 3:
                 _b.sent();
-                _b.label = 4;
+                // push sender to readBy array
+                newMessage.readBy.push(customerId_3);
+                return [4 /*yield*/, newMessage.save()];
             case 4:
+                _b.sent();
+                _b.label = 5;
+            case 5:
                 events_1.ConversationEvent.emit('NEW_MESSAGE', { message: newMessage });
                 res.status(201).json({ success: true, message: 'Message sent successfully', data: newMessage });
-                return [3 /*break*/, 6];
-            case 5:
+                return [3 /*break*/, 7];
+            case 6:
                 error_4 = _b.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('Error sending message', error_4))];
-            case 6: return [2 /*return*/];
+            case 7: return [2 /*return*/];
         }
     });
 }); };

@@ -158,6 +158,10 @@ export const sendMessage = async (req: any, res: Response, next: NextFunction) =
                     }
                 }
             );
+
+            // push sender to readBy array
+            newMessage.readBy.push(customerId)
+            await  newMessage.save()
         }
 
         ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
