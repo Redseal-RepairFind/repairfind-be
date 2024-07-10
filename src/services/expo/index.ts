@@ -11,6 +11,7 @@ export async function sendPushNotifications(pushTokens: string[], message: any):
     .map(token => ({
       to: token,
       sound: 'default',
+      ttl: 10,  //2419200 secs (4 weeks)
       ...message,
       // _displayInForeground: true // Ensures the notification is displayed in foreground
     }));
