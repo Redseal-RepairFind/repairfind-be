@@ -58,17 +58,23 @@ export const createJobRequest = async (
         }
 
 
-        const dateParts = date.split('-').map( (part: any) => part.replace(/^0+/, ''));
+        // const dateParts = date.split('-').map( (part: any) => part.replace(/^0+/, ''));
+        // const formattedDate = dateParts.join('-');
+
+        const dateParts = date.split('-').map((part: any) => part.padStart(2, '0'));
         const formattedDate = dateParts.join('-');
+
+        let dateTimeString = `${new Date(formattedDate).toISOString().split('T')[0]}T${'23:59:59.000Z'}`; // Combine date and time
+        let jobDate = new Date(dateTimeString);
 
 
         // Get the end of the current day (11:59:59 PM)
         const startOfToday = startOfDay(new Date());
-        if (!isValid(new Date(formattedDate)) ) {
+        if (!isValid(new Date(jobDate)) ) {
             return res.status(400).json({ success: false, message: 'Invalid date format' });
         }
 
-        if ( (!isFuture(new Date(formattedDate)) && new Date(formattedDate) < startOfToday)) {
+        if ( (!isFuture(new Date(jobDate)) && new Date(jobDate) < startOfToday)) {
             return res.status(400).json({ success: false, message: 'Selected Job Date is in the past' });
         }
 
@@ -77,7 +83,7 @@ export const createJobRequest = async (
             customer: customerId,
             contractor: contractorId,
             status: JOB_STATUS.PENDING,
-            date: { $eq: new Date(formattedDate) }, // consider all past jobs
+            date: { $eq: new Date(jobDate) }, // consider all past jobs
             createdAt: { $gte: addHours(new Date(), -24) }, // Check for job requests within the last 72 hours
         });
 
@@ -85,15 +91,8 @@ export const createJobRequest = async (
             // return res.status(400).json({ success: false, message: 'A similar job request has already been sent to this contractor within the last 24 hours' });
         }
 
-        let dateTimeString = `${new Date(date).toISOString().split('T')[0]}T${'23:59:59.000Z'}`; // Combine date and time
-        let jobTime = new Date(dateTimeString);
-        const jobDate = new Date(date)
-        jobDate.setHours(23, 59, 59, 999);
-
-        if (time) {
-            dateTimeString = `${new Date(date).toISOString().split('T')[0]}T${time}`; // Combine date and time
-            jobTime = new Date(dateTimeString);
-        }
+       
+       
 
 
 
@@ -110,7 +109,7 @@ export const createJobRequest = async (
             description,
             location,
             date: jobDate,
-            time: time? jobTime : jobDate,
+            time: jobDate,
             type: JobType.REQUEST,
             expiresIn:  Number(expiresIn),
             expiryDate,
@@ -193,17 +192,26 @@ export const createJobListing = async (
             return res.status(400).json({ success: false, message: "Customer not found" })
         }
 
-        const dateParts = date.split('-').map( (part: any) => part.replace(/^0+/, ''));
+        // remove 0 padding
+        // const dateParts = date.split('-').map( (part: any) => part.replace(/^0+/, ''));
+        // const formattedDate = dateParts.join('-');
+
+        // add 0  padding
+        const dateParts = date.split('-').map((part: any) => part.padStart(2, '0'));
         const formattedDate = dateParts.join('-');
+
+        let dateTimeString = `${new Date(formattedDate).toISOString().split('T')[0]}T${'23:59:59.000Z'}`; // Combine date and time
+        let jobDate = new Date(dateTimeString);
+
 
 
         // Get the end of the current day (11:59:59 PM)
         const startOfToday = startOfDay(new Date());
-        if (!isValid(new Date(formattedDate)) ) {
+        if (!isValid(new Date(jobDate)) ) {
             return res.status(400).json({ success: false, message: 'Invalid date format' });
         }
 
-        if ( (!isFuture(new Date(formattedDate)) && new Date(formattedDate) < startOfToday)) {
+        if ( (!isFuture(new Date(jobDate)) && new Date(jobDate) < startOfToday)) {
             return res.status(400).json({ success: false, message: 'Selected Job Date is in the past' });
         }
 
@@ -212,7 +220,7 @@ export const createJobListing = async (
             customer: customerId,
             status: JOB_STATUS.PENDING,
             category: category,
-            date: { $eq: new Date(formattedDate) }, // consider all past jobs
+            date: { $eq: new Date(jobDate) }, // consider all past jobs
             createdAt: { $gte: addHours(new Date(), -24) }, // Check for job requests within the last 72 hours
         });
 
@@ -220,15 +228,7 @@ export const createJobListing = async (
             // return res.status(400).json({ success: false, message: 'A similar job has already been created within the last 24 hours' });
         }
 
-        let dateTimeString = `${new Date(date).toISOString().split('T')[0]}T${'23:59:59.000Z'}`; // Combine date and time
-        let jobTime = new Date(dateTimeString);
-        const jobDate = new Date(date)
-        jobDate.setHours(23, 59, 59, 999);
 
-        if (time) {
-            dateTimeString = `${new Date(date).toISOString().split('T')[0]}T${time}`; // Combine date and time
-            jobTime = new Date(dateTimeString);
-        }
 
 
         // Calculate the expiry date
@@ -236,8 +236,6 @@ export const createJobListing = async (
         const expiryDate = new Date(currentDate);
         expiryDate.setDate(currentDate.getDate() + Number(expiresIn));
 
-        // make the time to be end of the day
-        date.setHours(23, 59, 59, 999);
 
         // Create a new job document
         const newJob: IJob = new JobModel({
@@ -247,7 +245,7 @@ export const createJobListing = async (
             category,
             location,
             date: jobDate,
-            time: time? jobTime : jobDate,
+            time: jobDate,
             expiresIn: Number(expiresIn),
             expiryDate: expiryDate,
             emergency: emergency || false,
