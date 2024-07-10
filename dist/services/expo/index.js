@@ -59,8 +59,7 @@ function sendPushNotifications(pushTokens, message) {
                 case 0:
                     messages = pushTokens
                         .filter(function (token) { return expo_server_sdk_1.Expo.isExpoPushToken(token); }) // Filter out invalid tokens
-                        .map(function (token) { return (__assign(__assign({ to: token, sound: 'default' }, message), { _displayInForeground: true // Ensures the notification is displayed in foreground
-                     })); });
+                        .map(function (token) { return (__assign({ to: token, sound: 'default' }, message)); });
                     chunks = expo.chunkPushNotifications(messages);
                     tickets = [];
                     _i = 0, chunks_1 = chunks;
