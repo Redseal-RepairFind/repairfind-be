@@ -118,6 +118,8 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 currentDate = new Date();
                 expiryDate = new Date(currentDate);
                 expiryDate.setDate(currentDate.getDate() + Number(expiresIn));
+                // make the time to be end of the day
+                date.setHours(23, 59, 59, 999);
                 newJob = new job_model_1.JobModel({
                     customer: customer.id,
                     contractor: contractorId,
@@ -225,6 +227,8 @@ var createJobListing = function (req, res, next) { return __awaiter(void 0, void
                 currentDate = new Date();
                 expiryDate = new Date(currentDate);
                 expiryDate.setDate(currentDate.getDate() + Number(expiresIn));
+                // make the time to be end of the day
+                date.setHours(23, 59, 59, 999);
                 newJob = new job_model_1.JobModel({
                     customer: customer.id,
                     // contractorType,
