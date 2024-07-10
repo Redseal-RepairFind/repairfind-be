@@ -93,6 +93,10 @@ export const createJobRequest = async (
           const expiryDate = new Date(currentDate);
           expiryDate.setDate(currentDate.getDate() + Number(expiresIn));
 
+
+        // make the time to be end of the day
+        date.setHours(23, 59, 59, 999);
+
         // Create a new job document
         const newJob: IJob = new JobModel({
             customer: customer.id,
@@ -223,6 +227,9 @@ export const createJobListing = async (
         const currentDate = new Date();
         const expiryDate = new Date(currentDate);
         expiryDate.setDate(currentDate.getDate() + Number(expiresIn));
+
+        // make the time to be end of the day
+        date.setHours(23, 59, 59, 999);
 
         // Create a new job document
         const newJob: IJob = new JobModel({
