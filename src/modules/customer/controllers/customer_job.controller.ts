@@ -82,7 +82,7 @@ export const createJobRequest = async (
         });
 
         if (existingJobRequest) {
-            return res.status(400).json({ success: false, message: 'A similar job request has already been sent to this contractor within the last 24 hours' });
+            // return res.status(400).json({ success: false, message: 'A similar job request has already been sent to this contractor within the last 24 hours' });
         }
 
         const dateTimeString = `${new Date(date).toISOString().split('T')[0]}T${time}`; // Combine date and time
@@ -149,7 +149,7 @@ export const createJobRequest = async (
 
 
         JobEvent.emit('NEW_JOB_REQUEST', { jobId: newJob.id, contractorId, customerId, conversationId: conversation.id })
-        const html = htmlJobRequestTemplate(customer.firstName, customer.firstName, `${date} ${time}`, description)
+        const html = htmlJobRequestTemplate(customer.firstName, customer.firstName, `${date}`, description)
         EmailService.send(contractor.email, 'Job request from customer', html)
 
 
@@ -207,7 +207,7 @@ export const createJobListing = async (
         });
 
         if (existingJobRequest) {
-            return res.status(400).json({ success: false, message: 'A similar job has already been created within the last 24 hours' });
+            // return res.status(400).json({ success: false, message: 'A similar job has already been created within the last 24 hours' });
         }
 
         let dateTimeString = `${new Date(date).toISOString().split('T')[0]}T${'00:00:00.000Z'}`; // Combine date and time

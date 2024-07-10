@@ -71,7 +71,7 @@ ReviewSchema.methods.getHeading = async function() {
     
     return {
         name: "Repairfind",
-        image: "https://ipalas3bucket.s3.us-east-2.amazonaws.com/avatar.png"
+        image: "https://repairfindtwo.s3.us-east-2.amazonaws.com/repairfind-logo.png" 
     };
 };
 

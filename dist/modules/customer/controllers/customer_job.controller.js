@@ -111,7 +111,7 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
             case 4:
                 existingJobRequest = _e.sent();
                 if (existingJobRequest) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'A similar job request has already been sent to this contractor within the last 24 hours' })];
+                    // return res.status(400).json({ success: false, message: 'A similar job request has already been sent to this contractor within the last 24 hours' });
                 }
                 dateTimeString = "".concat(new Date(date).toISOString().split('T')[0], "T").concat(time);
                 jobTime = new Date(dateTimeString);
@@ -214,7 +214,7 @@ var createJobListing = function (req, res, next) { return __awaiter(void 0, void
             case 2:
                 existingJobRequest = _d.sent();
                 if (existingJobRequest) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'A similar job has already been created within the last 24 hours' })];
+                    // return res.status(400).json({ success: false, message: 'A similar job has already been created within the last 24 hours' });
                 }
                 dateTimeString = "".concat(new Date(date).toISOString().split('T')[0], "T").concat('00:00:00.000Z');
                 jobTime = new Date(dateTimeString);

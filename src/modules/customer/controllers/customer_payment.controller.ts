@@ -209,7 +209,7 @@ export const makeJobPayment = async (req: any, res: Response, next: NextFunction
         const payload = prepareStripePayload({paymentMethodId: paymentMethod.id, customer, contractor, charges, jobId, metadata, manualCapture:false});
 
         const stripePayment = await StripeService.payment.chargeCustomer(paymentMethod.customer, paymentMethod.id, payload);
-
+         //TODO: Check status of stripePayment before changing to booked here
         job.status = JOB_STATUS.BOOKED;
         await job.save();
 
