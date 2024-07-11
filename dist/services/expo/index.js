@@ -105,7 +105,7 @@ function sendPushNotifications(pushTokens, message) {
                         if (status_1 == 'error') {
                             logger_1.Logger.error("There was an error sending a notification: ".concat(message));
                             if (details && details.error) {
-                                logger_1.Logger.error("The error code is ".concat(details.error));
+                                logger_1.Logger.error("The Nofication error code is ".concat(details.error));
                             }
                         }
                         else {

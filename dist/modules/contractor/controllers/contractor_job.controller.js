@@ -235,8 +235,8 @@ var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void
                         ]
                     }, {
                         members: conversationMembers,
-                        lastMessage: 'I have accepted your Job request', // Set the last message to the job description
-                        lastMessageAt: new Date() // Set the last message timestamp to now
+                        // lastMessage: 'I have accepted your Job request', // Set the last message to the job description
+                        // lastMessageAt: new Date() // Set the last message timestamp to now
                     }, { new: true, upsert: true })];
             case 9:
                 conversation = _c.sent();
@@ -244,8 +244,10 @@ var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void
                     conversation: conversation === null || conversation === void 0 ? void 0 : conversation._id,
                     sender: contractorId,
                     receiver: job.customer,
-                    message: "Contractor has accepted this job request",
+                    message: "Job request accepted",
                     messageType: messages_schema_1.MessageType.ALERT,
+                    entity: job.id,
+                    entityType: 'jobs'
                 });
                 return [4 /*yield*/, message.save()];
             case 10:
@@ -321,8 +323,10 @@ var rejectJobRequest = function (req, res) { return __awaiter(void 0, void 0, vo
                     conversation: conversation === null || conversation === void 0 ? void 0 : conversation._id,
                     sender: contractorId,
                     receiver: job.customer,
-                    message: "Contractor has rejected this job request",
+                    message: "Job request rejected",
                     messageType: messages_schema_1.MessageType.ALERT,
+                    entity: job.id,
+                    entityType: 'jobs'
                 });
                 // Return success response
                 res.json({ success: true, message: 'Job request rejected successfully' });

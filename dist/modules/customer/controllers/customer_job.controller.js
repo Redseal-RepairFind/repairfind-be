@@ -158,9 +158,11 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 return [4 /*yield*/, messages_schema_1.MessageModel.create({
                         conversation: conversation._id,
                         sender: customerId, // Assuming the customer sends the initial message
-                        message: "New job request: ".concat(description), // You can customize the message content as needed
-                        messageType: messages_schema_1.MessageType.TEXT, // You can customize the message content as needed
-                        createdAt: new Date()
+                        message: "New job request", // You can customize the message content as needed
+                        messageType: messages_schema_1.MessageType.ALERT, // You can customize the message content as needed
+                        createdAt: new Date(),
+                        entity: newJob.id,
+                        entityType: 'jobs'
                     })];
             case 7:
                 newMessage = _e.sent();
@@ -524,17 +526,19 @@ var acceptJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
                         ]
                     }, {
                         members: conversationMembers,
-                        lastMessage: 'I have accepted your quotation for the Job', // Set the last message to the job description
-                        lastMessageAt: new Date() // Set the last message timestamp to now
+                        // lastMessage: 'I have accepted your quotation for the Job', // Set the last message to the job description
+                        // lastMessageAt: new Date() // Set the last message timestamp to now
                     }, { new: true, upsert: true })];
             case 3:
                 conversation = _c.sent();
                 return [4 /*yield*/, messages_schema_1.MessageModel.create({
                         conversation: conversation._id,
                         sender: customerId, // Assuming the customer sends the initial message
-                        message: "I have accepted your qoutation for the Job", // You can customize the message content as needed
-                        messageType: messages_schema_1.MessageType.TEXT, // You can customize the message content as needed
-                        createdAt: new Date()
+                        message: "Job estimate accepted", // You can customize the message content as needed
+                        messageType: messages_schema_1.MessageType.ALERT, // You can customize the message content as needed
+                        createdAt: new Date(),
+                        entity: quotation.id,
+                        entityType: 'quotations'
                     })];
             case 4:
                 newMessage = _c.sent();
@@ -580,11 +584,11 @@ var acceptJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
 }); };
 exports.acceptJobQuotation = acceptJobQuotation;
 var declineJobQuotation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, _a, jobId, quotationId_2, reason, quotation, job, foundQuotationIndex, contractor, customer, error_9;
+    var customerId, _a, jobId, quotationId_2, reason, quotation, job, foundQuotationIndex, conversationMembers, conversation, newMessage, contractor, customer, error_9;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 7, , 8]);
+                _b.trys.push([0, 9, , 10]);
                 customerId = req.customer.id;
                 _a = req.params, jobId = _a.jobId, quotationId_2 = _a.quotationId;
                 reason = req.body.reason;
@@ -615,22 +619,49 @@ var declineJobQuotation = function (req, res, next) { return __awaiter(void 0, v
                 return [4 /*yield*/, job.save()];
             case 4:
                 _b.sent();
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(quotation.contractor)];
+                conversationMembers = [
+                    { memberType: 'customers', member: customerId },
+                    { memberType: 'contractors', member: quotation.contractor }
+                ];
+                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
+                        $and: [
+                            { members: { $elemMatch: { member: customerId } } }, // memberType: 'customers'
+                            { members: { $elemMatch: { member: quotation.contractor } } } // memberType: 'contractors'
+                        ]
+                    }, {
+                        members: conversationMembers,
+                        // lastMessage: 'I have accepted your quotation for the Job', // Set the last message to the job description
+                        // lastMessageAt: new Date() // Set the last message timestamp to now
+                    }, { new: true, upsert: true })];
             case 5:
+                conversation = _b.sent();
+                return [4 /*yield*/, messages_schema_1.MessageModel.create({
+                        conversation: conversation._id,
+                        sender: customerId, // Assuming the customer sends the initial message
+                        message: "Job estimate declined: (".concat(reason, ")"), // You can customize the message content as needed
+                        messageType: messages_schema_1.MessageType.ALERT, // You can customize the message content as needed
+                        createdAt: new Date(),
+                        entity: quotation.id,
+                        entityType: 'quotations'
+                    })];
+            case 6:
+                newMessage = _b.sent();
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(quotation.contractor)];
+            case 7:
                 contractor = _b.sent();
                 return [4 /*yield*/, customer_model_1.default.findById(customerId)];
-            case 6:
+            case 8:
                 customer = _b.sent();
                 if (contractor && customer) {
                     //emit event - mail should be sent from event handler shaa
                     events_1.JobEvent.emit('JOB_QUOTATION_DECLINED', { jobId: jobId, contractorId: quotation.contractor, customerId: customerId, reason: reason });
                 }
                 res.json({ success: true, message: 'Job quotation declined' });
-                return [3 /*break*/, 8];
-            case 7:
+                return [3 /*break*/, 10];
+            case 9:
                 error_9 = _b.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_9))];
-            case 8: return [2 /*return*/];
+            case 10: return [2 /*return*/];
         }
     });
 }); };

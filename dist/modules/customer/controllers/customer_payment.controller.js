@@ -73,6 +73,8 @@ var stripe_1 = require("../../../services/stripe");
 var job_quotation_model_1 = require("../../../database/common/job_quotation.model");
 var events_1 = require("../../../events");
 var payment_schema_1 = require("../../../database/common/payment.schema");
+var conversations_schema_1 = require("../../../database/common/conversations.schema");
+var messages_schema_1 = require("../../../database/common/messages.schema");
 var findCustomer = function (customerId) { return __awaiter(void 0, void 0, void 0, function () {
     var customer;
     return __generator(this, function (_a) {
@@ -232,11 +234,11 @@ var prepareStripePayload = function (data) {
     return payload;
 };
 var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, quotationId, paymentMethodId_1, jobId, errors, customerId, customer, job, quotation, contractor, paymentMethod, paymentType, transactionType, charges, metadata, payload, stripePayment, err_1;
+    var _a, quotationId, paymentMethodId_1, jobId, errors, customerId, customer, job, quotation, contractor, contractorId, paymentMethod, paymentType, transactionType, charges, metadata, payload, stripePayment, conversationMembers, conversation, newMessage, err_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 8, , 9]);
+                _b.trys.push([0, 10, , 11]);
                 _a = req.body, quotationId = _a.quotationId, paymentMethodId_1 = _a.paymentMethodId;
                 jobId = req.params.jobId;
                 errors = (0, express_validator_1.validationResult)(req);
@@ -256,6 +258,7 @@ var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0
                 return [4 /*yield*/, findContractor(quotation.contractor)];
             case 4:
                 contractor = _b.sent();
+                contractorId = contractor.id;
                 paymentMethod = customer.stripePaymentMethods.find(function (method) { return method.id === paymentMethodId_1; });
                 if (!paymentMethod) {
                     paymentMethod = customer.stripePaymentMethods[0];
@@ -293,12 +296,40 @@ var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0
                 return [4 /*yield*/, job.save()];
             case 7:
                 _b.sent();
-                res.json({ success: true, message: 'Payment intent created', data: stripePayment });
-                return [3 /*break*/, 9];
+                conversationMembers = [
+                    { memberType: 'customers', member: customerId },
+                    { memberType: 'contractors', member: contractorId }
+                ];
+                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
+                        $and: [
+                            { members: { $elemMatch: { member: customerId } } }, // memberType: 'customers'
+                            { members: { $elemMatch: { member: contractorId } } } // memberType: 'contractors'
+                        ]
+                    }, {
+                        members: conversationMembers,
+                        // lastMessage: 'I have accepted your quotation for the Job', // Set the last message to the job description
+                        // lastMessageAt: new Date() // Set the last message timestamp to now
+                    }, { new: true, upsert: true })];
             case 8:
+                conversation = _b.sent();
+                return [4 /*yield*/, messages_schema_1.MessageModel.create({
+                        conversation: conversation._id,
+                        sender: customerId, // Assuming the customer sends the initial message
+                        message: "New Job Booking", // You can customize the message content as needed
+                        messageType: messages_schema_1.MessageType.ALERT, // You can customize the message content as needed
+                        createdAt: new Date(),
+                        entity: jobId,
+                        entityType: 'jobs'
+                    })];
+            case 9:
+                newMessage = _b.sent();
+                events_1.JobEvent.emit('JOB_BOOKED', { jobId: jobId, contractorId: contractorId, customerId: customerId, quotationId: quotationId, paymentType: paymentType });
+                res.json({ success: true, message: 'Payment intent created', data: stripePayment });
+                return [3 /*break*/, 11];
+            case 10:
                 err_1 = _b.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError(err_1.message, err_1))];
-            case 9: return [2 /*return*/];
+            case 11: return [2 /*return*/];
         }
     });
 }); };

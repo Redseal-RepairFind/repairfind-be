@@ -194,8 +194,8 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
 
       {
         members: conversationMembers,
-        lastMessage: 'I have accepted your Job request', // Set the last message to the job description
-        lastMessageAt: new Date() // Set the last message timestamp to now
+        // lastMessage: 'I have accepted your Job request', // Set the last message to the job description
+        // lastMessageAt: new Date() // Set the last message timestamp to now
       },
       { new: true, upsert: true });
 
@@ -205,8 +205,10 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
       conversation: conversation?._id,
       sender: contractorId,
       receiver: job.customer,
-      message: "Contractor has accepted this job request",
+      message: "Job request accepted",
       messageType: MessageType.ALERT,
+      entity: job.id,
+      entityType: 'jobs'
     });
     await message.save();
 
@@ -292,8 +294,10 @@ export const rejectJobRequest = async (req: any, res: Response) => {
       conversation: conversation?._id,
       sender: contractorId,
       receiver: job.customer,
-      message: "Contractor has rejected this job request",
+      message: "Job request rejected",
       messageType: MessageType.ALERT,
+      entity: job.id,
+      entityType: 'jobs'
     });
 
     // Return success response

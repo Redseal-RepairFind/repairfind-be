@@ -127,7 +127,15 @@ var MessageSchema = new mongoose_1.Schema({
     },
     isOwn: {
         type: Boolean
-    }
+    },
+    entity: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        refPath: 'entityType',
+        index: true,
+    },
+    entityType: {
+        type: String,
+    },
 }, { timestamps: true });
 MessageSchema.methods.getIsOwn = function (loggedInUserId) {
     return __awaiter(this, void 0, void 0, function () {
