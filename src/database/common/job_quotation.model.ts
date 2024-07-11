@@ -48,7 +48,7 @@ export interface IJobQuotation extends Document {
     changeOrderEstimate: IExtraEstimate;
     siteVisitEstimate: IExtraEstimate;
     responseTime: number;
-    calculateCharges: (type?: string) => {
+    calculateCharges: (type?: string)  => {
         subtotal: number;
         processingFee: number;
         gst: number;

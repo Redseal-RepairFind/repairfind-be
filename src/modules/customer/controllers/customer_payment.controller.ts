@@ -11,6 +11,8 @@ import { JOB_QUOTATION_TYPE, JobQuotationModel } from "../../../database/common/
 import { ObjectId } from "mongoose";
 import { JobEvent } from "../../../events";
 import { PAYMENT_TYPE } from "../../../database/common/payment.schema";
+import { ConversationModel } from "../../../database/common/conversations.schema";
+import { IMessage, MessageModel, MessageType } from "../../../database/common/messages.schema";
 
 const findCustomer = async (customerId: string) => {
     const customer = await CustomerModel.findOne({ _id: customerId });
@@ -174,6 +176,7 @@ export const makeJobPayment = async (req: any, res: Response, next: NextFunction
         const job = await findJob(jobId);
         const quotation = await findQuotation(quotationId);
         const contractor = await findContractor(quotation.contractor);
+        const contractorId = contractor.id
 
         let paymentMethod = customer.stripePaymentMethods.find((method) => method.id === paymentMethodId);
         if (!paymentMethod) {
@@ -212,6 +215,42 @@ export const makeJobPayment = async (req: any, res: Response, next: NextFunction
          //TODO: Check status of stripePayment before changing to booked here
         job.status = JOB_STATUS.BOOKED;
         await job.save();
+
+
+        const conversationMembers = [
+            { memberType: 'customers', member: customerId },
+            { memberType: 'contractors', member: contractorId }
+        ];
+        const conversation = await ConversationModel.findOneAndUpdate(
+            {
+                $and: [
+                    { members: { $elemMatch: { member: customerId } } }, // memberType: 'customers'
+                    { members: { $elemMatch: { member: contractorId } } } // memberType: 'contractors'
+                ]
+            },
+            {
+                members: conversationMembers,
+                // lastMessage: 'I have accepted your quotation for the Job', // Set the last message to the job description
+                // lastMessageAt: new Date() // Set the last message timestamp to now
+            },
+            { new: true, upsert: true });
+
+
+        // Create a message in the conversation
+        const newMessage: IMessage = await MessageModel.create({
+            conversation: conversation._id,
+            sender: customerId, // Assuming the customer sends the initial message
+            message: `New Job Booking`, // You can customize the message content as needed
+            messageType: MessageType.ALERT, // You can customize the message content as needed
+            createdAt: new Date(),
+            entity: jobId,
+            entityType: 'jobs'
+        });
+
+        
+
+        JobEvent.emit('JOB_BOOKED', { jobId, contractorId, customerId, quotationId, paymentType })
+
 
         res.json({ success: true, message: 'Payment intent created', data: stripePayment });
     } catch (err: any) {

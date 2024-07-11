@@ -69,6 +69,7 @@ export class NotificationService  {
             });
         }
 
+
         if ('push' in options) {
             sendPushNotifications( deviceTokens , {
                 title: params.title, 
@@ -80,8 +81,8 @@ export class NotificationService  {
                 body:   params.message,
                 attachments: [{url: "'https://cdn-icons-png.flaticon.com/512/1077/1077114.png'"}],
                 data: { 
-                    ...params.payload,
-                    // image: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png' // URL of the image
+                    // ...params.payload,
+                    image: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png' // URL of the image
                 },
             })
 

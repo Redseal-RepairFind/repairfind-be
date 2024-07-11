@@ -15,7 +15,7 @@ import { IJobEmergency } from '../database/common/job_emergency.model';
 import { JobEmergencyEmailTemplate } from '../templates/common/job_emergency_email';
 import { GenericEmailTemplate } from '../templates/common/generic_email';
 import { IJobDispute } from '../database/common/job_dispute.model';
-import { IExtraEstimate, IJobQuotation } from '../database/common/job_quotation.model';
+import { IExtraEstimate, IJobQuotation, JobQuotationModel } from '../database/common/job_quotation.model';
 import TransactionModel, { TRANSACTION_STATUS, TRANSACTION_TYPE } from '../database/common/transaction.model';
 import { ObjectId } from 'mongoose';
 import { sendPushNotifications } from '../services/expo';
@@ -385,6 +385,88 @@ JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', async function (payload: { job: IJob, 
 
     } catch (error) {
         console.error(`Error handling NEW_JOB_RESCHEDULE_REQUEST event: ${error}`);
+    }
+});
+
+
+JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId,  contractorId: ObjectId, customerId: ObjectId, quotationId: ObjectId, paymentType: string  }) {
+    try {
+        console.log('handling alert JOB_BOOKED event')
+
+        const customer = await CustomerModel.findById(payload.customerId)
+        const contractor = await ContractorModel.findById(payload.contractorId)
+        const job = await JobModel.findById(payload.jobId)
+        const quotation = await JobQuotationModel.findById(payload.quotationId)
+
+
+        if (job && contractor && customer && quotation) {
+            const charges = await quotation.calculateCharges();
+            
+            if (contractor) { // send mail to contractor
+                let emailSubject = 'Job Payment'
+                let emailContent = `
+                <p style="color: #333333;">Customer has made payment for your estimate on RepairFind</p>
+                <p><strong>Job Title:</strong> ${job.description}</p>
+                <p><strong>Proposed Date:</strong> ${job.date}</p>
+                <p style="color: #333333;">Kindly open the App for more information</p>
+\                `
+                let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
+                EmailService.send(contractor.email, emailSubject, html)
+
+            }
+            if (customer) { // send mail to  customer
+                let emailSubject = 'Job Payment'
+                let emailContent = `
+                <p style="color: #333333;">You have made payment for a job on RepairFind</p>
+                <p><strong>Job Title:</strong> ${job.description}</p>
+                <p><strong>Proposed Date:</strong> ${job.date}</p>
+                <p style="color: #333333;">If you did not initiate this payment, kindly reach out to us via support</p>
+                `
+                let html = GenericEmailTemplate({ name: customer.name, subject: emailSubject, content: emailContent })
+                EmailService.send(customer.email, emailSubject, html)
+            }
+
+
+            NotificationService.sendNotification({
+                user: customer.id,
+                userType: 'customers',
+                title: 'Job Booked',
+                type: 'JOB_BOOKED', // Conversation, Conversation_Notification
+                message: `You have booked a job`,
+                heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
+                payload: {
+                    entity: job.id,
+                    entityType: 'jobs',
+                    message: `You have booked a job`,
+                    customer: customer.id,
+                    contractor: contractor.id,
+                    event: 'JOB_BOOKED',
+                }
+            }, { push: true, socket: true })
+    
+    
+            NotificationService.sendNotification({
+                user: contractor.id,
+                userType: 'contractors',
+                title: 'Job Disputed',
+                type: 'JOB_DISPUTED', //
+                message: `You have a booked job`,
+                heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
+                payload: {
+                    entity: job.id,
+                    entityType: 'jobs',
+                    message: `You have a booked job`,
+                    contractor: contractor.id,
+                    customer: customer.id,
+                    event: 'JOB_BOOKED',
+                }
+            }, { push: true, socket: true })
+
+        }
+
+
+    } catch (error) {
+        console.error(`Error handling JOB_BOOKED event: ${error}`);
     }
 });
 

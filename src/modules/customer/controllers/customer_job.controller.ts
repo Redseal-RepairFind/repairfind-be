@@ -150,9 +150,11 @@ export const createJobRequest = async (
         const newMessage: IMessage = await MessageModel.create({
             conversation: conversation._id,
             sender: customerId, // Assuming the customer sends the initial message
-            message: `New job request: ${description}`, // You can customize the message content as needed
-            messageType: MessageType.TEXT, // You can customize the message content as needed
-            createdAt: new Date()
+            message: `New job request`, // You can customize the message content as needed
+            messageType: MessageType.ALERT, // You can customize the message content as needed
+            createdAt: new Date(),
+            entity: newJob.id,
+            entityType: 'jobs'
         });
 
 
@@ -509,8 +511,8 @@ export const acceptJobQuotation = async (req: any, res: Response, next: NextFunc
             },
             {
                 members: conversationMembers,
-                lastMessage: 'I have accepted your quotation for the Job', // Set the last message to the job description
-                lastMessageAt: new Date() // Set the last message timestamp to now
+                // lastMessage: 'I have accepted your quotation for the Job', // Set the last message to the job description
+                // lastMessageAt: new Date() // Set the last message timestamp to now
             },
             { new: true, upsert: true });
 
@@ -519,9 +521,11 @@ export const acceptJobQuotation = async (req: any, res: Response, next: NextFunc
         const newMessage: IMessage = await MessageModel.create({
             conversation: conversation._id,
             sender: customerId, // Assuming the customer sends the initial message
-            message: `I have accepted your qoutation for the Job`, // You can customize the message content as needed
-            messageType: MessageType.TEXT, // You can customize the message content as needed
-            createdAt: new Date()
+            message: `Job estimate accepted`, // You can customize the message content as needed
+            messageType: MessageType.ALERT, // You can customize the message content as needed
+            createdAt: new Date(),
+            entity: quotation.id,
+            entityType: 'quotations'
         });
 
         // Accepting does not mean
@@ -584,8 +588,44 @@ export const declineJobQuotation = async (req: any, res: Response, next: NextFun
         await job.save();
 
 
+
+        const conversationMembers = [
+            { memberType: 'customers', member: customerId },
+            { memberType: 'contractors', member: quotation.contractor }
+        ];
+        const conversation = await ConversationModel.findOneAndUpdate(
+            {
+                $and: [
+                    { members: { $elemMatch: { member: customerId } } }, // memberType: 'customers'
+                    { members: { $elemMatch: { member: quotation.contractor } } } // memberType: 'contractors'
+                ]
+            },
+            {
+                members: conversationMembers,
+                // lastMessage: 'I have accepted your quotation for the Job', // Set the last message to the job description
+                // lastMessageAt: new Date() // Set the last message timestamp to now
+            },
+            { new: true, upsert: true });
+
+
+        // Create a message in the conversation
+        const newMessage: IMessage = await MessageModel.create({
+            conversation: conversation._id,
+            sender: customerId, // Assuming the customer sends the initial message
+            message: `Job estimate declined: (${reason})`, // You can customize the message content as needed
+            messageType: MessageType.ALERT, // You can customize the message content as needed
+            createdAt: new Date(),
+            entity: quotation.id,
+            entityType: 'quotations'
+        });
+
+
+
+
+
         const contractor = await ContractorModel.findById(quotation.contractor)
         const customer = await CustomerModel.findById(customerId)
+        
 
         if (contractor && customer) {
             //emit event - mail should be sent from event handler shaa

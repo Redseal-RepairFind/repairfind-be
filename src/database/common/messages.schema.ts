@@ -31,6 +31,8 @@ export interface IMessage extends Document {
     readBy: Types.ObjectId[]; // References to contractors who have read the message
     heading: Object;
     isOwn: Boolean;
+    entity?: Types.ObjectId;
+    entityType?: string;
     createdAt: Date;
 }
 
@@ -87,7 +89,15 @@ const MessageSchema = new Schema<IMessage>({
     },
     isOwn: {
         type: Boolean
-    }
+    },
+    entity: {
+        type: Schema.Types.ObjectId,
+        refPath: 'entityType',
+        index: true,
+    },
+    entityType: {
+        type: String,
+    },
 }, { timestamps: true });
 
 

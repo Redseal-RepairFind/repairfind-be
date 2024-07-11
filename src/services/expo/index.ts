@@ -5,6 +5,7 @@ const expo = new Expo({ accessToken: process.env.EXPO_ACCESS_TOKEN });
 
 export async function sendPushNotifications(pushTokens: string[], message: any): Promise<void> {
   
+  
   // Prepare push notification messages
   const messages: ExpoPushMessage[] = pushTokens
     .filter(token => Expo.isExpoPushToken(token)) // Filter out invalid tokens
@@ -51,7 +52,7 @@ export async function sendPushNotifications(pushTokens: string[], message: any):
         if (status == 'error') {
           Logger.error(`There was an error sending a notification: ${message}`);
           if (details && details.error) {
-            Logger.error(`The error code is ${details.error}`);
+            Logger.error(`The Nofication error code is ${details.error}`);
           }
         }else{
           Logger.info(`Nofication sent ${status}`);
