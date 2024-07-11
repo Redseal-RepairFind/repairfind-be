@@ -102,15 +102,18 @@ var NotificationService = /** @class */ (function () {
                             (0, expo_1.sendPushNotifications)(deviceTokens, {
                                 title: params.title,
                                 type: params.type,
-                                // content_available: true,
-                                // mutable_content: true,
-                                // icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
-                                // image: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
+                                attachments: [
+                                    {
+                                        identifier: 'image',
+                                        url: 'https://www.fnordware.com/superpng/pnggrad8rgb.png',
+                                        type: 'image/png'
+                                    }
+                                ],
                                 body: params.message,
-                                attachments: [{ url: "'https://cdn-icons-png.flaticon.com/512/1077/1077114.png'" }],
+                                imageUrl: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
                                 data: {
                                     // ...params.payload,
-                                    image: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png' // URL of the image
+                                    imageUrl: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png' // URL of the image
                                 },
                             });
                         }

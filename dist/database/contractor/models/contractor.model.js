@@ -217,7 +217,14 @@ var ContractorSchema = new mongoose_1.Schema({
         type: CertnDetailSchema
     },
     reviews: [{ review: { type: mongoose_1.Schema.Types.ObjectId, ref: 'reviews' }, averageRating: Number }],
-    stats: { formattedResponseTime: { type: mongoose_1.Schema.Types.Mixed }, responseTime: { type: mongoose_1.Schema.Types.Mixed }, jobsCompleted: { type: mongoose_1.Schema.Types.Mixed }, jobsCanceled: { type: mongoose_1.Schema.Types.Mixed }, jobsPending: { type: mongoose_1.Schema.Types.Mixed } },
+    stats: {
+        formattedResponseTime: { type: mongoose_1.Schema.Types.Mixed },
+        responseTime: { type: mongoose_1.Schema.Types.Mixed },
+        jobsCompleted: { type: mongoose_1.Schema.Types.Mixed },
+        jobsCanceled: { type: mongoose_1.Schema.Types.Mixed },
+        jobsPending: { type: mongoose_1.Schema.Types.Mixed },
+        jobsTotal: { type: mongoose_1.Schema.Types.Mixed }
+    },
     badge: {
         label: { type: String, default: contractor_interface_1.CONTRACTOR_BADGE.PROSPECT },
         icon: { type: String, default: null },
@@ -324,9 +331,6 @@ ContractorSchema.virtual('reviewCount').get(function () {
     var reviews = this.get('reviews') || [];
     return reviews.length;
 });
-// ContractorSchema.virtual('stats').get(function () {
-//   return { responseTime: '10mins', jobsDone: 3, jobsCanceled: 2 };
-// });
 ContractorSchema.methods.getOnboarding = function () {
     var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function () {
@@ -410,12 +414,15 @@ ContractorSchema.methods.getOnboarding = function () {
     });
 };
 // Instance method to get formatted response time
-ContractorSchema.methods.getStats = function () {
+ContractorSchema.methods.getStats = function (contractor) {
+    if (contractor === void 0) { contractor = null; }
     return __awaiter(this, void 0, void 0, function () {
-        var quotations, totalResponseTime, count, responseTime, formattedResponseTime, jobsCompleted, jobsCanceled, jobsPending;
+        var contractorId, quotations, totalResponseTime, count, responseTime, formattedResponseTime, jobsCompleted, jobsCanceled, jobsPending, jobsTotal;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.find({ contractor: this._id })];
+                case 0:
+                    contractorId = contractor !== null && contractor !== void 0 ? contractor : this._id;
+                    return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.find({ contractor: contractorId })];
                 case 1:
                     quotations = _a.sent();
                     totalResponseTime = 0;
@@ -425,6 +432,7 @@ ContractorSchema.methods.getStats = function () {
                         count++;
                     });
                     responseTime = totalResponseTime / count;
+                    console.log('responseTime', responseTime);
                     formattedResponseTime = '';
                     if (!responseTime) {
                         formattedResponseTime = "Not available";
@@ -450,30 +458,34 @@ ContractorSchema.methods.getStats = function () {
                     else {
                         formattedResponseTime = "More than 2 days";
                     }
-                    return [4 /*yield*/, job_model_1.JobModel.countDocuments({ contractor: this._id, status: job_model_1.JOB_STATUS.COMPLETED })];
+                    return [4 /*yield*/, job_model_1.JobModel.countDocuments({ contractor: contractorId, status: job_model_1.JOB_STATUS.COMPLETED })];
                 case 2:
                     jobsCompleted = _a.sent();
-                    return [4 /*yield*/, job_model_1.JobModel.countDocuments({ contractor: this._id, status: job_model_1.JOB_STATUS.CANCELED })];
+                    return [4 /*yield*/, job_model_1.JobModel.countDocuments({ contractor: contractorId, status: job_model_1.JOB_STATUS.CANCELED })];
                 case 3:
                     jobsCanceled = _a.sent();
-                    return [4 /*yield*/, job_model_1.JobModel.countDocuments({ contractor: this._id, status: job_model_1.JOB_STATUS.PENDING })];
+                    return [4 /*yield*/, job_model_1.JobModel.countDocuments({ contractor: contractorId, status: job_model_1.JOB_STATUS.PENDING })];
                 case 4:
                     jobsPending = _a.sent();
-                    return [2 /*return*/, { formattedResponseTime: formattedResponseTime, responseTime: responseTime, jobsCompleted: jobsCompleted, jobsCanceled: jobsCanceled, jobsPending: jobsPending }];
+                    return [4 /*yield*/, job_model_1.JobModel.countDocuments({ contractor: contractorId })];
+                case 5:
+                    jobsTotal = _a.sent();
+                    return [2 /*return*/, { formattedResponseTime: formattedResponseTime, responseTime: responseTime, jobsCompleted: jobsCompleted, jobsCanceled: jobsCanceled, jobsPending: jobsPending, jobsTotal: jobsTotal }];
             }
         });
     });
 };
 ContractorSchema.virtual('quiz').get(function () {
+    var _a;
     return __awaiter(this, void 0, void 0, function () {
         var latestQuiz;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        return __generator(this, function (_b) {
+            switch (_b.label) {
                 case 0: return [4 /*yield*/, contractor_quiz_model_1.default.findOne({ contractor: this._id }).sort({ createdAt: -1 })];
                 case 1:
-                    latestQuiz = _a.sent();
+                    latestQuiz = _b.sent();
                     return [4 /*yield*/, (latestQuiz === null || latestQuiz === void 0 ? void 0 : latestQuiz.result)];
-                case 2: return [2 /*return*/, _a.sent()];
+                case 2: return [2 /*return*/, (_a = _b.sent()) !== null && _a !== void 0 ? _a : null];
             }
         });
     });

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Validations = exports.sendMessageParams = exports.StartCoversaionParams = exports.CustomerChangeStatusParams = exports.ContractorChangeStatusParams = exports.SettleDisputeParams = exports.AcceptDisputeParams = exports.DisputeStatusParams = exports.AddPermissionParams = exports.AddStaffParams = exports.EditPermissionParams = exports.PermissionCreationParam = exports.validateResolvedEmergecyIdParams = exports.validateEmergecyIdParams = exports.validatePayoutIDPayContractorParams = exports.validatePayoutIDParams = exports.validateRevenueDateParams = exports.validateDeleteQuestionValidationParams = exports.validateEditQuestionParams = exports.validateQuestionIdValidationParams = exports.createQuizParams = exports.validateAddQuestionParams = exports.validateTRansactionIdValidationParams = exports.validateJobIdValidationParams = exports.validateAddSkillParams = exports.validateContractoDocumentIdValidationParams = exports.validateContractorChangeStatusValidationParams = exports.validateCustomerIdValidationParams = exports.validateContractorIdValidationParams = exports.validateSuperAdmiCchangeStatusParams = exports.validateAdminResetPasswprdParams = exports.validateAdminForgotPasswordParams = exports.validateAdminLoginParams = exports.validatAdminEmailverificationParams = exports.validateSignupParams = void 0;
+exports.Validations = exports.sendMessageParams = exports.StartCoversaionParams = exports.CustomerChangeStatusParams = exports.ContractorChangeStatusParams = exports.SettleDisputeParams = exports.AcceptDisputeParams = exports.DisputeStatusParams = exports.AddPermissionParams = exports.AddStaffParams = exports.EditPermissionParams = exports.PermissionCreationParam = exports.validateResolvedEmergecyIdParams = exports.validateEmergecyIdParams = exports.validatePayoutIDPayContractorParams = exports.validatePayoutIDParams = exports.validateRevenueDateParams = exports.validateDeleteQuestionValidationParams = exports.validateEditQuestionParams = exports.validateQuestionIdValidationParams = exports.createQuizParams = exports.validateAddQuestionParams = exports.validateTRansactionIdValidationParams = exports.validateJobIdValidationParams = exports.validateAddSkillParams = exports.validateContractoDocumentIdValidationParams = exports.sendCustomEmail = exports.updateAccount = exports.updateGstDetails = exports.validateCustomerIdValidationParams = exports.validateContractorIdValidationParams = exports.validateSuperAdmiCchangeStatusParams = exports.validateAdminResetPasswprdParams = exports.validateAdminForgotPasswordParams = exports.validateAdminLoginParams = exports.validatAdminEmailverificationParams = exports.validateSignupParams = void 0;
 var express_validator_1 = require("express-validator");
 var admin_interface_1 = require("../../../database/admin/interface/admin.interface");
 var job_dispute_model_1 = require("../../../database/common/job_dispute.model");
@@ -39,11 +39,19 @@ exports.validateContractorIdValidationParams = [
 exports.validateCustomerIdValidationParams = [
     (0, express_validator_1.query)("customerId").notEmpty(),
 ];
-exports.validateContractorChangeStatusValidationParams = [
-    (0, express_validator_1.body)("contractorId").notEmpty(),
+exports.updateGstDetails = [
     (0, express_validator_1.body)("gstStatus")
         .isIn(["PENDING", "REVIEWING", "APPROVED", "DECLINED"])
         .withMessage("gstStatus must be PENDING, REVIEWING, APPROVED, or DECLINED"),
+];
+exports.updateAccount = [
+    (0, express_validator_1.body)("status")
+        .isIn(["PENDING", "REVIEWING", "REJECTED", "SUSPENDED", "BLACKLISTED", "APPROVED", "DECLINED"])
+        .withMessage("gstStatus must be PENDING, REVIEWING, APPROVED, or DECLINED"),
+];
+exports.sendCustomEmail = [
+    (0, express_validator_1.body)("subject").notEmpty(),
+    (0, express_validator_1.body)("htmlContent").notEmpty()
 ];
 exports.validateContractoDocumentIdValidationParams = [
     (0, express_validator_1.body)("contractorDocsId").notEmpty(),
@@ -176,5 +184,8 @@ exports.Validations = {
     ContractorChangeStatusParams: exports.ContractorChangeStatusParams,
     CustomerChangeStatusParams: exports.CustomerChangeStatusParams,
     StartCoversaionParams: exports.StartCoversaionParams,
-    sendMessageParams: exports.sendMessageParams
+    sendMessageParams: exports.sendMessageParams,
+    updateGstDetails: exports.updateGstDetails,
+    updateAccount: exports.updateAccount,
+    sendCustomEmail: exports.sendCustomEmail
 };

@@ -51,6 +51,7 @@ var jobday_schedule_1 = require("./jobs/jobday_schedule");
 var job_refunds_1 = require("./jobs/job_refunds");
 var escrow_transfer_1 = require("./jobs/escrow_transfer");
 var send_email_1 = require("./jobs/send_email");
+var training_reminder_1 = require("./jobs/training_reminder");
 var getRedisConfig = function () {
     var redisConfig = {
         port: Number(config_1.config.redis.port),
@@ -69,55 +70,60 @@ var processJob = function (job) { return __awaiter(void 0, void 0, void 0, funct
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 17, , 18]);
+                _b.trys.push([0, 19, , 20]);
                 _a = job.name;
                 switch (_a) {
                     case 'CapturePayments': return [3 /*break*/, 1];
                     case 'expireJobs': return [3 /*break*/, 3];
                     case 'syncCertnApplications': return [3 /*break*/, 5];
                     case 'jobDayScheduleCheck': return [3 /*break*/, 7];
-                    case 'handleJobRefunds': return [3 /*break*/, 9];
-                    case 'sendEmail': return [3 /*break*/, 11];
-                    case 'handleEscrowTransfer': return [3 /*break*/, 13];
+                    case 'quizReminderCheck': return [3 /*break*/, 9];
+                    case 'handleJobRefunds': return [3 /*break*/, 11];
+                    case 'sendEmail': return [3 /*break*/, 13];
+                    case 'handleEscrowTransfer': return [3 /*break*/, 15];
                 }
-                return [3 /*break*/, 15];
+                return [3 /*break*/, 17];
             case 1: return [4 /*yield*/, (0, capture_stripe_payments_1.captureStripePayments)()];
             case 2:
                 _b.sent();
-                return [3 /*break*/, 16];
+                return [3 /*break*/, 18];
             case 3: return [4 /*yield*/, (0, expire_jobs_1.expireJobs)()];
             case 4:
                 _b.sent();
-                return [3 /*break*/, 16];
+                return [3 /*break*/, 18];
             case 5: return [4 /*yield*/, (0, sync_certn_applications_1.syncCertnApplications)()];
             case 6:
                 _b.sent();
-                return [3 /*break*/, 16];
+                return [3 /*break*/, 18];
             case 7: return [4 /*yield*/, (0, jobday_schedule_1.jobDayScheduleCheck)()];
             case 8:
                 _b.sent();
-                return [3 /*break*/, 16];
-            case 9: return [4 /*yield*/, (0, job_refunds_1.handleJobRefunds)()];
+                return [3 /*break*/, 18];
+            case 9: return [4 /*yield*/, (0, training_reminder_1.quizReminderCheck)()];
             case 10:
                 _b.sent();
-                return [3 /*break*/, 16];
-            case 11: return [4 /*yield*/, (0, send_email_1.sendEmail)(job)];
+                return [3 /*break*/, 18];
+            case 11: return [4 /*yield*/, (0, job_refunds_1.handleJobRefunds)()];
             case 12:
                 _b.sent();
-                return [3 /*break*/, 16];
-            case 13: return [4 /*yield*/, (0, escrow_transfer_1.handleEscrowTransfer)()];
+                return [3 /*break*/, 18];
+            case 13: return [4 /*yield*/, (0, send_email_1.sendEmail)(job)];
             case 14:
                 _b.sent();
-                return [3 /*break*/, 16];
-            case 15:
-                logger_1.Logger.warn("Unknown job name: ".concat(job.name));
-                _b.label = 16;
-            case 16: return [3 /*break*/, 18];
+                return [3 /*break*/, 18];
+            case 15: return [4 /*yield*/, (0, escrow_transfer_1.handleEscrowTransfer)()];
+            case 16:
+                _b.sent();
+                return [3 /*break*/, 18];
             case 17:
+                logger_1.Logger.warn("Unknown job name: ".concat(job.name));
+                _b.label = 18;
+            case 18: return [3 /*break*/, 20];
+            case 19:
                 error_1 = _b.sent();
                 logger_1.Logger.error("Error processing job ".concat(job.name, ": ").concat(error_1));
                 throw error_1;
-            case 18: return [2 /*return*/];
+            case 20: return [2 /*return*/];
         }
     });
 }); };

@@ -120,7 +120,7 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
                                 }
                             },
                             rating: { $avg: '$reviews.averageRating' }, // Calculate average rating using $avg
-                            ratingCount: { $size: '$reviews' }, // Calculate average rating using $avg
+                            reviewCount: { $size: '$reviews' }, // Calculate average rating using $avg
                             stripeAccountStatus: {
                                 details_submitted: "$stripeAccount.details_submitted",
                                 payouts_enabled: "$stripeAccount.payouts_enabled",
@@ -206,47 +206,47 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
                     },
                     {
                         $addFields: {
-                            formattedResponseTime: {
-                                $switch: {
-                                    branches: [
-                                        {
-                                            case: { $lte: ["$avgResponseTime", 2 * 60] },
-                                            then: "Less than 2 mins"
-                                        },
-                                        {
-                                            case: { $lte: ["$avgResponseTime", 10 * 60] },
-                                            then: "Within 10 mins"
-                                        },
-                                        {
-                                            case: { $lte: ["$avgResponseTime", 60 * 60] },
-                                            then: {
-                                                $concat: [
-                                                    { $toString: { $round: [{ $divide: ["$avgResponseTime", 60] }, 0] } },
-                                                    " mins"
-                                                ]
-                                            }
-                                        },
-                                        {
-                                            case: { $lte: ["$avgResponseTime", 2 * 60 * 60] },
-                                            then: "Greater than 2 hours"
-                                        },
-                                        {
-                                            case: { $lte: ["$avgResponseTime", 24 * 60 * 60] },
-                                            then: {
-                                                $concat: [
-                                                    { $toString: { $round: [{ $divide: ["$avgResponseTime", 60 * 60] }, 0] } },
-                                                    " hours"
-                                                ]
-                                            }
-                                        },
-                                        {
-                                            case: { $lte: ["$avgResponseTime", 48 * 60 * 60] },
-                                            then: "Greater than 1 day"
-                                        }
-                                    ],
-                                    default: "More than 2 days"
-                                }
-                            }
+                        // formattedResponseTime: {
+                        //     $switch: {
+                        //         branches: [
+                        //             {
+                        //                 case: { $lte: ["$avgResponseTime", 2 * 60 ] },
+                        //                 then: "Less than 2 mins"
+                        //             },
+                        //             {
+                        //                 case: { $lte: ["$avgResponseTime", 10 * 60 ] },
+                        //                 then: "Within 10 mins"
+                        //             },
+                        //             {
+                        //                 case: { $lte: ["$avgResponseTime", 60 * 60 ] },
+                        //                 then: {
+                        //                     $concat: [
+                        //                         { $toString: { $round: [{ $divide: ["$avgResponseTime", 60 ] }, 0] } },
+                        //                         " mins"
+                        //                     ]
+                        //                 }
+                        //             },
+                        //             {
+                        //                 case: { $lte: ["$avgResponseTime", 2 * 60 * 60] },
+                        //                 then: "Greater than 2 hours"
+                        //             },
+                        //             {
+                        //                 case: { $lte: ["$avgResponseTime", 24 * 60 * 60 ] },
+                        //                 then: {
+                        //                     $concat: [
+                        //                         { $toString: { $round: [{ $divide: ["$avgResponseTime", 60 * 60 ] }, 0] } },
+                        //                         " hours"
+                        //                     ]
+                        //                 }
+                        //             },
+                        //             {
+                        //                 case: { $lte: ["$avgResponseTime", 48 * 60 * 60 ] },
+                        //                 then: "Greater than 1 day"
+                        //             }
+                        //         ],
+                        //         default: "More than 2 days"
+                        //     }
+                        // }
                         }
                     },
                     {
