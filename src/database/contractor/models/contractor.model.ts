@@ -130,7 +130,7 @@ const ContractorSchema = new Schema<IContractor>(
       required: false,
     },
 
-    status: {
+    status: { 
       type: String,
       enum: Object.values(contractorStatus),
       default: contractorStatus.REVIEWING,
@@ -209,7 +209,14 @@ const ContractorSchema = new Schema<IContractor>(
     },
 
     reviews: [{ review: { type: Schema.Types.ObjectId, ref: 'reviews' }, averageRating: Number }],
-    stats: { formattedResponseTime: { type: Schema.Types.Mixed }, responseTime: { type: Schema.Types.Mixed }, jobsCompleted: { type: Schema.Types.Mixed }, jobsCanceled: { type: Schema.Types.Mixed }, jobsPending: { type: Schema.Types.Mixed } },
+    stats: { 
+      formattedResponseTime: { type: Schema.Types.Mixed }, 
+      responseTime: { type: Schema.Types.Mixed }, 
+      jobsCompleted: { type: Schema.Types.Mixed }, 
+      jobsCanceled: { type: Schema.Types.Mixed }, 
+      jobsPending: { type: Schema.Types.Mixed },
+      jobsTotal: { type: Schema.Types.Mixed } 
+    },
 
 
     badge: {
@@ -341,12 +348,6 @@ ContractorSchema.virtual('reviewCount').get(function () {
 });
 
 
-// ContractorSchema.virtual('stats').get(function () {
-
-//   return { responseTime: '10mins', jobsDone: 3, jobsCanceled: 2 };
-// });
-
-
 ContractorSchema.methods.getOnboarding = async function () {
   const hasStripeAccount = !!this.stripeAccount;
   const hasStripeCustomer = !!this.stripeCustomer;
@@ -413,18 +414,18 @@ ContractorSchema.methods.getOnboarding = async function () {
     hasCompanyDetails,
     hasPassedQuiz,
     stage,
-
   }
 
 };
 
 
 // Instance method to get formatted response time
-ContractorSchema.methods.getStats = async function () {
+ContractorSchema.methods.getStats = async function (contractor: any = null) {
 
+  const contractorId = contractor ?? this._id
 
   // Access the quotations of this contractor instance
-  const quotations = await JobQuotationModel.find({ contractor: this._id });
+  const quotations = await JobQuotationModel.find({ contractor: contractorId });
 
 
   // Calculate the average response time
@@ -438,6 +439,7 @@ ContractorSchema.methods.getStats = async function () {
 
   const responseTime = totalResponseTime / count;
 
+  console.log('responseTime',responseTime)
   // Format the response time
   let formattedResponseTime = '';
 
@@ -460,20 +462,20 @@ ContractorSchema.methods.getStats = async function () {
     formattedResponseTime = "More than 2 days";
   }
 
-
   //count jobs
-  const jobsCompleted = await JobModel.countDocuments({ contractor: this._id, status: JOB_STATUS.COMPLETED })
-  const jobsCanceled = await JobModel.countDocuments({ contractor: this._id, status: JOB_STATUS.CANCELED })
-  const jobsPending = await JobModel.countDocuments({ contractor: this._id, status: JOB_STATUS.PENDING })
+  const jobsCompleted = await JobModel.countDocuments({ contractor: contractorId, status: JOB_STATUS.COMPLETED })
+  const jobsCanceled = await JobModel.countDocuments({ contractor: contractorId, status: JOB_STATUS.CANCELED })
+  const jobsPending = await JobModel.countDocuments({ contractor: contractorId, status: JOB_STATUS.PENDING })
+  const jobsTotal = await JobModel.countDocuments({ contractor: contractorId })
 
-  return { formattedResponseTime, responseTime, jobsCompleted, jobsCanceled, jobsPending };
+  return { formattedResponseTime, responseTime, jobsCompleted, jobsCanceled, jobsPending, jobsTotal };
 };
 
 
 
 ContractorSchema.virtual('quiz').get(async function () {
   const latestQuiz: any = await ContractorQuizModel.findOne({ contractor: this._id }).sort({ createdAt: -1 });
-  return await latestQuiz?.result
+  return await latestQuiz?.result ?? null
 });
 
 ContractorSchema.virtual('name').get(function () {

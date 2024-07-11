@@ -2,13 +2,12 @@ import { memoryUpload } from "../../../utils/upload.utility";
 import { AdminJobController } from "../controllers/admin_job.controller";
 import { AdminSkillController } from "../controllers/admin_skill.controller";
 import { AdminEmailForgotPasswordController, AdminEmailResetPasswordController } from "../controllers/adminForgotPassword";
-import { AdminContractorDetail } from "../controllers/admin_contractors.controller";
+import { AdminContractorController } from "../controllers/admin_contractors.controller";
 import { AdminCustomerController } from "../controllers/adminGetCustomerDetail.contractor";
 import { adminGetNotificationrController, adminUnseenNotificationrController, adminViewNotificationrController } from "../controllers/adminNotification.controller";
 import { AddStaffController, AdminSignInController, SuperAdminGetAllAdminController, SuperAdminChangeStaffStatusController, adminResendEmailController, adminSignUpController, adminUpdateBioController, adminVerifiedEmailController, SuperAdminAddPermissionToStaffController, SuperAdminRemovePermissionFromStaffController } from "../controllers/adminReg.controller";
 import { AdminGetAppDetailController } from "../controllers/appDetails.Controller";
 import { AdminGetRevenueAnalysisControlleer, AdminsendEmailsControlleer } from "../controllers/averageRevenue.controller";
-import { AdminContractorController } from "../controllers/contractor.controller";
 import { AdminConversation } from "../controllers/conversation.controller";
 import { dispute } from "../controllers/dispute.controller";
 import { ermergency } from "../controllers/emergency.controller";
@@ -18,7 +17,7 @@ import { Permission } from "../controllers/permission.controller";
 import { AdminQuizController } from "../controllers/quiz.controller";
 import { TransactionDetailController } from "../controllers/transaction.controller";
 import { checkAdminRole } from "../middlewares/adminRoleChecker.middleware";
-import { Validations, createQuizParams, validatAdminEmailverificationParams, validateAddQuestionParams, validateAddSkillParams, validateAdminForgotPasswordParams, validateAdminLoginParams, validateAdminResetPasswprdParams, validateContractoDocumentIdValidationParams, validateContractorChangeStatusValidationParams, validateContractorIdValidationParams, validateCustomerIdValidationParams, validateDeleteQuestionValidationParams, validateEditQuestionParams, validateEmergecyIdParams, validateJobIdValidationParams, validatePayoutIDParams, validatePayoutIDPayContractorParams, validateQuestionIdValidationParams, validateResolvedEmergecyIdParams, validateRevenueDateParams, validateSignupParams, validateSuperAdmiCchangeStatusParams, validateTRansactionIdValidationParams } from "../middlewares/adminValidate.middleware";
+import { Validations, createQuizParams, validatAdminEmailverificationParams, validateAddQuestionParams, validateAddSkillParams, validateAdminForgotPasswordParams, validateAdminLoginParams, validateAdminResetPasswprdParams, validateContractoDocumentIdValidationParams, validateContractorIdValidationParams, validateCustomerIdValidationParams, validateDeleteQuestionValidationParams, validateEditQuestionParams, validateEmergecyIdParams, validateJobIdValidationParams, validatePayoutIDParams, validatePayoutIDPayContractorParams, validateQuestionIdValidationParams, validateResolvedEmergecyIdParams, validateRevenueDateParams, validateSignupParams, validateSuperAdmiCchangeStatusParams, validateTRansactionIdValidationParams } from "../middlewares/admin_validations.middleware";
 
 const express = require("express");
 const router = express.Router();
@@ -45,15 +44,21 @@ router.get("/permissions", checkAdminRole, Permission.GetPermissionController );
 router.post("/edit/permission", Validations.EditPermissionParams, checkAdminRole, Permission.EditPermissionController ); // super admin edit permission
 
 //don contractor
-// router.get("/contractor/detail", checkAdminRole, AdminContractorDetail.AdminGetContractorDetailController ); // admin get contractor detail
-// router.get("/contractor/detail/:contractorId", checkAdminRole, AdminContractorDetail.AdminGetSingleContractorDetailController ); // admin get single contractor detail
-// router.post("/validate/contractor/gst", validateContractorChangeStatusValidationParams, checkAdminRole, AdminContractorDetail.AdminChangeContractorGstStatusController ); // admin change contractor gst
-// router.get("/contractor/detail/pending/gst", checkAdminRole, AdminContractorDetail.AdminGetContractorGstPendingController ); // admin get contractor detail with gst status pending
-// router.get("/contractor/detail/approve/gst", checkAdminRole, AdminContractorDetail.AdminGetContractorGstApproveController ); // admin get contractor detail with gst status approve
-// router.get("/contractor/detail/decline/gst", checkAdminRole, AdminContractorDetail.AdminGetContractorGstDecliningController ); // admin get contractor detail with gst status Decline
-// router.get("/contractor/detail/review/gst", checkAdminRole, AdminContractorDetail.AdminGetContractorGstReviewingController ); // admin get contractor detail with gst status Reviewing
-// router.get("/contractor/job/detail/:contractorId", checkAdminRole, AdminContractorDetail.AdminGetSingleContractorJonDetailController ); // admin get single contractor job detail
-// router.post("/contractor/account/status", Validations.ContractorChangeStatusParams, checkAdminRole, AdminContractorDetail.AdminChangeContractorAccountStatusController); // admin change contractor account status
+router.get("/contractors", checkAdminRole, AdminContractorController.exploreContractors ); // admin get contractor detail
+router.get("/contractors/:contractorId", checkAdminRole, AdminContractorController.getSingleContractor ); // admin get single contractor detail
+router.get("/contractors/:contractorId/jobs", checkAdminRole, AdminContractorController.getJobHistory ); // admin get single contractor detail
+router.get("/contractors/:contractorId/jobs/:jobId", checkAdminRole, AdminContractorController.getSingleJob ); // admin get single contractor detail
+
+router.patch("/contractors/:contractorId/gst", Validations.updateGstDetails, checkAdminRole, AdminContractorController.updateGstDetails ); // admin change contractor gst
+router.patch("/contractors/:contractorId/status", Validations.updateAccount, checkAdminRole, AdminContractorController.updateAccountStatus ); // admin change contractor gst
+router.post("/contractors/:contractorId/sendmail", Validations.sendCustomEmail, checkAdminRole, AdminContractorController.sendCustomEmail ); // admin change contractor gst
+
+// router.get("/contractor/detail/pending/gst", checkAdminRole, AdminContractorController.AdminGetContractorGstPendingController ); // admin get contractor detail with gst status pending
+// router.get("/contractor/detail/approve/gst", checkAdminRole, AdminContractorController.AdminGetContractorGstApproveController ); // admin get contractor detail with gst status approve
+// router.get("/contractor/detail/decline/gst", checkAdminRole, AdminContractorController.AdminGetContractorGstDecliningController ); // admin get contractor detail with gst status Decline
+// router.get("/contractor/detail/review/gst", checkAdminRole, AdminContractorController.AdminGetContractorGstReviewingController ); // admin get contractor detail with gst status Reviewing
+// router.get("/contractor/job/detail/:contractorId", checkAdminRole, AdminContractorController.AdminGetSingleContractorJonDetailController ); // admin get single contractor job detail
+// router.post("/contractor/account/status", Validations.ContractorChangeStatusParams, checkAdminRole, AdminContractorController.AdminChangeContractorAccountStatusController); // admin change contractor account status
 
 
 //done

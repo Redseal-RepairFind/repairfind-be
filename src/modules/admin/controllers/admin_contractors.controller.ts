@@ -1,50 +1,316 @@
 import { validationResult } from "express-validator";
-import { Request, Response } from "express";
 import AdminRegModel from "../../../database/admin/models/admin.model";
-import {ContractorModel} from "../../../database/contractor/models/contractor.model";
+import { ContractorModel } from "../../../database/contractor/models/contractor.model";
 import { JobModel } from "../../../database/common/job.model";
 import CustomerRegModel from "../../../database/customer/models/customer.model";
 import { sendEmail } from "../../../utils/send_email_utility";
 import { htmlAdminRquestGstStatuChangeTemplate } from "../../../templates/admin/adminRequestGstStatusTemplate";
-import { GST_STATUS} from "../../../database/contractor/interface/contractor.interface";
+import { CONTRACTOR_TYPES, GST_STATUS } from "../../../database/contractor/interface/contractor.interface";
 import { InvoiceModel } from "../../../database/common/invoices.shema";
 import { ContractorProfileModel } from "../../../database/contractor/models/contractor_profile.model";
+import { applyAPIFeature } from "../../../utils/api.feature";
+import { NextFunction, Request, Response } from "express";
+import { StripeService } from "../../../services/stripe";
+import { IStripeAccount } from "../../../database/common/stripe_account.schema";
+import { castPayloadToDTO } from "../../../utils/interface_dto.util";
+import { BadRequestError, InternalServerError } from "../../../utils/custom.errors";
+import CustomerModel from "../../../database/customer/models/customer.model";
+import mongoose, { Document, PipelineStage as MongoosePipelineStage } from 'mongoose'; // Import Document type from mongoose
+import { JobQuotationModel } from "../../../database/common/job_quotation.model";
+import { JobDisputeModel } from "../../../database/common/job_dispute.model";
+import { ContractorQuizPipeline } from "../../../database/contractor/pipelines/contractor_quize.pipeline";
+import { ContractorStripeAccountPipeline } from "../../../database/contractor/pipelines/contractor_stripe_account.pipeline";
+import { GenericEmailTemplate } from "../../../templates/common/generic_email";
+import { EmailService } from "../../../services";
 
 
-//get contractor detail /////////////
-export const getContractors = async (
-    req: any,
-    res: Response,
-  ) => {
-  
-    try {
-      let {  
-       page,
-       limit
-      } = req.query;
-  
-      // Check for validation errors
-      const errors = validationResult(req);
-  
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-      }
-  
-      const admin =  req.admin;
-      const adminId = admin.id
 
-      
+type PipelineStage =
+  | MongoosePipelineStage
+  | { $lookup: { from: string; localField: string; foreignField: string; as: string, pipeline?: any } }
+  | { $unwind: string | { path: string; includeArrayIndex?: string; preserveNullAndEmptyArrays?: boolean } }
+  | { $match: any }
+  | { $addFields: any }
+  | { $project: any }
+  | { $sort: { [key: string]: 1 | -1 } }
+  | { $group: any };
+
+export const exploreContractors = async (
+  req: any,
+  res: Response,
+) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+
+  try {
+    let {
+      searchName,
+      listing,
+      minDistance,
+      maxDistance,
+      radius,
+      latitude, //if latitude is not provided, use the stored location of the customer
+      longitude,
+      emergencyJobs,
+      category,
+      location,
+      city,
+      country,
+      address,
+      accountType,
+      date,
+      isOffDuty,
+      availableDays,
+      experienceYear,
+      gstNumber,
+      page = 1, // Default to page 1
+      limit = 10, // Default to 10 items per page
+      sort, // Sort field and order (-fieldName or fieldName)
+      minResponseTime,
+      maxResponseTime,
+      sortByResponseTime,
+      hasPassedQuiz,
+      gstStatus,
+      stripeAccountStatus,
+    } = req.query;
+
+
+
+    const availableDaysArray = availableDays ? availableDays.split(',') : [];
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const toRadians = (degrees: number) => degrees * (Math.PI / 180);
+    let mergedPipelines = [...ContractorStripeAccountPipeline, ...ContractorQuizPipeline]
+    const pipeline: PipelineStage[] = [
+      ...mergedPipelines,
+      {
+        $lookup: {
+          from: "contractor_profiles",
+          localField: "profile",
+          foreignField: "_id",
+          as: "profile"
+        }
+      },
+      { $unwind: "$profile" },
+      {
+        $addFields: {
+          name: {
+            $cond: {
+              if: {
+                $or: [
+                  { $eq: ['$accountType', CONTRACTOR_TYPES.Individual] },
+                  { $eq: ['$accountType', CONTRACTOR_TYPES.Employee] }
+                ]
+              },
+              then: { $concat: ['$firstName', ' ', '$lastName'] },
+              else: '$companyName'
+            }
+          },
+          rating: { $avg: '$reviews.averageRating' }, // Calculate average rating using $avg
+          reviewCount: { $size: '$reviews' }, // Calculate average rating using $avg
+        
+        }
+      },
+      {
+        $lookup: {
+          from: "job_quotations",
+          localField: "_id",
+          foreignField: "contractor",
+          as: "quotations"
+        }
+      },
+      {
+        $addFields: {
+          avgResponseTime: {
+            $avg: "$quotations.responseTime"
+          }
+        }
+      },
+      {
+        $project: {
+          stripeIdentity: 0,
+          stripeCustomer: 0,
+          stripeAccount: 0,
+          stripePaymentMethods: 0,
+          stripePaymentMethod: 0,
+          passwordOtp: 0,
+          password: 0,
+          emailOtp: 0,
+          dateOfBirth: 0,
+          reviews: 0,
+          onboarding: 0,
+          "quotations": 0,
+          "stats": 0,
+          quizzes: 0,
+          questions: 0,
+          latestQuiz: 0
+
+        }
+      },
+
+    ];
+
+
   
-      return res.json({success: true, message: "Contractors retrieved", data: ""});
-      
-    } catch (err: any) {
-      // signup error
-      res.status(500).json({ message: err.message });
+
+      //example filter out who do not have stripe account
+      // pipeline.push({ $match: { "stripeAccountStatus.status": 'active' } })
+
+
+     //example filter out employees and contractors 
+     pipeline.push({ $match: { accountType: { $ne: CONTRACTOR_TYPES.Employee } } })
+
+    // Add stages conditionally based on query parameters
+    if (searchName) {
+      pipeline.push({ $match: { "name": { $regex: new RegExp(searchName, 'i') } } });
     }
+   
+
+    if (category) {
+      pipeline.push({ $match: { "profile.skill": { $regex: new RegExp(category, 'i') } } });
+    }
+    if (country) {
+      pipeline.push({ $match: { "profile.location.country": { $regex: new RegExp(country, 'i') } } });
+    }
+    if (city) {
+      pipeline.push({ $match: { "profile.location.city": { $regex: new RegExp(city, 'i') } } });
+    }
+    if (address) {
+      pipeline.push({ $match: { "profile.location.address": { $regex: new RegExp(address, 'i') } } });
+    }
+    if (gstStatus) {
+      pipeline.push({ $match: { "gstDetails.status": gstStatus } });
+    }
+    if (accountType) {
+      pipeline.push({ $match: { "accountType": accountType } });
+    }
+    if (hasPassedQuiz) {
+      pipeline.push({ $match: { "quiz.passed": hasPassedQuiz === "true" || null  } });
+    }
+    if (stripeAccountStatus) {
+      pipeline.push({ $match: { "stripeAccountStatus.status": stripeAccountStatus} })
+    }
+    if (experienceYear) {
+      pipeline.push({ $match: { "profile.experienceYear": parseInt(experienceYear) } });
+    }
+    if (emergencyJobs !== undefined) {
+      pipeline.push({ $match: { "profile.emergencyJobs": emergencyJobs === "true" } });
+    }
+    if (isOffDuty !== undefined) {
+      pipeline.push({ $match: { "profile.isOffDuty": isOffDuty === "true" || null } });
+    }
+    if (gstNumber) {
+      pipeline.push({ $match: { "profile.gstNumber": gstNumber } });
+    }
+
+    if (availableDays) {
+      pipeline.push({ $match: { "profile.availableDays": { $in: availableDaysArray } } });
+    }
+    if (radius) {
+      pipeline.push({ $match: { "distance": { $lte: parseInt(radius) } } });
+    }
+
+    if (minDistance !== undefined) {
+      pipeline.push({ $match: { "distance": { $gte: parseInt(minDistance) } } });
+    }
+
+    if (maxDistance !== undefined) {
+      pipeline.push({ $match: { "distance": { $lte: parseInt(maxDistance) } } });
+    }
+
+
+    if (minResponseTime !== undefined) {
+      minResponseTime = minResponseTime * 1000
+      pipeline.push({ $match: { "avgResponseTime": { $gte: parseInt(minResponseTime) } } });
+    }
+
+    if (maxResponseTime !== undefined) {
+      maxResponseTime = maxResponseTime * 1000
+      pipeline.push({ $match: { "avgResponseTime": { $lte: parseInt(maxResponseTime) } } });
+    }
+
+    // if (sortByResponseTime !== undefined) {
+    //     const sortOrder = sortByResponseTime === "asc" ? 1 : -1;
+    //     pipeline.push({ $sort: { avgResponseTime: sortOrder } });
+    // }
+
+
+    if (sort) {
+      const [sortField, sortOrder] = sort.startsWith('-') ? [sort.slice(1), -1] : [sort, 1];
+      const sortStage: PipelineStage = {
+        //@ts-ignore
+        $sort: { [sortField]: sortOrder }
+      };
+      pipeline.push(sortStage);
+    }
+
+
+    switch (listing) {
+      case 'recommended':
+        // Logic to fetch recommended contractors
+        // pipeline.push(
+        //     { $match: { rating: { $gte: 4.5 } } }, // Fetch contractors with rating >= 4.5
+        //     { $sort: { rating: -1 } } // Sort by rating in descending order
+        // );
+        pipeline.push(
+          { $sample: { size: 10 } } // Randomly sample 10 contractors
+        );
+        break;
+      case 'top-rated':
+        // Logic to fetch top-rated contractors
+        // pipeline.push(
+        //     { $match: { rating: { $exists: true } } }, // Filter out contractors with no ratings
+        //     { $sort: { rating: -1 } } // Sort by rating in descending order
+        // );
+
+        pipeline.push({ $match: { averageRating: { $exists: true } } });
+
+        break;
+      case 'featured':
+        // Logic to fetch featured contractors
+        pipeline.push(
+          { $match: { isFeatured: true } } // Filter contractors marked as featured
+        );
+        break;
+      default:
+        // Default logic if type is not specified or invalid
+        // You can handle this case based on your requirements
+        break;
+    }
+
+
+    // Add $facet stage for pagination
+    pipeline.push({
+      $facet: {
+        metadata: [
+          { $count: "totalItems" },
+          { $addFields: { page, limit, currentPage: parseInt(page), lastPage: { $ceil: { $divide: ["$totalItems", parseInt(limit)] } }, listing } }
+        ],
+        data: [{ $skip: skip }, { $limit: parseInt(limit) }]
+      }
+    });
+
+    // Execute pipeline
+    const result = await ContractorModel.aggregate(pipeline);
+    const contractors = result[0].data;
+    const metadata = result[0].metadata[0];
+
+    // Send response
+    res.status(200).json({ success: true, data: { ...metadata, data: contractors } });
+
+  } catch (err: any) {
+    console.error("Error fetching contractors:", err);
+    res.status(400).json({ message: 'Something went wrong' });
+  }
 }
 
+
+
 //get  single contractor detail /////////////
-export const AdminGetSingleContractorDetailController = async (
+export const getSingleContractor = async (
   req: any,
   res: Response,
 ) => {
@@ -58,95 +324,175 @@ export const AdminGetSingleContractorDetailController = async (
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const admin =  req.admin;
+    const admin = req.admin;
     const adminId = admin.id
 
-    const contractor = await ContractorModel.findOne({_id: contractorId})
-    .select('-password').populate('profile');
+    const contractor = await ContractorModel.findOne({ _id: contractorId })
+      .select('-password').populate('profile');
 
     if (!contractor) {
       return res
         .status(401)
-        .json({ message: "invalid artisan ID" });
+        .json({ message: "Contractor not found" });
     }
 
-    const job = await JobModel.find({contractor: contractor._id}).sort({ createdAt: -1 }).populate("customer")
+    const job = await JobModel.find({ contractor: contractor._id }).sort({ createdAt: -1 }).populate("customer", "profile")
 
-    const profile = await ContractorProfileModel.find({contractor: contractor._id})
+    contractor.onboarding = await contractor.getOnboarding()
+    const quiz = await contractor.quiz;
+    contractor.stats = await contractor.getStats();
 
-    res.json({ 
-      contractor, 
-      job,
-      profile
-    });
-    
+
+    return res.json({ status: false, message: "Contractor retrieved", contractor });
+
   } catch (err: any) {
-    // signup error
     res.status(500).json({ message: err.message });
   }
 }
 
 
-//admin change contractor gst status  /////////////
-export const AdminChangeContractorGstStatusController = async (
+export const getJobHistory = async (req: any, res: Response, next: NextFunction) => {
+  const contractorId = req.params.contractorId;
+
+  try {
+    let {
+      type,
+      page = 1, // Default to page 1
+      limit = 10, // Default to 10 items per page
+      sort = '-createdAt', // Sort field and order (-fieldName or fieldName)
+      customerId
+    } = req.query;
+
+
+
+
+    // Retrieve the quotations for the current contractor and extract job IDs
+    const quotations = await JobQuotationModel.find({ contractor: contractorId }).select('job').lean();
+
+    // Extract job IDs from the quotations
+    const jobIds = quotations.map((quotation: any) => quotation.job);
+
+    if (customerId) {
+      if (!mongoose.Types.ObjectId.isValid(customerId)) {
+        return res.status(400).json({ success: false, message: 'Invalid customer id' });
+      }
+      req.query.customer = customerId
+      delete req.query.customerId
+    }
+
+    // Query JobModel to find jobs that have IDs present in the extracted jobIds
+    const { data, error } = await applyAPIFeature(
+      JobModel.find({
+        $or: [
+          { _id: { $in: jobIds } }, // Match jobs specified in jobIds
+          { contractor: contractorId }, // Match jobs with contractorId
+          { 'assignment.contractor': contractorId }
+        ]
+      }).distinct('_id'),
+      req.query);
+    if (data) {
+      // Map through each job and attach myQuotation if contractor has applied 
+      await Promise.all(data.data.map(async (job: any) => {
+        if (job.isAssigned) {
+          job.myQuotation = await job.getMyQoutation(job.contractor)
+        } else {
+          job.myQuotation = await job.getMyQoutation(contractorId)
+        }
+      }));
+    }
+
+    if (error) {
+      return next(new BadRequestError('Unknown error occurred', error as any));
+    }
+
+    // Send response with job listings data
+    res.status(200).json({ success: true, data: data });
+  } catch (error: any) {
+    return next(new BadRequestError('An error occurred', error));
+  }
+};
+
+
+
+export const getSingleJob = async (req: any, res: Response, next: NextFunction) => {
+  try {
+
+    const contractorId = req.params.id
+    const jobId = req.params.jobId;
+
+    const job = await JobModel.findOne({
+      $or: [
+        { contractor: contractorId },
+        { 'assignment.contractor': contractorId }
+      ], _id: jobId
+    }).populate(['contractor', 'contract', 'customer', 'assignment.contractor']);
+
+    // Check if the job exists
+    if (!job) {
+      return res.status(404).json({ success: false, message: 'Job not found' });
+    }
+
+
+    let responseData: any = { ...job.toJSON() };
+    responseData.dispute = await JobDisputeModel.findOne({ job: job.id });
+    responseData.jobDay = await job.getJobDay()
+
+
+    // If the job exists, return it as a response
+    res.json({ success: true, message: 'Job retrieved', data: responseData });
+  } catch (error: any) {
+    return next(new BadRequestError('An error occurred ', error))
+  }
+};
+
+
+
+export const updateGstDetails = async (
   req: any,
   res: Response,
 ) => {
 
+
+
   try {
-    let {  
-     gstStatus,
-     contractorId,
-     reason
+    const {
+      gstStatus,
+      gstName,
+      gstNumber,
+      gstType,
+      backgroundCheckConsent,
+      status,
+      gstCertificate,
+      reason = "Not Specified"
     } = req.body;
+
+    const contractorId = req.params.contractorId
+    const adminId = req.admin.id
 
     // Check for validation errors
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({ success: false, message: "Validation error occurred", errors: errors.array() });
     }
 
-    reason = reason || '';
-
-    // const admin =  req.admin;
-    const adminId = req.admin.id
-
-    const admin = await AdminRegModel.findOne({_id: adminId})
-
-    if (!admin) {
-      return res
-        .status(401)
-        .json({ message: "invalid admin ID" });
+    if (!mongoose.isValidObjectId(contractorId)) {
+      return res.status(400).json({ success: false, message: "Invalid contractor Id supplied" });
     }
 
-    const contractor = await ContractorModel.findOne({_id: contractorId})
+    const contractor = await ContractorModel.findById(contractorId)
 
     if (!contractor) {
       return res
         .status(401)
-        .json({ message: "invalid contractor ID" });
+        .json({ message: "Contractor not found" });
     }
 
-    // const superAdmin = await AdminRegModel.findOne({superAdmin: true})
-
-    // if (!superAdmin) {
-    //   return res
-    //     .status(401)
-    //     .json({ message: "no super admin found" });
-    // }
-
-
-    // contractor.gstDetails.gstOtp = otp;
-    // contractor.gstDetails.gstOtpStatus = GST_OTP_STATUS.REQUEST;
-    // contractor.gstDetails.gstOtpTime = createdTime;
-    // contractor.gstDetails.gstOtpRquestBy = admin._id;
-    // contractor.gstDetails.gstOtpRquestType = gstStatus;
 
     if (reason === '' && gstStatus === GST_STATUS.DECLINED) {
       return res
         .status(401)
-        .json({ message: "please provide reason for declinig contractor" });
+        .json({ message: "please provide reason for declining contractor" });
     }
 
     const createdTime = new Date()
@@ -155,22 +501,22 @@ export const AdminChangeContractorGstStatusController = async (
     contractor.gstDetails.approvedBy = adminId;
     contractor.gstDetails.approvedAt = createdTime;
     contractor.gstDetails.statusReason = reason;
+
+    contractor.gstDetails.gstName = gstName ?? contractor.gstDetails.gstName;
+    contractor.gstDetails.gstType = gstType ?? contractor.gstDetails.gstType;
+    contractor.gstDetails.gstCertificate = gstCertificate ?? contractor.gstDetails.gstCertificate;
+    contractor.gstDetails.backgroundCheckConsent = backgroundCheckConsent ?? contractor.gstDetails.backgroundCheckConsent;
     await contractor.save()
 
-    // const html = htmlAdminRquestGstStatuChangeTemplate(admin.firstName, contractor.firstName, contractor.email, otp, gstStatus);
 
-    // let emailData = {
-    //     emailTo: superAdmin.email,
-    //     subject: "GST Status Change Requst",
-    //     html
-    // };
 
-    // sendEmail(emailData);
+    // TODO: Send email to contractor
 
-    res.json({  
-      message: `contractor gst status successfully change to ${gstStatus}`
+    return res.json({
+      success: true,
+      message: `Contractor gst status successfully changed to ${gstStatus}`
     });
-    
+
   } catch (err: any) {
     // signup error
     res.status(500).json({ message: err.message });
@@ -178,276 +524,55 @@ export const AdminChangeContractorGstStatusController = async (
 }
 
 
-//admin get contractor gst that is pending /////////////
-export const AdminGetContractorGstPendingController = async (
+export const sendCustomEmail = async (
   req: any,
   res: Response,
 ) => {
 
+
+
   try {
-    let {  
-      page,
-      limit
-    } = req.query
+    const {
+      subject,
+      htmlContent
+    } = req.body;
+
+    const contractorId = req.params.contractorId
+    const adminId = req.admin.id
 
     // Check for validation errors
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({ success: false, message: "Validation error occurred", errors: errors.array() });
     }
 
-    const admin =  req.admin;
-    const adminId = admin.id
-
-    page = page || 1;
-    limit = limit || 50;
-
-    const skip = (page - 1) * limit;
-
-    const contractor = await ContractorModel.find({
-      "gstDetails.status": GST_STATUS.PENDING
-    }).skip(skip)
-    .limit(limit)
-    .populate('profile');
-
-    const totalContractor = await ContractorModel.countDocuments({
-      "gstDetails.status": GST_STATUS.PENDING
-    })
-  
-    res.json({  
-      currentPage: page,
-      totalContractor,
-      totalPages: Math.ceil(totalContractor / limit),
-      contractor
-    });
-    
-  } catch (err: any) {
-    // signup error
-    res.status(500).json({ message: err.message });
-  }
-}
-
-
-//admin get contractor gst that is approve /////////////
-export const AdminGetContractorGstApproveController = async (
-  req: any,
-  res: Response,
-) => {
-  try {
-    let {  
-      page,
-      limit
-    } = req.query
-
-    // Check for validation errors
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+    if (!mongoose.isValidObjectId(contractorId)) {
+      return res.status(400).json({ success: false, message: "Invalid contractor Id supplied" });
     }
 
-    const admin =  req.admin;
-    const adminId = admin.id
-
-    page = page || 1;
-    limit = limit || 50;
-
-    const skip = (page - 1) * limit;
-
-    const contractor = await ContractorModel.find({
-      "gstDetails.status": GST_STATUS.APPROVED
-    }).skip(skip)
-    .limit(limit)
-    .populate('profile');
-
-    const totalContractor = await ContractorModel.countDocuments({
-      "gstDetails.status": GST_STATUS.APPROVED
-    })
-  
-  
-    res.json({  
-      currentPage: page,
-      totalContractor,
-      totalPages: Math.ceil(totalContractor / limit),
-      contractor
-    });
-    
-  } catch (err: any) {
-    // signup error
-    res.status(500).json({ message: err.message });
-  }
-}
-
-//admin get contractor gst that is Reviewing /////////////
-export const AdminGetContractorGstReviewingController = async (
-  req: any,
-  res: Response,
-) => {
-
-  try {
-    let {  
-      page,
-      limit
-    } = req.query
-
-    // Check for validation errors
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
-    const admin =  req.admin;
-    const adminId = admin.id
-
-    page = page || 1;
-    limit = limit || 50;
-
-    const skip = (page - 1) * limit;
-
-    const contractor = await ContractorModel.find({
-      "gstDetails.status": GST_STATUS.REVIEWING
-    }).skip(skip)
-    .limit(limit)
-    .populate('profile');
-
-    const totalContractor = await ContractorModel.countDocuments({
-      "gstDetails.status": GST_STATUS.REVIEWING
-    })
-  
-  
-    res.json({  
-      currentPage: page,
-      totalContractor,
-      totalPages: Math.ceil(totalContractor / limit),
-      contractor
-    });
-    
-  } catch (err: any) {
-    // signup error
-    res.status(500).json({ message: err.message });
-  }
-}
-
-//admin get contractor gst that is Decline /////////////
-export const AdminGetContractorGstDecliningController = async (
-  req: any,
-  res: Response,
-) => {
-
-  try {
-    let {  
-      page,
-      limit
-    } = req.query
-
-    // Check for validation errors
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
-    const admin =  req.admin;
-    const adminId = admin.id
-
-    page = page || 1;
-    limit = limit || 50;
-
-    const skip = (page - 1) * limit;
-
-    const contractor = await ContractorModel.find({
-      "gstDetails.status": GST_STATUS.DECLINED
-    }).skip(skip)
-    .limit(limit)
-    .populate('profile');
-
-    const totalContractor = await ContractorModel.countDocuments({
-      "gstDetails.status": GST_STATUS.DECLINED
-    })
-    res.json({  
-      currentPage: page,
-      totalContractor,
-      totalPages: Math.ceil(totalContractor / limit),
-      contractor
-    });
-    
-  } catch (err: any) {
-    // signup error
-    res.status(500).json({ message: err.message });
-  }
-}
-
-//get  single contractor job detail /////////////
-export const AdminGetSingleContractorJonDetailController = async (
-  req: any,
-  res: Response,
-) => {
-
-  try {
-    const { contractorId } = req.params;
-    let {  
-      page,
-      limit
-     } = req.query;
-
-    // Check for validation errors
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
-    const admin =  req.admin;
-    const adminId = admin.id
-
-    page = page || 1;
-    limit = limit || 50;
-
-    const contractor = await ContractorModel.findOne({_id: contractorId})
-    .select('-password').populate('profile');
+    const contractor = await ContractorModel.findById(contractorId)
 
     if (!contractor) {
       return res
         .status(401)
-        .json({ message: "invalid artisan ID" });
-    }
-
-    const skip = (page - 1) * limit;
-
-    const jobsDetails = await JobModel.find({contractor: contractorId})
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit)
-    .populate(['customer', 'contractor', 'quotation']);
-
-    const totalJob = await JobModel.countDocuments({contractor: contractorId})
-
-    let jobs = []
-    for (let i = 0; i < jobsDetails.length; i++) {
-      const jobsDetail = jobsDetails[i];
-
-      const invoice = await InvoiceModel.findOne({jobId: jobsDetail._id})
-      if (!invoice) continue
-
-      const obj = {
-        jobsDetail,
-        invoice
-      }
-
-      jobs.push(obj)
-      
+        .json({ message: "Contractor not found" });
     }
 
 
-    res.json({ 
-      currentPage: page,
-      totalJob,
-      totalPages: Math.ceil(totalJob / limit),
-      jobs: jobsDetails,
+    let emailSubject = subject
+    let emailContent = htmlContent
+    let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
+    EmailService.send(contractor.email, emailSubject, html)
+
+
+
+
+    return res.json({
+      success: true,
+      message: `Email sent successfully changed to ${contractor.email}`
     });
-    
+
   } catch (err: any) {
     // signup error
     res.status(500).json({ message: err.message });
@@ -455,16 +580,69 @@ export const AdminGetSingleContractorJonDetailController = async (
 }
 
 
-//admin change contractor account status  /////////////
+export const updateAccountStatus = async (
+  req: any,
+  res: Response,
+) => {
+
+
+
+  try {
+    const {
+      status,
+    } = req.body;
+
+    const contractorId = req.params.contractorId
+    const adminId = req.admin.id
+
+    // Check for validation errors
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, message: "Validation error occurred", errors: errors.array() });
+    }
+
+    if (!mongoose.isValidObjectId(contractorId)) {
+      return res.status(400).json({ success: false, message: "Invalid contractor Id supplied" });
+    }
+
+    const contractor = await ContractorModel.findById(contractorId)
+
+    if (!contractor) {
+      return res
+        .status(401)
+        .json({ message: "Contractor not found" });
+    }
+
+
+    contractor.gstDetails.status = status;
+    await contractor.save()
+
+
+
+    // TODO: Send email to contractor
+
+    return res.json({
+      success: true,
+      message: `Contractor status successfully changed to ${status}`
+    });
+
+  } catch (err: any) {
+    // signup error
+    res.status(500).json({ message: err.message });
+  }
+}
+
+
 export const AdminChangeContractorAccountStatusController = async (
   req: any,
   res: Response,
 ) => {
 
   try {
-    let {  
-     status,
-     contractorId,
+    let {
+      status,
+      contractorId,
     } = req.body;
 
     // Check for validation errors
@@ -477,7 +655,7 @@ export const AdminChangeContractorAccountStatusController = async (
     // const admin =  req.admin;
     const adminId = req.admin.id
 
-    const admin = await AdminRegModel.findOne({_id: adminId})
+    const admin = await AdminRegModel.findOne({ _id: adminId })
 
     if (!admin) {
       return res
@@ -485,7 +663,7 @@ export const AdminChangeContractorAccountStatusController = async (
         .json({ message: "Invalid admin ID" });
     }
 
-    const contractor = await ContractorModel.findOne({_id: contractorId})
+    const contractor = await ContractorModel.findOne({ _id: contractorId })
 
     if (!contractor) {
       return res
@@ -496,10 +674,10 @@ export const AdminChangeContractorAccountStatusController = async (
     contractor.status = status;
     await contractor.save()
 
-    res.json({  
+    res.json({
       message: `Contractor account status successfully change to ${status}`
     });
-    
+
   } catch (err: any) {
     // signup error
     res.status(500).json({ message: err.message });
@@ -507,14 +685,69 @@ export const AdminChangeContractorAccountStatusController = async (
 }
 
 
-export const AdminContractorDetail = {
-  getContractors,
-  AdminGetSingleContractorDetailController,
-  AdminChangeContractorGstStatusController,
-  AdminGetContractorGstPendingController,
-  AdminGetContractorGstReviewingController,
-  AdminGetContractorGstApproveController,
-  AdminGetContractorGstDecliningController,
-  AdminGetSingleContractorJonDetailController,
-  AdminChangeContractorAccountStatusController
+export const removeStripeAccount = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+
+  try {
+
+    const { contractorId } = req.params;
+    const contractor = await ContractorModel.findById(contractorId);
+    if (!contractor) {
+      return res.status(404).json({ success: false, message: 'Contractor not found' });
+    }
+    //@ts-ignore
+    contractor.stripeAccount = null
+    await contractor.save()
+
+    return res.json({ success: true, message: 'Stripe account  removed', data: contractor });
+  } catch (error: any) {
+    return next(new InternalServerError('Error removing stripe account', error))
+  }
+
+}
+
+
+export const attachStripeAccount = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+
+  try {
+
+    const { stripeAccountId } = req.body;
+    const { contractorId } = req.params;
+    const contractor = await ContractorModel.findById(contractorId);
+    if (!contractor) {
+      return res.status(404).json({ success: false, message: 'Contractor not found' });
+    }
+
+    const account: unknown = await StripeService.account.getAccount(stripeAccountId); //acct_1P4N6NRdmDaBvbML ,acct_1P7XvFRZlKifQSOs
+    const stripeAccount = castPayloadToDTO(account, account as IStripeAccount)
+    contractor.stripeAccount = stripeAccount
+    await contractor.save()
+    return res.json({ success: true, message: 'Stripe account  attached', data: contractor });
+  } catch (error: any) {
+    return next(new InternalServerError(`Error attaching stripe account: ${error.message}`, error))
+  }
+
+}
+
+
+
+
+export const AdminContractorController = {
+  exploreContractors,
+  removeStripeAccount,
+  attachStripeAccount,
+  getSingleContractor,
+  getJobHistory,
+  getSingleJob,
+  updateGstDetails,
+  updateAccountStatus,
+  sendCustomEmail
+
 }

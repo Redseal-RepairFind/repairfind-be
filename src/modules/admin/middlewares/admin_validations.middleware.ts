@@ -45,12 +45,24 @@ export const validateCustomerIdValidationParams = [
     query("customerId").notEmpty(),
 ];
 
-export const validateContractorChangeStatusValidationParams = [
-    body("contractorId").notEmpty(),
+export const updateGstDetails = [
     body("gstStatus")
     .isIn(["PENDING", "REVIEWING", "APPROVED", "DECLINED"])
     .withMessage("gstStatus must be PENDING, REVIEWING, APPROVED, or DECLINED"),
 ];
+
+
+export const updateAccount = [
+    body("status")
+    .isIn(["PENDING", "REVIEWING", "REJECTED", "SUSPENDED", "BLACKLISTED", "APPROVED", "DECLINED"])
+    .withMessage("gstStatus must be PENDING, REVIEWING, APPROVED, or DECLINED"),
+];
+
+export const sendCustomEmail = [
+    body("subject").notEmpty(),
+    body("htmlContent").notEmpty()
+];
+
 
 export const validateContractoDocumentIdValidationParams = [
     body("contractorDocsId").notEmpty(),
@@ -209,5 +221,8 @@ export const Validations = {
     ContractorChangeStatusParams,
     CustomerChangeStatusParams,
     StartCoversaionParams,
-    sendMessageParams
+    sendMessageParams,
+    updateGstDetails,
+    updateAccount,
+    sendCustomEmail
 }

@@ -93,7 +93,7 @@ export enum CONTRACTOR_BADGE {
   TRAINING = "TRAINING",
   VERIFIED = "VERIFIED",
   EXPERIENCED = "EXPERIENCED",
-  TOP_RATED = "TOP RATED",
+  TOP_RATED = "TOP_RATED",
   SPECIALIST = "SPECIALIST",
 }
 
@@ -196,13 +196,14 @@ export interface IContractor extends Document {
     hasPassedQuiz: boolean
     stage: number
   };
-  stats: {formattedResponseTime?: any, responseTime?: any, jobsCompleted?: any, jobsCanceled?: any,  jobsPending?: any};
+  stats: {formattedResponseTime?: any, responseTime?: any, jobsCompleted?: any, jobsCanceled?: any,  jobsPending?: any, jobsTotal?: any};
 
-  getStats: () => {
+  getStats: (contractor?:any) => {
     formattedResponseTime: any,
     responseTime: any,
     jobsDone: any,
     jobsCanceled: any,
+    jobsTotal: any,
   };
 
 

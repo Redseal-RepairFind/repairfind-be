@@ -81,7 +81,8 @@ class JobQueue {
     this.addJob('expireJobs', {}, { repeat: { every: 7200000 } });
     this.addJob('handleEscrowTransfer', {}, { repeat: { every: 600000 } });
     // this.addJob('jobDayScheduleCheck', {}, { repeat: { cron: '0 0 * * *', tz: 'America/Los_Angeles',} }); //America/Los_Angeles
-    this.addJob('jobDayScheduleCheck', {}, { repeat: { cron: '* * * * *'} }); //America/Los_Angeles
+    this.addJob('jobDayScheduleCheck', {}, { repeat: { cron: '* * * * *'} }); //every minute
+    this.addJob('quizReminderCheck', {}, { repeat: { cron: '0 0 */4 * *'} }); //4 days
   }
 
   public getQueue(queueName: string): Queue | undefined {
