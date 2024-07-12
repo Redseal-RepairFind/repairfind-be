@@ -74,6 +74,7 @@ var MessageType;
     MessageType["AUDIO"] = "AUDIO";
     MessageType["VIDEO"] = "VIDEO";
     MessageType["IMAGE"] = "IMAGE";
+    MessageType["FILE"] = "FILE";
 })(MessageType || (exports.MessageType = MessageType = {}));
 var MediaSchema = new mongoose_1.Schema({
     url: {

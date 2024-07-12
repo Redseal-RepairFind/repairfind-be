@@ -497,12 +497,12 @@ var hideJobListing = function (req, res, next) { return __awaiter(void 0, void 0
 }); };
 exports.hideJobListing = hideJobListing;
 var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var jobId, contractorId, _a, startDate, endDate, siteVisit, _b, estimates, errors, _c, contractor, job, customer, previousQuotation, appliedQuotationsCount, quotation, scheduleStartDate, scheduleEndDate, scheduleSiteVisitDate, jobQuotation_1, siteVisitEstimate, jobCreationTime, quotationTime, responseTimeJob, err_1;
+    var jobId, contractorId, _a, startDate, endDate, siteVisit, _b, estimates, errors, _c, contractor, job, customer, previousQuotation, appliedQuotationsCount, quotation, scheduleStartDate, scheduleEndDate, scheduleSiteVisitDate, jobQuotation_1, siteVisitEstimate, jobCreationTime, quotationTime, responseTimeJob, conversationMembers, conversation, message, err_1;
     var _d, _e;
     return __generator(this, function (_f) {
         switch (_f.label) {
             case 0:
-                _f.trys.push([0, 9, , 10]);
+                _f.trys.push([0, 11, , 12]);
                 jobId = req.params.jobId;
                 contractorId = req.contractor.id;
                 _a = req.body, startDate = _a.startDate, endDate = _a.endDate, siteVisit = _a.siteVisit, _b = _a.estimates, estimates = _b === void 0 ? [] : _b;
@@ -590,20 +590,48 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                 _f.sent();
                 return [4 /*yield*/, jobQuotation_1.save()
                     // Do other actions such as sending emails or notifications...
+                    // Create or update conversation
                 ];
             case 8:
                 _f.sent();
-                // Do other actions such as sending emails or notifications...
+                conversationMembers = [
+                    { memberType: 'customers', member: job.customer },
+                    { memberType: 'contractors', member: contractorId }
+                ];
+                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
+                        $and: [
+                            { members: { $elemMatch: { member: job.customer } } }, // memberType: 'customers'
+                            { members: { $elemMatch: { member: contractorId } } } // memberType: 'contractors'
+                        ]
+                    }, {
+                        members: conversationMembers,
+                        // lastMessage: 'I have accepted your Job request', // Set the last message to the job description
+                        // lastMessageAt: new Date() // Set the last message timestamp to now
+                    }, { new: true, upsert: true })];
+            case 9:
+                conversation = _f.sent();
+                message = new messages_schema_1.MessageModel({
+                    conversation: conversation === null || conversation === void 0 ? void 0 : conversation._id,
+                    sender: contractorId,
+                    receiver: job.customer,
+                    message: "Job estimate submitted",
+                    messageType: messages_schema_1.MessageType.FILE,
+                    entity: jobQuotation_1.id,
+                    entityType: 'quotations'
+                });
+                return [4 /*yield*/, message.save()];
+            case 10:
+                _f.sent();
                 res.json({
                     success: true,
                     message: "Job quotation successfully sent",
                     data: jobQuotation_1
                 });
-                return [3 /*break*/, 10];
-            case 9:
+                return [3 /*break*/, 12];
+            case 11:
                 err_1 = _f.sent();
                 return [2 /*return*/, next(new custom_errors_1.InternalServerError('Error sending job quotation', err_1))];
-            case 10: return [2 /*return*/];
+            case 12: return [2 /*return*/];
         }
     });
 }); };

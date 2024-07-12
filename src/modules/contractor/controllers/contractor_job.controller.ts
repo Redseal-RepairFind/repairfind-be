@@ -547,11 +547,46 @@ export const sendJobQuotation = async (
 
 
     jobQuotation.responseTime = responseTimeJob
+    
 
     // Save changes to the job
     await job.save();
     await jobQuotation.save()
     // Do other actions such as sending emails or notifications...
+
+    // Create or update conversation
+    const conversationMembers = [
+      { memberType: 'customers', member: job.customer },
+      { memberType: 'contractors', member: contractorId }
+    ];
+    const conversation = await ConversationModel.findOneAndUpdate(
+      {
+        $and: [
+          { members: { $elemMatch: { member: job.customer } } }, // memberType: 'customers'
+          { members: { $elemMatch: { member: contractorId } } } // memberType: 'contractors'
+        ]
+      },
+
+      {
+        members: conversationMembers,
+        // lastMessage: 'I have accepted your Job request', // Set the last message to the job description
+        // lastMessageAt: new Date() // Set the last message timestamp to now
+      },
+      { new: true, upsert: true });
+
+
+    // Send a message to the customer
+    const message = new MessageModel({
+      conversation: conversation?._id,
+      sender: contractorId,
+      receiver: job.customer,
+      message: "Job estimate submitted",
+      messageType: MessageType.FILE,
+      entity: jobQuotation.id,
+      entityType: 'quotations'
+    });
+    await message.save();
+
 
     res.json({
       success: true,
