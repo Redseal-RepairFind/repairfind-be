@@ -587,7 +587,8 @@ export const sendJobQuotation = async (
       payload: {
         job: job.id,
         quotation: jobQuotation.id,
-        quotationType: jobQuotation.type
+        quotationType: jobQuotation.type,
+        JobType: job.type
       }
     });
     await message.save();

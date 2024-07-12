@@ -621,7 +621,8 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                     payload: {
                         job: job.id,
                         quotation: jobQuotation_1.id,
-                        quotationType: jobQuotation_1.type
+                        quotationType: jobQuotation_1.type,
+                        JobType: job.type
                     }
                 });
                 return [4 /*yield*/, message.save()];
