@@ -432,7 +432,7 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId,  contracto
                 userType: 'customers',
                 title: 'Job Booked',
                 type: 'JOB_BOOKED', // Conversation, Conversation_Notification
-                message: `You have booked a job`,
+                message: `You have booked a job on Repairfind`,
                 heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
                 payload: {
                     entity: job.id,
@@ -448,9 +448,9 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId,  contracto
             NotificationService.sendNotification({
                 user: contractor.id,
                 userType: 'contractors',
-                title: 'Job Disputed',
+                title: 'Job Booked',
                 type: 'JOB_DISPUTED', //
-                message: `You have a booked job`,
+                message: `You have a booked job on Repairfind`,
                 heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
                 payload: {
                     entity: job.id,

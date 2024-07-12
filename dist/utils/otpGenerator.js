@@ -6,7 +6,7 @@ function generateOTP() {
     var otp = "";
     //const allowedChars =
     //  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-    var allowedChars = "0123456789";
+    var allowedChars = "123456789";
     for (var i = 0; i < 4; i++) {
         otp += allowedChars.charAt(Math.floor(Math.random() * allowedChars.length));
     }

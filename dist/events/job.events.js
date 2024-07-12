@@ -510,7 +510,7 @@ exports.JobEvent.on('JOB_BOOKED', function (payload) {
                         userType: 'customers',
                         title: 'Job Booked',
                         type: 'JOB_BOOKED', // Conversation, Conversation_Notification
-                        message: "You have booked a job",
+                        message: "You have booked a job on Repairfind",
                         heading: { name: "".concat(contractor.name), image: (_a = contractor.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
                         payload: {
                             entity: job.id,
@@ -524,9 +524,9 @@ exports.JobEvent.on('JOB_BOOKED', function (payload) {
                     services_1.NotificationService.sendNotification({
                         user: contractor.id,
                         userType: 'contractors',
-                        title: 'Job Disputed',
+                        title: 'Job Booked',
                         type: 'JOB_DISPUTED', //
-                        message: "You have a booked job",
+                        message: "You have a booked job on Repairfind",
                         heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_b = customer.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
                         payload: {
                             entity: job.id,
