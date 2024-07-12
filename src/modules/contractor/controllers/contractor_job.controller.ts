@@ -582,8 +582,13 @@ export const sendJobQuotation = async (
       receiver: job.customer,
       message: "Job estimate submitted",
       messageType: MessageType.FILE,
-      entity: job.id,
-      entityType: 'jobs'
+      entity: jobQuotation.id,
+      entityType: 'quotations',
+      payload: {
+        job: job.id,
+        quotation: jobQuotation.id,
+        quotationType: jobQuotation.type
+      }
     });
     await message.save();
 

@@ -137,6 +137,9 @@ var MessageSchema = new mongoose_1.Schema({
     entityType: {
         type: String,
     },
+    payload: {
+        type: mongoose_1.Schema.Types.Mixed
+    }
 }, { timestamps: true });
 MessageSchema.methods.getIsOwn = function (loggedInUserId) {
     return __awaiter(this, void 0, void 0, function () {

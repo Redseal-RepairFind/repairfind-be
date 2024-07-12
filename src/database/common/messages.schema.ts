@@ -34,6 +34,7 @@ export interface IMessage extends Document {
     isOwn: Boolean;
     entity?: Types.ObjectId;
     entityType?: string;
+    payload?: object;
     createdAt: Date;
 }
 
@@ -99,6 +100,9 @@ const MessageSchema = new Schema<IMessage>({
     entityType: {
         type: String,
     },
+    payload: {
+        type: Schema.Types.Mixed
+    }
 }, { timestamps: true });
 
 

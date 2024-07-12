@@ -616,8 +616,13 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                     receiver: job.customer,
                     message: "Job estimate submitted",
                     messageType: messages_schema_1.MessageType.FILE,
-                    entity: job.id,
-                    entityType: 'jobs'
+                    entity: jobQuotation_1.id,
+                    entityType: 'quotations',
+                    payload: {
+                        job: job.id,
+                        quotation: jobQuotation_1.id,
+                        quotationType: jobQuotation_1.type
+                    }
                 });
                 return [4 /*yield*/, message.save()];
             case 10:
