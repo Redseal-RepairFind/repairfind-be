@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerJobController = exports.declineJobQuotation = exports.acceptJobQuotation = exports.getSingleQuotation = exports.getJobQuotations = exports.getSingleJob = exports.getJobHistory = exports.getMyJobs = exports.createJobListing = exports.createJobRequest = void 0;
+exports.CustomerJobController = exports.declineJobQuotation = exports.acceptJobQuotation = exports.getSingleQuotation = exports.getQuotation = exports.getJobQuotations = exports.getSingleJob = exports.getJobHistory = exports.getMyJobs = exports.createJobListing = exports.createJobRequest = void 0;
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var jobRequestTemplate_1 = require("../../../templates/contractor/jobRequestTemplate");
@@ -463,8 +463,39 @@ var getJobQuotations = function (req, res, next) { return __awaiter(void 0, void
     });
 }); };
 exports.getJobQuotations = getJobQuotations;
+var getQuotation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var customerId, quotationId, quotation, _a, error_7;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 3, , 4]);
+                customerId = req.customer.id;
+                quotationId = req.params.quotationId;
+                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findById(quotationId).populate([{ path: 'contractor' }])];
+            case 1:
+                quotation = _b.sent();
+                if (!quotation) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Job quotation found' })];
+                }
+                _a = quotation;
+                return [4 /*yield*/, quotation.calculateCharges()
+                    // If the job exists, return its quo as a response
+                ];
+            case 2:
+                _a.charges = _b.sent();
+                // If the job exists, return its quo as a response
+                res.json({ success: true, message: 'Job quotation retrieved', data: quotation });
+                return [3 /*break*/, 4];
+            case 3:
+                error_7 = _b.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_7))];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getQuotation = getQuotation;
 var getSingleQuotation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, _a, jobId, quotationId, quotation, _b, error_7;
+    var customerId, _a, jobId, quotationId, quotation, _b, error_8;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
@@ -485,15 +516,15 @@ var getSingleQuotation = function (req, res, next) { return __awaiter(void 0, vo
                 res.json({ success: true, message: 'Job quotation retrieved', data: quotation });
                 return [3 /*break*/, 4];
             case 3:
-                error_7 = _c.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_7))];
+                error_8 = _c.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_8))];
             case 4: return [2 /*return*/];
         }
     });
 }); };
 exports.getSingleQuotation = getSingleQuotation;
 var acceptJobQuotation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, _a, jobId, quotationId_1, quotation, job, conversationMembers, conversation, newMessage, foundQuotationIndex, contractor, customer, _b, error_8;
+    var customerId, _a, jobId, quotationId_1, quotation, job, conversationMembers, conversation, newMessage, foundQuotationIndex, contractor, customer, _b, error_9;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
@@ -576,15 +607,15 @@ var acceptJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
                 res.json({ success: true, message: 'Job quotation accepted' });
                 return [3 /*break*/, 11];
             case 10:
-                error_8 = _c.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_8))];
+                error_9 = _c.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_9))];
             case 11: return [2 /*return*/];
         }
     });
 }); };
 exports.acceptJobQuotation = acceptJobQuotation;
 var declineJobQuotation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, _a, jobId, quotationId_2, reason, quotation, job, foundQuotationIndex, conversationMembers, conversation, newMessage, contractor, customer, error_9;
+    var customerId, _a, jobId, quotationId_2, reason, quotation, job, foundQuotationIndex, conversationMembers, conversation, newMessage, contractor, customer, error_10;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -659,8 +690,8 @@ var declineJobQuotation = function (req, res, next) { return __awaiter(void 0, v
                 res.json({ success: true, message: 'Job quotation declined' });
                 return [3 /*break*/, 10];
             case 9:
-                error_9 = _b.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_9))];
+                error_10 = _b.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_10))];
             case 10: return [2 /*return*/];
         }
     });
@@ -675,5 +706,6 @@ exports.CustomerJobController = {
     getJobQuotations: exports.getJobQuotations,
     getSingleQuotation: exports.getSingleQuotation,
     acceptJobQuotation: exports.acceptJobQuotation,
-    declineJobQuotation: exports.declineJobQuotation
+    declineJobQuotation: exports.declineJobQuotation,
+    getQuotation: exports.getQuotation
 };

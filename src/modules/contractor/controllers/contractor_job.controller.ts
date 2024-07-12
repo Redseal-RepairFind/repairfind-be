@@ -582,8 +582,8 @@ export const sendJobQuotation = async (
       receiver: job.customer,
       message: "Job estimate submitted",
       messageType: MessageType.FILE,
-      entity: jobQuotation.id,
-      entityType: 'quotations'
+      entity: job.id,
+      entityType: 'jobs'
     });
     await message.save();
 
@@ -693,6 +693,32 @@ export const getQuotationForJob = async (req: any, res: Response, next: NextFunc
   }
 };
 
+
+export const getQuotation = async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const { quotationId } = req.params;
+    const contractorId = req.contractor.id
+
+    // Check if the jobId and contractorId are provided
+    if (!quotationId) {
+      return res.status(400).json({ success: false, message: 'Quotation ID is required' });
+    }
+
+    // Find the job application for the specified job and contractor
+    const jobQuotation = await JobQuotationModel.findById(quotationId);
+
+    // Check if the job application exists
+    if (!jobQuotation) {
+      return res.status(404).json({ success: false, message: 'Quotation not found' });
+    }
+
+    jobQuotation.charges = await jobQuotation.calculateCharges()
+
+    res.status(200).json({ success: true, message: 'Job quotation retrieved successfully', data: jobQuotation });
+  } catch (error: any) {
+    return next(new BadRequestError('An error occurred ', error))
+  }
+};
 
 export const updateJobQuotation = async (req: any, res: Response, next: NextFunction) => {
   try {
@@ -1126,6 +1152,7 @@ export const ContractorJobController = {
   acceptJobRequest,
   sendJobQuotation,
   getQuotationForJob,
+  getQuotation,
   updateJobQuotation,
   getJobListingById,
   getMyJobs,

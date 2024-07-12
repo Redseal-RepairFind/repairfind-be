@@ -454,6 +454,26 @@ export const getJobQuotations = async (req: any, res: Response, next: NextFuncti
     }
 };
 
+
+export const getQuotation = async (req: any, res: Response, next: NextFunction) => {
+    try {
+        const customerId = req.customer.id;
+        const quotationId = req.params.quotationId;
+
+        const quotation = await JobQuotationModel.findById(quotationId).populate([{ path: 'contractor' }])
+        if (!quotation) {
+            return res.status(404).json({ success: false, message: 'Job quotation found' });
+        }
+
+        quotation.charges = await quotation.calculateCharges()
+
+        // If the job exists, return its quo as a response
+        res.json({ success: true, message: 'Job quotation retrieved', data: quotation });
+    } catch (error: any) {
+        return next(new BadRequestError('An error occurred ', error))
+    }
+};
+
 export const getSingleQuotation = async (req: any, res: Response, next: NextFunction) => {
     try {
         const customerId = req.customer.id;
@@ -650,7 +670,8 @@ export const CustomerJobController = {
     getJobQuotations,
     getSingleQuotation,
     acceptJobQuotation,
-    declineJobQuotation
+    declineJobQuotation,
+    getQuotation
 }
 
 

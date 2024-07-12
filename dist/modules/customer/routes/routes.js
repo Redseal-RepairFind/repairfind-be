@@ -60,6 +60,7 @@ router.post("/jobs/:jobId/quotations/:quotationId/decline", customerRoleChecker_
 router.post("/jobs/:jobId/pay", customerRoleChecker_middleware_1.checkCustomerRole, customer_payment_controller_1.CustomerPaymentController.makeJobPayment);
 router.post("/jobs/:jobId/payment-capture", customerRoleChecker_middleware_1.checkCustomerRole, customer_payment_controller_1.CustomerPaymentController.captureJobPayment);
 router.post("/jobs/:jobId/change-order-payment", customerRoleChecker_middleware_1.checkCustomerRole, customer_payment_controller_1.CustomerPaymentController.makeChangeOrderEstimatePayment);
+router.get('/quotations/:quotationId', customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.getQuotation); // 
 // BOOKING
 router.get("/bookings", customerRoleChecker_middleware_1.checkCustomerRole, customer_booking_controller_1.CustomerBookingController.getMyBookings);
 router.get("/bookings/history", customerRoleChecker_middleware_1.checkCustomerRole, customer_booking_controller_1.CustomerBookingController.getBookingHistory);

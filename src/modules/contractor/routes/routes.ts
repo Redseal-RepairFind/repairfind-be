@@ -195,6 +195,7 @@ router.post('/jobs/:jobId/quotations', checkContractorRole, ContractorHttpReques
 router.post('/jobs/:jobId/change-order-estimate', checkContractorRole, ContractorHttpRequest.CreateExtraJobQuotationRequest, ContractorJobController.sendChangeOrderEstimate) // send application and estimate
 router.get('/jobs/:jobId/quotations', checkContractorRole, ContractorJobController.getQuotationForJob) // send application and estimate
 router.patch('/jobs/:jobId/quotations', checkContractorRole,ContractorHttpRequest.CreateJobQuotationRequest, ContractorJobController.updateJobQuotation) // send application and estimate
+router.get('/quotations/:quotationId', checkContractorRole, ContractorJobController.getQuotation) // 
 
 
 
