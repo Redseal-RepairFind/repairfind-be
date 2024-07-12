@@ -160,7 +160,7 @@ export const createJobRequest = async (
 
 
         JobEvent.emit('NEW_JOB_REQUEST', { jobId: newJob.id, contractorId, customerId, conversationId: conversation.id })
-        const html = htmlJobRequestTemplate(customer.firstName, customer.firstName, `${date}`, description)
+        const html = htmlJobRequestTemplate(customer.firstName, customer.firstName, `${newJob.date}`, description)
         EmailService.send(contractor.email, 'Job request from customer', html)
 
 
