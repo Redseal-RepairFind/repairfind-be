@@ -17,6 +17,8 @@ export async function sendPushNotifications(pushTokens: string[], message: any):
       // _displayInForeground: true // Ensures the notification is displayed in foreground
     }));
 
+  Logger.info(`Push Notifications: Message ${message}, Tokens ${pushTokens}`);
+
   // Split messages into chunks to send in batches
   const chunks = expo.chunkPushNotifications(messages);
   const tickets: ExpoPushTicket[] = [];
@@ -26,7 +28,6 @@ export async function sendPushNotifications(pushTokens: string[], message: any):
     try {
       const ticketChunk = await expo.sendPushNotificationsAsync(chunk);
       tickets.push(...ticketChunk);
-      Logger.info(`Nofication sent ${chunk}`);
     } catch (error) {
       Logger.error(error);
     }
