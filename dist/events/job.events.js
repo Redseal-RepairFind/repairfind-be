@@ -188,7 +188,12 @@ exports.JobEvent.on('NEW_JOB_LISTING', function (payload) {
                         type: 'NEW_JOB_LISTING',
                         icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
                         body: 'There is a new job listing  that match your profile',
-                        data: {},
+                        data: {
+                            entity: job.id,
+                            entityType: 'jobs',
+                            message: "There is a new job listing  that match your profile",
+                            event: 'NEW_JOB_LISTING',
+                        }
                     });
                     _a.label = 4;
                 case 4: return [3 /*break*/, 6];
