@@ -17,7 +17,7 @@ export async function sendPushNotifications(pushTokens: string[], message: any):
       // _displayInForeground: true // Ensures the notification is displayed in foreground
     }));
 
-  Logger.info(`Push Notifications: Message ${message}, Tokens ${pushTokens}`);
+  Logger.info(`Push Notifications: Message ${JSON.stringify(message)}, Tokens ${JSON.stringify(pushTokens)}`);
 
   // Split messages into chunks to send in batches
   const chunks = expo.chunkPushNotifications(messages);
