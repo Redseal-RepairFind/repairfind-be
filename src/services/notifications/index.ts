@@ -51,7 +51,7 @@ export class NotificationService  {
         
         if(params.userType == 'customers'){
             user  = await CustomerModel.findById(params.user)
-            devices = await CustomerDeviceModel.find({contractor: user?.id}).select('deviceToken')
+            devices = await CustomerDeviceModel.find({customer: user?.id}).select('deviceToken')
             deviceTokens = devices.map(device => device.deviceToken);
         }
         
