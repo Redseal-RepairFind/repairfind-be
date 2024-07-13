@@ -906,7 +906,7 @@ class ProfileHandler extends Base {
         //return res.status(404).json({ success: false, message: 'Device already exits' });
       }
 
-
+ 
       // Find the contractor device with the provided device ID and type
       let contractorDevice = await ContractorDeviceModel.findOneAndUpdate(
         { contractor: contractorId, deviceToken: deviceToken },

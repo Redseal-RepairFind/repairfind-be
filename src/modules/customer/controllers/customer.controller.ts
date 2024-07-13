@@ -232,11 +232,11 @@ export const updateOrCreateDevice = async (
       //return res.status(404).json({ success: false, message: 'Device already exits' });
     }
 
-
-    // Find the contractor device with the provided device ID and type
+ 
+    // Find the customer device with the provided device ID and type
     let customerDevice = await CustomerDeviceModel.findOneAndUpdate(
-      { customer: customerId, deviceId: deviceId },
-      { $set: { deviceToken, deviceId, deviceType, } },
+      { customer: customerId, deviceToken: deviceToken },
+      { $set: { deviceToken, deviceType, } },
       { new: true, upsert: true }
     );
 
