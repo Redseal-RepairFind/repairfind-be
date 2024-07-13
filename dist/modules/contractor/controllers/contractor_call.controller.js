@@ -144,6 +144,8 @@ var startCall = function (req, res, next) { return __awaiter(void 0, void 0, voi
                     message: "You've an incoming call from ".concat(fromUser.name),
                     heading: { name: "".concat(fromUser.name), image: (_c = fromUser.profilePhoto) === null || _c === void 0 ? void 0 : _c.url },
                     payload: {
+                        entity: call.id,
+                        entityType: 'calls',
                         channel: channelName,
                         callId: call.id,
                         uid: toUserUid,
@@ -216,6 +218,8 @@ var endCall = function (req, res, next) { return __awaiter(void 0, void 0, void 
                     message: "Your call with ".concat(toUser.name, " has ended"),
                     heading: { name: "".concat(toUser.name), image: (_c = toUser.profilePhoto) === null || _c === void 0 ? void 0 : _c.url },
                     payload: {
+                        entity: call.id,
+                        entityType: 'calls',
                         message: "Your call with ".concat(toUser.name, " has ended"),
                         name: "".concat(toUser.name),
                         image: (_d = toUser.profilePhoto) === null || _d === void 0 ? void 0 : _d.url,
@@ -230,6 +234,8 @@ var endCall = function (req, res, next) { return __awaiter(void 0, void 0, void 
                     message: "Your call with ".concat(fromUser.name, " has ended"),
                     heading: { name: "".concat(fromUser.name), image: (_e = fromUser.profilePhoto) === null || _e === void 0 ? void 0 : _e.url },
                     payload: {
+                        entity: call.id,
+                        entityType: 'calls',
                         message: "Your call with ".concat(fromUser.name, " has ended"),
                         name: "".concat(fromUser.name),
                         image: (_f = fromUser.profilePhoto) === null || _f === void 0 ? void 0 : _f.url,

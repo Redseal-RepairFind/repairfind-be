@@ -84,7 +84,7 @@ export class NotificationService  {
                 body:   params.message,
                 imageUrl: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
                 data: { 
-                    // ...params.payload,
+                    ...params.payload,
                     imageUrl: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png' // URL of the image
                 },
             })

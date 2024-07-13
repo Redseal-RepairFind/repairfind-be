@@ -87,6 +87,8 @@ export const startCall = async (
             message: `You've an incoming call from ${fromUser.name}`,
             heading: { name: `${fromUser.name}`, image: fromUser.profilePhoto?.url },
             payload: {
+                entity: call.id,
+                entityType: 'calls',
                 channel: channelName,
                 callId: call.id,
                 uid: toUserUid,
@@ -134,6 +136,8 @@ export const endCall = async (
             message: `Your call with ${toUser.name} has ended`,
             heading: { name: `${toUser.name}`, image: toUser.profilePhoto?.url },
             payload: {
+                entity: call.id,
+                entityType: 'calls',
                 message: `Your call with ${toUser.name} has ended`,
                 name: `${toUser.name}`,
                 image: toUser.profilePhoto?.url,
@@ -149,6 +153,8 @@ export const endCall = async (
             message: `Your call with ${fromUser.name} has ended`,
             heading: { name: `${fromUser.name}`, image: fromUser.profilePhoto?.url },
             payload: {
+                entity: call.id,
+                entityType: 'calls',
                 message: `Your call with ${fromUser.name} has ended`,
                 name: `${fromUser.name}`,
                 image: fromUser.profilePhoto?.url,

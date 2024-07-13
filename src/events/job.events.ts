@@ -580,12 +580,12 @@ JobEvent.on('JOB_MARKED_COMPLETE_BY_CONTRACTOR', async function (payload: { job:
             userType: 'customers',
             title: 'Job Marked Complete',
             type: event,
-            message: `contractor has marked job has completed`,
+            message: `Contractor has marked job has completed`,
             heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
             payload: {
                 entity: job.id,
                 entityType: 'jobs',
-                message: `contractor has marked job has completed`,
+                message: `Contractor has marked job has completed`,
                 event: event,
             }
         }, { database: true, push: true, socket: true })
@@ -721,12 +721,12 @@ JobEvent.on('JOB_CHANGE_ORDER', async function (payload: { job: IJob }) {
             userType: 'contractors',
             title: 'Job Completed',
             type: event, //
-            message: `change order is ${state} for your job`,
+            message: `Change order is ${state} for your job`,
             heading: { name: `${customer.name}`, image: customer.profilePhoto?.url },
             payload: {
                 entity: job.id,
                 entityType: 'jobs',
-                message: `change order is ${state} for your job`,
+                message: `Change order is ${state} for your job`,
                 event: event,
             }
         }, { push: true, socket: true })
@@ -899,12 +899,12 @@ JobEvent.on('CHANGE_ORDER_ESTIMATE_PAID', async function (payload: { job: IJob, 
             userType: 'contractors',
             title: 'Change Order Estimate Paid',
             type: 'CHANGE_ORDER_ESTIMATE_PAID', //
-            message: `change order estimate has been paid`,
+            message: `Change order estimate has been paid`,
             heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
             payload: {
                 entity: job.id,
                 entityType: 'jobs',
-                message: `change order estimate has been paid`,
+                message: `Change order estimate has been paid`,
                 customer: customer.id,
                 event: 'CHANGE_ORDER_ESTIMATE_PAID',
                 extraEstimate: payload.extraEstimate,
@@ -946,8 +946,8 @@ JobEvent.on('JOB_DAY_STARTED', async function (payload: { job: IJob, jobDay: IJo
                 title: 'JobDay',
                 heading: {},
                 type: 'JOB_DAY_STARTED',
-                message: 'JobDay Trip successfully started',
-                payload: { event: 'JOB_DAY_STARTED', jobDayId: jobDay._id }
+                message: 'JobDay trip successfully started',
+                payload: { event: 'JOB_DAY_STARTED', jobDayId: jobDay._id, entityType: 'jobs', entity: job.id  }
             },
             {
                 push: true,
@@ -965,8 +965,8 @@ JobEvent.on('JOB_DAY_STARTED', async function (payload: { job: IJob, jobDay: IJo
                     title: 'JobDay',
                     heading: {},
                     type: 'JOB_DAY_STARTED',
-                    message: 'JobDay Trip successfully started',
-                    payload: { event: 'JOB_DAY_STARTED', jobDayId: jobDay._id }
+                    message: 'JobDay trip successfully started',
+                    payload: { event: 'JOB_DAY_STARTED', jobDayId: jobDay._id, entityType: 'jobs', entity: job.id }
                 },
                 {
                     push: true,
@@ -984,8 +984,8 @@ JobEvent.on('JOB_DAY_STARTED', async function (payload: { job: IJob, jobDay: IJo
                 title: 'jobDay',
                 heading: {},
                 type: 'JOB_DAY_STARTED',
-                message: 'Contractor has started JobDay Trip to your site.',
-                payload: { event: 'JOB_DAY_STARTED', jobDayId: jobDay._id }
+                message: 'Contractor has started JobDay trip to your site.',
+                payload: { event: 'JOB_DAY_STARTED', jobDayId: jobDay._id, entityType: 'jobs', entity: job.id }
             },
             {
                 push: true,
@@ -1024,7 +1024,7 @@ JobEvent.on('JOB_DAY_ARRIVAL', async function (payload: { jobDay: IJobDay, verif
                 heading: { name: contractor.name, image: contractor.profilePhoto?.url },
                 type: 'JOB_DAY_ARRIVAL',
                 message: 'Contractor is at your site.',
-                payload: { event: 'JOB_DAY_ARRIVAL', jobDayId: jobDay.id, verificationCode }
+                payload: { event: 'JOB_DAY_ARRIVAL', jobDayId: jobDay.id, verificationCode, entityType: 'jobs', entity: job.id }
             },
             {
                 push: true,
@@ -1041,7 +1041,7 @@ JobEvent.on('JOB_DAY_ARRIVAL', async function (payload: { jobDay: IJobDay, verif
                 heading: {},
                 type: 'JOB_DAY_ARRIVAL',
                 message: 'Job Day arrival, waiting for confirmation from customer.',
-                payload: { event: 'JOB_DAY_ARRIVAL', jobDayId: jobDay.id, verificationCode }
+                payload: { event: 'JOB_DAY_ARRIVAL', jobDayId: jobDay.id, verificationCode, entityType: 'jobs', entity: job.id }
             },
             {
                 push: true,
@@ -1058,7 +1058,7 @@ JobEvent.on('JOB_DAY_ARRIVAL', async function (payload: { jobDay: IJobDay, verif
                     heading: {},
                     type: 'JOB_DAY_ARRIVAL',
                     message: 'Job Day arrival, waiting for confirmation from customer.',
-                    payload: { event: 'JOB_DAY_ARRIVAL', jobDayId: jobDay.id, verificationCode }
+                    payload: { event: 'JOB_DAY_ARRIVAL', jobDayId: jobDay.id, verificationCode, entityType: 'jobs', entity: job.id }
                 },
                 {
                     push: true,

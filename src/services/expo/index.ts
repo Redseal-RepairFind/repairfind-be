@@ -26,6 +26,7 @@ export async function sendPushNotifications(pushTokens: string[], message: any):
     try {
       const ticketChunk = await expo.sendPushNotificationsAsync(chunk);
       tickets.push(...ticketChunk);
+      Logger.info(`Nofication sent ${chunk}`);
     } catch (error) {
       Logger.error(error);
     }

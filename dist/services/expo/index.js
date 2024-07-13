@@ -74,6 +74,7 @@ function sendPushNotifications(pushTokens, message) {
                 case 3:
                     ticketChunk = _c.sent();
                     tickets.push.apply(tickets, ticketChunk);
+                    logger_1.Logger.info("Nofication sent ".concat(chunk));
                     return [3 /*break*/, 5];
                 case 4:
                     error_1 = _c.sent();

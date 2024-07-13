@@ -666,12 +666,12 @@ exports.JobEvent.on('JOB_MARKED_COMPLETE_BY_CONTRACTOR', function (payload) {
                         userType: 'customers',
                         title: 'Job Marked Complete',
                         type: event_1,
-                        message: "contractor has marked job has completed",
+                        message: "Contractor has marked job has completed",
                         heading: { name: "".concat(contractor.name), image: (_a = contractor.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
                         payload: {
                             entity: job.id,
                             entityType: 'jobs',
-                            message: "contractor has marked job has completed",
+                            message: "Contractor has marked job has completed",
                             event: event_1,
                         }
                     }, { database: true, push: true, socket: true });
@@ -821,12 +821,12 @@ exports.JobEvent.on('JOB_CHANGE_ORDER', function (payload) {
                         userType: 'contractors',
                         title: 'Job Completed',
                         type: event_3, //
-                        message: "change order is ".concat(state, " for your job"),
+                        message: "Change order is ".concat(state, " for your job"),
                         heading: { name: "".concat(customer.name), image: (_a = customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
                         payload: {
                             entity: job.id,
                             entityType: 'jobs',
-                            message: "change order is ".concat(state, " for your job"),
+                            message: "Change order is ".concat(state, " for your job"),
                             event: event_3,
                         }
                     }, { push: true, socket: true });
@@ -1025,12 +1025,12 @@ exports.JobEvent.on('CHANGE_ORDER_ESTIMATE_PAID', function (payload) {
                         userType: 'contractors',
                         title: 'Change Order Estimate Paid',
                         type: 'CHANGE_ORDER_ESTIMATE_PAID', //
-                        message: "change order estimate has been paid",
+                        message: "Change order estimate has been paid",
                         heading: { name: "".concat(contractor.name), image: (_a = contractor.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
                         payload: {
                             entity: job.id,
                             entityType: 'jobs',
-                            message: "change order estimate has been paid",
+                            message: "Change order estimate has been paid",
                             customer: customer.id,
                             event: 'CHANGE_ORDER_ESTIMATE_PAID',
                             extraEstimate: payload.extraEstimate,
@@ -1080,8 +1080,8 @@ exports.JobEvent.on('JOB_DAY_STARTED', function (payload) {
                         title: 'JobDay',
                         heading: {},
                         type: 'JOB_DAY_STARTED',
-                        message: 'JobDay Trip successfully started',
-                        payload: { event: 'JOB_DAY_STARTED', jobDayId: jobDay._id }
+                        message: 'JobDay trip successfully started',
+                        payload: { event: 'JOB_DAY_STARTED', jobDayId: jobDay._id, entityType: 'jobs', entity: job.id }
                     }, {
                         push: true,
                         socket: true,
@@ -1095,8 +1095,8 @@ exports.JobEvent.on('JOB_DAY_STARTED', function (payload) {
                             title: 'JobDay',
                             heading: {},
                             type: 'JOB_DAY_STARTED',
-                            message: 'JobDay Trip successfully started',
-                            payload: { event: 'JOB_DAY_STARTED', jobDayId: jobDay._id }
+                            message: 'JobDay trip successfully started',
+                            payload: { event: 'JOB_DAY_STARTED', jobDayId: jobDay._id, entityType: 'jobs', entity: job.id }
                         }, {
                             push: true,
                             socket: true,
@@ -1110,8 +1110,8 @@ exports.JobEvent.on('JOB_DAY_STARTED', function (payload) {
                         title: 'jobDay',
                         heading: {},
                         type: 'JOB_DAY_STARTED',
-                        message: 'Contractor has started JobDay Trip to your site.',
-                        payload: { event: 'JOB_DAY_STARTED', jobDayId: jobDay._id }
+                        message: 'Contractor has started JobDay trip to your site.',
+                        payload: { event: 'JOB_DAY_STARTED', jobDayId: jobDay._id, entityType: 'jobs', entity: job.id }
                     }, {
                         push: true,
                         socket: true,
@@ -1161,7 +1161,7 @@ exports.JobEvent.on('JOB_DAY_ARRIVAL', function (payload) {
                         heading: { name: contractor.name, image: (_a = contractor.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
                         type: 'JOB_DAY_ARRIVAL',
                         message: 'Contractor is at your site.',
-                        payload: { event: 'JOB_DAY_ARRIVAL', jobDayId: jobDay.id, verificationCode: verificationCode }
+                        payload: { event: 'JOB_DAY_ARRIVAL', jobDayId: jobDay.id, verificationCode: verificationCode, entityType: 'jobs', entity: job.id }
                     }, {
                         push: true,
                         socket: true,
@@ -1174,7 +1174,7 @@ exports.JobEvent.on('JOB_DAY_ARRIVAL', function (payload) {
                         heading: {},
                         type: 'JOB_DAY_ARRIVAL',
                         message: 'Job Day arrival, waiting for confirmation from customer.',
-                        payload: { event: 'JOB_DAY_ARRIVAL', jobDayId: jobDay.id, verificationCode: verificationCode }
+                        payload: { event: 'JOB_DAY_ARRIVAL', jobDayId: jobDay.id, verificationCode: verificationCode, entityType: 'jobs', entity: job.id }
                     }, {
                         push: true,
                         socket: true,
@@ -1187,7 +1187,7 @@ exports.JobEvent.on('JOB_DAY_ARRIVAL', function (payload) {
                             heading: {},
                             type: 'JOB_DAY_ARRIVAL',
                             message: 'Job Day arrival, waiting for confirmation from customer.',
-                            payload: { event: 'JOB_DAY_ARRIVAL', jobDayId: jobDay.id, verificationCode: verificationCode }
+                            payload: { event: 'JOB_DAY_ARRIVAL', jobDayId: jobDay.id, verificationCode: verificationCode, entityType: 'jobs', entity: job.id }
                         }, {
                             push: true,
                             socket: true,
