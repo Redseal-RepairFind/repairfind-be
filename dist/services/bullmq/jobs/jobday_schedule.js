@@ -126,8 +126,8 @@ var jobDayScheduleCheck = function () { return __awaiter(void 0, void 0, void 0,
             case 17:
                 if (!(hourDifference <= 24)) return [3 /*break*/, 20];
                 if (!!job.reminders.includes(job_model_1.JOB_SCHEDULE_REMINDER.HOURS_24)) return [3 /*break*/, 19];
-                sendReminderContractor(customer, contractor, job, "You have a job with ".concat(customer.name, " scheduled for tomorrow ").concat(jobStartDate.toDateString()));
-                sendReminderCustomer(customer, contractor, job, "You have a job with ".concat(contractor.name, " scheduled for tomorrow ").concat(jobStartDate.toDateString()));
+                sendReminderContractor(customer, contractor, job, "You have a job with ".concat(customer.name, " scheduled for tomorrow ").concat(formattedJobStartDate));
+                sendReminderCustomer(customer, contractor, job, "You have a job with ".concat(contractor.name, " scheduled for tomorrow ").concat(formattedJobStartDate));
                 job.reminders.push(job_model_1.JOB_SCHEDULE_REMINDER.HOURS_24);
                 return [4 /*yield*/, job.save()];
             case 18:
@@ -137,7 +137,7 @@ var jobDayScheduleCheck = function () { return __awaiter(void 0, void 0, void 0,
             case 20:
                 if (!(hourDifference <= 48)) return [3 /*break*/, 23];
                 if (!!job.reminders.includes(job_model_1.JOB_SCHEDULE_REMINDER.HOURS_48)) return [3 /*break*/, 22];
-                sendReminderContractor(customer, contractor, job, "You have a job with ".concat(customer.name, " scheduled for ").concat(jobStartDate.toDateString()));
+                sendReminderContractor(customer, contractor, job, "You have a job with ".concat(customer.name, " scheduled for ").concat(formattedJobStartDate));
                 sendReminderCustomer(customer, contractor, job, "You have a job with ".concat(contractor.name, " scheduled for ").concat(formattedJobStartDate));
                 job.reminders.push(job_model_1.JOB_SCHEDULE_REMINDER.HOURS_48);
                 return [4 /*yield*/, job.save()];

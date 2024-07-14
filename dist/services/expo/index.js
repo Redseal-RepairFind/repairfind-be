@@ -60,7 +60,7 @@ function sendPushNotifications(pushTokens, message) {
                     messages = pushTokens
                         .filter(function (token) { return expo_server_sdk_1.Expo.isExpoPushToken(token); }) // Filter out invalid tokens
                         .map(function (token) { return (__assign({ to: token, sound: 'default', ttl: 10 }, message)); });
-                    logger_1.Logger.info("Push Notifications: Message ".concat(message, ", Tokens ").concat(pushTokens));
+                    logger_1.Logger.info("Push Notifications: Message ".concat(JSON.stringify(message), ", Tokens ").concat(JSON.stringify(pushTokens)));
                     chunks = expo.chunkPushNotifications(messages);
                     tickets = [];
                     _i = 0, chunks_1 = chunks;

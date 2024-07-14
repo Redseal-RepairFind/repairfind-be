@@ -92,7 +92,7 @@ var NotificationService = /** @class */ (function () {
                         return [4 /*yield*/, customer_model_1.default.findById(params.user)];
                     case 4:
                         user = _a.sent();
-                        return [4 /*yield*/, customer_devices_model_1.default.find({ contractor: user === null || user === void 0 ? void 0 : user.id }).select('deviceToken')];
+                        return [4 /*yield*/, customer_devices_model_1.default.find({ customer: user === null || user === void 0 ? void 0 : user.id }).select('deviceToken')];
                     case 5:
                         devices = _a.sent();
                         deviceTokens = devices.map(function (device) { return device.deviceToken; });
