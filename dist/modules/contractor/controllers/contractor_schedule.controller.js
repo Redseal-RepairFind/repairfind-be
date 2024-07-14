@@ -63,6 +63,7 @@ var date_fns_1 = require("date-fns");
 var contractor_profile_model_1 = require("../../../database/contractor/models/contractor_profile.model");
 var schedule_util_1 = require("../../../utils/schedule.util");
 var job_model_1 = require("../../../database/common/job.model");
+var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var createSchedule = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, dates, type, recurrence, contractorId, schedules, _i, dates_1, date, existingSchedule, updatedSchedule, newScheduleData, newSchedule, error_1;
     return __generator(this, function (_b) {
@@ -205,11 +206,11 @@ var getSchedules = function (req, res) { return __awaiter(void 0, void 0, void 0
 }); };
 exports.getSchedules = getSchedules;
 var getSchedulesByDate = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, year, month, contractorId_1, contractorProfile, startDate_1, endDate_1, expandedSchedules, jobSchedules, existingSchedules, mergedSchedules_1, uniqueSchedules_1, groupedSchedules, error_4;
+    var _a, year, month, contractorId_1, contractorProfile, startDate_1, endDate_1, expandedSchedules, jobs, jobSchedules, existingSchedules, mergedSchedules_1, uniqueSchedules_1, groupedSchedules, error_4;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 5, , 6]);
+                _b.trys.push([0, 6, , 7]);
                 _a = req.query, year = _a.year, month = _a.month;
                 contractorId_1 = req.contractor.id;
                 return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: contractorId_1 })];
@@ -243,13 +244,34 @@ var getSchedulesByDate = function (req, res) { return __awaiter(void 0, void 0, 
                 return [4 /*yield*/, job_model_1.JobModel.find({
                         contractor: contractorId_1,
                         'schedule.startDate': { $gte: startDate_1, $lte: endDate_1 },
-                    }).then(function (jobs) { return jobs.map(function (job) { return ({ date: job.schedule.startDate, type: job.schedule.type, contractor: job.contractor, events: [{ job: job.id }] }); }); })];
+                    }).populate('contract')];
             case 2:
+                jobs = _b.sent();
+                return [4 /*yield*/, Promise.all(jobs.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
+                        var contractor;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0: return [4 /*yield*/, contractor_model_1.ContractorModel.findById(job.contractor)];
+                                case 1:
+                                    contractor = _a.sent();
+                                    return [2 /*return*/, { date: job.schedule.startDate, type: job.schedule.type, contractor: contractor, events: [
+                                                {
+                                                    //@ts-ignore
+                                                    totalAmount: job.contract.charges.totalAmount,
+                                                    job: job.id,
+                                                    skill: job === null || job === void 0 ? void 0 : job.category,
+                                                    date: job === null || job === void 0 ? void 0 : job.schedule.startDate
+                                                }
+                                            ] }];
+                            }
+                        });
+                    }); }))];
+            case 3:
                 jobSchedules = _b.sent();
                 return [4 /*yield*/, contractor_schedule_model_1.ContractorScheduleModel.find({ contractor: contractorId_1 })
                     // Concatenate expandedSchedules and existingSchedules
                 ];
-            case 3:
+            case 4:
                 existingSchedules = _b.sent();
                 mergedSchedules_1 = __spreadArray(__spreadArray(__spreadArray([], expandedSchedules, true), jobSchedules, true), existingSchedules, true);
                 uniqueSchedules_1 = [];
@@ -288,23 +310,24 @@ var getSchedulesByDate = function (req, res) { return __awaiter(void 0, void 0, 
                             //   startTime: event.startTime,
                             //   endTime: event.endTime,
                             // }));
+                            var eventsSummary = schedule.events.map(function (event) { return (__assign({}, event)); });
                             // const eventsSummary = await JobModel.find({ 'schedule.startDate': { $gte: startDate, $lte: endDate } })
                             //   .select('_id contract customer contractor quotations category, schedule')
                             //   .populate('contract');
-                            // acc[key].events = acc[key].events.concat(eventsSummary);
+                            acc[key].events = acc[key].events.concat(eventsSummary);
                         }
                         return acc;
                     }, {})];
-            case 4:
+            case 5:
                 groupedSchedules = _b.sent();
                 res.json({ success: true, message: 'Schedules retrieved successfully', data: groupedSchedules });
-                return [3 /*break*/, 6];
-            case 5:
+                return [3 /*break*/, 7];
+            case 6:
                 error_4 = _b.sent();
                 console.error('Error retrieving schedules:', error_4);
                 res.status(500).json({ success: false, message: 'Internal Server Error' });
-                return [3 /*break*/, 6];
-            case 6: return [2 /*return*/];
+                return [3 /*break*/, 7];
+            case 7: return [2 /*return*/];
         }
     });
 }); };

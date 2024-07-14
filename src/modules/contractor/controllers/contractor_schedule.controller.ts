@@ -7,6 +7,7 @@ import { isValid, startOfMonth, endOfMonth, startOfYear, endOfYear, format, getD
 import { ContractorProfileModel } from '../../../database/contractor/models/contractor_profile.model';
 import { generateExpandedSchedule } from '../../../utils/schedule.util';
 import { JOB_STATUS, JobModel } from '../../../database/common/job.model';
+import { ContractorModel } from '../../../database/contractor/models/contractor.model';
 
 
 export const createSchedule = async (req: any, res: Response) => {
@@ -176,11 +177,30 @@ export const getSchedulesByDate = async (req: any, res: Response) => {
     });
 
 
-    const jobSchedules = await JobModel.find({
+    // const jobSchedules = await JobModel.find({
+    //   contractor: contractorId,
+    //   'schedule.startDate': { $gte: startDate, $lte: endDate },
+    // }).then(jobs => jobs.map(job => ({ date: job.schedule.startDate, type: job.schedule.type, contractor: job.contractor, events: [{ job: job.id }] })));
+
+    const jobs = await JobModel.find({
       contractor: contractorId,
       'schedule.startDate': { $gte: startDate, $lte: endDate },
-    }).then(jobs => jobs.map(job => ({ date: job.schedule.startDate, type: job.schedule.type, contractor: job.contractor, events: [{ job: job.id }] })));
-
+    }).populate('contract')
+    
+    const jobSchedules = await Promise.all(jobs.map(async (job) => {
+      const contractor = await ContractorModel.findById(job.contractor);
+      return { date: job.schedule.startDate, type: job.schedule.type, contractor: contractor, events: [
+        {
+          //@ts-ignore
+          totalAmount: job.contract.charges.totalAmount, 
+         job: job.id, 
+         skill: job?.category ,
+         date: job?.schedule.startDate 
+        }
+    ]};
+    }));
+    
+    
 
     const existingSchedules = await ContractorScheduleModel.find({contractor: contractorId})
 
@@ -238,11 +258,16 @@ export const getSchedulesByDate = async (req: any, res: Response) => {
         //   endTime: event.endTime,
         // }));
 
+
+        const eventsSummary = schedule.events.map((event: any) => ({
+          ...event
+        }));
+
         // const eventsSummary = await JobModel.find({ 'schedule.startDate': { $gte: startDate, $lte: endDate } })
         //   .select('_id contract customer contractor quotations category, schedule')
         //   .populate('contract');
 
-        // acc[key].events = acc[key].events.concat(eventsSummary);
+        acc[key].events = acc[key].events.concat(eventsSummary);
       }
 
       return acc;
