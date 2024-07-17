@@ -394,9 +394,9 @@ export const getJobHistory = async (req: any, res: Response, next: NextFunction)
       // Map through each job and attach myQuotation if contractor has applied 
       await Promise.all(data.data.map(async (job: any) => {
         if (job.isAssigned) {
-          job.myQuotation = await job.getMyQoutation(job.contractor)
+          job.myQuotation = await job.getMyQuotation(job.contractor)
         } else {
-          job.myQuotation = await job.getMyQoutation(contractorId)
+          job.myQuotation = await job.getMyQuotation(contractorId)
         }
       }));
     }

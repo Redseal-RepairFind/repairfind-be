@@ -136,6 +136,7 @@ var JobHistorySchema = new mongoose_1.Schema({
     timestamp: { type: Date, default: Date.now }, // Timestamp of the event
     payload: { type: mongoose_1.Schema.Types.Mixed }, // Additional details specific to the event
 });
+// replies?: {userType: 'string', userId: ObjectId, replyText: string}[]
 var JobSchema = new mongoose_1.Schema({
     customer: { type: mongoose_1.Schema.Types.ObjectId, ref: 'customers', required: true },
     contractor: { type: mongoose_1.Schema.Types.ObjectId, ref: 'contractors' },
@@ -191,6 +192,7 @@ var JobSchema = new mongoose_1.Schema({
         type: [String],
         enum: Object.values(JOB_SCHEDULE_REMINDER)
     },
+    enquiries: [{ type: mongoose_1.Schema.Types.ObjectId, ref: 'JobQuestion' }], // Reference to JobQuestion schema
 }, { timestamps: true });
 JobSchema.virtual('totalQuotations').get(function () {
     var pendingQuotations = this.quotations ? this.quotations.filter(function (quote) { return quote.status !== job_quotation_model_1.JOB_QUOTATION_STATUS.DECLINED; }) : [];
@@ -243,7 +245,7 @@ JobSchema.methods.getJobDay = function (scheduleType) {
         });
     });
 };
-JobSchema.methods.getMyQoutation = function (contractor) {
+JobSchema.methods.getMyQuotation = function (contractor) {
     return __awaiter(this, void 0, void 0, function () {
         var contractorQuotation;
         return __generator(this, function (_a) {

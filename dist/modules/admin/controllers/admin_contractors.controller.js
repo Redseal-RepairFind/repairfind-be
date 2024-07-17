@@ -376,13 +376,13 @@ var getJobHistory = function (req, res, next) { return __awaiter(void 0, void 0,
                                 case 0:
                                     if (!job.isAssigned) return [3 /*break*/, 2];
                                     _a = job;
-                                    return [4 /*yield*/, job.getMyQoutation(job.contractor)];
+                                    return [4 /*yield*/, job.getMyQuotation(job.contractor)];
                                 case 1:
                                     _a.myQuotation = _c.sent();
                                     return [3 /*break*/, 4];
                                 case 2:
                                     _b = job;
-                                    return [4 /*yield*/, job.getMyQoutation(contractorId)];
+                                    return [4 /*yield*/, job.getMyQuotation(contractorId)];
                                 case 3:
                                     _b.myQuotation = _c.sent();
                                     _c.label = 4;

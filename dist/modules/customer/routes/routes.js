@@ -60,6 +60,10 @@ router.post("/jobs/:jobId/quotations/:quotationId/decline", customerRoleChecker_
 router.post("/jobs/:jobId/pay", customerRoleChecker_middleware_1.checkCustomerRole, customer_payment_controller_1.CustomerPaymentController.makeJobPayment);
 router.post("/jobs/:jobId/payment-capture", customerRoleChecker_middleware_1.checkCustomerRole, customer_payment_controller_1.CustomerPaymentController.captureJobPayment);
 router.post("/jobs/:jobId/change-order-payment", customerRoleChecker_middleware_1.checkCustomerRole, customer_payment_controller_1.CustomerPaymentController.makeChangeOrderEstimatePayment);
+router.get("/jobs/:jobId/enquiries", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.getJobEnquiries);
+router.get("/jobs/:jobId/enquiries/:enquiryId", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.getJobSingleEnquiry);
+router.post("/jobs/:jobId/enquiry-reply", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.replyJobEnquiry);
+router.get('/quotations', customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.getAllQuotations); // 
 router.get('/quotations/:quotationId', customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.getQuotation); // 
 // BOOKING
 router.get("/bookings", customerRoleChecker_middleware_1.checkCustomerRole, customer_booking_controller_1.CustomerBookingController.getMyBookings);

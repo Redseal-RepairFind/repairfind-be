@@ -16,6 +16,7 @@ import { htmlJobQuotationAcceptedContractorEmailTemplate } from "../../../templa
 import { htmlJobQuotationDeclinedContractorEmailTemplate } from "../../../templates/contractor/job_quotation_declined.template";
 import mongoose from "mongoose";
 import { ContractorProfileModel } from "../../../database/contractor/models/contractor_profile.model";
+import { JobEnquiryModel } from "../../../database/common/job_enquiry.model";
 
 
 
@@ -340,7 +341,7 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
 
             await Promise.all(data.data.map(async (job: any) => {
                 if (contractorId) {
-                    job.myQuotation = await job.getMyQoutation(contractorId)
+                    job.myQuotation = await job.getMyQuotation(contractorId)
                 }
             }));
         }
@@ -398,7 +399,7 @@ export const getJobHistory = async (req: any, res: Response, next: NextFunction)
       if (data) {
         // Map through each job and attach myQuotation if contractor has applied 
         await Promise.all(data.data.map(async (job: any) => {
-          job.myQuotation = await job.getMyQoutation(contractorId)
+          job.myQuotation = await job.getMyQuotation(contractorId)
         }));
       }
   
@@ -445,6 +446,23 @@ export const getJobQuotations = async (req: any, res: Response, next: NextFuncti
             return res.status(404).json({ success: false, message: 'Job not found or does not belong to customer' });
         }
         const quotations = await JobQuotationModel.find({ job: jobId, status: { $ne: JOB_QUOTATION_STATUS.DECLINED } }).populate([{ path: 'contractor' }])
+
+
+        // If the job exists, return its quo as a response
+        res.json({ success: true, message: 'Job quotations retrieved', data: quotations });
+    } catch (error: any) {
+        return next(new BadRequestError('An error occurred ', error))
+    }
+};
+
+
+export const getAllQuotations = async (req: any, res: Response, next: NextFunction) => {
+    try {
+        const customerId = req.customer.id;
+        const jobId = req.params.jobId;
+        const jobs = await JobModel.find({customer: customerId})
+        const jobIds = jobs.map((job: { _id: any; }) => job._id);
+        const quotations = await applyAPIFeature(JobQuotationModel.find({job: {$in: jobIds}, status: { $ne: JOB_QUOTATION_STATUS.DECLINED } }).populate([{ path: 'contractor' }, { path: 'job' }]), req.query)
 
 
         // If the job exists, return its quo as a response
@@ -660,6 +678,76 @@ export const declineJobQuotation = async (req: any, res: Response, next: NextFun
 };
 
 
+export const replyJobEnquiry = async (req: any, res: Response, next: NextFunction) => {
+    try {
+        const customerId = req.customer.id;
+        const { jobId } = req.params;
+        const { replyText, enquiryId} = req.body;
+
+        // Find the job
+        const job = await JobModel.findById(jobId);
+        if (!job) {
+            return res.status(404).json({ message: "Job not found" });
+        }
+
+        // Find the question from the JobQuestion collection
+        const question = await JobEnquiryModel.findById(enquiryId);
+        if (!question) {
+            return res.status(404).json({success: false, message: "Enquiry not found" });
+        }
+
+        // Add the reply to the question
+        question.replies.push({ userId: customerId, userType: 'customers', replyText });
+        await question.save();
+        JobEvent.emit('NEW_JOB_ENQUIRY_REPLY', { jobId, enquiryId });
+        res.json({ success: true, message: 'Reply added', question });
+    } catch (error: any) {
+        return next(new BadRequestError('An error occurred', error));
+    }
+};
+
+
+export const getJobSingleEnquiry = async (req: any, res: Response, next: NextFunction) => {
+    try {
+        const customerId = req.customer.id;
+        const { jobId, enquiryId } = req.params;
+
+        // Find the job
+        const job = await JobModel.findById(jobId);
+        if (!job) {
+            return res.status(404).json({ message: "Job not found" });
+        }
+
+        // Find the question from the JobQuestion collection
+        const enquiry = await JobEnquiryModel.findById(enquiryId);
+        if (!enquiry) {
+            return res.status(404).json({success: false, message: "Enquiry not found" });
+        }
+
+        res.json({ success: true, message: 'Reply added', enquiry });
+    } catch (error: any) {
+        return next(new BadRequestError('An error occurred', error));
+    }
+};
+
+
+export const getJobEnquiries = async (req: any, res: Response, next: NextFunction) => {
+    try {
+      const { jobId } = req.params;
+  
+      const job = await JobModel.findById(jobId);
+      if (!job) {
+        return res.status(404).json({success: false, message: "Job not found" });
+      }
+  
+     const enquiries = await  applyAPIFeature(JobEnquiryModel.find({job: jobId}), req.query)
+  
+      return res.status(200).json({ success: true, message: "Enquiries retrieved", data: enquiries });
+    } catch (error) {
+      next(error);
+    }
+  };
+
 
 export const CustomerJobController = {
     createJobRequest,
@@ -671,7 +759,11 @@ export const CustomerJobController = {
     getSingleQuotation,
     acceptJobQuotation,
     declineJobQuotation,
-    getQuotation
+    getQuotation,
+    replyJobEnquiry,
+    getAllQuotations,
+    getJobEnquiries,
+    getJobSingleEnquiry
 }
 
 

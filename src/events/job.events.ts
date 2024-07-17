@@ -22,6 +22,8 @@ import { sendPushNotifications } from '../services/expo';
 import { ContractorProfileModel } from '../database/contractor/models/contractor_profile.model';
 import { profile } from 'console';
 import ContractorDeviceModel from '../database/contractor/models/contractor_devices.model';
+import ContractorSavedJobModel from '../database/contractor/models/contractor_saved_job.model';
+import { IJobEnquiry, JobEnquiryModel } from '../database/common/job_enquiry.model';
 
 export const JobEvent: EventEmitter = new EventEmitter();
 
@@ -97,14 +99,14 @@ JobEvent.on('NEW_JOB_LISTING', async function (payload) {
             const contractorProfiles = await ContractorProfileModel.find({ skill: job.category });
             const contractorIds = contractorProfiles.map(profile => profile.contractor);
 
-            const devices = await ContractorDeviceModel.find({ contractor: {$in: contractorIds } })
+            const devices = await ContractorDeviceModel.find({ contractor: { $in: contractorIds } })
             const deviceTokens = devices.map(device => device.deviceToken);
 
             console.log(contractorIds, deviceTokens)
 
-            sendPushNotifications( deviceTokens , {
-                title: 'New job listing', 
-                type: 'NEW_JOB_LISTING', 
+            sendPushNotifications(deviceTokens, {
+                title: 'New job listing',
+                type: 'NEW_JOB_LISTING',
                 icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
                 body: 'There is a new job listing  that match your profile',
                 data: {
@@ -209,7 +211,7 @@ JobEvent.on('JOB_QUOTATION_DECLINED', async function (payload: { jobId: ObjectId
                     customer: customer.id,
                     event: 'JOB_QUOTATION_DECLINED',
                 }
-            }, {push: true, socket: true })
+            }, { push: true, socket: true })
 
         }
 
@@ -261,7 +263,7 @@ JobEvent.on('JOB_QUOTATION_ACCEPTED', async function (payload: { jobId: ObjectId
                     customer: customer.id,
                     event: 'JOB_QUOTATION_ACCEPTED',
                 }
-            }, {push: true, socket: true })
+            }, { push: true, socket: true })
 
         }
 
@@ -394,7 +396,7 @@ JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', async function (payload: { job: IJob, 
 });
 
 
-JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId,  contractorId: ObjectId, customerId: ObjectId, quotationId: ObjectId, paymentType: string  }) {
+JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractorId: ObjectId, customerId: ObjectId, quotationId: ObjectId, paymentType: string }) {
     try {
         console.log('handling alert JOB_BOOKED event')
 
@@ -406,7 +408,7 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId,  contracto
 
         if (job && contractor && customer && quotation) {
             const charges = await quotation.calculateCharges();
-            
+
             if (contractor) { // send mail to contractor
                 let emailSubject = 'Job Payment'
                 let emailContent = `
@@ -448,8 +450,8 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId,  contracto
                     event: 'JOB_BOOKED',
                 }
             }, { push: true, socket: true })
-    
-    
+
+
             NotificationService.sendNotification({
                 user: contractor.id,
                 userType: 'contractors',
@@ -952,7 +954,7 @@ JobEvent.on('JOB_DAY_STARTED', async function (payload: { job: IJob, jobDay: IJo
                 heading: {},
                 type: 'JOB_DAY_STARTED',
                 message: 'JobDay trip successfully started',
-                payload: { event: 'JOB_DAY_STARTED', jobDayId: jobDay._id, entityType: 'jobs', entity: job.id  }
+                payload: { event: 'JOB_DAY_STARTED', jobDayId: jobDay._id, entityType: 'jobs', entity: job.id }
             },
             {
                 push: true,
@@ -1120,5 +1122,142 @@ JobEvent.on('JOB_REFUND_REQUESTED', async function (payload: { job: any, payment
 
     } catch (error) {
         console.error(`Error handling JOB_REFUND_REQUESTED event: ${error}`);
+    }
+});
+
+
+
+JobEvent.on('NEW_JOB_ENQUIRY', async function (payload: { jobId: any, enquiryId: IJobEnquiry }) {
+    try {
+        console.log('handling alert NEW_JOB_ENQUIRY event', payload.jobId)
+
+        const job = await JobModel.findById(payload.jobId)
+        const enquiry = await JobEnquiryModel.findById(payload.enquiryId)
+
+        if (!job || !enquiry) return
+
+        const customer = await CustomerModel.findOne({ _id: job.customer })
+        const contractor = await ContractorModel.findOne({ _id: enquiry.contractor })
+
+        // send push to all contractors that match the job ?
+        const savedJobs = await ContractorSavedJobModel.find({ job: job.id })
+        const contractorIds = savedJobs.map(savedJob => savedJob.contractor)
+        const devices = await ContractorDeviceModel.find({ contractor: { $in: contractorIds } })
+        const deviceTokens = devices.map(device => device.deviceToken);
+
+        sendPushNotifications(deviceTokens, {
+            title: 'New Job Enquiry',
+            type: 'NEW_JOB_ENQUIRY',
+            icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
+            body: 'A Job you  saved on Repairfind has a new enquiry',
+            data: {
+                entity: job.id,
+                entityType: 'jobs',
+                message: `A Job you  saved on Repairfind has a new enquiry`,
+                event: 'NEW_JOB_ENQUIRY',
+            }
+        })
+
+
+
+
+        if (customer && contractor) {
+            NotificationService.sendNotification(
+                {
+                    user: job.customer,
+                    userType: 'customers',
+                    title: 'New Job Enquiry',
+                    heading: { name: contractor.name, image: contractor.profilePhoto?.url },
+                    type: 'NEW_JOB_ENQUIRY',
+                    message: 'Your job on Repairfind has a new enquiry',
+                    payload: { event: 'NEW_JOB_ENQUIRY', entityType: 'jobs', entity: job.id }
+                },
+                { push: true, socket: true }
+            )
+
+
+            let emailSubject = 'New Job Enquiry '
+            let emailContent = `
+                <p style="color: #333333;">Your Job on Repairfind has a new enquiry</p>
+                <div style="background: whitesmoke;padding: 10px; border-radius: 10px;">
+                <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Job Title:</strong> ${job.description}</p>
+                <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Enquiry:</strong> ${enquiry.enquiry}</p>
+                </div>
+                <p style="color: #333333;">Do well to check and follow up as soon as possible </p>
+                `
+            let html = GenericEmailTemplate({ name: customer.name, subject: emailSubject, content: emailContent })
+            EmailService.send(customer.email, emailSubject, html)
+
+
+        }
+
+
+
+
+
+
+
+
+    } catch (error) {
+        console.error(`Error handling NEW_JOB_ENQUIRY event: ${error}`);
+    }
+});
+
+
+JobEvent.on('NEW_JOB_ENQUIRY_REPLY', async function (payload: { jobId: any, enquiryId: IJobEnquiry }) {
+    try {
+        console.log('handling alert NEW_JOB_ENQUIRY_REPLY event', payload.jobId)
+
+
+        const job = await JobModel.findById(payload.jobId)
+        const enquiry = await JobEnquiryModel.findById(payload.enquiryId)
+
+        if (!job || !enquiry) return
+
+        const customer = await CustomerModel.findOne({ _id: job.customer })
+        const contractor = await ContractorModel.findOne({ _id: enquiry.contractor })
+
+
+        const savedJobs = await ContractorSavedJobModel.find({ job: job.id })
+        const contractorIds = savedJobs.map(savedJob => savedJob.contractor)
+
+
+        // send push to all contractors that match the job ?
+        const devices = await ContractorDeviceModel.find({ contractor: { $in: contractorIds } })
+        const deviceTokens = devices.map(device => device.deviceToken);
+        sendPushNotifications(deviceTokens, {
+            title: 'New Job QnA',
+            type: 'NEW_JOB_QUESTION_REPLY',
+            icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
+            body: 'A job you are following on Repairfind has a new reply from the customer',
+            data: {
+                entity: job.id,
+                entityType: 'jobs',
+                message: `A job you are following on Repairfind has a new reply from the customer`,
+                event: 'NEW_JOB_QUESTION_REPLY',
+            }
+        })
+
+
+
+        // send notification to  contractor  that asked the question
+        if (customer && contractor) {
+            let emailSubject = 'Job Enquiry Reply'
+            let emailContent = `
+                    <p style="color: #333333;">Customer has replied to your enquiry on Repairfind</p>
+                    <p style="color: #333333;">Do well to check and follow up </p>
+                    <p><strong>Job Title:</strong> ${job.description}</p>
+                    <p><strong>Your Enquiry</strong> ${enquiry.enquiry}</p>
+                    <p><strong>Reply</strong> ${enquiry.replies ? enquiry.replies[0] : ''}</p>
+                    `
+            let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
+            EmailService.send(contractor.email, emailSubject, html)
+        }
+
+
+
+
+    } catch (error) {
+        console.error(`Error handling NEW_JOB_ENQUIRY_REPLY event: ${error}`);
     }
 });

@@ -95,7 +95,6 @@ var EmailService = /** @class */ (function () {
                     case 2:
                         _a.sent();
                         console.log("Email job added to queue for ".concat(to, " with CC to ").concat(ccAddresses.join(', ')));
-                        console.log("Email sent successfully to ".concat(to, " with CC to ").concat(ccAddresses.join(', '), " | ").concat(subject));
                         _a.label = 3;
                     case 3:
                         _i++;
@@ -103,8 +102,6 @@ var EmailService = /** @class */ (function () {
                     case 4: return [3 /*break*/, 6];
                     case 5:
                         error_1 = _a.sent();
-                        console.error(error_1);
-                        // add logger to slack channel here
                         logger_1.Logger.error('Send Email API couldn\'t send email to user', error_1);
                         throw error_1; // Rethrow the error to propagate it up the call stack
                     case 6: return [2 /*return*/];
@@ -115,9 +112,3 @@ var EmailService = /** @class */ (function () {
     return EmailService;
 }());
 exports.EmailService = EmailService;
-// Example usage:
-// const recipients = ['recipient1@example.com', 'recipient2@example.com'];
-// const cc = 'cc@example.com';
-// EmailService.send(recipients, 'Test Subject', '<html><body><h1>Hello World!</h1></body></html>', cc)
-//     .then(() => console.log('Emails sent successfully with CC'))
-//     .catch(error => console.error('Error sending emails:', error));

@@ -142,13 +142,13 @@ var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0,
                             switch (_b.label) {
                                 case 0:
                                     // if (contractorId) {
-                                    //     job.myQuotation = await job.getMyQoutation(contractorId)
+                                    //     job.myQuotation = await job.getMyQuotation(contractorId)
                                     // }
                                     _a = job;
                                     return [4 /*yield*/, job.getJobDay()];
                                 case 1:
                                     // if (contractorId) {
-                                    //     job.myQuotation = await job.getMyQoutation(contractorId)
+                                    //     job.myQuotation = await job.getMyQuotation(contractorId)
                                     // }
                                     _a.jobDay = _b.sent();
                                     return [2 /*return*/];
@@ -210,7 +210,7 @@ var getBookingHistory = function (req, res, next) { return __awaiter(void 0, voi
                             switch (_c.label) {
                                 case 0:
                                     _a = job;
-                                    return [4 /*yield*/, job.getMyQoutation(contractorId_1)];
+                                    return [4 /*yield*/, job.getMyQuotation(contractorId_1)];
                                 case 1:
                                     _a.myQuotation = _c.sent();
                                     _b = job;
@@ -282,7 +282,7 @@ var getBookingDisputes = function (req, res, next) { return __awaiter(void 0, vo
                             switch (_c.label) {
                                 case 0:
                                     _a = job;
-                                    return [4 /*yield*/, job.getMyQoutation(contractorId_2)];
+                                    return [4 /*yield*/, job.getMyQuotation(contractorId_2)];
                                 case 1:
                                     _a.myQuotation = _c.sent();
                                     _b = job;

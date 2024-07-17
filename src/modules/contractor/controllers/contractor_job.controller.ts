@@ -15,6 +15,8 @@ import { castPayloadToDTO } from "../../../utils/interface_dto.util";
 import { StripeService } from "../../../services/stripe";
 import { IStripeAccount } from "../../../database/common/stripe_account.schema";
 import { JobEvent } from "../../../events";
+import { JobEnquiryModel } from "../../../database/common/job_enquiry.model";
+import ContractorSavedJobModel from "../../../database/contractor/models/contractor_saved_job.model";
 
 
 export const getJobRequests = async (req: any, res: Response) => {
@@ -342,7 +344,7 @@ export const getJobRequestById = async (req: any, res: Response, next: NextFunct
       return next(new NotFoundError('Job request not found'));
     }
 
-    job.myQuotation = await job.getMyQoutation(contractorId);
+    job.myQuotation = await job.getMyQuotation(contractorId);
     if (contractorProfile) {
       const lat = Number(contractorProfile.location.latitude ?? 0)
       const lng = Number(contractorProfile.location.longitude ?? 0)
@@ -387,7 +389,7 @@ export const getJobListingById = async (req: any, res: Response, next: NextFunct
       return next(new NotFoundError('Job listing not found'));
     }
 
-    job.myQuotation = await job.getMyQoutation(contractorId);
+    job.myQuotation = await job.getMyQuotation(contractorId);
 
     if (contractorProfile) {
       const lat = Number(contractorProfile.location.latitude ?? 0)
@@ -547,7 +549,7 @@ export const sendJobQuotation = async (
 
 
     jobQuotation.responseTime = responseTimeJob
-    
+
 
     // Save changes to the job
     await job.save();
@@ -1066,9 +1068,9 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
       // Map through each job and attach myQuotation if contractor has applied 
       await Promise.all(data.data.map(async (job: any) => {
         if (job.isAssigned) {
-          job.myQuotation = await job.getMyQoutation(job.contractor)
+          job.myQuotation = await job.getMyQuotation(job.contractor)
         } else {
-          job.myQuotation = await job.getMyQoutation(contractorId)
+          job.myQuotation = await job.getMyQuotation(contractorId)
         }
       }));
     }
@@ -1129,11 +1131,11 @@ export const getJobHistory = async (req: any, res: Response, next: NextFunction)
     if (data) {
       // Map through each job and attach myQuotation if contractor has applied 
       await Promise.all(data.data.map(async (job: any) => {
-        // job.myQuotation = await job.getMyQoutation(contractorId)
+        // job.myQuotation = await job.getMyQuotation(contractorId)
         if (job.isAssigned) {
-          job.myQuotation = await job.getMyQoutation(job.contractor)
+          job.myQuotation = await job.getMyQuotation(job.contractor)
         } else {
-          job.myQuotation = await job.getMyQoutation(contractorId)
+          job.myQuotation = await job.getMyQuotation(contractorId)
         }
       }));
     }
@@ -1146,6 +1148,86 @@ export const getJobHistory = async (req: any, res: Response, next: NextFunction)
     res.status(200).json({ success: true, data: data });
   } catch (error: any) {
     return next(new BadRequestError('An error occurred', error));
+  }
+};
+
+
+export const createJobEnquiry = async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const { jobId } = req.params;
+    const { question } = req.body;
+    const contractorId = req.contractor.id;
+
+    const job = await JobModel.findById(jobId);
+    if (!job) {
+      return res.status(404).json({success: false, message: "Job not found" });
+    }
+
+    const enquiry = new JobEnquiryModel({
+      job: job.id,
+      contractor: contractorId,
+      enquiry: question,
+      createdAt: new Date()
+    });
+
+    await enquiry.save();
+
+    job.enquiries.push(enquiry._id);
+    await job.save();
+
+  
+    JobEvent.emit('NEW_JOB_ENQUIRY', { jobId, enquiryId: enquiry.id });
+
+
+   await  ContractorSavedJobModel.findOneAndUpdate({job: job.id, contractor: contractorId},{
+      job: job.id,
+      contractor: contractorId
+    }, {new: true, upsert: true})
+
+
+
+    return res.status(200).json({ success: true, message: "Question added", question });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getJobEnquiries = async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const { jobId } = req.params;
+
+    const job = await JobModel.findById(jobId);
+    if (!job) {
+      return res.status(404).json({success: false, message: "Job not found" });
+    }
+
+   const enquiries = await  applyAPIFeature(JobEnquiryModel.find({job: jobId}), req.query)
+
+    return res.status(200).json({ success: true, message: "Enquiries retrieved", data: enquiries });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getJobSingleEnquiry = async (req: any, res: Response, next: NextFunction) => {
+  try {
+      const { jobId, enquiryId } = req.params;
+
+      // Find the job
+      const job = await JobModel.findById(jobId);
+      if (!job) {
+          return res.status(404).json({success: false, message: "Job not found" });
+      }
+
+      // Find the question from the JobQuestion collection
+      const enquiry = await JobEnquiryModel.findById(enquiryId);
+      if (!enquiry) {
+          return res.status(404).json({success: false, message: "Enquiry not found" });
+      }
+
+      res.json({ success: true, message: 'Reply added', enquiry });
+  } catch (error: any) {
+      return next(new BadRequestError('An error occurred', error));
   }
 };
 
@@ -1164,7 +1246,10 @@ export const ContractorJobController = {
   getMyJobs,
   getJobHistory,
   sendChangeOrderEstimate,
-  hideJobListing
+  hideJobListing,
+  createJobEnquiry,
+  getJobEnquiries,
+  getJobSingleEnquiry
 }
 
 

@@ -223,6 +223,10 @@ export const CreateJobQuotationRequest = [
   body("estimates.*.description").if(body("estimates").exists()).notEmpty().isString(), // Checking description only if estimates is provided
 ];
 
+export const CreateJobEnquiryRequest = [
+  body("question").notEmpty().isString(),
+];
+
 // JOB Extra Quotation
 export const CreateExtraJobQuotationRequest = [
   body("estimates").optional().isArray(), // Making estimates optional
@@ -279,5 +283,6 @@ export const ContractorHttpRequest = {
   CreateGstDetailsRequest,
   CreateCompanyDetailsRequest,
   UpgradeEmployeeProfileRequest,
-  CreateJobDisputeRequest
+  CreateJobDisputeRequest,
+  CreateJobEnquiryRequest
 }

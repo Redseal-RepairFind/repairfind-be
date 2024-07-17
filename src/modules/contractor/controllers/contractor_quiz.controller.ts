@@ -188,7 +188,7 @@ export const SubmitQuiz = async (
         {item: "Communication", rating: 5},
         {item: "Timeliness", rating: 5}
       ]
-      const review: string = 'Contractor has completed Repairfind basic training'
+      const review: string = 'Contractor has completed the basic customer service training with Repairfind and has attained a verification badge'
 
       const existingReview = await ReviewModel.findOne({ contractor: contractorId, type: REVIEW_TYPE.TRAINING_COMPLETION })
 

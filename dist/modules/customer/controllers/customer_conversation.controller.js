@@ -115,7 +115,7 @@ var getSingleConversation = function (req, res) { return __awaiter(void 0, void 
                 contractorId = contractor === null || contractor === void 0 ? void 0 : contractor.member;
                 // @ts-ignore
                 _b = conversation.entity;
-                return [4 /*yield*/, conversation.entity.getMyQoutation(conversation.entity.id, contractorId)];
+                return [4 /*yield*/, conversation.entity.getMyQuotation(conversation.entity.id, contractorId)];
             case 3:
                 // @ts-ignore
                 _b.myQuotation = _c.sent();
@@ -236,7 +236,6 @@ var sendMessage = function (req, res, next) { return __awaiter(void 0, void 0, v
                     })];
             case 3:
                 _b.sent();
-                // push sender to readBy array
                 newMessage.readBy.push(customerId_3);
                 return [4 /*yield*/, newMessage.save()];
             case 4:

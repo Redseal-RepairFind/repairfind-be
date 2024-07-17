@@ -104,6 +104,7 @@ export interface IStatusUpdate {
 }
 
 
+
 export interface IJob extends Document {
     _id: ObjectId;
     customer: ObjectId;
@@ -145,7 +146,8 @@ export interface IJob extends Document {
     jobDay: ObjectId;
     distance: any;
     reminders: JOB_SCHEDULE_REMINDER[];
-    getMyQoutation: (contractorId: ObjectId) => {
+    enquiries: ObjectId[];
+    getMyQuotation: (contractorId: ObjectId) => {
     };
     getJobDay: (scheduleType?: JOB_SCHEDULE_TYPE) => {
     };
@@ -230,6 +232,10 @@ const JobHistorySchema = new Schema<IJobHistory>({
 });
 
 
+
+
+// replies?: {userType: 'string', userId: ObjectId, replyText: string}[]
+
 const JobSchema = new Schema<IJob>({
     customer: { type: Schema.Types.ObjectId, ref: 'customers', required: true },
     contractor: { type: Schema.Types.ObjectId, ref: 'contractors' },
@@ -285,6 +291,7 @@ const JobSchema = new Schema<IJob>({
         type: [String],
         enum: Object.values(JOB_SCHEDULE_REMINDER)
     },
+    enquiries: [{ type: Schema.Types.ObjectId, ref: 'JobQuestion' }],  // Reference to JobQuestion schema
 }, { timestamps: true });
 
 
@@ -343,7 +350,8 @@ JobSchema.methods.getJobDay = async function (scheduleType = null) {
     return await JobDayModel.findOne({ job: this.id, type: scheduleType })
 };
 
-JobSchema.methods.getMyQoutation = async function (contractor: any) {
+
+JobSchema.methods.getMyQuotation = async function (contractor: any) {
     const contractorQuotation = await JobQuotationModel.findOne({ job: this.id, contractor })
     if (contractorQuotation) {
         return contractorQuotation

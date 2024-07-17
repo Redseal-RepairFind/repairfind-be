@@ -78,7 +78,7 @@ var getConversations = function (req, res, next) { return __awaiter(void 0, void
                                     _a.heading = _c.sent();
                                     if (!(conversation.entityType == 'jobs')) return [3 /*break*/, 3];
                                     _b = conversation.entity;
-                                    return [4 /*yield*/, conversation.entity.getMyQoutation(conversation.entity.id, contractorId_1)];
+                                    return [4 /*yield*/, conversation.entity.getMyQuotation(conversation.entity.id, contractorId_1)];
                                 case 2:
                                     _b.myQuotation = _c.sent();
                                     _c.label = 3;
@@ -124,7 +124,7 @@ var getSingleConversation = function (req, res, next) { return __awaiter(void 0,
                 if (!(conversation.entityType == 'jobs')) return [3 /*break*/, 4];
                 //@ts-ignore
                 _b = conversation.entity;
-                return [4 /*yield*/, conversation.entity.getMyQoutation(conversation.entity.id, contractorId)];
+                return [4 /*yield*/, conversation.entity.getMyQuotation(conversation.entity.id, contractorId)];
             case 3:
                 //@ts-ignore
                 _b.myQuotation = _c.sent();

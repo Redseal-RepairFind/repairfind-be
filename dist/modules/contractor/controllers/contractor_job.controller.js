@@ -50,7 +50,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorJobController = exports.getJobHistory = exports.getMyJobs = exports.getJobListings = exports.updateJobQuotation = exports.getQuotation = exports.getQuotationForJob = exports.sendChangeOrderEstimate = exports.sendJobQuotation = exports.hideJobListing = exports.getJobListingById = exports.getJobRequestById = exports.rejectJobRequest = exports.acceptJobRequest = exports.getJobRequests = void 0;
+exports.ContractorJobController = exports.getJobSingleEnquiry = exports.getJobEnquiries = exports.createJobEnquiry = exports.getJobHistory = exports.getMyJobs = exports.getJobListings = exports.updateJobQuotation = exports.getQuotation = exports.getQuotationForJob = exports.sendChangeOrderEstimate = exports.sendJobQuotation = exports.hideJobListing = exports.getJobListingById = exports.getJobRequestById = exports.rejectJobRequest = exports.acceptJobRequest = exports.getJobRequests = void 0;
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var job_model_1 = require("../../../database/common/job.model");
@@ -65,6 +65,8 @@ var contractor_profile_model_1 = require("../../../database/contractor/models/co
 var interface_dto_util_1 = require("../../../utils/interface_dto.util");
 var stripe_1 = require("../../../services/stripe");
 var events_1 = require("../../../events");
+var job_enquiry_model_1 = require("../../../database/common/job_enquiry.model");
+var contractor_saved_job_model_1 = __importDefault(require("../../../database/contractor/models/contractor_saved_job.model"));
 var getJobRequests = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, customerId, status_1, startDate, endDate, date, contractorId, contractorProfile_1, filter, start, end, selectedDate, startOfDay, endOfDay, jobRequests, _b, data, error, error_1;
     return __generator(this, function (_c) {
@@ -379,7 +381,7 @@ var getJobRequestById = function (req, res, next) { return __awaiter(void 0, voi
                     return [2 /*return*/, next(new custom_errors_1.NotFoundError('Job request not found'))];
                 }
                 _a = job;
-                return [4 /*yield*/, job.getMyQoutation(contractorId)];
+                return [4 /*yield*/, job.getMyQuotation(contractorId)];
             case 3:
                 _a.myQuotation = _e.sent();
                 if (!contractorProfile) return [3 /*break*/, 5];
@@ -436,7 +438,7 @@ var getJobListingById = function (req, res, next) { return __awaiter(void 0, voi
                     return [2 /*return*/, next(new custom_errors_1.NotFoundError('Job listing not found'))];
                 }
                 _a = job;
-                return [4 /*yield*/, job.getMyQoutation(contractorId)];
+                return [4 /*yield*/, job.getMyQuotation(contractorId)];
             case 3:
                 _a.myQuotation = _e.sent();
                 if (!contractorProfile) return [3 /*break*/, 5];
@@ -1058,13 +1060,13 @@ var getMyJobs = function (req, res, next) { return __awaiter(void 0, void 0, voi
                                 case 0:
                                     if (!job.isAssigned) return [3 /*break*/, 2];
                                     _a = job;
-                                    return [4 /*yield*/, job.getMyQoutation(job.contractor)];
+                                    return [4 /*yield*/, job.getMyQuotation(job.contractor)];
                                 case 1:
                                     _a.myQuotation = _c.sent();
                                     return [3 /*break*/, 4];
                                 case 2:
                                     _b = job;
-                                    return [4 /*yield*/, job.getMyQoutation(contractorId)];
+                                    return [4 /*yield*/, job.getMyQuotation(contractorId)];
                                 case 3:
                                     _b.myQuotation = _c.sent();
                                     _c.label = 4;
@@ -1133,13 +1135,13 @@ var getJobHistory = function (req, res, next) { return __awaiter(void 0, void 0,
                                 case 0:
                                     if (!job.isAssigned) return [3 /*break*/, 2];
                                     _a = job;
-                                    return [4 /*yield*/, job.getMyQoutation(job.contractor)];
+                                    return [4 /*yield*/, job.getMyQuotation(job.contractor)];
                                 case 1:
                                     _a.myQuotation = _c.sent();
                                     return [3 /*break*/, 4];
                                 case 2:
                                     _b = job;
-                                    return [4 /*yield*/, job.getMyQoutation(contractorId)];
+                                    return [4 /*yield*/, job.getMyQuotation(contractorId)];
                                 case 3:
                                     _b.myQuotation = _c.sent();
                                     _c.label = 4;
@@ -1166,6 +1168,106 @@ var getJobHistory = function (req, res, next) { return __awaiter(void 0, void 0,
     });
 }); };
 exports.getJobHistory = getJobHistory;
+var createJobEnquiry = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var jobId, question, contractorId, job, enquiry, error_13;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 5, , 6]);
+                jobId = req.params.jobId;
+                question = req.body.question;
+                contractorId = req.contractor.id;
+                return [4 /*yield*/, job_model_1.JobModel.findById(jobId)];
+            case 1:
+                job = _a.sent();
+                if (!job) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: "Job not found" })];
+                }
+                enquiry = new job_enquiry_model_1.JobEnquiryModel({
+                    job: job.id,
+                    contractor: contractorId,
+                    enquiry: question,
+                    createdAt: new Date()
+                });
+                return [4 /*yield*/, enquiry.save()];
+            case 2:
+                _a.sent();
+                job.enquiries.push(enquiry._id);
+                return [4 /*yield*/, job.save()];
+            case 3:
+                _a.sent();
+                events_1.JobEvent.emit('NEW_JOB_ENQUIRY', { jobId: jobId, enquiryId: enquiry.id });
+                return [4 /*yield*/, contractor_saved_job_model_1.default.findOneAndUpdate({ job: job.id, contractor: contractorId }, {
+                        job: job.id,
+                        contractor: contractorId
+                    }, { new: true, upsert: true })];
+            case 4:
+                _a.sent();
+                return [2 /*return*/, res.status(200).json({ success: true, message: "Question added", question: question })];
+            case 5:
+                error_13 = _a.sent();
+                next(error_13);
+                return [3 /*break*/, 6];
+            case 6: return [2 /*return*/];
+        }
+    });
+}); };
+exports.createJobEnquiry = createJobEnquiry;
+var getJobEnquiries = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var jobId, job, enquiries, error_14;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 3, , 4]);
+                jobId = req.params.jobId;
+                return [4 /*yield*/, job_model_1.JobModel.findById(jobId)];
+            case 1:
+                job = _a.sent();
+                if (!job) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: "Job not found" })];
+                }
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_enquiry_model_1.JobEnquiryModel.find({ job: jobId }), req.query)];
+            case 2:
+                enquiries = _a.sent();
+                return [2 /*return*/, res.status(200).json({ success: true, message: "Enquiries retrieved", data: enquiries })];
+            case 3:
+                error_14 = _a.sent();
+                next(error_14);
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getJobEnquiries = getJobEnquiries;
+var getJobSingleEnquiry = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, jobId, enquiryId, job, enquiry, error_15;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 3, , 4]);
+                _a = req.params, jobId = _a.jobId, enquiryId = _a.enquiryId;
+                return [4 /*yield*/, job_model_1.JobModel.findById(jobId)];
+            case 1:
+                job = _b.sent();
+                if (!job) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: "Job not found" })];
+                }
+                return [4 /*yield*/, job_enquiry_model_1.JobEnquiryModel.findById(enquiryId)];
+            case 2:
+                enquiry = _b.sent();
+                if (!enquiry) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: "Enquiry not found" })];
+                }
+                res.json({ success: true, message: 'Reply added', enquiry: enquiry });
+                return [3 /*break*/, 4];
+            case 3:
+                error_15 = _b.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_15))];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getJobSingleEnquiry = getJobSingleEnquiry;
 exports.ContractorJobController = {
     getJobRequests: exports.getJobRequests,
     getJobListings: exports.getJobListings,
@@ -1180,5 +1282,8 @@ exports.ContractorJobController = {
     getMyJobs: exports.getMyJobs,
     getJobHistory: exports.getJobHistory,
     sendChangeOrderEstimate: exports.sendChangeOrderEstimate,
-    hideJobListing: exports.hideJobListing
+    hideJobListing: exports.hideJobListing,
+    createJobEnquiry: exports.createJobEnquiry,
+    getJobEnquiries: exports.getJobEnquiries,
+    getJobSingleEnquiry: exports.getJobSingleEnquiry
 };

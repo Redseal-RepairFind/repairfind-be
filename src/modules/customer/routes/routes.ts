@@ -72,6 +72,10 @@ router.post("/jobs/:jobId/quotations/:quotationId/decline", checkCustomerRole, C
 router.post("/jobs/:jobId/pay", checkCustomerRole, CustomerPaymentController.makeJobPayment ); 
 router.post("/jobs/:jobId/payment-capture", checkCustomerRole, CustomerPaymentController.captureJobPayment ); 
 router.post("/jobs/:jobId/change-order-payment", checkCustomerRole, CustomerPaymentController.makeChangeOrderEstimatePayment ); 
+router.get("/jobs/:jobId/enquiries", checkCustomerRole, CustomerJobController.getJobEnquiries ); 
+router.get("/jobs/:jobId/enquiries/:enquiryId", checkCustomerRole, CustomerJobController.getJobSingleEnquiry ); 
+router.post("/jobs/:jobId/enquiry-reply", checkCustomerRole, CustomerJobController.replyJobEnquiry ); 
+router.get('/quotations', checkCustomerRole, CustomerJobController.getAllQuotations) // 
 router.get('/quotations/:quotationId', checkCustomerRole, CustomerJobController.getQuotation) // 
 
 

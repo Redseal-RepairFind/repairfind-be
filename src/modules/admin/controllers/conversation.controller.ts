@@ -99,7 +99,7 @@ export const getConversations = async (req: any, res: Response, next: NextFuncti
             await Promise.all(data.data.map(async (conversation: any) => {
                 conversation.heading = await conversation.getHeading(adminId);
                 if(conversation.entityType == 'jobs'){
-                    conversation.entity.myQuotation = await conversation.entity.getMyQoutation(conversation.entity.id, adminId);
+                    conversation.entity.myQuotation = await conversation.entity.getMyQuotation(conversation.entity.id, adminId);
                 }
             }));
         }
@@ -126,7 +126,7 @@ export const getSingleConversation = async (req: any, res: Response, next: NextF
             
             if(conversation.entityType == 'jobs'){
                 //@ts-ignore
-                conversation.entity.myQuotation = await conversation.entity.getMyQoutation(conversation.entity.id, adminId);
+                conversation.entity.myQuotation = await conversation.entity.getMyQuotation(conversation.entity.id, adminId);
             }
         }
         res.status(200).json({ success: true, message: "Conversation retrieved", data: conversation });

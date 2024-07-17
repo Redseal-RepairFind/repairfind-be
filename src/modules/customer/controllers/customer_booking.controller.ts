@@ -97,7 +97,7 @@ export const getMyBookings = async (req: any, res: Response, next: NextFunction)
 
             await Promise.all(data.data.map(async (job: any) => {
                 // if (contractorId) {
-                //     job.myQuotation = await job.getMyQoutation(contractorId)
+                //     job.myQuotation = await job.getMyQuotation(contractorId)
                 // }
                 job.jobDay = await job.getJobDay()
 
@@ -157,7 +157,7 @@ export const getBookingHistory = async (req: any, res: Response, next: NextFunct
         if (data) {
             // Map through each job and attach myQuotation if contractor has applied 
             await Promise.all(data.data.map(async (job: any) => {
-                job.myQuotation = await job.getMyQoutation(contractorId)
+                job.myQuotation = await job.getMyQuotation(contractorId)
                 job.jobDay = await job.getJobDay()
             }));
         }
@@ -220,7 +220,7 @@ export const getBookingDisputes = async (req: any, res: Response, next: NextFunc
         if (data) {
             // Map through each job and attach myQuotation if contractor has applied 
             await Promise.all(data.data.map(async (job: any) => {
-                job.myQuotation = await job.getMyQoutation(contractorId)
+                job.myQuotation = await job.getMyQuotation(contractorId)
                 job.jobDay = await job.getJobDay()
             }));
         }

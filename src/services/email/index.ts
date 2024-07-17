@@ -54,21 +54,11 @@ export class EmailService {
                 const jobId = `email-${to}-${subject}-${new Date()}`;
                 await QueueService.addJob('sendEmail', mailOptions, { jobId, removeOnComplete: true } );
                 console.log(`Email job added to queue for ${to} with CC to ${ccAddresses.join(', ')}`);
-
-                console.log(`Email sent successfully to ${to} with CC to ${ccAddresses.join(', ')} | ${subject}`);
             }
         } catch (error: unknown) {
-            console.error(error);
-            // add logger to slack channel here
             Logger.error('Send Email API couldn\'t send email to user', error);
             throw error; // Rethrow the error to propagate it up the call stack
         }
     }
 }
 
-// Example usage:
-// const recipients = ['recipient1@example.com', 'recipient2@example.com'];
-// const cc = 'cc@example.com';
-// EmailService.send(recipients, 'Test Subject', '<html><body><h1>Hello World!</h1></body></html>', cc)
-//     .then(() => console.log('Emails sent successfully with CC'))
-//     .catch(error => console.error('Error sending emails:', error));

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorHttpRequest = exports.CreateJobDisputeRequest = exports.sendMessageParams = exports.CreateExtraJobQuotationRequest = exports.CreateJobQuotationRequest = exports.CreateScheduleRequest = exports.UpdateOrDevice = exports.CreateStripeSessionRequest = exports.InviteToTeam = exports.CreateCompanyDetailsRequest = exports.CreateGstDetailsRequest = exports.UpdateBankDetailRequest = exports.PasswordChangeRequest = exports.PasswordResetRequest = exports.ResendEmailRequest = exports.LoginWithPhoneRequest = exports.LoginRequest = exports.EmailVerificationRequest = exports.UpgradeEmployeeProfileRequest = exports.UpdateProfileRequest = exports.CreateProfileRequest = exports.CreateContractorRequest = void 0;
+exports.ContractorHttpRequest = exports.CreateJobDisputeRequest = exports.sendMessageParams = exports.CreateExtraJobQuotationRequest = exports.CreateJobEnquiryRequest = exports.CreateJobQuotationRequest = exports.CreateScheduleRequest = exports.UpdateOrDevice = exports.CreateStripeSessionRequest = exports.InviteToTeam = exports.CreateCompanyDetailsRequest = exports.CreateGstDetailsRequest = exports.UpdateBankDetailRequest = exports.PasswordChangeRequest = exports.PasswordResetRequest = exports.ResendEmailRequest = exports.LoginWithPhoneRequest = exports.LoginRequest = exports.EmailVerificationRequest = exports.UpgradeEmployeeProfileRequest = exports.UpdateProfileRequest = exports.CreateProfileRequest = exports.CreateContractorRequest = void 0;
 var express_validator_1 = require("express-validator");
 exports.CreateContractorRequest = [
     (0, express_validator_1.body)('email').isEmail(),
@@ -263,6 +263,9 @@ exports.CreateJobQuotationRequest = [
     (0, express_validator_1.body)("estimates.*.quantity").if((0, express_validator_1.body)("estimates").exists()).notEmpty().isNumeric(), // Checking quantity only if estimates is provided
     (0, express_validator_1.body)("estimates.*.description").if((0, express_validator_1.body)("estimates").exists()).notEmpty().isString(), // Checking description only if estimates is provided
 ];
+exports.CreateJobEnquiryRequest = [
+    (0, express_validator_1.body)("question").notEmpty().isString(),
+];
 // JOB Extra Quotation
 exports.CreateExtraJobQuotationRequest = [
     (0, express_validator_1.body)("estimates").optional().isArray(), // Making estimates optional
@@ -310,5 +313,6 @@ exports.ContractorHttpRequest = {
     CreateGstDetailsRequest: exports.CreateGstDetailsRequest,
     CreateCompanyDetailsRequest: exports.CreateCompanyDetailsRequest,
     UpgradeEmployeeProfileRequest: exports.UpgradeEmployeeProfileRequest,
-    CreateJobDisputeRequest: exports.CreateJobDisputeRequest
+    CreateJobDisputeRequest: exports.CreateJobDisputeRequest,
+    CreateJobEnquiryRequest: exports.CreateJobEnquiryRequest
 };

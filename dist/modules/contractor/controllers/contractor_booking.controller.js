@@ -152,13 +152,13 @@ var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0,
                                     if (!contractorId_1) return [3 /*break*/, 6];
                                     if (!job.isAssigned) return [3 /*break*/, 2];
                                     _a = job;
-                                    return [4 /*yield*/, job.getMyQoutation(job.contractor)];
+                                    return [4 /*yield*/, job.getMyQuotation(job.contractor)];
                                 case 1:
                                     _a.myQuotation = _d.sent();
                                     return [3 /*break*/, 4];
                                 case 2:
                                     _b = job;
-                                    return [4 /*yield*/, job.getMyQoutation(contractorId_1)];
+                                    return [4 /*yield*/, job.getMyQuotation(contractorId_1)];
                                 case 3:
                                     _b.myQuotation = _d.sent();
                                     _d.label = 4;
@@ -227,13 +227,13 @@ var getBookingHistory = function (req, res, next) { return __awaiter(void 0, voi
                                 case 0:
                                     if (!job.isAssigned) return [3 /*break*/, 2];
                                     _a = job;
-                                    return [4 /*yield*/, job.getMyQoutation(job.contractor)];
+                                    return [4 /*yield*/, job.getMyQuotation(job.contractor)];
                                 case 1:
                                     _a.myQuotation = _d.sent();
                                     return [3 /*break*/, 4];
                                 case 2:
                                     _b = job;
-                                    return [4 /*yield*/, job.getMyQoutation(contractorId)];
+                                    return [4 /*yield*/, job.getMyQuotation(contractorId)];
                                 case 3:
                                     _b.myQuotation = _d.sent();
                                     _d.label = 4;
@@ -306,13 +306,13 @@ var getBookingDisputes = function (req, res, next) { return __awaiter(void 0, vo
                                 case 0:
                                     if (!job.isAssigned) return [3 /*break*/, 2];
                                     _a = job;
-                                    return [4 /*yield*/, job.getMyQoutation(job.contractor)];
+                                    return [4 /*yield*/, job.getMyQuotation(job.contractor)];
                                 case 1:
                                     _a.myQuotation = _d.sent();
                                     return [3 /*break*/, 4];
                                 case 2:
                                     _b = job;
-                                    return [4 /*yield*/, job.getMyQoutation(contractorId)];
+                                    return [4 /*yield*/, job.getMyQuotation(contractorId)];
                                 case 3:
                                     _b.myQuotation = _d.sent();
                                     _d.label = 4;

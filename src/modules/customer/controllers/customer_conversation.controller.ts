@@ -51,7 +51,7 @@ export const getSingleConversation = async (req: any, res: Response): Promise<vo
                 const contractor = conversation.members.find((member: any) => member.memberType == 'contractors');
                 const contractorId = contractor?.member
                 // @ts-ignore
-                conversation.entity.myQuotation = await conversation.entity.getMyQoutation(conversation.entity.id, contractorId);
+                conversation.entity.myQuotation = await conversation.entity.getMyQuotation(conversation.entity.id, contractorId);
             }
         }
 
@@ -158,8 +158,6 @@ export const sendMessage = async (req: any, res: Response, next: NextFunction) =
                     }
                 }
             );
-
-            // push sender to readBy array
             newMessage.readBy.push(customerId)
             await  newMessage.save()
         }

@@ -90,6 +90,8 @@ var transaction_model_1 = __importStar(require("../database/common/transaction.m
 var expo_1 = require("../services/expo");
 var contractor_profile_model_1 = require("../database/contractor/models/contractor_profile.model");
 var contractor_devices_model_1 = __importDefault(require("../database/contractor/models/contractor_devices.model"));
+var contractor_saved_job_model_1 = __importDefault(require("../database/contractor/models/contractor_saved_job.model"));
+var job_enquiry_model_1 = require("../database/common/job_enquiry.model");
 exports.JobEvent = new events_1.EventEmitter();
 exports.JobEvent.on('NEW_JOB_REQUEST', function (payload) {
     var _a, _b;
@@ -1242,6 +1244,135 @@ exports.JobEvent.on('JOB_REFUND_REQUESTED', function (payload) {
                     console.error("Error handling JOB_REFUND_REQUESTED event: ".concat(error_19));
                     return [3 /*break*/, 4];
                 case 4: return [2 /*return*/];
+            }
+        });
+    });
+});
+exports.JobEvent.on('NEW_JOB_ENQUIRY', function (payload) {
+    var _a;
+    return __awaiter(this, void 0, void 0, function () {
+        var job, enquiry, customer, contractor, savedJobs, contractorIds, devices, deviceTokens, emailSubject, emailContent, html, error_20;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    _b.trys.push([0, 7, , 8]);
+                    console.log('handling alert NEW_JOB_ENQUIRY event', payload.jobId);
+                    return [4 /*yield*/, job_model_1.JobModel.findById(payload.jobId)];
+                case 1:
+                    job = _b.sent();
+                    return [4 /*yield*/, job_enquiry_model_1.JobEnquiryModel.findById(payload.enquiryId)];
+                case 2:
+                    enquiry = _b.sent();
+                    if (!job || !enquiry)
+                        return [2 /*return*/];
+                    return [4 /*yield*/, customer_model_1.default.findOne({ _id: job.customer })];
+                case 3:
+                    customer = _b.sent();
+                    return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: enquiry.contractor })
+                        // send push to all contractors that match the job ?
+                    ];
+                case 4:
+                    contractor = _b.sent();
+                    return [4 /*yield*/, contractor_saved_job_model_1.default.find({ job: job.id })];
+                case 5:
+                    savedJobs = _b.sent();
+                    contractorIds = savedJobs.map(function (savedJob) { return savedJob.contractor; });
+                    return [4 /*yield*/, contractor_devices_model_1.default.find({ contractor: { $in: contractorIds } })];
+                case 6:
+                    devices = _b.sent();
+                    deviceTokens = devices.map(function (device) { return device.deviceToken; });
+                    (0, expo_1.sendPushNotifications)(deviceTokens, {
+                        title: 'New Job Enquiry',
+                        type: 'NEW_JOB_ENQUIRY',
+                        icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
+                        body: 'A Job you  saved on Repairfind has a new enquiry',
+                        data: {
+                            entity: job.id,
+                            entityType: 'jobs',
+                            message: "A Job you  saved on Repairfind has a new enquiry",
+                            event: 'NEW_JOB_ENQUIRY',
+                        }
+                    });
+                    if (customer && contractor) {
+                        services_1.NotificationService.sendNotification({
+                            user: job.customer,
+                            userType: 'customers',
+                            title: 'New Job Enquiry',
+                            heading: { name: contractor.name, image: (_a = contractor.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
+                            type: 'NEW_JOB_ENQUIRY',
+                            message: 'Your job on Repairfind has a new enquiry',
+                            payload: { event: 'NEW_JOB_ENQUIRY', entityType: 'jobs', entity: job.id }
+                        }, { push: true, socket: true });
+                        emailSubject = 'New Job Enquiry ';
+                        emailContent = "\n                <p style=\"color: #333333;\">Your Job on Repairfind has a new enquiry</p>\n                <div style=\"background: whitesmoke;padding: 10px; border-radius: 10px;\">\n                <p style=\"border-bottom: 1px solid lightgray; padding-bottom: 5px;\"><strong>Job Title:</strong> ".concat(job.description, "</p>\n                <p style=\"border-bottom: 1px solid lightgray; padding-bottom: 5px;\"><strong>Enquiry:</strong> ").concat(enquiry.enquiry, "</p>\n                </div>\n                <p style=\"color: #333333;\">Do well to check and follow up as soon as possible </p>\n                ");
+                        html = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: emailSubject, content: emailContent });
+                        services_1.EmailService.send(customer.email, emailSubject, html);
+                    }
+                    return [3 /*break*/, 8];
+                case 7:
+                    error_20 = _b.sent();
+                    console.error("Error handling NEW_JOB_ENQUIRY event: ".concat(error_20));
+                    return [3 /*break*/, 8];
+                case 8: return [2 /*return*/];
+            }
+        });
+    });
+});
+exports.JobEvent.on('NEW_JOB_ENQUIRY_REPLY', function (payload) {
+    return __awaiter(this, void 0, void 0, function () {
+        var job, enquiry, customer, contractor, savedJobs, contractorIds, devices, deviceTokens, emailSubject, emailContent, html, error_21;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 7, , 8]);
+                    console.log('handling alert NEW_JOB_ENQUIRY_REPLY event', payload.jobId);
+                    return [4 /*yield*/, job_model_1.JobModel.findById(payload.jobId)];
+                case 1:
+                    job = _a.sent();
+                    return [4 /*yield*/, job_enquiry_model_1.JobEnquiryModel.findById(payload.enquiryId)];
+                case 2:
+                    enquiry = _a.sent();
+                    if (!job || !enquiry)
+                        return [2 /*return*/];
+                    return [4 /*yield*/, customer_model_1.default.findOne({ _id: job.customer })];
+                case 3:
+                    customer = _a.sent();
+                    return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: enquiry.contractor })];
+                case 4:
+                    contractor = _a.sent();
+                    return [4 /*yield*/, contractor_saved_job_model_1.default.find({ job: job.id })];
+                case 5:
+                    savedJobs = _a.sent();
+                    contractorIds = savedJobs.map(function (savedJob) { return savedJob.contractor; });
+                    return [4 /*yield*/, contractor_devices_model_1.default.find({ contractor: { $in: contractorIds } })];
+                case 6:
+                    devices = _a.sent();
+                    deviceTokens = devices.map(function (device) { return device.deviceToken; });
+                    (0, expo_1.sendPushNotifications)(deviceTokens, {
+                        title: 'New Job QnA',
+                        type: 'NEW_JOB_QUESTION_REPLY',
+                        icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
+                        body: 'A job you are following on Repairfind has a new reply from the customer',
+                        data: {
+                            entity: job.id,
+                            entityType: 'jobs',
+                            message: "A job you are following on Repairfind has a new reply from the customer",
+                            event: 'NEW_JOB_QUESTION_REPLY',
+                        }
+                    });
+                    // send notification to  contractor  that asked the question
+                    if (customer && contractor) {
+                        emailSubject = 'Job Enquiry Reply';
+                        emailContent = "\n                    <p style=\"color: #333333;\">Customer has replied to your enquiry on Repairfind</p>\n                    <p style=\"color: #333333;\">Do well to check and follow up </p>\n                    <p><strong>Job Title:</strong> ".concat(job.description, "</p>\n                    <p><strong>Your Enquiry</strong> ").concat(enquiry.enquiry, "</p>\n                    <p><strong>Reply</strong> ").concat(enquiry.replies ? enquiry.replies[0] : '', "</p>\n                    ");
+                        html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
+                        services_1.EmailService.send(contractor.email, emailSubject, html);
+                    }
+                    return [3 /*break*/, 8];
+                case 7:
+                    error_21 = _a.sent();
+                    console.error("Error handling NEW_JOB_ENQUIRY_REPLY event: ".concat(error_21));
+                    return [3 /*break*/, 8];
+                case 8: return [2 /*return*/];
             }
         });
     });
