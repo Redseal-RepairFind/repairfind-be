@@ -114,23 +114,23 @@ exports.ConversationEvent.on('NEW_MESSAGE', function (params) {
                                         }
                                     }, { socket: true });
                                     // send push notification and unread message alert to the other user
-                                    // if(!message.isOwn){
-                                    //TODO: still separate this and only send push for aggregated unread message notification user
-                                    notifications_1.NotificationService.sendNotification({
-                                        user: toUserId,
-                                        userType: toUserType,
-                                        title: 'New unread message',
-                                        type: 'NEW_UNREAD_MESSAGE',
-                                        message: "You have a new unread message from ".concat(sender_1.name),
-                                        heading: { name: "".concat(user.name), image: (_d = user.profilePhoto) === null || _d === void 0 ? void 0 : _d.url },
-                                        payload: {
-                                            entity: conversation_1.id,
-                                            entityType: 'conversations',
-                                            message: message_1,
-                                            event: 'NEW_UNREAD_MESSAGE',
-                                        }
-                                    }, { socket: true, push: true });
-                                    // }
+                                    if (!message_1.isOwn) {
+                                        //TODO: still separate this and only send push for aggregated unread message notification user
+                                        notifications_1.NotificationService.sendNotification({
+                                            user: toUserId,
+                                            userType: toUserType,
+                                            title: 'New unread message',
+                                            type: 'NEW_UNREAD_MESSAGE',
+                                            message: "You have a new unread message from ".concat(sender_1.name),
+                                            heading: { name: "".concat(user.name), image: (_d = user.profilePhoto) === null || _d === void 0 ? void 0 : _d.url },
+                                            payload: {
+                                                entity: conversation_1.id,
+                                                entityType: 'conversations',
+                                                message: message_1,
+                                                event: 'NEW_UNREAD_MESSAGE',
+                                            }
+                                        }, { socket: true, push: true });
+                                    }
                                     message_1.isOwn = false;
                                     return [2 /*return*/];
                             }

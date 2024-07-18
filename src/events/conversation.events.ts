@@ -42,7 +42,7 @@ ConversationEvent.on('NEW_MESSAGE', async function (params) {
             }, { socket: true })
 
             // send push notification and unread message alert to the other user
-            // if(!message.isOwn){
+            if(!message.isOwn){
                
                 //TODO: still separate this and only send push for aggregated unread message notification user
                 NotificationService.sendNotification({
@@ -61,7 +61,7 @@ ConversationEvent.on('NEW_MESSAGE', async function (params) {
                 }, { socket: true, push: true })
 
 
-            // }
+            }
 
             message.isOwn = false
 
