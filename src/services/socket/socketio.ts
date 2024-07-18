@@ -6,6 +6,9 @@ import CustomerModel from "../../database/customer/models/customer.model";
 import { JobDayModel } from "../../database/common/job_day.model";
 import { JobModel } from "../../database/common/job.model";
 import { Logger } from "../logger";
+import { MessageModel } from "../../database/common/messages.schema";
+import { ConversationModel } from "../../database/common/conversations.schema";
+import { isValidObjectId } from "mongoose";
 
 interface CustomSocket extends Socket {
     user?: any; // Define a custom property to store user information
@@ -70,18 +73,10 @@ class SocketIOService {
 
             // Handle notification events from client here
             socket.on("send_jobday_contractor_location", async (payload: any) => {
-                Logger.info(`Jobday contractor location update `, payload)
-                // JOB_DAY_UPDATES
-                
-                const { toUser, toUserType, jobdayId } = payload
-                // if (!toUserType || !toUser) return // Ensure userType and userId are valid
-                // const user = toUserType === 'contractors' ? await ContractorModel.findById(toUser) : await CustomerModel.findById(toUser)
-                // if (!user) return // Ensure user exists
-                
+                Logger.info(`Jobday contractor location update `, payload)                
+                const { toUser, toUserType, jobdayId } = payload 
                 const jobday = await JobDayModel.findById(payload.jobdayId)
                 if(!jobday)return
-
-                
 
                 const customer = await CustomerModel.findById(jobday.customer)
                 let contractor = await ContractorModel.findById(jobday.contractor)
@@ -102,6 +97,24 @@ class SocketIOService {
                 }
 
             });
+
+            // Handle conversation marked as read
+            socket.on("send_mark_conversation_as_read", async (payload: any) => {
+                Logger.info(`Marked conversation as read `, payload)                
+                const conversationId = payload.conversationId
+                const userId = payload.userId
+
+                if(!isValidObjectId(userId) || !isValidObjectId(conversationId))return 
+               
+                const conversation = await ConversationModel.findById(userId)
+                if(!conversation)return
+                await MessageModel.updateMany(
+                    { conversation: conversationId, readBy: { $ne: userId } },
+                    { $addToSet: { readBy: userId } }
+                );
+
+            });
+
         });
     }
 

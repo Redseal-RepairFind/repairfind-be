@@ -58,6 +58,9 @@ var customer_model_1 = __importDefault(require("../../database/customer/models/c
 var job_day_model_1 = require("../../database/common/job_day.model");
 var job_model_1 = require("../../database/common/job.model");
 var logger_1 = require("../logger");
+var messages_schema_1 = require("../../database/common/messages.schema");
+var conversations_schema_1 = require("../../database/common/conversations.schema");
+var mongoose_1 = require("mongoose");
 var SocketIOService = /** @class */ (function () {
     function SocketIOService() {
     }
@@ -145,6 +148,29 @@ var SocketIOService = /** @class */ (function () {
                             this.sendNotification(contractor.email, 'JOB_DAY_CONTRACTOR_LOCATION', data);
                             _a.label = 6;
                         case 6: return [2 /*return*/];
+                    }
+                });
+            }); });
+            // Handle conversation marked as read
+            socket.on("send_mark_conversation_as_read", function (payload) { return __awaiter(_this, void 0, void 0, function () {
+                var conversationId, userId, conversation;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            logger_1.Logger.info("Marked conversation as read ", payload);
+                            conversationId = payload.conversationId;
+                            userId = payload.userId;
+                            if (!(0, mongoose_1.isValidObjectId)(userId) || !(0, mongoose_1.isValidObjectId)(conversationId))
+                                return [2 /*return*/];
+                            return [4 /*yield*/, conversations_schema_1.ConversationModel.findById(userId)];
+                        case 1:
+                            conversation = _a.sent();
+                            if (!conversation)
+                                return [2 /*return*/];
+                            return [4 /*yield*/, messages_schema_1.MessageModel.updateMany({ conversation: conversationId, readBy: { $ne: userId } }, { $addToSet: { readBy: userId } })];
+                        case 2:
+                            _a.sent();
+                            return [2 /*return*/];
                     }
                 });
             }); });
