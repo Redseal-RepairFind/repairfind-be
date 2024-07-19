@@ -8,8 +8,8 @@ import { adminGetNotificationrController, adminUnseenNotificationrController, ad
 import { AddStaffController, AdminSignInController, SuperAdminGetAllAdminController, SuperAdminChangeStaffStatusController, adminResendEmailController, adminSignUpController, adminUpdateBioController, adminVerifiedEmailController, SuperAdminAddPermissionToStaffController, SuperAdminRemovePermissionFromStaffController } from "../controllers/adminReg.controller";
 import { AdminGetAppDetailController } from "../controllers/appDetails.Controller";
 import { AdminGetRevenueAnalysisControlleer, AdminsendEmailsControlleer } from "../controllers/averageRevenue.controller";
-import { AdminConversation } from "../controllers/conversation.controller";
-import { dispute } from "../controllers/dispute.controller";
+import { AdminConversationController } from "../controllers/conversation.controller";
+import { AdminDisputeController } from "../controllers/admin_disputes.controller";
 import { ermergency } from "../controllers/emergency.controller";
 // import {  AdminJobController, } from "../controllers/job.controller";
 import { AdminGetCompletedPayoutDetailController, AdminGetPendingPayoutDetailController, AdminGetSinglePayoutDetailController, AdminPayContractorController } from "../controllers/payout.controller";
@@ -103,19 +103,19 @@ router.get("/emergecy/:emergencyId", checkAdminRole, ermergency.AdminGetSingleEm
 router.post("/emergecy/accept", validateEmergecyIdParams, checkAdminRole, ermergency.AdminAcceptEmergencyJobController  ); // admin accept emergecy
 router.post("/emergecy/resolved", validateResolvedEmergecyIdParams, checkAdminRole, ermergency.AdminResolvedEmergencyJobController  ); // admin resolved emergecy
 
-//done dispute
-router.get("/dispute", Validations.DisputeStatusParams, checkAdminRole, dispute.AdminJobDisputeByStatusController ); // admin get dispute by status
-router.get("/dispute/:disputeId", checkAdminRole, dispute.AdminGetSingleJobDisputeController ); // admin get single dispute
-router.post("/dispute/accept", Validations.AcceptDisputeParams, checkAdminRole, dispute.AdminAcceptJobDisputeController ); // admin accept dispute
-router.get("/dispute/admin", Validations.DisputeStatusParams, checkAdminRole, dispute.AdminGetJobDisputForAdminController ); // admin get dispute for himself
-router.post("/dispute/settle", Validations.SettleDisputeParams, checkAdminRole, dispute.AdminSettleJobDisputeController  ); // admin settle dispute
+//done disputes
+router.get("/disputes", checkAdminRole, AdminDisputeController.getJobDisputes ); // admin get dispute by status
+router.get("/disputes/:disputeId", checkAdminRole, AdminDisputeController.getSingleDispute ); // admin get single dispute
+router.post("/disputes/:disputeId/accept", checkAdminRole, AdminDisputeController.acceptDispute ); // admin accept dispute
+router.post("/disputes/:disputeId/settle", Validations.SettleDisputeParams, checkAdminRole, AdminDisputeController.settleDispute  ); // admin settle dispute
 
 //done conversation
-router.post("/conversation", Validations.StartCoversaionParams, checkAdminRole, AdminConversation.startConversation  ); // admin start conversation
-router.get("/conversation", checkAdminRole, AdminConversation.getConversations  ); // admin get conversation 
-router.get("/conversation/:conversationId", checkAdminRole, AdminConversation.getSingleConversation  ); // admin get single conversation 
-router.get("/conversation/meaasge/:conversationId", checkAdminRole, AdminConversation.getConversationMessages  ); // admin get  conversation message
-router.post("/conversation/meaasge/:conversationId", Validations.sendMessageParams, checkAdminRole, AdminConversation.sendMessage  ); // admin send message
+router.post("/conversations", Validations.StartCoversaionParams, checkAdminRole, AdminConversationController.startConversation  ); // admin start conversation
+router.get("/conversations", checkAdminRole, AdminConversationController.getConversations  ); // admin get conversation 
+router.get("/conversations/:conversationId", checkAdminRole, AdminConversationController.getSingleConversation  ); // admin get single conversation 
+router.get("/conversations/:conversationId/messages", checkAdminRole, AdminConversationController.getConversationMessages  ); // admin get  conversation message
+router.post("/conversations/:conversationId/messages", Validations.sendMessageParams, checkAdminRole, AdminConversationController.sendMessage  ); // admin send message
+
 
 
 

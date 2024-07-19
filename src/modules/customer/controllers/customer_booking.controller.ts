@@ -960,7 +960,8 @@ export const createBookingDispute = async (req: any, res: Response, next: NextFu
             return res.status(403).json({ success: false, message: 'Unauthorized to create dispute for this job' });
         }
 
-        const filedBy = 'customer';
+        const disputerType = 'customers';
+        const disputer = customerId;
 
         const dispute = await JobDisputeModel.findOneAndUpdate({
             job: job.id
@@ -969,7 +970,8 @@ export const createBookingDispute = async (req: any, res: Response, next: NextFu
             job: job._id,
             customer: job.customer,
             contractor: job.contractor,
-            filedBy,
+            disputerType,
+            disputer,
             status: JOB_DISPUTE_STATUS.OPEN,
         }, { new: true, upsert: true });
 

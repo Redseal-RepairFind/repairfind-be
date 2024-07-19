@@ -5,8 +5,8 @@ var mongoose_1 = require("mongoose");
 var JOB_DISPUTE_STATUS;
 (function (JOB_DISPUTE_STATUS) {
     JOB_DISPUTE_STATUS["OPEN"] = "OPEN";
-    JOB_DISPUTE_STATUS["PENDING_MEDIATION"] = "PENDING_MEDIATION";
-    JOB_DISPUTE_STATUS["MEDIATION_COMPLETE"] = "MEDIATION_COMPLETE";
+    JOB_DISPUTE_STATUS["ONGOING"] = "ONGOING";
+    JOB_DISPUTE_STATUS["RESOLVED"] = "RESOLVED";
     JOB_DISPUTE_STATUS["CLOSED"] = "CLOSED";
 })(JOB_DISPUTE_STATUS || (exports.JOB_DISPUTE_STATUS = JOB_DISPUTE_STATUS = {}));
 var JobDisputeSchema = new mongoose_1.Schema({
@@ -17,19 +17,24 @@ var JobDisputeSchema = new mongoose_1.Schema({
     job: {
         type: mongoose_1.Schema.Types.ObjectId,
         required: true,
+        ref: 'jobs'
     },
     customer: {
         type: mongoose_1.Schema.Types.ObjectId,
         required: true,
+        ref: 'customers'
     },
     contractor: {
         type: mongoose_1.Schema.Types.ObjectId,
         required: true,
+        ref: 'contractors'
     },
-    filedBy: {
-        type: String,
+    disputer: {
+        type: mongoose_1.Schema.Types.ObjectId,
         required: true,
+        refPath: "disputerType"
     },
+    disputerType: { type: String, required: true },
     evidence: {
         type: [
             {
@@ -46,8 +51,9 @@ var JobDisputeSchema = new mongoose_1.Schema({
         required: true,
         default: JOB_DISPUTE_STATUS.OPEN,
     },
-    acceptedBy: {
-        type: mongoose_1.Schema.Types.ObjectId
+    arbitrator: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: 'admins'
     },
     resolvedWay: {
         type: String,

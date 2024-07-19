@@ -1017,7 +1017,7 @@ var reviewBookingOnCompletion = function (req, res, next) { return __awaiter(voi
 }); };
 exports.reviewBookingOnCompletion = reviewBookingOnCompletion;
 var createBookingDispute = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, description, evidence, bookingId, customerId, errors, job, filedBy, dispute, disputeEvidence, error_13;
+    var _a, description, evidence, bookingId, customerId, errors, job, disputerType, disputer, dispute, disputeEvidence, error_13;
     var _b;
     return __generator(this, function (_c) {
         switch (_c.label) {
@@ -1040,7 +1040,8 @@ var createBookingDispute = function (req, res, next) { return __awaiter(void 0, 
                 if (!(job.customer == customerId) && !(job.contractor == customerId)) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'Unauthorized to create dispute for this job' })];
                 }
-                filedBy = 'customer';
+                disputerType = 'customers';
+                disputer = customerId;
                 return [4 /*yield*/, job_dispute_model_1.JobDisputeModel.findOneAndUpdate({
                         job: job.id
                     }, {
@@ -1048,7 +1049,8 @@ var createBookingDispute = function (req, res, next) { return __awaiter(void 0, 
                         job: job._id,
                         customer: job.customer,
                         contractor: job.contractor,
-                        filedBy: filedBy,
+                        disputerType: disputerType,
+                        disputer: disputer,
                         status: job_dispute_model_1.JOB_DISPUTE_STATUS.OPEN,
                     }, { new: true, upsert: true })];
             case 2:

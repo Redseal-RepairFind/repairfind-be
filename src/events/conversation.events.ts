@@ -4,6 +4,7 @@ import { param } from 'express-validator';
 import { NotificationService } from '../services/notifications';
 import { ContractorModel } from '../database/contractor/models/contractor.model';
 import CustomerModel from '../database/customer/models/customer.model';
+import AdminModel from '../database/admin/models/admin.model';
 
 export const ConversationEvent: EventEmitter = new EventEmitter();
 
@@ -14,7 +15,17 @@ ConversationEvent.on('NEW_MESSAGE', async function (params) {
         const senderType = message.senderType
         const conversation = await ConversationModel.findById(message.conversation)
         const members = conversation?.members;
-        const sender = senderType === 'contractors' ? await ContractorModel.findById(senderId) : await CustomerModel.findById(senderId)
+        
+        let sender: any = null
+        if(senderType === 'contractors'){
+            sender = await ContractorModel.findById(senderId)
+        }
+        if(senderType === 'admins'){
+            sender = await AdminModel.findById(senderId)
+        }
+        if(senderType === 'customers'){
+            sender = await CustomerModel.findById(senderId)
+        }
 
         if (!conversation || !members || !sender) return
 
@@ -72,40 +83,3 @@ ConversationEvent.on('NEW_MESSAGE', async function (params) {
         console.error(`Error handling NEW_MESSAGE event: ${error}`);
     }
 });
-
-
-
-
-// ConversationEvent.on('NEW_UNREAD_MESSAGE', async function (params:{conversationId:any,  message: string, toUserId: any, toUserType: any }) {
-//     try {
-//         const message = params.message
-//         const toUserId = params.toUserId
-//         const toUserType = params.toUserType
-//         const conversationId = params.conversationId
-
-//         const conversation = await ConversationModel.findById(conversationId)
-//         const user = toUserType === 'contractors' ? await ContractorModel.findById(toUserId) : await CustomerModel.findById(toUserId)
-        
-//         if (!conversation || !user || !toUserType) return
-
-       
-//         NotificationService.sendNotification({
-//             user: toUserId,
-//             userType: toUserType,
-//             title: 'New unread message',
-//             type: 'NEW_UNREAD_MESSAGE', 
-//             message: `You have a new unread message`,
-//             heading: { name: `${user.name}`, image: user.profilePhoto?.url },
-//             payload: {
-//                 entity: conversation.id,
-//                 entityType: 'conversations',
-//                 message: message,
-//                 event: 'NEW_UNREAD_MESSAGE',
-//             }
-//         }, { socket: true, push: true })
-
-
-//     } catch (error) {
-//         console.error(`Error handling NEW_UNREAD_MESSAGE event: ${error}`);
-//     }
-// });

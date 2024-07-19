@@ -2,8 +2,8 @@ import { Document, Schema, model, Types } from "mongoose";
 
 export enum JOB_DISPUTE_STATUS {
     OPEN = "OPEN",
-    PENDING_MEDIATION = "PENDING_MEDIATION",
-    MEDIATION_COMPLETE = "MEDIATION_COMPLETE",
+    ONGOING = "ONGOING",
+    RESOLVED = "RESOLVED",
     CLOSED = "CLOSED",
 }
 
@@ -19,10 +19,11 @@ export interface IJobDispute extends Document {
     conversation: Types.ObjectId;
     customer: Types.ObjectId;
     contractor: Types.ObjectId;
-    filedBy: string; // Who filed the dispute (customer or contractor)
+    disputer: Types.ObjectId;
+    disputerType: string // customers, contractors;
     evidence: Evidence[]; // Array of evidence URLs or references
     status: JOB_DISPUTE_STATUS;
-    acceptedBy: Types.ObjectId, 
+    arbitrator: Types.ObjectId, 
     resolvedWay: string;
     createdAt: Date;
     updatedAt: Date;
@@ -37,19 +38,24 @@ const JobDisputeSchema = new Schema<IJobDispute>(
         job: {
             type: Schema.Types.ObjectId,
             required: true,
+            ref: 'jobs'
         },
         customer: {
             type: Schema.Types.ObjectId,
             required: true,
+            ref: 'customers'
         },
         contractor: {
             type: Schema.Types.ObjectId,
             required: true,
+            ref: 'contractors'
         },
-        filedBy: {
-            type: String,
+        disputer: {
+            type: Schema.Types.ObjectId,
             required: true,
+            refPath: "disputerType"
         },
+        disputerType: {type: String, required: true},
         evidence: {
             type: [
                 {
@@ -66,8 +72,9 @@ const JobDisputeSchema = new Schema<IJobDispute>(
             required: true,
             default: JOB_DISPUTE_STATUS.OPEN,
         },
-        acceptedBy: {
-            type: Schema.Types.ObjectId
+        arbitrator: {
+            type: Schema.Types.ObjectId,
+            ref: 'admins'
         },
         resolvedWay: {
             type: String,
@@ -80,6 +87,9 @@ const JobDisputeSchema = new Schema<IJobDispute>(
         timestamps: true,
     }
 );
+
+
+
 
 const JobDisputeModel = model<IJobDispute>("job_disputes", JobDisputeSchema);
 

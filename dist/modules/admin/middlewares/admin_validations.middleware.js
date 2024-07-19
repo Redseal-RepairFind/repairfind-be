@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Validations = exports.sendMessageParams = exports.StartCoversaionParams = exports.CustomerChangeStatusParams = exports.ContractorChangeStatusParams = exports.SettleDisputeParams = exports.AcceptDisputeParams = exports.DisputeStatusParams = exports.AddPermissionParams = exports.AddStaffParams = exports.EditPermissionParams = exports.PermissionCreationParam = exports.validateResolvedEmergecyIdParams = exports.validateEmergecyIdParams = exports.validatePayoutIDPayContractorParams = exports.validatePayoutIDParams = exports.validateRevenueDateParams = exports.validateDeleteQuestionValidationParams = exports.validateEditQuestionParams = exports.validateQuestionIdValidationParams = exports.createQuizParams = exports.validateAddQuestionParams = exports.validateTRansactionIdValidationParams = exports.validateJobIdValidationParams = exports.validateAddSkillParams = exports.validateContractoDocumentIdValidationParams = exports.sendCustomEmail = exports.updateAccount = exports.updateGstDetails = exports.validateCustomerIdValidationParams = exports.validateContractorIdValidationParams = exports.validateSuperAdmiCchangeStatusParams = exports.validateAdminResetPasswprdParams = exports.validateAdminForgotPasswordParams = exports.validateAdminLoginParams = exports.validatAdminEmailverificationParams = exports.validateSignupParams = void 0;
+exports.Validations = exports.sendMessageParams = exports.StartCoversaionParams = exports.CustomerChangeStatusParams = exports.ContractorChangeStatusParams = exports.SettleDisputeParams = exports.DisputeStatusParams = exports.AddPermissionParams = exports.AddStaffParams = exports.EditPermissionParams = exports.PermissionCreationParam = exports.validateResolvedEmergecyIdParams = exports.validateEmergecyIdParams = exports.validatePayoutIDPayContractorParams = exports.validatePayoutIDParams = exports.validateRevenueDateParams = exports.validateDeleteQuestionValidationParams = exports.validateEditQuestionParams = exports.validateQuestionIdValidationParams = exports.createQuizParams = exports.validateAddQuestionParams = exports.validateTRansactionIdValidationParams = exports.validateJobIdValidationParams = exports.validateAddSkillParams = exports.validateContractoDocumentIdValidationParams = exports.sendCustomEmail = exports.updateAccount = exports.updateGstDetails = exports.validateCustomerIdValidationParams = exports.validateContractorIdValidationParams = exports.validateSuperAdmiCchangeStatusParams = exports.validateAdminResetPasswprdParams = exports.validateAdminForgotPasswordParams = exports.validateAdminLoginParams = exports.validatAdminEmailverificationParams = exports.validateSignupParams = void 0;
 var express_validator_1 = require("express-validator");
 var admin_interface_1 = require("../../../database/admin/interface/admin.interface");
 var job_dispute_model_1 = require("../../../database/common/job_dispute.model");
@@ -138,11 +138,7 @@ exports.AddPermissionParams = [
 exports.DisputeStatusParams = [
     (0, express_validator_1.query)("status").isIn(Object.values(job_dispute_model_1.JOB_DISPUTE_STATUS)),
 ];
-exports.AcceptDisputeParams = [
-    (0, express_validator_1.body)("disputeId").notEmpty(),
-];
 exports.SettleDisputeParams = [
-    (0, express_validator_1.body)("disputeId").notEmpty(),
     (0, express_validator_1.body)("resolvedWay").notEmpty(),
 ];
 exports.ContractorChangeStatusParams = [
@@ -179,7 +175,6 @@ exports.Validations = {
     AddStaffParams: exports.AddStaffParams,
     AddPermissionParams: exports.AddPermissionParams,
     DisputeStatusParams: exports.DisputeStatusParams,
-    AcceptDisputeParams: exports.AcceptDisputeParams,
     SettleDisputeParams: exports.SettleDisputeParams,
     ContractorChangeStatusParams: exports.ContractorChangeStatusParams,
     CustomerChangeStatusParams: exports.CustomerChangeStatusParams,

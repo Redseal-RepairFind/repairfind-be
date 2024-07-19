@@ -92,9 +92,13 @@ ConversationSchema.methods.getHeading = async function (loggedInUserId: string) 
     if (otherMember) {
         let UserModel = mongoose.model('contractors');
         if (otherMember.memberType == 'contractors') {
-            UserModel = mongoose.model('contractors'); // Assuming your user model is named 'User'
-        } else {
-            UserModel = mongoose.model('customers'); // Assuming your user model is named 'User'
+            UserModel = mongoose.model('contractors');
+        }
+        if(otherMember.memberType == 'customers') {
+            UserModel = mongoose.model('customers')
+        }
+        if(otherMember.memberType == 'admins'){
+            UserModel = mongoose.model('admins'); // Assuming your user model is named 'User'
         }
         const otherMemberUser = await UserModel.findById(otherMember.member);
         const lastMessage = await MessageModel.findOne({ conversation: this._id, messageType: MessageType.TEXT }).sort({ createdAt: -1 });

@@ -98,6 +98,16 @@ var NotificationService = /** @class */ (function () {
                         deviceTokens = devices.map(function (device) { return device.deviceToken; });
                         _a.label = 6;
                     case 6:
+                        if (!(params.userType == 'admins')) return [3 /*break*/, 9];
+                        return [4 /*yield*/, customer_model_1.default.findById(params.user)];
+                    case 7:
+                        user = _a.sent();
+                        return [4 /*yield*/, customer_devices_model_1.default.find({ customer: user === null || user === void 0 ? void 0 : user.id }).select('deviceToken')];
+                    case 8:
+                        devices = _a.sent();
+                        deviceTokens = devices.map(function (device) { return device.deviceToken; });
+                        _a.label = 9;
+                    case 9:
                         if (!user)
                             return [2 /*return*/];
                         if ('firebase' in options) {
@@ -126,14 +136,14 @@ var NotificationService = /** @class */ (function () {
                                  }),
                             });
                         }
-                        if (!options.hasOwnProperty('database')) return [3 /*break*/, 8];
+                        if (!options.hasOwnProperty('database')) return [3 /*break*/, 11];
                         params.payload.message = params.message;
                         notification = new notification_model_1.default(params.payload);
                         return [4 /*yield*/, notification.save()];
-                    case 7:
+                    case 10:
                         _a.sent();
-                        _a.label = 8;
-                    case 8: return [2 /*return*/];
+                        _a.label = 11;
+                    case 11: return [2 /*return*/];
                 }
             });
         });

@@ -74,6 +74,10 @@ const AdminSchema = new Schema(
     }
   );
   
+  AdminSchema.virtual('name').get(function () {
+    return `${this.firstName} ${this.lastName}`;
+  });
+
   const AdminModel = model<IAdmin>("admins", AdminSchema);
   
   export default AdminModel;

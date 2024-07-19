@@ -45,33 +45,42 @@ var conversations_schema_1 = require("../database/common/conversations.schema");
 var notifications_1 = require("../services/notifications");
 var contractor_model_1 = require("../database/contractor/models/contractor.model");
 var customer_model_1 = __importDefault(require("../database/customer/models/customer.model"));
+var admin_model_1 = __importDefault(require("../database/admin/models/admin.model"));
 exports.ConversationEvent = new events_1.EventEmitter();
 exports.ConversationEvent.on('NEW_MESSAGE', function (params) {
     return __awaiter(this, void 0, void 0, function () {
-        var message_1, senderId, senderType, conversation_1, members, sender_1, _a, error_1;
+        var message_1, senderId, senderType, conversation_1, members, sender_1, error_1;
         var _this = this;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
+        return __generator(this, function (_a) {
+            switch (_a.label) {
                 case 0:
-                    _b.trys.push([0, 6, , 7]);
+                    _a.trys.push([0, 8, , 9]);
                     message_1 = params.message;
                     senderId = message_1.sender;
                     senderType = message_1.senderType;
                     return [4 /*yield*/, conversations_schema_1.ConversationModel.findById(message_1.conversation)];
                 case 1:
-                    conversation_1 = _b.sent();
+                    conversation_1 = _a.sent();
                     members = conversation_1 === null || conversation_1 === void 0 ? void 0 : conversation_1.members;
+                    sender_1 = null;
                     if (!(senderType === 'contractors')) return [3 /*break*/, 3];
                     return [4 /*yield*/, contractor_model_1.ContractorModel.findById(senderId)];
                 case 2:
-                    _a = _b.sent();
-                    return [3 /*break*/, 5];
-                case 3: return [4 /*yield*/, customer_model_1.default.findById(senderId)];
+                    sender_1 = _a.sent();
+                    _a.label = 3;
+                case 3:
+                    if (!(senderType === 'admins')) return [3 /*break*/, 5];
+                    return [4 /*yield*/, admin_model_1.default.findById(senderId)];
                 case 4:
-                    _a = _b.sent();
-                    _b.label = 5;
+                    sender_1 = _a.sent();
+                    _a.label = 5;
                 case 5:
-                    sender_1 = _a;
+                    if (!(senderType === 'customers')) return [3 /*break*/, 7];
+                    return [4 /*yield*/, customer_model_1.default.findById(senderId)];
+                case 6:
+                    sender_1 = _a.sent();
+                    _a.label = 7;
+                case 7:
                     if (!conversation_1 || !members || !sender_1)
                         return [2 /*return*/];
                     members.forEach(function (member) { return __awaiter(_this, void 0, void 0, function () {
@@ -136,40 +145,13 @@ exports.ConversationEvent.on('NEW_MESSAGE', function (params) {
                             }
                         });
                     }); });
-                    return [3 /*break*/, 7];
-                case 6:
-                    error_1 = _b.sent();
+                    return [3 /*break*/, 9];
+                case 8:
+                    error_1 = _a.sent();
                     console.error("Error handling NEW_MESSAGE event: ".concat(error_1));
-                    return [3 /*break*/, 7];
-                case 7: return [2 /*return*/];
+                    return [3 /*break*/, 9];
+                case 9: return [2 /*return*/];
             }
         });
     });
 });
-// ConversationEvent.on('NEW_UNREAD_MESSAGE', async function (params:{conversationId:any,  message: string, toUserId: any, toUserType: any }) {
-//     try {
-//         const message = params.message
-//         const toUserId = params.toUserId
-//         const toUserType = params.toUserType
-//         const conversationId = params.conversationId
-//         const conversation = await ConversationModel.findById(conversationId)
-//         const user = toUserType === 'contractors' ? await ContractorModel.findById(toUserId) : await CustomerModel.findById(toUserId)
-//         if (!conversation || !user || !toUserType) return
-//         NotificationService.sendNotification({
-//             user: toUserId,
-//             userType: toUserType,
-//             title: 'New unread message',
-//             type: 'NEW_UNREAD_MESSAGE', 
-//             message: `You have a new unread message`,
-//             heading: { name: `${user.name}`, image: user.profilePhoto?.url },
-//             payload: {
-//                 entity: conversation.id,
-//                 entityType: 'conversations',
-//                 message: message,
-//                 event: 'NEW_UNREAD_MESSAGE',
-//             }
-//         }, { socket: true, push: true })
-//     } catch (error) {
-//         console.error(`Error handling NEW_UNREAD_MESSAGE event: ${error}`);
-//     }
-// });

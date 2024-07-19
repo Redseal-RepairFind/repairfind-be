@@ -66,7 +66,7 @@ const MessageSchema = new Schema<IMessage>({
     },
     senderType: {
         type: String,
-        enum: ['contractors', 'customers', 'admin'],
+        enum: ['contractors', 'customers', 'admins'],
         required: false, // false becos we of alert kind of messages
     },
     messageType: {

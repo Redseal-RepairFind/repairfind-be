@@ -11,7 +11,7 @@ var adminReg_controller_1 = require("../controllers/adminReg.controller");
 var appDetails_Controller_1 = require("../controllers/appDetails.Controller");
 var averageRevenue_controller_1 = require("../controllers/averageRevenue.controller");
 var conversation_controller_1 = require("../controllers/conversation.controller");
-var dispute_controller_1 = require("../controllers/dispute.controller");
+var admin_disputes_controller_1 = require("../controllers/admin_disputes.controller");
 var emergency_controller_1 = require("../controllers/emergency.controller");
 // import {  AdminJobController, } from "../controllers/job.controller";
 var payout_controller_1 = require("../controllers/payout.controller");
@@ -84,18 +84,17 @@ router.get("/emergecy/resolve", adminRoleChecker_middleware_1.checkAdminRole, em
 router.get("/emergecy/:emergencyId", adminRoleChecker_middleware_1.checkAdminRole, emergency_controller_1.ermergency.AdminGetSingleEmergencyJobController); // admin get single emergency
 router.post("/emergecy/accept", admin_validations_middleware_1.validateEmergecyIdParams, adminRoleChecker_middleware_1.checkAdminRole, emergency_controller_1.ermergency.AdminAcceptEmergencyJobController); // admin accept emergecy
 router.post("/emergecy/resolved", admin_validations_middleware_1.validateResolvedEmergecyIdParams, adminRoleChecker_middleware_1.checkAdminRole, emergency_controller_1.ermergency.AdminResolvedEmergencyJobController); // admin resolved emergecy
-//done dispute
-router.get("/dispute", admin_validations_middleware_1.Validations.DisputeStatusParams, adminRoleChecker_middleware_1.checkAdminRole, dispute_controller_1.dispute.AdminJobDisputeByStatusController); // admin get dispute by status
-router.get("/dispute/:disputeId", adminRoleChecker_middleware_1.checkAdminRole, dispute_controller_1.dispute.AdminGetSingleJobDisputeController); // admin get single dispute
-router.post("/dispute/accept", admin_validations_middleware_1.Validations.AcceptDisputeParams, adminRoleChecker_middleware_1.checkAdminRole, dispute_controller_1.dispute.AdminAcceptJobDisputeController); // admin accept dispute
-router.get("/dispute/admin", admin_validations_middleware_1.Validations.DisputeStatusParams, adminRoleChecker_middleware_1.checkAdminRole, dispute_controller_1.dispute.AdminGetJobDisputForAdminController); // admin get dispute for himself
-router.post("/dispute/settle", admin_validations_middleware_1.Validations.SettleDisputeParams, adminRoleChecker_middleware_1.checkAdminRole, dispute_controller_1.dispute.AdminSettleJobDisputeController); // admin settle dispute
+//done disputes
+router.get("/disputes", adminRoleChecker_middleware_1.checkAdminRole, admin_disputes_controller_1.AdminDisputeController.getJobDisputes); // admin get dispute by status
+router.get("/disputes/:disputeId", adminRoleChecker_middleware_1.checkAdminRole, admin_disputes_controller_1.AdminDisputeController.getSingleDispute); // admin get single dispute
+router.post("/disputes/:disputeId/accept", adminRoleChecker_middleware_1.checkAdminRole, admin_disputes_controller_1.AdminDisputeController.acceptDispute); // admin accept dispute
+router.post("/disputes/:disputeId/settle", admin_validations_middleware_1.Validations.SettleDisputeParams, adminRoleChecker_middleware_1.checkAdminRole, admin_disputes_controller_1.AdminDisputeController.settleDispute); // admin settle dispute
 //done conversation
-router.post("/conversation", admin_validations_middleware_1.Validations.StartCoversaionParams, adminRoleChecker_middleware_1.checkAdminRole, conversation_controller_1.AdminConversation.startConversation); // admin start conversation
-router.get("/conversation", adminRoleChecker_middleware_1.checkAdminRole, conversation_controller_1.AdminConversation.getConversations); // admin get conversation 
-router.get("/conversation/:conversationId", adminRoleChecker_middleware_1.checkAdminRole, conversation_controller_1.AdminConversation.getSingleConversation); // admin get single conversation 
-router.get("/conversation/meaasge/:conversationId", adminRoleChecker_middleware_1.checkAdminRole, conversation_controller_1.AdminConversation.getConversationMessages); // admin get  conversation message
-router.post("/conversation/meaasge/:conversationId", admin_validations_middleware_1.Validations.sendMessageParams, adminRoleChecker_middleware_1.checkAdminRole, conversation_controller_1.AdminConversation.sendMessage); // admin send message
+router.post("/conversations", admin_validations_middleware_1.Validations.StartCoversaionParams, adminRoleChecker_middleware_1.checkAdminRole, conversation_controller_1.AdminConversationController.startConversation); // admin start conversation
+router.get("/conversations", adminRoleChecker_middleware_1.checkAdminRole, conversation_controller_1.AdminConversationController.getConversations); // admin get conversation 
+router.get("/conversations/:conversationId", adminRoleChecker_middleware_1.checkAdminRole, conversation_controller_1.AdminConversationController.getSingleConversation); // admin get single conversation 
+router.get("/conversations/:conversationId/messages", adminRoleChecker_middleware_1.checkAdminRole, conversation_controller_1.AdminConversationController.getConversationMessages); // admin get  conversation message
+router.post("/conversations/:conversationId/messages", admin_validations_middleware_1.Validations.sendMessageParams, adminRoleChecker_middleware_1.checkAdminRole, conversation_controller_1.AdminConversationController.sendMessage); // admin send message
 router.post("/update_profile", adminRoleChecker_middleware_1.checkAdminRole, upload_utility_1.memoryUpload.single('profileImg'), adminReg_controller_1.adminUpdateBioController); // admin update profile
 router.get("/get_all_notification", adminRoleChecker_middleware_1.checkAdminRole, adminNotification_controller_1.adminGetNotificationrController); // admin get all notification
 router.post("/view_unseen_notification", adminRoleChecker_middleware_1.checkAdminRole, adminNotification_controller_1.adminViewNotificationrController); // admin view unseen notification

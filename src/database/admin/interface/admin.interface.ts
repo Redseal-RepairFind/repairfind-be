@@ -13,6 +13,7 @@ export interface IAdmin extends Document {
   password: string;
   firstName: string;
   lastName: string;
+  name: string;
   phoneNumber: string;
   superAdmin: boolean;
   validation: boolean;

@@ -130,10 +130,13 @@ ConversationSchema.methods.getHeading = function (loggedInUserId) {
                     if (!otherMember) return [3 /*break*/, 4];
                     UserModel = mongoose_1.default.model('contractors');
                     if (otherMember.memberType == 'contractors') {
-                        UserModel = mongoose_1.default.model('contractors'); // Assuming your user model is named 'User'
+                        UserModel = mongoose_1.default.model('contractors');
                     }
-                    else {
-                        UserModel = mongoose_1.default.model('customers'); // Assuming your user model is named 'User'
+                    if (otherMember.memberType == 'customers') {
+                        UserModel = mongoose_1.default.model('customers');
+                    }
+                    if (otherMember.memberType == 'admins') {
+                        UserModel = mongoose_1.default.model('admins'); // Assuming your user model is named 'User'
                     }
                     return [4 /*yield*/, UserModel.findById(otherMember.member)];
                 case 1:

@@ -86,7 +86,7 @@ export const getConversations = async (req: any, res: Response, next: NextFuncti
     
         const admin = req.admin;
         const adminId = admin.id;
-        const filter: any = { 'members.member': adminId, 'members.memberType': 'admin'};
+        const filter: any = { 'members.member': adminId, 'members.memberType': 'admins'};
 
         // Filtering by startDate and endDate
         if (startDate && endDate) {
@@ -121,17 +121,14 @@ export const getSingleConversation = async (req: any, res: Response, next: NextF
         const query: any = { 'members.member': adminId, _id: conversationId };
 
         const conversation = await ConversationModel.findOne(query).populate(['entity', 'members']).exec();
+        if(!conversation)return res.status(404).json({success:false, message: "Conversation not found"})
+
         if(conversation){
             conversation.heading = await conversation.getHeading( adminId);
-            
-            if(conversation.entityType == 'jobs'){
-                //@ts-ignore
-                conversation.entity.myQuotation = await conversation.entity.getMyQuotation(conversation.entity.id, adminId);
-            }
         }
         res.status(200).json({ success: true, message: "Conversation retrieved", data: conversation });
     } catch (error: any) {
-        return next(new InternalServerError('An error occured ', error))
+        return next(new InternalServerError('An error occurred ', error))
     }
 };
 
@@ -212,7 +209,7 @@ export const sendMessage = async (req: any, res: Response, next: NextFunction) =
         const newMessage = await MessageModel.create({
             conversation: conversationId,
             sender: adminId, // Assuming the customer sends the message
-            senderType: 'admin', // Type of the sender
+            senderType: 'admins', // Type of the sender
             message: message, // Message content from the request body
             messageType: type, 
             media: media, 
@@ -229,6 +226,10 @@ export const sendMessage = async (req: any, res: Response, next: NextFunction) =
                     }
                 }
             );
+
+            newMessage.readBy.push(adminId)
+            await newMessage.save()
+
         }
 
         ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
@@ -239,7 +240,7 @@ export const sendMessage = async (req: any, res: Response, next: NextFunction) =
     }
 };
 
-export const AdminConversation = {
+export const AdminConversationController = {
     startConversation,
     getConversations,
     getSingleConversation,

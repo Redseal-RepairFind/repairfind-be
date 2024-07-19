@@ -169,12 +169,9 @@ export const DisputeStatusParams = [
     query("status").isIn(Object.values(JOB_DISPUTE_STATUS)),
 ];
 
-export const AcceptDisputeParams = [
-    body("disputeId").notEmpty(),
-];
+
 
 export const SettleDisputeParams = [
-    body("disputeId").notEmpty(),
     body("resolvedWay").notEmpty(),
 ];
 
@@ -216,7 +213,6 @@ export const Validations = {
     AddStaffParams,
     AddPermissionParams,
     DisputeStatusParams,
-    AcceptDisputeParams,
     SettleDisputeParams,
     ContractorChangeStatusParams,
     CustomerChangeStatusParams,

@@ -55,6 +55,12 @@ export class NotificationService  {
             deviceTokens = devices.map(device => device.deviceToken);
         }
         
+        if(params.userType == 'admins'){
+            user  = await CustomerModel.findById(params.user)
+            devices = await CustomerDeviceModel.find({customer: user?.id}).select('deviceToken')
+            deviceTokens = devices.map(device => device.deviceToken);
+        }
+        
     
         if(!user) return
 

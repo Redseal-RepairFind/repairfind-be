@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AdminConversation = exports.sendMessage = exports.getConversationMessages = exports.getSingleConversation = exports.getConversations = exports.startConversation = void 0;
+exports.AdminConversationController = exports.sendMessage = exports.getConversationMessages = exports.getSingleConversation = exports.getConversations = exports.startConversation = void 0;
 var conversations_schema_1 = require("../../../database/common/conversations.schema");
 var admin_model_1 = __importDefault(require("../../../database/admin/models/admin.model"));
 var mongoose_1 = __importDefault(require("mongoose"));
@@ -131,7 +131,7 @@ var getConversations = function (req, res, next) { return __awaiter(void 0, void
                 _a = req.query, startDate = _a.startDate, endDate = _a.endDate, read = _a.read, unread = _a.unread;
                 admin = req.admin;
                 adminId_1 = admin.id;
-                filter = { 'members.member': adminId_1, 'members.memberType': 'admin' };
+                filter = { 'members.member': adminId_1, 'members.memberType': 'admins' };
                 // Filtering by startDate and endDate
                 if (startDate && endDate) {
                     filter.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
@@ -179,38 +179,33 @@ var getConversations = function (req, res, next) { return __awaiter(void 0, void
 }); };
 exports.getConversations = getConversations;
 var getSingleConversation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var conversationId, admin, adminId, query, conversation, _a, _b, error_2;
-    return __generator(this, function (_c) {
-        switch (_c.label) {
+    var conversationId, admin, adminId, query, conversation, _a, error_2;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
-                _c.trys.push([0, 5, , 6]);
+                _b.trys.push([0, 4, , 5]);
                 conversationId = req.params.conversationId;
                 admin = req.admin;
                 adminId = admin.id;
                 query = { 'members.member': adminId, _id: conversationId };
                 return [4 /*yield*/, conversations_schema_1.ConversationModel.findOne(query).populate(['entity', 'members']).exec()];
             case 1:
-                conversation = _c.sent();
-                if (!conversation) return [3 /*break*/, 4];
+                conversation = _b.sent();
+                if (!conversation)
+                    return [2 /*return*/, res.status(404).json({ success: false, message: "Conversation not found" })];
+                if (!conversation) return [3 /*break*/, 3];
                 _a = conversation;
                 return [4 /*yield*/, conversation.getHeading(adminId)];
             case 2:
-                _a.heading = _c.sent();
-                if (!(conversation.entityType == 'jobs')) return [3 /*break*/, 4];
-                //@ts-ignore
-                _b = conversation.entity;
-                return [4 /*yield*/, conversation.entity.getMyQuotation(conversation.entity.id, adminId)];
+                _a.heading = _b.sent();
+                _b.label = 3;
             case 3:
-                //@ts-ignore
-                _b.myQuotation = _c.sent();
-                _c.label = 4;
-            case 4:
                 res.status(200).json({ success: true, message: "Conversation retrieved", data: conversation });
-                return [3 /*break*/, 6];
-            case 5:
-                error_2 = _c.sent();
-                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occured ', error_2))];
-            case 6: return [2 /*return*/];
+                return [3 /*break*/, 5];
+            case 4:
+                error_2 = _b.sent();
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred ', error_2))];
+            case 5: return [2 /*return*/];
         }
     });
 }); };
@@ -276,7 +271,7 @@ var sendMessage = function (req, res, next) { return __awaiter(void 0, void 0, v
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 5, , 6]);
+                _b.trys.push([0, 6, , 7]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -299,7 +294,7 @@ var sendMessage = function (req, res, next) { return __awaiter(void 0, void 0, v
                 return [4 /*yield*/, messages_schema_1.MessageModel.create({
                         conversation: conversationId,
                         sender: adminId_3, // Assuming the customer sends the message
-                        senderType: 'admin', // Type of the sender
+                        senderType: 'admins', // Type of the sender
                         message: message, // Message content from the request body
                         messageType: type,
                         media: media,
@@ -307,7 +302,7 @@ var sendMessage = function (req, res, next) { return __awaiter(void 0, void 0, v
                     })];
             case 2:
                 newMessage = _b.sent();
-                if (!newMessage) return [3 /*break*/, 4];
+                if (!newMessage) return [3 /*break*/, 5];
                 return [4 /*yield*/, conversations_schema_1.ConversationModel.updateOne({ _id: conversationId }, // Filter criteria to find the conversation document
                     {
                         $set: {
@@ -317,20 +312,24 @@ var sendMessage = function (req, res, next) { return __awaiter(void 0, void 0, v
                     })];
             case 3:
                 _b.sent();
-                _b.label = 4;
+                newMessage.readBy.push(adminId_3);
+                return [4 /*yield*/, newMessage.save()];
             case 4:
+                _b.sent();
+                _b.label = 5;
+            case 5:
                 events_1.ConversationEvent.emit('NEW_MESSAGE', { message: newMessage });
                 res.status(201).json({ success: true, message: 'Message sent successfully', data: newMessage });
-                return [3 /*break*/, 6];
-            case 5:
+                return [3 /*break*/, 7];
+            case 6:
                 error_4 = _b.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('Error sending message', error_4))];
-            case 6: return [2 /*return*/];
+            case 7: return [2 /*return*/];
         }
     });
 }); };
 exports.sendMessage = sendMessage;
-exports.AdminConversation = {
+exports.AdminConversationController = {
     startConversation: exports.startConversation,
     getConversations: exports.getConversations,
     getSingleConversation: exports.getSingleConversation,

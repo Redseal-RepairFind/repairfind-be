@@ -70,5 +70,8 @@ var AdminSchema = new mongoose_1.Schema({
 }, {
     timestamps: true,
 });
+AdminSchema.virtual('name').get(function () {
+    return "".concat(this.firstName, " ").concat(this.lastName);
+});
 var AdminModel = (0, mongoose_1.model)("admins", AdminSchema);
 exports.default = AdminModel;
