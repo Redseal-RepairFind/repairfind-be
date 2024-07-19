@@ -10,7 +10,7 @@ import { AdminGetAppDetailController } from "../controllers/appDetails.Controlle
 import { AdminGetRevenueAnalysisControlleer, AdminsendEmailsControlleer } from "../controllers/averageRevenue.controller";
 import { AdminConversationController } from "../controllers/conversation.controller";
 import { AdminDisputeController } from "../controllers/admin_disputes.controller";
-import { ermergency } from "../controllers/emergency.controller";
+import { AdminEmergencyController } from "../controllers/emergency.controller";
 // import {  AdminJobController, } from "../controllers/job.controller";
 import { AdminGetCompletedPayoutDetailController, AdminGetPendingPayoutDetailController, AdminGetSinglePayoutDetailController, AdminPayContractorController } from "../controllers/payout.controller";
 import { Permission } from "../controllers/permission.controller";
@@ -23,13 +23,14 @@ const express = require("express");
 const router = express.Router();
 
 
-//done authecation
+//refactored authecation
 router.post("/signup", validateSignupParams, adminSignUpController ); // admin signup
 router.post("/email/verification", validatAdminEmailverificationParams, adminVerifiedEmailController ); // admin email verification
 router.post("/resend/email", validateAdminForgotPasswordParams, adminResendEmailController ); // admin resend email
 router.post("/signin", validateAdminLoginParams, AdminSignInController ); // admin login
 router.post("/forgot/password", validateAdminForgotPasswordParams, AdminEmailForgotPasswordController ); // admin forgot password
 router.post("/reset/password", validateAdminResetPasswprdParams, AdminEmailResetPasswordController ); // admin reset password
+
 
 //don staff
 router.post("/staff", Validations.AddStaffParams, checkAdminRole, AddStaffController ); // super admin add staff
@@ -43,22 +44,16 @@ router.post("/permission", Validations.PermissionCreationParam, checkAdminRole, 
 router.get("/permissions", checkAdminRole, Permission.GetPermissionController ); // super admin get all permission
 router.post("/edit/permission", Validations.EditPermissionParams, checkAdminRole, Permission.EditPermissionController ); // super admin edit permission
 
-//don contractor
+
+
+//refactored contractor
 router.get("/contractors", checkAdminRole, AdminContractorController.exploreContractors ); // admin get contractor detail
 router.get("/contractors/:contractorId", checkAdminRole, AdminContractorController.getSingleContractor ); // admin get single contractor detail
 router.get("/contractors/:contractorId/jobs", checkAdminRole, AdminContractorController.getJobHistory ); // admin get single contractor detail
 router.get("/contractors/:contractorId/jobs/:jobId", checkAdminRole, AdminContractorController.getSingleJob ); // admin get single contractor detail
-
 router.patch("/contractors/:contractorId/gst", Validations.updateGstDetails, checkAdminRole, AdminContractorController.updateGstDetails ); // admin change contractor gst
 router.patch("/contractors/:contractorId/status", Validations.updateAccount, checkAdminRole, AdminContractorController.updateAccountStatus ); // admin change contractor gst
 router.post("/contractors/:contractorId/sendmail", Validations.sendCustomEmail, checkAdminRole, AdminContractorController.sendCustomEmail ); // admin change contractor gst
-
-// router.get("/contractor/detail/pending/gst", checkAdminRole, AdminContractorController.AdminGetContractorGstPendingController ); // admin get contractor detail with gst status pending
-// router.get("/contractor/detail/approve/gst", checkAdminRole, AdminContractorController.AdminGetContractorGstApproveController ); // admin get contractor detail with gst status approve
-// router.get("/contractor/detail/decline/gst", checkAdminRole, AdminContractorController.AdminGetContractorGstDecliningController ); // admin get contractor detail with gst status Decline
-// router.get("/contractor/detail/review/gst", checkAdminRole, AdminContractorController.AdminGetContractorGstReviewingController ); // admin get contractor detail with gst status Reviewing
-// router.get("/contractor/job/detail/:contractorId", checkAdminRole, AdminContractorController.AdminGetSingleContractorJonDetailController ); // admin get single contractor job detail
-// router.post("/contractor/account/status", Validations.ContractorChangeStatusParams, checkAdminRole, AdminContractorController.AdminChangeContractorAccountStatusController); // admin change contractor account status
 
 
 //done
@@ -75,14 +70,8 @@ router.post("/skills", validateAddSkillParams, checkAdminRole, AdminSkillControl
 router.get("/skills", checkAdminRole, AdminSkillController.GetSkills ); // admin get all skill
 
 
-// done job
-// router.get("/jobs/detail", checkAdminRole, AdminJobController.AdminGetJobsrDetailController ); 
-// router.get("/jobs/detail/:jobId", checkAdminRole, AdminJobController.AdminGetSingleJobsrDetailController ); 
-// router.get("/total_job", checkAdminRole, AdminJobController.AdminGetTotalJobsrController); 
-// router.get("/app_detail", checkAdminRole, AdminGetAppDetailController ); 
-// router.get("/invoice/detail/:jobId", checkAdminRole, AdminJobController.AdminGetInvoiceSingleJobsrDetailController ); 
 
-// jobs aaron
+// refactored aaron
 router.get("/jobs", checkAdminRole, AdminJobController.getJobs ); 
 router.get("/jobs/stats", checkAdminRole, AdminJobController.getJobStats); 
 router.get("/jobs/:jobId", checkAdminRole, AdminJobController.getSingleJob ); 
@@ -92,24 +81,25 @@ router.get("/app_detail", checkAdminRole, AdminGetAppDetailController );
 
 
 //done transaction
-router.get("/transactions", checkAdminRole,TransactionDetailController.AdminGetTransactionDetailController ); // admin get transaction detail
-router.get("/transaction/:transactionId", checkAdminRole, TransactionDetailController.AdminGetSingleTransactionDetailController ); // admin get single transaction detail
+router.get("/transactions", checkAdminRole,TransactionDetailController.AdminGetTransactionDetailController )
+router.get("/transaction/:transactionId", checkAdminRole, TransactionDetailController.AdminGetSingleTransactionDetailController ); 
 
-//done emergency
-router.get("/emergecy/active", checkAdminRole, ermergency.AdminGetActiveEmergencyJobController ); // admin get active emergency
-router.get("/emergecy/new", checkAdminRole, ermergency.AdminGeNewEmergencyJobController ); // admin get new emergency
-router.get("/emergecy/resolve", checkAdminRole, ermergency.AdminGetResolveEmergencyJobController ); // admin get resolve emergency
-router.get("/emergecy/:emergencyId", checkAdminRole, ermergency.AdminGetSingleEmergencyJobController ); // admin get single emergency
-router.post("/emergecy/accept", validateEmergecyIdParams, checkAdminRole, ermergency.AdminAcceptEmergencyJobController  ); // admin accept emergecy
-router.post("/emergecy/resolved", validateResolvedEmergecyIdParams, checkAdminRole, ermergency.AdminResolvedEmergencyJobController  ); // admin resolved emergecy
+//refactored emergency
+router.get("/emergencies", checkAdminRole, AdminEmergencyController.getEmergencies ); 
+router.post("/emergencies/:emergencyId/accept", checkAdminRole, AdminEmergencyController.acceptEmergency  );
+router.post("/emergencies/:emergencyId/resolve", checkAdminRole, AdminEmergencyController.resolveEmergency  );
+router.get("/emergencies/:emergencyId", checkAdminRole, AdminEmergencyController.getSingleEmergency ); 
 
-//done disputes
-router.get("/disputes", checkAdminRole, AdminDisputeController.getJobDisputes ); // admin get dispute by status
-router.get("/disputes/:disputeId", checkAdminRole, AdminDisputeController.getSingleDispute ); // admin get single dispute
-router.post("/disputes/:disputeId/accept", checkAdminRole, AdminDisputeController.acceptDispute ); // admin accept dispute
-router.post("/disputes/:disputeId/settle", Validations.SettleDisputeParams, checkAdminRole, AdminDisputeController.settleDispute  ); // admin settle dispute
 
-//done conversation
+
+//refactored disputes
+router.get("/disputes", checkAdminRole, AdminDisputeController.getJobDisputes ); 
+router.get("/disputes/:disputeId", checkAdminRole, AdminDisputeController.getSingleDispute ); 
+router.post("/disputes/:disputeId/accept", checkAdminRole, AdminDisputeController.acceptDispute ); 
+router.post("/disputes/:disputeId/settle", Validations.SettleDisputeParams, checkAdminRole, AdminDisputeController.settleDispute  ); 
+
+
+//refactored conversation
 router.post("/conversations", Validations.StartCoversaionParams, checkAdminRole, AdminConversationController.startConversation  ); // admin start conversation
 router.get("/conversations", checkAdminRole, AdminConversationController.getConversations  ); // admin get conversation 
 router.get("/conversations/:conversationId", checkAdminRole, AdminConversationController.getSingleConversation  ); // admin get single conversation 
@@ -118,34 +108,23 @@ router.post("/conversations/:conversationId/messages", Validations.sendMessagePa
 
 
 
-
+// TODO:
 router.post("/update_profile", checkAdminRole, memoryUpload.single('profileImg'), adminUpdateBioController ); // admin update profile
-
 router.get("/get_all_notification", checkAdminRole,  adminGetNotificationrController ); // admin get all notification
 router.post("/view_unseen_notification", checkAdminRole,  adminViewNotificationrController ); // admin view unseen notification
 router.get("/get_unseen_notification", checkAdminRole,  adminUnseenNotificationrController  ); // admin get total number of unseen notification
-
 router.get("/get_revenue_par_day", validateRevenueDateParams, checkAdminRole, AdminGetRevenueAnalysisControlleer ); // admin get total number of unseen notification
-
 router.get("/get_all_pending_payout", checkAdminRole, AdminGetPendingPayoutDetailController ); // admin get all pending payout
 router.get("/get_all_completed_payout", checkAdminRole, AdminGetCompletedPayoutDetailController ); // admin get all completed payout
 router.get("/get_single_payout", validatePayoutIDParams, checkAdminRole, AdminGetSinglePayoutDetailController ); // admin get single payout
 router.post("/pay_contractor", validatePayoutIDPayContractorParams, checkAdminRole, AdminPayContractorController  ); // admin paycontractor
 
 
-//no work just testing email
-router.post("/send_email", AdminsendEmailsControlleer ); // admin get total number of unseen notification
-
-
-
-// //////// //// ///// //// //// //// //// //// //// ///// //
 
 // QUIZ
 router.post("/quizzes", createQuizParams, checkAdminRole, AdminQuizController.CreateQuiz ); // admin create quiz
 router.get("/quizzes", checkAdminRole, AdminQuizController.getAllQuizzes ); // admin get quizes
 router.get("/random-quiz", checkAdminRole, AdminQuizController.getRandomQuiz ); // admin add question
-
-// router.post("/admin_add_question", validateAddQuestionParams, checkAdminRole, AdminQuizController.AddQuestion ); // admin add question
 router.get("/question", checkAdminRole, AdminQuizController.GetAllQuestions ); // admin get all question
 router.get("/question/:questionId", checkAdminRole, AdminQuizController.GetSingleQuestion ); // admin get single question
 router.post("/question/edit", validateEditQuestionParams, checkAdminRole, AdminQuizController.EditQuestion ); // admin edit question

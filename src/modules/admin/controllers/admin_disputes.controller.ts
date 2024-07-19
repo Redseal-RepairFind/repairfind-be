@@ -24,12 +24,12 @@ export const getJobDisputes = async (
 
     const adminId = req.admin.id
     const filter = {}
-    const disputes = await applyAPIFeature(JobDisputeModel.find(filter).populate({
+    const {data, error} = await applyAPIFeature(JobDisputeModel.find(filter).populate({
       path: 'disputer',
       select: 'firstName lastName name profilePhoto _id'
     }), req.query)
 
-    return res.json({ success: true, message: "Job disputes retrieved", data: disputes });
+    return res.json({ success: true, message: "Job disputes retrieved",  data });
 
   } catch (err: any) {
     res.status(500).json({ message: err.message });

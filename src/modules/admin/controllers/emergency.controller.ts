@@ -1,300 +1,150 @@
 import { validationResult } from "express-validator";
-import { Request, Response } from "express";
-import { JobEmergencyModel, EmergencyStatus } from "../../../database/common/job_emergency.model";
-
-//get new emergency /////////////
-export const AdminGeNewEmergencyJobController = async (
-    req: any,
-    res: Response,
-  ) => {
-  
-    try {
-      let {  
-       page,
-       limit
-      } = req.query;
-  
-      // Check for validation errors
-      const errors = validationResult(req);
-  
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-      }
-  
-      const admin =  req.admin;
-      const adminId = admin.id
-
-      page = page || 1;
-      limit = limit || 50;
-
-      const skip = (page - 1) * limit;
-
-      const jobEmergencies = await JobEmergencyModel.find({status: EmergencyStatus.PENDING})
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .populate(['customer', 'contractor']);
-
-      const totalJobEmergency = await JobEmergencyModel.countDocuments({status: EmergencyStatus.PENDING})
-
-      res.json({ 
-        currentPage: page,
-        totalPages: Math.ceil(totalJobEmergency / limit),
-        jobEmergencies,
-        
-      });
-      
-    } catch (err: any) {
-      res.status(500).json({ message: err.message });
-    }
-}
-
-
-//get single emergency /////////////
-export const AdminGetSingleEmergencyJobController = async (
-    req: any,
-    res: Response,
-  ) => {
-  
-    try {
-        const { emergencyId } = req.params;
-  
-      // Check for validation errors
-      const errors = validationResult(req);
-  
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-      }
-  
-      const admin =  req.admin;
-      const adminId = admin.id
-
-      const jobEmergency = await JobEmergencyModel.findOne({_id: emergencyId})
-      .populate(['customer', 'contractor']);
-
-      if (!jobEmergency) {
-        return res
-          .status(401)
-          .json({ message: "invalid emergencyId" });
-      }
-
-      res.json({ 
-        jobEmergency,
-        
-      });
-      
-    } catch (err: any) {
-      res.status(500).json({ message: err.message });
-    }
-}
-
-//admin accept emergency /////////////
-export const AdminAcceptEmergencyJobController = async (
-    req: any,
-    res: Response,
-  ) => {
-  
-    try {
-        const { emergencyId } = req.body;
-  
-      // Check for validation errors
-      const errors = validationResult(req);
-  
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-      }
-  
-      const admin =  req.admin;
-      const adminId = admin.id
-
-      const jobEmergency = await JobEmergencyModel.findOne({_id: emergencyId})
-      .populate(['customer', 'contractor']);
-
-      if (!jobEmergency) {
-        return res
-          .status(401)
-          .json({ message: "Invalid emergencyId" });
-      }
-
-      if (jobEmergency.status !== EmergencyStatus.PENDING) {
-        return res
-          .status(401)
-          .json({ message: "Job emergency not pending" });
-      }
-
-      jobEmergency.status = EmergencyStatus.IN_PROGRESS
-      jobEmergency.acceptedBy = adminId
-      await jobEmergency.save()
-      
-      res.json({ 
-        message: "Emergency accepted successfully"    
-      });
-      
-    } catch (err: any) {
-      // signup error
-      res.status(500).json({ message: err.message });
-    }
-}
+import { NextFunction, Request, Response } from "express";
+import { JobEmergencyModel, EMERGENCY_STATUS } from "../../../database/common/job_emergency.model";
+import { applyAPIFeature } from "../../../utils/api.feature";
+import { InternalServerError } from "../../../utils/custom.errors";
 
 
 
-//admin resolve emergency /////////////
-export const AdminResolvedEmergencyJobController = async (
+export const getEmergencies = async (
   req: any,
   res: Response,
+  next: NextFunction,
 ) => {
 
   try {
-      const { 
-        emergencyId,
-        resolvedWay
-      } = req.body;
+    let {
+      page,
+      limit
+    } = req.query;
 
-    // Check for validation errors
-    const errors = validationResult(req);
 
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
+    const adminId = req.admin.id
+    const filter = {}
+    const { data, error } = await applyAPIFeature(JobEmergencyModel.find(filter), req.query)
 
-    const admin =  req.admin;
-    const adminId = admin.id
+    return res.json({ success: true, message: "Job emergencies retrieved", data });
 
-    const jobEmergency = await JobEmergencyModel.findOne({_id: emergencyId})
-
-    if (!jobEmergency) {
-      return res
-        .status(401)
-        .json({ message: "invalid emergencyId" });
-    }
-
-    if (jobEmergency.status != EmergencyStatus.IN_PROGRESS) {
-      return res
-        .status(401)
-        .json({ message: "emergency not yet accepted" });
-    }
-
-    if (jobEmergency.acceptedBy != adminId) {
-      return res
-        .status(401)
-        .json({ message: "you do not accepted this emergency" });
-    }
-
-    jobEmergency.status = EmergencyStatus.RESOLVED
-    jobEmergency.resolvedWay = resolvedWay
-    await jobEmergency.save()
-    
-    res.json({ 
-      message: "emergency resolved successfully"    
-    });
-    
-  } catch (err: any) {
-    // signup error
-    res.status(500).json({ message: err.message });
+  } catch (error: any) {
+    return next(new InternalServerError('An error occurred', error))
   }
 }
 
 
-//get acctive emergency by particular admin /////////////
-export const AdminGetActiveEmergencyJobController = async (
-    req: any,
-    res: Response,
-  ) => {
-  
-    try {
-      let {  
-       page,
-       limit
-      } = req.query;
+//get single emergency /////////////
+export const getSingleEmergency = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
 
-      // Check for validation errors
-      const errors = validationResult(req);
-  
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-      }
-  
-      const admin =  req.admin;
-      const adminId = admin.id
+  try {
+    const { emergencyId } = req.params;
 
-      page = page || 1;
-      limit = limit || 50;
+    const admin = req.admin;
+    const adminId = admin.id
 
-      const skip = (page - 1) * limit;
+    const jobEmergency = await JobEmergencyModel.findOne({ _id: emergencyId })
+      .populate(['customer', 'contractor']);
 
-      const jobEmergencies = await JobEmergencyModel.find({acceptedBy: adminId, status: EmergencyStatus.IN_PROGRESS})
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .populate(['customer', 'contractor', 'job']);
-
-      const totalJobEmergency = await JobEmergencyModel.countDocuments({acceptedBy: adminId, status: EmergencyStatus.IN_PROGRESS})
-
-      res.json({ 
-        currentPage: page,
-        totalPages: Math.ceil(totalJobEmergency / limit),
-        jobEmergencies,
-        
-      });
-      
-    } catch (err: any) {
-      res.status(500).json({ message: err.message });
+    if (!jobEmergency) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Emergency not found" });
     }
+
+    return res.json({ success: true, message: "Emergency retrieved", data: jobEmergency });
+
+  } catch (error: any) {
+    return next(new InternalServerError('An error occurred', error))
+  }
 }
 
 
-//get resolve emergency by particular admin /////////////
-export const AdminGetResolveEmergencyJobController = async (
-    req: any,
-    res: Response,
-  ) => {
-  
-    try {
-      let {  
-       page,
-       limit
-      } = req.query;
-  
-      // Check for validation errors
-      const errors = validationResult(req);
-  
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
-      }
-  
-      const admin =  req.admin;
-      const adminId = admin.id
+//admin accept emergency /////////////
+export const acceptEmergency = async (
+  req: any,
+  res: Response,
+  next: NextFunction,
+) => {
 
-      page = page || 1;
-      limit = limit || 50;
+  try {
+    const { emergencyId } = req.params;
 
-      const skip = (page - 1) * limit;
+       const adminId = req.admin.id
 
-      const jobEmergencies = await JobEmergencyModel.find({acceptedBy: adminId, status: EmergencyStatus.RESOLVED})
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .populate(['customer', 'contractor', 'job']);
+    const jobEmergency = await JobEmergencyModel.findOne({ _id: emergencyId })
+      .populate(['customer', 'contractor']);
 
-      const totalJobEmergency = await JobEmergencyModel.countDocuments({acceptedBy: adminId, status: EmergencyStatus.RESOLVED})
-
-      res.json({ 
-        currentPage: page,
-        totalPages: Math.ceil(totalJobEmergency / limit),
-        jobEmergencies,
-        
-      });
-      
-    } catch (err: any) {
-      res.status(500).json({ message: err.message });
+    if (!jobEmergency) {
+      return res
+        .status(401)
+        .json({success: false, message: "Invalid emergencyId" });
     }
+
+    if (jobEmergency.status !== EMERGENCY_STATUS.PENDING) {
+      return res
+        .status(401)
+        .json({success: false, message: "Job emergency is not pending" });
+    }
+
+    jobEmergency.status = EMERGENCY_STATUS.IN_PROGRESS
+    jobEmergency.acceptedBy = adminId
+    await jobEmergency.save()
+
+    res.json({success: true, message: "Emergency accepted successfully"});
+
+  } catch (error: any) {
+    return next(new InternalServerError('An error occurred', error))
+  }
 }
 
-export const ermergency = {
-    AdminGeNewEmergencyJobController,
-    AdminGetSingleEmergencyJobController,
-    AdminAcceptEmergencyJobController,
-    AdminResolvedEmergencyJobController,
-    AdminGetActiveEmergencyJobController,
-    AdminGetResolveEmergencyJobController
+
+export const resolveEmergency = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+) => {
+
+  try {
+    const {emergencyId} = req.params;
+    const {resolvedWay} = req.body;
+
+    const adminId = req.admin.id
+
+    const jobEmergency = await JobEmergencyModel.findOne({ _id: emergencyId })
+
+    if (!jobEmergency) {
+      return res
+        .status(401)
+        .json({success: false, message: "Invalid emergencyId" });
+    }
+
+    if (jobEmergency.status != EMERGENCY_STATUS.IN_PROGRESS) {
+      return res
+        .status(401)
+        .json({success: false, message: "Emergency is not pending" });
+    }
+
+
+    jobEmergency.status = EMERGENCY_STATUS.RESOLVED
+    jobEmergency.resolvedWay = resolvedWay
+    await jobEmergency.save()
+
+    return res.json({ success: true, message: "emergency resolved successfully" });
+  } catch (error: any) {
+    return next(new InternalServerError('An error occurred', error))
+  }
+}
+
+
+
+
+
+
+export const AdminEmergencyController = {
+  getEmergencies,
+  getSingleEmergency,
+  acceptEmergency,
+  resolveEmergency,
 }

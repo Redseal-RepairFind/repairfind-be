@@ -77,6 +77,7 @@ router.post("/bookings/:bookingId/mark-complete", customerRoleChecker_middleware
 router.post("/bookings/:bookingId/review", customerRoleChecker_middleware_1.checkCustomerRole, customer_booking_controller_1.CustomerBookingController.reviewBookingOnCompletion);
 router.post("/bookings/:bookingId/reschedule", customerRoleChecker_middleware_1.checkCustomerRole, customer_booking_controller_1.CustomerBookingController.requestBookingReschedule);
 router.post("/bookings/:bookingId/dispute", customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.createJobDisputeParams, customer_booking_controller_1.CustomerBookingController.createBookingDispute);
+router.post("/bookings/:bookingId/emergency", customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.createJobDisputeParams, customer_booking_controller_1.CustomerBookingController.createJobEmergency);
 router.post("/bookings/:bookingId/refund", customerRoleChecker_middleware_1.checkCustomerRole, customer_booking_controller_1.CustomerBookingController.requestBookingRefund);
 router.post("/bookings/:bookingId/reschedule/:action", customerRoleChecker_middleware_1.checkCustomerRole, customer_booking_controller_1.CustomerBookingController.acceptOrDeclineReschedule);
 // Transactions

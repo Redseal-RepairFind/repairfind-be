@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.JobEmergencyModel = exports.JobEmergencySchema = exports.EmergencyStatus = exports.EmergencyPriority = void 0;
+exports.JobEmergencyModel = exports.JobEmergencySchema = exports.EMERGENCY_STATUS = exports.EmergencyPriority = void 0;
 var mongoose_1 = require("mongoose");
 var EmergencyPriority;
 (function (EmergencyPriority) {
@@ -8,12 +8,12 @@ var EmergencyPriority;
     EmergencyPriority["MEDIUM"] = "MEDIUM";
     EmergencyPriority["HIGH"] = "HIGH";
 })(EmergencyPriority || (exports.EmergencyPriority = EmergencyPriority = {}));
-var EmergencyStatus;
-(function (EmergencyStatus) {
-    EmergencyStatus["PENDING"] = "PENDING";
-    EmergencyStatus["RESOLVED"] = "RESOLVED";
-    EmergencyStatus["IN_PROGRESS"] = "IN_PROGRESS";
-})(EmergencyStatus || (exports.EmergencyStatus = EmergencyStatus = {}));
+var EMERGENCY_STATUS;
+(function (EMERGENCY_STATUS) {
+    EMERGENCY_STATUS["PENDING"] = "PENDING";
+    EMERGENCY_STATUS["RESOLVED"] = "RESOLVED";
+    EMERGENCY_STATUS["IN_PROGRESS"] = "IN_PROGRESS";
+})(EMERGENCY_STATUS || (exports.EMERGENCY_STATUS = EMERGENCY_STATUS = {}));
 var JobEmergencySchema = new mongoose_1.Schema({
     description: {
         type: String,
@@ -49,9 +49,9 @@ var JobEmergencySchema = new mongoose_1.Schema({
     },
     status: {
         type: String,
-        enum: Object.values(EmergencyStatus),
+        enum: Object.values(EMERGENCY_STATUS),
         required: true,
-        default: EmergencyStatus.PENDING,
+        default: EMERGENCY_STATUS.PENDING,
     },
     media: {
         type: [String],

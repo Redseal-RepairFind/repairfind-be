@@ -55,11 +55,11 @@ var custom_errors_1 = require("../../../utils/custom.errors");
 var job_day_model_1 = require("../../../database/common/job_day.model");
 var conversations_schema_1 = require("../../../database/common/conversations.schema");
 var getJobDisputes = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, adminId, filter, disputes, err_1;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var errors, adminId, filter, _a, data, error, err_1;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
-                _a.trys.push([0, 2, , 3]);
+                _b.trys.push([0, 2, , 3]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -71,10 +71,10 @@ var getJobDisputes = function (req, res) { return __awaiter(void 0, void 0, void
                         select: 'firstName lastName name profilePhoto _id'
                     }), req.query)];
             case 1:
-                disputes = _a.sent();
-                return [2 /*return*/, res.json({ success: true, message: "Job disputes retrieved", data: disputes })];
+                _a = _b.sent(), data = _a.data, error = _a.error;
+                return [2 /*return*/, res.json({ success: true, message: "Job disputes retrieved", data: data })];
             case 2:
-                err_1 = _a.sent();
+                err_1 = _b.sent();
                 res.status(500).json({ message: err_1.message });
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];

@@ -23,6 +23,7 @@ import { JOB_DISPUTE_STATUS, JobDisputeModel } from "../../../database/common/jo
 import { IReview, REVIEW_TYPE, ReviewModel } from "../../../database/common/review.model";
 import CustomerFavoriteContractorModel from "../../../database/customer/models/customer_favorite_contractors.model";
 import { JOB_DAY_STATUS, JobDayModel } from "../../../database/common/job_day.model";
+import { JobEmergencyModel } from "../../../database/common/job_emergency.model";
 
 
 
@@ -1033,6 +1034,40 @@ export const createBookingDispute = async (req: any, res: Response, next: NextFu
 };
 
 
+export const createJobEmergency = async (req: any, res: Response, next: NextFunction) => {
+    try {
+        // Extract data from request body
+        const { description, priority, date, media } = req.body;
+        const customer = req.customer.id; // Assuming the contractor triggered the emergency
+        const triggeredBy = 'customer'; // Assuming the contractor triggered the emergency
+        const bookingId = req.params.bookingId
+
+        const job = await JobModel.findById(bookingId)
+        if (!job) {
+            return res.status(404).json({ success: false, message: 'Booking not found' });
+        }
+
+        // Create new job emergency instance
+        const jobEmergency = await JobEmergencyModel.create({
+            job: job.id,
+            customer: job.customer,
+            contractor: job.contractor,
+            description,
+            priority,
+            date: new Date,
+            triggeredBy,
+            media,
+        });
+
+        JobEvent.emit('JOB_DAY_EMERGENCY', { jobEmergency })
+
+        return res.status(201).json({ success: true, message: 'Job emergency created successfully', data: jobEmergency });
+    } catch (error: any) {
+        next(new InternalServerError('Error creating job emergency:', error))
+    }
+};
+
+
 export const CustomerBookingController = {
     getMyBookings,
     getBookingHistory,
@@ -1046,7 +1081,8 @@ export const CustomerBookingController = {
     reviewBookingOnCompletion,
     toggleChangeOrder,
     createBookingDispute,
-    requestBookingRefund
+    requestBookingRefund,
+    createJobEmergency,
 }
 
 

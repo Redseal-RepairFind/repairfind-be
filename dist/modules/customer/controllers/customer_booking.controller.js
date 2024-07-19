@@ -73,7 +73,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerBookingController = exports.createBookingDispute = exports.reviewBookingOnCompletion = exports.acceptBookingComplete = exports.requestBookingRefund = exports.cancelBooking = exports.getRefundable = exports.toggleChangeOrder = exports.acceptOrDeclineReschedule = exports.requestBookingReschedule = exports.getSingleBooking = exports.getBookingDisputes = exports.getBookingHistory = exports.getMyBookings = void 0;
+exports.CustomerBookingController = exports.createJobEmergency = exports.createBookingDispute = exports.reviewBookingOnCompletion = exports.acceptBookingComplete = exports.requestBookingRefund = exports.cancelBooking = exports.getRefundable = exports.toggleChangeOrder = exports.acceptOrDeclineReschedule = exports.requestBookingReschedule = exports.getSingleBooking = exports.getBookingDisputes = exports.getBookingHistory = exports.getMyBookings = void 0;
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
@@ -88,6 +88,7 @@ var payment_schema_1 = require("../../../database/common/payment.schema");
 var job_dispute_model_1 = require("../../../database/common/job_dispute.model");
 var review_model_1 = require("../../../database/common/review.model");
 var customer_favorite_contractors_model_1 = __importDefault(require("../../../database/customer/models/customer_favorite_contractors.model"));
+var job_emergency_model_1 = require("../../../database/common/job_emergency.model");
 var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, _b, limit, _c, page, _d, sort, contractorId, _e, status_1, startDate, endDate, date, type, customerId, filter, start, end, selectedDate, startOfDay_1, endOfDay, _f, data, error, error_1;
     return __generator(this, function (_g) {
@@ -1087,6 +1088,45 @@ var createBookingDispute = function (req, res, next) { return __awaiter(void 0, 
     });
 }); };
 exports.createBookingDispute = createBookingDispute;
+var createJobEmergency = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, description, priority, date, media, customer, triggeredBy, bookingId, job, jobEmergency, error_14;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 3, , 4]);
+                _a = req.body, description = _a.description, priority = _a.priority, date = _a.date, media = _a.media;
+                customer = req.customer.id;
+                triggeredBy = 'customer';
+                bookingId = req.params.bookingId;
+                return [4 /*yield*/, job_model_1.JobModel.findById(bookingId)];
+            case 1:
+                job = _b.sent();
+                if (!job) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Booking not found' })];
+                }
+                return [4 /*yield*/, job_emergency_model_1.JobEmergencyModel.create({
+                        job: job.id,
+                        customer: job.customer,
+                        contractor: job.contractor,
+                        description: description,
+                        priority: priority,
+                        date: new Date,
+                        triggeredBy: triggeredBy,
+                        media: media,
+                    })];
+            case 2:
+                jobEmergency = _b.sent();
+                events_1.JobEvent.emit('JOB_DAY_EMERGENCY', { jobEmergency: jobEmergency });
+                return [2 /*return*/, res.status(201).json({ success: true, message: 'Job emergency created successfully', data: jobEmergency })];
+            case 3:
+                error_14 = _b.sent();
+                next(new custom_errors_1.InternalServerError('Error creating job emergency:', error_14));
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.createJobEmergency = createJobEmergency;
 exports.CustomerBookingController = {
     getMyBookings: exports.getMyBookings,
     getBookingHistory: exports.getBookingHistory,
@@ -1100,5 +1140,6 @@ exports.CustomerBookingController = {
     reviewBookingOnCompletion: exports.reviewBookingOnCompletion,
     toggleChangeOrder: exports.toggleChangeOrder,
     createBookingDispute: exports.createBookingDispute,
-    requestBookingRefund: exports.requestBookingRefund
+    requestBookingRefund: exports.requestBookingRefund,
+    createJobEmergency: exports.createJobEmergency,
 };

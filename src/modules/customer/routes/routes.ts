@@ -91,6 +91,7 @@ router.post("/bookings/:bookingId/mark-complete", checkCustomerRole, CustomerBoo
 router.post("/bookings/:bookingId/review", checkCustomerRole, CustomerBookingController.reviewBookingOnCompletion ); 
 router.post("/bookings/:bookingId/reschedule", checkCustomerRole, CustomerBookingController.requestBookingReschedule ); 
 router.post("/bookings/:bookingId/dispute", checkCustomerRole,  CustomerHttpRequest.createJobDisputeParams,  CustomerBookingController.createBookingDispute ); 
+router.post("/bookings/:bookingId/emergency", checkCustomerRole,  CustomerHttpRequest.createJobDisputeParams,  CustomerBookingController.createJobEmergency ); 
 router.post("/bookings/:bookingId/refund", checkCustomerRole, CustomerBookingController.requestBookingRefund ); 
 router.post("/bookings/:bookingId/reschedule/:action", checkCustomerRole, CustomerBookingController.acceptOrDeclineReschedule ); 
 

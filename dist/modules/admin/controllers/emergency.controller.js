@@ -36,63 +36,39 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ermergency = exports.AdminGetResolveEmergencyJobController = exports.AdminGetActiveEmergencyJobController = exports.AdminResolvedEmergencyJobController = exports.AdminAcceptEmergencyJobController = exports.AdminGetSingleEmergencyJobController = exports.AdminGeNewEmergencyJobController = void 0;
-var express_validator_1 = require("express-validator");
+exports.AdminEmergencyController = exports.resolveEmergency = exports.acceptEmergency = exports.getSingleEmergency = exports.getEmergencies = void 0;
 var job_emergency_model_1 = require("../../../database/common/job_emergency.model");
-//get new emergency /////////////
-var AdminGeNewEmergencyJobController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, page, limit, errors, admin, adminId, skip, jobEmergencies, totalJobEmergency, err_1;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+var api_feature_1 = require("../../../utils/api.feature");
+var custom_errors_1 = require("../../../utils/custom.errors");
+var getEmergencies = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, page, limit, adminId, filter, _b, data, error, error_1;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
             case 0:
-                _b.trys.push([0, 3, , 4]);
+                _c.trys.push([0, 2, , 3]);
                 _a = req.query, page = _a.page, limit = _a.limit;
-                errors = (0, express_validator_1.validationResult)(req);
-                if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
-                }
-                admin = req.admin;
-                adminId = admin.id;
-                page = page || 1;
-                limit = limit || 50;
-                skip = (page - 1) * limit;
-                return [4 /*yield*/, job_emergency_model_1.JobEmergencyModel.find({ status: job_emergency_model_1.EmergencyStatus.PENDING })
-                        .sort({ createdAt: -1 })
-                        .skip(skip)
-                        .limit(limit)
-                        .populate(['customer', 'contractor'])];
+                adminId = req.admin.id;
+                filter = {};
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_emergency_model_1.JobEmergencyModel.find(filter), req.query)];
             case 1:
-                jobEmergencies = _b.sent();
-                return [4 /*yield*/, job_emergency_model_1.JobEmergencyModel.countDocuments({ status: job_emergency_model_1.EmergencyStatus.PENDING })];
+                _b = _c.sent(), data = _b.data, error = _b.error;
+                return [2 /*return*/, res.json({ success: true, message: "Job emergencies retrieved", data: data })];
             case 2:
-                totalJobEmergency = _b.sent();
-                res.json({
-                    currentPage: page,
-                    totalPages: Math.ceil(totalJobEmergency / limit),
-                    jobEmergencies: jobEmergencies,
-                });
-                return [3 /*break*/, 4];
-            case 3:
-                err_1 = _b.sent();
-                res.status(500).json({ message: err_1.message });
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/];
+                error_1 = _c.sent();
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred', error_1))];
+            case 3: return [2 /*return*/];
         }
     });
 }); };
-exports.AdminGeNewEmergencyJobController = AdminGeNewEmergencyJobController;
+exports.getEmergencies = getEmergencies;
 //get single emergency /////////////
-var AdminGetSingleEmergencyJobController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var emergencyId, errors, admin, adminId, jobEmergency, err_2;
+var getSingleEmergency = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var emergencyId, admin, adminId, jobEmergency, error_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
                 emergencyId = req.params.emergencyId;
-                errors = (0, express_validator_1.validationResult)(req);
-                if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
-                }
                 admin = req.admin;
                 adminId = admin.id;
                 return [4 /*yield*/, job_emergency_model_1.JobEmergencyModel.findOne({ _id: emergencyId })
@@ -102,35 +78,26 @@ var AdminGetSingleEmergencyJobController = function (req, res) { return __awaite
                 if (!jobEmergency) {
                     return [2 /*return*/, res
                             .status(401)
-                            .json({ message: "invalid emergencyId" })];
+                            .json({ success: false, message: "Emergency not found" })];
                 }
-                res.json({
-                    jobEmergency: jobEmergency,
-                });
-                return [3 /*break*/, 3];
+                return [2 /*return*/, res.json({ success: true, message: "Emergency retrieved", data: jobEmergency })];
             case 2:
-                err_2 = _a.sent();
-                res.status(500).json({ message: err_2.message });
-                return [3 /*break*/, 3];
+                error_2 = _a.sent();
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred', error_2))];
             case 3: return [2 /*return*/];
         }
     });
 }); };
-exports.AdminGetSingleEmergencyJobController = AdminGetSingleEmergencyJobController;
+exports.getSingleEmergency = getSingleEmergency;
 //admin accept emergency /////////////
-var AdminAcceptEmergencyJobController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var emergencyId, errors, admin, adminId, jobEmergency, err_3;
+var acceptEmergency = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var emergencyId, adminId, jobEmergency, error_3;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 3, , 4]);
-                emergencyId = req.body.emergencyId;
-                errors = (0, express_validator_1.validationResult)(req);
-                if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
-                }
-                admin = req.admin;
-                adminId = admin.id;
+                emergencyId = req.params.emergencyId;
+                adminId = req.admin.id;
                 return [4 /*yield*/, job_emergency_model_1.JobEmergencyModel.findOne({ _id: emergencyId })
                         .populate(['customer', 'contractor'])];
             case 1:
@@ -138,172 +105,67 @@ var AdminAcceptEmergencyJobController = function (req, res) { return __awaiter(v
                 if (!jobEmergency) {
                     return [2 /*return*/, res
                             .status(401)
-                            .json({ message: "Invalid emergencyId" })];
+                            .json({ success: false, message: "Invalid emergencyId" })];
                 }
-                if (jobEmergency.status !== job_emergency_model_1.EmergencyStatus.PENDING) {
+                if (jobEmergency.status !== job_emergency_model_1.EMERGENCY_STATUS.PENDING) {
                     return [2 /*return*/, res
                             .status(401)
-                            .json({ message: "Job emergency not pending" })];
+                            .json({ success: false, message: "Job emergency is not pending" })];
                 }
-                jobEmergency.status = job_emergency_model_1.EmergencyStatus.IN_PROGRESS;
+                jobEmergency.status = job_emergency_model_1.EMERGENCY_STATUS.IN_PROGRESS;
                 jobEmergency.acceptedBy = adminId;
                 return [4 /*yield*/, jobEmergency.save()];
             case 2:
                 _a.sent();
-                res.json({
-                    message: "Emergency accepted successfully"
-                });
+                res.json({ success: true, message: "Emergency accepted successfully" });
                 return [3 /*break*/, 4];
             case 3:
-                err_3 = _a.sent();
-                // signup error
-                res.status(500).json({ message: err_3.message });
-                return [3 /*break*/, 4];
+                error_3 = _a.sent();
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred', error_3))];
             case 4: return [2 /*return*/];
         }
     });
 }); };
-exports.AdminAcceptEmergencyJobController = AdminAcceptEmergencyJobController;
-//admin resolve emergency /////////////
-var AdminResolvedEmergencyJobController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, emergencyId, resolvedWay, errors, admin, adminId, jobEmergency, err_4;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+exports.acceptEmergency = acceptEmergency;
+var resolveEmergency = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var emergencyId, resolvedWay, adminId, jobEmergency, error_4;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
             case 0:
-                _b.trys.push([0, 3, , 4]);
-                _a = req.body, emergencyId = _a.emergencyId, resolvedWay = _a.resolvedWay;
-                errors = (0, express_validator_1.validationResult)(req);
-                if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
-                }
-                admin = req.admin;
-                adminId = admin.id;
+                _a.trys.push([0, 3, , 4]);
+                emergencyId = req.params.emergencyId;
+                resolvedWay = req.body.resolvedWay;
+                adminId = req.admin.id;
                 return [4 /*yield*/, job_emergency_model_1.JobEmergencyModel.findOne({ _id: emergencyId })];
             case 1:
-                jobEmergency = _b.sent();
+                jobEmergency = _a.sent();
                 if (!jobEmergency) {
                     return [2 /*return*/, res
                             .status(401)
-                            .json({ message: "invalid emergencyId" })];
+                            .json({ success: false, message: "Invalid emergencyId" })];
                 }
-                if (jobEmergency.status != job_emergency_model_1.EmergencyStatus.IN_PROGRESS) {
+                if (jobEmergency.status != job_emergency_model_1.EMERGENCY_STATUS.IN_PROGRESS) {
                     return [2 /*return*/, res
                             .status(401)
-                            .json({ message: "emergency not yet accepted" })];
+                            .json({ success: false, message: "Emergency is not pending" })];
                 }
-                if (jobEmergency.acceptedBy != adminId) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ message: "you do not accepted this emergency" })];
-                }
-                jobEmergency.status = job_emergency_model_1.EmergencyStatus.RESOLVED;
+                jobEmergency.status = job_emergency_model_1.EMERGENCY_STATUS.RESOLVED;
                 jobEmergency.resolvedWay = resolvedWay;
                 return [4 /*yield*/, jobEmergency.save()];
             case 2:
-                _b.sent();
-                res.json({
-                    message: "emergency resolved successfully"
-                });
-                return [3 /*break*/, 4];
+                _a.sent();
+                return [2 /*return*/, res.json({ success: true, message: "emergency resolved successfully" })];
             case 3:
-                err_4 = _b.sent();
-                // signup error
-                res.status(500).json({ message: err_4.message });
-                return [3 /*break*/, 4];
+                error_4 = _a.sent();
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred', error_4))];
             case 4: return [2 /*return*/];
         }
     });
 }); };
-exports.AdminResolvedEmergencyJobController = AdminResolvedEmergencyJobController;
-//get acctive emergency by particular admin /////////////
-var AdminGetActiveEmergencyJobController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, page, limit, errors, admin, adminId, skip, jobEmergencies, totalJobEmergency, err_5;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0:
-                _b.trys.push([0, 3, , 4]);
-                _a = req.query, page = _a.page, limit = _a.limit;
-                errors = (0, express_validator_1.validationResult)(req);
-                if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
-                }
-                admin = req.admin;
-                adminId = admin.id;
-                page = page || 1;
-                limit = limit || 50;
-                skip = (page - 1) * limit;
-                return [4 /*yield*/, job_emergency_model_1.JobEmergencyModel.find({ acceptedBy: adminId, status: job_emergency_model_1.EmergencyStatus.IN_PROGRESS })
-                        .sort({ createdAt: -1 })
-                        .skip(skip)
-                        .limit(limit)
-                        .populate(['customer', 'contractor', 'job'])];
-            case 1:
-                jobEmergencies = _b.sent();
-                return [4 /*yield*/, job_emergency_model_1.JobEmergencyModel.countDocuments({ acceptedBy: adminId, status: job_emergency_model_1.EmergencyStatus.IN_PROGRESS })];
-            case 2:
-                totalJobEmergency = _b.sent();
-                res.json({
-                    currentPage: page,
-                    totalPages: Math.ceil(totalJobEmergency / limit),
-                    jobEmergencies: jobEmergencies,
-                });
-                return [3 /*break*/, 4];
-            case 3:
-                err_5 = _b.sent();
-                res.status(500).json({ message: err_5.message });
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/];
-        }
-    });
-}); };
-exports.AdminGetActiveEmergencyJobController = AdminGetActiveEmergencyJobController;
-//get resolve emergency by particular admin /////////////
-var AdminGetResolveEmergencyJobController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, page, limit, errors, admin, adminId, skip, jobEmergencies, totalJobEmergency, err_6;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0:
-                _b.trys.push([0, 3, , 4]);
-                _a = req.query, page = _a.page, limit = _a.limit;
-                errors = (0, express_validator_1.validationResult)(req);
-                if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
-                }
-                admin = req.admin;
-                adminId = admin.id;
-                page = page || 1;
-                limit = limit || 50;
-                skip = (page - 1) * limit;
-                return [4 /*yield*/, job_emergency_model_1.JobEmergencyModel.find({ acceptedBy: adminId, status: job_emergency_model_1.EmergencyStatus.RESOLVED })
-                        .sort({ createdAt: -1 })
-                        .skip(skip)
-                        .limit(limit)
-                        .populate(['customer', 'contractor', 'job'])];
-            case 1:
-                jobEmergencies = _b.sent();
-                return [4 /*yield*/, job_emergency_model_1.JobEmergencyModel.countDocuments({ acceptedBy: adminId, status: job_emergency_model_1.EmergencyStatus.RESOLVED })];
-            case 2:
-                totalJobEmergency = _b.sent();
-                res.json({
-                    currentPage: page,
-                    totalPages: Math.ceil(totalJobEmergency / limit),
-                    jobEmergencies: jobEmergencies,
-                });
-                return [3 /*break*/, 4];
-            case 3:
-                err_6 = _b.sent();
-                res.status(500).json({ message: err_6.message });
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/];
-        }
-    });
-}); };
-exports.AdminGetResolveEmergencyJobController = AdminGetResolveEmergencyJobController;
-exports.ermergency = {
-    AdminGeNewEmergencyJobController: exports.AdminGeNewEmergencyJobController,
-    AdminGetSingleEmergencyJobController: exports.AdminGetSingleEmergencyJobController,
-    AdminAcceptEmergencyJobController: exports.AdminAcceptEmergencyJobController,
-    AdminResolvedEmergencyJobController: exports.AdminResolvedEmergencyJobController,
-    AdminGetActiveEmergencyJobController: exports.AdminGetActiveEmergencyJobController,
-    AdminGetResolveEmergencyJobController: exports.AdminGetResolveEmergencyJobController
+exports.resolveEmergency = resolveEmergency;
+exports.AdminEmergencyController = {
+    getEmergencies: exports.getEmergencies,
+    getSingleEmergency: exports.getSingleEmergency,
+    acceptEmergency: exports.acceptEmergency,
+    resolveEmergency: exports.resolveEmergency,
 };

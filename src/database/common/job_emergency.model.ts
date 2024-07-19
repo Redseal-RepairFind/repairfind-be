@@ -6,7 +6,7 @@ export enum EmergencyPriority {
     HIGH = 'HIGH',
 }
 
-export enum EmergencyStatus {
+export enum EMERGENCY_STATUS {
     PENDING = 'PENDING',
     RESOLVED = 'RESOLVED',
     IN_PROGRESS = 'IN_PROGRESS',
@@ -23,7 +23,7 @@ export interface IJobEmergency extends Document {
     resolvedWay: string;
     priority: EmergencyPriority;
     date: Date;
-    status: EmergencyStatus;
+    status: EMERGENCY_STATUS;
     media: string[]; // Array of media URLs or references
     createdAt: Date;
     updatedAt: Date;
@@ -65,9 +65,9 @@ const JobEmergencySchema = new Schema<IJobEmergency>(
         },
         status: {
             type: String,
-            enum: Object.values(EmergencyStatus),
+            enum: Object.values(EMERGENCY_STATUS),
             required: true,
-            default: EmergencyStatus.PENDING,
+            default: EMERGENCY_STATUS.PENDING,
         },
         media: {
             type: [String],
