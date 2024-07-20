@@ -1,43 +1,44 @@
 import { memoryUpload } from "../../../utils/upload.utility";
 import { AdminJobController } from "../controllers/admin_job.controller";
 import { AdminSkillController } from "../controllers/admin_skill.controller";
-import { AdminEmailForgotPasswordController, AdminEmailResetPasswordController } from "../controllers/adminForgotPassword";
 import { AdminContractorController } from "../controllers/admin_contractors.controller";
 import { AdminCustomerController } from "../controllers/adminGetCustomerDetail.contractor";
 import { adminGetNotificationrController, adminUnseenNotificationrController, adminViewNotificationrController } from "../controllers/adminNotification.controller";
-import { AddStaffController, AdminSignInController, SuperAdminGetAllAdminController, SuperAdminChangeStaffStatusController, adminResendEmailController, adminSignUpController, adminUpdateBioController, adminVerifiedEmailController, SuperAdminAddPermissionToStaffController, SuperAdminRemovePermissionFromStaffController } from "../controllers/adminReg.controller";
 import { AdminGetAppDetailController } from "../controllers/appDetails.Controller";
-import { AdminGetRevenueAnalysisControlleer, AdminsendEmailsControlleer } from "../controllers/averageRevenue.controller";
+import { AdminGetRevenueAnalysisControlleer } from "../controllers/averageRevenue.controller";
 import { AdminConversationController } from "../controllers/conversation.controller";
 import { AdminDisputeController } from "../controllers/admin_disputes.controller";
 import { AdminEmergencyController } from "../controllers/emergency.controller";
-// import {  AdminJobController, } from "../controllers/job.controller";
 import { AdminGetCompletedPayoutDetailController, AdminGetPendingPayoutDetailController, AdminGetSinglePayoutDetailController, AdminPayContractorController } from "../controllers/payout.controller";
 import { Permission } from "../controllers/permission.controller";
 import { AdminQuizController } from "../controllers/quiz.controller";
 import { TransactionDetailController } from "../controllers/transaction.controller";
 import { checkAdminRole } from "../middlewares/adminRoleChecker.middleware";
 import { Validations, createQuizParams, validatAdminEmailverificationParams, validateAddQuestionParams, validateAddSkillParams, validateAdminForgotPasswordParams, validateAdminLoginParams, validateAdminResetPasswprdParams, validateContractoDocumentIdValidationParams, validateContractorIdValidationParams, validateCustomerIdValidationParams, validateDeleteQuestionValidationParams, validateEditQuestionParams, validateEmergecyIdParams, validateJobIdValidationParams, validatePayoutIDParams, validatePayoutIDPayContractorParams, validateQuestionIdValidationParams, validateResolvedEmergecyIdParams, validateRevenueDateParams, validateSignupParams, validateSuperAdmiCchangeStatusParams, validateTRansactionIdValidationParams } from "../middlewares/admin_validations.middleware";
+import { AdminAuthController } from "../controllers/admin_auth.controller";
+import { AdminStaffController } from "../controllers/admin_staff.controller";
 
 const express = require("express");
 const router = express.Router();
 
 
 //refactored authecation
-router.post("/signup", validateSignupParams, adminSignUpController ); // admin signup
-router.post("/email/verification", validatAdminEmailverificationParams, adminVerifiedEmailController ); // admin email verification
-router.post("/resend/email", validateAdminForgotPasswordParams, adminResendEmailController ); // admin resend email
-router.post("/signin", validateAdminLoginParams, AdminSignInController ); // admin login
-router.post("/forgot/password", validateAdminForgotPasswordParams, AdminEmailForgotPasswordController ); // admin forgot password
-router.post("/reset/password", validateAdminResetPasswprdParams, AdminEmailResetPasswordController ); // admin reset password
+router.post("/signup", validateSignupParams, AdminAuthController.signUp ); 
+router.post("/email/verification", validatAdminEmailverificationParams, AdminAuthController.verifyEmail );
+router.post("/resend/email", validateAdminForgotPasswordParams, AdminAuthController.resendEmail ); 
+router.post("/signin", validateAdminLoginParams, AdminAuthController.signIn ); 
+router.post("/forgot/password", validateAdminForgotPasswordParams, AdminAuthController.forgotPassword ); 
+router.post("/reset/password", validateAdminResetPasswprdParams, AdminAuthController.resetPassword ); 
 
 
 //don staff
-router.post("/staff", Validations.AddStaffParams, checkAdminRole, AddStaffController ); // super admin add staff
-router.post("/staff/status", validateSuperAdmiCchangeStatusParams, checkAdminRole, SuperAdminChangeStaffStatusController ); // super admin change staff status
-router.get("/staffs", checkAdminRole, SuperAdminGetAllAdminController ); // super get the list of staff
-router.post("/staff/permission", Validations.AddPermissionParams, checkAdminRole, SuperAdminAddPermissionToStaffController ); // super add permission to staff
-router.post("/staff/permission/remove", Validations.AddPermissionParams, checkAdminRole, SuperAdminRemovePermissionFromStaffController ); // super remove permission from staff
+router.post("/staff", Validations.AddStaffParams, checkAdminRole, AdminStaffController.addStaff ); 
+router.post("/staff/status", validateSuperAdmiCchangeStatusParams, checkAdminRole, AdminStaffController.changeStaffStatus ); // super admin change staff status
+router.get("/staffs", checkAdminRole, AdminStaffController.getAdminStaffs ); 
+router.post("/staff/permission", Validations.AddPermissionParams, checkAdminRole, AdminStaffController.addPermissionToStaff ); // super add permission to staff
+router.post("/staff/permission/remove", Validations.AddPermissionParams, checkAdminRole, AdminStaffController.removePermissionFromStaff ); // super remove permission from staff
+
+
 
 // done permission
 router.post("/permission", Validations.PermissionCreationParam, checkAdminRole, Permission.PermissionCreationController ); // super admin create permission
@@ -109,7 +110,7 @@ router.post("/conversations/:conversationId/messages", Validations.sendMessagePa
 
 
 // TODO:
-router.post("/update_profile", checkAdminRole, memoryUpload.single('profileImg'), adminUpdateBioController ); // admin update profile
+// router.post("/update_profile", checkAdminRole, memoryUpload.single('profileImg'), adminUpdateBioController ); // admin update profile
 router.get("/get_all_notification", checkAdminRole,  adminGetNotificationrController ); // admin get all notification
 router.post("/view_unseen_notification", checkAdminRole,  adminViewNotificationrController ); // admin view unseen notification
 router.get("/get_unseen_notification", checkAdminRole,  adminUnseenNotificationrController  ); // admin get total number of unseen notification

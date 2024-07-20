@@ -41,10 +41,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AdminSeeder = void 0;
 var admin_model_1 = __importDefault(require("../admin/models/admin.model"));
-var customers = [
+var admins = [
     {
         email: 'admin@repairfind.com',
-        password: '$2b$10$34E1yhh/3Z/O1cBn/5seAuyHOBuy/U6uZUH10rhFfAjdJKXehpN2y', // password
+        password: '$2b$10$34E1yhh/3Z/O1cBn/5seAuyHOBuy/U6uZUH10rhFfAjdJKXehpN2y',
         firstName: 'Repair',
         lastName: 'Admin',
         superAdmin: true,
@@ -59,15 +59,16 @@ var customers = [
             verified: true
         },
         profilePhoto: {
-            url: "https://dsfds"
+            url: "https://repairfindtwo.s3.us-east-2.amazonaws.com/repairfind-logo.png"
         },
         acceptTerms: true,
+        hasWeakPassword: true,
     },
 ];
 var AdminSeeder = function (options) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
         try {
-            customers.forEach(function (admin) { return __awaiter(void 0, void 0, void 0, function () {
+            admins.forEach(function (admin) { return __awaiter(void 0, void 0, void 0, function () {
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0: return [4 /*yield*/, admin_model_1.default.findOneAndUpdate({ email: admin.email }, admin, { upsert: true })];

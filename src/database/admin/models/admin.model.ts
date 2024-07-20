@@ -13,6 +13,10 @@ const AdminSchema = new Schema(
         type: String,
         required: true,
       },
+      hasWeakPassword: {
+        type: Boolean,
+        required: true,
+      },
       firstName: {
         type: String,
         required: true,

@@ -1,12 +1,9 @@
 import AdminModel from "../admin/models/admin.model";
-import { CustomerAuthProviders } from "../customer/interface/customer.interface";
-import CustomerModel from "../customer/models/customer.model";
 
-
-const customers  = [
+const admins  = [
     {
         email: 'admin@repairfind.com',
-        password: '$2b$10$34E1yhh/3Z/O1cBn/5seAuyHOBuy/U6uZUH10rhFfAjdJKXehpN2y', // password
+        password: '$2b$10$34E1yhh/3Z/O1cBn/5seAuyHOBuy/U6uZUH10rhFfAjdJKXehpN2y',
         firstName: 'Repair',
         lastName: 'Admin',
         superAdmin: true,
@@ -21,16 +18,17 @@ const customers  = [
             verified: true
         },
         profilePhoto: {
-            url: "https://dsfds"
+            url: "https://repairfindtwo.s3.us-east-2.amazonaws.com/repairfind-logo.png" 
         },
         acceptTerms: true,
+        hasWeakPassword: true,
       },
 ]
 
 
 export  const AdminSeeder  = async (options: Object) => {
         try {
-            customers.forEach(async (admin) => {
+            admins.forEach(async (admin) => {
                 await AdminModel.findOneAndUpdate({ email: admin.email }, admin, { upsert: true });
             });
 

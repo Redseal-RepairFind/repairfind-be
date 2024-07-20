@@ -17,6 +17,7 @@ export interface IAdmin extends Document {
   phoneNumber: string;
   superAdmin: boolean;
   validation: boolean;
+  hasWeakPassword: boolean;
   profilePhoto: {
     url:  String,
     label?:String

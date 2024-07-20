@@ -1,0 +1,372 @@
+import { validationResult } from "express-validator";
+import bcrypt from "bcrypt";
+import { NextFunction, Request, Response } from "express";
+import AdminRegModel from "../../../database/admin/models/admin.model";
+import { generateOTP } from "../../../utils/otpGenerator";
+import { sendEmail } from "../../../utils/send_email_utility";
+import { htmlMailTemplate } from "../../../templates/sendEmailTemplate";
+import { AdminStatus } from "../../../database/admin/interface/admin.interface";
+import PermissionModel from "../../../database/admin/models/permission.model";
+import { InternalServerError } from "../../../utils/custom.errors";
+import { applyAPIFeature } from "../../../utils/api.feature";
+
+
+
+
+export const getAdminStaffs = async (
+    req: any,
+    res: Response,
+    next: NextFunction
+) => {
+
+    try {
+        const {
+
+        } = req.body;
+        // Check for validation errors
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const admin = req.admin;
+        const adminId = admin.id
+
+        const checkAdmin = await AdminRegModel.findOne({ _id: adminId });
+
+        if (!checkAdmin?.superAdmin) {
+            return res
+                .status(401)
+                .json({ success: false, message: "Only super admin can perform this action" });
+        }
+
+        const { data, error } = await applyAPIFeature(AdminRegModel.find().select('-password'), req.query)
+
+        return res.json({ success: false, data });
+
+    } catch (error: any) {
+        next(new InternalServerError("An error occurred", error))
+    }
+
+}
+
+
+
+export const changeStaffStatus = async (
+    req: any,
+    res: Response,
+    next: NextFunction
+) => {
+
+    try {
+        const {
+            staffId,
+            status
+        } = req.body;
+        // Check for validation errors
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const admin = req.admin;
+        const adminId = admin.id
+
+        const checkAdmin = await AdminRegModel.findOne({ _id: adminId });
+
+        if (!checkAdmin?.superAdmin) {
+            return res
+                .status(401)
+                .json({ message: "super admin role" });
+        }
+
+        const subAdmin = await AdminRegModel.findOne({ _id: staffId })
+
+        if (!subAdmin) {
+            return res
+                .status(401)
+                .json({ message: "staff does not exist" });
+        }
+
+        subAdmin.status = status;
+        await subAdmin.save()
+
+        res.json({
+            message: `staff status change to ${status}`,
+        });
+
+
+    } catch (error: any) {
+        next(new InternalServerError("An error occurred", error))
+    }
+
+}
+
+
+
+export const addStaff = async (
+    req: any,
+    res: Response,
+    next : NextFunction
+) => {
+
+    try {
+        const {
+            email,
+            password,
+            firstName,
+            lastName,
+            phoneNumber,
+            permisions
+        } = req.body;
+        // Check for validation errors
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const admin = req.admin;
+        const adminId = admin.id
+
+        const checkAdmin = await AdminRegModel.findOne({ _id: adminId });
+
+        if (!checkAdmin?.superAdmin) {
+            return res
+                .status(401)
+                .json({ message: "super admin role" });
+        }
+
+        // try find user with the same email
+        const adminEmailExists = await AdminRegModel.findOne({ email });
+
+        let superAdmin = false;
+        let validation = true;
+
+        // check if user exists
+        if (adminEmailExists) {
+            return res
+                .status(401)
+                .json({ message: "Email exists already" });
+        }
+
+        //validate permission
+        for (let i = 0; i < permisions.length; i++) {
+            const permision = permisions[i];
+
+            const checkPermission = await PermissionModel.findOne({ _id: permision })
+
+            if (!checkPermission) {
+                return res
+                    .status(401)
+                    .json({ message: "invalid permission" });
+            }
+        }
+
+        const otp = generateOTP()
+
+        const createdTime = new Date();
+
+        const emailOtp = {
+            otp,
+            createdTime,
+            verified: false
+        }
+
+        const html = htmlMailTemplate(otp, firstName, "We have received a request to verify your email");
+
+        let emailData = {
+            emailTo: email,
+            subject: "email verification",
+            html
+        };
+
+        sendEmail(emailData);
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+
+        const newStaff = new AdminRegModel({
+            email: email,
+            firstName: firstName,
+            lastName: lastName,
+            phoneNumber,
+            superAdmin: superAdmin,
+            permissions: permisions,
+            status: AdminStatus.ACTIVE,
+            password: hashedPassword,
+            validation: validation,
+            emailOtp
+        });
+
+        let staffSaved = await newStaff.save();
+
+        res.json({
+            message: "Signup successful",
+            admin: {
+                id: staffSaved._id,
+                firstName: staffSaved.firstName,
+                lastName: staffSaved.lastName,
+                email: staffSaved.email,
+                phoneNumber: staffSaved.phoneNumber,
+                permisions: staffSaved.permissions,
+            },
+
+        });
+
+    } catch (error: any) {
+        next( new InternalServerError("An error occurred", error) )
+      }
+
+}
+
+
+export const addPermissionToStaff = async (
+    req: any,
+    res: Response,
+    next: NextFunction
+) => {
+
+    try {
+        const {
+            staffId,
+            permision
+        } = req.body;
+        // Check for validation errors
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const admin = req.admin;
+        const adminId = admin.id
+
+        const checkAdmin = await AdminRegModel.findOne({ _id: adminId });
+
+        if (!checkAdmin?.superAdmin) {
+            return res
+                .status(401)
+                .json({ message: "super admin role" });
+        }
+
+        const subAdmin = await AdminRegModel.findOne({ _id: staffId })
+
+        if (!subAdmin) {
+            return res
+                .status(401)
+                .json({ message: "staff does not exist" });
+        }
+
+        const checkPermission = await PermissionModel.findOne({ _id: permision })
+
+        if (!checkPermission) {
+            return res
+                .status(401)
+                .json({ message: "invalid permission" });
+        }
+
+        let permissions = [permision]
+        for (let i = 0; i < subAdmin.permissions.length; i++) {
+            const availabePermission = subAdmin.permissions[i];
+
+            if (availabePermission == permision) {
+                return res
+                    .status(401)
+                    .json({ message: "staff already has this permission" });
+            }
+
+            permissions.push(availabePermission)
+        }
+
+        subAdmin.permissions = permissions
+        await subAdmin.save()
+
+        res.json({
+            message: `permission added successfully`,
+        });
+
+
+    } catch (error: any) {
+        next( new InternalServerError("An error occurred", error) )
+      }
+
+}
+
+
+export const removePermissionFromStaff = async (
+    req: any,
+    res: Response,
+    next: NextFunction
+) => {
+
+    try {
+        const {
+            staffId,
+            permision
+        } = req.body;
+        // Check for validation errors
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const admin = req.admin;
+        const adminId = admin.id
+
+        const checkAdmin = await AdminRegModel.findOne({ _id: adminId });
+
+        if (!checkAdmin?.superAdmin) {
+            return res
+                .status(401)
+                .json({ message: "super admin role" });
+        }
+
+        const subAdmin = await AdminRegModel.findOne({ _id: staffId })
+
+        if (!subAdmin) {
+            return res
+                .status(401)
+                .json({ message: "staff does not exist" });
+        }
+
+        const checkPermission = await PermissionModel.findOne({ _id: permision })
+
+        if (!checkPermission) {
+            return res
+                .status(401)
+                .json({ message: "invalid permission" });
+        }
+
+        const remainPermission = subAdmin.permissions.filter((availabePermission) => {
+            return availabePermission != permision
+        })
+
+        subAdmin.permissions = remainPermission
+        await subAdmin.save()
+
+        res.json({
+            message: `permission removed successfully`,
+        });
+
+
+    } catch (error: any) {
+        next( new InternalServerError("An error occurred", error) )
+      }
+
+}
+
+
+
+
+
+export const AdminStaffController = {
+    getAdminStaffs,
+    changeStaffStatus,
+    addStaff,
+    addPermissionToStaff,
+    removePermissionFromStaff
+}

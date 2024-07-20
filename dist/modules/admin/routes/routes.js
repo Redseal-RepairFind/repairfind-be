@@ -1,40 +1,38 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var upload_utility_1 = require("../../../utils/upload.utility");
 var admin_job_controller_1 = require("../controllers/admin_job.controller");
 var admin_skill_controller_1 = require("../controllers/admin_skill.controller");
-var adminForgotPassword_1 = require("../controllers/adminForgotPassword");
 var admin_contractors_controller_1 = require("../controllers/admin_contractors.controller");
 var adminGetCustomerDetail_contractor_1 = require("../controllers/adminGetCustomerDetail.contractor");
 var adminNotification_controller_1 = require("../controllers/adminNotification.controller");
-var adminReg_controller_1 = require("../controllers/adminReg.controller");
 var appDetails_Controller_1 = require("../controllers/appDetails.Controller");
 var averageRevenue_controller_1 = require("../controllers/averageRevenue.controller");
 var conversation_controller_1 = require("../controllers/conversation.controller");
 var admin_disputes_controller_1 = require("../controllers/admin_disputes.controller");
 var emergency_controller_1 = require("../controllers/emergency.controller");
-// import {  AdminJobController, } from "../controllers/job.controller";
 var payout_controller_1 = require("../controllers/payout.controller");
 var permission_controller_1 = require("../controllers/permission.controller");
 var quiz_controller_1 = require("../controllers/quiz.controller");
 var transaction_controller_1 = require("../controllers/transaction.controller");
 var adminRoleChecker_middleware_1 = require("../middlewares/adminRoleChecker.middleware");
 var admin_validations_middleware_1 = require("../middlewares/admin_validations.middleware");
+var admin_auth_controller_1 = require("../controllers/admin_auth.controller");
+var admin_staff_controller_1 = require("../controllers/admin_staff.controller");
 var express = require("express");
 var router = express.Router();
 //refactored authecation
-router.post("/signup", admin_validations_middleware_1.validateSignupParams, adminReg_controller_1.adminSignUpController); // admin signup
-router.post("/email/verification", admin_validations_middleware_1.validatAdminEmailverificationParams, adminReg_controller_1.adminVerifiedEmailController); // admin email verification
-router.post("/resend/email", admin_validations_middleware_1.validateAdminForgotPasswordParams, adminReg_controller_1.adminResendEmailController); // admin resend email
-router.post("/signin", admin_validations_middleware_1.validateAdminLoginParams, adminReg_controller_1.AdminSignInController); // admin login
-router.post("/forgot/password", admin_validations_middleware_1.validateAdminForgotPasswordParams, adminForgotPassword_1.AdminEmailForgotPasswordController); // admin forgot password
-router.post("/reset/password", admin_validations_middleware_1.validateAdminResetPasswprdParams, adminForgotPassword_1.AdminEmailResetPasswordController); // admin reset password
+router.post("/signup", admin_validations_middleware_1.validateSignupParams, admin_auth_controller_1.AdminAuthController.signUp);
+router.post("/email/verification", admin_validations_middleware_1.validatAdminEmailverificationParams, admin_auth_controller_1.AdminAuthController.verifyEmail);
+router.post("/resend/email", admin_validations_middleware_1.validateAdminForgotPasswordParams, admin_auth_controller_1.AdminAuthController.resendEmail);
+router.post("/signin", admin_validations_middleware_1.validateAdminLoginParams, admin_auth_controller_1.AdminAuthController.signIn);
+router.post("/forgot/password", admin_validations_middleware_1.validateAdminForgotPasswordParams, admin_auth_controller_1.AdminAuthController.forgotPassword);
+router.post("/reset/password", admin_validations_middleware_1.validateAdminResetPasswprdParams, admin_auth_controller_1.AdminAuthController.resetPassword);
 //don staff
-router.post("/staff", admin_validations_middleware_1.Validations.AddStaffParams, adminRoleChecker_middleware_1.checkAdminRole, adminReg_controller_1.AddStaffController); // super admin add staff
-router.post("/staff/status", admin_validations_middleware_1.validateSuperAdmiCchangeStatusParams, adminRoleChecker_middleware_1.checkAdminRole, adminReg_controller_1.SuperAdminChangeStaffStatusController); // super admin change staff status
-router.get("/staffs", adminRoleChecker_middleware_1.checkAdminRole, adminReg_controller_1.SuperAdminGetAllAdminController); // super get the list of staff
-router.post("/staff/permission", admin_validations_middleware_1.Validations.AddPermissionParams, adminRoleChecker_middleware_1.checkAdminRole, adminReg_controller_1.SuperAdminAddPermissionToStaffController); // super add permission to staff
-router.post("/staff/permission/remove", admin_validations_middleware_1.Validations.AddPermissionParams, adminRoleChecker_middleware_1.checkAdminRole, adminReg_controller_1.SuperAdminRemovePermissionFromStaffController); // super remove permission from staff
+router.post("/staff", admin_validations_middleware_1.Validations.AddStaffParams, adminRoleChecker_middleware_1.checkAdminRole, admin_staff_controller_1.AdminStaffController.addStaff);
+router.post("/staff/status", admin_validations_middleware_1.validateSuperAdmiCchangeStatusParams, adminRoleChecker_middleware_1.checkAdminRole, admin_staff_controller_1.AdminStaffController.changeStaffStatus); // super admin change staff status
+router.get("/staffs", adminRoleChecker_middleware_1.checkAdminRole, admin_staff_controller_1.AdminStaffController.getAdminStaffs);
+router.post("/staff/permission", admin_validations_middleware_1.Validations.AddPermissionParams, adminRoleChecker_middleware_1.checkAdminRole, admin_staff_controller_1.AdminStaffController.addPermissionToStaff); // super add permission to staff
+router.post("/staff/permission/remove", admin_validations_middleware_1.Validations.AddPermissionParams, adminRoleChecker_middleware_1.checkAdminRole, admin_staff_controller_1.AdminStaffController.removePermissionFromStaff); // super remove permission from staff
 // done permission
 router.post("/permission", admin_validations_middleware_1.Validations.PermissionCreationParam, adminRoleChecker_middleware_1.checkAdminRole, permission_controller_1.Permission.PermissionCreationController); // super admin create permission
 router.get("/permissions", adminRoleChecker_middleware_1.checkAdminRole, permission_controller_1.Permission.GetPermissionController); // super admin get all permission
@@ -82,7 +80,7 @@ router.get("/conversations/:conversationId", adminRoleChecker_middleware_1.check
 router.get("/conversations/:conversationId/messages", adminRoleChecker_middleware_1.checkAdminRole, conversation_controller_1.AdminConversationController.getConversationMessages); // admin get  conversation message
 router.post("/conversations/:conversationId/messages", admin_validations_middleware_1.Validations.sendMessageParams, adminRoleChecker_middleware_1.checkAdminRole, conversation_controller_1.AdminConversationController.sendMessage); // admin send message
 // TODO:
-router.post("/update_profile", adminRoleChecker_middleware_1.checkAdminRole, upload_utility_1.memoryUpload.single('profileImg'), adminReg_controller_1.adminUpdateBioController); // admin update profile
+// router.post("/update_profile", checkAdminRole, memoryUpload.single('profileImg'), adminUpdateBioController ); // admin update profile
 router.get("/get_all_notification", adminRoleChecker_middleware_1.checkAdminRole, adminNotification_controller_1.adminGetNotificationrController); // admin get all notification
 router.post("/view_unseen_notification", adminRoleChecker_middleware_1.checkAdminRole, adminNotification_controller_1.adminViewNotificationrController); // admin view unseen notification
 router.get("/get_unseen_notification", adminRoleChecker_middleware_1.checkAdminRole, adminNotification_controller_1.adminUnseenNotificationrController); // admin get total number of unseen notification

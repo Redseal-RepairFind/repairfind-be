@@ -213,7 +213,7 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
       entityType: 'jobs'
     });
     await message.save();
-  
+
     ConversationEvent.emit('NEW_MESSAGE', { message })
 
 
@@ -1164,12 +1164,13 @@ export const createJobEnquiry = async (req: any, res: Response, next: NextFuncti
 
     const job = await JobModel.findById(jobId);
     if (!job) {
-      return res.status(404).json({success: false, message: "Job not found" });
+      return res.status(404).json({ success: false, message: "Job not found" });
     }
 
     const enquiry = new JobEnquiryModel({
       job: job.id,
       contractor: contractorId,
+      customer: job.customer,
       enquiry: question,
       createdAt: new Date()
     });
@@ -1179,14 +1180,14 @@ export const createJobEnquiry = async (req: any, res: Response, next: NextFuncti
     job.enquiries.push(enquiry._id);
     await job.save();
 
-  
+
     JobEvent.emit('NEW_JOB_ENQUIRY', { jobId, enquiryId: enquiry.id });
 
 
-   await  ContractorSavedJobModel.findOneAndUpdate({job: job.id, contractor: contractorId},{
+    await ContractorSavedJobModel.findOneAndUpdate({ job: job.id, contractor: contractorId }, {
       job: job.id,
       contractor: contractorId
-    }, {new: true, upsert: true})
+    }, { new: true, upsert: true })
 
 
 
@@ -1202,10 +1203,13 @@ export const getJobEnquiries = async (req: any, res: Response, next: NextFunctio
 
     const job = await JobModel.findById(jobId);
     if (!job) {
-      return res.status(404).json({success: false, message: "Job not found" });
+      return res.status(404).json({ success: false, message: "Job not found" });
     }
 
-   const enquiries = await  applyAPIFeature(JobEnquiryModel.find({job: jobId}), req.query)
+    const enquiries = await applyAPIFeature(JobEnquiryModel.find({ job: jobId }).populate([
+      { path: 'customer', select: "firstName lastName name profilePhoto _id" },
+      { path: 'contractor', select: "firstName lastName name profilePhoto _id" },
+    ]), req.query)
 
     return res.status(200).json({ success: true, message: "Enquiries retrieved", data: enquiries });
   } catch (error) {
@@ -1215,23 +1219,33 @@ export const getJobEnquiries = async (req: any, res: Response, next: NextFunctio
 
 export const getJobSingleEnquiry = async (req: any, res: Response, next: NextFunction) => {
   try {
-      const { jobId, enquiryId } = req.params;
+    const { jobId, enquiryId } = req.params;
 
-      // Find the job
-      const job = await JobModel.findById(jobId);
-      if (!job) {
-          return res.status(404).json({success: false, message: "Job not found" });
-      }
+    // Find the job
+    const job = await JobModel.findById(jobId);
+    if (!job) {
+      return res.status(404).json({ success: false, message: "Job not found" });
+    }
 
-      // Find the question from the JobQuestion collection
-      const enquiry = await JobEnquiryModel.findById(enquiryId);
-      if (!enquiry) {
-          return res.status(404).json({success: false, message: "Enquiry not found" });
-      }
+    // Find the question from the JobQuestion collection
+    const enquiry = await JobEnquiryModel.findById(enquiryId).populate([
+      { path: 'customer', select: "firstName lastName name profilePhoto _id" },
+      { path: 'contractor', select: "firstName lastName name profilePhoto _id" },
+    ]);
+    if (!enquiry) {
+      return res.status(404).json({ success: false, message: "Enquiry not found" });
+    }
 
-      res.json({ success: true, message: 'Reply added', enquiry });
+    await Promise.all(
+      enquiry.replies.map(async (reply: any) => {
+        const user = await CustomerModel.findById(reply.userId).select('id firstName lastName profilePhoto');
+        reply.user = user;
+      })
+    );
+
+    res.json({ success: true, message: 'Reply added', enquiry });
   } catch (error: any) {
-      return next(new BadRequestError('An error occurred', error));
+    return next(new BadRequestError('An error occurred', error));
   }
 };
 

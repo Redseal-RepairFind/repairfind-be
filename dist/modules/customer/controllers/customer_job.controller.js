@@ -763,7 +763,7 @@ var getJobSingleEnquiry = function (req, res, next) { return __awaiter(void 0, v
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 3, , 4]);
+                _b.trys.push([0, 4, , 5]);
                 customerId = req.customer.id;
                 _a = req.params, jobId = _a.jobId, enquiryId = _a.enquiryId;
                 return [4 /*yield*/, job_model_1.JobModel.findById(jobId)];
@@ -772,18 +772,36 @@ var getJobSingleEnquiry = function (req, res, next) { return __awaiter(void 0, v
                 if (!job) {
                     return [2 /*return*/, res.status(404).json({ message: "Job not found" })];
                 }
-                return [4 /*yield*/, job_enquiry_model_1.JobEnquiryModel.findById(enquiryId)];
+                return [4 /*yield*/, job_enquiry_model_1.JobEnquiryModel.findById(enquiryId).populate([
+                        { path: 'customer', select: "firstName lastName name profilePhoto _id" },
+                        { path: 'contractor', select: "firstName lastName name profilePhoto _id" },
+                    ])];
             case 2:
                 enquiry = _b.sent();
                 if (!enquiry) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: "Enquiry not found" })];
                 }
-                res.json({ success: true, message: 'Reply added', enquiry: enquiry });
-                return [3 /*break*/, 4];
+                return [4 /*yield*/, Promise.all(enquiry.replies.map(function (reply) { return __awaiter(void 0, void 0, void 0, function () {
+                        var user;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0: return [4 /*yield*/, customer_model_1.default.findById(reply.userId).select('id firstName lastName profilePhoto')];
+                                case 1:
+                                    user = _a.sent();
+                                    reply.user = user;
+                                    return [2 /*return*/];
+                            }
+                        });
+                    }); }))];
             case 3:
+                _b.sent();
+                res.json({ success: true, message: 'Reply added', enquiry: enquiry });
+                return [3 /*break*/, 5];
+            case 4:
                 error_13 = _b.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_13))];
-            case 4: return [2 /*return*/];
+                console.log(error_13);
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred', error_13))];
+            case 5: return [2 /*return*/];
         }
     });
 }); };
@@ -801,7 +819,10 @@ var getJobEnquiries = function (req, res, next) { return __awaiter(void 0, void 
                 if (!job) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: "Job not found" })];
                 }
-                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_enquiry_model_1.JobEnquiryModel.find({ job: jobId }), req.query)];
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_enquiry_model_1.JobEnquiryModel.find({ job: jobId }).populate([
+                        { path: 'customer', select: "firstName lastName name profilePhoto _id" },
+                        { path: 'contractor', select: "firstName lastName name profilePhoto _id" },
+                    ]), req.query)];
             case 2:
                 enquiries = _a.sent();
                 return [2 /*return*/, res.status(200).json({ success: true, message: "Enquiries retrieved", data: enquiries })];

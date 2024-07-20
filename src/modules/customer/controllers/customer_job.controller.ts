@@ -6,7 +6,7 @@ import CustomerModel from "../../../database/customer/models/customer.model";
 import { EmailService, NotificationService } from "../../../services";
 import { addHours, isFuture, isValid, startOfDay } from "date-fns";
 import { IJob, JobModel, JOB_STATUS, JobType } from "../../../database/common/job.model";
-import { BadRequestError } from "../../../utils/custom.errors";
+import { BadRequestError, InternalServerError } from "../../../utils/custom.errors";
 import { applyAPIFeature } from "../../../utils/api.feature";
 import { ConversationModel } from "../../../database/common/conversations.schema";
 import { IMessage, MessageModel, MessageType } from "../../../database/common/messages.schema";
@@ -50,7 +50,7 @@ export const createJobRequest = async (
         if (!contractor) {
             return res.status(400).json({ success: false, message: "Contractor not found" })
         }
-        const contractorProfile = await ContractorProfileModel.findOne({contractor: contractorId})
+        const contractorProfile = await ContractorProfileModel.findOne({ contractor: contractorId })
 
 
         // Check if contractor has a verified connected account
@@ -71,11 +71,11 @@ export const createJobRequest = async (
 
         // Get the end of the current day (11:59:59 PM)
         const startOfToday = startOfDay(new Date());
-        if (!isValid(new Date(jobDate)) ) {
+        if (!isValid(new Date(jobDate))) {
             return res.status(400).json({ success: false, message: 'Invalid date format' });
         }
 
-        if ( (!isFuture(new Date(jobDate)) && new Date(jobDate) < startOfToday)) {
+        if ((!isFuture(new Date(jobDate)) && new Date(jobDate) < startOfToday)) {
             return res.status(400).json({ success: false, message: 'Selected Job Date is in the past' });
         }
 
@@ -92,15 +92,15 @@ export const createJobRequest = async (
             // return res.status(400).json({ success: false, message: 'A similar job request has already been sent to this contractor within the last 24 hours' });
         }
 
-       
-       
 
 
 
-          // Calculate the expiry date
-          const currentDate = new Date();
-          const expiryDate = new Date(currentDate);
-          expiryDate.setDate(currentDate.getDate() + Number(expiresIn));
+
+
+        // Calculate the expiry date
+        const currentDate = new Date();
+        const expiryDate = new Date(currentDate);
+        expiryDate.setDate(currentDate.getDate() + Number(expiresIn));
 
 
         // Create a new job document
@@ -112,7 +112,7 @@ export const createJobRequest = async (
             date: jobDate,
             time: jobDate,
             type: JobType.REQUEST,
-            expiresIn:  Number(expiresIn),
+            expiresIn: Number(expiresIn),
             expiryDate,
             emergency: emergency || false,
             voiceDescription,
@@ -182,7 +182,7 @@ export const createJobListing = async (
 
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            return res.status(400).json({success:false, message: 'Validation error occurred', errors: errors.array() });
+            return res.status(400).json({ success: false, message: 'Validation error occurred', errors: errors.array() });
         }
 
         const { category, description, location, date, expiresIn = 7, emergency, media, voiceDescription, time, contractorType = "Both" } = req.body;
@@ -209,11 +209,11 @@ export const createJobListing = async (
 
         // Get the end of the current day (11:59:59 PM)
         const startOfToday = startOfDay(new Date());
-        if (!isValid(new Date(jobDate)) ) {
+        if (!isValid(new Date(jobDate))) {
             return res.status(400).json({ success: false, message: 'Invalid date format' });
         }
 
-        if ( (!isFuture(new Date(jobDate)) && new Date(jobDate) < startOfToday)) {
+        if ((!isFuture(new Date(jobDate)) && new Date(jobDate) < startOfToday)) {
             return res.status(400).json({ success: false, message: 'Selected Job Date is in the past' });
         }
 
@@ -262,7 +262,7 @@ export const createJobListing = async (
         await newJob.save();
 
         JobEvent.emit('NEW_JOB_LISTING', { jobId: newJob.id })
-        
+
 
         res.status(201).json({ success: true, message: 'Job listing submitted successfully', data: newJob });
     } catch (error: any) {
@@ -281,12 +281,12 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
         }
 
         // Extract query parameters
-        const {limit = 10, page=1, sort='-createdAt',  contractorId, status, startDate, endDate, date, type } = req.query;
-        
+        const { limit = 10, page = 1, sort = '-createdAt', contractorId, status, startDate, endDate, date, type } = req.query;
+
         req.query.page = page
         req.query.limit = limit
         req.query.sort = sort
-    
+
         const customerId = req.customer.id;
 
         // Construct filter object based on query parameters
@@ -299,9 +299,9 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
                 return res.status(400).json({ success: false, message: 'Invalid contractor id' });
             }
 
-            const quotations = await JobQuotationModel.find({contractor: contractorId})
+            const quotations = await JobQuotationModel.find({ contractor: contractorId })
             const quotationIds = quotations.map(quotation => quotation._id);
-            
+
             console.log(quotationIds)
             filter['quotations.id'] = { $in: quotationIds };
             // filter['quotations.contractor'] = {$in: contractorId};
@@ -355,63 +355,63 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
 
 export const getJobHistory = async (req: any, res: Response, next: NextFunction) => {
     const customerId = req.contractor.id;
-  
+
     try {
-      let {
-        page = 1, // Default to page 1
-        limit = 10, // Default to 10 items per page
-        sort = '-createdAt', // Sort field and order (-fieldName or fieldName)
-        contractorId,
-        status = 'COMPLETED, CANCELLED',
-      } = req.query;
-  
-  
-      req.query.page = page
-      req.query.limit = limit
-      req.query.sort = sort
-      delete req.query.status
-      // Retrieve the quotations for the current contractor and extract job IDs
-      const quotations = await JobQuotationModel.find({ contractor: contractorId }).select('job').lean();
-  
-      // Extract job IDs from the quotations
-      const jobIds = quotations.map((quotation: any) => quotation.job);
-  
-      if (contractorId) {
-        if (!mongoose.Types.ObjectId.isValid(contractorId)) {
-          return res.status(400).json({ success: false, message: 'Invalid customer id' });
+        let {
+            page = 1, // Default to page 1
+            limit = 10, // Default to 10 items per page
+            sort = '-createdAt', // Sort field and order (-fieldName or fieldName)
+            contractorId,
+            status = 'COMPLETED, CANCELLED',
+        } = req.query;
+
+
+        req.query.page = page
+        req.query.limit = limit
+        req.query.sort = sort
+        delete req.query.status
+        // Retrieve the quotations for the current contractor and extract job IDs
+        const quotations = await JobQuotationModel.find({ contractor: contractorId }).select('job').lean();
+
+        // Extract job IDs from the quotations
+        const jobIds = quotations.map((quotation: any) => quotation.job);
+
+        if (contractorId) {
+            if (!mongoose.Types.ObjectId.isValid(contractorId)) {
+                return res.status(400).json({ success: false, message: 'Invalid customer id' });
+            }
+            req.query.contractor = contractorId
+            delete req.query.contractorId
         }
-        req.query.contractor = contractorId
-        delete req.query.contractorId
-      }
-  
-      // Query JobModel to find jobs that have IDs present in the extracted jobIds
-      const statusArray = status.split(',').map((s: any) => s.trim()); // Convert the comma-separated string to an array of statuses
-      const { data, error } = await applyAPIFeature(
-        JobModel.find({
-            status: {$in: statusArray},
-            $or: [
-                { _id: { $in: jobIds } }, // Match jobs specified in jobIds
-                { contractor: contractorId } // Match jobs with contractorId
-            ]
-        }).distinct('_id'),
-        req.query);
-      if (data) {
-        // Map through each job and attach myQuotation if contractor has applied 
-        await Promise.all(data.data.map(async (job: any) => {
-          job.myQuotation = await job.getMyQuotation(contractorId)
-        }));
-      }
-  
-      if (error) {
-        return next(new BadRequestError('Unkowon error occurred'));
-      }
-  
-      // Send response with job listings data
-      res.status(200).json({ success: true, data: data });
+
+        // Query JobModel to find jobs that have IDs present in the extracted jobIds
+        const statusArray = status.split(',').map((s: any) => s.trim()); // Convert the comma-separated string to an array of statuses
+        const { data, error } = await applyAPIFeature(
+            JobModel.find({
+                status: { $in: statusArray },
+                $or: [
+                    { _id: { $in: jobIds } }, // Match jobs specified in jobIds
+                    { contractor: contractorId } // Match jobs with contractorId
+                ]
+            }).distinct('_id'),
+            req.query);
+        if (data) {
+            // Map through each job and attach myQuotation if contractor has applied 
+            await Promise.all(data.data.map(async (job: any) => {
+                job.myQuotation = await job.getMyQuotation(contractorId)
+            }));
+        }
+
+        if (error) {
+            return next(new BadRequestError('Unkowon error occurred'));
+        }
+
+        // Send response with job listings data
+        res.status(200).json({ success: true, data: data });
     } catch (error: any) {
-      return next(new BadRequestError('An error occurred', error));
+        return next(new BadRequestError('An error occurred', error));
     }
-  };
+};
 
 export const getSingleJob = async (req: any, res: Response, next: NextFunction) => {
     try {
@@ -459,9 +459,9 @@ export const getAllQuotations = async (req: any, res: Response, next: NextFuncti
     try {
         const customerId = req.customer.id;
         const jobId = req.params.jobId;
-        const jobs = await JobModel.find({customer: customerId})
+        const jobs = await JobModel.find({ customer: customerId })
         const jobIds = jobs.map((job: { _id: any; }) => job._id);
-        const quotations = await applyAPIFeature(JobQuotationModel.find({job: {$in: jobIds}, status: { $ne: JOB_QUOTATION_STATUS.DECLINED } }).populate([{ path: 'contractor' }, { path: 'job' }]), req.query)
+        const quotations = await applyAPIFeature(JobQuotationModel.find({ job: { $in: jobIds }, status: { $ne: JOB_QUOTATION_STATUS.DECLINED } }).populate([{ path: 'contractor' }, { path: 'job' }]), req.query)
 
 
         // If the job exists, return its quo as a response
@@ -565,7 +565,7 @@ export const acceptJobQuotation = async (req: any, res: Response, next: NextFunc
             entityType: 'quotations'
         });
 
-      
+
         ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
 
         await quotation.save()
@@ -577,13 +577,13 @@ export const acceptJobQuotation = async (req: any, res: Response, next: NextFunc
         await job.save()
 
 
-    
+
         const contractor = await ContractorModel.findById(quotation.contractor)
         const customer = await CustomerModel.findById(customerId)
         if (contractor && customer) {
             JobEvent.emit('JOB_QUOTATION_ACCEPTED', { jobId, contractorId: quotation.contractor, customerId })
         }
-        
+
 
         quotation.charges = await quotation.calculateCharges()
         res.json({ success: true, message: 'Job quotation accepted' });
@@ -659,7 +659,7 @@ export const declineJobQuotation = async (req: any, res: Response, next: NextFun
 
         const contractor = await ContractorModel.findById(quotation.contractor)
         const customer = await CustomerModel.findById(customerId)
-        
+
 
         if (contractor && customer) {
             //emit event - mail should be sent from event handler shaa
@@ -678,7 +678,7 @@ export const replyJobEnquiry = async (req: any, res: Response, next: NextFunctio
     try {
         const customerId = req.customer.id;
         const { jobId } = req.params;
-        const { replyText, enquiryId} = req.body;
+        const { replyText, enquiryId } = req.body;
 
         // Find the job
         const job = await JobModel.findById(jobId);
@@ -689,7 +689,7 @@ export const replyJobEnquiry = async (req: any, res: Response, next: NextFunctio
         // Find the question from the JobQuestion collection
         const question = await JobEnquiryModel.findById(enquiryId);
         if (!question) {
-            return res.status(404).json({success: false, message: "Enquiry not found" });
+            return res.status(404).json({ success: false, message: "Enquiry not found" });
         }
 
         // Add the reply to the question
@@ -715,34 +715,48 @@ export const getJobSingleEnquiry = async (req: any, res: Response, next: NextFun
         }
 
         // Find the question from the JobQuestion collection
-        const enquiry = await JobEnquiryModel.findById(enquiryId);
+        const enquiry = await JobEnquiryModel.findById(enquiryId).populate([
+            { path: 'customer', select: "firstName lastName name profilePhoto _id" },
+            { path: 'contractor', select: "firstName lastName name profilePhoto _id" },
+        ]);
         if (!enquiry) {
-            return res.status(404).json({success: false, message: "Enquiry not found" });
+            return res.status(404).json({ success: false, message: "Enquiry not found" });
         }
+
+       await Promise.all(
+            enquiry.replies.map(async (reply: any) => {
+                const user = await CustomerModel.findById(reply.userId).select('id firstName lastName profilePhoto');
+                reply.user = user;
+            })
+        );
 
         res.json({ success: true, message: 'Reply added', enquiry });
     } catch (error: any) {
-        return next(new BadRequestError('An error occurred', error));
+        console.log(error)
+        return next(new InternalServerError('An error occurred', error));
     }
 };
 
 
 export const getJobEnquiries = async (req: any, res: Response, next: NextFunction) => {
     try {
-      const { jobId } = req.params;
-  
-      const job = await JobModel.findById(jobId);
-      if (!job) {
-        return res.status(404).json({success: false, message: "Job not found" });
-      }
-  
-     const enquiries = await  applyAPIFeature(JobEnquiryModel.find({job: jobId}), req.query)
-  
-      return res.status(200).json({ success: true, message: "Enquiries retrieved", data: enquiries });
+        const { jobId } = req.params;
+
+        const job = await JobModel.findById(jobId);
+        if (!job) {
+            return res.status(404).json({ success: false, message: "Job not found" });
+        }
+
+        const enquiries = await applyAPIFeature(JobEnquiryModel.find({ job: jobId }).populate([
+            { path: 'customer', select: "firstName lastName name profilePhoto _id" },
+            { path: 'contractor', select: "firstName lastName name profilePhoto _id" },
+        ]), req.query)
+
+        return res.status(200).json({ success: true, message: "Enquiries retrieved", data: enquiries });
     } catch (error) {
-      next(error);
+        next(error);
     }
-  };
+};
 
 
 export const CustomerJobController = {
