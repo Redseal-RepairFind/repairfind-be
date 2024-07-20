@@ -9,6 +9,7 @@ import { Logger } from "../logger";
 import { MessageModel } from "../../database/common/messages.schema";
 import { ConversationModel } from "../../database/common/conversations.schema";
 import { isValidObjectId } from "mongoose";
+import { NotificationService } from "../notifications";
 
 interface CustomSocket extends Socket {
     user?: any; // Define a custom property to store user information
@@ -20,9 +21,9 @@ class SocketIOService {
     static initialize(server: any) {
         const io = new Server(server, {
             cors: {
-              origin: "*",
+                origin: "*",
             },
-          });
+        });
 
         this.io = io;
         this.initializeSocketEvents();
@@ -35,7 +36,7 @@ class SocketIOService {
                 Logger.info('Authentication token is missing.')
                 return next(new BadRequestError("Authentication token is missing."));
             }
-            
+
             const secret = process.env.JWT_CONTRACTOR_SECRET_KEY as string;
             jwt.verify(token, secret, (err: any, decoded: any) => {
                 if (err) {
@@ -45,17 +46,17 @@ class SocketIOService {
                 // Authentication successful, attach user information to the socket
                 socket.user = decoded;
                 next();
-            }); 
+            });
         });
 
         this.io.on("connection", (socket: CustomSocket) => {
             if (socket.user && socket.user.email) {
                 socket.join(socket.user.email);
                 socket.join('alerts'); // also join alerts channel
-               
-                const channels: any =[]
-                socket.rooms.forEach(cha =>{
-                    channels.push( cha)
+
+                const channels: any = []
+                socket.rooms.forEach(cha => {
+                    channels.push(cha)
                 })
                 Logger.info(`User ${socket.user.email} joined channels: ${channels}`);
             }
@@ -73,26 +74,26 @@ class SocketIOService {
 
             // Handle notification events from client here
             socket.on("send_jobday_contractor_location", async (payload: any) => {
-                Logger.info(`Jobday contractor location update `, payload)                
-                const { toUser, toUserType, jobdayId } = payload 
+                Logger.info(`Jobday contractor location update `, payload)
+                const { toUser, toUserType, jobdayId } = payload
                 const jobday = await JobDayModel.findById(payload.jobdayId)
-                if(!jobday)return
+                if (!jobday) return
 
                 const customer = await CustomerModel.findById(jobday.customer)
                 let contractor = await ContractorModel.findById(jobday.contractor)
                 const job = await JobModel.findById(jobday.job)
-                if(!customer || !contractor)return
-                
-                const  data = {
+                if (!customer || !contractor) return
+
+                const data = {
                     ...payload,
-                    name:contractor.name,
+                    name: contractor.name,
                     profilePhoto: contractor.profilePhoto
                 }
                 this.sendNotification(customer.email, 'JOB_DAY_CONTRACTOR_LOCATION', data);
 
-                if(job && job.isAssigned){
+                if (job && job.isAssigned) {
                     contractor = await ContractorModel.findById(job.contractor)
-                    if(!contractor)return
+                    if (!contractor) return
                     this.sendNotification(contractor.email, 'JOB_DAY_CONTRACTOR_LOCATION', data);
                 }
 
@@ -100,18 +101,62 @@ class SocketIOService {
 
             // Handle conversation marked as read
             socket.on("send_mark_conversation_as_read", async (payload: any) => {
-                Logger.info(`Marked conversation as read `, payload)                
-                const conversationId = payload.conversationId
-                const userId = payload.userId
-
-                if(!isValidObjectId(userId) || !isValidObjectId(conversationId))return 
                
-                const conversation = await ConversationModel.findById(userId)
-                if(!conversation)return
-                await MessageModel.updateMany(
-                    { conversation: conversationId, readBy: { $ne: userId } },
-                    { $addToSet: { readBy: userId } }
-                );
+                try {
+
+                    Logger.info(`Marking conversation as read via socket `, payload)
+                    const conversationId = payload.conversationId
+                    const loggedInUserId = socket.user.id
+                    const loggedInUserType = socket.user.userType
+
+                    if (!isValidObjectId(conversationId)){
+                        Logger.error(`conversationId was not passed`)
+                        return
+                    }
+
+                    const conversation = await ConversationModel.findById(conversationId)
+                    if (!conversation){
+                        Logger.error(`Conversation not found`)
+                        return
+                    }
+                    await MessageModel.updateMany(
+                        { conversation: conversationId, readBy: { $ne: loggedInUserId } },
+                        { $addToSet: { readBy: loggedInUserId } }
+                    );
+
+                    //emit conversation read event
+                    const members = conversation?.members;
+
+                    if (!conversation || !members) return
+
+                    members.forEach(async member => {
+                        const user = member.memberType === 'contractors' ? await ContractorModel.findById(member.member) : await CustomerModel.findById(member.member)
+                        if (!user) return
+
+                        const toUserId = member.member
+                        const toUserType = member.memberType
+
+                        if(toUserId == loggedInUserId)return
+
+                        NotificationService.sendNotification({
+                            user: toUserId,
+                            userType: toUserType,
+                            title: 'Conversation read',
+                            type: 'CONVERSATION_READ',
+                            message: `Conversation messages marked as read`,
+                            heading: { name: `${user.name}`, image: user.profilePhoto?.url },
+                            payload: {
+                                entity: conversation.id,
+                                entityType: 'conversations',
+                                message: 'Conversation messages marked as read',
+                                event: 'CONVERSATION_READ',
+                            }
+                        }, { socket: true })
+                    })
+
+                } catch (error) {
+                    Logger.error(`Error marking conversation as read via socket `, payload)
+                }
 
             });
 
@@ -120,7 +165,7 @@ class SocketIOService {
 
     static sendNotification(channels: string | string[], type: string, payload: any) {
         const channelArray = typeof channels === 'string' ? [channels] : channels;
-        Logger.info(`sendNotification socket event is fired inside socketio`, {payload: JSON.stringify(payload), channels, type})
+        Logger.info(`sendNotification socket event is fired inside socketio`, { payload: JSON.stringify(payload), channels, type })
         for (const channel of channelArray) {
             this.io.to(channel).emit(type, { payload });
         }
@@ -130,8 +175,8 @@ class SocketIOService {
     }
 
     // defined broadcast channels = alerts
-    static broadcastChannel(channel:string, type: string, payload: object) {
-        Logger.info(' broadcastChannel socket event is fired inside socketio', {payload: JSON.stringify(payload), channel})
+    static broadcastChannel(channel: string, type: string, payload: object) {
+        Logger.info(' broadcastChannel socket event is fired inside socketio', { payload: JSON.stringify(payload), channel })
         this.io.to(channel).emit(type, payload);
     }
 }

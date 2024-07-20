@@ -61,6 +61,7 @@ var logger_1 = require("../logger");
 var messages_schema_1 = require("../../database/common/messages.schema");
 var conversations_schema_1 = require("../../database/common/conversations.schema");
 var mongoose_1 = require("mongoose");
+var notifications_1 = require("../notifications");
 var SocketIOService = /** @class */ (function () {
     function SocketIOService() {
     }
@@ -153,24 +154,80 @@ var SocketIOService = /** @class */ (function () {
             }); });
             // Handle conversation marked as read
             socket.on("send_mark_conversation_as_read", function (payload) { return __awaiter(_this, void 0, void 0, function () {
-                var conversationId, userId, conversation;
+                var conversationId, loggedInUserId_1, loggedInUserType, conversation_1, members, error_1;
+                var _this = this;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
-                            logger_1.Logger.info("Marked conversation as read ", payload);
+                            _a.trys.push([0, 3, , 4]);
+                            logger_1.Logger.info("Marking conversation as read via socket ", payload);
                             conversationId = payload.conversationId;
-                            userId = payload.userId;
-                            if (!(0, mongoose_1.isValidObjectId)(userId) || !(0, mongoose_1.isValidObjectId)(conversationId))
+                            loggedInUserId_1 = socket.user.id;
+                            loggedInUserType = socket.user.userType;
+                            if (!(0, mongoose_1.isValidObjectId)(conversationId)) {
+                                logger_1.Logger.error("conversationId was not passed");
                                 return [2 /*return*/];
-                            return [4 /*yield*/, conversations_schema_1.ConversationModel.findById(userId)];
+                            }
+                            return [4 /*yield*/, conversations_schema_1.ConversationModel.findById(conversationId)];
                         case 1:
-                            conversation = _a.sent();
-                            if (!conversation)
+                            conversation_1 = _a.sent();
+                            if (!conversation_1) {
+                                logger_1.Logger.error("Conversation not found");
                                 return [2 /*return*/];
-                            return [4 /*yield*/, messages_schema_1.MessageModel.updateMany({ conversation: conversationId, readBy: { $ne: userId } }, { $addToSet: { readBy: userId } })];
+                            }
+                            return [4 /*yield*/, messages_schema_1.MessageModel.updateMany({ conversation: conversationId, readBy: { $ne: loggedInUserId_1 } }, { $addToSet: { readBy: loggedInUserId_1 } })];
                         case 2:
                             _a.sent();
-                            return [2 /*return*/];
+                            members = conversation_1 === null || conversation_1 === void 0 ? void 0 : conversation_1.members;
+                            if (!conversation_1 || !members)
+                                return [2 /*return*/];
+                            members.forEach(function (member) { return __awaiter(_this, void 0, void 0, function () {
+                                var user, _a, toUserId, toUserType;
+                                var _b;
+                                return __generator(this, function (_c) {
+                                    switch (_c.label) {
+                                        case 0:
+                                            if (!(member.memberType === 'contractors')) return [3 /*break*/, 2];
+                                            return [4 /*yield*/, contractor_model_1.ContractorModel.findById(member.member)];
+                                        case 1:
+                                            _a = _c.sent();
+                                            return [3 /*break*/, 4];
+                                        case 2: return [4 /*yield*/, customer_model_1.default.findById(member.member)];
+                                        case 3:
+                                            _a = _c.sent();
+                                            _c.label = 4;
+                                        case 4:
+                                            user = _a;
+                                            if (!user)
+                                                return [2 /*return*/];
+                                            toUserId = member.member;
+                                            toUserType = member.memberType;
+                                            if (toUserId == loggedInUserId_1)
+                                                return [2 /*return*/];
+                                            notifications_1.NotificationService.sendNotification({
+                                                user: toUserId,
+                                                userType: toUserType,
+                                                title: 'Conversation read',
+                                                type: 'CONVERSATION_READ',
+                                                message: "Conversation messages marked as read",
+                                                heading: { name: "".concat(user.name), image: (_b = user.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
+                                                payload: {
+                                                    entity: conversation_1.id,
+                                                    entityType: 'conversations',
+                                                    message: 'Conversation messages marked as read',
+                                                    event: 'CONVERSATION_READ',
+                                                }
+                                            }, { socket: true });
+                                            return [2 /*return*/];
+                                    }
+                                });
+                            }); });
+                            return [3 /*break*/, 4];
+                        case 3:
+                            error_1 = _a.sent();
+                            logger_1.Logger.error("Error marking conversation as read via socket ", payload);
+                            return [3 /*break*/, 4];
+                        case 4: return [2 /*return*/];
                     }
                 });
             }); });
