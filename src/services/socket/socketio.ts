@@ -149,6 +149,8 @@ class SocketIOService {
                                 entity: conversation.id,
                                 entityType: 'conversations',
                                 message: 'Conversation messages marked as read',
+                                readBy: loggedInUserId,
+                                readByType: loggedInUserType,
                                 event: 'CONVERSATION_READ',
                             }
                         }, { socket: true })

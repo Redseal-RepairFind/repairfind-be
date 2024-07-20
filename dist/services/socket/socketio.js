@@ -154,7 +154,7 @@ var SocketIOService = /** @class */ (function () {
             }); });
             // Handle conversation marked as read
             socket.on("send_mark_conversation_as_read", function (payload) { return __awaiter(_this, void 0, void 0, function () {
-                var conversationId, loggedInUserId_1, loggedInUserType, conversation_1, members, error_1;
+                var conversationId, loggedInUserId_1, loggedInUserType_1, conversation_1, members, error_1;
                 var _this = this;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
@@ -163,7 +163,7 @@ var SocketIOService = /** @class */ (function () {
                             logger_1.Logger.info("Marking conversation as read via socket ", payload);
                             conversationId = payload.conversationId;
                             loggedInUserId_1 = socket.user.id;
-                            loggedInUserType = socket.user.userType;
+                            loggedInUserType_1 = socket.user.userType;
                             if (!(0, mongoose_1.isValidObjectId)(conversationId)) {
                                 logger_1.Logger.error("conversationId was not passed");
                                 return [2 /*return*/];
@@ -215,6 +215,8 @@ var SocketIOService = /** @class */ (function () {
                                                     entity: conversation_1.id,
                                                     entityType: 'conversations',
                                                     message: 'Conversation messages marked as read',
+                                                    readBy: loggedInUserId_1,
+                                                    readByType: loggedInUserType_1,
                                                     event: 'CONVERSATION_READ',
                                                 }
                                             }, { socket: true });
