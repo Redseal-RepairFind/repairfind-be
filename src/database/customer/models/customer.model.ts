@@ -28,6 +28,7 @@ const CustomerSchema = new Schema<ICustomer>(
     password: {
       type: String,
       required: false,
+      verifiedAt: {type: Date, default: null },
     },
     firstName: {
       type: String,

@@ -29,7 +29,8 @@ export interface ICustomer extends Document {
   name: string;
   phoneNumber: {
     code: string,
-    number: string
+    number: string,
+    verifiedAt: {type: Date, default: null },
   };    
   location: ICustomerLocation
   profilePhoto: {

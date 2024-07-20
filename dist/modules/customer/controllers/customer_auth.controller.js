@@ -151,21 +151,21 @@ var verifyEmail = function (req, res) { return __awaiter(void 0, void 0, void 0,
                 if (!customer) {
                     return [2 /*return*/, res
                             .status(401)
-                            .json({ success: false, message: "invalid email" })];
+                            .json({ success: false, message: "Invalid email" })];
                 }
                 if (customer.emailOtp.otp != otp) {
                     return [2 /*return*/, res
                             .status(401)
-                            .json({ success: false, message: "invalid otp" })];
+                            .json({ success: false, message: "Invalid otp" })];
                 }
                 if (customer.emailOtp.verified) {
                     return [2 /*return*/, res
                             .status(400)
-                            .json({ success: false, message: "email already verified" })];
+                            .json({ success: false, message: "Email is already verified" })];
                 }
                 timeDiff = new Date().getTime() - customer.emailOtp.createdTime.getTime();
                 if (timeDiff > otpGenerator_1.OTP_EXPIRY_TIME) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: "otp expired" })];
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "OTP has expired" })];
                 }
                 customer.emailOtp.verified = true;
                 return [4 /*yield*/, customer.save()];
@@ -178,7 +178,7 @@ var verifyEmail = function (req, res) { return __awaiter(void 0, void 0, void 0,
                 }, process.env.JWT_CONTRACTOR_SECRET_KEY, { expiresIn: config_1.config.jwt.tokenLifetime });
                 return [2 /*return*/, res.json({
                         success: true,
-                        message: "email verified successfully",
+                        message: "Email verified successfully",
                         accessToken: accessToken,
                         expiresIn: config_1.config.jwt.tokenLifetime,
                         data: customer
@@ -193,7 +193,6 @@ var verifyEmail = function (req, res) { return __awaiter(void 0, void 0, void 0,
     });
 }); };
 exports.verifyEmail = verifyEmail;
-//customer signin /////////////
 var signIn = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, email, password, errors, customer, isPasswordMatch, profile, accessToken, err_3;
     return __generator(this, function (_b) {
@@ -229,7 +228,7 @@ var signIn = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                     return [2 /*return*/, res.status(401).json({ success: false, message: "Incorrect credential." })];
                 }
                 if (!customer.emailOtp.verified) {
-                    return [2 /*return*/, res.status(401).json({ success: false, message: "Email not verified." })];
+                    return [2 /*return*/, res.status(401).json({ success: false, message: "The email or password you entered is incorrect" })];
                 }
                 return [4 /*yield*/, customer_model_1.default.findOne({ email: email }).select('-password')];
             case 3:
@@ -275,24 +274,21 @@ var signInWithPhone = function (req, res) { return __awaiter(void 0, void 0, voi
                 if (!customer) {
                     return [2 /*return*/, res
                             .status(401)
-                            .json({ success: false, message: "Invalid credential" })];
+                            .json({ success: false, message: "The phone or password you entered is incorrect" })];
                 }
                 if (!customer.password && customer.provider !== customer_interface_1.CustomerAuthProviders.PASSWORD) {
                     return [2 /*return*/, res
                             .status(401)
-                            .json({ success: false, message: "The email is associated with a social signon" })];
+                            .json({ success: false, message: "These account is associated with a social signon" })];
                 }
                 return [4 /*yield*/, bcrypt_1.default.compare(password, customer.password)];
             case 2:
                 isPasswordMatch = _b.sent();
-                if (!customer.password && customer.provider) {
-                    return [2 /*return*/, res.status(401).json({ success: false, message: "Account is associated with ".concat(customer.provider, " account") })];
-                }
                 if (!isPasswordMatch) {
                     return [2 /*return*/, res.status(401).json({ success: false, message: "Incorrect credential." })];
                 }
-                if (!customer.emailOtp.verified) {
-                    return [2 /*return*/, res.status(401).json({ success: false, message: "Email not verified." })];
+                if (!customer.phoneNumber.verifiedAt) {
+                    return [2 /*return*/, res.status(401).json({ success: false, message: "Phone number is not verified." })];
                 }
                 return [4 /*yield*/, customer_model_1.default.findById(customer.id).select('-password')];
             case 3:

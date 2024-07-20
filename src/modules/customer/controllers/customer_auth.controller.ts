@@ -6,8 +6,6 @@ import CustomerModel from "../../../database/customer/models/customer.model";
 import { OTP_EXPIRY_TIME, generateOTP } from "../../../utils/otpGenerator";
 import { sendEmail } from "../../../utils/send_email_utility";
 import { htmlMailTemplate } from "../../../templates/sendEmailTemplate";
-import { uploadToS3 } from "../../../utils/upload.utility";
-import { v4 as uuidv4 } from "uuid";
 import AdminNoficationModel from "../../../database/admin/models/admin_notification.model";
 import { GoogleServiceProvider } from "../../../services/google";
 import { CustomerAuthProviders } from "../../../database/customer/interface/customer.interface";
@@ -32,6 +30,8 @@ export const signUp = async (
       acceptTerms,
       phoneNumber,
     } = req.body;
+
+
     // Check for Validation error occurred
     const errors = validationResult(req);
 
@@ -60,19 +60,14 @@ export const signUp = async (
     }
 
     
-
     const welcomeHtml = CustomerWelcomeEmailTemplate(lastName)
     EmailService.send(email, 'Welcome to Repairfind', welcomeHtml,  )
 
-  
     const emailVerificationHtml = EmailVerificationTemplate(otp, firstName);
     EmailService.send(email, 'Email Verification', emailVerificationHtml  )
 
-
-
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
-
 
     const customer = new CustomerModel({
       email,
@@ -141,24 +136,24 @@ export const verifyEmail = async (
     if (!customer) {
       return res
         .status(401)
-        .json({ success: false, message: "invalid email" });
+        .json({ success: false, message: "Invalid email" });
     }
 
     if (customer.emailOtp.otp != otp) {
       return res
         .status(401)
-        .json({ success: false, message: "invalid otp" });
+        .json({ success: false, message: "Invalid otp" });
     }
 
     if (customer.emailOtp.verified) {
       return res
         .status(400)
-        .json({ success: false, message: "email already verified" });
+        .json({ success: false, message: "Email is already verified" });
     }
 
     const timeDiff = new Date().getTime() - customer.emailOtp.createdTime.getTime();
     if (timeDiff > OTP_EXPIRY_TIME) {
-      return res.status(400).json({ success: false, message: "otp expired" });
+      return res.status(400).json({ success: false, message: "OTP has expired" });
     }
 
     customer.emailOtp.verified = true;
@@ -178,7 +173,7 @@ export const verifyEmail = async (
 
     return res.json({
       success: true,
-      message: "email verified successfully",
+      message: "Email verified successfully",
       accessToken,
       expiresIn: config.jwt.tokenLifetime,
       data: customer
@@ -192,8 +187,6 @@ export const verifyEmail = async (
 }
 
 
-
-//customer signin /////////////
 export const signIn = async (
   req: Request,
   res: Response,
@@ -240,7 +233,7 @@ export const signIn = async (
     }
 
     if (!customer.emailOtp.verified) {
-      return res.status(401).json({success: false, message: "Email not verified." });
+      return res.status(401).json({success: false, message: "The email or password you entered is incorrect" });
     }
 
     const profile = await CustomerModel.findOne({ email }).select('-password');
@@ -296,29 +289,26 @@ export const signInWithPhone = async (
     if (!customer) {
       return res
         .status(401)
-        .json({success: false, message: "Invalid credential" });
+        .json({success: false, message: "The phone or password you entered is incorrect" });
     }
 
     if (!customer.password && customer.provider !==  CustomerAuthProviders.PASSWORD) {
       return res
         .status(401)
-        .json({success: false, message: "The email is associated with a social signon" });
+        .json({success: false, message: "These account is associated with a social signon" });
     }
 
 
     // compare password with hashed password in database
     const isPasswordMatch = await bcrypt.compare(password, customer.password);
     
-    if (!customer.password && customer.provider) {
-      return res.status(401).json({success: false, message: `Account is associated with ${customer.provider} account` });
-    }
 
     if (!isPasswordMatch) {
       return res.status(401).json({success: false, message: "Incorrect credential." });
     }
 
-    if (!customer.emailOtp.verified) {
-      return res.status(401).json({success: false, message: "Email not verified." });
+    if (!customer.phoneNumber.verifiedAt) {
+      return res.status(401).json({success: false, message: "Phone number is not verified." });
     }
 
     const profile = await CustomerModel.findById(customer.id).select('-password');
