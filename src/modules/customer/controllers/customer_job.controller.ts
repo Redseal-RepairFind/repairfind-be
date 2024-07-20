@@ -11,7 +11,7 @@ import { applyAPIFeature } from "../../../utils/api.feature";
 import { ConversationModel } from "../../../database/common/conversations.schema";
 import { IMessage, MessageModel, MessageType } from "../../../database/common/messages.schema";
 import { JOB_QUOTATION_STATUS, JobQuotationModel } from "../../../database/common/job_quotation.model";
-import { JobEvent } from "../../../events";
+import { ConversationEvent, JobEvent } from "../../../events";
 import { htmlJobQuotationAcceptedContractorEmailTemplate } from "../../../templates/contractor/job_quotation_accepted.template";
 import { htmlJobQuotationDeclinedContractorEmailTemplate } from "../../../templates/contractor/job_quotation_declined.template";
 import mongoose from "mongoose";
@@ -158,8 +158,7 @@ export const createJobRequest = async (
             entityType: 'jobs'
         });
 
-
-
+        ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
         JobEvent.emit('NEW_JOB_REQUEST', { jobId: newJob.id, contractorId, customerId, conversationId: conversation.id })
         const html = htmlJobRequestTemplate(customer.firstName, customer.firstName, `${newJob.date}`, description)
         EmailService.send(contractor.email, 'Job request from customer', html)
@@ -566,10 +565,8 @@ export const acceptJobQuotation = async (req: any, res: Response, next: NextFunc
             entityType: 'quotations'
         });
 
-        // Accepting does not mean
-        // job.quotation = quotation.id
-        // job.contractor = quotation.contractor
-        // job.status = JOB_STATUS.ACCEPTED // no need of moving status to Accepted again - 
+      
+        ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
 
         await quotation.save()
 
@@ -658,8 +655,7 @@ export const declineJobQuotation = async (req: any, res: Response, next: NextFun
         });
 
 
-
-
+        ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
 
         const contractor = await ContractorModel.findById(quotation.contractor)
         const customer = await CustomerModel.findById(customerId)

@@ -99,11 +99,11 @@ var getSingleDispute = function (req, res, next) { return __awaiter(void 0, void
                 return [4 /*yield*/, job_dispute_model_1.JobDisputeModel.findOne({ _id: disputeId })
                         .populate([{
                             path: 'customer',
-                            select: 'firstName lastName name profilePhoto _id'
+                            select: 'firstName lastName name profilePhoto _id phoneNumber email'
                         },
                         {
                             path: 'contractor',
-                            select: 'firstName lastName name profilePhoto _id'
+                            select: 'firstName lastName name profilePhoto _id phoneNumber email'
                         },
                         {
                             path: 'job',

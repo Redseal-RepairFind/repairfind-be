@@ -14,7 +14,7 @@ import { ContractorProfileModel } from "../../../database/contractor/models/cont
 import { castPayloadToDTO } from "../../../utils/interface_dto.util";
 import { StripeService } from "../../../services/stripe";
 import { IStripeAccount } from "../../../database/common/stripe_account.schema";
-import { JobEvent } from "../../../events";
+import { ConversationEvent, JobEvent } from "../../../events";
 import { JobEnquiryModel } from "../../../database/common/job_enquiry.model";
 import ContractorSavedJobModel from "../../../database/contractor/models/contractor_saved_job.model";
 
@@ -213,6 +213,8 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
       entityType: 'jobs'
     });
     await message.save();
+  
+    ConversationEvent.emit('NEW_MESSAGE', { message })
 
 
     // Return success response
@@ -302,7 +304,8 @@ export const rejectJobRequest = async (req: any, res: Response) => {
       entityType: 'jobs'
     });
 
-    // Return success response
+    ConversationEvent.emit('NEW_MESSAGE', { message })
+
     res.json({ success: true, message: 'Job request rejected successfully' });
   } catch (error) {
     console.error('Error rejecting job request:', error);
@@ -807,6 +810,7 @@ export const updateJobQuotation = async (req: any, res: Response, next: NextFunc
       messageType: MessageType.ALERT,
     });
 
+    ConversationEvent.emit('NEW_MESSAGE', { message })
 
     res.status(200).json({ success: true, message: 'Job application updated successfully', data: jobQuotation });
   } catch (error: any) {

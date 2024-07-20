@@ -254,6 +254,7 @@ var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 return [4 /*yield*/, message.save()];
             case 10:
                 _c.sent();
+                events_1.ConversationEvent.emit('NEW_MESSAGE', { message: message });
                 // Return success response
                 res.json({ success: true, message: 'Job request accepted successfully' });
                 return [3 /*break*/, 12];
@@ -330,7 +331,7 @@ var rejectJobRequest = function (req, res) { return __awaiter(void 0, void 0, vo
                     entity: job.id,
                     entityType: 'jobs'
                 });
-                // Return success response
+                events_1.ConversationEvent.emit('NEW_MESSAGE', { message: message });
                 res.json({ success: true, message: 'Job request rejected successfully' });
                 return [3 /*break*/, 5];
             case 4:
@@ -848,6 +849,7 @@ var updateJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
                     message: "Contractor has edited job estimate",
                     messageType: messages_schema_1.MessageType.ALERT,
                 });
+                events_1.ConversationEvent.emit('NEW_MESSAGE', { message: message });
                 res.status(200).json({ success: true, message: 'Job application updated successfully', data: jobQuotation });
                 return [3 /*break*/, 7];
             case 6:

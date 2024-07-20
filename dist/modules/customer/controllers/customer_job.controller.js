@@ -167,6 +167,7 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                     })];
             case 7:
                 newMessage = _e.sent();
+                events_1.ConversationEvent.emit('NEW_MESSAGE', { message: newMessage });
                 events_1.JobEvent.emit('NEW_JOB_REQUEST', { jobId: newJob.id, contractorId: contractorId, customerId: customerId, conversationId: conversation.id });
                 html = (0, jobRequestTemplate_1.htmlJobRequestTemplate)(customer.firstName, customer.firstName, "".concat(newJob.date), description);
                 services_1.EmailService.send(contractor.email, 'Job request from customer', html);
@@ -602,16 +603,9 @@ var acceptJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
                     })];
             case 4:
                 newMessage = _c.sent();
-                // Accepting does not mean
-                // job.quotation = quotation.id
-                // job.contractor = quotation.contractor
-                // job.status = JOB_STATUS.ACCEPTED // no need of moving status to Accepted again - 
+                events_1.ConversationEvent.emit('NEW_MESSAGE', { message: newMessage });
                 return [4 /*yield*/, quotation.save()];
             case 5:
-                // Accepting does not mean
-                // job.quotation = quotation.id
-                // job.contractor = quotation.contractor
-                // job.status = JOB_STATUS.ACCEPTED // no need of moving status to Accepted again - 
                 _c.sent();
                 foundQuotationIndex = job.quotations.findIndex(function (quotation) { return quotation.id == quotationId_1; });
                 if (foundQuotationIndex !== -1) {
@@ -706,6 +700,7 @@ var declineJobQuotation = function (req, res, next) { return __awaiter(void 0, v
                     })];
             case 6:
                 newMessage = _b.sent();
+                events_1.ConversationEvent.emit('NEW_MESSAGE', { message: newMessage });
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(quotation.contractor)];
             case 7:
                 contractor = _b.sent();

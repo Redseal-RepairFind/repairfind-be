@@ -59,11 +59,11 @@ export const getSingleDispute = async (
     const dispute = await JobDisputeModel.findOne({ _id: disputeId })
       .populate([{
         path: 'customer',
-        select: 'firstName lastName name profilePhoto _id'
+        select: 'firstName lastName name profilePhoto _id phoneNumber email'
       },
       {
         path: 'contractor',
-        select: 'firstName lastName name profilePhoto _id'
+        select: 'firstName lastName name profilePhoto _id phoneNumber email'
       },
       {
         path: 'job',
