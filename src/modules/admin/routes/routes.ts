@@ -10,11 +10,11 @@ import { AdminConversationController } from "../controllers/conversation.control
 import { AdminDisputeController } from "../controllers/admin_disputes.controller";
 import { AdminEmergencyController } from "../controllers/emergency.controller";
 import { AdminGetCompletedPayoutDetailController, AdminGetPendingPayoutDetailController, AdminGetSinglePayoutDetailController, AdminPayContractorController } from "../controllers/payout.controller";
-import { Permission } from "../controllers/permission.controller";
+import { AdminPermissionController } from "../controllers/permission.controller";
 import { AdminQuizController } from "../controllers/quiz.controller";
 import { TransactionDetailController } from "../controllers/transaction.controller";
 import { checkAdminRole } from "../middlewares/adminRoleChecker.middleware";
-import { Validations, createQuizParams, validatAdminEmailverificationParams, validateAddQuestionParams, validateAddSkillParams, validateAdminForgotPasswordParams, validateAdminLoginParams, validateAdminResetPasswprdParams, validateContractoDocumentIdValidationParams, validateContractorIdValidationParams, validateCustomerIdValidationParams, validateDeleteQuestionValidationParams, validateEditQuestionParams, validateEmergecyIdParams, validateJobIdValidationParams, validatePayoutIDParams, validatePayoutIDPayContractorParams, validateQuestionIdValidationParams, validateResolvedEmergecyIdParams, validateRevenueDateParams, validateSignupParams, validateSuperAdmiCchangeStatusParams, validateTRansactionIdValidationParams } from "../middlewares/admin_validations.middleware";
+import { Validations, createQuizParams, validatAdminEmailverificationParams, validateAddQuestionParams, validateAddSkillParams, validateAdminChangePasswordParams, validateAdminForgotPasswordParams, validateAdminLoginParams, validateAdminResetPasswprdParams, validateContractoDocumentIdValidationParams, validateContractorIdValidationParams, validateCustomerIdValidationParams, validateDeleteQuestionValidationParams, validateEditQuestionParams, validateEmergecyIdParams, validateJobIdValidationParams, validatePayoutIDParams, validatePayoutIDPayContractorParams, validateQuestionIdValidationParams, validateResolvedEmergecyIdParams, validateRevenueDateParams, validateSignupParams, validateSuperAdmiCchangeStatusParams, validateTRansactionIdValidationParams } from "../middlewares/admin_validations.middleware";
 import { AdminAuthController } from "../controllers/admin_auth.controller";
 import { AdminStaffController } from "../controllers/admin_staff.controller";
 
@@ -29,22 +29,22 @@ router.post("/resend/email", validateAdminForgotPasswordParams, AdminAuthControl
 router.post("/signin", validateAdminLoginParams, AdminAuthController.signIn ); 
 router.post("/forgot/password", validateAdminForgotPasswordParams, AdminAuthController.forgotPassword ); 
 router.post("/reset/password", validateAdminResetPasswprdParams, AdminAuthController.resetPassword ); 
+router.post("/change-password", validateAdminChangePasswordParams, AdminAuthController.changePassword ); 
 
 
 //don staff
-router.post("/staff", Validations.AddStaffParams, checkAdminRole, AdminStaffController.addStaff ); 
-router.post("/staff/status", validateSuperAdmiCchangeStatusParams, checkAdminRole, AdminStaffController.changeStaffStatus ); // super admin change staff status
+router.post("/staffs", Validations.AddStaffParams, checkAdminRole, AdminStaffController.addStaff ); 
+router.post("/staffs/status", validateSuperAdmiCchangeStatusParams, checkAdminRole, AdminStaffController.changeStaffStatus ); // super admin change staff status
 router.get("/staffs", checkAdminRole, AdminStaffController.getAdminStaffs ); 
-router.post("/staff/permission", Validations.AddPermissionParams, checkAdminRole, AdminStaffController.addPermissionToStaff ); // super add permission to staff
-router.post("/staff/permission/remove", Validations.AddPermissionParams, checkAdminRole, AdminStaffController.removePermissionFromStaff ); // super remove permission from staff
+router.post("/staffs/permission", Validations.AddPermissionParams, checkAdminRole, AdminStaffController.addPermissionToStaff ); // super add permission to staff
+router.post("/staffs/permission/remove", Validations.AddPermissionParams, checkAdminRole, AdminStaffController.removePermissionFromStaff ); // super remove permission from staff
 
 
 
 // done permission
-router.post("/permission", Validations.PermissionCreationParam, checkAdminRole, Permission.PermissionCreationController ); // super admin create permission
-router.get("/permissions", checkAdminRole, Permission.GetPermissionController ); // super admin get all permission
-router.post("/edit/permission", Validations.EditPermissionParams, checkAdminRole, Permission.EditPermissionController ); // super admin edit permission
-
+router.post("/permissions", Validations.PermissionCreationParam, checkAdminRole, AdminPermissionController.addSinglePermission ); // super admin create permission
+router.get("/permissions", checkAdminRole, AdminPermissionController.GetPermissionController ); // super admin get all permission
+router.post("/permissions/:permissionId", Validations.EditPermissionParams, checkAdminRole, AdminPermissionController.EditPermissionController ); // super admin edit permission
 
 
 //refactored contractor

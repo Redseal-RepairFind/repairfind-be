@@ -44,12 +44,12 @@ var express_validator_1 = require("express-validator");
 var bcrypt_1 = __importDefault(require("bcrypt"));
 var admin_model_1 = __importDefault(require("../../../database/admin/models/admin.model"));
 var otpGenerator_1 = require("../../../utils/otpGenerator");
-var send_email_utility_1 = require("../../../utils/send_email_utility");
-var sendEmailTemplate_1 = require("../../../templates/sendEmailTemplate");
 var admin_interface_1 = require("../../../database/admin/interface/admin.interface");
 var permission_model_1 = __importDefault(require("../../../database/admin/models/permission.model"));
 var custom_errors_1 = require("../../../utils/custom.errors");
 var api_feature_1 = require("../../../utils/api.feature");
+var services_1 = require("../../../services");
+var generic_email_1 = require("../../../templates/common/generic_email");
 var getAdminStaffs = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, errors, admin, adminId, checkAdmin, _b, data, error, error_1;
     return __generator(this, function (_c) {
@@ -131,12 +131,12 @@ var changeStaffStatus = function (req, res, next) { return __awaiter(void 0, voi
 }); };
 exports.changeStaffStatus = changeStaffStatus;
 var addStaff = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, email, password, firstName, lastName, phoneNumber, permisions, errors, admin, adminId, checkAdmin, adminEmailExists, superAdmin, validation, i, permision, checkPermission, otp, createdTime, emailOtp, html, emailData, hashedPassword, newStaff, staffSaved, error_3;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+    var _a, email, _b, password, firstName, lastName, phoneNumber, permisions, errors, admin, adminId, checkAdmin, adminEmailExists, superAdmin, validation, otp, createdTime, emailOtp, hashedPassword, emailSubject, emailContent, html, newStaff, staffSaved, error_3;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
             case 0:
-                _b.trys.push([0, 9, , 10]);
-                _a = req.body, email = _a.email, password = _a.password, firstName = _a.firstName, lastName = _a.lastName, phoneNumber = _a.phoneNumber, permisions = _a.permisions;
+                _c.trys.push([0, 5, , 6]);
+                _a = req.body, email = _a.email, _b = _a.password, password = _b === void 0 ? (0, otpGenerator_1.generateOTP)() : _b, firstName = _a.firstName, lastName = _a.lastName, phoneNumber = _a.phoneNumber, permisions = _a.permisions;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -145,58 +145,37 @@ var addStaff = function (req, res, next) { return __awaiter(void 0, void 0, void
                 adminId = admin.id;
                 return [4 /*yield*/, admin_model_1.default.findOne({ _id: adminId })];
             case 1:
-                checkAdmin = _b.sent();
+                checkAdmin = _c.sent();
                 if (!(checkAdmin === null || checkAdmin === void 0 ? void 0 : checkAdmin.superAdmin)) {
                     return [2 /*return*/, res
                             .status(401)
-                            .json({ message: "super admin role" })];
+                            .json({ success: false, message: "You do not have permission to perform this action" })];
                 }
                 return [4 /*yield*/, admin_model_1.default.findOne({ email: email })];
             case 2:
-                adminEmailExists = _b.sent();
+                adminEmailExists = _c.sent();
                 superAdmin = false;
                 validation = true;
                 // check if user exists
                 if (adminEmailExists) {
                     return [2 /*return*/, res
                             .status(401)
-                            .json({ message: "Email exists already" })];
+                            .json({ success: false, message: "Staff with same email already exists" })];
                 }
-                i = 0;
-                _b.label = 3;
-            case 3:
-                if (!(i < permisions.length)) return [3 /*break*/, 6];
-                permision = permisions[i];
-                return [4 /*yield*/, permission_model_1.default.findOne({ _id: permision })];
-            case 4:
-                checkPermission = _b.sent();
-                if (!checkPermission) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ message: "invalid permission" })];
-                }
-                _b.label = 5;
-            case 5:
-                i++;
-                return [3 /*break*/, 3];
-            case 6:
                 otp = (0, otpGenerator_1.generateOTP)();
                 createdTime = new Date();
                 emailOtp = {
                     otp: otp,
                     createdTime: createdTime,
-                    verified: false
+                    verified: true
                 };
-                html = (0, sendEmailTemplate_1.htmlMailTemplate)(otp, firstName, "We have received a request to verify your email");
-                emailData = {
-                    emailTo: email,
-                    subject: "email verification",
-                    html: html
-                };
-                (0, send_email_utility_1.sendEmail)(emailData);
                 return [4 /*yield*/, bcrypt_1.default.hash(password, 10)];
-            case 7:
-                hashedPassword = _b.sent();
+            case 3:
+                hashedPassword = _c.sent();
+                emailSubject = 'New Staff Account';
+                emailContent = "\n                <p style=\"color: #333333;\">A staff account has been provisioned with your email on Repairfind</p>\n                <div style=\"background: whitesmoke;padding: 10px; border-radius: 10px;\">\n                <p style=\"border-bottom: 1px solid lightgray; padding-bottom: 5px;\"><strong>Temporary Password:</strong> ".concat(password, "</p>\n                </div>\n                <p style=\"color: #333333;\">Do well to login and change your password </p>\n                ");
+                html = (0, generic_email_1.GenericEmailTemplate)({ name: firstName, subject: emailSubject, content: emailContent });
+                services_1.EmailService.send(email, emailSubject, html);
                 newStaff = new admin_model_1.default({
                     email: email,
                     firstName: firstName,
@@ -206,29 +185,20 @@ var addStaff = function (req, res, next) { return __awaiter(void 0, void 0, void
                     permissions: permisions,
                     status: admin_interface_1.AdminStatus.ACTIVE,
                     password: hashedPassword,
+                    hasWeakPassword: true,
                     validation: validation,
                     emailOtp: emailOtp
                 });
                 return [4 /*yield*/, newStaff.save()];
-            case 8:
-                staffSaved = _b.sent();
-                res.json({
-                    message: "Signup successful",
-                    admin: {
-                        id: staffSaved._id,
-                        firstName: staffSaved.firstName,
-                        lastName: staffSaved.lastName,
-                        email: staffSaved.email,
-                        phoneNumber: staffSaved.phoneNumber,
-                        permisions: staffSaved.permissions,
-                    },
-                });
-                return [3 /*break*/, 10];
-            case 9:
-                error_3 = _b.sent();
+            case 4:
+                staffSaved = _c.sent();
+                res.json({ success: true, message: "Admin Staff added successfully" });
+                return [3 /*break*/, 6];
+            case 5:
+                error_3 = _c.sent();
                 next(new custom_errors_1.InternalServerError("An error occurred", error_3));
-                return [3 /*break*/, 10];
-            case 10: return [2 /*return*/];
+                return [3 /*break*/, 6];
+            case 6: return [2 /*return*/];
         }
     });
 }); };
@@ -252,7 +222,7 @@ var addPermissionToStaff = function (req, res, next) { return __awaiter(void 0, 
                 if (!(checkAdmin === null || checkAdmin === void 0 ? void 0 : checkAdmin.superAdmin)) {
                     return [2 /*return*/, res
                             .status(401)
-                            .json({ message: "super admin role" })];
+                            .json({ success: false, message: "You do not have permission to perform this action" })];
                 }
                 return [4 /*yield*/, admin_model_1.default.findOne({ _id: staffId })];
             case 2:
@@ -268,7 +238,7 @@ var addPermissionToStaff = function (req, res, next) { return __awaiter(void 0, 
                 if (!checkPermission) {
                     return [2 /*return*/, res
                             .status(401)
-                            .json({ message: "invalid permission" })];
+                            .json({ success: false, message: "Invalid permission" })];
                 }
                 permissions = [permision];
                 for (i = 0; i < subAdmin.permissions.length; i++) {
@@ -276,7 +246,7 @@ var addPermissionToStaff = function (req, res, next) { return __awaiter(void 0, 
                     if (availabePermission == permision) {
                         return [2 /*return*/, res
                                 .status(401)
-                                .json({ message: "staff already has this permission" })];
+                                .json({ success: false, message: "Staff already has this permission" })];
                     }
                     permissions.push(availabePermission);
                 }
@@ -306,7 +276,7 @@ var removePermissionFromStaff = function (req, res, next) { return __awaiter(voi
                 _a = req.body, staffId = _a.staffId, permision_1 = _a.permision;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                    return [2 /*return*/, res.status(400).json({ success: false, errors: errors.array() })];
                 }
                 admin = req.admin;
                 adminId = admin.id;
@@ -316,7 +286,7 @@ var removePermissionFromStaff = function (req, res, next) { return __awaiter(voi
                 if (!(checkAdmin === null || checkAdmin === void 0 ? void 0 : checkAdmin.superAdmin)) {
                     return [2 /*return*/, res
                             .status(401)
-                            .json({ message: "super admin role" })];
+                            .json({ success: false, message: "You do not have permission to perform this action" })];
                 }
                 return [4 /*yield*/, admin_model_1.default.findOne({ _id: staffId })];
             case 2:
@@ -324,7 +294,7 @@ var removePermissionFromStaff = function (req, res, next) { return __awaiter(voi
                 if (!subAdmin) {
                     return [2 /*return*/, res
                             .status(401)
-                            .json({ message: "staff does not exist" })];
+                            .json({ success: false, message: "Staff does not exist" })];
                 }
                 return [4 /*yield*/, permission_model_1.default.findOne({ _id: permision_1 })];
             case 3:
@@ -332,7 +302,7 @@ var removePermissionFromStaff = function (req, res, next) { return __awaiter(voi
                 if (!checkPermission) {
                     return [2 /*return*/, res
                             .status(401)
-                            .json({ message: "invalid permission" })];
+                            .json({ success: false, message: "Invalid permission" })];
                 }
                 remainPermission = subAdmin.permissions.filter(function (availabePermission) {
                     return availabePermission != permision_1;
@@ -341,9 +311,7 @@ var removePermissionFromStaff = function (req, res, next) { return __awaiter(voi
                 return [4 /*yield*/, subAdmin.save()];
             case 4:
                 _b.sent();
-                res.json({
-                    message: "permission removed successfully",
-                });
+                res.json({ success: true, message: "permission removed successfully" });
                 return [3 /*break*/, 6];
             case 5:
                 error_5 = _b.sent();

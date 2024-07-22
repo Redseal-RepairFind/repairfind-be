@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AdminAuthController = exports.resendEmail = exports.resetPassword = exports.forgotPassword = exports.signIn = exports.verifyEmail = exports.signUp = void 0;
+exports.AdminAuthController = exports.resendEmail = exports.changePassword = exports.resetPassword = exports.forgotPassword = exports.signIn = exports.verifyEmail = exports.signUp = void 0;
 var express_validator_1 = require("express-validator");
 var bcrypt_1 = __importDefault(require("bcrypt"));
 var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
@@ -322,8 +322,52 @@ var resetPassword = function (req, res, next) { return __awaiter(void 0, void 0,
     });
 }); };
 exports.resetPassword = resetPassword;
+var changePassword = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, email, oldPassword, newPassword, errors, admin, hashedPassword, error_6;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 4, , 5]);
+                _a = req.body, email = _a.email, oldPassword = _a.oldPassword, newPassword = _a.newPassword;
+                // Check for strong password criteria
+                if (newPassword.length < 8 || !/[a-zA-Z]/.test(newPassword) || !/\d/.test(newPassword) || !/[!@#$%^&*]/.test(newPassword)) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "Password must be at least 8 characters long and contain letters, numbers, and special characters." })];
+                }
+                errors = (0, express_validator_1.validationResult)(req);
+                if (!errors.isEmpty()) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "Validation error occurred", errors: errors.array() })];
+                }
+                return [4 /*yield*/, admin_model_1.default.findOne({ email: email })];
+            case 1:
+                admin = _b.sent();
+                if (!admin) {
+                    return [2 /*return*/, res
+                            .status(401)
+                            .json({ success: false, message: "Invalid email" })];
+                }
+                if (oldPassword === newPassword) {
+                    return [2 /*return*/, res.status(401).json({ success: false, message: "You cannot use the same password" })];
+                }
+                return [4 /*yield*/, bcrypt_1.default.hash(newPassword, 10)];
+            case 2:
+                hashedPassword = _b.sent();
+                admin.password = hashedPassword;
+                admin.hasWeakPassword = false;
+                return [4 /*yield*/, admin.save()];
+            case 3:
+                _b.sent();
+                return [2 /*return*/, res.status(200).json({ success: true, message: "Password successfully changed" })];
+            case 4:
+                error_6 = _b.sent();
+                next(new custom_errors_1.InternalServerError("An error occurred", error_6));
+                return [3 /*break*/, 5];
+            case 5: return [2 /*return*/];
+        }
+    });
+}); };
+exports.changePassword = changePassword;
 var resendEmail = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var email, errors, admin, otp, createdTime, html, emailData, error_6;
+    var email, errors, admin, otp, createdTime, html, emailData, error_7;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -366,8 +410,8 @@ var resendEmail = function (req, res, next) { return __awaiter(void 0, void 0, v
                 services_1.EmailService.send(email, "email verification", html);
                 return [2 /*return*/, res.status(200).json({ message: "OTP sent successfully to your email." })];
             case 3:
-                error_6 = _a.sent();
-                next(new custom_errors_1.InternalServerError("An error occurred", error_6));
+                error_7 = _a.sent();
+                next(new custom_errors_1.InternalServerError("An error occurred", error_7));
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
         }
@@ -380,5 +424,6 @@ exports.AdminAuthController = {
     verifyEmail: exports.verifyEmail,
     forgotPassword: exports.forgotPassword,
     resetPassword: exports.resetPassword,
+    changePassword: exports.changePassword,
     resendEmail: exports.resendEmail
 };

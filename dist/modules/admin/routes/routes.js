@@ -27,16 +27,17 @@ router.post("/resend/email", admin_validations_middleware_1.validateAdminForgotP
 router.post("/signin", admin_validations_middleware_1.validateAdminLoginParams, admin_auth_controller_1.AdminAuthController.signIn);
 router.post("/forgot/password", admin_validations_middleware_1.validateAdminForgotPasswordParams, admin_auth_controller_1.AdminAuthController.forgotPassword);
 router.post("/reset/password", admin_validations_middleware_1.validateAdminResetPasswprdParams, admin_auth_controller_1.AdminAuthController.resetPassword);
+router.post("/change-password", admin_validations_middleware_1.validateAdminChangePasswordParams, admin_auth_controller_1.AdminAuthController.changePassword);
 //don staff
-router.post("/staff", admin_validations_middleware_1.Validations.AddStaffParams, adminRoleChecker_middleware_1.checkAdminRole, admin_staff_controller_1.AdminStaffController.addStaff);
-router.post("/staff/status", admin_validations_middleware_1.validateSuperAdmiCchangeStatusParams, adminRoleChecker_middleware_1.checkAdminRole, admin_staff_controller_1.AdminStaffController.changeStaffStatus); // super admin change staff status
+router.post("/staffs", admin_validations_middleware_1.Validations.AddStaffParams, adminRoleChecker_middleware_1.checkAdminRole, admin_staff_controller_1.AdminStaffController.addStaff);
+router.post("/staffs/status", admin_validations_middleware_1.validateSuperAdmiCchangeStatusParams, adminRoleChecker_middleware_1.checkAdminRole, admin_staff_controller_1.AdminStaffController.changeStaffStatus); // super admin change staff status
 router.get("/staffs", adminRoleChecker_middleware_1.checkAdminRole, admin_staff_controller_1.AdminStaffController.getAdminStaffs);
-router.post("/staff/permission", admin_validations_middleware_1.Validations.AddPermissionParams, adminRoleChecker_middleware_1.checkAdminRole, admin_staff_controller_1.AdminStaffController.addPermissionToStaff); // super add permission to staff
-router.post("/staff/permission/remove", admin_validations_middleware_1.Validations.AddPermissionParams, adminRoleChecker_middleware_1.checkAdminRole, admin_staff_controller_1.AdminStaffController.removePermissionFromStaff); // super remove permission from staff
+router.post("/staffs/permission", admin_validations_middleware_1.Validations.AddPermissionParams, adminRoleChecker_middleware_1.checkAdminRole, admin_staff_controller_1.AdminStaffController.addPermissionToStaff); // super add permission to staff
+router.post("/staffs/permission/remove", admin_validations_middleware_1.Validations.AddPermissionParams, adminRoleChecker_middleware_1.checkAdminRole, admin_staff_controller_1.AdminStaffController.removePermissionFromStaff); // super remove permission from staff
 // done permission
-router.post("/permission", admin_validations_middleware_1.Validations.PermissionCreationParam, adminRoleChecker_middleware_1.checkAdminRole, permission_controller_1.Permission.PermissionCreationController); // super admin create permission
-router.get("/permissions", adminRoleChecker_middleware_1.checkAdminRole, permission_controller_1.Permission.GetPermissionController); // super admin get all permission
-router.post("/edit/permission", admin_validations_middleware_1.Validations.EditPermissionParams, adminRoleChecker_middleware_1.checkAdminRole, permission_controller_1.Permission.EditPermissionController); // super admin edit permission
+router.post("/permissions", admin_validations_middleware_1.Validations.PermissionCreationParam, adminRoleChecker_middleware_1.checkAdminRole, permission_controller_1.AdminPermissionController.addSinglePermission); // super admin create permission
+router.get("/permissions", adminRoleChecker_middleware_1.checkAdminRole, permission_controller_1.AdminPermissionController.GetPermissionController); // super admin get all permission
+router.post("/permissions/:permissionId", admin_validations_middleware_1.Validations.EditPermissionParams, adminRoleChecker_middleware_1.checkAdminRole, permission_controller_1.AdminPermissionController.EditPermissionController); // super admin edit permission
 //refactored contractor
 router.get("/contractors", adminRoleChecker_middleware_1.checkAdminRole, admin_contractors_controller_1.AdminContractorController.exploreContractors); // admin get contractor detail
 router.get("/contractors/:contractorId", adminRoleChecker_middleware_1.checkAdminRole, admin_contractors_controller_1.AdminContractorController.getSingleContractor); // admin get single contractor detail

@@ -25,6 +25,12 @@ export const validateAdminForgotPasswordParams = [
     body("email").isEmail(),
 ];
 
+export const validateAdminChangePasswordParams = [
+    body("email").isEmail(),
+    body("oldPassword").notEmpty(),
+    body("newPassword").notEmpty(),
+];
+
 export const validateAdminResetPasswprdParams = [
     body("email").isEmail(),
     body("otp").notEmpty(),
@@ -153,7 +159,6 @@ export const AddStaffParams = [
     body("email").isEmail(),
     body("firstName").notEmpty(),
     body("lastName").notEmpty(),
-    body("password").notEmpty(),
     body("phoneNumber").notEmpty(),
     body("permisions").isArray()
     .custom((array) => array.every((item: any) => typeof item === 'string'))

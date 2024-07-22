@@ -39,12 +39,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Permission = exports.EditPermissionController = exports.GetPermissionController = exports.PermissionCreationController = void 0;
+exports.AdminPermissionController = exports.EditPermissionController = exports.GetPermissionController = exports.addSinglePermission = void 0;
 var express_validator_1 = require("express-validator");
 var admin_model_1 = __importDefault(require("../../../database/admin/models/admin.model"));
 var permission_model_1 = __importDefault(require("../../../database/admin/models/permission.model"));
-//super create permision /////////////
-var PermissionCreationController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+var addSinglePermission = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var name_1, errors, admin, adminId, checkAdmin, checkPermission, newPermission, err_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -53,7 +52,7 @@ var PermissionCreationController = function (req, res) { return __awaiter(void 0
                 name_1 = req.body.name;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                    return [2 /*return*/, res.status(400).json({ success: false, errors: errors.array() })];
                 }
                 admin = req.admin;
                 adminId = admin.id;
@@ -63,7 +62,7 @@ var PermissionCreationController = function (req, res) { return __awaiter(void 0
                 if (!(checkAdmin === null || checkAdmin === void 0 ? void 0 : checkAdmin.superAdmin)) {
                     return [2 /*return*/, res
                             .status(401)
-                            .json({ message: "super admin role" })];
+                            .json({ success: false, message: "super admin role" })];
                 }
                 return [4 /*yield*/, permission_model_1.default.findOne({ name: name_1 })];
             case 2:
@@ -71,26 +70,23 @@ var PermissionCreationController = function (req, res) { return __awaiter(void 0
                 if (checkPermission) {
                     return [2 /*return*/, res
                             .status(401)
-                            .json({ message: "permission already created" })];
+                            .json({ success: false, message: "permission already created" })];
                 }
                 newPermission = new permission_model_1.default({ name: name_1 });
                 return [4 /*yield*/, newPermission.save()];
             case 3:
                 _a.sent();
-                res.json({
-                    message: "permission created Successfully"
-                });
+                res.json({ success: true, message: "permission created Successfully" });
                 return [3 /*break*/, 5];
             case 4:
                 err_1 = _a.sent();
-                // signup error
                 res.status(500).json({ message: err_1.message });
                 return [3 /*break*/, 5];
             case 5: return [2 /*return*/];
         }
     });
 }); };
-exports.PermissionCreationController = PermissionCreationController;
+exports.addSinglePermission = addSinglePermission;
 //super get  permision /////////////
 var GetPermissionController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, errors, admin, adminId, checkAdmin, permissions, err_2;
@@ -178,8 +174,8 @@ var EditPermissionController = function (req, res) { return __awaiter(void 0, vo
     });
 }); };
 exports.EditPermissionController = EditPermissionController;
-exports.Permission = {
-    PermissionCreationController: exports.PermissionCreationController,
+exports.AdminPermissionController = {
+    addSinglePermission: exports.addSinglePermission,
     GetPermissionController: exports.GetPermissionController,
     EditPermissionController: exports.EditPermissionController
 };

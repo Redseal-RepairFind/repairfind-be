@@ -341,6 +341,58 @@ export const resetPassword = async (
   
 }
 
+export const changePassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+
+  try {
+    const {
+      email,
+      oldPassword,
+      newPassword
+    } = req.body;
+
+    // Check for strong password criteria
+    if (newPassword.length < 8 || !/[a-zA-Z]/.test(newPassword) || !/\d/.test(newPassword) || !/[!@#$%^&*]/.test(newPassword)) {
+      return res.status(400).json({ success: false, message: "Password must be at least 8 characters long and contain letters, numbers, and special characters." });
+    }
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, message: "Validation error occurred",  errors: errors.array() });
+    }
+
+    const admin = await AdminRegModel.findOne({ email });
+
+    if (!admin) {
+      return res
+        .status(401)
+        .json({success: false, message: "Invalid email" });
+    }
+
+    if (oldPassword === newPassword) {
+        return res.status(401).json({success: false,  message: "You cannot use the same password" });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(newPassword, 10); 
+
+    admin.password = hashedPassword;
+    admin.hasWeakPassword = false;
+
+    await admin.save();
+
+    return res.status(200).json({success: true, message: "Password successfully changed" });
+
+  } catch (error: any) {
+    next(new InternalServerError("An error occurred", error));
+  }
+
+}
+
+
 
 export const resendEmail = async (
   req: Request,
@@ -412,5 +464,6 @@ export const AdminAuthController = {
   verifyEmail,
   forgotPassword,
   resetPassword,
+  changePassword,
   resendEmail
 }
