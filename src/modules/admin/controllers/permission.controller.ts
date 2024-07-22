@@ -49,8 +49,7 @@ export const addSinglePermission = async (
 }
 
 
-//super get  permision /////////////
-export const GetPermissionController = async (
+export const getPermissions = async (
     req: any,
     res: Response,
   ) => {
@@ -59,11 +58,10 @@ export const GetPermissionController = async (
       const {
        
       } = req.body;
-        // Check for validation errors
       const errors = validationResult(req);
   
       if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
+        return res.status(400).json({success: false, errors: errors.array() });
       }
   
       const admin =  req.admin;
@@ -74,38 +72,32 @@ export const GetPermissionController = async (
       if (!checkAdmin?.superAdmin) {
         return res
         .status(401)
-        .json({ message: "super admin role" });
+        .json({success: false, message: "You do not have permission to perform this action" });
       }
 
       const permissions = await PermissionModel.find()
       
-      res.json({
-        permissions
-      });
+      return res.json({ success: true, data: permissions});
   
     } catch (err: any) {
-      // signup error
-      res.status(500).json({ message: err.message });
+      res.status(500).json({success: false, message: err.message });
     }
   
 }
 
-//super edit  permision /////////////
-export const EditPermissionController = async (
+export const updatePermission = async (
     req: any,
     res: Response,
   ) => {
   
     try {
-      const {
-       name,
-       permissionId
-      } = req.body;
+      const {name} = req.body;
+      const {permissionId} = req.params;
         // Check for validation errors
       const errors = validationResult(req);
   
       if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
+        return res.status(400).json({ success: false, errors: errors.array() });
       }
   
       const admin =  req.admin;
@@ -116,26 +108,27 @@ export const EditPermissionController = async (
       if (!checkAdmin?.superAdmin) {
         return res
         .status(401)
-        .json({ message: "super admin role" });
+        .json({ success: false, message: "super admin role" });
       }
 
       const permission = await PermissionModel.findOne({_id: permissionId})
       if (!permission) {
         return res
         .status(401)
-        .json({ message: "incorrect permission ID" });
+        .json({ success: false, message: "incorrect permission ID" });
       }
 
       permission.name = name
       await permission.save()
       
       res.json({
+        success: true,
         message: "permission updated successfully"
       });
   
     } catch (err: any) {
       // signup error
-      res.status(500).json({ message: err.message });
+      res.status(500).json({success: false, message: err.message });
     }
   
 }
@@ -143,6 +136,6 @@ export const EditPermissionController = async (
 
 export const AdminPermissionController = {
     addSinglePermission,
-    GetPermissionController,
-    EditPermissionController
+    getPermissions,
+    updatePermission
 }

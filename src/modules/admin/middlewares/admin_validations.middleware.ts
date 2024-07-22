@@ -152,7 +152,6 @@ export const PermissionCreationParam = [
 
 export const EditPermissionParams = [
     body("name").notEmpty(),
-    body("permissionId").notEmpty(),
 ];
 
 export const AddStaffParams = [

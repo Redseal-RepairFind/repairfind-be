@@ -124,7 +124,6 @@ exports.PermissionCreationParam = [
 ];
 exports.EditPermissionParams = [
     (0, express_validator_1.body)("name").notEmpty(),
-    (0, express_validator_1.body)("permissionId").notEmpty(),
 ];
 exports.AddStaffParams = [
     (0, express_validator_1.body)("email").isEmail(),

@@ -43,8 +43,8 @@ router.post("/staffs/permission/remove", Validations.AddPermissionParams, checkA
 
 // done permission
 router.post("/permissions", Validations.PermissionCreationParam, checkAdminRole, AdminPermissionController.addSinglePermission ); // super admin create permission
-router.get("/permissions", checkAdminRole, AdminPermissionController.GetPermissionController ); // super admin get all permission
-router.post("/permissions/:permissionId", Validations.EditPermissionParams, checkAdminRole, AdminPermissionController.EditPermissionController ); // super admin edit permission
+router.get("/permissions", checkAdminRole, AdminPermissionController.getPermissions ); // super admin get all permission
+router.patch("/permissions/:permissionId", Validations.EditPermissionParams, checkAdminRole, AdminPermissionController.updatePermission ); // super admin edit permission
 
 
 //refactored contractor
