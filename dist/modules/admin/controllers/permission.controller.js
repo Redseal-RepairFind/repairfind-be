@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AdminPermissionController = exports.updatePermission = exports.getPermissions = exports.addSinglePermission = void 0;
+exports.AdminPermissionController = exports.updatePermission = exports.getPermissions = exports.addBulkPermission = exports.addSinglePermission = void 0;
 var express_validator_1 = require("express-validator");
 var admin_model_1 = __importDefault(require("../../../database/admin/models/admin.model"));
 var permission_model_1 = __importDefault(require("../../../database/admin/models/permission.model"));
@@ -87,8 +87,56 @@ var addSinglePermission = function (req, res) { return __awaiter(void 0, void 0,
     });
 }); };
 exports.addSinglePermission = addSinglePermission;
+var addBulkPermission = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var permissions, errors, admin, adminId, checkAdmin, err_2;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                permissions = req.body.permissions;
+                errors = (0, express_validator_1.validationResult)(req);
+                if (!errors.isEmpty()) {
+                    return [2 /*return*/, res.status(400).json({ success: false, errors: errors.array() })];
+                }
+                admin = req.admin;
+                adminId = admin.id;
+                return [4 /*yield*/, admin_model_1.default.findOne({ _id: adminId })];
+            case 1:
+                checkAdmin = _a.sent();
+                if (!(checkAdmin === null || checkAdmin === void 0 ? void 0 : checkAdmin.superAdmin)) {
+                    return [2 /*return*/, res
+                            .status(401)
+                            .json({ success: false, message: "super admin role" })];
+                }
+                permissions.forEach(function (permission) { return __awaiter(void 0, void 0, void 0, function () {
+                    var existing;
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0: return [4 /*yield*/, permission_model_1.default.findOne({ name: permission })];
+                            case 1:
+                                existing = _a.sent();
+                                if (existing)
+                                    return [2 /*return*/];
+                                return [4 /*yield*/, permission_model_1.default.findOneAndUpdate({ name: permission }, { name: permission }, { upsert: true, new: true, setDefaultsOnInsert: true })];
+                            case 2:
+                                _a.sent();
+                                return [2 /*return*/];
+                        }
+                    });
+                }); });
+                res.json({ success: true, message: "permissions added Successfully" });
+                return [3 /*break*/, 3];
+            case 2:
+                err_2 = _a.sent();
+                res.status(500).json({ message: err_2.message });
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.addBulkPermission = addBulkPermission;
 var getPermissions = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, errors, admin, adminId, checkAdmin, permissions, err_2;
+    var _a, errors, admin, adminId, checkAdmin, permissions, err_3;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -113,8 +161,8 @@ var getPermissions = function (req, res) { return __awaiter(void 0, void 0, void
                 permissions = _b.sent();
                 return [2 /*return*/, res.json({ success: true, data: permissions })];
             case 3:
-                err_2 = _b.sent();
-                res.status(500).json({ success: false, message: err_2.message });
+                err_3 = _b.sent();
+                res.status(500).json({ success: false, message: err_3.message });
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
         }
@@ -122,7 +170,7 @@ var getPermissions = function (req, res) { return __awaiter(void 0, void 0, void
 }); };
 exports.getPermissions = getPermissions;
 var updatePermission = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var name_2, permissionId, errors, admin, adminId, checkAdmin, permission, err_3;
+    var name_2, permissionId, errors, admin, adminId, checkAdmin, permission, err_4;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -161,9 +209,9 @@ var updatePermission = function (req, res) { return __awaiter(void 0, void 0, vo
                 });
                 return [3 /*break*/, 5];
             case 4:
-                err_3 = _a.sent();
+                err_4 = _a.sent();
                 // signup error
-                res.status(500).json({ success: false, message: err_3.message });
+                res.status(500).json({ success: false, message: err_4.message });
                 return [3 /*break*/, 5];
             case 5: return [2 /*return*/];
         }
@@ -173,5 +221,6 @@ exports.updatePermission = updatePermission;
 exports.AdminPermissionController = {
     addSinglePermission: exports.addSinglePermission,
     getPermissions: exports.getPermissions,
-    updatePermission: exports.updatePermission
+    updatePermission: exports.updatePermission,
+    addBulkPermission: exports.addBulkPermission
 };

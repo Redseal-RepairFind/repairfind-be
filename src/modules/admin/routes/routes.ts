@@ -34,15 +34,16 @@ router.post("/change-password", validateAdminChangePasswordParams, AdminAuthCont
 
 //don staff
 router.post("/staffs", Validations.AddStaffParams, checkAdminRole, AdminStaffController.addStaff ); 
-router.post("/staffs/status", validateSuperAdmiCchangeStatusParams, checkAdminRole, AdminStaffController.changeStaffStatus ); // super admin change staff status
+router.post("/staffs/status", validateSuperAdmiCchangeStatusParams, checkAdminRole, AdminStaffController.changeStaffStatus );
 router.get("/staffs", checkAdminRole, AdminStaffController.getAdminStaffs ); 
-router.post("/staffs/permission", Validations.AddPermissionParams, checkAdminRole, AdminStaffController.addPermissionToStaff ); // super add permission to staff
-router.post("/staffs/permission/remove", Validations.AddPermissionParams, checkAdminRole, AdminStaffController.removePermissionFromStaff ); // super remove permission from staff
+router.post("/staffs/permission", Validations.AddPermissionParams, checkAdminRole, AdminStaffController.addPermissionToStaff );
+router.post("/staffs/permission/remove", Validations.AddPermissionParams, checkAdminRole, AdminStaffController.removePermissionFromStaff );
 
 
 
 // done permission
 router.post("/permissions", Validations.PermissionCreationParam, checkAdminRole, AdminPermissionController.addSinglePermission ); // super admin create permission
+router.post("/permissions/add-bulk", checkAdminRole, AdminPermissionController.addBulkPermission ); // super admin create permission
 router.get("/permissions", checkAdminRole, AdminPermissionController.getPermissions ); // super admin get all permission
 router.patch("/permissions/:permissionId", Validations.EditPermissionParams, checkAdminRole, AdminPermissionController.updatePermission ); // super admin edit permission
 

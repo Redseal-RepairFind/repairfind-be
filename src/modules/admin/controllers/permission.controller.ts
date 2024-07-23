@@ -48,6 +48,46 @@ export const addSinglePermission = async (
   
 }
 
+export const addBulkPermission = async (
+    req: any,
+    res: Response,
+  ) => {
+  
+    try {
+      const {
+       permissions
+      } = req.body;
+      const errors = validationResult(req);
+  
+      if (!errors.isEmpty()) {
+        return res.status(400).json({success: false, errors: errors.array() });
+      }
+  
+      const admin =  req.admin;
+      const adminId = admin.id
+  
+      const checkAdmin = await AdminRegModel.findOne({_id: adminId});
+  
+      if (!checkAdmin?.superAdmin) {
+        return res
+        .status(401)
+        .json({success: false,  message: "super admin role" });
+      }
+      permissions.forEach(async (permission: any) => {
+        let existing = await PermissionModel.findOne({ name: permission });   
+        if(existing)return 
+         await PermissionModel.findOneAndUpdate({ name: permission }, {name: permission}, { upsert: true, new: true, setDefaultsOnInsert: true });   
+      });
+
+
+      res.json({success: true, message: "permissions added Successfully"});
+  
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  
+}
+
 
 export const getPermissions = async (
     req: any,
@@ -137,5 +177,6 @@ export const updatePermission = async (
 export const AdminPermissionController = {
     addSinglePermission,
     getPermissions,
-    updatePermission
+    updatePermission,
+    addBulkPermission
 }

@@ -30,12 +30,13 @@ router.post("/reset/password", admin_validations_middleware_1.validateAdminReset
 router.post("/change-password", admin_validations_middleware_1.validateAdminChangePasswordParams, admin_auth_controller_1.AdminAuthController.changePassword);
 //don staff
 router.post("/staffs", admin_validations_middleware_1.Validations.AddStaffParams, adminRoleChecker_middleware_1.checkAdminRole, admin_staff_controller_1.AdminStaffController.addStaff);
-router.post("/staffs/status", admin_validations_middleware_1.validateSuperAdmiCchangeStatusParams, adminRoleChecker_middleware_1.checkAdminRole, admin_staff_controller_1.AdminStaffController.changeStaffStatus); // super admin change staff status
+router.post("/staffs/status", admin_validations_middleware_1.validateSuperAdmiCchangeStatusParams, adminRoleChecker_middleware_1.checkAdminRole, admin_staff_controller_1.AdminStaffController.changeStaffStatus);
 router.get("/staffs", adminRoleChecker_middleware_1.checkAdminRole, admin_staff_controller_1.AdminStaffController.getAdminStaffs);
-router.post("/staffs/permission", admin_validations_middleware_1.Validations.AddPermissionParams, adminRoleChecker_middleware_1.checkAdminRole, admin_staff_controller_1.AdminStaffController.addPermissionToStaff); // super add permission to staff
-router.post("/staffs/permission/remove", admin_validations_middleware_1.Validations.AddPermissionParams, adminRoleChecker_middleware_1.checkAdminRole, admin_staff_controller_1.AdminStaffController.removePermissionFromStaff); // super remove permission from staff
+router.post("/staffs/permission", admin_validations_middleware_1.Validations.AddPermissionParams, adminRoleChecker_middleware_1.checkAdminRole, admin_staff_controller_1.AdminStaffController.addPermissionToStaff);
+router.post("/staffs/permission/remove", admin_validations_middleware_1.Validations.AddPermissionParams, adminRoleChecker_middleware_1.checkAdminRole, admin_staff_controller_1.AdminStaffController.removePermissionFromStaff);
 // done permission
 router.post("/permissions", admin_validations_middleware_1.Validations.PermissionCreationParam, adminRoleChecker_middleware_1.checkAdminRole, permission_controller_1.AdminPermissionController.addSinglePermission); // super admin create permission
+router.post("/permissions/add-bulk", adminRoleChecker_middleware_1.checkAdminRole, permission_controller_1.AdminPermissionController.addBulkPermission); // super admin create permission
 router.get("/permissions", adminRoleChecker_middleware_1.checkAdminRole, permission_controller_1.AdminPermissionController.getPermissions); // super admin get all permission
 router.patch("/permissions/:permissionId", admin_validations_middleware_1.Validations.EditPermissionParams, adminRoleChecker_middleware_1.checkAdminRole, permission_controller_1.AdminPermissionController.updatePermission); // super admin edit permission
 //refactored contractor
