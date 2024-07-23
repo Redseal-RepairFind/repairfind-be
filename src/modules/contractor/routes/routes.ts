@@ -189,6 +189,8 @@ router.get('/jobs/requests', checkContractorRole, ContractorJobController.getJob
 router.get('/jobs/requests/:jobId', checkContractorRole, ContractorJobController.getJobRequestById)
 router.post('/jobs/requests/:jobId/accept', checkContractorRole, ContractorJobController.acceptJobRequest)
 router.post('/jobs/requests/:jobId/reject', checkContractorRole, ContractorJobController.rejectJobRequest)
+router.post('/jobs/:jobId/save', checkContractorRole, ContractorJobController.addJobToSaved) 
+router.post('/jobs/:jobId/unsave', checkContractorRole, ContractorJobController.removeJobFromSaved) 
 
 // Quotation & Enquiries
 router.post('/jobs/:jobId/quotations', checkContractorRole, ContractorHttpRequest.CreateJobQuotationRequest, ContractorJobController.sendJobQuotation) 
@@ -197,9 +199,9 @@ router.get('/jobs/:jobId/quotations', checkContractorRole, ContractorJobControll
 router.patch('/jobs/:jobId/quotations', checkContractorRole,ContractorHttpRequest.CreateJobQuotationRequest, ContractorJobController.updateJobQuotation) 
 router.patch('/jobs/:jobId/quotations', checkContractorRole,ContractorHttpRequest.CreateJobQuotationRequest, ContractorJobController.updateJobQuotation) 
 router.get('/jobs/:jobId/enquiries/:enquiryId', checkContractorRole, ContractorJobController.getJobSingleEnquiry) 
-
 router.get('/jobs/:jobId/enquiries', checkContractorRole, ContractorJobController.getJobEnquiries) 
 router.post('/jobs/:jobId/enquiries', checkContractorRole, ContractorHttpRequest.CreateJobEnquiryRequest, ContractorJobController.createJobEnquiry) 
+router.get('/quotations/:quotationId', checkContractorRole, ContractorJobController.getQuotation) // 
 router.get('/quotations/:quotationId', checkContractorRole, ContractorJobController.getQuotation) // 
 
 

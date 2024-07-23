@@ -50,7 +50,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorJobController = exports.getJobSingleEnquiry = exports.getJobEnquiries = exports.createJobEnquiry = exports.getJobHistory = exports.getMyJobs = exports.getJobListings = exports.updateJobQuotation = exports.getQuotation = exports.getQuotationForJob = exports.sendChangeOrderEstimate = exports.sendJobQuotation = exports.hideJobListing = exports.getJobListingById = exports.getJobRequestById = exports.rejectJobRequest = exports.acceptJobRequest = exports.getJobRequests = void 0;
+exports.ContractorJobController = exports.removeJobFromSaved = exports.addJobToSaved = exports.getJobSingleEnquiry = exports.getJobEnquiries = exports.createJobEnquiry = exports.getJobHistory = exports.getMyJobs = exports.getJobListings = exports.updateJobQuotation = exports.getQuotation = exports.getQuotationForJob = exports.sendChangeOrderEstimate = exports.sendJobQuotation = exports.hideJobListing = exports.getJobListingById = exports.getJobRequestById = exports.rejectJobRequest = exports.acceptJobRequest = exports.getJobRequests = void 0;
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var job_model_1 = require("../../../database/common/job.model");
@@ -861,10 +861,10 @@ var updateJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
 }); };
 exports.updateJobQuotation = updateJobQuotation;
 var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, contractorId, profile, _a, radius, _b, latitude, _c, longitude, emergency, _d, category, city, country, address, startDate, endDate, _e, page, _f, limit, sort, _g, showHidden, toRadians, pipeline, contractor, quotations, jobIdsWithQuotations, _h, sortField, sortOrder, sortStage, skip, result, jobs, metadata, error_10;
-    var _j;
-    return __generator(this, function (_k) {
-        switch (_k.label) {
+    var errors, contractorId, profile, _a, radius, _b, latitude, _c, longitude, emergency, _d, category, city, country, address, startDate, endDate, _e, page, _f, limit, sort, _g, showHidden, _h, onlySavedJobs, toRadians, pipeline, contractor, quotations, jobIdsWithQuotations, _j, sortField, sortOrder, sortStage, skip, result, jobs, metadata, error_10;
+    var _k;
+    return __generator(this, function (_l) {
+        switch (_l.label) {
             case 0:
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
@@ -873,14 +873,14 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                 contractorId = req.contractor.id;
                 return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: contractorId })];
             case 1:
-                profile = _k.sent();
+                profile = _l.sent();
                 if (!profile) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor profile not found' })];
                 }
-                _k.label = 2;
+                _l.label = 2;
             case 2:
-                _k.trys.push([2, 6, , 7]);
-                _a = req.query, radius = _a.radius, _b = _a.latitude, latitude = _b === void 0 ? Number(profile.location.latitude) : _b, _c = _a.longitude, longitude = _c === void 0 ? Number(profile.location.longitude) : _c, emergency = _a.emergency, _d = _a.category, category = _d === void 0 ? profile === null || profile === void 0 ? void 0 : profile.skill : _d, city = _a.city, country = _a.country, address = _a.address, startDate = _a.startDate, endDate = _a.endDate, _e = _a.page, page = _e === void 0 ? 1 : _e, _f = _a.limit, limit = _f === void 0 ? 10 : _f, sort = _a.sort, _g = _a.showHidden, showHidden = _g === void 0 ? false : _g;
+                _l.trys.push([2, 6, , 7]);
+                _a = req.query, radius = _a.radius, _b = _a.latitude, latitude = _b === void 0 ? Number(profile.location.latitude) : _b, _c = _a.longitude, longitude = _c === void 0 ? Number(profile.location.longitude) : _c, emergency = _a.emergency, _d = _a.category, category = _d === void 0 ? profile === null || profile === void 0 ? void 0 : profile.skill : _d, city = _a.city, country = _a.country, address = _a.address, startDate = _a.startDate, endDate = _a.endDate, _e = _a.page, page = _e === void 0 ? 1 : _e, _f = _a.limit, limit = _f === void 0 ? 10 : _f, sort = _a.sort, _g = _a.showHidden, showHidden = _g === void 0 ? false : _g, _h = _a.onlySavedJobs, onlySavedJobs = _h === void 0 ? false : _h;
                 limit = limit > 0 ? parseInt(limit) : 10; // Handle null limit
                 toRadians = function (degrees) { return degrees * (Math.PI / 180); };
                 pipeline = [
@@ -893,8 +893,40 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                         }
                     },
                     {
+                        $lookup: {
+                            from: "contractor_saved_jobs",
+                            localField: "_id",
+                            foreignField: "job",
+                            as: "savedJobs"
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: "job_enquires",
+                            localField: "_id",
+                            foreignField: "job",
+                            as: "enquires"
+                        }
+                    },
+                    {
                         $addFields: {
                             totalQuotations: { $size: "$totalQuotations" },
+                            totalEnquiries: { $size: "$enquires" },
+                            hasUnrepliedEnquiry: {
+                                $gt: [
+                                    {
+                                        $size: {
+                                            $filter: {
+                                                input: "$enquires",
+                                                as: "enquiry",
+                                                cond: { $eq: [{ $size: "$$enquiry.replies" }, 0] }
+                                            }
+                                        }
+                                    },
+                                    0
+                                ]
+                            },
+                            isSaved: { $gt: [{ $size: "$savedJobs" }, 0] },
                             expiresIn: {
                                 $dateDiff: {
                                     unit: "day", // Change to "hour", "minute", etc. if needed
@@ -936,10 +968,10 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                 ];
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
             case 3:
-                contractor = _k.sent();
+                contractor = _l.sent();
                 return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.find({ contractor: contractorId }, { job: 1 })];
             case 4:
-                quotations = _k.sent();
+                quotations = _l.sent();
                 jobIdsWithQuotations = quotations.map(function (quotation) { return quotation.job; });
                 pipeline.push({ $match: { _id: { $nin: jobIdsWithQuotations } } });
                 pipeline.push({ $match: { type: job_model_1.JobType.LISTING } });
@@ -977,12 +1009,15 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                 if (radius) {
                     pipeline.push({ $match: { "distance": { $lte: parseInt(radius) } } });
                 }
+                if (onlySavedJobs) {
+                    pipeline.push({ $match: { "savedJobs": { $ne: [] } } });
+                }
                 // Add sorting stage if specified
                 if (sort) {
-                    _h = sort.startsWith('-') ? [sort.slice(1), -1] : [sort, 1], sortField = _h[0], sortOrder = _h[1];
+                    _j = sort.startsWith('-') ? [sort.slice(1), -1] : [sort, 1], sortField = _j[0], sortOrder = _j[1];
                     sortStage = {
                         //@ts-ignore
-                        $sort: (_j = {}, _j[sortField] = sortOrder, _j)
+                        $sort: (_k = {}, _k[sortField] = sortOrder, _k)
                     };
                     pipeline.push(sortStage);
                 }
@@ -999,7 +1034,7 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                 });
                 return [4 /*yield*/, job_model_1.JobModel.aggregate(pipeline)];
             case 5:
-                result = _k.sent();
+                result = _l.sent();
                 jobs = result[0].data;
                 if (jobs) {
                     //NO longer neccessary since applied jobs don't show up again
@@ -1013,7 +1048,7 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                 res.status(200).json({ success: true, data: __assign(__assign({}, metadata), { data: jobs }) });
                 return [3 /*break*/, 7];
             case 6:
-                error_10 = _k.sent();
+                error_10 = _l.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_10))];
             case 7: return [2 /*return*/];
         }
@@ -1291,6 +1326,60 @@ var getJobSingleEnquiry = function (req, res, next) { return __awaiter(void 0, v
     });
 }); };
 exports.getJobSingleEnquiry = getJobSingleEnquiry;
+var addJobToSaved = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var jobId, contractorId, job, error_16;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 3, , 4]);
+                jobId = req.params.jobId;
+                contractorId = req.contractor.id;
+                return [4 /*yield*/, job_model_1.JobModel.findById(jobId)];
+            case 1:
+                job = _a.sent();
+                if (!job) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: "Job not found" })];
+                }
+                return [4 /*yield*/, contractor_saved_job_model_1.default.findOneAndUpdate({ job: job.id, contractor: contractorId }, { job: job.id, contractor: contractorId }, { new: true, upsert: true })];
+            case 2:
+                _a.sent();
+                return [2 /*return*/, res.status(200).json({ success: true, message: "Job added to saved list" })];
+            case 3:
+                error_16 = _a.sent();
+                next(error_16);
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.addJobToSaved = addJobToSaved;
+var removeJobFromSaved = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var jobId, contractorId, job, error_17;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 3, , 4]);
+                jobId = req.params.jobId;
+                contractorId = req.contractor.id;
+                return [4 /*yield*/, job_model_1.JobModel.findById(jobId)];
+            case 1:
+                job = _a.sent();
+                if (!job) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: "Job not found" })];
+                }
+                return [4 /*yield*/, contractor_saved_job_model_1.default.findOneAndDelete({ job: job.id, contractor: contractorId })];
+            case 2:
+                _a.sent();
+                return [2 /*return*/, res.status(200).json({ success: true, message: "Job removed from saved list" })];
+            case 3:
+                error_17 = _a.sent();
+                next(error_17);
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.removeJobFromSaved = removeJobFromSaved;
 exports.ContractorJobController = {
     getJobRequests: exports.getJobRequests,
     getJobListings: exports.getJobListings,
@@ -1308,5 +1397,7 @@ exports.ContractorJobController = {
     hideJobListing: exports.hideJobListing,
     createJobEnquiry: exports.createJobEnquiry,
     getJobEnquiries: exports.getJobEnquiries,
-    getJobSingleEnquiry: exports.getJobSingleEnquiry
+    getJobSingleEnquiry: exports.getJobSingleEnquiry,
+    addJobToSaved: exports.addJobToSaved,
+    removeJobFromSaved: exports.removeJobFromSaved
 };

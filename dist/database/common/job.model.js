@@ -41,6 +41,7 @@ var mongoose_1 = require("mongoose");
 var job_quotation_model_1 = require("./job_quotation.model");
 var payment_schema_1 = require("./payment.schema");
 var job_day_model_1 = require("./job_day.model");
+var job_enquiry_model_1 = require("./job_enquiry.model");
 var JOB_STATUS;
 (function (JOB_STATUS) {
     JOB_STATUS["PENDING"] = "PENDING";
@@ -193,6 +194,8 @@ var JobSchema = new mongoose_1.Schema({
         enum: Object.values(JOB_SCHEDULE_REMINDER)
     },
     enquiries: [{ type: mongoose_1.Schema.Types.ObjectId, ref: 'JobQuestion' }], // Reference to JobQuestion schema
+    totalEnquires: { type: mongoose_1.Schema.Types.Number, default: 0 },
+    hasUnrepliedEnquiry: { type: mongoose_1.Schema.Types.Boolean, default: true },
 }, { timestamps: true });
 JobSchema.virtual('totalQuotations').get(function () {
     var pendingQuotations = this.quotations ? this.quotations.filter(function (quote) { return quote.status !== job_quotation_model_1.JOB_QUOTATION_STATUS.DECLINED; }) : [];
@@ -241,6 +244,33 @@ JobSchema.methods.getJobDay = function (scheduleType) {
                         scheduleType = (_a = this.schedule) === null || _a === void 0 ? void 0 : _a.type;
                     return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ job: this.id, type: scheduleType })];
                 case 1: return [2 /*return*/, _b.sent()];
+            }
+        });
+    });
+};
+// Method to get the total number of enquiries for a job
+JobSchema.methods.getTotalEnquires = function () {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, job_enquiry_model_1.JobEnquiryModel.countDocuments({ job: this.id })];
+                case 1: return [2 /*return*/, _a.sent()];
+            }
+        });
+    });
+};
+JobSchema.methods.getHasUnrepliedEnquiry = function () {
+    return __awaiter(this, void 0, void 0, function () {
+        var count;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, job_enquiry_model_1.JobEnquiryModel.countDocuments({
+                        job: this.id,
+                        replies: { $exists: true, $size: 0 }
+                    })];
+                case 1:
+                    count = _a.sent();
+                    return [2 /*return*/, count > 0];
             }
         });
     });

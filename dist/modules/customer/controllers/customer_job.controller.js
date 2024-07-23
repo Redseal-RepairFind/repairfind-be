@@ -311,17 +311,26 @@ var getMyJobs = function (req, res, next) { return __awaiter(void 0, void 0, voi
                 _e = _f.sent(), data = _e.data, error = _e.error;
                 if (!data) return [3 /*break*/, 5];
                 return [4 /*yield*/, Promise.all(data.data.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
-                        var _a;
-                        return __generator(this, function (_b) {
-                            switch (_b.label) {
+                        var _a, _b, _c;
+                        return __generator(this, function (_d) {
+                            switch (_d.label) {
                                 case 0:
                                     if (!contractorId_1) return [3 /*break*/, 2];
                                     _a = job;
                                     return [4 /*yield*/, job.getMyQuotation(contractorId_1)];
                                 case 1:
-                                    _a.myQuotation = _b.sent();
-                                    _b.label = 2;
-                                case 2: return [2 /*return*/];
+                                    _a.myQuotation = _d.sent();
+                                    _d.label = 2;
+                                case 2:
+                                    _b = job;
+                                    return [4 /*yield*/, job.getTotalEnquires()];
+                                case 3:
+                                    _b.totalEnquires = _d.sent();
+                                    _c = job;
+                                    return [4 /*yield*/, job.getHasUnrepliedEnquiry()];
+                                case 4:
+                                    _c.hasUnrepliedEnquiry = _d.sent();
+                                    return [2 /*return*/];
                             }
                         });
                     }); }))];
@@ -333,7 +342,8 @@ var getMyJobs = function (req, res, next) { return __awaiter(void 0, void 0, voi
                 return [3 /*break*/, 7];
             case 6:
                 error_3 = _f.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_3))];
+                console.log(error_3);
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred ', error_3))];
             case 7: return [2 /*return*/];
         }
     });
@@ -409,27 +419,35 @@ var getJobHistory = function (req, res, next) { return __awaiter(void 0, void 0,
 }); };
 exports.getJobHistory = getJobHistory;
 var getSingleJob = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, jobId, job, error_5;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var customerId, jobId, job, _a, _b, error_5;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
             case 0:
-                _a.trys.push([0, 2, , 3]);
+                _c.trys.push([0, 4, , 5]);
                 customerId = req.customer.id;
                 jobId = req.params.jobId;
                 return [4 /*yield*/, job_model_1.JobModel.findOne({ customer: customerId, _id: jobId }).populate('contract')];
             case 1:
-                job = _a.sent();
+                job = _c.sent();
                 // Check if the job exists
                 if (!job) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found' })];
                 }
+                _a = job;
+                return [4 /*yield*/, job.getTotalEnquires()];
+            case 2:
+                _a.totalEnquires = (_c.sent());
+                _b = job;
+                return [4 /*yield*/, job.getHasUnrepliedEnquiry()];
+            case 3:
+                _b.hasUnrepliedEnquiry = (_c.sent());
                 // If the job exists, return it as a response
                 res.json({ success: true, message: 'Job retrieved', data: job });
-                return [3 /*break*/, 3];
-            case 2:
-                error_5 = _a.sent();
+                return [3 /*break*/, 5];
+            case 4:
+                error_5 = _c.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_5))];
-            case 3: return [2 /*return*/];
+            case 5: return [2 /*return*/];
         }
     });
 }); };

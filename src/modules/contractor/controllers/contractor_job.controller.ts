@@ -860,6 +860,7 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
       limit = 10, // Default to 10 items per page
       sort, // Sort field and order (-fieldName or fieldName)
       showHidden = false,
+      onlySavedJobs = false,
     } = req.query;
 
     limit = limit > 0 ? parseInt(limit) : 10; // Handle null limit
@@ -877,8 +878,42 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
         }
       },
       {
+        $lookup: {
+          from: "contractor_saved_jobs",
+          localField: "_id",
+          foreignField: "job",
+          as: "savedJobs"
+        }
+      },
+      {
+        $lookup: {
+          from: "job_enquires",
+          localField: "_id",
+          foreignField: "job",
+          as: "enquires"
+        }
+      },
+      
+      
+      {
         $addFields: {
           totalQuotations: { $size: "$totalQuotations" },
+          totalEnquiries: { $size: "$enquires" },
+          hasUnrepliedEnquiry: {
+            $gt: [
+              {
+                $size: {
+                  $filter: {
+                    input: "$enquires",
+                    as: "enquiry",
+                    cond: { $eq: [{ $size: "$$enquiry.replies" }, 0] }
+                  }
+                }
+              },
+              0
+            ]
+          },
+          isSaved: { $gt: [{ $size: "$savedJobs" }, 0] },
           expiresIn: {
             $dateDiff: {
               unit: "day", // Change to "hour", "minute", etc. if needed
@@ -886,7 +921,6 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
               endDate: "$expiryDate",
             },
           },
-
           distance: {
             $round: [
               {
@@ -975,6 +1009,10 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
 
     if (radius) {
       pipeline.push({ $match: { "distance": { $lte: parseInt(radius) } } });
+    }
+
+    if (onlySavedJobs) {
+      pipeline.push({ $match: { "savedJobs": { $ne: [] } }});
     }
 
     // Add sorting stage if specified
@@ -1250,6 +1288,51 @@ export const getJobSingleEnquiry = async (req: any, res: Response, next: NextFun
 };
 
 
+export const addJobToSaved = async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const { jobId } = req.params;
+    const contractorId = req.contractor.id;
+
+    const job = await JobModel.findById(jobId);
+    if (!job) {
+      return res.status(404).json({ success: false, message: "Job not found" });
+    }
+
+    await ContractorSavedJobModel.findOneAndUpdate(
+      { job: job.id, contractor: contractorId },
+      { job: job.id, contractor: contractorId },
+      { new: true, upsert: true }
+    );
+
+    return res.status(200).json({ success: true, message: "Job added to saved list" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+
+export const removeJobFromSaved = async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const { jobId } = req.params;
+    const contractorId = req.contractor.id;
+
+    const job = await JobModel.findById(jobId);
+    if (!job) {
+      return res.status(404).json({ success: false, message: "Job not found" });
+    }
+
+    await ContractorSavedJobModel.findOneAndDelete({ job: job.id, contractor: contractorId });
+
+    return res.status(200).json({ success: true, message: "Job removed from saved list" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+
+
 export const ContractorJobController = {
   getJobRequests,
   getJobListings,
@@ -1267,7 +1350,9 @@ export const ContractorJobController = {
   hideJobListing,
   createJobEnquiry,
   getJobEnquiries,
-  getJobSingleEnquiry
+  getJobSingleEnquiry,
+  addJobToSaved,
+  removeJobFromSaved
 }
 
 

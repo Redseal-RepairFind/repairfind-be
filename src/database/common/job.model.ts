@@ -2,6 +2,7 @@ import { Document, ObjectId, Schema, model } from "mongoose";
 import { IJobQuotation, JOB_QUOTATION_STATUS, JobQuotationModel } from "./job_quotation.model";
 import { PAYMENT_TYPE, PaymentModel } from "./payment.schema";
 import { JobDayModel } from "./job_day.model";
+import { JobEnquiryModel } from "./job_enquiry.model";
 
 export interface IJobLocation extends Document {
     address?: string;
@@ -147,6 +148,8 @@ export interface IJob extends Document {
     distance: any;
     reminders: JOB_SCHEDULE_REMINDER[];
     enquiries: ObjectId[];
+    totalEnquires: number;
+    hasUnrepliedEnquiry: boolean;
     getMyQuotation: (contractorId: ObjectId) => {
     };
     getJobDay: (scheduleType?: JOB_SCHEDULE_TYPE) => {
@@ -157,6 +160,11 @@ export interface IJob extends Document {
         paymentCount: number;
         totalAmount: number;
         payments: Array<{ id: ObjectId, transaction: ObjectId, amount: number, charge: string, status: string, refunded: boolean, paid: boolean, amount_refunded: number, captured: boolean }>;
+    };
+    getTotalEnquires: () => {
+    };
+
+    getHasUnrepliedEnquiry: () => {
     };
 }
 
@@ -292,6 +300,8 @@ const JobSchema = new Schema<IJob>({
         enum: Object.values(JOB_SCHEDULE_REMINDER)
     },
     enquiries: [{ type: Schema.Types.ObjectId, ref: 'JobQuestion' }],  // Reference to JobQuestion schema
+    totalEnquires: { type: Schema.Types.Number, default: 0 },
+    hasUnrepliedEnquiry: { type: Schema.Types.Boolean, default: true },
 }, { timestamps: true });
 
 
@@ -349,6 +359,22 @@ JobSchema.methods.getJobDay = async function (scheduleType = null) {
     if (!scheduleType && this.schedule) scheduleType = this.schedule?.type;
     return await JobDayModel.findOne({ job: this.id, type: scheduleType })
 };
+
+
+// Method to get the total number of enquiries for a job
+JobSchema.methods.getTotalEnquires = async function () {
+    return await JobEnquiryModel.countDocuments({ job: this.id });
+  };
+
+
+JobSchema.methods.getHasUnrepliedEnquiry = async function () {
+    const count = await JobEnquiryModel.countDocuments({
+        job: this.id,
+        replies: { $exists: true, $size: 0 }
+      });
+      return count > 0;
+  };
+
 
 
 JobSchema.methods.getMyQuotation = async function (contractor: any) {

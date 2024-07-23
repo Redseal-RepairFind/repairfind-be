@@ -342,6 +342,8 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
                 if (contractorId) {
                     job.myQuotation = await job.getMyQuotation(contractorId)
                 }
+                job.totalEnquires = await job.getTotalEnquires()
+                job.hasUnrepliedEnquiry = await job.getHasUnrepliedEnquiry()
             }));
         }
 
@@ -349,7 +351,8 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
         res.json({ success: true, message: 'Jobs retrieved', data: data });
 
     } catch (error: any) {
-        return next(new BadRequestError('An error occurred ', error))
+        console.log(error)
+        return next(new InternalServerError('An error occurred ', error))
     }
 };
 
@@ -425,6 +428,9 @@ export const getSingleJob = async (req: any, res: Response, next: NextFunction) 
         if (!job) {
             return res.status(404).json({ success: false, message: 'Job not found' });
         }
+
+        job.totalEnquires = await job.getTotalEnquires() as number
+        job.hasUnrepliedEnquiry = await job.getHasUnrepliedEnquiry() as boolean
 
         // If the job exists, return it as a response
         res.json({ success: true, message: 'Job retrieved', data: job });
