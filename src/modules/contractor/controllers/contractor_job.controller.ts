@@ -354,6 +354,10 @@ export const getJobRequestById = async (req: any, res: Response, next: NextFunct
       job.distance = await job.getDistance(lat, lng);
     }
 
+    job.totalEnquires = await job.getTotalEnquires() as number
+    job.hasUnrepliedEnquiry = await job.getHasUnrepliedEnquiry() as boolean
+    job.isSaved = await job.getIsSaved(contractorId) as boolean
+
     // Return the job request payload
     res.json({ success: true, data: job });
   } catch (error) {
@@ -399,6 +403,11 @@ export const getJobListingById = async (req: any, res: Response, next: NextFunct
       const lng = Number(contractorProfile.location.longitude ?? 0)
       job.distance = await job.getDistance(lat, lng);
     }
+
+
+    job.totalEnquires = await job.getTotalEnquires() as number
+    job.hasUnrepliedEnquiry = await job.getHasUnrepliedEnquiry() as boolean
+    job.isSaved = await job.getIsSaved(contractorId) as boolean
 
 
     // Return the job request payload

@@ -3,6 +3,7 @@ import { IJobQuotation, JOB_QUOTATION_STATUS, JobQuotationModel } from "./job_qu
 import { PAYMENT_TYPE, PaymentModel } from "./payment.schema";
 import { JobDayModel } from "./job_day.model";
 import { JobEnquiryModel } from "./job_enquiry.model";
+import ContractorSavedJobModel from "../contractor/models/contractor_saved_job.model";
 
 export interface IJobLocation extends Document {
     address?: string;
@@ -150,6 +151,7 @@ export interface IJob extends Document {
     enquiries: ObjectId[];
     totalEnquires: number;
     hasUnrepliedEnquiry: boolean;
+    isSaved: boolean;
     getMyQuotation: (contractorId: ObjectId) => {
     };
     getJobDay: (scheduleType?: JOB_SCHEDULE_TYPE) => {
@@ -165,6 +167,9 @@ export interface IJob extends Document {
     };
 
     getHasUnrepliedEnquiry: () => {
+    };
+
+    getIsSaved: (contractorId: any) => {
     };
 }
 
@@ -301,7 +306,8 @@ const JobSchema = new Schema<IJob>({
     },
     enquiries: [{ type: Schema.Types.ObjectId, ref: 'JobQuestion' }],  // Reference to JobQuestion schema
     totalEnquires: { type: Schema.Types.Number, default: 0 },
-    hasUnrepliedEnquiry: { type: Schema.Types.Boolean, default: true },
+    hasUnrepliedEnquiry: { type: Schema.Types.Boolean, default: false },
+    isSaved: { type: Schema.Types.Boolean, default: false },
 }, { timestamps: true });
 
 
@@ -364,16 +370,23 @@ JobSchema.methods.getJobDay = async function (scheduleType = null) {
 // Method to get the total number of enquiries for a job
 JobSchema.methods.getTotalEnquires = async function () {
     return await JobEnquiryModel.countDocuments({ job: this.id });
-  };
+};
+
+
+// Method to get the total number of enquiries for a job
+JobSchema.methods.getIsSaved = async function (contractorId: any) {
+    const savedJobs = await ContractorSavedJobModel.countDocuments({contractor: contractorId, job: this.id });
+    return savedJobs > 0;
+};
 
 
 JobSchema.methods.getHasUnrepliedEnquiry = async function () {
     const count = await JobEnquiryModel.countDocuments({
         job: this.id,
         replies: { $exists: true, $size: 0 }
-      });
-      return count > 0;
-  };
+    });
+    return count > 0;
+};
 
 
 

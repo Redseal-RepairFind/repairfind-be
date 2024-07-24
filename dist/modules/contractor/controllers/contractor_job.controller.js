@@ -345,12 +345,12 @@ var rejectJobRequest = function (req, res) { return __awaiter(void 0, void 0, vo
 }); };
 exports.rejectJobRequest = rejectJobRequest;
 var getJobRequestById = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, jobId, contractorId, contractorProfile, options_1, job, _a, lat, lng, _b, error_4;
-    var _c, _d;
-    return __generator(this, function (_e) {
-        switch (_e.label) {
+    var errors, jobId, contractorId, contractorProfile, options_1, job, _a, lat, lng, _b, _c, _d, _e, error_4;
+    var _f, _g;
+    return __generator(this, function (_h) {
+        switch (_h.label) {
             case 0:
-                _e.trys.push([0, 6, , 7]);
+                _h.trys.push([0, 9, , 10]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -359,7 +359,7 @@ var getJobRequestById = function (req, res, next) { return __awaiter(void 0, voi
                 contractorId = req.contractor.id;
                 return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: contractorId })];
             case 1:
-                contractorProfile = _e.sent();
+                contractorProfile = _h.sent();
                 options_1 = {
                     contractorId: contractorId, // Define other options here if needed
                     //@ts-ignore
@@ -377,42 +377,54 @@ var getJobRequestById = function (req, res, next) { return __awaiter(void 0, voi
                         .populate(['contractor', 'customer', 'assignment.contractor'])
                         .exec()];
             case 2:
-                job = _e.sent();
+                job = _h.sent();
                 if (!job) {
                     return [2 /*return*/, next(new custom_errors_1.NotFoundError('Job request not found'))];
                 }
                 _a = job;
                 return [4 /*yield*/, job.getMyQuotation(contractorId)];
             case 3:
-                _a.myQuotation = _e.sent();
+                _a.myQuotation = _h.sent();
                 if (!contractorProfile) return [3 /*break*/, 5];
-                lat = Number((_c = contractorProfile.location.latitude) !== null && _c !== void 0 ? _c : 0);
-                lng = Number((_d = contractorProfile.location.longitude) !== null && _d !== void 0 ? _d : 0);
+                lat = Number((_f = contractorProfile.location.latitude) !== null && _f !== void 0 ? _f : 0);
+                lng = Number((_g = contractorProfile.location.longitude) !== null && _g !== void 0 ? _g : 0);
                 _b = job;
                 return [4 /*yield*/, job.getDistance(lat, lng)];
             case 4:
-                _b.distance = _e.sent();
-                _e.label = 5;
+                _b.distance = _h.sent();
+                _h.label = 5;
             case 5:
+                _c = job;
+                return [4 /*yield*/, job.getTotalEnquires()];
+            case 6:
+                _c.totalEnquires = (_h.sent());
+                _d = job;
+                return [4 /*yield*/, job.getHasUnrepliedEnquiry()];
+            case 7:
+                _d.hasUnrepliedEnquiry = (_h.sent());
+                _e = job;
+                return [4 /*yield*/, job.getIsSaved(contractorId)];
+            case 8:
+                _e.isSaved = (_h.sent());
                 // Return the job request payload
                 res.json({ success: true, data: job });
-                return [3 /*break*/, 7];
-            case 6:
-                error_4 = _e.sent();
+                return [3 /*break*/, 10];
+            case 9:
+                error_4 = _h.sent();
                 console.error('Error retrieving job request:', error_4);
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('Bad Request'))];
-            case 7: return [2 /*return*/];
+            case 10: return [2 /*return*/];
         }
     });
 }); };
 exports.getJobRequestById = getJobRequestById;
 var getJobListingById = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, jobId, contractorId, contractorProfile, options_2, job, _a, lat, lng, _b, error_5;
-    var _c, _d;
-    return __generator(this, function (_e) {
-        switch (_e.label) {
+    var errors, jobId, contractorId, contractorProfile, options_2, job, _a, lat, lng, _b, _c, _d, _e, error_5;
+    var _f, _g;
+    return __generator(this, function (_h) {
+        switch (_h.label) {
             case 0:
-                _e.trys.push([0, 6, , 7]);
+                _h.trys.push([0, 9, , 10]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -421,7 +433,7 @@ var getJobListingById = function (req, res, next) { return __awaiter(void 0, voi
                 contractorId = req.contractor.id;
                 return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: contractorId })];
             case 1:
-                contractorProfile = _e.sent();
+                contractorProfile = _h.sent();
                 options_2 = {
                     contractorId: contractorId, // Define other options here if needed
                     //@ts-ignore
@@ -434,31 +446,43 @@ var getJobListingById = function (req, res, next) { return __awaiter(void 0, voi
                         .populate(['contractor', 'assignment.contractor', 'customer', { path: 'myQuotation', options: options_2 }])
                         .exec()];
             case 2:
-                job = _e.sent();
+                job = _h.sent();
                 if (!job) {
                     return [2 /*return*/, next(new custom_errors_1.NotFoundError('Job listing not found'))];
                 }
                 _a = job;
                 return [4 /*yield*/, job.getMyQuotation(contractorId)];
             case 3:
-                _a.myQuotation = _e.sent();
+                _a.myQuotation = _h.sent();
                 if (!contractorProfile) return [3 /*break*/, 5];
-                lat = Number((_c = contractorProfile.location.latitude) !== null && _c !== void 0 ? _c : 0);
-                lng = Number((_d = contractorProfile.location.longitude) !== null && _d !== void 0 ? _d : 0);
+                lat = Number((_f = contractorProfile.location.latitude) !== null && _f !== void 0 ? _f : 0);
+                lng = Number((_g = contractorProfile.location.longitude) !== null && _g !== void 0 ? _g : 0);
                 _b = job;
                 return [4 /*yield*/, job.getDistance(lat, lng)];
             case 4:
-                _b.distance = _e.sent();
-                _e.label = 5;
+                _b.distance = _h.sent();
+                _h.label = 5;
             case 5:
+                _c = job;
+                return [4 /*yield*/, job.getTotalEnquires()];
+            case 6:
+                _c.totalEnquires = (_h.sent());
+                _d = job;
+                return [4 /*yield*/, job.getHasUnrepliedEnquiry()];
+            case 7:
+                _d.hasUnrepliedEnquiry = (_h.sent());
+                _e = job;
+                return [4 /*yield*/, job.getIsSaved(contractorId)];
+            case 8:
+                _e.isSaved = (_h.sent());
                 // Return the job request payload
                 res.json({ success: true, data: job });
-                return [3 /*break*/, 7];
-            case 6:
-                error_5 = _e.sent();
+                return [3 /*break*/, 10];
+            case 9:
+                error_5 = _h.sent();
                 console.error('Error retrieving job listing:', error_5);
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('Bad Request'))];
-            case 7: return [2 /*return*/];
+            case 10: return [2 /*return*/];
         }
     });
 }); };

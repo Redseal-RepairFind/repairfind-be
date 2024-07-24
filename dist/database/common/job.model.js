@@ -35,6 +35,9 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.JobModel = exports.JOB_SCHEDULE_REMINDER = exports.JobType = exports.JOB_SCHEDULE_TYPE = exports.JOB_STATUS = void 0;
 var mongoose_1 = require("mongoose");
@@ -42,6 +45,7 @@ var job_quotation_model_1 = require("./job_quotation.model");
 var payment_schema_1 = require("./payment.schema");
 var job_day_model_1 = require("./job_day.model");
 var job_enquiry_model_1 = require("./job_enquiry.model");
+var contractor_saved_job_model_1 = __importDefault(require("../contractor/models/contractor_saved_job.model"));
 var JOB_STATUS;
 (function (JOB_STATUS) {
     JOB_STATUS["PENDING"] = "PENDING";
@@ -195,7 +199,8 @@ var JobSchema = new mongoose_1.Schema({
     },
     enquiries: [{ type: mongoose_1.Schema.Types.ObjectId, ref: 'JobQuestion' }], // Reference to JobQuestion schema
     totalEnquires: { type: mongoose_1.Schema.Types.Number, default: 0 },
-    hasUnrepliedEnquiry: { type: mongoose_1.Schema.Types.Boolean, default: true },
+    hasUnrepliedEnquiry: { type: mongoose_1.Schema.Types.Boolean, default: false },
+    isSaved: { type: mongoose_1.Schema.Types.Boolean, default: false },
 }, { timestamps: true });
 JobSchema.virtual('totalQuotations').get(function () {
     var pendingQuotations = this.quotations ? this.quotations.filter(function (quote) { return quote.status !== job_quotation_model_1.JOB_QUOTATION_STATUS.DECLINED; }) : [];
@@ -255,6 +260,20 @@ JobSchema.methods.getTotalEnquires = function () {
             switch (_a.label) {
                 case 0: return [4 /*yield*/, job_enquiry_model_1.JobEnquiryModel.countDocuments({ job: this.id })];
                 case 1: return [2 /*return*/, _a.sent()];
+            }
+        });
+    });
+};
+// Method to get the total number of enquiries for a job
+JobSchema.methods.getIsSaved = function (contractorId) {
+    return __awaiter(this, void 0, void 0, function () {
+        var savedJobs;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, contractor_saved_job_model_1.default.countDocuments({ contractor: contractorId, job: this.id })];
+                case 1:
+                    savedJobs = _a.sent();
+                    return [2 /*return*/, savedJobs > 0];
             }
         });
     });
