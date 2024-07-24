@@ -385,7 +385,7 @@ var createJobEmergency = function (req, res, next) { return __awaiter(void 0, vo
 }); };
 exports.createJobEmergency = createJobEmergency;
 var createJobDispute = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, description, evidence, jobDayId, customerId, errors, jobDay, job, filedBy, dispute, contractorId, conversationMembers, conversation, disputeEvidence, error_2;
+    var _a, description, evidence, jobDayId, customerId, errors, jobDay, job, dispute, contractorId, conversationMembers, conversation, disputeEvidence, error_2;
     var _b;
     return __generator(this, function (_c) {
         switch (_c.label) {
@@ -414,7 +414,6 @@ var createJobDispute = function (req, res, next) { return __awaiter(void 0, void
                 if (!(job.customer == customerId) && !(job.contractor == customerId)) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'Unauthorized to create dispute for this job' })];
                 }
-                filedBy = 'customers';
                 return [4 /*yield*/, job_dispute_model_1.JobDisputeModel.findOneAndUpdate({
                         job: job.id
                     }, {
@@ -422,7 +421,8 @@ var createJobDispute = function (req, res, next) { return __awaiter(void 0, void
                         job: job._id,
                         customer: job.customer,
                         contractor: job.contractor,
-                        disputer: filedBy,
+                        disputer: job.customer,
+                        disputerType: 'customers',
                         status: job_dispute_model_1.JOB_DISPUTE_STATUS.OPEN,
                     }, { new: true, upsert: true })];
             case 3:

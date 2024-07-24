@@ -387,7 +387,6 @@ export const createJobDispute = async (req: any, res: Response, next: NextFuncti
             return res.status(403).json({ success: false, message: 'Unauthorized to create dispute for this job' });
         }
 
-        const filedBy = 'customers';
 
         const dispute = await JobDisputeModel.findOneAndUpdate({
             job: job.id
@@ -396,7 +395,8 @@ export const createJobDispute = async (req: any, res: Response, next: NextFuncti
             job: job._id,
             customer: job.customer,
             contractor: job.contractor,
-            disputer: filedBy,
+            disputer: job.customer,
+            disputerType: 'customers',
             status: JOB_DISPUTE_STATUS.OPEN,
         }, { new: true, upsert: true });
 
