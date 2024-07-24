@@ -322,7 +322,7 @@ var createJobDispute = function (req, res, next) { return __awaiter(void 0, void
                 if (!(job.contractor == contractorId)) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'Unauthorized to create dispute for this job' })];
                 }
-                filedBy = 'contractor';
+                filedBy = 'contractors';
                 return [4 /*yield*/, job_dispute_model_1.JobDisputeModel.findOneAndUpdate({
                         job: job.id
                     }, {
@@ -330,7 +330,7 @@ var createJobDispute = function (req, res, next) { return __awaiter(void 0, void
                         job: job._id,
                         customer: job.customer,
                         contractor: job.contractor,
-                        filedBy: filedBy,
+                        disputer: filedBy,
                         status: job_dispute_model_1.JOB_DISPUTE_STATUS.OPEN,
                     }, { new: true, upsert: true })];
             case 3:
