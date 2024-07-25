@@ -199,11 +199,11 @@ export const sendMessage = async (req: any, res: Response, next: NextFunction) =
             return res.status(404).json({ success: false, message: 'Conversation not found' });
         }
 
-        // Check if the admin is a member of the conversation
-        const customerIsMember = conversation.members.some((member: any) => member.member.toString() === adminId);
-        if (!customerIsMember) {
-            return res.status(403).json({ success: false, message: 'Unauthorized: You do not have access to this conversation' });
-        }
+        // // Check if the admin is a member of the conversation
+        // const customerIsMember = conversation.members.some((member: any) => member.member.toString() === adminId);
+        // if (!customerIsMember) {
+        //     return res.status(403).json({ success: false, message: 'Unauthorized: You do not have access to this conversation' });
+        // }
 
         // Create a new message in the conversation
         const newMessage = await MessageModel.create({

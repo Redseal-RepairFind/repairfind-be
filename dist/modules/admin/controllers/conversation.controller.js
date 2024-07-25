@@ -263,7 +263,7 @@ var getConversationMessages = function (req, res, next) { return __awaiter(void 
 }); };
 exports.getConversationMessages = getConversationMessages;
 var sendMessage = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, conversationId, _a, message, media, type, admin, adminId_3, conversation, customerIsMember, newMessage, error_4;
+    var errors, conversationId, _a, message, media, type, admin, adminId, conversation, newMessage, error_4;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -275,7 +275,7 @@ var sendMessage = function (req, res, next) { return __awaiter(void 0, void 0, v
                 conversationId = req.params.conversationId;
                 _a = req.body, message = _a.message, media = _a.media, type = _a.type;
                 admin = req.admin;
-                adminId_3 = admin.id;
+                adminId = admin.id;
                 return [4 /*yield*/, conversations_schema_1.ConversationModel.findById(conversationId)];
             case 1:
                 conversation = _b.sent();
@@ -283,13 +283,9 @@ var sendMessage = function (req, res, next) { return __awaiter(void 0, void 0, v
                 if (!conversation) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Conversation not found' })];
                 }
-                customerIsMember = conversation.members.some(function (member) { return member.member.toString() === adminId_3; });
-                if (!customerIsMember) {
-                    return [2 /*return*/, res.status(403).json({ success: false, message: 'Unauthorized: You do not have access to this conversation' })];
-                }
                 return [4 /*yield*/, messages_schema_1.MessageModel.create({
                         conversation: conversationId,
-                        sender: adminId_3, // Assuming the customer sends the message
+                        sender: adminId, // Assuming the customer sends the message
                         senderType: 'admins', // Type of the sender
                         message: message, // Message content from the request body
                         messageType: type,
@@ -308,7 +304,7 @@ var sendMessage = function (req, res, next) { return __awaiter(void 0, void 0, v
                     })];
             case 3:
                 _b.sent();
-                newMessage.readBy.push(adminId_3);
+                newMessage.readBy.push(adminId);
                 return [4 /*yield*/, newMessage.save()];
             case 4:
                 _b.sent();
