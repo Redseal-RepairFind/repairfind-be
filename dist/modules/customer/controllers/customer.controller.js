@@ -39,13 +39,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerController = exports.signOut = exports.deleteAccount = exports.updateOrCreateDevice = exports.myDevices = exports.changePassword = exports.getAccount = exports.updateAccount = void 0;
+exports.CustomerController = exports.submitFeedback = exports.signOut = exports.deleteAccount = exports.updateOrCreateDevice = exports.myDevices = exports.changePassword = exports.getAccount = exports.updateAccount = void 0;
 var express_validator_1 = require("express-validator");
 var bcrypt_1 = __importDefault(require("bcrypt"));
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var customer_devices_model_1 = __importDefault(require("../../../database/customer/models/customer_devices.model"));
 var job_model_1 = require("../../../database/common/job.model");
 var blacklisted_tokens_schema_1 = __importDefault(require("../../../database/common/blacklisted_tokens.schema"));
+var feedback_model_1 = require("../../../database/common/feedback.model");
+var custom_errors_1 = require("../../../utils/custom.errors");
 var updateAccount = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, firstName, lastName, location_1, phoneNumber, profilePhoto, errors, customerId, customer, updatedCustomer, err_1;
     return __generator(this, function (_b) {
@@ -300,6 +302,28 @@ var signOut = function (req, res) { return __awaiter(void 0, void 0, void 0, fun
     });
 }); };
 exports.signOut = signOut;
+var submitFeedback = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var customerId, _a, media, remark, err_5;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 2, , 3]);
+                customerId = req.customer.id;
+                _a = req.body, media = _a.media, remark = _a.remark;
+                return [4 /*yield*/, feedback_model_1.FeedbackModel.create({ user: customerId, userType: 'customers', media: media, remark: remark })];
+            case 1:
+                _b.sent();
+                res.json({ success: true, message: 'Feedback submitted' });
+                return [3 /*break*/, 3];
+            case 2:
+                err_5 = _b.sent();
+                next(new custom_errors_1.InternalServerError("An error occurred", err_5));
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.submitFeedback = submitFeedback;
 exports.CustomerController = {
     changePassword: exports.changePassword,
     updateAccount: exports.updateAccount,
@@ -307,5 +331,6 @@ exports.CustomerController = {
     updateOrCreateDevice: exports.updateOrCreateDevice,
     myDevices: exports.myDevices,
     deleteAccount: exports.deleteAccount,
-    signOut: exports.signOut
+    signOut: exports.signOut,
+    submitFeedback: exports.submitFeedback
 };

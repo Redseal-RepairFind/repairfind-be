@@ -102,22 +102,18 @@ router.post("/me/devices", checkContractorRole, ContractorHttpRequest.UpdateOrDe
 router.get("/me/devices", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
     ContractorController(req, res, next).myDevices();
 });
-
 router.get("/me/reviews", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
     ContractorController(req, res, next).myReviews();
 });
-
 router.post("/me/stripe-account", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
     ContractorController(req, res, next).createStripeAccount();
 });
 router.get("/me/stripe-account-login", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
     ContractorController(req, res, next).generateStripeAccountDashboardLink();
 });
-
 router.post("/me/gst", checkContractorRole, ContractorHttpRequest.CreateGstDetailsRequest, (req: Request, res: Response, next: NextFunction) => {
     ContractorController(req, res, next).addGstDetails();
 });
-
 router.post("/me/company", checkContractorRole, ContractorHttpRequest.CreateCompanyDetailsRequest, (req: Request, res: Response, next: NextFunction) => {
     ContractorController(req, res, next).addCompanyDetails();
 });
@@ -125,9 +121,11 @@ router.post("/me/company", checkContractorRole, ContractorHttpRequest.CreateComp
 router.post("/me/stripe-identity", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
     ContractorController(req, res, next).createIdentitySession();
 });
-
 router.post("/signout", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
     ContractorController(req, res, next).signOut();
+});
+router.post("/feeback", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
+    ContractorController(req, res, next).submitFeedback();
 });
 
 

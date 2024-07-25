@@ -79,19 +79,14 @@ export class NotificationService  {
         if ('push' in options) {
             sendPushNotifications( deviceTokens , {
                 title: params.title, 
+                sound: 'ringtone.wav',
                 type: params.type, 
-                attachments: [
-                    {
-                        identifier: 'image',
-                        url: 'https://www.fnordware.com/superpng/pnggrad8rgb.png',
-                        type: 'image/png'
-                    }
-                ],
                 body:   params.message,
-                imageUrl: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
+                categoryIdentifier: params.type == 'NEW_INCOMING_CALL'  ? 'call' : params.type ,
+                categoryId: params.type,
                 data: { 
                     ...params.payload,
-                    imageUrl: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png' // URL of the image
+                    _displayInForeground: true
                 },
             })
 

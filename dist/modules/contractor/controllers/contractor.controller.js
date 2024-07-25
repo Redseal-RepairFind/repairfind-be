@@ -103,6 +103,7 @@ var blacklisted_tokens_schema_1 = __importDefault(require("../../../database/com
 var logger_1 = require("../../../services/logger");
 var api_feature_1 = require("../../../utils/api.feature");
 var review_model_1 = require("../../../database/common/review.model");
+var feedback_model_1 = require("../../../database/common/feedback.model");
 var ProfileHandler = /** @class */ (function (_super) {
     __extends(ProfileHandler, _super);
     function ProfileHandler() {
@@ -1198,6 +1199,34 @@ var ProfileHandler = /** @class */ (function (_super) {
             });
         });
     };
+    ProfileHandler.prototype.submitFeedback = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var req, res, next, contractorId, _a, media, remark, err_14;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        req = this.req;
+                        res = this.res;
+                        next = this.next;
+                        _b.label = 1;
+                    case 1:
+                        _b.trys.push([1, 3, , 4]);
+                        contractorId = req.contractor.id;
+                        _a = req.body, media = _a.media, remark = _a.remark;
+                        return [4 /*yield*/, feedback_model_1.FeedbackModel.create({ user: contractorId, userType: 'contractors', media: media, remark: remark })];
+                    case 2:
+                        _b.sent();
+                        res.json({ success: true, message: 'Feedback submitted' });
+                        return [3 /*break*/, 4];
+                    case 3:
+                        err_14 = _b.sent();
+                        next(new custom_errors_1.InternalServerError("An error occurred", err_14));
+                        return [3 /*break*/, 4];
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
     __decorate([
         (0, decorators_abstract_1.handleAsyncError)(),
         __metadata("design:type", Function),
@@ -1306,6 +1335,12 @@ var ProfileHandler = /** @class */ (function (_super) {
         __metadata("design:paramtypes", []),
         __metadata("design:returntype", Promise)
     ], ProfileHandler.prototype, "signOut", null);
+    __decorate([
+        (0, decorators_abstract_1.handleAsyncError)(),
+        __metadata("design:type", Function),
+        __metadata("design:paramtypes", []),
+        __metadata("design:returntype", Promise)
+    ], ProfileHandler.prototype, "submitFeedback", null);
     return ProfileHandler;
 }(base_abstract_1.Base));
 var ContractorController = function () {

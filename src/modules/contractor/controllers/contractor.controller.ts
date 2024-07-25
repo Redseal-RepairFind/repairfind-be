@@ -14,7 +14,7 @@ import { StripeService } from "../../../services/stripe";
 import ContractorDeviceModel from "../../../database/contractor/models/contractor_devices.model";
 import { IStripeAccount } from "../../../database/common/stripe_account.schema";
 import { COMPANY_STATUS, CONTRACTOR_TYPES, GST_STATUS, IContractorCompanyDetails, IContractorGstDetails } from "../../../database/contractor/interface/contractor.interface";
-import { BadRequestError } from "../../../utils/custom.errors";
+import { BadRequestError, InternalServerError } from "../../../utils/custom.errors";
 import { castPayloadToDTO } from "../../../utils/interface_dto.util";
 import { JOB_STATUS, JobModel } from "../../../database/common/job.model";
 import BlacklistedToken from "../../../database/common/blacklisted_tokens.schema";
@@ -22,15 +22,16 @@ import { credential } from "firebase-admin";
 import { Logger } from "../../../services/logger";
 import { applyAPIFeature } from "../../../utils/api.feature";
 import { ReviewModel } from "../../../database/common/review.model";
+import { FeedbackModel } from "../../../database/common/feedback.model";
 
 
 class ProfileHandler extends Base {
-  
+
   @handleAsyncError()
   public async createProfile(): Promise<Response | void> {
     let req = <any>this.req
     let res = this.res
-    
+
     try {
       let {
         location,
@@ -65,7 +66,7 @@ class ProfileHandler extends Base {
       }
 
       let payload = {}
-      
+
       if ((contractor.accountType == CONTRACTOR_TYPES.Company) || (contractor.accountType == CONTRACTOR_TYPES.Individual)) {
         payload = {
           contractor: contractorId,
@@ -121,12 +122,12 @@ class ProfileHandler extends Base {
           }
         };
 
-        if(['Electrical', '⁠⁠Mechanical (HVAC)'].includes(skill.trim())){
+        if (['Electrical', '⁠⁠Mechanical (HVAC)'].includes(skill.trim())) {
           data.request_credential_verification = true
-          data.information.credentials =  [
-            {certification: 'Certificate of Qualification', description: skill}
+          data.information.credentials = [
+            { certification: 'Certificate of Qualification', description: skill }
           ]
-          
+
         }
 
 
@@ -906,7 +907,7 @@ class ProfileHandler extends Base {
         //return res.status(404).json({ success: false, message: 'Device already exits' });
       }
 
- 
+
       // Find the contractor device with the provided device ID and type
       let contractorDevice = await ContractorDeviceModel.findOneAndUpdate(
         { contractor: contractorId, deviceToken: deviceToken },
@@ -962,15 +963,15 @@ class ProfileHandler extends Base {
         return res.status(404).json({ success: false, message: 'Contractor not found' });
       }
 
-       let filter: any = { contractor: contractorId };
-       const { data, error } = await applyAPIFeature(ReviewModel.find(filter).populate(['customer']), req.query);
+      let filter: any = { contractor: contractorId };
+      const { data, error } = await applyAPIFeature(ReviewModel.find(filter).populate(['customer']), req.query);
 
-       if (data) {
-           await Promise.all(data.data.map(async (review: any) => {
-               review.heading = await review.getHeading()
-           }));
-       }
-       
+      if (data) {
+        await Promise.all(data.data.map(async (review: any) => {
+          review.heading = await review.getHeading()
+        }));
+      }
+
       return res.json({ success: true, message: 'Contractor reviews retrieved', data: data });
     } catch (error: any) {
       console.error('Error retrieving contractor devices:', error);
@@ -1037,6 +1038,26 @@ class ProfileHandler extends Base {
     } catch (err: any) {
       console.log('error', err);
       res.status(500).json({ success: false, message: err.message });
+    }
+  }
+
+
+  @handleAsyncError()
+  public async submitFeedback(): Promise<Response | void> {
+    let req = <any>this.req;
+    let res = this.res;
+    let next = this.next
+    try {
+      const contractorId = req.contractor.id;
+      const {
+        media,
+        remark,
+      } = req.body
+
+      await FeedbackModel.create({ user: contractorId, userType: 'contractors', media, remark });
+      res.json({ success: true, message: 'Feedback submitted' });
+    } catch (err: any) {
+      next(new InternalServerError("An error occurred", err))
     }
   }
 

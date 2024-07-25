@@ -39,50 +39,61 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AdminSeeder = void 0;
-var admin_model_1 = __importDefault(require("../admin/models/admin.model"));
-var admins = [
-    {
-        email: 'admin@repairfind.ca',
-        password: '$2b$10$34E1yhh/3Z/O1cBn/5seAuyHOBuy/U6uZUH10rhFfAjdJKXehpN2y',
-        firstName: 'Repair',
-        lastName: 'Admin',
-        superAdmin: true,
-        validation: true,
-        passwordOtp: {
-            verified: true,
-        },
-        emailOtp: {
-            verified: true,
-        },
-        phoneNumberOtp: {
-            verified: true
-        },
-        profilePhoto: {
-            url: "https://repairfindtwo.s3.us-east-2.amazonaws.com/repairfind-logo.png"
-        },
-        acceptTerms: true,
-        hasWeakPassword: true,
+exports.FeedbackModel = void 0;
+var mongoose_1 = require("mongoose");
+var customer_model_1 = __importDefault(require("../customer/models/customer.model"));
+var contractor_model_1 = require("../contractor/models/contractor.model");
+var FeedbackSchema = new mongoose_1.Schema({
+    user: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        refPath: 'userType',
     },
-];
-var AdminSeeder = function (options) { return __awaiter(void 0, void 0, void 0, function () {
-    return __generator(this, function (_a) {
-        try {
-            admins.forEach(function (admin) { return __awaiter(void 0, void 0, void 0, function () {
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
-                        case 0: return [4 /*yield*/, admin_model_1.default.findOneAndUpdate({ email: admin.email }, admin, { upsert: true })];
-                        case 1:
-                            _a.sent();
-                            return [2 /*return*/];
+    userType: {
+        type: String,
+    },
+    remark: {
+        type: String,
+    },
+    media: {
+        type: [String]
+    },
+    heading: Object,
+    createdAt: {
+        type: Date,
+        default: Date.now,
+    },
+});
+// Define a method for the virtual field
+FeedbackSchema.methods.getHeading = function () {
+    var _a;
+    return __awaiter(this, void 0, void 0, function () {
+        var user, _b;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
+                case 0:
+                    if (!(this.userType == 'customers')) return [3 /*break*/, 2];
+                    return [4 /*yield*/, customer_model_1.default.findById(this.customer)];
+                case 1:
+                    _b = _c.sent();
+                    return [3 /*break*/, 4];
+                case 2: return [4 /*yield*/, contractor_model_1.ContractorModel.findById(this.customer)];
+                case 3:
+                    _b = _c.sent();
+                    _c.label = 4;
+                case 4:
+                    user = _b;
+                    if (user) {
+                        return [2 /*return*/, { name: user.name, image: (_a = user === null || user === void 0 ? void 0 : user.profilePhoto) === null || _a === void 0 ? void 0 : _a.url }];
                     }
-                });
-            }); });
-        }
-        catch (error) {
-            console.log("Error seeding admins", error);
-        }
-        return [2 /*return*/];
+                    else {
+                        return [2 /*return*/, {
+                                name: "Repairfind",
+                                image: "https://repairfindtwo.s3.us-east-2.amazonaws.com/repairfind-logo.png"
+                            }];
+                    }
+                    return [2 /*return*/];
+            }
+        });
     });
-}); };
-exports.AdminSeeder = AdminSeeder;
+};
+exports.FeedbackModel = (0, mongoose_1.model)("feedbacks", FeedbackSchema);

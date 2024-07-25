@@ -42,6 +42,8 @@ router.get("/me/devices", checkCustomerRole,  CustomerController.myDevices );
 router.delete("/me", checkCustomerRole,  CustomerController.deleteAccount ); 
 router.post("/signout", checkCustomerRole,  CustomerController.signOut ); 
 
+router.post("/feedback", checkCustomerRole,  CustomerController.submitFeedback ); 
+
 
 
 router.post("/stripe-account",  checkCustomerRole,  CustomerStripeController.createAccount ); 

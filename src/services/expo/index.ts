@@ -1,6 +1,7 @@
 import { Expo, ExpoPushMessage, ExpoPushTicket, ExpoPushReceipt, ExpoPushSuccessTicket } from 'expo-server-sdk';
 import { Logger } from '../logger';
 
+
 const expo = new Expo({ accessToken: process.env.EXPO_ACCESS_TOKEN });
 
 export async function sendPushNotifications(pushTokens: string[], message: any): Promise<void> {
@@ -11,10 +12,8 @@ export async function sendPushNotifications(pushTokens: string[], message: any):
     .filter(token => Expo.isExpoPushToken(token)) // Filter out invalid tokens
     .map(token => ({
       to: token,
-      sound: 'default',
       ttl: 10,  //2419200 secs (4 weeks)
       ...message,
-      // _displayInForeground: true // Ensures the notification is displayed in foreground
     }));
 
   Logger.info(`Push Notifications: Message ${JSON.stringify(message)}, Tokens ${JSON.stringify(pushTokens)}`);

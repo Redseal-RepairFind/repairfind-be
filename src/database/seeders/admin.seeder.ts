@@ -2,7 +2,7 @@ import AdminModel from "../admin/models/admin.model";
 
 const admins  = [
     {
-        email: 'admin@repairfind.com',
+        email: 'admin@repairfind.ca',
         password: '$2b$10$34E1yhh/3Z/O1cBn/5seAuyHOBuy/U6uZUH10rhFfAjdJKXehpN2y',
         firstName: 'Repair',
         lastName: 'Admin',

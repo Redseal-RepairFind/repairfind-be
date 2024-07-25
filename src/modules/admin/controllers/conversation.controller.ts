@@ -147,11 +147,11 @@ export const getConversationMessages = async (req: any, res: Response, next: Nex
             return res.status(404).json({ success: false, message: 'Conversation not found' });
         }
 
-        // Check if the admin is a member of the conversation
-        const contractorIsMember = conversation.members.some((member: any) => member.member.toString() === adminId);
-        if (!contractorIsMember) {
-            return res.status(403).json({ success: false, message: 'Unauthorized: You do not have access to this conversation' });
-        }
+        // // Check if the admin is a member of the conversation
+        // const contractorIsMember = conversation.members.some((member: any) => member.member.toString() === adminId);
+        // if (!contractorIsMember) {
+        //     return res.status(403).json({ success: false, message: 'Unauthorized: You do not have access to this conversation' });
+        // }
 
         // Retrieve messages for the conversation
         const { data, error } = await applyAPIFeature(

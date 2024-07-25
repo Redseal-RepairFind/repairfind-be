@@ -211,7 +211,7 @@ var getSingleConversation = function (req, res, next) { return __awaiter(void 0,
 }); };
 exports.getSingleConversation = getSingleConversation;
 var getConversationMessages = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var conversationId, admin, adminId_2, conversation, contractorIsMember, _a, data, error, error_3;
+    var conversationId, admin, adminId_2, conversation, _a, data, error, error_3;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -226,10 +226,6 @@ var getConversationMessages = function (req, res, next) { return __awaiter(void 
                 // Check if the conversation exists
                 if (!conversation) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Conversation not found' })];
-                }
-                contractorIsMember = conversation.members.some(function (member) { return member.member.toString() === adminId_2; });
-                if (!contractorIsMember) {
-                    return [2 /*return*/, res.status(403).json({ success: false, message: 'Unauthorized: You do not have access to this conversation' })];
                 }
                 return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(messages_schema_1.MessageModel.find({ conversation: conversationId }), req.query)];
             case 2:

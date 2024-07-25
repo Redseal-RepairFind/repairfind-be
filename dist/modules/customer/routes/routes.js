@@ -36,6 +36,7 @@ router.post("/me/devices", customerRoleChecker_middleware_1.checkCustomerRole, r
 router.get("/me/devices", customerRoleChecker_middleware_1.checkCustomerRole, customer_controller_1.CustomerController.myDevices);
 router.delete("/me", customerRoleChecker_middleware_1.checkCustomerRole, customer_controller_1.CustomerController.deleteAccount);
 router.post("/signout", customerRoleChecker_middleware_1.checkCustomerRole, customer_controller_1.CustomerController.signOut);
+router.post("/feedback", customerRoleChecker_middleware_1.checkCustomerRole, customer_controller_1.CustomerController.submitFeedback);
 router.post("/stripe-account", customerRoleChecker_middleware_1.checkCustomerRole, customer_stripe_controller_1.CustomerStripeController.createAccount);
 router.post("/stripe-payment-methods/:paymentMethodId/detach", customerRoleChecker_middleware_1.checkCustomerRole, customer_stripe_controller_1.CustomerStripeController.detachStripePaymentMethod);
 router.post("/stripe-payment-methods/:paymentMethodId/attach", customerRoleChecker_middleware_1.checkCustomerRole, customer_stripe_controller_1.CustomerStripeController.attachStripePaymentMethod);

@@ -122,18 +122,12 @@ var NotificationService = /** @class */ (function () {
                         if ('push' in options) {
                             (0, expo_1.sendPushNotifications)(deviceTokens, {
                                 title: params.title,
+                                sound: 'ringtone.wav',
                                 type: params.type,
-                                attachments: [
-                                    {
-                                        identifier: 'image',
-                                        url: 'https://www.fnordware.com/superpng/pnggrad8rgb.png',
-                                        type: 'image/png'
-                                    }
-                                ],
                                 body: params.message,
-                                imageUrl: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
-                                data: __assign(__assign({}, params.payload), { imageUrl: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png' // URL of the image
-                                 }),
+                                categoryIdentifier: params.type == 'NEW_INCOMING_CALL' ? 'call' : params.type,
+                                categoryId: params.type,
+                                data: __assign(__assign({}, params.payload), { _displayInForeground: true }),
                             });
                         }
                         if (!options.hasOwnProperty('database')) return [3 /*break*/, 11];

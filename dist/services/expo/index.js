@@ -59,7 +59,7 @@ function sendPushNotifications(pushTokens, message) {
                 case 0:
                     messages = pushTokens
                         .filter(function (token) { return expo_server_sdk_1.Expo.isExpoPushToken(token); }) // Filter out invalid tokens
-                        .map(function (token) { return (__assign({ to: token, sound: 'default', ttl: 10 }, message)); });
+                        .map(function (token) { return (__assign({ to: token, ttl: 10 }, message)); });
                     logger_1.Logger.info("Push Notifications: Message ".concat(JSON.stringify(message), ", Tokens ").concat(JSON.stringify(pushTokens)));
                     chunks = expo.chunkPushNotifications(messages);
                     tickets = [];

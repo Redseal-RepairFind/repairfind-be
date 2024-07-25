@@ -1,6 +1,6 @@
 import { validationResult } from "express-validator";
 import bcrypt from "bcrypt";
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import CustomerModel from "../../../database/customer/models/customer.model";
 import { sendPushNotifications } from "../../../services/expo";
 import CustomerDeviceModel from "../../../database/customer/models/customer_devices.model";
@@ -10,6 +10,8 @@ import { castPayloadToDTO } from "../../../utils/interface_dto.util";
 import { IStripeCustomer } from "../../../database/common/stripe_customer.interface";
 import { JOB_STATUS, JobModel } from "../../../database/common/job.model";
 import BlacklistedToken from "../../../database/common/blacklisted_tokens.schema";
+import { FeedbackModel } from "../../../database/common/feedback.model";
+import { InternalServerError } from "../../../utils/custom.errors";
 
 
 export const updateAccount = async (
@@ -313,6 +315,26 @@ export const signOut = async (
 }
 
 
+export const submitFeedback = async (
+  req: any,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const customerId = req.customer.id;
+    const {
+      media,
+      remark,
+    } = req.body
+   
+    await FeedbackModel.create({ user: customerId, userType: 'customers', media, remark });
+    res.json({ success: true, message: 'Feedback submitted' });
+  } catch (err: any) {
+    next(new InternalServerError("An error occurred", err))
+  }
+}
+
+
 
 export const CustomerController = {
   changePassword,
@@ -321,5 +343,6 @@ export const CustomerController = {
   updateOrCreateDevice,
   myDevices,
   deleteAccount,
-  signOut
+  signOut,
+  submitFeedback
 }
