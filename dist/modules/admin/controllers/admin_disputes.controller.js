@@ -157,7 +157,7 @@ var getSingleDispute = function (req, res, next) { return __awaiter(void 0, void
             case 7: return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
                     $and: [
                         { members: { $elemMatch: { member: dispute.contractor } } },
-                        { members: { $elemMatch: { member: dispute.arbitrator } } }
+                        { members: { $elemMatch: { member: dispute.customer } } }
                     ]
                 }, {
                     members: [{ memberType: 'customers', member: dispute.customer }, { memberType: 'contractors', member: dispute.contractor }],

@@ -87,6 +87,7 @@ export const getSingleDispute = async (
     let arbitratorContractorConversation = null
 
     if (dispute.arbitrator) {
+      
       arbitratorCustomerConversation = await ConversationModel.findOneAndUpdate(
         {
           $and: [
@@ -100,8 +101,8 @@ export const getSingleDispute = async (
         },
         { new: true, upsert: true }
       );
-
       arbitratorCustomerConversation.heading = await arbitratorCustomerConversation.getHeading(dispute.arbitrator)
+
 
       arbitratorContractorConversation = await ConversationModel.findOneAndUpdate(
         {
@@ -124,7 +125,7 @@ export const getSingleDispute = async (
       {
         $and: [
           { members: { $elemMatch: { member: dispute.contractor } } },
-          { members: { $elemMatch: { member: dispute.arbitrator } } }
+          { members: { $elemMatch: { member: dispute.customer } } }
         ]
       },
 
