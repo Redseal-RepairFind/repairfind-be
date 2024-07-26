@@ -559,7 +559,6 @@ export const sendJobQuotation = async (
     const quotationTime = new Date();
     const responseTimeJob = (quotationTime.getTime() - jobCreationTime.getTime()) / 1000; // time difference in seconds
 
-
     jobQuotation.responseTime = responseTimeJob
 
 
@@ -567,6 +566,7 @@ export const sendJobQuotation = async (
     await job.save();
     await jobQuotation.save()
     // Do other actions such as sending emails or notifications...
+
 
     // Create or update conversation
     const conversationMembers = [
@@ -576,15 +576,13 @@ export const sendJobQuotation = async (
     const conversation = await ConversationModel.findOneAndUpdate(
       {
         $and: [
-          { members: { $elemMatch: { member: job.customer } } }, // memberType: 'customers'
-          { members: { $elemMatch: { member: contractorId } } } // memberType: 'contractors'
+          { members: { $elemMatch: { member: job.customer } } },
+          { members: { $elemMatch: { member: contractorId } } }
         ]
       },
 
       {
         members: conversationMembers,
-        // lastMessage: 'I have accepted your Job request', // Set the last message to the job description
-        // lastMessageAt: new Date() // Set the last message timestamp to now
       },
       { new: true, upsert: true });
 
@@ -608,6 +606,9 @@ export const sendJobQuotation = async (
     await message.save();
 
 
+    JobEvent.emit('NEW_JOB_QUOTATION', { job, quotation: jobQuotation });
+
+
     res.json({
       success: true,
       message: "Job quotation successfully sent",
@@ -618,6 +619,8 @@ export const sendJobQuotation = async (
     return next(new InternalServerError('Error sending job quotation', err));
   }
 };
+
+
 
 export const sendChangeOrderEstimate = async (
   req: any,
@@ -783,9 +786,7 @@ export const updateJobQuotation = async (req: any, res: Response, next: NextFunc
     jobQuotation.estimates = estimates;
 
     // Save the updated job application
-
     await jobQuotation.save();
-
     jobQuotation.charges = await jobQuotation.calculateCharges()
 
 
@@ -794,20 +795,18 @@ export const updateJobQuotation = async (req: any, res: Response, next: NextFunc
       { memberType: 'customers', member: job.customer },
       { memberType: 'contractors', member: contractorId }
     ];
-
     const conversation = await ConversationModel.findOneAndUpdate(
       {
         $and: [
-          { members: { $elemMatch: { member: job.customer } } }, // memberType: 'customers'
-          { members: { $elemMatch: { member: contractorId } } } // memberType: 'contractors'
+          { members: { $elemMatch: { member: job.customer } } },
+          { members: { $elemMatch: { member: contractorId } } }
         ]
       },
 
       {
-        members: conversationMembers
+        members: conversationMembers,
       },
-      { new: true, upsert: true }
-    );
+      { new: true, upsert: true });
 
 
     // Send a message to the customer
@@ -815,11 +814,21 @@ export const updateJobQuotation = async (req: any, res: Response, next: NextFunc
       conversation: conversation?._id,
       sender: contractorId,
       receiver: job.customer,
-      message: "Contractor has edited job estimate",
-      messageType: MessageType.ALERT,
+      message: "Job estimate edited",
+      messageType: MessageType.FILE,
+      entity: jobQuotation.id,
+      entityType: 'quotations',
+      payload: {
+        job: job.id,
+        quotation: jobQuotation.id,
+        quotationType: jobQuotation.type,
+        JobType: job.type
+      }
     });
-
+    await message.save();
     ConversationEvent.emit('NEW_MESSAGE', { message })
+
+    JobEvent.emit('JOB_QUOTATION_EDITED', { job, quotation: jobQuotation });
 
     res.status(200).json({ success: true, message: 'Job application updated successfully', data: jobQuotation });
   } catch (error: any) {
@@ -902,8 +911,8 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
           as: "enquires"
         }
       },
-      
-      
+
+
       {
         $addFields: {
           totalQuotations: { $size: "$totalQuotations" },
@@ -1021,7 +1030,7 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
     }
 
     if (onlySavedJobs) {
-      pipeline.push({ $match: { "savedJobs": { $ne: [] } }});
+      pipeline.push({ $match: { "savedJobs": { $ne: [] } } });
     }
 
     // Add sorting stage if specified

@@ -9,7 +9,7 @@ import { StripeService } from "../../../services/stripe";
 import Stripe from 'stripe';
 import { JOB_QUOTATION_TYPE, JobQuotationModel } from "../../../database/common/job_quotation.model";
 import { ObjectId } from "mongoose";
-import { JobEvent } from "../../../events";
+import { ConversationEvent, JobEvent } from "../../../events";
 import { PAYMENT_TYPE } from "../../../database/common/payment.schema";
 import { ConversationModel } from "../../../database/common/conversations.schema";
 import { IMessage, MessageModel, MessageType } from "../../../database/common/messages.schema";
@@ -216,7 +216,6 @@ export const makeJobPayment = async (req: any, res: Response, next: NextFunction
         job.status = JOB_STATUS.BOOKED;
         await job.save();
 
-
         const conversationMembers = [
             { memberType: 'customers', member: customerId },
             { memberType: 'contractors', member: contractorId }
@@ -224,14 +223,12 @@ export const makeJobPayment = async (req: any, res: Response, next: NextFunction
         const conversation = await ConversationModel.findOneAndUpdate(
             {
                 $and: [
-                    { members: { $elemMatch: { member: customerId } } }, // memberType: 'customers'
-                    { members: { $elemMatch: { member: contractorId } } } // memberType: 'contractors'
+                    { members: { $elemMatch: { member: customerId } } }, 
+                    { members: { $elemMatch: { member: contractorId } } }
                 ]
             },
             {
                 members: conversationMembers,
-                // lastMessage: 'I have accepted your quotation for the Job', // Set the last message to the job description
-                // lastMessageAt: new Date() // Set the last message timestamp to now
             },
             { new: true, upsert: true });
 
@@ -239,18 +236,16 @@ export const makeJobPayment = async (req: any, res: Response, next: NextFunction
         // Create a message in the conversation
         const newMessage: IMessage = await MessageModel.create({
             conversation: conversation._id,
-            sender: customerId, // Assuming the customer sends the initial message
-            message: `New Job Booking`, // You can customize the message content as needed
-            messageType: MessageType.ALERT, // You can customize the message content as needed
+            sender: customerId, 
+            message: `New Job Payment`, 
+            messageType: MessageType.ALERT, 
             createdAt: new Date(),
             entity: jobId,
             entityType: 'jobs'
         });
 
-        
-
+        ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
         JobEvent.emit('JOB_BOOKED', { jobId, contractorId, customerId, quotationId, paymentType })
-
 
         res.json({ success: true, message: 'Payment intent created', data: stripePayment });
     } catch (err: any) {

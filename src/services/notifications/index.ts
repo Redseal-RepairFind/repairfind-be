@@ -96,6 +96,13 @@ export class NotificationService  {
             params.payload.message = params.message
             const notification = new NotificationModel(params.payload)
             await notification.save();
+
+            SocketService.sendNotification(user.email, params.type, {
+                type: 'NEW_NOTIFICATION', 
+                message: params.message, 
+                data: params.payload
+            });
+
         }
 
     

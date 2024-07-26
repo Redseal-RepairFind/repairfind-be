@@ -171,7 +171,6 @@ JobEvent.on('JOB_CANCELED', async function (payload: { job: IJob, canceledBy: st
 });
 
 
-
 JobEvent.on('JOB_QUOTATION_DECLINED', async function (payload: { jobId: ObjectId, contractorId: ObjectId, customerId: ObjectId, reason: string }) {
     try {
 
@@ -883,6 +882,118 @@ JobEvent.on('CHANGE_ORDER_ESTIMATE_SUBMITTED', async function (payload: { job: I
 
     } catch (error) {
         console.error(`Error handling CHANGE_ORDER_ESTIMATE_SUBMITTED event: ${error}`);
+    }
+});
+
+
+JobEvent.on('NEW_JOB_QUOTATION', async function (payload: { job: IJob, quotation: IJobQuotation }) {
+    try {
+        console.log('handling NEW_JOB_QUOTATION event', payload.job.id)
+        const job = payload.job
+        const quotation = payload.quotation
+        const customer = await CustomerModel.findById(job.customer)
+        const contractor = await ContractorModel.findById(job.contractor)
+        if (!customer || !contractor) return
+
+
+        NotificationService.sendNotification({
+            user: customer.id,
+            userType: 'customers',
+            title: 'New Job Bid',
+            type: 'NEW_JOB_QUOTATION', //
+            message: `Your job on Repairfind has received a new bid`,
+            heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
+            payload: {
+                entity: job.id,
+                entityType: 'jobs',
+                message: `Your job on Repairfind has received a new bid`,
+                customer: customer.id,
+                event: 'NEW_JOB_QUOTATION',
+                quotationId: quotation.id,
+            }
+        }, { push: true, socket: true })
+
+
+        if (job.isAssigned) {
+            NotificationService.sendNotification({
+                user: contractor.id,
+                userType: 'contractors',
+                title: 'New Job Bid',
+                type: 'NEW_JOB_QUOTATION', //
+                message: `You have submitted a bid for a job on Repairfind`,
+                heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
+                payload: {
+                    entity: job.id,
+                    entityType: 'jobs',
+                    message: `You have submitted a bid for a job on Repairfind`,
+                    customer: customer.id,
+                    event: 'NEW_JOB_QUOTATION',
+                    quotationId: quotation.id,
+                }
+            }, { push: true, socket: true })
+        }
+
+
+
+
+    } catch (error) {
+        console.error(`Error handling NEW_JOB_QUOTATION event: ${error}`);
+    }
+});
+
+
+JobEvent.on('JOB_QUOTATION_EDITED', async function (payload: { job: IJob, quotation: IJobQuotation }) {
+    try {
+        console.log('handling JOB_QUOTATION_EDITED event', payload.job.id)
+        const job = payload.job
+        const quotation = payload.quotation
+        const customer = await CustomerModel.findById(job.customer)
+        const contractor = await ContractorModel.findById(job.contractor)
+        if (!customer || !contractor) return
+
+
+        NotificationService.sendNotification({
+            user: customer.id,
+            userType: 'customers',
+            title: 'New Job Bid',
+            type: 'JOB_QUOTATION_EDITED', //
+            message: `Job estimate as been edited by contractor`,
+            heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
+            payload: {
+                entity: job.id,
+                entityType: 'jobs',
+                message: `Job estimate as been edited by contractor`,
+                customer: customer.id,
+                event: 'JOB_QUOTATION_EDITED',
+                quotationId: quotation.id,
+            }
+        }, { push: true, socket: true })
+
+
+        if (job.isAssigned) {
+            NotificationService.sendNotification({
+                user: contractor.id,
+                userType: 'contractors',
+                title: 'New Job Bid',
+                type: 'JOB_QUOTATION_EDITED', //
+                message: `You have edited a=your bid for a job on Repairfind`,
+                heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
+                payload: {
+                    entity: job.id,
+                    entityType: 'jobs',
+                    message: `You have edited a=your bid for a job on Repairfind`,
+                    customer: customer.id,
+                    event: 'JOB_QUOTATION_EDITED',
+                    quotationId: quotation.id,
+                }
+            }, { push: true, socket: true })
+        }
+
+
+
+
+    } catch (error) {
+        console.error(`Error handling JOB_QUOTATION_EDITED event: ${error}`);
     }
 });
 

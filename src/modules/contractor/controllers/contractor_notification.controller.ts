@@ -7,11 +7,9 @@ import NotificationModel from "../../../database/common/notification.model";
 
 export const getNotifications = async (req: any, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const { startDate, endDate, read, unread } = req.query;
+        const { startDate, endDate, read, ...query } = req.query;
         const contractorId  = req.contractor.id
         const filter: any = {user: contractorId, userType: 'contractors'};
-
-        // Filtering by startDate and endDate
         if (startDate && endDate) {
             filter.createdAt = { $gte: new Date(startDate as string), $lte: new Date(endDate as string) };
         }
@@ -19,12 +17,12 @@ export const getNotifications = async (req: any, res: Response, next: NextFuncti
         // Filtering by read or unread status
         if (read === 'true') {
             filter.readAt = { $ne: null }; // Filter for read notifications
-        } else if (unread === 'true') {
+        } else {
             filter.readAt = null; // Filter for unread notifications
         }
 
-        const {data, error} = await applyAPIFeature(NotificationModel.find(filter), req.query)
-
+        const {data, error}: any = await applyAPIFeature(NotificationModel.find(filter), query)
+       
         res.status(200).json({
             success: true, message: "Notifications retrieved", 
             data: data

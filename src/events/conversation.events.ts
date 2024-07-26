@@ -15,15 +15,15 @@ ConversationEvent.on('NEW_MESSAGE', async function (params) {
         const senderType = message.senderType
         const conversation = await ConversationModel.findById(message.conversation)
         const members = conversation?.members;
-        
+
         let sender: any = null
-        if(senderType === 'contractors'){
+        if (senderType === 'contractors') {
             sender = await ContractorModel.findById(senderId)
         }
-        if(senderType === 'admins'){
+        if (senderType === 'admins') {
             sender = await AdminModel.findById(senderId)
         }
-        if(senderType === 'customers'){
+        if (senderType === 'customers') {
             sender = await CustomerModel.findById(senderId)
         }
 
@@ -35,13 +35,13 @@ ConversationEvent.on('NEW_MESSAGE', async function (params) {
             message.isOwn = await message.getIsOwn(user.id)
 
             const toUserId = member.member
-             const toUserType = member.memberType
-           
+            const toUserType = member.memberType
+
             NotificationService.sendNotification({
                 user: toUserId,
                 userType: toUserType,
                 title: 'New Conversation Message',
-                type: 'Conversation', 
+                type: 'Conversation',
                 message: `You have a new message`,
                 heading: { name: `${user.name}`, image: user.profilePhoto?.url },
                 payload: {
@@ -53,14 +53,14 @@ ConversationEvent.on('NEW_MESSAGE', async function (params) {
             }, { socket: true })
 
             // send push notification and unread message alert to the other user
-            if(!message.isOwn){
-               
+            if (!message.isOwn) {
+
                 //TODO: still separate this and only send push for aggregated unread message notification user
                 NotificationService.sendNotification({
                     user: toUserId,
                     userType: toUserType,
                     title: 'New unread message',
-                    type: 'NEW_UNREAD_MESSAGE', 
+                    type: 'NEW_UNREAD_MESSAGE',
                     message: `You have a new unread message from ${sender.name}`,
                     heading: { name: `${user.name}`, image: user.profilePhoto?.url },
                     payload: {
@@ -70,10 +70,7 @@ ConversationEvent.on('NEW_MESSAGE', async function (params) {
                         event: 'NEW_UNREAD_MESSAGE',
                     }
                 }, { socket: true, push: true })
-
-
             }
-
             message.isOwn = false
 
         })
