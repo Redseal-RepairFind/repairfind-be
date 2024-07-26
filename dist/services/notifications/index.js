@@ -126,7 +126,7 @@ var NotificationService = /** @class */ (function () {
                                 type: params.type,
                                 body: params.message,
                                 categoryIdentifier: params.type == 'NEW_INCOMING_CALL' ? 'call' : params.type,
-                                categoryId: params.type,
+                                categoryId: params.type == 'NEW_INCOMING_CALL' ? 'call' : params.type,
                                 data: __assign(__assign({}, params.payload), { _displayInForeground: true }),
                             });
                         }

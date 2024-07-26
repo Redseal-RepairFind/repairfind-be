@@ -83,7 +83,7 @@ export class NotificationService  {
                 type: params.type, 
                 body:   params.message,
                 categoryIdentifier: params.type == 'NEW_INCOMING_CALL'  ? 'call' : params.type ,
-                categoryId: params.type,
+                categoryId: params.type == 'NEW_INCOMING_CALL'  ? 'call' : params.type ,
                 data: { 
                     ...params.payload,
                     _displayInForeground: true
