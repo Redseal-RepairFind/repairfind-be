@@ -79,7 +79,7 @@ export class NotificationService  {
         if ('push' in options) {
             sendPushNotifications( deviceTokens , {
                 title: params.title, 
-                sound: 'ringtone.wav',
+                sound: 'default',
                 type: params.type, 
                 body:   params.message,
                 categoryIdentifier: params.type == 'NEW_INCOMING_CALL'  ? 'call' : params.type ,

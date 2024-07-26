@@ -122,7 +122,7 @@ var NotificationService = /** @class */ (function () {
                         if ('push' in options) {
                             (0, expo_1.sendPushNotifications)(deviceTokens, {
                                 title: params.title,
-                                sound: 'ringtone.wav',
+                                sound: 'default',
                                 type: params.type,
                                 body: params.message,
                                 categoryIdentifier: params.type == 'NEW_INCOMING_CALL' ? 'call' : params.type,
