@@ -1021,7 +1021,7 @@ exports.JobEvent.on('NEW_JOB_QUOTATION', function (payload) {
                     return [4 /*yield*/, customer_model_1.default.findById(job.customer)];
                 case 1:
                     customer = _c.sent();
-                    return [4 /*yield*/, contractor_model_1.ContractorModel.findById(job.contractor)];
+                    return [4 /*yield*/, contractor_model_1.ContractorModel.findById(quotation.contractor)];
                 case 2:
                     contractor = _c.sent();
                     if (!customer || !contractor)
@@ -1084,7 +1084,7 @@ exports.JobEvent.on('JOB_QUOTATION_EDITED', function (payload) {
                     return [4 /*yield*/, customer_model_1.default.findById(job.customer)];
                 case 1:
                     customer = _c.sent();
-                    return [4 /*yield*/, contractor_model_1.ContractorModel.findById(job.contractor)];
+                    return [4 /*yield*/, contractor_model_1.ContractorModel.findById(quotation.contractor)];
                 case 2:
                     contractor = _c.sent();
                     if (!customer || !contractor)

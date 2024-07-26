@@ -892,7 +892,7 @@ JobEvent.on('NEW_JOB_QUOTATION', async function (payload: { job: IJob, quotation
         const job = payload.job
         const quotation = payload.quotation
         const customer = await CustomerModel.findById(job.customer)
-        const contractor = await ContractorModel.findById(job.contractor)
+        const contractor = await ContractorModel.findById(quotation.contractor)
         if (!customer || !contractor) return
 
 
@@ -948,7 +948,7 @@ JobEvent.on('JOB_QUOTATION_EDITED', async function (payload: { job: IJob, quotat
         const job = payload.job
         const quotation = payload.quotation
         const customer = await CustomerModel.findById(job.customer)
-        const contractor = await ContractorModel.findById(job.contractor)
+        const contractor = await ContractorModel.findById(quotation.contractor)
         if (!customer || !contractor) return
 
 
