@@ -270,8 +270,70 @@ export const getSingleBooking = async (req: any, res: Response, next: NextFuncti
         }
 
 
+        const dispute = await JobDisputeModel.findOne({ job: job.id });
+        const jobDispute = {}
+        if (dispute && dispute.arbitrator) {
+
+            let arbitratorCustomerConversation = null
+            let arbitratorContractorConversation = null
+
+            arbitratorCustomerConversation = await ConversationModel.findOneAndUpdate(
+                {
+                    $and: [
+                        { members: { $elemMatch: { member: dispute.customer } } },
+                        { members: { $elemMatch: { member: dispute.arbitrator } } }
+                    ]
+                },
+
+                {
+                    members: [{ memberType: 'customers', member: dispute.customer }, { memberType: 'admins', member: dispute.arbitrator }],
+                },
+                { new: true, upsert: true }
+            );
+            arbitratorCustomerConversation.heading = await arbitratorCustomerConversation.getHeading(dispute.arbitrator)
+
+
+            arbitratorContractorConversation = await ConversationModel.findOneAndUpdate(
+                {
+                    $and: [
+                        { members: { $elemMatch: { member: dispute.contractor } } },
+                        { members: { $elemMatch: { member: dispute.arbitrator } } }
+                    ]
+                },
+
+                {
+                    members: [{ memberType: 'contractors', member: dispute.contractor }, { memberType: 'admins', member: dispute.arbitrator }],
+                },
+                { new: true, upsert: true }
+            );
+            arbitratorContractorConversation.heading = await arbitratorContractorConversation.getHeading(dispute.arbitrator)
+
+
+            const customerContractorConversation = await ConversationModel.findOneAndUpdate(
+                {
+                    $and: [
+                        { members: { $elemMatch: { member: dispute.contractor } } },
+                        { members: { $elemMatch: { member: dispute.customer } } }
+                    ]
+                },
+
+                {
+                    members: [{ memberType: 'customers', member: dispute.customer }, { memberType: 'contractors', member: dispute.contractor }],
+                },
+                { new: true, upsert: true }
+            );
+
+            const jobDispute = {
+                conversations: { customerContractorConversation, arbitratorContractorConversation, arbitratorCustomerConversation },
+                ...dispute?.toJSON()
+            }
+
+        }
+
+
+
         let responseData: any = { ...job.toJSON() };
-        responseData.dispute = await JobDisputeModel.findOne({ job: job.id });
+        responseData.dispute = jobDispute
         responseData.jobDay = await job.getJobDay()
 
 

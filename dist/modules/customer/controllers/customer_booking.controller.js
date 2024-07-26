@@ -80,6 +80,7 @@ var customer_model_1 = __importDefault(require("../../../database/customer/model
 var job_model_1 = require("../../../database/common/job.model");
 var custom_errors_1 = require("../../../utils/custom.errors");
 var api_feature_1 = require("../../../utils/api.feature");
+var conversations_schema_1 = require("../../../database/common/conversations.schema");
 var job_quotation_model_1 = require("../../../database/common/job_quotation.model");
 var events_1 = require("../../../events");
 var mongoose_1 = __importDefault(require("mongoose"));
@@ -315,39 +316,84 @@ var getBookingDisputes = function (req, res, next) { return __awaiter(void 0, vo
 }); };
 exports.getBookingDisputes = getBookingDisputes;
 var getSingleBooking = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, bookingId, job, responseData, _a, _b, _c, error_4;
-    return __generator(this, function (_d) {
-        switch (_d.label) {
+    var customerId, bookingId, job, dispute, jobDispute, arbitratorCustomerConversation, arbitratorContractorConversation, _a, _b, customerContractorConversation, jobDispute_1, responseData, _c, _d, error_4;
+    return __generator(this, function (_e) {
+        switch (_e.label) {
             case 0:
-                _d.trys.push([0, 5, , 6]);
+                _e.trys.push([0, 11, , 12]);
                 customerId = req.customer.id;
                 bookingId = req.params.bookingId;
                 return [4 /*yield*/, job_model_1.JobModel.findOne({ customer: customerId, _id: bookingId }).populate(['contractor', 'contract', 'review'])];
             case 1:
-                job = _d.sent();
+                job = _e.sent();
                 // Check if the job exists
                 if (!job) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Booking not found' })];
                 }
-                responseData = __assign({}, job.toJSON());
-                _a = responseData;
                 return [4 /*yield*/, job_dispute_model_1.JobDisputeModel.findOne({ job: job.id })];
             case 2:
-                _a.dispute = _d.sent();
-                _b = responseData;
-                return [4 /*yield*/, job.getJobDay()];
+                dispute = _e.sent();
+                jobDispute = {};
+                if (!(dispute && dispute.arbitrator)) return [3 /*break*/, 8];
+                arbitratorCustomerConversation = null;
+                arbitratorContractorConversation = null;
+                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
+                        $and: [
+                            { members: { $elemMatch: { member: dispute.customer } } },
+                            { members: { $elemMatch: { member: dispute.arbitrator } } }
+                        ]
+                    }, {
+                        members: [{ memberType: 'customers', member: dispute.customer }, { memberType: 'admins', member: dispute.arbitrator }],
+                    }, { new: true, upsert: true })];
             case 3:
-                _b.jobDay = _d.sent();
+                arbitratorCustomerConversation = _e.sent();
+                _a = arbitratorCustomerConversation;
+                return [4 /*yield*/, arbitratorCustomerConversation.getHeading(dispute.arbitrator)];
+            case 4:
+                _a.heading = _e.sent();
+                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
+                        $and: [
+                            { members: { $elemMatch: { member: dispute.contractor } } },
+                            { members: { $elemMatch: { member: dispute.arbitrator } } }
+                        ]
+                    }, {
+                        members: [{ memberType: 'contractors', member: dispute.contractor }, { memberType: 'admins', member: dispute.arbitrator }],
+                    }, { new: true, upsert: true })];
+            case 5:
+                arbitratorContractorConversation = _e.sent();
+                _b = arbitratorContractorConversation;
+                return [4 /*yield*/, arbitratorContractorConversation.getHeading(dispute.arbitrator)];
+            case 6:
+                _b.heading = _e.sent();
+                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
+                        $and: [
+                            { members: { $elemMatch: { member: dispute.contractor } } },
+                            { members: { $elemMatch: { member: dispute.customer } } }
+                        ]
+                    }, {
+                        members: [{ memberType: 'customers', member: dispute.customer }, { memberType: 'contractors', member: dispute.contractor }],
+                    }, { new: true, upsert: true })];
+            case 7:
+                customerContractorConversation = _e.sent();
+                jobDispute_1 = __assign({ conversations: { customerContractorConversation: customerContractorConversation, arbitratorContractorConversation: arbitratorContractorConversation, arbitratorCustomerConversation: arbitratorCustomerConversation } }, dispute === null || dispute === void 0 ? void 0 : dispute.toJSON());
+                _e.label = 8;
+            case 8:
+                responseData = __assign({}, job.toJSON());
+                responseData.dispute = jobDispute;
                 _c = responseData;
                 return [4 /*yield*/, job.getJobDay()];
-            case 4:
-                _c.jobDay = _d.sent();
+            case 9:
+                _c.jobDay = _e.sent();
+                _d = responseData;
+                return [4 /*yield*/, job.getJobDay()];
+            case 10:
+                _d.jobDay = _e.sent();
                 res.json({ success: true, message: 'Booking retrieved', data: responseData });
-                return [3 /*break*/, 6];
-            case 5:
-                error_4 = _d.sent();
+                return [3 /*break*/, 12];
+            case 11:
+                error_4 = _e.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_4))];
-            case 6: return [2 /*return*/];
+            case 12: return [2 /*return*/];
         }
     });
 }); };
