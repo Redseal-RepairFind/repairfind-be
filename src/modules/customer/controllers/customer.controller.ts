@@ -12,6 +12,7 @@ import { JOB_STATUS, JobModel } from "../../../database/common/job.model";
 import BlacklistedToken from "../../../database/common/blacklisted_tokens.schema";
 import { FeedbackModel } from "../../../database/common/feedback.model";
 import { InternalServerError } from "../../../utils/custom.errors";
+import { AdminEvent } from "../../../events/admin.events";
 
 
 export const updateAccount = async (
@@ -327,7 +328,9 @@ export const submitFeedback = async (
       remark,
     } = req.body
    
-    await FeedbackModel.create({ user: customerId, userType: 'customers', media, remark });
+    const feedback = await FeedbackModel.create({ user: customerId, userType: 'customers', media, remark });
+    const user = await CustomerModel.findById(customerId);
+    AdminEvent.emit('NEW_FEEDBACK', {feedback, user})
     res.json({ success: true, message: 'Feedback submitted' });
   } catch (err: any) {
     next(new InternalServerError("An error occurred", err))

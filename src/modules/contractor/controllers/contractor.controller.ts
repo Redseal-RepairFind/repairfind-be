@@ -23,6 +23,7 @@ import { Logger } from "../../../services/logger";
 import { applyAPIFeature } from "../../../utils/api.feature";
 import { ReviewModel } from "../../../database/common/review.model";
 import { FeedbackModel } from "../../../database/common/feedback.model";
+import { AdminEvent } from "../../../events/admin.events";
 
 
 class ProfileHandler extends Base {
@@ -1054,7 +1055,11 @@ class ProfileHandler extends Base {
         remark,
       } = req.body
 
-      await FeedbackModel.create({ user: contractorId, userType: 'contractors', media, remark });
+      const feedback = await FeedbackModel.create({ user: contractorId, userType: 'contractors', media, remark });
+
+      const user = await ContractorModel.findById(contractorId);
+      AdminEvent.emit('NEW_FEEDBACK', {feedback, user})
+
       res.json({ success: true, message: 'Feedback submitted' });
     } catch (err: any) {
       next(new InternalServerError("An error occurred", err))

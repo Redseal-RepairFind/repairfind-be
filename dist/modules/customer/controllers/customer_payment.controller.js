@@ -302,27 +302,26 @@ var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0
                 ];
                 return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
                         $and: [
-                            { members: { $elemMatch: { member: customerId } } }, // memberType: 'customers'
-                            { members: { $elemMatch: { member: contractorId } } } // memberType: 'contractors'
+                            { members: { $elemMatch: { member: customerId } } },
+                            { members: { $elemMatch: { member: contractorId } } }
                         ]
                     }, {
                         members: conversationMembers,
-                        // lastMessage: 'I have accepted your quotation for the Job', // Set the last message to the job description
-                        // lastMessageAt: new Date() // Set the last message timestamp to now
                     }, { new: true, upsert: true })];
             case 8:
                 conversation = _b.sent();
                 return [4 /*yield*/, messages_schema_1.MessageModel.create({
                         conversation: conversation._id,
-                        sender: customerId, // Assuming the customer sends the initial message
-                        message: "New Job Booking", // You can customize the message content as needed
-                        messageType: messages_schema_1.MessageType.ALERT, // You can customize the message content as needed
+                        sender: customerId,
+                        message: "New Job Payment",
+                        messageType: messages_schema_1.MessageType.ALERT,
                         createdAt: new Date(),
                         entity: jobId,
                         entityType: 'jobs'
                     })];
             case 9:
                 newMessage = _b.sent();
+                events_1.ConversationEvent.emit('NEW_MESSAGE', { message: newMessage });
                 events_1.JobEvent.emit('JOB_BOOKED', { jobId: jobId, contractorId: contractorId, customerId: customerId, quotationId: quotationId, paymentType: paymentType });
                 res.json({ success: true, message: 'Payment intent created', data: stripePayment });
                 return [3 /*break*/, 11];

@@ -627,13 +627,11 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                 ];
                 return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
                         $and: [
-                            { members: { $elemMatch: { member: job.customer } } }, // memberType: 'customers'
-                            { members: { $elemMatch: { member: contractorId } } } // memberType: 'contractors'
+                            { members: { $elemMatch: { member: job.customer } } },
+                            { members: { $elemMatch: { member: contractorId } } }
                         ]
                     }, {
                         members: conversationMembers,
-                        // lastMessage: 'I have accepted your Job request', // Set the last message to the job description
-                        // lastMessageAt: new Date() // Set the last message timestamp to now
                     }, { new: true, upsert: true })];
             case 9:
                 conversation = _f.sent();
@@ -655,6 +653,7 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                 return [4 /*yield*/, message.save()];
             case 10:
                 _f.sent();
+                events_1.JobEvent.emit('NEW_JOB_QUOTATION', { job: job, quotation: jobQuotation_1 });
                 res.json({
                     success: true,
                     message: "Job quotation successfully sent",
@@ -810,7 +809,7 @@ var updateJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
-                _c.trys.push([0, 6, , 7]);
+                _c.trys.push([0, 7, , 8]);
                 jobId = req.params.jobId;
                 contractorId = req.contractor.id;
                 // Check if the jobId and contractorId are provided
@@ -858,11 +857,11 @@ var updateJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
                 ];
                 return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
                         $and: [
-                            { members: { $elemMatch: { member: job.customer } } }, // memberType: 'customers'
-                            { members: { $elemMatch: { member: contractorId } } } // memberType: 'contractors'
+                            { members: { $elemMatch: { member: job.customer } } },
+                            { members: { $elemMatch: { member: contractorId } } }
                         ]
                     }, {
-                        members: conversationMembers
+                        members: conversationMembers,
                     }, { new: true, upsert: true })];
             case 5:
                 conversation = _c.sent();
@@ -870,16 +869,28 @@ var updateJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
                     conversation: conversation === null || conversation === void 0 ? void 0 : conversation._id,
                     sender: contractorId,
                     receiver: job.customer,
-                    message: "Contractor has edited job estimate",
-                    messageType: messages_schema_1.MessageType.ALERT,
+                    message: "Job estimate edited",
+                    messageType: messages_schema_1.MessageType.FILE,
+                    entity: jobQuotation.id,
+                    entityType: 'quotations',
+                    payload: {
+                        job: job.id,
+                        quotation: jobQuotation.id,
+                        quotationType: jobQuotation.type,
+                        JobType: job.type
+                    }
                 });
-                events_1.ConversationEvent.emit('NEW_MESSAGE', { message: message });
-                res.status(200).json({ success: true, message: 'Job application updated successfully', data: jobQuotation });
-                return [3 /*break*/, 7];
+                return [4 /*yield*/, message.save()];
             case 6:
+                _c.sent();
+                events_1.ConversationEvent.emit('NEW_MESSAGE', { message: message });
+                events_1.JobEvent.emit('JOB_QUOTATION_EDITED', { job: job, quotation: jobQuotation });
+                res.status(200).json({ success: true, message: 'Job application updated successfully', data: jobQuotation });
+                return [3 /*break*/, 8];
+            case 7:
                 error_9 = _c.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_9))];
-            case 7: return [2 /*return*/];
+            case 8: return [2 /*return*/];
         }
     });
 }); };

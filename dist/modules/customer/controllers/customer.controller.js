@@ -48,6 +48,7 @@ var job_model_1 = require("../../../database/common/job.model");
 var blacklisted_tokens_schema_1 = __importDefault(require("../../../database/common/blacklisted_tokens.schema"));
 var feedback_model_1 = require("../../../database/common/feedback.model");
 var custom_errors_1 = require("../../../utils/custom.errors");
+var admin_events_1 = require("../../../events/admin.events");
 var updateAccount = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, firstName, lastName, location_1, phoneNumber, profilePhoto, errors, customerId, customer, updatedCustomer, err_1;
     return __generator(this, function (_b) {
@@ -303,23 +304,27 @@ var signOut = function (req, res) { return __awaiter(void 0, void 0, void 0, fun
 }); };
 exports.signOut = signOut;
 var submitFeedback = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, _a, media, remark, err_5;
+    var customerId, _a, media, remark, feedback, user, err_5;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 2, , 3]);
+                _b.trys.push([0, 3, , 4]);
                 customerId = req.customer.id;
                 _a = req.body, media = _a.media, remark = _a.remark;
                 return [4 /*yield*/, feedback_model_1.FeedbackModel.create({ user: customerId, userType: 'customers', media: media, remark: remark })];
             case 1:
-                _b.sent();
-                res.json({ success: true, message: 'Feedback submitted' });
-                return [3 /*break*/, 3];
+                feedback = _b.sent();
+                return [4 /*yield*/, customer_model_1.default.findById(customerId)];
             case 2:
+                user = _b.sent();
+                admin_events_1.AdminEvent.emit('NEW_FEEDBACK', { feedback: feedback, user: user });
+                res.json({ success: true, message: 'Feedback submitted' });
+                return [3 /*break*/, 4];
+            case 3:
                 err_5 = _b.sent();
                 next(new custom_errors_1.InternalServerError("An error occurred", err_5));
-                return [3 /*break*/, 3];
-            case 3: return [2 /*return*/];
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
         }
     });
 }); };

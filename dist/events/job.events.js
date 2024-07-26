@@ -1007,10 +1007,136 @@ exports.JobEvent.on('CHANGE_ORDER_ESTIMATE_SUBMITTED', function (payload) {
         });
     });
 });
+exports.JobEvent.on('NEW_JOB_QUOTATION', function (payload) {
+    var _a, _b;
+    return __awaiter(this, void 0, void 0, function () {
+        var job, quotation, customer, contractor, error_16;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
+                case 0:
+                    _c.trys.push([0, 3, , 4]);
+                    console.log('handling NEW_JOB_QUOTATION event', payload.job.id);
+                    job = payload.job;
+                    quotation = payload.quotation;
+                    return [4 /*yield*/, customer_model_1.default.findById(job.customer)];
+                case 1:
+                    customer = _c.sent();
+                    return [4 /*yield*/, contractor_model_1.ContractorModel.findById(job.contractor)];
+                case 2:
+                    contractor = _c.sent();
+                    if (!customer || !contractor)
+                        return [2 /*return*/];
+                    services_1.NotificationService.sendNotification({
+                        user: customer.id,
+                        userType: 'customers',
+                        title: 'New Job Bid',
+                        type: 'NEW_JOB_QUOTATION', //
+                        message: "Your job on Repairfind has received a new bid",
+                        heading: { name: "".concat(contractor.name), image: (_a = contractor.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
+                        payload: {
+                            entity: job.id,
+                            entityType: 'jobs',
+                            message: "Your job on Repairfind has received a new bid",
+                            customer: customer.id,
+                            event: 'NEW_JOB_QUOTATION',
+                            quotationId: quotation.id,
+                        }
+                    }, { push: true, socket: true });
+                    if (job.isAssigned) {
+                        services_1.NotificationService.sendNotification({
+                            user: contractor.id,
+                            userType: 'contractors',
+                            title: 'New Job Bid',
+                            type: 'NEW_JOB_QUOTATION', //
+                            message: "You have submitted a bid for a job on Repairfind",
+                            heading: { name: "".concat(contractor.name), image: (_b = contractor.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
+                            payload: {
+                                entity: job.id,
+                                entityType: 'jobs',
+                                message: "You have submitted a bid for a job on Repairfind",
+                                customer: customer.id,
+                                event: 'NEW_JOB_QUOTATION',
+                                quotationId: quotation.id,
+                            }
+                        }, { push: true, socket: true });
+                    }
+                    return [3 /*break*/, 4];
+                case 3:
+                    error_16 = _c.sent();
+                    console.error("Error handling NEW_JOB_QUOTATION event: ".concat(error_16));
+                    return [3 /*break*/, 4];
+                case 4: return [2 /*return*/];
+            }
+        });
+    });
+});
+exports.JobEvent.on('JOB_QUOTATION_EDITED', function (payload) {
+    var _a, _b;
+    return __awaiter(this, void 0, void 0, function () {
+        var job, quotation, customer, contractor, error_17;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
+                case 0:
+                    _c.trys.push([0, 3, , 4]);
+                    console.log('handling JOB_QUOTATION_EDITED event', payload.job.id);
+                    job = payload.job;
+                    quotation = payload.quotation;
+                    return [4 /*yield*/, customer_model_1.default.findById(job.customer)];
+                case 1:
+                    customer = _c.sent();
+                    return [4 /*yield*/, contractor_model_1.ContractorModel.findById(job.contractor)];
+                case 2:
+                    contractor = _c.sent();
+                    if (!customer || !contractor)
+                        return [2 /*return*/];
+                    services_1.NotificationService.sendNotification({
+                        user: customer.id,
+                        userType: 'customers',
+                        title: 'New Job Bid',
+                        type: 'JOB_QUOTATION_EDITED', //
+                        message: "Job estimate as been edited by contractor",
+                        heading: { name: "".concat(contractor.name), image: (_a = contractor.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
+                        payload: {
+                            entity: job.id,
+                            entityType: 'jobs',
+                            message: "Job estimate as been edited by contractor",
+                            customer: customer.id,
+                            event: 'JOB_QUOTATION_EDITED',
+                            quotationId: quotation.id,
+                        }
+                    }, { push: true, socket: true });
+                    if (job.isAssigned) {
+                        services_1.NotificationService.sendNotification({
+                            user: contractor.id,
+                            userType: 'contractors',
+                            title: 'New Job Bid',
+                            type: 'JOB_QUOTATION_EDITED', //
+                            message: "You have edited a=your bid for a job on Repairfind",
+                            heading: { name: "".concat(contractor.name), image: (_b = contractor.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
+                            payload: {
+                                entity: job.id,
+                                entityType: 'jobs',
+                                message: "You have edited a=your bid for a job on Repairfind",
+                                customer: customer.id,
+                                event: 'JOB_QUOTATION_EDITED',
+                                quotationId: quotation.id,
+                            }
+                        }, { push: true, socket: true });
+                    }
+                    return [3 /*break*/, 4];
+                case 3:
+                    error_17 = _c.sent();
+                    console.error("Error handling JOB_QUOTATION_EDITED event: ".concat(error_17));
+                    return [3 /*break*/, 4];
+                case 4: return [2 /*return*/];
+            }
+        });
+    });
+});
 exports.JobEvent.on('CHANGE_ORDER_ESTIMATE_PAID', function (payload) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var job, customer, contractor, error_16;
+        var job, customer, contractor, error_18;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -1046,8 +1172,8 @@ exports.JobEvent.on('CHANGE_ORDER_ESTIMATE_PAID', function (payload) {
                     }, { push: true, socket: true });
                     return [3 /*break*/, 4];
                 case 3:
-                    error_16 = _b.sent();
-                    console.error("Error handling CHANGE_ORDER_ESTIMATE_PAID event: ".concat(error_16));
+                    error_18 = _b.sent();
+                    console.error("Error handling CHANGE_ORDER_ESTIMATE_PAID event: ".concat(error_18));
                     return [3 /*break*/, 4];
                 case 4: return [2 /*return*/];
             }
@@ -1057,7 +1183,7 @@ exports.JobEvent.on('CHANGE_ORDER_ESTIMATE_PAID', function (payload) {
 // JOB DAY
 exports.JobEvent.on('JOB_DAY_STARTED', function (payload) {
     return __awaiter(this, void 0, void 0, function () {
-        var job, jobDay, customer, contractor, error_17;
+        var job, jobDay, customer, contractor, error_19;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -1126,8 +1252,8 @@ exports.JobEvent.on('JOB_DAY_STARTED', function (payload) {
                     });
                     return [3 /*break*/, 6];
                 case 5:
-                    error_17 = _a.sent();
-                    console.error("Error handling JOB_MARKED_COMPLETE_BY_CONTRACTOR event: ".concat(error_17));
+                    error_19 = _a.sent();
+                    console.error("Error handling JOB_MARKED_COMPLETE_BY_CONTRACTOR event: ".concat(error_19));
                     return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -1137,7 +1263,7 @@ exports.JobEvent.on('JOB_DAY_STARTED', function (payload) {
 exports.JobEvent.on('JOB_DAY_ARRIVAL', function (payload) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var jobDay, job, verificationCode, customer, contractor, error_18;
+        var jobDay, job, verificationCode, customer, contractor, error_20;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -1202,8 +1328,8 @@ exports.JobEvent.on('JOB_DAY_ARRIVAL', function (payload) {
                     }
                     return [3 /*break*/, 6];
                 case 5:
-                    error_18 = _b.sent();
-                    console.error("Error handling JOB_DAY_ARRIVAL event: ".concat(error_18));
+                    error_20 = _b.sent();
+                    console.error("Error handling JOB_DAY_ARRIVAL event: ".concat(error_20));
                     return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -1212,7 +1338,7 @@ exports.JobEvent.on('JOB_DAY_ARRIVAL', function (payload) {
 });
 exports.JobEvent.on('JOB_REFUND_REQUESTED', function (payload) {
     return __awaiter(this, void 0, void 0, function () {
-        var job, payment, refund, customer, contractor, emailSubject, emailContent, html, error_19;
+        var job, payment, refund, customer, contractor, emailSubject, emailContent, html, error_21;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -1240,8 +1366,8 @@ exports.JobEvent.on('JOB_REFUND_REQUESTED', function (payload) {
                     services_1.EmailService.send(contractor.email, emailSubject, html);
                     return [3 /*break*/, 4];
                 case 3:
-                    error_19 = _a.sent();
-                    console.error("Error handling JOB_REFUND_REQUESTED event: ".concat(error_19));
+                    error_21 = _a.sent();
+                    console.error("Error handling JOB_REFUND_REQUESTED event: ".concat(error_21));
                     return [3 /*break*/, 4];
                 case 4: return [2 /*return*/];
             }
@@ -1251,7 +1377,7 @@ exports.JobEvent.on('JOB_REFUND_REQUESTED', function (payload) {
 exports.JobEvent.on('NEW_JOB_ENQUIRY', function (payload) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var job, enquiry, customer, contractor, savedJobs, contractorIds, devices, deviceTokens, emailSubject, emailContent, html, error_20;
+        var job, enquiry, customer, contractor, savedJobs, contractorIds, devices, deviceTokens, emailSubject, emailContent, html, error_22;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -1310,8 +1436,8 @@ exports.JobEvent.on('NEW_JOB_ENQUIRY', function (payload) {
                     }
                     return [3 /*break*/, 8];
                 case 7:
-                    error_20 = _b.sent();
-                    console.error("Error handling NEW_JOB_ENQUIRY event: ".concat(error_20));
+                    error_22 = _b.sent();
+                    console.error("Error handling NEW_JOB_ENQUIRY event: ".concat(error_22));
                     return [3 /*break*/, 8];
                 case 8: return [2 /*return*/];
             }
@@ -1320,7 +1446,7 @@ exports.JobEvent.on('NEW_JOB_ENQUIRY', function (payload) {
 });
 exports.JobEvent.on('NEW_JOB_ENQUIRY_REPLY', function (payload) {
     return __awaiter(this, void 0, void 0, function () {
-        var job, enquiry, customer, contractor, savedJobs, contractorIds, devices, deviceTokens, emailSubject, emailContent, html, error_21;
+        var job, enquiry, customer, contractor, savedJobs, contractorIds, devices, deviceTokens, emailSubject, emailContent, html, error_23;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -1369,8 +1495,8 @@ exports.JobEvent.on('NEW_JOB_ENQUIRY_REPLY', function (payload) {
                     }
                     return [3 /*break*/, 8];
                 case 7:
-                    error_21 = _a.sent();
-                    console.error("Error handling NEW_JOB_ENQUIRY_REPLY event: ".concat(error_21));
+                    error_23 = _a.sent();
+                    console.error("Error handling NEW_JOB_ENQUIRY_REPLY event: ".concat(error_23));
                     return [3 /*break*/, 8];
                 case 8: return [2 /*return*/];
             }

@@ -1285,8 +1285,6 @@ JobEvent.on('NEW_JOB_ENQUIRY', async function (payload: { jobId: any, enquiryId:
                 },
                 { push: true, socket: true }
             )
-
-
             let emailSubject = 'New Job Enquiry '
             let emailContent = `
                 <p style="color: #333333;">Your Job on Repairfind has a new enquiry</p>
@@ -1298,8 +1296,6 @@ JobEvent.on('NEW_JOB_ENQUIRY', async function (payload: { jobId: any, enquiryId:
                 `
             let html = GenericEmailTemplate({ name: customer.name, subject: emailSubject, content: emailContent })
             EmailService.send(customer.email, emailSubject, html)
-
-
         }
 
 

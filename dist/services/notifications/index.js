@@ -136,6 +136,11 @@ var NotificationService = /** @class */ (function () {
                         return [4 /*yield*/, notification.save()];
                     case 10:
                         _a.sent();
+                        socket_1.SocketService.sendNotification(user.email, params.type, {
+                            type: 'NEW_NOTIFICATION',
+                            message: params.message,
+                            data: params.payload
+                        });
                         _a.label = 11;
                     case 11: return [2 /*return*/];
                 }
