@@ -35,6 +35,17 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -43,12 +54,12 @@ exports.CustomerNotificationController = exports.markNotificationAsRead = export
 var api_feature_1 = require("../../../utils/api.feature");
 var notification_model_1 = __importDefault(require("../../../database/common/notification.model"));
 var getNotifications = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, startDate, endDate, read, unread, customerId, filter, _b, data, error, error_1;
+    var _a, startDate, endDate, read, query, customerId, filter, _b, data, error, error_1;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
                 _c.trys.push([0, 2, , 3]);
-                _a = req.query, startDate = _a.startDate, endDate = _a.endDate, read = _a.read, unread = _a.unread;
+                _a = req.query, startDate = _a.startDate, endDate = _a.endDate, read = _a.read, query = __rest(_a, ["startDate", "endDate", "read"]);
                 customerId = req.customer.id;
                 filter = { user: customerId, userType: 'customers' };
                 // Filtering by startDate and endDate
@@ -59,10 +70,10 @@ var getNotifications = function (req, res) { return __awaiter(void 0, void 0, vo
                 if (read === 'true') {
                     filter.readAt = { $ne: null }; // Filter for read notifications
                 }
-                else if (unread === 'true') {
+                else {
                     filter.readAt = null; // Filter for unread notifications
                 }
-                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(notification_model_1.default.find(filter), req.query)];
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(notification_model_1.default.find(filter), query)];
             case 1:
                 _b = _c.sent(), data = _b.data, error = _b.error;
                 res.status(200).json({
