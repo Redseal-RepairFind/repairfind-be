@@ -40,7 +40,17 @@ export const getSingleNotification = async (req: any, res: Response): Promise<vo
         const { notificationId } = req.params;
         const customerId = req.customer.id
         const query: any = { user: customerId, userType: 'customers',  _id: notificationId };
+        
         const notification = await NotificationModel.findOne(query).populate('entity');
+
+        if(!notification){
+            res.status(404).json({ success: true, message: "Notification not found" });
+            return
+        }
+
+        notification.readAt = new Date();
+        await notification.save();
+        
         res.status(200).json({ success: true, message: "Notification retrieved", data: notification });
     } catch (error) {
         console.error("Error fetching notification:", error);
@@ -51,11 +61,11 @@ export const getSingleNotification = async (req: any, res: Response): Promise<vo
 
 export const markNotificationAsRead = async (req: any, res: Response): Promise<any> => {
     try {
-        const notificationId = req.params.id; // Assuming the notification ID is provided in the request parameters
+        const notificationId = req.params.notificationId; // Assuming the notification ID is provided in the request parameters
         const customerId = req.customer.id;
 
         // Find the notification by ID and customer ID
-        const notification = await NotificationModel.findOne({ _id: notificationId, customer: customerId });
+        const notification = await NotificationModel.findById(notificationId);
 
         // Check if the notification exists
         if (!notification) {

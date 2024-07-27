@@ -96,21 +96,29 @@ var getSingleNotification = function (req, res) { return __awaiter(void 0, void 
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 2, , 3]);
+                _a.trys.push([0, 3, , 4]);
                 notificationId = req.params.notificationId;
                 customerId = req.customer.id;
                 query = { user: customerId, userType: 'customers', _id: notificationId };
                 return [4 /*yield*/, notification_model_1.default.findOne(query).populate('entity')];
             case 1:
                 notification = _a.sent();
-                res.status(200).json({ success: true, message: "Notification retrieved", data: notification });
-                return [3 /*break*/, 3];
+                if (!notification) {
+                    res.status(404).json({ success: true, message: "Notification not found" });
+                    return [2 /*return*/];
+                }
+                notification.readAt = new Date();
+                return [4 /*yield*/, notification.save()];
             case 2:
+                _a.sent();
+                res.status(200).json({ success: true, message: "Notification retrieved", data: notification });
+                return [3 /*break*/, 4];
+            case 3:
                 error_2 = _a.sent();
                 console.error("Error fetching notification:", error_2);
                 res.status(500).json({ success: false, message: "Server error" });
-                return [3 /*break*/, 3];
-            case 3: return [2 /*return*/];
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
         }
     });
 }); };
@@ -121,9 +129,9 @@ var markNotificationAsRead = function (req, res) { return __awaiter(void 0, void
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 3, , 4]);
-                notificationId = req.params.id;
+                notificationId = req.params.notificationId;
                 customerId = req.customer.id;
-                return [4 /*yield*/, notification_model_1.default.findOne({ _id: notificationId, customer: customerId })];
+                return [4 /*yield*/, notification_model_1.default.findById(notificationId)];
             case 1:
                 notification = _a.sent();
                 // Check if the notification exists

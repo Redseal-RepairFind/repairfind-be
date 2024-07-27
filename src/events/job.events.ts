@@ -523,7 +523,7 @@ JobEvent.on('JOB_DISPUTE_CREATED', async function (payload: { dispute: IJobDispu
             heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
             payload: {
                 entity: dispute.id,
-                entityType: 'disputes',
+                entityType: 'job_disputes',
                 message: `You have an open job dispute`,
                 contractor: contractor.id,
                 event: 'JOB_DISPUTED',
@@ -540,7 +540,7 @@ JobEvent.on('JOB_DISPUTE_CREATED', async function (payload: { dispute: IJobDispu
                 heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
                 payload: {
                     entity: dispute.id,
-                    entityType: 'disputes',
+                    entityType: 'job_disputes',
                     message: `You have an open job dispute`,
                     contractor: contractor.id,
                     event: 'JOB_DISPUTED',

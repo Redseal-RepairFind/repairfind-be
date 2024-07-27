@@ -605,7 +605,7 @@ exports.JobEvent.on('JOB_DISPUTE_CREATED', function (payload) {
                         heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_b = customer.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
                         payload: {
                             entity: dispute.id,
-                            entityType: 'disputes',
+                            entityType: 'job_disputes',
                             message: "You have an open job dispute",
                             contractor: contractor.id,
                             event: 'JOB_DISPUTED',
@@ -621,7 +621,7 @@ exports.JobEvent.on('JOB_DISPUTE_CREATED', function (payload) {
                             heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_c = customer.profilePhoto) === null || _c === void 0 ? void 0 : _c.url },
                             payload: {
                                 entity: dispute.id,
-                                entityType: 'disputes',
+                                entityType: 'job_disputes',
                                 message: "You have an open job dispute",
                                 contractor: contractor.id,
                                 event: 'JOB_DISPUTED',

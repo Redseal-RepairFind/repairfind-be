@@ -36,17 +36,19 @@ export const getNotifications = async (req: any, res: Response, next: NextFuncti
 
 export const getSingleNotification = async (req: any, res: Response,  next: NextFunction): Promise<void> => {
     try {
-        const { notificationId} = req.params;
+        const { notificationId } = req.params;
         const contractorId  = req.contractor.id
-        const query: any = {user: contractorId, userType: 'contractors', _id: notificationId};
 
-        //@ts-ignore
-        const notification = await NotificationModel.findOne(query).populate('entity');
+        const notification = await NotificationModel.findById(notificationId).populate('entity');
         
         // If notification does not exist, throw a NotFoundError
         if (!notification) {
             return next(new NotFoundError('Notification not found'));
         }
+
+
+        notification.readAt = new Date();
+        await notification.save();
 
         res.status(200).json({ success: true,  message: "Notification retrieved", data: notification });
     } catch (error: any) {
@@ -58,7 +60,34 @@ export const getSingleNotification = async (req: any, res: Response,  next: Next
     }
 };
 
+
+export const markNotificationAsRead = async (req: any, res: Response): Promise<any> => {
+    try {
+        const notificationId = req.params.notificationId; // Assuming the notification ID is provided in the request parameters
+        const contractorId = req.contractor.id;
+
+        // Find the notification by ID and customer ID
+        const notification = await NotificationModel.findById(notificationId);
+
+        // Check if the notification exists
+        if (!notification) {
+            return res.status(404).json({ success: false, message: "Notification not found" });
+        }
+
+        // Update the readAt field to mark the notification as read
+        notification.readAt = new Date();
+        await notification.save();
+
+        res.status(200).json({ success: true, message: "Notification marked as read", data: notification });
+    } catch (error) {
+        console.error("Error marking notification as read:", error);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+};
+
+
 export const ContractorNotificationController = {
     getNotifications,
-    getSingleNotification
+    getSingleNotification,
+    markNotificationAsRead
 }
