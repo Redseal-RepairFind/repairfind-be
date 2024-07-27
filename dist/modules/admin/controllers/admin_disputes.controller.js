@@ -47,7 +47,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AdminDisputeController = exports.settleDispute = exports.acceptDispute = exports.getSingleDispute = exports.getJobDisputes = void 0;
+exports.AdminDisputeController = exports.createDisputeRefund = exports.settleDispute = exports.acceptDispute = exports.getSingleDispute = exports.getJobDisputes = void 0;
 var express_validator_1 = require("express-validator");
 var job_dispute_model_1 = require("../../../database/common/job_dispute.model");
 var api_feature_1 = require("../../../utils/api.feature");
@@ -235,7 +235,7 @@ var settleDispute = function (req, res, next) { return __awaiter(void 0, void 0,
                             .status(401)
                             .json({ message: "Invalid disputeId" })];
                 }
-                if (jobDispute.status != job_dispute_model_1.JOB_DISPUTE_STATUS.OPEN) {
+                if (jobDispute.status != job_dispute_model_1.JOB_DISPUTE_STATUS.ONGOING) {
                     return [2 /*return*/, res
                             .status(401)
                             .json({ message: "Dispute not yet accepted" })];
@@ -259,9 +259,57 @@ var settleDispute = function (req, res, next) { return __awaiter(void 0, void 0,
     });
 }); };
 exports.settleDispute = settleDispute;
+var createDisputeRefund = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, refundAmount, refundPercentage, disputeId, errors, admin, adminId, jobDispute, error_4;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 3, , 4]);
+                _a = req.body, refundAmount = _a.refundAmount, refundPercentage = _a.refundPercentage;
+                disputeId = req.params.disputeId;
+                errors = (0, express_validator_1.validationResult)(req);
+                if (!errors.isEmpty()) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "Validation occurred", errors: errors.array() })];
+                }
+                admin = req.admin;
+                adminId = admin.id;
+                return [4 /*yield*/, job_dispute_model_1.JobDisputeModel.findOne({ _id: disputeId })];
+            case 1:
+                jobDispute = _b.sent();
+                if (!jobDispute) {
+                    return [2 /*return*/, res
+                            .status(401)
+                            .json({ message: "Invalid disputeId" })];
+                }
+                if (jobDispute.status != job_dispute_model_1.JOB_DISPUTE_STATUS.ONGOING) {
+                    return [2 /*return*/, res
+                            .status(401)
+                            .json({ message: "Dispute not yet accepted" })];
+                }
+                if (jobDispute.arbitrator != adminId) {
+                    return [2 /*return*/, res
+                            .status(401)
+                            .json({ success: false, message: "Only dispute arbitrator can settle a dispute" })];
+                }
+                jobDispute.status = job_dispute_model_1.JOB_DISPUTE_STATUS.RESOLVED;
+                // jobDispute.resolvedWay = resolvedWay
+                return [4 /*yield*/, jobDispute.save()];
+            case 2:
+                // jobDispute.resolvedWay = resolvedWay
+                _b.sent();
+                return [2 /*return*/, res.json({ success: true, message: "Dispute resolved successfully" })];
+            case 3:
+                error_4 = _b.sent();
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred', error_4))];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.createDisputeRefund = createDisputeRefund;
 exports.AdminDisputeController = {
     getJobDisputes: exports.getJobDisputes,
     getSingleDispute: exports.getSingleDispute,
     acceptDispute: exports.acceptDispute,
-    settleDispute: exports.settleDispute
+    settleDispute: exports.settleDispute,
+    createDisputeRefund: exports.createDisputeRefund
 };

@@ -223,7 +223,7 @@ export const settleDispute = async (
         .json({ message: "Invalid disputeId" });
     }
 
-    if (jobDispute.status != JOB_DISPUTE_STATUS.OPEN) {
+    if (jobDispute.status != JOB_DISPUTE_STATUS.ONGOING) {
       return res
         .status(401)
         .json({ message: "Dispute not yet accepted" });
@@ -246,9 +246,65 @@ export const settleDispute = async (
   }
 }
 
+
+
+export const createDisputeRefund = async (
+  req: any,
+  res: Response,
+  next: NextFunction,
+) => {
+
+  try {
+    const {refundAmount, refundPercentage } = req.body;
+    const {disputeId} = req.params;
+
+
+    // Check for validation errors
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+      return res.status(400).json({success: false, message: "Validation occurred", errors: errors.array() });
+    }
+
+    const admin = req.admin;
+    const adminId = admin.id
+
+    const jobDispute = await JobDisputeModel.findOne({ _id: disputeId })
+
+    if (!jobDispute) {
+      return res
+        .status(401)
+        .json({ message: "Invalid disputeId" });
+    }
+
+    if (jobDispute.status != JOB_DISPUTE_STATUS.ONGOING) {
+      return res
+        .status(401)
+        .json({ message: "Dispute not yet accepted" });
+    }
+
+    if (jobDispute.arbitrator != adminId) {
+      return res
+        .status(401)
+        .json({success: false, message: "Only dispute arbitrator can settle a dispute" });
+    }
+
+    jobDispute.status = JOB_DISPUTE_STATUS.RESOLVED
+    // jobDispute.resolvedWay = resolvedWay
+    await jobDispute.save()
+
+    return res.json({success: true, message: "Dispute resolved successfully"} );
+
+  } catch (error: any) {
+    return next(new InternalServerError('An error occurred', error))
+  }
+}
+
+
 export const AdminDisputeController = {
   getJobDisputes,
   getSingleDispute,
   acceptDispute,
-  settleDispute
+  settleDispute,
+  createDisputeRefund
 }

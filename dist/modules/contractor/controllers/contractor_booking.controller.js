@@ -346,7 +346,7 @@ var getBookingDisputes = function (req, res, next) { return __awaiter(void 0, vo
 }); };
 exports.getBookingDisputes = getBookingDisputes;
 var getSingleBooking = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var contractorId, bookingId, job, dispute, jobDispute, arbitratorCustomerConversation, arbitratorContractorConversation, _a, _b, customerContractorConversation, jobDispute_1, responseData, _c, error_4;
+    var contractorId, bookingId, job, dispute, jobDispute, arbitratorCustomerConversation, arbitratorContractorConversation, _a, _b, customerContractorConversation, responseData, _c, error_4;
     return __generator(this, function (_d) {
         switch (_d.label) {
             case 0:
@@ -410,7 +410,7 @@ var getSingleBooking = function (req, res, next) { return __awaiter(void 0, void
                     }, { new: true, upsert: true })];
             case 7:
                 customerContractorConversation = _d.sent();
-                jobDispute_1 = __assign({ conversations: { customerContractorConversation: customerContractorConversation, arbitratorContractorConversation: arbitratorContractorConversation, arbitratorCustomerConversation: arbitratorCustomerConversation } }, dispute === null || dispute === void 0 ? void 0 : dispute.toJSON());
+                jobDispute = __assign({ conversations: { customerContractorConversation: customerContractorConversation, arbitratorContractorConversation: arbitratorContractorConversation, arbitratorCustomerConversation: arbitratorCustomerConversation } }, dispute === null || dispute === void 0 ? void 0 : dispute.toJSON());
                 _d.label = 8;
             case 8:
                 responseData = __assign({}, job.toJSON());

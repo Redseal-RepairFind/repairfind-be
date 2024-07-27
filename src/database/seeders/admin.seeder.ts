@@ -29,6 +29,8 @@ const admins  = [
 export  const AdminSeeder  = async (options: Object) => {
         try {
             admins.forEach(async (admin) => {
+                const existingAdmin= await AdminModel.findOne({ email: admin.email });
+                if(existingAdmin)return 
                 await AdminModel.findOneAndUpdate({ email: admin.email }, admin, { upsert: true });
             });
 

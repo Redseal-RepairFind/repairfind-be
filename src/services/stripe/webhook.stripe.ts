@@ -3,12 +3,9 @@
 import Stripe from 'stripe';
 import { BadRequestError } from '../../utils/custom.errors';
 import { Request, Response } from "express";
-import { EventEmitter } from 'events';
-import { eventEmitter } from '../../events';
 import { StripeService } from '.';
 import { ContractorModel } from '../../database/contractor/models/contractor.model';
 import CustomerModel from '../../database/customer/models/customer.model';
-import { sendPushNotifications } from '../expo';
 import ContractorDeviceModel from '../../database/contractor/models/contractor_devices.model';
 import { castPayloadToDTO } from '../../utils/interface_dto.util';
 import { IStripeAccount } from '../../database/common/stripe_account.schema';

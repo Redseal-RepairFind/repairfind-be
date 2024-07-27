@@ -69,10 +69,16 @@ var AdminSeeder = function (options) { return __awaiter(void 0, void 0, void 0, 
     return __generator(this, function (_a) {
         try {
             admins.forEach(function (admin) { return __awaiter(void 0, void 0, void 0, function () {
+                var existingAdmin;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
-                        case 0: return [4 /*yield*/, admin_model_1.default.findOneAndUpdate({ email: admin.email }, admin, { upsert: true })];
+                        case 0: return [4 /*yield*/, admin_model_1.default.findOne({ email: admin.email })];
                         case 1:
+                            existingAdmin = _a.sent();
+                            if (existingAdmin)
+                                return [2 /*return*/];
+                            return [4 /*yield*/, admin_model_1.default.findOneAndUpdate({ email: admin.email }, admin, { upsert: true })];
+                        case 2:
                             _a.sent();
                             return [2 /*return*/];
                     }

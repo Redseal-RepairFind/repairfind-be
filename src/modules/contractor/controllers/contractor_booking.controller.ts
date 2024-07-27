@@ -271,7 +271,7 @@ export const getSingleBooking = async (req: any, res: Response, next: NextFuncti
 
 
         const dispute = await JobDisputeModel.findOne({ job: job.id });
-        const jobDispute = {}
+        let jobDispute = {}
         if (dispute && dispute.arbitrator) {
 
             let arbitratorCustomerConversation = null
@@ -323,7 +323,7 @@ export const getSingleBooking = async (req: any, res: Response, next: NextFuncti
                 { new: true, upsert: true }
             );
 
-            const jobDispute = {
+            jobDispute = {
                 conversations: { customerContractorConversation, arbitratorContractorConversation, arbitratorCustomerConversation },
                 ...dispute?.toJSON()
             }
