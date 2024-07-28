@@ -4,6 +4,8 @@ import { PAYMENT_TYPE, PaymentModel } from "./payment.schema";
 import { JobDayModel } from "./job_day.model";
 import { JobEnquiryModel } from "./job_enquiry.model";
 import ContractorSavedJobModel from "../contractor/models/contractor_saved_job.model";
+import { JobDisputeModel } from "./job_dispute.model";
+import { ConversationModel } from "./conversations.schema";
 
 export interface IJobLocation extends Document {
     address?: string;
@@ -146,6 +148,7 @@ export interface IJob extends Document {
     isChangeOrder: boolean;
     hideFrom: string[];
     jobDay: ObjectId;
+    dispute: any;
     distance: any;
     reminders: JOB_SCHEDULE_REMINDER[];
     enquiries: ObjectId[];
@@ -155,6 +158,8 @@ export interface IJob extends Document {
     getMyQuotation: (contractorId: ObjectId) => {
     };
     getJobDay: (scheduleType?: JOB_SCHEDULE_TYPE) => {
+    };
+    getJobDispute: () => {
     };
     getDistance: (contractorLatitude: number, contractorLongitude: number) => {
     };
@@ -296,6 +301,7 @@ const JobSchema = new Schema<IJob>({
     review: { type: Schema.Types.ObjectId, ref: 'reviews' },
     isChangeOrder: { type: Boolean, default: false },
     jobDay: { type: Schema.Types.ObjectId, ref: 'job_days' },
+    dispute: { type: Schema.Types.Mixed },
     distance: { type: Schema.Types.Mixed, default: 0 },
     hideFrom: {
         type: [String]
@@ -367,6 +373,88 @@ JobSchema.methods.getJobDay = async function (scheduleType = null) {
 };
 
 
+JobSchema.methods.getJobDispute = async function () {
+    const dispute = await JobDisputeModel.findOne({ job: this._id })
+        .populate([{
+            path: 'customer',
+            select: 'firstName lastName name profilePhoto _id phoneNumber email'
+        },
+        {
+            path: 'contractor',
+            select: 'firstName lastName name profilePhoto _id phoneNumber email'
+        }]);
+
+
+    if (!dispute) {
+        return null
+    }
+
+
+    // create conversations here
+    let arbitratorCustomer = null
+    let arbitratorContractor = null
+    let customerContractor = null
+
+    if (dispute.arbitrator) {
+
+        arbitratorCustomer = await ConversationModel.findOneAndUpdate(
+            {
+                $and: [
+                    { members: { $elemMatch: { member: dispute.customer } } },
+                    { members: { $elemMatch: { member: dispute.arbitrator } } }
+                ]
+            },
+
+            {
+                members: [{ memberType: 'customers', member: dispute.customer }, { memberType: 'admins', member: dispute.arbitrator }],
+            },
+            { new: true, upsert: true }
+        );
+        arbitratorCustomer.heading = await arbitratorCustomer.getHeading(dispute.arbitrator)
+
+
+
+        arbitratorContractor = await ConversationModel.findOneAndUpdate(
+            {
+                $and: [
+                    { members: { $elemMatch: { member: dispute.contractor } } },
+                    { members: { $elemMatch: { member: dispute.arbitrator } } }
+                ]
+            },
+
+            {
+                members: [{ memberType: 'contractors', member: dispute.contractor }, { memberType: 'admins', member: dispute.arbitrator }],
+            },
+            { new: true, upsert: true }
+        );
+        arbitratorContractor.heading = await arbitratorContractor.getHeading(dispute.arbitrator)
+    }
+
+
+    customerContractor = await ConversationModel.findOneAndUpdate(
+        {
+            $and: [
+                { members: { $elemMatch: { member: dispute.contractor } } },
+                { members: { $elemMatch: { member: dispute.customer } } }
+            ]
+        },
+
+        {
+            members: [{ memberType: 'customers', member: dispute.customer }, { memberType: 'contractors', member: dispute.contractor }],
+        },
+        { new: true, upsert: true }
+    );
+
+
+    return {
+        conversations: { customerContractor, arbitratorContractor, arbitratorCustomer },
+        ...dispute?.toJSON()
+    }
+
+
+};
+
+
 // Method to get the total number of enquiries for a job
 JobSchema.methods.getTotalEnquires = async function () {
     return await JobEnquiryModel.countDocuments({ job: this.id });
@@ -375,7 +463,7 @@ JobSchema.methods.getTotalEnquires = async function () {
 
 // Method to get the total number of enquiries for a job
 JobSchema.methods.getIsSaved = async function (contractorId: any) {
-    const savedJobs = await ContractorSavedJobModel.countDocuments({contractor: contractorId, job: this.id });
+    const savedJobs = await ContractorSavedJobModel.countDocuments({ contractor: contractorId, job: this.id });
     return savedJobs > 0;
 };
 

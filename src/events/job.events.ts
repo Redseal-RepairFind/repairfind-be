@@ -955,7 +955,7 @@ JobEvent.on('JOB_QUOTATION_EDITED', async function (payload: { job: IJob, quotat
         NotificationService.sendNotification({
             user: customer.id,
             userType: 'customers',
-            title: 'New Job Bid',
+            title: 'Job Bid Edited',
             type: 'JOB_QUOTATION_EDITED', //
             message: `Job estimate as been edited by contractor`,
             heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },

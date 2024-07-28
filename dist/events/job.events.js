@@ -1092,7 +1092,7 @@ exports.JobEvent.on('JOB_QUOTATION_EDITED', function (payload) {
                     services_1.NotificationService.sendNotification({
                         user: customer.id,
                         userType: 'customers',
-                        title: 'New Job Bid',
+                        title: 'Job Bid Edited',
                         type: 'JOB_QUOTATION_EDITED', //
                         message: "Job estimate as been edited by contractor",
                         heading: { name: "".concat(contractor.name), image: (_a = contractor.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },

@@ -221,8 +221,8 @@ export const getBookingDisputes = async (req: any, res: Response, next: NextFunc
         if (data) {
             // Map through each job and attach myQuotation if contractor has applied 
             await Promise.all(data.data.map(async (job: any) => {
-                job.myQuotation = await job.getMyQuotation(contractorId)
                 job.jobDay = await job.getJobDay()
+                job.dispute = await job.getJobDispute()
             }));
         }
 
@@ -251,72 +251,9 @@ export const getSingleBooking = async (req: any, res: Response, next: NextFuncti
         if (!job) {
             return res.status(404).json({ success: false, message: 'Booking not found' });
         }
-
-        const dispute = await JobDisputeModel.findOne({ job: job.id });
-        let jobDispute = {}
-        if (dispute && dispute.arbitrator) {
-
-            let arbitratorCustomerConversation = null
-            let arbitratorContractorConversation = null
-
-            arbitratorCustomerConversation = await ConversationModel.findOneAndUpdate(
-                {
-                    $and: [
-                        { members: { $elemMatch: { member: dispute.customer } } },
-                        { members: { $elemMatch: { member: dispute.arbitrator } } }
-                    ]
-                },
-
-                {
-                    members: [{ memberType: 'customers', member: dispute.customer }, { memberType: 'admins', member: dispute.arbitrator }],
-                },
-                { new: true, upsert: true }
-            );
-            arbitratorCustomerConversation.heading = await arbitratorCustomerConversation.getHeading(dispute.arbitrator)
-
-
-            arbitratorContractorConversation = await ConversationModel.findOneAndUpdate(
-                {
-                    $and: [
-                        { members: { $elemMatch: { member: dispute.contractor } } },
-                        { members: { $elemMatch: { member: dispute.arbitrator } } }
-                    ]
-                },
-
-                {
-                    members: [{ memberType: 'contractors', member: dispute.contractor }, { memberType: 'admins', member: dispute.arbitrator }],
-                },
-                { new: true, upsert: true }
-            );
-            arbitratorContractorConversation.heading = await arbitratorContractorConversation.getHeading(dispute.arbitrator)
-
-
-            const customerContractorConversation = await ConversationModel.findOneAndUpdate(
-                {
-                    $and: [
-                        { members: { $elemMatch: { member: dispute.contractor } } },
-                        { members: { $elemMatch: { member: dispute.customer } } }
-                    ]
-                },
-
-                {
-                    members: [{ memberType: 'customers', member: dispute.customer }, { memberType: 'contractors', member: dispute.contractor }],
-                },
-                { new: true, upsert: true }
-            );
-
-            jobDispute = {
-                conversations: { customerContractorConversation, arbitratorContractorConversation, arbitratorCustomerConversation },
-                ...dispute?.toJSON()
-            }
-
-        }
-
-
-
+       
         let responseData: any = { ...job.toJSON() };
-        responseData.dispute = jobDispute
-        responseData.jobDay = await job.getJobDay()
+        responseData.dispute = await job.getJobDispute()
         responseData.jobDay = await job.getJobDay()
 
         res.json({ success: true, message: 'Booking retrieved', data: responseData });
@@ -536,14 +473,14 @@ export const getRefundable = async (req: any, res: Response, next: NextFunction)
 
         const jobDate = job.schedule.startDate.getTime();
         const charges = await contract.calculateCharges()
-       
+
         // choose which payment to refund ? SITE_VISIT_PAYMENT, JOB_DAY_PAYMENT, CHANGE_ORDER_PAYMENT
-        const paymentType = (job.schedule.type == 'JOB_DAY') ? [PAYMENT_TYPE.JOB_DAY_PAYMENT, PAYMENT_TYPE.CHANGE_ORDER_PAYMENT] : [PAYMENT_TYPE.SITE_VISIT_PAYMENT] 
+        const paymentType = (job.schedule.type == 'JOB_DAY') ? [PAYMENT_TYPE.JOB_DAY_PAYMENT, PAYMENT_TYPE.CHANGE_ORDER_PAYMENT] : [PAYMENT_TYPE.SITE_VISIT_PAYMENT]
         const payments = await job.getPayments(paymentType)
-        
+
         const currentTime = new Date().getTime();
         const timeDifferenceInHours = Math.abs(jobDate - currentTime) / (1000 * 60 * 60);
-        
+
         // const transactions  = await TransactionModel.find({job: job.id})
 
         let refund = {
@@ -644,9 +581,9 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
         const jobDate = job.schedule.startDate.getTime();
         const charges = await contract.calculateCharges()
 
-         // choose which payment to refund ? SITE_VISIT_PAYMENT, JOB_DAY_PAYMENT, CHANGE_ORDER_PAYMENT
-         const paymentType = (job.schedule.type == 'JOB_DAY') ? [PAYMENT_TYPE.JOB_DAY_PAYMENT, PAYMENT_TYPE.CHANGE_ORDER_PAYMENT] : [PAYMENT_TYPE.SITE_VISIT_PAYMENT] 
-         const payments = await job.getPayments(paymentType)
+        // choose which payment to refund ? SITE_VISIT_PAYMENT, JOB_DAY_PAYMENT, CHANGE_ORDER_PAYMENT
+        const paymentType = (job.schedule.type == 'JOB_DAY') ? [PAYMENT_TYPE.JOB_DAY_PAYMENT, PAYMENT_TYPE.CHANGE_ORDER_PAYMENT] : [PAYMENT_TYPE.SITE_VISIT_PAYMENT]
+        const payments = await job.getPayments(paymentType)
 
 
         const currentTime = new Date().getTime();
@@ -714,7 +651,7 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
 
             // console.log(payment)
             //emit event here
-            JobEvent.emit('JOB_REFUND_REQUESTED', {job, payment, refund})
+            JobEvent.emit('JOB_REFUND_REQUESTED', { job, payment, refund })
 
         }
 

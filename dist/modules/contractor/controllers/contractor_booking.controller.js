@@ -80,14 +80,12 @@ var services_1 = require("../../../services");
 var job_model_1 = require("../../../database/common/job.model");
 var custom_errors_1 = require("../../../utils/custom.errors");
 var api_feature_1 = require("../../../utils/api.feature");
-var conversations_schema_1 = require("../../../database/common/conversations.schema");
 var job_quotation_model_1 = require("../../../database/common/job_quotation.model");
 var events_1 = require("../../../events");
 var mongoose_1 = __importDefault(require("mongoose"));
 var contractor_interface_1 = require("../../../database/contractor/interface/contractor.interface");
 var contractor_team_model_1 = __importDefault(require("../../../database/contractor/models/contractor_team.model"));
 var job_assigned_template_1 = require("../../../templates/contractor/job_assigned.template");
-var job_dispute_model_1 = require("../../../database/common/job_dispute.model");
 var review_model_1 = require("../../../database/common/review.model");
 var payment_schema_1 = require("../../../database/common/payment.schema");
 var transaction_model_1 = __importStar(require("../../../database/common/transaction.model"));
@@ -295,39 +293,28 @@ var getBookingDisputes = function (req, res, next) { return __awaiter(void 0, vo
                     req.query.customer = customerId;
                     delete req.query.customerId;
                 }
-                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_model_1.JobModel.find(filter).distinct('_id').populate('customer'), req.query)];
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_model_1.JobModel.find(filter).distinct('_id').populate('customer contract'), req.query)];
             case 2:
                 _f = _g.sent(), data = _f.data, error = _f.error;
                 if (!data) return [3 /*break*/, 4];
-                // Map through each job and attach myQuotation if contractor has applied 
                 return [4 /*yield*/, Promise.all(data.data.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
-                        var _a, _b, _c;
-                        return __generator(this, function (_d) {
-                            switch (_d.label) {
+                        var _a, _b;
+                        return __generator(this, function (_c) {
+                            switch (_c.label) {
                                 case 0:
-                                    if (!job.isAssigned) return [3 /*break*/, 2];
                                     _a = job;
-                                    return [4 /*yield*/, job.getMyQuotation(job.contractor)];
-                                case 1:
-                                    _a.myQuotation = _d.sent();
-                                    return [3 /*break*/, 4];
-                                case 2:
-                                    _b = job;
-                                    return [4 /*yield*/, job.getMyQuotation(contractorId)];
-                                case 3:
-                                    _b.myQuotation = _d.sent();
-                                    _d.label = 4;
-                                case 4:
-                                    _c = job;
                                     return [4 /*yield*/, job.getJobDay()];
-                                case 5:
-                                    _c.jobDay = _d.sent();
+                                case 1:
+                                    _a.jobDay = _c.sent();
+                                    _b = job;
+                                    return [4 /*yield*/, job.getJobDispute()];
+                                case 2:
+                                    _b.dispute = _c.sent();
                                     return [2 /*return*/];
                             }
                         });
                     }); }))];
             case 3:
-                // Map through each job and attach myQuotation if contractor has applied 
                 _g.sent();
                 _g.label = 4;
             case 4:
@@ -346,11 +333,11 @@ var getBookingDisputes = function (req, res, next) { return __awaiter(void 0, vo
 }); };
 exports.getBookingDisputes = getBookingDisputes;
 var getSingleBooking = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var contractorId, bookingId, job, dispute, jobDispute, arbitratorCustomerConversation, arbitratorContractorConversation, _a, _b, customerContractorConversation, responseData, _c, error_4;
-    return __generator(this, function (_d) {
-        switch (_d.label) {
+    var contractorId, bookingId, job, responseData, _a, _b, error_4;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
             case 0:
-                _d.trys.push([0, 10, , 11]);
+                _c.trys.push([0, 4, , 5]);
                 contractorId = req.contractor.id;
                 bookingId = req.params.bookingId;
                 return [4 /*yield*/, job_model_1.JobModel.findOne({
@@ -360,74 +347,29 @@ var getSingleBooking = function (req, res, next) { return __awaiter(void 0, void
                         ], _id: bookingId
                     }).populate(['contractor', 'contract', 'customer', 'assignment.contractor'])];
             case 1:
-                job = _d.sent();
+                job = _c.sent();
                 // Check if the job exists
                 if (!job) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Booking not found' })];
                 }
-                return [4 /*yield*/, job_dispute_model_1.JobDisputeModel.findOne({ job: job.id })];
-            case 2:
-                dispute = _d.sent();
-                jobDispute = {};
-                if (!(dispute && dispute.arbitrator)) return [3 /*break*/, 8];
-                arbitratorCustomerConversation = null;
-                arbitratorContractorConversation = null;
-                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
-                        $and: [
-                            { members: { $elemMatch: { member: dispute.customer } } },
-                            { members: { $elemMatch: { member: dispute.arbitrator } } }
-                        ]
-                    }, {
-                        members: [{ memberType: 'customers', member: dispute.customer }, { memberType: 'admins', member: dispute.arbitrator }],
-                    }, { new: true, upsert: true })];
-            case 3:
-                arbitratorCustomerConversation = _d.sent();
-                _a = arbitratorCustomerConversation;
-                return [4 /*yield*/, arbitratorCustomerConversation.getHeading(dispute.arbitrator)];
-            case 4:
-                _a.heading = _d.sent();
-                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
-                        $and: [
-                            { members: { $elemMatch: { member: dispute.contractor } } },
-                            { members: { $elemMatch: { member: dispute.arbitrator } } }
-                        ]
-                    }, {
-                        members: [{ memberType: 'contractors', member: dispute.contractor }, { memberType: 'admins', member: dispute.arbitrator }],
-                    }, { new: true, upsert: true })];
-            case 5:
-                arbitratorContractorConversation = _d.sent();
-                _b = arbitratorContractorConversation;
-                return [4 /*yield*/, arbitratorContractorConversation.getHeading(dispute.arbitrator)];
-            case 6:
-                _b.heading = _d.sent();
-                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
-                        $and: [
-                            { members: { $elemMatch: { member: dispute.contractor } } },
-                            { members: { $elemMatch: { member: dispute.customer } } }
-                        ]
-                    }, {
-                        members: [{ memberType: 'customers', member: dispute.customer }, { memberType: 'contractors', member: dispute.contractor }],
-                    }, { new: true, upsert: true })];
-            case 7:
-                customerContractorConversation = _d.sent();
-                jobDispute = __assign({ conversations: { customerContractorConversation: customerContractorConversation, arbitratorContractorConversation: arbitratorContractorConversation, arbitratorCustomerConversation: arbitratorCustomerConversation } }, dispute === null || dispute === void 0 ? void 0 : dispute.toJSON());
-                _d.label = 8;
-            case 8:
                 responseData = __assign({}, job.toJSON());
-                responseData.dispute = jobDispute;
-                _c = responseData;
+                _a = responseData;
+                return [4 /*yield*/, job.getJobDispute()];
+            case 2:
+                _a.dispute = _c.sent();
+                _b = responseData;
                 return [4 /*yield*/, job.getJobDay()
                     // If the job exists, return it as a response
                 ];
-            case 9:
-                _c.jobDay = _d.sent();
+            case 3:
+                _b.jobDay = _c.sent();
                 // If the job exists, return it as a response
                 res.json({ success: true, message: 'Booking retrieved', data: responseData });
-                return [3 /*break*/, 11];
-            case 10:
-                error_4 = _d.sent();
+                return [3 /*break*/, 5];
+            case 4:
+                error_4 = _c.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_4))];
-            case 11: return [2 /*return*/];
+            case 5: return [2 /*return*/];
         }
     });
 }); };

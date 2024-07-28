@@ -1,4 +1,15 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -46,6 +57,8 @@ var payment_schema_1 = require("./payment.schema");
 var job_day_model_1 = require("./job_day.model");
 var job_enquiry_model_1 = require("./job_enquiry.model");
 var contractor_saved_job_model_1 = __importDefault(require("../contractor/models/contractor_saved_job.model"));
+var job_dispute_model_1 = require("./job_dispute.model");
+var conversations_schema_1 = require("./conversations.schema");
 var JOB_STATUS;
 (function (JOB_STATUS) {
     JOB_STATUS["PENDING"] = "PENDING";
@@ -189,6 +202,7 @@ var JobSchema = new mongoose_1.Schema({
     review: { type: mongoose_1.Schema.Types.ObjectId, ref: 'reviews' },
     isChangeOrder: { type: Boolean, default: false },
     jobDay: { type: mongoose_1.Schema.Types.ObjectId, ref: 'job_days' },
+    dispute: { type: mongoose_1.Schema.Types.Mixed },
     distance: { type: mongoose_1.Schema.Types.Mixed, default: 0 },
     hideFrom: {
         type: [String]
@@ -249,6 +263,73 @@ JobSchema.methods.getJobDay = function (scheduleType) {
                         scheduleType = (_a = this.schedule) === null || _a === void 0 ? void 0 : _a.type;
                     return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ job: this.id, type: scheduleType })];
                 case 1: return [2 /*return*/, _b.sent()];
+            }
+        });
+    });
+};
+JobSchema.methods.getJobDispute = function () {
+    return __awaiter(this, void 0, void 0, function () {
+        var dispute, arbitratorCustomer, arbitratorContractor, customerContractor, _a, _b;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
+                case 0: return [4 /*yield*/, job_dispute_model_1.JobDisputeModel.findOne({ job: this._id })
+                        .populate([{
+                            path: 'customer',
+                            select: 'firstName lastName name profilePhoto _id phoneNumber email'
+                        },
+                        {
+                            path: 'contractor',
+                            select: 'firstName lastName name profilePhoto _id phoneNumber email'
+                        }])];
+                case 1:
+                    dispute = _c.sent();
+                    if (!dispute) {
+                        return [2 /*return*/, null];
+                    }
+                    arbitratorCustomer = null;
+                    arbitratorContractor = null;
+                    customerContractor = null;
+                    if (!dispute.arbitrator) return [3 /*break*/, 6];
+                    return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
+                            $and: [
+                                { members: { $elemMatch: { member: dispute.customer } } },
+                                { members: { $elemMatch: { member: dispute.arbitrator } } }
+                            ]
+                        }, {
+                            members: [{ memberType: 'customers', member: dispute.customer }, { memberType: 'admins', member: dispute.arbitrator }],
+                        }, { new: true, upsert: true })];
+                case 2:
+                    arbitratorCustomer = _c.sent();
+                    _a = arbitratorCustomer;
+                    return [4 /*yield*/, arbitratorCustomer.getHeading(dispute.arbitrator)];
+                case 3:
+                    _a.heading = _c.sent();
+                    return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
+                            $and: [
+                                { members: { $elemMatch: { member: dispute.contractor } } },
+                                { members: { $elemMatch: { member: dispute.arbitrator } } }
+                            ]
+                        }, {
+                            members: [{ memberType: 'contractors', member: dispute.contractor }, { memberType: 'admins', member: dispute.arbitrator }],
+                        }, { new: true, upsert: true })];
+                case 4:
+                    arbitratorContractor = _c.sent();
+                    _b = arbitratorContractor;
+                    return [4 /*yield*/, arbitratorContractor.getHeading(dispute.arbitrator)];
+                case 5:
+                    _b.heading = _c.sent();
+                    _c.label = 6;
+                case 6: return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
+                        $and: [
+                            { members: { $elemMatch: { member: dispute.contractor } } },
+                            { members: { $elemMatch: { member: dispute.customer } } }
+                        ]
+                    }, {
+                        members: [{ memberType: 'customers', member: dispute.customer }, { memberType: 'contractors', member: dispute.contractor }],
+                    }, { new: true, upsert: true })];
+                case 7:
+                    customerContractor = _c.sent();
+                    return [2 /*return*/, __assign({ conversations: { customerContractor: customerContractor, arbitratorContractor: arbitratorContractor, arbitratorCustomer: arbitratorCustomer } }, dispute === null || dispute === void 0 ? void 0 : dispute.toJSON())];
             }
         });
     });

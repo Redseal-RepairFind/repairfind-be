@@ -80,7 +80,6 @@ var customer_model_1 = __importDefault(require("../../../database/customer/model
 var job_model_1 = require("../../../database/common/job.model");
 var custom_errors_1 = require("../../../utils/custom.errors");
 var api_feature_1 = require("../../../utils/api.feature");
-var conversations_schema_1 = require("../../../database/common/conversations.schema");
 var job_quotation_model_1 = require("../../../database/common/job_quotation.model");
 var events_1 = require("../../../events");
 var mongoose_1 = __importDefault(require("mongoose"));
@@ -244,7 +243,7 @@ var getBookingHistory = function (req, res, next) { return __awaiter(void 0, voi
 }); };
 exports.getBookingHistory = getBookingHistory;
 var getBookingDisputes = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, _a, _b, page, _c, limit, _d, sort, contractorId_2, _e, status_3, jobIds, statusArray, filter, quotations, _f, data, error, error_3;
+    var customerId, _a, _b, page, _c, limit, _d, sort, contractorId, _e, status_3, jobIds, statusArray, filter, quotations, _f, data, error, error_3;
     return __generator(this, function (_g) {
         switch (_g.label) {
             case 0:
@@ -252,7 +251,7 @@ var getBookingDisputes = function (req, res, next) { return __awaiter(void 0, vo
                 _g.label = 1;
             case 1:
                 _g.trys.push([1, 7, , 8]);
-                _a = req.query, _b = _a.page, page = _b === void 0 ? 1 : _b, _c = _a.limit, limit = _c === void 0 ? 10 : _c, _d = _a.sort, sort = _d === void 0 ? '-createdAt' : _d, contractorId_2 = _a.contractorId, _e = _a.status, status_3 = _e === void 0 ? 'DISPUTED' : _e;
+                _a = req.query, _b = _a.page, page = _b === void 0 ? 1 : _b, _c = _a.limit, limit = _c === void 0 ? 10 : _c, _d = _a.sort, sort = _d === void 0 ? '-createdAt' : _d, contractorId = _a.contractorId, _e = _a.status, status_3 = _e === void 0 ? 'DISPUTED' : _e;
                 req.query.page = page;
                 req.query.limit = limit;
                 req.query.sort = sort;
@@ -260,17 +259,17 @@ var getBookingDisputes = function (req, res, next) { return __awaiter(void 0, vo
                 jobIds = [];
                 statusArray = status_3.split(',').map(function (s) { return s.trim(); });
                 filter = { status: { $in: statusArray }, customer: customerId };
-                if (!contractorId_2) return [3 /*break*/, 3];
-                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.find({ contractor: contractorId_2 }).select('job').lean()];
+                if (!contractorId) return [3 /*break*/, 3];
+                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.find({ contractor: contractorId }).select('job').lean()];
             case 2:
                 quotations = _g.sent();
                 // Extract job IDs from the quotations
                 jobIds = quotations.map(function (quotation) { return quotation.job; });
                 filter._id = { $in: jobIds };
-                if (!mongoose_1.default.Types.ObjectId.isValid(contractorId_2)) {
+                if (!mongoose_1.default.Types.ObjectId.isValid(contractorId)) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid customer id' })];
                 }
-                req.query.contractor = contractorId_2;
+                req.query.contractor = contractorId;
                 delete req.query.contractorId;
                 _g.label = 3;
             case 3: return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_model_1.JobModel.find(filter).distinct('_id').populate('contractor'), req.query)];
@@ -284,13 +283,13 @@ var getBookingDisputes = function (req, res, next) { return __awaiter(void 0, vo
                             switch (_c.label) {
                                 case 0:
                                     _a = job;
-                                    return [4 /*yield*/, job.getMyQuotation(contractorId_2)];
-                                case 1:
-                                    _a.myQuotation = _c.sent();
-                                    _b = job;
                                     return [4 /*yield*/, job.getJobDay()];
+                                case 1:
+                                    _a.jobDay = _c.sent();
+                                    _b = job;
+                                    return [4 /*yield*/, job.getJobDispute()];
                                 case 2:
-                                    _b.jobDay = _c.sent();
+                                    _b.dispute = _c.sent();
                                     return [2 /*return*/];
                             }
                         });
@@ -316,84 +315,35 @@ var getBookingDisputes = function (req, res, next) { return __awaiter(void 0, vo
 }); };
 exports.getBookingDisputes = getBookingDisputes;
 var getSingleBooking = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, bookingId, job, dispute, jobDispute, arbitratorCustomerConversation, arbitratorContractorConversation, _a, _b, customerContractorConversation, responseData, _c, _d, error_4;
-    return __generator(this, function (_e) {
-        switch (_e.label) {
+    var customerId, bookingId, job, responseData, _a, _b, error_4;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
             case 0:
-                _e.trys.push([0, 11, , 12]);
+                _c.trys.push([0, 4, , 5]);
                 customerId = req.customer.id;
                 bookingId = req.params.bookingId;
                 return [4 /*yield*/, job_model_1.JobModel.findOne({ customer: customerId, _id: bookingId }).populate(['contractor', 'contract', 'review'])];
             case 1:
-                job = _e.sent();
+                job = _c.sent();
                 // Check if the job exists
                 if (!job) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Booking not found' })];
                 }
-                return [4 /*yield*/, job_dispute_model_1.JobDisputeModel.findOne({ job: job.id })];
-            case 2:
-                dispute = _e.sent();
-                jobDispute = {};
-                if (!(dispute && dispute.arbitrator)) return [3 /*break*/, 8];
-                arbitratorCustomerConversation = null;
-                arbitratorContractorConversation = null;
-                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
-                        $and: [
-                            { members: { $elemMatch: { member: dispute.customer } } },
-                            { members: { $elemMatch: { member: dispute.arbitrator } } }
-                        ]
-                    }, {
-                        members: [{ memberType: 'customers', member: dispute.customer }, { memberType: 'admins', member: dispute.arbitrator }],
-                    }, { new: true, upsert: true })];
-            case 3:
-                arbitratorCustomerConversation = _e.sent();
-                _a = arbitratorCustomerConversation;
-                return [4 /*yield*/, arbitratorCustomerConversation.getHeading(dispute.arbitrator)];
-            case 4:
-                _a.heading = _e.sent();
-                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
-                        $and: [
-                            { members: { $elemMatch: { member: dispute.contractor } } },
-                            { members: { $elemMatch: { member: dispute.arbitrator } } }
-                        ]
-                    }, {
-                        members: [{ memberType: 'contractors', member: dispute.contractor }, { memberType: 'admins', member: dispute.arbitrator }],
-                    }, { new: true, upsert: true })];
-            case 5:
-                arbitratorContractorConversation = _e.sent();
-                _b = arbitratorContractorConversation;
-                return [4 /*yield*/, arbitratorContractorConversation.getHeading(dispute.arbitrator)];
-            case 6:
-                _b.heading = _e.sent();
-                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
-                        $and: [
-                            { members: { $elemMatch: { member: dispute.contractor } } },
-                            { members: { $elemMatch: { member: dispute.customer } } }
-                        ]
-                    }, {
-                        members: [{ memberType: 'customers', member: dispute.customer }, { memberType: 'contractors', member: dispute.contractor }],
-                    }, { new: true, upsert: true })];
-            case 7:
-                customerContractorConversation = _e.sent();
-                jobDispute = __assign({ conversations: { customerContractorConversation: customerContractorConversation, arbitratorContractorConversation: arbitratorContractorConversation, arbitratorCustomerConversation: arbitratorCustomerConversation } }, dispute === null || dispute === void 0 ? void 0 : dispute.toJSON());
-                _e.label = 8;
-            case 8:
                 responseData = __assign({}, job.toJSON());
-                responseData.dispute = jobDispute;
-                _c = responseData;
+                _a = responseData;
+                return [4 /*yield*/, job.getJobDispute()];
+            case 2:
+                _a.dispute = _c.sent();
+                _b = responseData;
                 return [4 /*yield*/, job.getJobDay()];
-            case 9:
-                _c.jobDay = _e.sent();
-                _d = responseData;
-                return [4 /*yield*/, job.getJobDay()];
-            case 10:
-                _d.jobDay = _e.sent();
+            case 3:
+                _b.jobDay = _c.sent();
                 res.json({ success: true, message: 'Booking retrieved', data: responseData });
-                return [3 /*break*/, 12];
-            case 11:
-                error_4 = _e.sent();
+                return [3 /*break*/, 5];
+            case 4:
+                error_4 = _c.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_4))];
-            case 12: return [2 /*return*/];
+            case 5: return [2 /*return*/];
         }
     });
 }); };
