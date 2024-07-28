@@ -49,6 +49,7 @@ var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var mongoose_1 = __importDefault(require("mongoose"));
+var content_moderation_util_1 = require("../../../utils/content_moderation.util");
 var getConversations = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, startDate, endDate, read, unread, contractorId_1, filter, _b, data, error, error_1;
     return __generator(this, function (_c) {
@@ -196,7 +197,7 @@ var getConversationMessages = function (req, res, next) { return __awaiter(void 
 }); };
 exports.getConversationMessages = getConversationMessages;
 var sendMessage = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, conversationId, _a, message, media, type, contractorId_3, conversation, customerIsMember, newMessage, error_4;
+    var errors, conversationId, _a, message, media, type, contractorId_3, conversation, customerIsMember, newMessage, restrictedContentCheck, error_4;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -219,17 +220,25 @@ var sendMessage = function (req, res, next) { return __awaiter(void 0, void 0, v
                 if (!customerIsMember) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'Unauthorized: You do not have access to this conversation' })];
                 }
-                return [4 /*yield*/, messages_schema_1.MessageModel.create({
-                        conversation: conversationId,
-                        sender: contractorId_3, // Assuming the customer sends the message
-                        senderType: 'contractors', // Type of the sender
-                        message: message, // Message content from the request body
-                        messageType: type,
-                        media: media,
-                        createdAt: new Date()
-                    })];
+                newMessage = new messages_schema_1.MessageModel({
+                    conversation: conversationId,
+                    sender: contractorId_3, // Assuming the customer sends the message
+                    senderType: 'contractors', // Type of the sender
+                    message: message, // Message content from the request body
+                    messageType: type,
+                    media: media,
+                    createdAt: new Date()
+                });
+                if (content_moderation_util_1.ContentModeration.containsRestrictedMessageContent(message)) {
+                }
+                restrictedContentCheck = content_moderation_util_1.ContentModeration.containsRestrictedMessageContent(message);
+                if (restrictedContentCheck.isRestricted) {
+                    newMessage.messageType = messages_schema_1.MessageType.ALERT;
+                    newMessage.message = restrictedContentCheck.errorMessage;
+                }
+                return [4 /*yield*/, newMessage.save()];
             case 2:
-                newMessage = _b.sent();
+                _b.sent();
                 if (!newMessage) return [3 /*break*/, 5];
                 return [4 /*yield*/, conversations_schema_1.ConversationModel.updateOne({ _id: conversationId }, // Filter criteria to find the conversation document
                     {

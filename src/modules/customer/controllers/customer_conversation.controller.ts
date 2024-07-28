@@ -5,6 +5,7 @@ import { ConversationModel } from "../../../database/common/conversations.schema
 import { MessageModel, MessageType } from "../../../database/common/messages.schema";
 import { ConversationEvent } from "../../../events";
 import { BadRequestError, InternalServerError } from "../../../utils/custom.errors";
+import { ContentModeration } from "../../../utils/content_moderation.util";
 
  
 export const getConversations = async (req: any, res: Response): Promise<void> => {
@@ -135,10 +136,12 @@ export const sendMessage = async (req: any, res: Response, next: NextFunction) =
         if (!customerIsMember) {
             return res.status(403).json({ success: false, message: 'Unauthorized: You do not have access to this conversation' });
         }
+
+
         
 
         // Create a new message in the conversation
-        const newMessage = await MessageModel.create({
+        const newMessage = new MessageModel({
             conversation: conversationId,
             sender: customerId, // Assuming the customer sends the message
             senderType: 'customers', // Type of the sender
@@ -147,6 +150,14 @@ export const sendMessage = async (req: any, res: Response, next: NextFunction) =
             media: media, 
             createdAt: new Date()
         });
+
+
+        const restrictedContentCheck = ContentModeration.containsRestrictedMessageContent(message);
+        if (restrictedContentCheck.isRestricted) {
+            newMessage.messageType  = MessageType.ALERT
+            newMessage.message  =  restrictedContentCheck.errorMessage
+        }
+        await newMessage.save()
 
         if (newMessage) {
             await ConversationModel.updateOne(

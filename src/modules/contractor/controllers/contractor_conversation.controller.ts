@@ -8,6 +8,7 @@ import { validationResult } from "express-validator";
 import { ContractorModel } from "../../../database/contractor/models/contractor.model";
 import CustomerModel from "../../../database/customer/models/customer.model";
 import mongoose, { Schema } from "mongoose";
+import { ContentModeration } from "../../../utils/content_moderation.util";
 
 export const getConversations = async (req: any, res: Response, next: NextFunction) => {
     try {
@@ -131,7 +132,7 @@ export const sendMessage = async (req: any, res: Response, next: NextFunction) =
         }
 
         // Create a new message in the conversation
-        const newMessage = await MessageModel.create({
+        const newMessage = new MessageModel({
             conversation: conversationId,
             sender: contractorId, // Assuming the customer sends the message
             senderType: 'contractors', // Type of the sender
@@ -140,6 +141,19 @@ export const sendMessage = async (req: any, res: Response, next: NextFunction) =
             media: media, 
             createdAt: new Date()
         });
+
+
+        if(ContentModeration.containsRestrictedMessageContent(message)){
+            
+        }
+
+        const restrictedContentCheck = ContentModeration.containsRestrictedMessageContent(message);
+        if (restrictedContentCheck.isRestricted) {
+            newMessage.messageType  = MessageType.ALERT
+            newMessage.message  =  restrictedContentCheck.errorMessage
+        }
+
+        await newMessage.save()
 
         if (newMessage) {
             await ConversationModel.updateOne(

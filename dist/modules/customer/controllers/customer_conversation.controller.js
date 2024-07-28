@@ -43,6 +43,7 @@ var conversations_schema_1 = require("../../../database/common/conversations.sch
 var messages_schema_1 = require("../../../database/common/messages.schema");
 var events_1 = require("../../../events");
 var custom_errors_1 = require("../../../utils/custom.errors");
+var content_moderation_util_1 = require("../../../utils/content_moderation.util");
 var getConversations = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, startDate, endDate, read, unread, customerId_1, filter, _b, data, error, error_1;
     return __generator(this, function (_c) {
@@ -192,7 +193,7 @@ var getConversationMessages = function (req, res) { return __awaiter(void 0, voi
 }); };
 exports.getConversationMessages = getConversationMessages;
 var sendMessage = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var conversationId, _a, message, media, type, customerId_3, errors, conversation, customerIsMember, newMessage, error_4;
+    var conversationId, _a, message, media, type, customerId_3, errors, conversation, customerIsMember, newMessage, restrictedContentCheck, error_4;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -215,17 +216,23 @@ var sendMessage = function (req, res, next) { return __awaiter(void 0, void 0, v
                 if (!customerIsMember) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'Unauthorized: You do not have access to this conversation' })];
                 }
-                return [4 /*yield*/, messages_schema_1.MessageModel.create({
-                        conversation: conversationId,
-                        sender: customerId_3, // Assuming the customer sends the message
-                        senderType: 'customers', // Type of the sender
-                        message: message, // Message content from the request body
-                        messageType: type,
-                        media: media,
-                        createdAt: new Date()
-                    })];
+                newMessage = new messages_schema_1.MessageModel({
+                    conversation: conversationId,
+                    sender: customerId_3, // Assuming the customer sends the message
+                    senderType: 'customers', // Type of the sender
+                    message: message, // Message content from the request body
+                    messageType: type,
+                    media: media,
+                    createdAt: new Date()
+                });
+                restrictedContentCheck = content_moderation_util_1.ContentModeration.containsRestrictedMessageContent(message);
+                if (restrictedContentCheck.isRestricted) {
+                    newMessage.messageType = messages_schema_1.MessageType.ALERT;
+                    newMessage.message = restrictedContentCheck.errorMessage;
+                }
+                return [4 /*yield*/, newMessage.save()];
             case 2:
-                newMessage = _b.sent();
+                _b.sent();
                 if (!newMessage) return [3 /*break*/, 5];
                 return [4 /*yield*/, conversations_schema_1.ConversationModel.updateOne({ _id: conversationId }, // Filter criteria to find the conversation document
                     {
