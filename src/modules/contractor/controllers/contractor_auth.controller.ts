@@ -149,7 +149,7 @@ class AuthHandler extends Base {
                     email: contractor.email,
                     userType: 'contractors',
                 },
-                process.env.JWT_CONTRACTOR_SECRET_KEY!,
+                process.env.JWT_SECRET_KEY!,
                 { expiresIn: config.jwt.tokenLifetime }
             );
 
@@ -403,7 +403,7 @@ class AuthHandler extends Base {
                     email: contractor.email,
                     userType: 'contractors',
                 },
-                process.env.JWT_CONTRACTOR_SECRET_KEY!,
+                process.env.JWT_SECRET_KEY!,
                 { expiresIn: config.jwt.tokenLifetime }
             );
 

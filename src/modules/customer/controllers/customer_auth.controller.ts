@@ -167,7 +167,7 @@ export const verifyEmail = async (
         email: customer.email,
         userType: 'customers',
       },
-      process.env.JWT_CONTRACTOR_SECRET_KEY!,
+      process.env.JWT_SECRET_KEY!,
       { expiresIn: config.jwt.tokenLifetime }
     );
 
@@ -245,7 +245,7 @@ export const signIn = async (
         email: customer.email,
         userType: 'customers',
       },
-      process.env.JWT_CONTRACTOR_SECRET_KEY!,
+      process.env.JWT_SECRET_KEY!,
       { expiresIn: config.jwt.tokenLifetime  }
     );
 
@@ -320,7 +320,7 @@ export const signInWithPhone = async (
         email: customer.email,
         userType: 'customers',
       },
-      process.env.JWT_CONTRACTOR_SECRET_KEY!,
+      process.env.JWT_SECRET_KEY!,
       { expiresIn: config.jwt.tokenLifetime  }
     );
 
@@ -618,7 +618,7 @@ export const googleSignon = async (
         email: user.email,
         userType: 'customers',
       },
-      process.env.JWT_CONTRACTOR_SECRET_KEY!,
+      process.env.JWT_SECRET_KEY!,
       { expiresIn: '24h' }
     );
 
@@ -700,7 +700,7 @@ export const facebookSignon = async (req: Request, res: Response) => {
         email: user.email,
         userType: 'customers',
       },
-      process.env.JWT_CONTRACTOR_SECRET_KEY!,
+      process.env.JWT_SECRET_KEY!,
       { expiresIn: '24h' }
     );
 
