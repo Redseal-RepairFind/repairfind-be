@@ -19,7 +19,7 @@ export const checkCustomerRole = async (
   next: NextFunction
 ) => {
 
-  let secret = process.env.JWT_CONTRACTOR_SECRET_KEY;
+  let secret = process.env.JWT_SECRET_KEY;
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(" ")[1];
 

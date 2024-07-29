@@ -47,7 +47,7 @@ var checkAdminRole = function (req, res, next) { return __awaiter(void 0, void 0
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                secret = process.env.JWT_ADMIN_SECRET_KEY;
+                secret = process.env.JWT_SECRET_KEY;
                 authHeader = req.headers.authorization;
                 token = authHeader && authHeader.split(" ")[1];
                 if (!token) {

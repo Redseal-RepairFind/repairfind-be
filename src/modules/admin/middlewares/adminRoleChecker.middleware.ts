@@ -18,7 +18,7 @@ export const checkAdminRole = async (
     next: NextFunction
   ) => {
 
-    let secret = process.env.JWT_ADMIN_SECRET_KEY;
+    let secret = process.env.JWT_SECRET_KEY;
   // Get JWT from Authorization header
   
   const authHeader = req.headers.authorization;
