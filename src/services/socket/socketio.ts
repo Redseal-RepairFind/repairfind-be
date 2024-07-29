@@ -37,10 +37,11 @@ class SocketIOService {
                 return next(new BadRequestError("Authentication token is missing."));
             }
 
-            const secret = process.env.JWT_CONTRACTOR_SECRET_KEY as string;
+            const secret = process.env.JWT_SECRET_KEY as string;
             jwt.verify(token, secret, (err: any, decoded: any) => {
                 if (err) {
                     // Authentication failed
+                    console.log('err', err)
                     return next(new BadRequestError("Authentication error"));
                 }
                 // Authentication successful, attach user information to the socket

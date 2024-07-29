@@ -392,7 +392,7 @@ var AuthHandler = /** @class */ (function (_super) {
                             id: contractor === null || contractor === void 0 ? void 0 : contractor._id,
                             email: contractor.email,
                             userType: 'contractors',
-                        }, process.env.JWT_CONTRACTOR_SECRET_KEY, { expiresIn: config_1.config.jwt.tokenLifetime });
+                        }, process.env.JWT_SECRET_KEY, { expiresIn: config_1.config.jwt.tokenLifetime });
                         // return access token
                         return [2 /*return*/, res.json({
                                 success: true,

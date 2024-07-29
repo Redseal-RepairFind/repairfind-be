@@ -224,7 +224,7 @@ export const signIn= async (
           id: admin?._id,
           email: admin.email,
         },
-        process.env.JWT_ADMIN_SECRET_KEY!,
+        process.env.JWT_SECRET_KEY!,
         { expiresIn: "24h" }
       );
   

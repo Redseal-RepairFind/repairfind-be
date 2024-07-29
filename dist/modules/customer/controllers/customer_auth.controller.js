@@ -691,7 +691,7 @@ var appleSignon = function (req, res) { return __awaiter(void 0, void 0, void 0,
                     id: user._id,
                     email: user.email,
                     userType: 'customers',
-                }, process.env.JWT_CONTRACTOR_SECRET_KEY, { expiresIn: '24h' });
+                }, process.env.JWT_SECRET_KEY, { expiresIn: '24h' });
                 res.json({
                     status: true,
                     message: 'Signon successful',

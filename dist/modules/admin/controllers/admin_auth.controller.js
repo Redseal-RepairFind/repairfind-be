@@ -221,7 +221,7 @@ var signIn = function (req, res, next) { return __awaiter(void 0, void 0, void 0
                 accessToken = jsonwebtoken_1.default.sign({
                     id: admin === null || admin === void 0 ? void 0 : admin._id,
                     email: admin.email,
-                }, process.env.JWT_ADMIN_SECRET_KEY, { expiresIn: "24h" });
+                }, process.env.JWT_SECRET_KEY, { expiresIn: "24h" });
                 return [2 /*return*/, res.json({
                         success: true,
                         message: "Login successful",

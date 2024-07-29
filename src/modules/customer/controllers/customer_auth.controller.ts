@@ -785,7 +785,7 @@ export const appleSignon = async (req: Request, res: Response) => {
         email: user.email,
         userType: 'customers',
       },
-      process.env.JWT_CONTRACTOR_SECRET_KEY!,
+      process.env.JWT_SECRET_KEY!,
       { expiresIn: '24h' }
     );
 

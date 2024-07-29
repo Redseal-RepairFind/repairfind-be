@@ -82,10 +82,11 @@ var SocketIOService = /** @class */ (function () {
                 logger_1.Logger.info('Authentication token is missing.');
                 return next(new custom_errors_1.BadRequestError("Authentication token is missing."));
             }
-            var secret = process.env.JWT_CONTRACTOR_SECRET_KEY;
+            var secret = process.env.JWT_SECRET_KEY;
             jsonwebtoken_1.default.verify(token, secret, function (err, decoded) {
                 if (err) {
                     // Authentication failed
+                    console.log('err', err);
                     return next(new custom_errors_1.BadRequestError("Authentication error"));
                 }
                 // Authentication successful, attach user information to the socket
