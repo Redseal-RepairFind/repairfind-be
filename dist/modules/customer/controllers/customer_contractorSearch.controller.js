@@ -100,7 +100,7 @@ var customerSearchForContractorByCategoryAndDateController = function (req, res)
                 return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.find({
                         $and: [
                             { skill: { $regex: new RegExp(category, 'i') } },
-                            { availableDays: { $regex: new RegExp(date, 'i') } },
+                            { availability: { $regex: new RegExp(date, 'i') } },
                         ]
                     })];
             case 1:
@@ -205,7 +205,7 @@ var customerFilterContractoController = function (req, res) { return __awaiter(v
                                     { "location.longitude": { $regex: new RegExp(lanLong.longitude.toString(), 'i') } },
                                 ]
                             },
-                            { availableDays: { $regex: new RegExp(date, 'i') } },
+                            { availability: { $regex: new RegExp(date, 'i') } },
                             { skill: { $regex: new RegExp(category, 'i') } },
                         ]
                     }).limit(50)];

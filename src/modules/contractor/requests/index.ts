@@ -50,7 +50,7 @@ export const CreateProfileRequest = [
   body("email").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) !== 'Employee').optional().isEmail(),
   body("phoneNumber").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) !== 'Employee').optional().isNumeric(),
   body("emergencyJobs").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) !== 'Employee').notEmpty(),
-  body("availableDays").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) !== 'Employee').notEmpty().isArray(),
+  body("availability").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) !== 'Employee').notEmpty().isArray(),
   body("previousJobPhotos").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) !== 'Employee').optional().isArray().notEmpty().custom((value) => validateMediaArray(value)),
   body("previousJobVideos").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) !== 'Employee').optional().isArray().notEmpty().custom((value) => validateMediaArray(value)),
 
@@ -78,7 +78,7 @@ export const UpdateProfileRequest = [
   body("email").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) !== 'Employee').optional().isEmail(),
   body("phoneNumber").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) !== 'Employee').optional().isObject(),
   body("emergencyJobs").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) !== 'Employee').optional().notEmpty(),
-  body("availableDays").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) !== 'Employee').optional().notEmpty().isArray(),
+  body("availability").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) !== 'Employee').optional().notEmpty().isArray(),
   body("previousJobPhotos").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) !== 'Employee').optional().isArray().notEmpty().custom((value) => validateMediaArray(value)),
   body("previousJobVideos").if((value: any, { req }: any) => (req.body.accountType || req.contractor.accountType) !== 'Employee').optional().isArray().notEmpty().custom((value) => validateMediaArray(value)),
 
@@ -106,7 +106,7 @@ export const UpgradeEmployeeProfileRequest = [
   body("email").optional().isEmail(),
   body("phoneNumber").optional().isNumeric(),
   body("emergencyJobs").optional(),
-  body("availableDays").optional().isArray(),
+  body("availability").optional().isArray(),
   body("previousJobPhotos").optional().isArray().notEmpty().custom((value) => validateMediaArray(value)),
   body("previousJobVideos").optional().isArray().notEmpty().custom((value) => validateMediaArray(value)),
 

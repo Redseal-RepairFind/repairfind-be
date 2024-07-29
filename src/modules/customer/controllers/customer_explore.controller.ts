@@ -54,7 +54,7 @@ export const exploreContractors = async (
             accountType,
             date,
             isOffDuty,
-            availableDays,
+            availability,
             experienceYear,
             gstNumber,
             page = 1, // Default to page 1
@@ -68,7 +68,7 @@ export const exploreContractors = async (
 
         console.log(latitude, longitude)
 
-        const availableDaysArray = availableDays ? availableDays.split(',') : [];
+        const availableDaysArray = availability ? availability.split(',') : [];
         const skip = (parseInt(page) - 1) * parseInt(limit);
 
         const toRadians = (degrees: number) => degrees * (Math.PI / 180);
@@ -297,8 +297,8 @@ export const exploreContractors = async (
             const contractorIdsWithDateInSchedule = await getContractorIdsWithDateInSchedule(new Date(date));
             pipeline.push({ $match: { "profile.contractor": { $in: contractorIdsWithDateInSchedule } } });
         }
-        if (availableDays) {
-            pipeline.push({ $match: { "profile.availableDays": { $in: availableDaysArray } } });
+        if (availability) {
+            pipeline.push({ $match: { "profile.availability": { $in: availableDaysArray } } });
         }
         if (radius) {
             pipeline.push({ $match: { "distance": { $lte: parseInt(radius) } } });
@@ -501,8 +501,10 @@ export const getContractorSchedules = async (req: any, res: Response) => {
 
 
         // Group schedules by year and month
-
-        const expandedSchedules = generateExpandedSchedule(contractorProfile.availableDays, year).filter(schedule => {
+        const availabilityDays  = contractorProfile.availability.map(availability =>{
+            return availability.day
+        })
+        const expandedSchedules = generateExpandedSchedule(availabilityDays, year).filter(schedule => {
             return schedule.date >= startDate && schedule.date <= endDate;
         });
 

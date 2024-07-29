@@ -83,7 +83,7 @@ exports.CreateProfileRequest = [
         var req = _a.req;
         return (req.body.accountType || req.contractor.accountType) !== 'Employee';
     }).notEmpty(),
-    (0, express_validator_1.body)("availableDays").if(function (value, _a) {
+    (0, express_validator_1.body)("availability").if(function (value, _a) {
         var req = _a.req;
         return (req.body.accountType || req.contractor.accountType) !== 'Employee';
     }).notEmpty().isArray(),
@@ -140,7 +140,7 @@ exports.UpdateProfileRequest = [
         var req = _a.req;
         return (req.body.accountType || req.contractor.accountType) !== 'Employee';
     }).optional().notEmpty(),
-    (0, express_validator_1.body)("availableDays").if(function (value, _a) {
+    (0, express_validator_1.body)("availability").if(function (value, _a) {
         var req = _a.req;
         return (req.body.accountType || req.contractor.accountType) !== 'Employee';
     }).optional().notEmpty().isArray(),
@@ -170,7 +170,7 @@ exports.UpgradeEmployeeProfileRequest = [
     (0, express_validator_1.body)("email").optional().isEmail(),
     (0, express_validator_1.body)("phoneNumber").optional().isNumeric(),
     (0, express_validator_1.body)("emergencyJobs").optional(),
-    (0, express_validator_1.body)("availableDays").optional().isArray(),
+    (0, express_validator_1.body)("availability").optional().isArray(),
     (0, express_validator_1.body)("previousJobPhotos").optional().isArray().notEmpty().custom(function (value) { return validateMediaArray(value); }),
     (0, express_validator_1.body)("previousJobVideos").optional().isArray().notEmpty().custom(function (value) { return validateMediaArray(value); }),
 ];

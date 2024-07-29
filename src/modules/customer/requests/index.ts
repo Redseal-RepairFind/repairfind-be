@@ -166,7 +166,7 @@ export const queryContractorParams = [
   query("accountType").if(query("accountType").exists()).notEmpty().withMessage("AccountType is required"),
   query("date").if(query("date").exists()).notEmpty().notEmpty().withMessage("Date is required"),
   query("isOffDuty").if(query("isOffDuty").exists()).notEmpty().notEmpty().withMessage("isOffDuty is required"),
-  query("availableDays").if(query("availableDays").exists()).notEmpty().withMessage("AvailableDays is required"),
+  query("availability").if(query("availability").exists()).notEmpty().withMessage("AvailableDays is required"),
   query("experienceYear").if(query("experienceYear").exists()).notEmpty().withMessage("ExperienceYear is required"),
 
   query("latitude").custom((value, { req }) => {

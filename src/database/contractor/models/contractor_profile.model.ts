@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
 import { config } from "../../../config";
-import { IContractorProfile, IContractorJobPhoto, IContractorJobVideo, IContractorLocation, IContractorBankDetails } from "../interface/contractor_profile.interface";
+import { IContractorProfile, IContractorJobPhoto, IContractorJobVideo, IContractorLocation, IContractorBankDetails, IContractorAvailability } from "../interface/contractor_profile.interface";
 
 
 // Define subdocument schemas
@@ -44,6 +44,14 @@ const BankDetailsSchema = new Schema<IContractorBankDetails>({
 
 
 
+const AvailabilitySchema = new Schema<IContractorAvailability>({
+  day: String,
+  startTime: String,
+  endTime: String,
+});
+
+
+
 const CompanyProfileSchema = new Schema<IContractorProfile>(
     {
       contractor: {
@@ -70,8 +78,8 @@ const CompanyProfileSchema = new Schema<IContractorProfile>(
         type: Number,
       },
 
-      availableDays: {
-        type: [String],
+      availability: {
+        type: [AvailabilitySchema],
       },
       
       isOffDuty: {

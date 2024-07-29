@@ -63,7 +63,7 @@ export const exploreContractors = async (
       accountType,
       date,
       isOffDuty,
-      availableDays,
+      availability,
       experienceYear,
       gstNumber,
       page = 1, // Default to page 1
@@ -79,7 +79,7 @@ export const exploreContractors = async (
 
 
 
-    const availableDaysArray = availableDays ? availableDays.split(',') : [];
+    const availableDaysArray = availability ? availability.split(',') : [];
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     const toRadians = (degrees: number) => degrees * (Math.PI / 180);
@@ -206,8 +206,8 @@ export const exploreContractors = async (
       pipeline.push({ $match: { "profile.gstNumber": gstNumber } });
     }
 
-    if (availableDays) {
-      pipeline.push({ $match: { "profile.availableDays": { $in: availableDaysArray } } });
+    if (availability) {
+      pipeline.push({ $match: { "profile.availability": { $in: availableDaysArray } } });
     }
     if (radius) {
       pipeline.push({ $match: { "distance": { $lte: parseInt(radius) } } });

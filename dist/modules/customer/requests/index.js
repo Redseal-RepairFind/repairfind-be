@@ -149,7 +149,7 @@ exports.queryContractorParams = [
     (0, express_validator_1.query)("accountType").if((0, express_validator_1.query)("accountType").exists()).notEmpty().withMessage("AccountType is required"),
     (0, express_validator_1.query)("date").if((0, express_validator_1.query)("date").exists()).notEmpty().notEmpty().withMessage("Date is required"),
     (0, express_validator_1.query)("isOffDuty").if((0, express_validator_1.query)("isOffDuty").exists()).notEmpty().notEmpty().withMessage("isOffDuty is required"),
-    (0, express_validator_1.query)("availableDays").if((0, express_validator_1.query)("availableDays").exists()).notEmpty().withMessage("AvailableDays is required"),
+    (0, express_validator_1.query)("availability").if((0, express_validator_1.query)("availability").exists()).notEmpty().withMessage("AvailableDays is required"),
     (0, express_validator_1.query)("experienceYear").if((0, express_validator_1.query)("experienceYear").exists()).notEmpty().withMessage("ExperienceYear is required"),
     (0, express_validator_1.query)("latitude").custom(function (value, _a) {
         var _b;

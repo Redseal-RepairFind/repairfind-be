@@ -77,7 +77,7 @@ var contractor_stripe_account_pipeline_1 = require("../../../database/contractor
 var generic_email_1 = require("../../../templates/common/generic_email");
 var services_1 = require("../../../services");
 var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, searchName, listing, minDistance, maxDistance, radius, latitude, longitude, emergencyJobs, category, location_1, city, country, address, accountType, date, isOffDuty, availableDays, experienceYear, gstNumber, _b, page, _c, limit, sort, minResponseTime, maxResponseTime, sortByResponseTime, hasPassedQuiz, gstStatus, stripeAccountStatus, availableDaysArray, skip, toRadians, mergedPipelines, pipeline, _d, sortField, sortOrder, sortStage, result, contractors, metadata, err_1;
+    var errors, _a, searchName, listing, minDistance, maxDistance, radius, latitude, longitude, emergencyJobs, category, location_1, city, country, address, accountType, date, isOffDuty, availability, experienceYear, gstNumber, _b, page, _c, limit, sort, minResponseTime, maxResponseTime, sortByResponseTime, hasPassedQuiz, gstStatus, stripeAccountStatus, availableDaysArray, skip, toRadians, mergedPipelines, pipeline, _d, sortField, sortOrder, sortStage, result, contractors, metadata, err_1;
     var _e;
     return __generator(this, function (_f) {
         switch (_f.label) {
@@ -89,8 +89,8 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
                 _f.label = 1;
             case 1:
                 _f.trys.push([1, 3, , 4]);
-                _a = req.query, searchName = _a.searchName, listing = _a.listing, minDistance = _a.minDistance, maxDistance = _a.maxDistance, radius = _a.radius, latitude = _a.latitude, longitude = _a.longitude, emergencyJobs = _a.emergencyJobs, category = _a.category, location_1 = _a.location, city = _a.city, country = _a.country, address = _a.address, accountType = _a.accountType, date = _a.date, isOffDuty = _a.isOffDuty, availableDays = _a.availableDays, experienceYear = _a.experienceYear, gstNumber = _a.gstNumber, _b = _a.page, page = _b === void 0 ? 1 : _b, _c = _a.limit, limit = _c === void 0 ? 10 : _c, sort = _a.sort, minResponseTime = _a.minResponseTime, maxResponseTime = _a.maxResponseTime, sortByResponseTime = _a.sortByResponseTime, hasPassedQuiz = _a.hasPassedQuiz, gstStatus = _a.gstStatus, stripeAccountStatus = _a.stripeAccountStatus;
-                availableDaysArray = availableDays ? availableDays.split(',') : [];
+                _a = req.query, searchName = _a.searchName, listing = _a.listing, minDistance = _a.minDistance, maxDistance = _a.maxDistance, radius = _a.radius, latitude = _a.latitude, longitude = _a.longitude, emergencyJobs = _a.emergencyJobs, category = _a.category, location_1 = _a.location, city = _a.city, country = _a.country, address = _a.address, accountType = _a.accountType, date = _a.date, isOffDuty = _a.isOffDuty, availability = _a.availability, experienceYear = _a.experienceYear, gstNumber = _a.gstNumber, _b = _a.page, page = _b === void 0 ? 1 : _b, _c = _a.limit, limit = _c === void 0 ? 10 : _c, sort = _a.sort, minResponseTime = _a.minResponseTime, maxResponseTime = _a.maxResponseTime, sortByResponseTime = _a.sortByResponseTime, hasPassedQuiz = _a.hasPassedQuiz, gstStatus = _a.gstStatus, stripeAccountStatus = _a.stripeAccountStatus;
+                availableDaysArray = availability ? availability.split(',') : [];
                 skip = (parseInt(page) - 1) * parseInt(limit);
                 toRadians = function (degrees) { return degrees * (Math.PI / 180); };
                 mergedPipelines = __spreadArray(__spreadArray([], contractor_stripe_account_pipeline_1.ContractorStripeAccountPipeline, true), contractor_quize_pipeline_1.ContractorQuizPipeline, true);
@@ -202,8 +202,8 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
                 if (gstNumber) {
                     pipeline.push({ $match: { "profile.gstNumber": gstNumber } });
                 }
-                if (availableDays) {
-                    pipeline.push({ $match: { "profile.availableDays": { $in: availableDaysArray } } });
+                if (availability) {
+                    pipeline.push({ $match: { "profile.availability": { $in: availableDaysArray } } });
                 }
                 if (radius) {
                     pipeline.push({ $match: { "distance": { $lte: parseInt(radius) } } });

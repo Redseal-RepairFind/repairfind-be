@@ -57,7 +57,7 @@ const contractors = [
     },
     profileData: {
       about: "About us here",
-      availableDays: [
+      availability: [
         "Monday",
         "Tuesday"
       ],
@@ -110,7 +110,7 @@ const contractors = [
     },
     profileData: {
       about: "About us here",
-      availableDays: [
+      availability: [
         "Monday",
         "Tuesday"
       ],
@@ -162,7 +162,7 @@ const contractors = [
     },
     profileData: {
       about: "About us here",
-      availableDays: [
+      availability: [
         "Monday",
         "Tuesday"
       ],

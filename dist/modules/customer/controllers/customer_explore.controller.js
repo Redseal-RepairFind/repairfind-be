@@ -73,7 +73,7 @@ var review_model_1 = require("../../../database/common/review.model");
 var customer_favorite_contractors_model_1 = __importDefault(require("../../../database/customer/models/customer_favorite_contractors.model"));
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, customerId, customer, _a, searchName, listing, minDistance, maxDistance, radius, _b, latitude, _c, longitude, emergencyJobs, category, location_1, city, country, address, accountType, date, isOffDuty, availableDays, experienceYear, gstNumber, _d, page, _e, limit, sort, minResponseTime, maxResponseTime, sortByResponseTime, availableDaysArray, skip, toRadians, pipeline, contractorIdsWithDateInSchedule, _f, sortField, sortOrder, sortStage, result, contractors, metadata, err_1;
+    var errors, customerId, customer, _a, searchName, listing, minDistance, maxDistance, radius, _b, latitude, _c, longitude, emergencyJobs, category, location_1, city, country, address, accountType, date, isOffDuty, availability, experienceYear, gstNumber, _d, page, _e, limit, sort, minResponseTime, maxResponseTime, sortByResponseTime, availableDaysArray, skip, toRadians, pipeline, contractorIdsWithDateInSchedule, _f, sortField, sortOrder, sortStage, result, contractors, metadata, err_1;
     var _g;
     var _h, _j;
     return __generator(this, function (_k) {
@@ -90,9 +90,9 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
                 _k.label = 2;
             case 2:
                 _k.trys.push([2, 6, , 7]);
-                _a = req.query, searchName = _a.searchName, listing = _a.listing, minDistance = _a.minDistance, maxDistance = _a.maxDistance, radius = _a.radius, _b = _a.latitude, latitude = _b === void 0 ? Number((_h = customer === null || customer === void 0 ? void 0 : customer.location) === null || _h === void 0 ? void 0 : _h.latitude) : _b, _c = _a.longitude, longitude = _c === void 0 ? Number((_j = customer === null || customer === void 0 ? void 0 : customer.location) === null || _j === void 0 ? void 0 : _j.longitude) : _c, emergencyJobs = _a.emergencyJobs, category = _a.category, location_1 = _a.location, city = _a.city, country = _a.country, address = _a.address, accountType = _a.accountType, date = _a.date, isOffDuty = _a.isOffDuty, availableDays = _a.availableDays, experienceYear = _a.experienceYear, gstNumber = _a.gstNumber, _d = _a.page, page = _d === void 0 ? 1 : _d, _e = _a.limit, limit = _e === void 0 ? 10 : _e, sort = _a.sort, minResponseTime = _a.minResponseTime, maxResponseTime = _a.maxResponseTime, sortByResponseTime = _a.sortByResponseTime;
+                _a = req.query, searchName = _a.searchName, listing = _a.listing, minDistance = _a.minDistance, maxDistance = _a.maxDistance, radius = _a.radius, _b = _a.latitude, latitude = _b === void 0 ? Number((_h = customer === null || customer === void 0 ? void 0 : customer.location) === null || _h === void 0 ? void 0 : _h.latitude) : _b, _c = _a.longitude, longitude = _c === void 0 ? Number((_j = customer === null || customer === void 0 ? void 0 : customer.location) === null || _j === void 0 ? void 0 : _j.longitude) : _c, emergencyJobs = _a.emergencyJobs, category = _a.category, location_1 = _a.location, city = _a.city, country = _a.country, address = _a.address, accountType = _a.accountType, date = _a.date, isOffDuty = _a.isOffDuty, availability = _a.availability, experienceYear = _a.experienceYear, gstNumber = _a.gstNumber, _d = _a.page, page = _d === void 0 ? 1 : _d, _e = _a.limit, limit = _e === void 0 ? 10 : _e, sort = _a.sort, minResponseTime = _a.minResponseTime, maxResponseTime = _a.maxResponseTime, sortByResponseTime = _a.sortByResponseTime;
                 console.log(latitude, longitude);
-                availableDaysArray = availableDays ? availableDays.split(',') : [];
+                availableDaysArray = availability ? availability.split(',') : [];
                 skip = (parseInt(page) - 1) * parseInt(limit);
                 toRadians = function (degrees) { return degrees * (Math.PI / 180); };
                 pipeline = [
@@ -307,8 +307,8 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
                 pipeline.push({ $match: { "profile.contractor": { $in: contractorIdsWithDateInSchedule } } });
                 _k.label = 4;
             case 4:
-                if (availableDays) {
-                    pipeline.push({ $match: { "profile.availableDays": { $in: availableDaysArray } } });
+                if (availability) {
+                    pipeline.push({ $match: { "profile.availability": { $in: availableDaysArray } } });
                 }
                 if (radius) {
                     pipeline.push({ $match: { "distance": { $lte: parseInt(radius) } } });
@@ -496,7 +496,7 @@ var getFavoriteContractors = function (req, res, next) { return __awaiter(void 0
 }); };
 exports.getFavoriteContractors = getFavoriteContractors;
 var getContractorSchedules = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, year, month, contractorId_1, contractorProfile, startDate_1, endDate_1, expandedSchedules, existingSchedules, mergedSchedules_1, uniqueSchedules, groupedSchedules, error_4;
+    var _a, year, month, contractorId_1, contractorProfile, startDate_1, endDate_1, availabilityDays, expandedSchedules, existingSchedules, mergedSchedules_1, uniqueSchedules, groupedSchedules, error_4;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -528,7 +528,10 @@ var getContractorSchedules = function (req, res) { return __awaiter(void 0, void
                     startDate_1 = (0, date_fns_1.startOfYear)(new Date("".concat(year, "-01-01")));
                     endDate_1 = (0, date_fns_1.endOfYear)(new Date("".concat(year, "-12-31")));
                 }
-                expandedSchedules = (0, schedule_util_1.generateExpandedSchedule)(contractorProfile.availableDays, year).filter(function (schedule) {
+                availabilityDays = contractorProfile.availability.map(function (availability) {
+                    return availability.day;
+                });
+                expandedSchedules = (0, schedule_util_1.generateExpandedSchedule)(availabilityDays, year).filter(function (schedule) {
                     return schedule.date >= startDate_1 && schedule.date <= endDate_1;
                 });
                 return [4 /*yield*/, contractor_schedule_model_1.ContractorScheduleModel.find({

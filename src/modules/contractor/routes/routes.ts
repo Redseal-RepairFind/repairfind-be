@@ -160,6 +160,7 @@ router.get("/schedules", checkContractorRole, ScheduleController.getSchedulesByD
 router.post("/schedules/events", checkContractorRole, ScheduleController.addOrUpdateSchedule);
 router.post("/schedules/availability", checkContractorRole, ScheduleController.setAvailability);
 router.get("/schedules/events", checkContractorRole, ScheduleController.getEventsByMonth);
+router.post("/schedules/toggle-off-duty", checkContractorRole, ScheduleController.toggleOffDuty);
 
 
 

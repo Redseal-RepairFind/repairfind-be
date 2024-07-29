@@ -33,6 +33,11 @@ var BankDetailsSchema = new mongoose_1.Schema({
     institutionNumber: String,
     accountNumber: String,
 });
+var AvailabilitySchema = new mongoose_1.Schema({
+    day: String,
+    startTime: String,
+    endTime: String,
+});
 var CompanyProfileSchema = new mongoose_1.Schema({
     contractor: {
         type: mongoose_1.Schema.Types.ObjectId,
@@ -54,8 +59,8 @@ var CompanyProfileSchema = new mongoose_1.Schema({
     experienceYear: {
         type: Number,
     },
-    availableDays: {
-        type: [String],
+    availability: {
+        type: [AvailabilitySchema],
     },
     isOffDuty: {
         type: Boolean,

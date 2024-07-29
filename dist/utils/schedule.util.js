@@ -77,7 +77,9 @@ var isDateInExpandedSchedule = function (dateToCheck, contractorId) { return __a
                 contractor = _b.sent();
                 if (!contractor)
                     return [2 /*return*/, false];
-                availabilityDays = (_a = contractor.availableDays) !== null && _a !== void 0 ? _a : [];
+                availabilityDays = (_a = contractor.availability.map(function (availability) {
+                    return availability.day;
+                })) !== null && _a !== void 0 ? _a : [];
                 expandedSchedule = (0, exports.generateExpandedSchedule)(availabilityDays);
                 isDateInExpandedSchedule_1 = expandedSchedule.some(function (schedule) { return dateToCheck.toDateString() === schedule.date.toDateString(); });
                 return [2 /*return*/, isDateInExpandedSchedule_1];

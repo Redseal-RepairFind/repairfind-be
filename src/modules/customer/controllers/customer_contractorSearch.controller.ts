@@ -78,7 +78,7 @@ export const customerSearchForContractorByCategoryAndDateController = async (
         const searchContractors = await ContractorProfileModel.find({
             $and: [
                 { skill: { $regex: new RegExp(category, 'i') } },
-                { availableDays: { $regex: new RegExp(date, 'i') } },
+                { availability: { $regex: new RegExp(date, 'i') } },
             ]
         });
 
@@ -202,7 +202,7 @@ export const customerFilterContractoController = async (
                         { "location.longitude" : { $regex: new RegExp(lanLong.longitude.toString(), 'i') } },
                     ]
                 },
-                { availableDays: { $regex: new RegExp(date, 'i') } },
+                { availability: { $regex: new RegExp(date, 'i') } },
                 { skill: { $regex: new RegExp(category, 'i') } },
             ]
             

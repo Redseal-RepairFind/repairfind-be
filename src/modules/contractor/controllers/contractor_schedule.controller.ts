@@ -80,7 +80,7 @@ export const setAvailability = async (req: any, res: Response) => {
       return res.status(400).json({ success: false, message: 'Contractor not found' });
     }
 
-    contractorProfile.availableDays = days
+    contractorProfile.availability = days
     if (isOffDuty) {
       contractorProfile.isOffDuty = isOffDuty
     }
@@ -88,6 +88,28 @@ export const setAvailability = async (req: any, res: Response) => {
 
 
     res.json({ success: true, message: 'Schedules updated successfully' });
+
+  } catch (error) {
+    console.error('Error retrieving schedules:', error);
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+};
+
+
+export const toggleOffDuty = async (req: any, res: Response) => {
+  try {
+    const contractorId = req.contractor.id;
+
+    const contractorProfile = await ContractorProfileModel.findOne({ contractor: contractorId })
+
+    if (!contractorProfile) {
+      return res.status(400).json({ success: false, message: 'Contractor not found' });
+    }
+
+    contractorProfile.isOffDuty = !contractorProfile.isOffDuty;
+    await contractorProfile.save()
+
+    res.json({ success: true, message: 'Vacation mode updated successfully' });
 
   } catch (error) {
     console.error('Error retrieving schedules:', error);
@@ -172,7 +194,10 @@ export const getSchedulesByDate = async (req: any, res: Response) => {
 
     // Group schedules by year and month
 
-    const expandedSchedules: any = generateExpandedSchedule(contractorProfile.availableDays, year).filter(schedule => {
+    const availabilityDays  = contractorProfile.availability.map(availability =>{
+      return availability.day
+    });
+    const expandedSchedules: any = generateExpandedSchedule(availabilityDays, year).filter(schedule => {
       return schedule.date >= startDate && schedule.date <= endDate;
     });
 
@@ -397,7 +422,7 @@ export const addOrUpdateAvailability = async (req: any, res: Response) => {
       return res.status(400).json({ success: false, message: 'Contractor profile not found' });
     }
 
-    contractorProfile.availableDays = days;
+    contractorProfile.availability = days;
     contractorProfile.save()
 
     res.json({ success: true, message: 'Availability Schedule updated  successfully', data: contractorProfile });
@@ -480,7 +505,8 @@ export const ScheduleController = {
   addOrUpdateSchedule,
   getEventsByMonth,
   isDateInExpandedSchedule,
-  setAvailability
+  setAvailability,
+  toggleOffDuty
 }
 
 

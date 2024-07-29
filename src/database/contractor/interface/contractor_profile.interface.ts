@@ -24,6 +24,12 @@ export interface IContractorBankDetails  extends Document  {
   accountNumber: string,
 }
 
+export interface IContractorAvailability  extends Document  {
+  day: string,
+  startTime: string,
+  endTime: string,
+}
+
 
 export interface IContractorLocation extends Document  {
   address: string,
@@ -44,7 +50,7 @@ export interface IContractorProfile extends Document {
   website: string;
   email: string;
   emergencyJobs: boolean;
-  availableDays: string[],
+  availability: IContractorAvailability[],
   isOffDuty?: boolean,
   profileType: string,
   previousJobPhotos:  Array<IContractorJobPhoto>;

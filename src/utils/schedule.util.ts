@@ -50,7 +50,9 @@ export const isDateInExpandedSchedule = async (dateToCheck: any, contractorId: a
 
         let contractor  = await ContractorProfileModel.findOne({contractor: contractorId})
         if(!contractor) return false
-        let availabilityDays = contractor.availableDays ?? []
+        let availabilityDays = contractor.availability.map(availability =>{
+            return availability.day
+        }) ?? []
 
         // Check if the date falls within the expanded schedule
         const expandedSchedule = generateExpandedSchedule(availabilityDays);

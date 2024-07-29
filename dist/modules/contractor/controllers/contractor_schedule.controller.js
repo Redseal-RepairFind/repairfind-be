@@ -56,7 +56,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ScheduleController = exports.isDateInExpandedSchedule = exports.getEventsByMonth = exports.addOrUpdateAvailability = exports.addOrUpdateSchedule = exports.getSchedulesByDate = exports.getSchedules = exports.setAvailability = exports.createSchedule = void 0;
+exports.ScheduleController = exports.isDateInExpandedSchedule = exports.getEventsByMonth = exports.addOrUpdateAvailability = exports.addOrUpdateSchedule = exports.getSchedulesByDate = exports.getSchedules = exports.toggleOffDuty = exports.setAvailability = exports.createSchedule = void 0;
 var contractor_schedule_model_1 = require("../../../database/contractor/models/contractor_schedule.model");
 var express_validator_1 = require("express-validator");
 var date_fns_1 = require("date-fns");
@@ -143,7 +143,7 @@ var setAvailability = function (req, res) { return __awaiter(void 0, void 0, voi
                 if (!contractorProfile) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Contractor not found' })];
                 }
-                contractorProfile.availableDays = days;
+                contractorProfile.availability = days;
                 if (isOffDuty) {
                     contractorProfile.isOffDuty = isOffDuty;
                 }
@@ -162,8 +162,37 @@ var setAvailability = function (req, res) { return __awaiter(void 0, void 0, voi
     });
 }); };
 exports.setAvailability = setAvailability;
+var toggleOffDuty = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var contractorId, contractorProfile, error_3;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 3, , 4]);
+                contractorId = req.contractor.id;
+                return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: contractorId })];
+            case 1:
+                contractorProfile = _a.sent();
+                if (!contractorProfile) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Contractor not found' })];
+                }
+                contractorProfile.isOffDuty = !contractorProfile.isOffDuty;
+                return [4 /*yield*/, contractorProfile.save()];
+            case 2:
+                _a.sent();
+                res.json({ success: true, message: 'Vacation mode updated successfully' });
+                return [3 /*break*/, 4];
+            case 3:
+                error_3 = _a.sent();
+                console.error('Error retrieving schedules:', error_3);
+                res.status(500).json({ success: false, message: 'Internal Server Error' });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.toggleOffDuty = toggleOffDuty;
 var getSchedules = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, year, month, contractorId, startDate, endDate, schedules, error_3;
+    var _a, year, month, contractorId, startDate, endDate, schedules, error_4;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -196,8 +225,8 @@ var getSchedules = function (req, res) { return __awaiter(void 0, void 0, void 0
                 res.json({ success: true, message: 'Schedules retrieved successfully', data: schedules });
                 return [3 /*break*/, 3];
             case 2:
-                error_3 = _b.sent();
-                console.error('Error retrieving schedules:', error_3);
+                error_4 = _b.sent();
+                console.error('Error retrieving schedules:', error_4);
                 res.status(500).json({ success: false, message: 'Internal Server Error' });
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
@@ -206,7 +235,7 @@ var getSchedules = function (req, res) { return __awaiter(void 0, void 0, void 0
 }); };
 exports.getSchedules = getSchedules;
 var getSchedulesByDate = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, year, month, contractorId_1, contractorProfile, startDate_1, endDate_1, expandedSchedules, jobs, jobSchedules, existingSchedules, mergedSchedules_1, uniqueSchedules_1, groupedSchedules, error_4;
+    var _a, year, month, contractorId_1, contractorProfile, startDate_1, endDate_1, availabilityDays, expandedSchedules, jobs, jobSchedules, existingSchedules, mergedSchedules_1, uniqueSchedules_1, groupedSchedules, error_5;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -238,7 +267,10 @@ var getSchedulesByDate = function (req, res) { return __awaiter(void 0, void 0, 
                     startDate_1 = (0, date_fns_1.startOfYear)(new Date("".concat(year, "-01-01")));
                     endDate_1 = (0, date_fns_1.endOfYear)(new Date("".concat(year, "-12-31")));
                 }
-                expandedSchedules = (0, schedule_util_1.generateExpandedSchedule)(contractorProfile.availableDays, year).filter(function (schedule) {
+                availabilityDays = contractorProfile.availability.map(function (availability) {
+                    return availability.day;
+                });
+                expandedSchedules = (0, schedule_util_1.generateExpandedSchedule)(availabilityDays, year).filter(function (schedule) {
                     return schedule.date >= startDate_1 && schedule.date <= endDate_1;
                 });
                 return [4 /*yield*/, job_model_1.JobModel.find({
@@ -323,8 +355,8 @@ var getSchedulesByDate = function (req, res) { return __awaiter(void 0, void 0, 
                 res.json({ success: true, message: 'Schedules retrieved successfully', data: groupedSchedules });
                 return [3 /*break*/, 7];
             case 6:
-                error_4 = _b.sent();
-                console.error('Error retrieving schedules:', error_4);
+                error_5 = _b.sent();
+                console.error('Error retrieving schedules:', error_5);
                 res.status(500).json({ success: false, message: 'Internal Server Error' });
                 return [3 /*break*/, 7];
             case 7: return [2 /*return*/];
@@ -333,7 +365,7 @@ var getSchedulesByDate = function (req, res) { return __awaiter(void 0, void 0, 
 }); };
 exports.getSchedulesByDate = getSchedulesByDate;
 var addOrUpdateSchedule = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, date, note, startTime_1, endTime_1, booking, title, type, contractorId, existingSchedule, events, isOverlapping, index, updatedSchedule, newScheduleData, newSchedule, error_5;
+    var errors, _a, date, note, startTime_1, endTime_1, booking, title, type, contractorId, existingSchedule, events, isOverlapping, index, updatedSchedule, newScheduleData, newSchedule, error_6;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -411,8 +443,8 @@ var addOrUpdateSchedule = function (req, res) { return __awaiter(void 0, void 0,
                 _b.label = 5;
             case 5: return [3 /*break*/, 7];
             case 6:
-                error_5 = _b.sent();
-                console.error('Error adding or updating schedule:', error_5);
+                error_6 = _b.sent();
+                console.error('Error adding or updating schedule:', error_6);
                 res.status(500).json({ success: false, message: 'Internal Server Error' });
                 return [3 /*break*/, 7];
             case 7: return [2 /*return*/];
@@ -421,7 +453,7 @@ var addOrUpdateSchedule = function (req, res) { return __awaiter(void 0, void 0,
 }); };
 exports.addOrUpdateSchedule = addOrUpdateSchedule;
 var addOrUpdateAvailability = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var days, contractorId, contractorProfile, error_6;
+    var days, contractorId, contractorProfile, error_7;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -434,13 +466,13 @@ var addOrUpdateAvailability = function (req, res) { return __awaiter(void 0, voi
                 if (!contractorProfile) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Contractor profile not found' })];
                 }
-                contractorProfile.availableDays = days;
+                contractorProfile.availability = days;
                 contractorProfile.save();
                 res.json({ success: true, message: 'Availability Schedule updated  successfully', data: contractorProfile });
                 return [3 /*break*/, 3];
             case 2:
-                error_6 = _a.sent();
-                console.error('Error adding or updating schedule:', error_6);
+                error_7 = _a.sent();
+                console.error('Error adding or updating schedule:', error_7);
                 res.status(500).json({ success: false, message: 'Internal Server Error' });
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
@@ -449,7 +481,7 @@ var addOrUpdateAvailability = function (req, res) { return __awaiter(void 0, voi
 }); };
 exports.addOrUpdateAvailability = addOrUpdateAvailability;
 var getEventsByMonth = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, _b, year, month, contractorId, startDate, endDate, jobs, error_7;
+    var _a, _b, year, month, contractorId, startDate, endDate, jobs, error_8;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
@@ -481,8 +513,8 @@ var getEventsByMonth = function (req, res) { return __awaiter(void 0, void 0, vo
                 res.json({ success: true, message: 'Events retrieved successfully', data: jobs });
                 return [3 /*break*/, 3];
             case 2:
-                error_7 = _c.sent();
-                console.error('Error retrieving events:', error_7);
+                error_8 = _c.sent();
+                console.error('Error retrieving events:', error_8);
                 res.status(500).json({ success: false, message: 'Internal Server Error' });
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
@@ -516,5 +548,6 @@ exports.ScheduleController = {
     addOrUpdateSchedule: exports.addOrUpdateSchedule,
     getEventsByMonth: exports.getEventsByMonth,
     isDateInExpandedSchedule: exports.isDateInExpandedSchedule,
-    setAvailability: exports.setAvailability
+    setAvailability: exports.setAvailability,
+    toggleOffDuty: exports.toggleOffDuty
 };

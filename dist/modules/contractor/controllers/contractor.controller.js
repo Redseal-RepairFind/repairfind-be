@@ -112,7 +112,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     }
     ProfileHandler.prototype.createProfile = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _a, location_1, backgroundCheckConsent, skill, website, experienceYear, about, email, phoneNumber, emergencyJobs, availableDays, profilePhoto, previousJobPhotos, previousJobVideos, contractorId, contractor_1, errors, payload, profile, _b, contractorResponse, data, htmlCon, html, adminsWithEmails, adminEmails, err_1;
+            var req, res, _a, location_1, backgroundCheckConsent, skill, website, experienceYear, about, email, phoneNumber, emergencyJobs, availability, profilePhoto, previousJobPhotos, previousJobVideos, contractorId, contractor_1, errors, payload, profile, _b, contractorResponse, data, htmlCon, html, adminsWithEmails, adminEmails, err_1;
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
@@ -121,7 +121,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         _c.label = 1;
                     case 1:
                         _c.trys.push([1, 7, , 8]);
-                        _a = req.body, location_1 = _a.location, backgroundCheckConsent = _a.backgroundCheckConsent, skill = _a.skill, website = _a.website, experienceYear = _a.experienceYear, about = _a.about, email = _a.email, phoneNumber = _a.phoneNumber, emergencyJobs = _a.emergencyJobs, availableDays = _a.availableDays, profilePhoto = _a.profilePhoto, previousJobPhotos = _a.previousJobPhotos, previousJobVideos = _a.previousJobVideos;
+                        _a = req.body, location_1 = _a.location, backgroundCheckConsent = _a.backgroundCheckConsent, skill = _a.skill, website = _a.website, experienceYear = _a.experienceYear, about = _a.about, email = _a.email, phoneNumber = _a.phoneNumber, emergencyJobs = _a.emergencyJobs, availability = _a.availability, profilePhoto = _a.profilePhoto, previousJobPhotos = _a.previousJobPhotos, previousJobVideos = _a.previousJobVideos;
                         contractorId = req.contractor.id;
                         return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
                     case 2:
@@ -145,7 +145,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                                 email: email,
                                 phoneNumber: phoneNumber,
                                 emergencyJobs: emergencyJobs,
-                                availableDays: availableDays,
+                                availability: availability,
                                 profilePhoto: profilePhoto,
                                 previousJobPhotos: previousJobPhotos,
                                 previousJobVideos: previousJobVideos,
@@ -266,7 +266,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     };
     ProfileHandler.prototype.updateProfile = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, contractor, contractorId, _a, website, experienceYear, about, email, location_2, phoneNumber, emergencyJobs, availableDays, previousJobPhotos, previousJobVideos, profilePhoto, backgroundCheckConsent, skill, errors, profile, payload, _b, contractorResponse, err_3;
+            var req, res, contractor, contractorId, _a, website, experienceYear, about, email, location_2, phoneNumber, emergencyJobs, availability, previousJobPhotos, previousJobVideos, profilePhoto, backgroundCheckConsent, skill, errors, profile, payload, _b, contractorResponse, err_3;
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
@@ -277,7 +277,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         _c.trys.push([1, 6, , 7]);
                         contractor = req.contractor;
                         contractorId = contractor.id;
-                        _a = req.body, website = _a.website, experienceYear = _a.experienceYear, about = _a.about, email = _a.email, location_2 = _a.location, phoneNumber = _a.phoneNumber, emergencyJobs = _a.emergencyJobs, availableDays = _a.availableDays, previousJobPhotos = _a.previousJobPhotos, previousJobVideos = _a.previousJobVideos, profilePhoto = _a.profilePhoto, backgroundCheckConsent = _a.backgroundCheckConsent, skill = _a.skill;
+                        _a = req.body, website = _a.website, experienceYear = _a.experienceYear, about = _a.about, email = _a.email, location_2 = _a.location, phoneNumber = _a.phoneNumber, emergencyJobs = _a.emergencyJobs, availability = _a.availability, previousJobPhotos = _a.previousJobPhotos, previousJobVideos = _a.previousJobVideos, profilePhoto = _a.profilePhoto, backgroundCheckConsent = _a.backgroundCheckConsent, skill = _a.skill;
                         errors = (0, express_validator_1.validationResult)(req);
                         if (!errors.isEmpty()) {
                             return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -300,7 +300,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                                 email: email,
                                 phoneNumber: phoneNumber,
                                 emergencyJobs: emergencyJobs,
-                                availableDays: availableDays,
+                                availability: availability,
                                 profilePhoto: profilePhoto,
                                 previousJobPhotos: previousJobPhotos,
                                 previousJobVideos: previousJobVideos,
@@ -344,7 +344,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     };
     ProfileHandler.prototype.upgradeEmployeeProfile = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, next, contractor, contractorId, _a, gstDetails, website, experienceYear, about, email, location_3, phoneNumber, emergencyJobs, availableDays, previousJobPhotos, previousJobVideos, skill, errors, profile, _b, contractorResponse, err_4;
+            var req, res, next, contractor, contractorId, _a, gstDetails, website, experienceYear, about, email, location_3, phoneNumber, emergencyJobs, availability, previousJobPhotos, previousJobVideos, skill, errors, profile, _b, contractorResponse, err_4;
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
@@ -356,7 +356,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         _c.trys.push([1, 5, , 6]);
                         contractor = req.contractor;
                         contractorId = contractor.id;
-                        _a = req.body, gstDetails = _a.gstDetails, website = _a.website, experienceYear = _a.experienceYear, about = _a.about, email = _a.email, location_3 = _a.location, phoneNumber = _a.phoneNumber, emergencyJobs = _a.emergencyJobs, availableDays = _a.availableDays, previousJobPhotos = _a.previousJobPhotos, previousJobVideos = _a.previousJobVideos, skill = _a.skill;
+                        _a = req.body, gstDetails = _a.gstDetails, website = _a.website, experienceYear = _a.experienceYear, about = _a.about, email = _a.email, location_3 = _a.location, phoneNumber = _a.phoneNumber, emergencyJobs = _a.emergencyJobs, availability = _a.availability, previousJobPhotos = _a.previousJobPhotos, previousJobVideos = _a.previousJobVideos, skill = _a.skill;
                         errors = (0, express_validator_1.validationResult)(req);
                         if (!errors.isEmpty()) {
                             return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -369,7 +369,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                                 email: email,
                                 phoneNumber: phoneNumber,
                                 emergencyJobs: emergencyJobs,
-                                availableDays: availableDays,
+                                availability: availability,
                                 previousJobPhotos: previousJobPhotos,
                                 previousJobVideos: previousJobVideos,
                                 skill: skill,
