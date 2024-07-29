@@ -4,7 +4,7 @@ var contractorRoleCheck_middleware_1 = require("../middleware/contractorRoleChec
 var contractor_auth_controller_1 = require("../controllers/contractor_auth.controller");
 var requests_1 = require("../requests");
 var contractor_controller_1 = require("../controllers/contractor.controller");
-var contractor_quiz_controller_1 = require("../controllers/contractor_quiz.controller");
+var contractor_training_controller_1 = require("../controllers/contractor_training.controller");
 var contractor_team_controller_1 = require("../controllers/contractor_team.controller");
 var contractor_schedule_controller_1 = require("../controllers/contractor_schedule.controller");
 var contractor_stripe_controller_1 = require("../controllers/contractor_stripe.controller");
@@ -102,13 +102,12 @@ router.post("/me/stripe-identity", contractorRoleCheck_middleware_1.checkContrac
 router.post("/signout", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
     (0, contractor_controller_1.ContractorController)(req, res, next).signOut();
 });
-router.post("/feeback", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
+router.post("/feedback", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
     (0, contractor_controller_1.ContractorController)(req, res, next).submitFeedback();
 });
 //  QUiz
-router.get("/quiz-start", contractorRoleCheck_middleware_1.checkContractorRole, contractor_quiz_controller_1.QuizController.StartQuiz);
-router.get("/quiz-result", contractorRoleCheck_middleware_1.checkContractorRole, contractor_quiz_controller_1.QuizController.GetQuizResult);
-router.post("/quiz-submit", contractorRoleCheck_middleware_1.checkContractorRole, contractor_quiz_controller_1.QuizController.SubmitQuiz);
+router.get("/quiz-start", contractorRoleCheck_middleware_1.checkContractorRole, contractor_training_controller_1.QuizController.StartQuiz);
+router.post("/quiz-submit", contractorRoleCheck_middleware_1.checkContractorRole, contractor_training_controller_1.QuizController.SubmitQuiz);
 //  Company Team
 router.post("/teams/invite", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.InviteToTeam, contractor_team_invitation_controller_1.TeamInvitationController.inviteToTeam);
 router.get("/teams", contractorRoleCheck_middleware_1.checkContractorRole, contractor_team_controller_1.TeamController.getTeam);

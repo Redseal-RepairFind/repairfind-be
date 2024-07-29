@@ -1,5 +1,5 @@
 import { validationResult } from "express-validator";
-import { Request, Response } from "express";
+import { Request, Response, urlencoded } from "express";
 import QuestionModel, { IQuestion } from "../../../database/admin/models/question.model";
 import QuizModel, { IQuiz } from "../../../database/admin/models/quiz.model";
 import { ObjectId } from "mongoose";
@@ -12,12 +12,14 @@ import { CONTRACTOR_BADGE } from "../../../database/contractor/interface/contrac
 
 
 
-export const StartQuiz = async (_: any, res: Response) => {
+export const StartQuiz = async (req: any, res: Response) => {
   try {
+
+    const contractorId = req.contractor.id
     // Retrieve a random quiz
     // const randomQuiz: IQuiz | null = await QuizModel.aggregate([{ $sample: { size: 1 } }]);
     const randomQuizzes: any[] = await QuizModel.aggregate([{ $sample: { size: 1 } }]);
-    let randomQuiz: IQuiz | null = randomQuizzes[0] as IQuiz | null;
+    let randomQuiz = randomQuizzes[0] ;
     if (!randomQuiz) {
       return res.status(404).json({
         status: false,
@@ -32,10 +34,12 @@ export const StartQuiz = async (_: any, res: Response) => {
     ]);
 
     randomQuiz.questions = randomQuestions
+    const quizSession = encodeURI(`https://contractorapp.netlify.app/training?session=${ contractorId+"%"+randomQuiz._id }`)
+    randomQuiz.session = quizSession
 
     res.json({
       status: true,
-      message: 'Quize retrieved',
+      message: 'Quiz retrieved',
       data: randomQuiz,
     });
   } catch (error: any) {
@@ -45,62 +49,6 @@ export const StartQuiz = async (_: any, res: Response) => {
     });
   }
 };
-
-
-//contractor  get quiz result
-export const GetQuizResult = async (
-  req: any,
-  res: Response,
-) => {
-
-  try {
-    const {
-
-    } = req.body;
-
-    // Check for validation errors
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
-
-    const contractor = req.contractor;
-    const contractorId = contractor.id
-
-    //get user info from databas
-    const contractorExist = await ContractorModel.findOne({ _id: contractorId });
-
-    if (!contractorExist) {
-      return res
-        .status(401)
-        .json({ message: "invalid credential" });
-    }
-
-    // const checkTakeTestAlready = await ContractorQuizModel.find({contractorId});  
-
-    // if (checkTakeTestAlready.length < 1) {
-    //   return res
-    //     .status(401)
-    //     .json({ message: "start the quiz first" });
-    // }
-
-    // const totalPass = await ContractorQuizModel.countDocuments({contractorId, mark: "pass"})
-
-    // const totalQustion = await ContractorQuizModel.countDocuments({contractorId,})
-
-
-    res.json({
-      // totalPass,
-      // totalQustion
-    });
-
-  } catch (err: any) {
-    res.status(500).json({ status: false, message: err.message });
-  }
-
-}
-
 
 
 export const SubmitQuiz = async (
@@ -244,6 +192,5 @@ export const SubmitQuiz = async (
 export const QuizController = {
   StartQuiz,
   SubmitQuiz,
-  GetQuizResult
 }
 

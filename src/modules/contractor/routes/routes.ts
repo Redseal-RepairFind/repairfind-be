@@ -4,7 +4,7 @@ import { AuthController } from "../controllers/contractor_auth.controller";
 import { NextFunction, Request, Response } from "express";
 import { ContractorHttpRequest } from "../requests";
 import { ContractorController } from "../controllers/contractor.controller";
-import { QuizController } from "../controllers/contractor_quiz.controller";
+import { QuizController } from "../controllers/contractor_training.controller";
 import { TeamController } from "../controllers/contractor_team.controller";
 import { ScheduleController } from "../controllers/contractor_schedule.controller";
 import { ContractorStripeController } from "../controllers/contractor_stripe.controller";
@@ -124,14 +124,13 @@ router.post("/me/stripe-identity", checkContractorRole, (req: Request, res: Resp
 router.post("/signout", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
     ContractorController(req, res, next).signOut();
 });
-router.post("/feeback", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
+router.post("/feedback", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
     ContractorController(req, res, next).submitFeedback();
 });
 
 
 //  QUiz
 router.get("/quiz-start", checkContractorRole, QuizController.StartQuiz );
-router.get("/quiz-result", checkContractorRole, QuizController.GetQuizResult); 
 router.post("/quiz-submit", checkContractorRole, QuizController.SubmitQuiz); 
 
 

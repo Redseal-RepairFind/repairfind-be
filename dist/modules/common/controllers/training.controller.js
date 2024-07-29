@@ -50,20 +50,27 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.QuizController = exports.SubmitQuiz = exports.GetQuizResult = exports.StartQuiz = void 0;
-var express_validator_1 = require("express-validator");
-var question_model_1 = __importDefault(require("../../../database/admin/models/question.model"));
+exports.TrainingController = exports.submitQuiz = exports.getQuiz = void 0;
 var quiz_model_1 = __importDefault(require("../../../database/admin/models/quiz.model"));
+var question_model_1 = __importDefault(require("../../../database/admin/models/question.model"));
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var contractor_quiz_model_1 = __importDefault(require("../../../database/contractor/models/contractor_quiz.model"));
 var review_model_1 = require("../../../database/common/review.model");
 var contractor_interface_1 = require("../../../database/contractor/interface/contractor.interface");
-var StartQuiz = function (_, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var randomQuizzes, randomQuiz, randomQuestions, error_1;
+var services_1 = require("../../../services");
+var getQuiz = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var session, randomQuizzes, randomQuiz, randomQuestions, quizSession, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 3, , 4]);
+                session = req.query.session;
+                if (!session) {
+                    return [2 /*return*/, res.status(404).json({
+                            status: false,
+                            message: 'Session does not exists',
+                        })];
+                }
                 return [4 /*yield*/, quiz_model_1.default.aggregate([{ $sample: { size: 1 } }])];
             case 1:
                 randomQuizzes = _a.sent();
@@ -81,9 +88,11 @@ var StartQuiz = function (_, res) { return __awaiter(void 0, void 0, void 0, fun
             case 2:
                 randomQuestions = _a.sent();
                 randomQuiz.questions = randomQuestions;
+                quizSession = encodeURI("https://contractorapp.netlify.app/training?session=".concat(session));
+                randomQuiz.session = quizSession;
                 res.json({
                     status: true,
-                    message: 'Quize retrieved',
+                    message: 'Quiz retrieved',
                     data: randomQuiz,
                 });
                 return [3 /*break*/, 4];
@@ -98,107 +107,74 @@ var StartQuiz = function (_, res) { return __awaiter(void 0, void 0, void 0, fun
         }
     });
 }); };
-exports.StartQuiz = StartQuiz;
-//contractor  get quiz result
-var GetQuizResult = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, errors, contractor, contractorId, contractorExist, err_1;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+exports.getQuiz = getQuiz;
+var submitQuiz = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var response, session, _a, contractorId, quizId, contractor, quiz, questions_1, quizResults, contractorQuiz, result, onboarding, ratings, review, existingReview, totalRatings, totalReviewScore, averageRating, newReview_1, foundIndex, err_1;
+    var _b;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
             case 0:
-                _b.trys.push([0, 2, , 3]);
-                _a = req.body;
-                errors = (0, express_validator_1.validationResult)(req);
-                if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                _c.trys.push([0, 11, , 12]);
+                response = req.body.response;
+                session = req.query.session;
+                if (!session) {
+                    return [2 /*return*/, res.status(404).json({
+                            status: false,
+                            message: 'Session does not exists',
+                        })];
                 }
-                contractor = req.contractor;
-                contractorId = contractor.id;
+                _a = session.split('%'), contractorId = _a[0], quizId = _a[1];
+                console.log(contractorId, quizId);
+                if (!response) {
+                    return [2 /*return*/, res.status(404).json({
+                            status: false,
+                            message: 'Quiz response is required',
+                        })];
+                }
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: contractorId })];
             case 1:
-                contractorExist = _b.sent();
-                if (!contractorExist) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ message: "invalid credential" })];
-                }
-                // const checkTakeTestAlready = await ContractorQuizModel.find({contractorId});  
-                // if (checkTakeTestAlready.length < 1) {
-                //   return res
-                //     .status(401)
-                //     .json({ message: "start the quiz first" });
-                // }
-                // const totalPass = await ContractorQuizModel.countDocuments({contractorId, mark: "pass"})
-                // const totalQustion = await ContractorQuizModel.countDocuments({contractorId,})
-                res.json({
-                // totalPass,
-                // totalQustion
-                });
-                return [3 /*break*/, 3];
-            case 2:
-                err_1 = _b.sent();
-                res.status(500).json({ status: false, message: err_1.message });
-                return [3 /*break*/, 3];
-            case 3: return [2 /*return*/];
-        }
-    });
-}); };
-exports.GetQuizResult = GetQuizResult;
-var SubmitQuiz = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, quizId, response, errors, contractorId, contractor, quiz, questions_1, quizResults, contractorQuiz, result, onboarding, ratings, review, existingReview, totalRatings, totalReviewScore, averageRating, newReview_1, foundIndex, err_2;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0:
-                _b.trys.push([0, 11, , 12]);
-                _a = req.body, quizId = _a.quizId, response = _a.response;
-                errors = (0, express_validator_1.validationResult)(req);
-                if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
-                }
-                contractorId = req.contractor.id;
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: contractorId })];
-            case 1:
-                contractor = _b.sent();
+                contractor = _c.sent();
                 if (!contractor) {
-                    return [2 /*return*/, res.status(401).json({ message: 'Invalid credentials' })];
+                    return [2 /*return*/, res.status(401).json({ message: 'Contractor not found' })];
                 }
                 return [4 /*yield*/, quiz_model_1.default.findOne({ _id: quizId })];
             case 2:
-                quiz = _b.sent();
+                quiz = _c.sent();
                 if (!quiz) {
                     return [2 /*return*/, res.status(401).json({ message: 'Incorrect quiz ID' })];
                 }
                 return [4 /*yield*/, question_model_1.default.find({ quiz: quizId })];
             case 3:
-                questions_1 = _b.sent();
-                quizResults = response.map(function (userReponse) {
-                    var question = questions_1.find(function (q) { return q.question === userReponse.question; });
+                questions_1 = _c.sent();
+                quizResults = response.map(function (userResponse) {
+                    var question = questions_1.find(function (q) { return q.question === userResponse.question; });
                     if (!question) {
                         return {
-                            question: userReponse.question,
-                            userAnswer: userReponse.answer,
+                            question: userResponse.question,
+                            userAnswer: userResponse.answer,
                             correct: false,
                         };
                     }
                     // Check if user's answer is in the array of correct answers
-                    var isCorrect = question.answer.includes(userReponse.answer);
+                    var isCorrect = question.answer.includes(userResponse.answer);
                     return {
-                        question: userReponse.question,
-                        userAnswer: userReponse.answer,
+                        question: userResponse.question,
+                        userAnswer: userResponse.answer,
                         correct: isCorrect,
                     };
                 });
                 return [4 /*yield*/, contractor_quiz_model_1.default.findOneAndUpdate({ contractor: contractorId, quiz: quizId }, { $set: { response: quizResults } }, { new: true, upsert: true })];
             case 4:
-                contractorQuiz = _b.sent();
+                contractorQuiz = _c.sent();
                 if (!contractorQuiz) {
                     return [2 /*return*/, res.status(500).json({ success: false, message: 'Failed to update or create ContractorQuiz' })];
                 }
                 return [4 /*yield*/, contractorQuiz.result];
             case 5:
-                result = _b.sent();
+                result = _c.sent();
                 return [4 /*yield*/, contractor.getOnboarding()];
             case 6:
-                onboarding = _b.sent();
+                onboarding = _c.sent();
                 contractor.onboarding = onboarding;
                 if (!onboarding.hasPassedQuiz) return [3 /*break*/, 10];
                 ratings = [
@@ -210,7 +186,7 @@ var SubmitQuiz = function (req, res) { return __awaiter(void 0, void 0, void 0, 
                 review = 'Contractor has completed the basic customer service training with Repairfind and has attained a verification badge';
                 return [4 /*yield*/, review_model_1.ReviewModel.findOne({ contractor: contractorId, type: review_model_1.REVIEW_TYPE.TRAINING_COMPLETION })];
             case 7:
-                existingReview = _b.sent();
+                existingReview = _c.sent();
                 if (!!existingReview) return [3 /*break*/, 10];
                 totalRatings = ratings === null || ratings === void 0 ? void 0 : ratings.length;
                 totalReviewScore = totalRatings ? ratings.reduce(function (a, b) { return a + b.rating; }, 0) : 0;
@@ -225,7 +201,7 @@ var SubmitQuiz = function (req, res) { return __awaiter(void 0, void 0, void 0, 
                         createdAt: new Date(),
                     }, { new: true, upsert: true })];
             case 8:
-                newReview_1 = _b.sent();
+                newReview_1 = _c.sent();
                 foundIndex = contractor.reviews.findIndex(function (review) { return review.review == newReview_1.id; });
                 if (foundIndex !== -1) {
                     contractor.reviews[foundIndex] = { review: newReview_1.id, averageRating: averageRating };
@@ -236,9 +212,24 @@ var SubmitQuiz = function (req, res) { return __awaiter(void 0, void 0, void 0, 
                 contractor.badge = { label: contractor_interface_1.CONTRACTOR_BADGE.TRAINING };
                 return [4 /*yield*/, contractor.save()];
             case 9:
-                _b.sent();
-                _b.label = 10;
+                _c.sent();
+                _c.label = 10;
             case 10:
+                services_1.NotificationService.sendNotification({
+                    user: contractor.id,
+                    userType: 'contractors',
+                    title: 'Quiz Submitted',
+                    type: 'QUIZ_SUBMITTED',
+                    message: "You have completed repairfind basic training quiz",
+                    heading: { name: "".concat(contractor.firstName, " ").concat(contractor.lastName), image: (_b = contractor.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
+                    payload: {
+                        entity: contractor.id,
+                        entityType: 'contractors',
+                        message: "You have completed repairfind basic training quiz",
+                        contractor: contractor.id,
+                        event: 'QUIZ_SUBMITTED',
+                    }
+                }, { push: true, socket: true });
                 res.json({
                     success: true,
                     message: 'Quiz submitted successfully',
@@ -246,16 +237,15 @@ var SubmitQuiz = function (req, res) { return __awaiter(void 0, void 0, void 0, 
                 });
                 return [3 /*break*/, 12];
             case 11:
-                err_2 = _b.sent();
-                res.status(500).json({ success: false, message: err_2.message });
+                err_1 = _c.sent();
+                res.status(500).json({ success: false, message: err_1.message });
                 return [3 /*break*/, 12];
             case 12: return [2 /*return*/];
         }
     });
 }); };
-exports.SubmitQuiz = SubmitQuiz;
-exports.QuizController = {
-    StartQuiz: exports.StartQuiz,
-    SubmitQuiz: exports.SubmitQuiz,
-    GetQuizResult: exports.GetQuizResult
+exports.submitQuiz = submitQuiz;
+exports.TrainingController = {
+    getQuiz: exports.getQuiz,
+    submitQuiz: exports.submitQuiz
 };
