@@ -175,7 +175,7 @@ var verifyEmail = function (req, res) { return __awaiter(void 0, void 0, void 0,
                     id: customer === null || customer === void 0 ? void 0 : customer._id,
                     email: customer.email,
                     userType: 'customers',
-                }, process.env.JWT_CONTRACTOR_SECRET_KEY, { expiresIn: config_1.config.jwt.tokenLifetime });
+                }, process.env.JWT_SECRET_KEY, { expiresIn: config_1.config.jwt.tokenLifetime });
                 return [2 /*return*/, res.json({
                         success: true,
                         message: "Email verified successfully",
@@ -237,7 +237,7 @@ var signIn = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                     id: customer === null || customer === void 0 ? void 0 : customer._id,
                     email: customer.email,
                     userType: 'customers',
-                }, process.env.JWT_CONTRACTOR_SECRET_KEY, { expiresIn: config_1.config.jwt.tokenLifetime });
+                }, process.env.JWT_SECRET_KEY, { expiresIn: config_1.config.jwt.tokenLifetime });
                 // return access token
                 res.json({
                     success: true,
@@ -297,7 +297,7 @@ var signInWithPhone = function (req, res) { return __awaiter(void 0, void 0, voi
                     id: customer === null || customer === void 0 ? void 0 : customer._id,
                     email: customer.email,
                     userType: 'customers',
-                }, process.env.JWT_CONTRACTOR_SECRET_KEY, { expiresIn: config_1.config.jwt.tokenLifetime });
+                }, process.env.JWT_SECRET_KEY, { expiresIn: config_1.config.jwt.tokenLifetime });
                 // return access token
                 res.json({
                     success: true,
@@ -547,7 +547,7 @@ var googleSignon = function (req, res) { return __awaiter(void 0, void 0, void 0
                     id: user._id,
                     email: user.email,
                     userType: 'customers',
-                }, process.env.JWT_CONTRACTOR_SECRET_KEY, { expiresIn: '24h' });
+                }, process.env.JWT_SECRET_KEY, { expiresIn: '24h' });
                 res.json({
                     status: true,
                     message: 'Signon successful',
@@ -618,7 +618,7 @@ var facebookSignon = function (req, res) { return __awaiter(void 0, void 0, void
                     id: user._id,
                     email: user.email,
                     userType: 'customers',
-                }, process.env.JWT_CONTRACTOR_SECRET_KEY, { expiresIn: '24h' });
+                }, process.env.JWT_SECRET_KEY, { expiresIn: '24h' });
                 res.json({
                     status: true,
                     message: 'Signon successful',
