@@ -92,6 +92,7 @@ var contractor_profile_model_1 = require("../database/contractor/models/contract
 var contractor_devices_model_1 = __importDefault(require("../database/contractor/models/contractor_devices.model"));
 var contractor_saved_job_model_1 = __importDefault(require("../database/contractor/models/contractor_saved_job.model"));
 var job_enquiry_model_1 = require("../database/common/job_enquiry.model");
+var logger_1 = require("../services/logger");
 exports.JobEvent = new events_1.EventEmitter();
 exports.JobEvent.on('NEW_JOB_REQUEST', function (payload) {
     var _a, _b;
@@ -101,7 +102,7 @@ exports.JobEvent.on('NEW_JOB_REQUEST', function (payload) {
             switch (_c.label) {
                 case 0:
                     _c.trys.push([0, 5, , 6]);
-                    console.log('handling NEW_JOB_REQUEST event');
+                    logger_1.Logger.info('handling NEW_JOB_REQUEST event');
                     return [4 /*yield*/, customer_model_1.default.findById(payload.customerId)];
                 case 1:
                     customer = _c.sent();
@@ -152,21 +153,137 @@ exports.JobEvent.on('NEW_JOB_REQUEST', function (payload) {
                     return [3 /*break*/, 6];
                 case 5:
                     error_1 = _c.sent();
-                    console.error("Error handling NEW_JOB_REQUEST event: ".concat(error_1));
+                    logger_1.Logger.error("Error handling NEW_JOB_REQUEST event: ".concat(error_1));
                     return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
         });
     });
 });
+exports.JobEvent.on('JOB_REQUEST_ACCEPTED', function (payload) {
+    var _a, _b;
+    return __awaiter(this, void 0, void 0, function () {
+        var customer, contractor, job, error_2;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
+                case 0:
+                    _c.trys.push([0, 3, , 4]);
+                    logger_1.Logger.info('handling JOB_REQUEST_ACCEPTED event');
+                    return [4 /*yield*/, customer_model_1.default.findById(payload.job.customer)];
+                case 1:
+                    customer = _c.sent();
+                    return [4 /*yield*/, contractor_model_1.ContractorModel.findById(payload.job.contractor)];
+                case 2:
+                    contractor = _c.sent();
+                    job = payload.job;
+                    if (job && contractor && customer) {
+                        services_1.NotificationService.sendNotification({
+                            user: contractor.id,
+                            userType: 'contractors',
+                            title: 'New Job Request',
+                            type: 'JOB_REQUEST_ACCEPTED', //
+                            message: "You've accepted a job request from ".concat(customer.firstName),
+                            heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_a = customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
+                            payload: {
+                                entity: job.id,
+                                entityType: 'jobs',
+                                message: "You've accepted a job request from ".concat(customer.firstName),
+                                contractor: contractor.id,
+                                event: 'JOB_REQUEST_ACCEPTED',
+                            }
+                        }, { push: true, socket: true });
+                        services_1.NotificationService.sendNotification({
+                            user: customer.id,
+                            userType: 'customers',
+                            title: 'New Job Request',
+                            type: 'JOB_REQUEST_ACCEPTED',
+                            message: "Contractor has accepted your job request",
+                            heading: { name: "".concat(contractor.name), image: (_b = contractor.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
+                            payload: {
+                                entity: job.id,
+                                entityType: 'jobs',
+                                message: "Contractor has accepted your job request",
+                                customer: customer.id,
+                                event: 'JOB_REQUEST_ACCEPTED',
+                            }
+                        }, { database: true, push: true, socket: true });
+                    }
+                    return [3 /*break*/, 4];
+                case 3:
+                    error_2 = _c.sent();
+                    logger_1.Logger.error("Error handling JOB_REQUEST_ACCEPTED event: ".concat(error_2));
+                    return [3 /*break*/, 4];
+                case 4: return [2 /*return*/];
+            }
+        });
+    });
+});
+exports.JobEvent.on('JOB_REQUEST_REJECTED', function (payload) {
+    var _a, _b;
+    return __awaiter(this, void 0, void 0, function () {
+        var customer, contractor, job, error_3;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
+                case 0:
+                    _c.trys.push([0, 3, , 4]);
+                    logger_1.Logger.info('handling JOB_REQUEST_REJECTED event');
+                    return [4 /*yield*/, customer_model_1.default.findById(payload.job.customer)];
+                case 1:
+                    customer = _c.sent();
+                    return [4 /*yield*/, contractor_model_1.ContractorModel.findById(payload.job.contractor)];
+                case 2:
+                    contractor = _c.sent();
+                    job = payload.job;
+                    if (job && contractor && customer) {
+                        services_1.NotificationService.sendNotification({
+                            user: contractor.id,
+                            userType: 'contractors',
+                            title: 'New Job Request',
+                            type: 'JOB_REQUEST_ACCEPTED', //
+                            message: "You've rejected a job request from ".concat(customer.firstName),
+                            heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_a = customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
+                            payload: {
+                                entity: job.id,
+                                entityType: 'jobs',
+                                message: "You've rejected a job request from ".concat(customer.firstName),
+                                contractor: contractor.id,
+                                event: 'JOB_REQUEST_ACCEPTED',
+                            }
+                        }, { push: true, socket: true });
+                        services_1.NotificationService.sendNotification({
+                            user: customer.id,
+                            userType: 'customers',
+                            title: 'New Job Request',
+                            type: 'JOB_REQUEST_ACCEPTED',
+                            message: "Contractor has rejected your job request",
+                            heading: { name: "".concat(contractor.name), image: (_b = contractor.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
+                            payload: {
+                                entity: job.id,
+                                entityType: 'jobs',
+                                message: "Contractor has rejected your job request",
+                                customer: customer.id,
+                                event: 'JOB_REQUEST_ACCEPTED',
+                            }
+                        }, { database: true, push: true, socket: true });
+                    }
+                    return [3 /*break*/, 4];
+                case 3:
+                    error_3 = _c.sent();
+                    logger_1.Logger.error("Error handling JOB_REQUEST_REJECTED event: ".concat(error_3));
+                    return [3 /*break*/, 4];
+                case 4: return [2 /*return*/];
+            }
+        });
+    });
+});
 exports.JobEvent.on('NEW_JOB_LISTING', function (payload) {
     return __awaiter(this, void 0, void 0, function () {
-        var job, contractorProfiles, contractorIds, devices, deviceTokens, error_2;
+        var job, contractorProfiles, contractorIds, devices, deviceTokens, error_4;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 5, , 6]);
-                    console.log('handling alert NEW_JOB_LISTING event');
+                    logger_1.Logger.info('handling alert NEW_JOB_LISTING event');
                     return [4 /*yield*/, job_model_1.JobModel.findById(payload.jobId)];
                 case 1:
                     job = _a.sent();
@@ -184,7 +301,6 @@ exports.JobEvent.on('NEW_JOB_LISTING', function (payload) {
                 case 3:
                     devices = _a.sent();
                     deviceTokens = devices.map(function (device) { return device.deviceToken; });
-                    console.log(contractorIds, deviceTokens);
                     (0, expo_1.sendPushNotifications)(deviceTokens, {
                         title: 'New job listing',
                         type: 'NEW_JOB_LISTING',
@@ -200,8 +316,8 @@ exports.JobEvent.on('NEW_JOB_LISTING', function (payload) {
                     _a.label = 4;
                 case 4: return [3 /*break*/, 6];
                 case 5:
-                    error_2 = _a.sent();
-                    console.error("Error handling NEW_JOB_REQUEST event: ".concat(error_2));
+                    error_4 = _a.sent();
+                    logger_1.Logger.error("Error handling NEW_JOB_REQUEST event: ".concat(error_4));
                     return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -210,12 +326,12 @@ exports.JobEvent.on('NEW_JOB_LISTING', function (payload) {
 });
 exports.JobEvent.on('JOB_CANCELED', function (payload) {
     return __awaiter(this, void 0, void 0, function () {
-        var customer, contractor, html, html, error_3;
+        var customer, contractor, html, html, error_5;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 3, , 4]);
-                    console.log('handling alert JOB_CANCELED event');
+                    logger_1.Logger.info('handling alert JOB_CANCELED event');
                     return [4 /*yield*/, customer_model_1.default.findById(payload.job.customer)];
                 case 1:
                     customer = _a.sent();
@@ -223,14 +339,14 @@ exports.JobEvent.on('JOB_CANCELED', function (payload) {
                 case 2:
                     contractor = _a.sent();
                     if (payload.canceledBy == 'contractor') {
-                        console.log('job cancelled by contractor');
+                        logger_1.Logger.info('job cancelled by contractor');
                         if (customer) {
                             html = (0, job_canceled_template_1.JobCanceledEmailTemplate)({ name: customer.name, canceledBy: 'contractor', job: payload.job });
                             services_1.EmailService.send(customer.email, "Job Canceled", html);
                         }
                     }
                     if (payload.canceledBy == 'customer') {
-                        console.log('job cancelled by customer');
+                        logger_1.Logger.info('job cancelled by customer');
                         if (contractor) {
                             html = (0, job_canceled_template_1.JobCanceledEmailTemplate)({ name: contractor.name, canceledBy: 'customer', job: payload.job });
                             services_1.EmailService.send(contractor.email, "Job Canceled", html);
@@ -242,8 +358,8 @@ exports.JobEvent.on('JOB_CANCELED', function (payload) {
                     }
                     return [3 /*break*/, 4];
                 case 3:
-                    error_3 = _a.sent();
-                    console.error("Error handling JOB_CANCELED event: ".concat(error_3));
+                    error_5 = _a.sent();
+                    logger_1.Logger.error("Error handling JOB_CANCELED event: ".concat(error_5));
                     return [3 /*break*/, 4];
                 case 4: return [2 /*return*/];
             }
@@ -253,12 +369,12 @@ exports.JobEvent.on('JOB_CANCELED', function (payload) {
 exports.JobEvent.on('JOB_QUOTATION_DECLINED', function (payload) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var customer, contractor, job, emailSubject, emailContent, html, error_4;
+        var customer, contractor, job, emailSubject, emailContent, html, error_6;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
                     _b.trys.push([0, 4, , 5]);
-                    console.log('handling alert JOB_QUOTATION_DECLINED event');
+                    logger_1.Logger.info('handling alert JOB_QUOTATION_DECLINED event');
                     return [4 /*yield*/, customer_model_1.default.findById(payload.customerId)];
                 case 1:
                     customer = _b.sent();
@@ -283,7 +399,7 @@ exports.JobEvent.on('JOB_QUOTATION_DECLINED', function (payload) {
                             payload: {
                                 entity: job.id,
                                 entityType: 'jobs',
-                                message: "Your job quotation for a job  on RepairFind was decline",
+                                message: "Your job quotation for a job  on RepairFind was declined",
                                 customer: customer.id,
                                 event: 'JOB_QUOTATION_DECLINED',
                             }
@@ -291,8 +407,8 @@ exports.JobEvent.on('JOB_QUOTATION_DECLINED', function (payload) {
                     }
                     return [3 /*break*/, 5];
                 case 4:
-                    error_4 = _b.sent();
-                    console.error("Error handling JOB_QUOTATION_DECLINED event: ".concat(error_4));
+                    error_6 = _b.sent();
+                    logger_1.Logger.error("Error handling JOB_QUOTATION_DECLINED event: ".concat(error_6));
                     return [3 /*break*/, 5];
                 case 5: return [2 /*return*/];
             }
@@ -302,12 +418,12 @@ exports.JobEvent.on('JOB_QUOTATION_DECLINED', function (payload) {
 exports.JobEvent.on('JOB_QUOTATION_ACCEPTED', function (payload) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var customer, contractor, job, emailSubject, emailContent, html, error_5;
+        var customer, contractor, job, emailSubject, emailContent, html, error_7;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
                     _b.trys.push([0, 4, , 5]);
-                    console.log('handling alert JOB_QUOTATION_ACCEPTED event');
+                    logger_1.Logger.info('handling alert JOB_QUOTATION_ACCEPTED event');
                     return [4 /*yield*/, customer_model_1.default.findById(payload.customerId)];
                 case 1:
                     customer = _b.sent();
@@ -340,8 +456,8 @@ exports.JobEvent.on('JOB_QUOTATION_ACCEPTED', function (payload) {
                     }
                     return [3 /*break*/, 5];
                 case 4:
-                    error_5 = _b.sent();
-                    console.error("Error handling JOB_QUOTATION_ACCEPTED event: ".concat(error_5));
+                    error_7 = _b.sent();
+                    logger_1.Logger.error("Error handling JOB_QUOTATION_ACCEPTED event: ".concat(error_7));
                     return [3 /*break*/, 5];
                 case 5: return [2 /*return*/];
             }
@@ -350,12 +466,12 @@ exports.JobEvent.on('JOB_QUOTATION_ACCEPTED', function (payload) {
 });
 exports.JobEvent.on('JOB_DAY_EMERGENCY', function (payload) {
     return __awaiter(this, void 0, void 0, function () {
-        var customer, contractor, job, html, html, error_6;
+        var customer, contractor, job, html, html, error_8;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 4, , 5]);
-                    console.log('handling alert JOB_DAY_EMERGENCY event');
+                    logger_1.Logger.info('handling alert JOB_DAY_EMERGENCY event');
                     return [4 /*yield*/, customer_model_1.default.findById(payload.jobEmergency.customer)];
                 case 1:
                     customer = _a.sent();
@@ -367,14 +483,14 @@ exports.JobEvent.on('JOB_DAY_EMERGENCY', function (payload) {
                     job = _a.sent();
                     if (job && contractor && customer) {
                         if (payload.jobEmergency.triggeredBy == 'contractor') {
-                            console.log('job emergency triggered by contractor');
+                            logger_1.Logger.info('job emergency triggered by contractor');
                             if (customer) {
                                 html = (0, job_emergency_email_1.JobEmergencyEmailTemplate)({ name: customer.name, emergency: payload.jobEmergency, job: job });
                                 services_1.EmailService.send(customer.email, "Job Emergency", html);
                             }
                         }
                         if (payload.jobEmergency.triggeredBy == 'customer') {
-                            console.log('job emergency triggered by customer');
+                            logger_1.Logger.info('job emergency triggered by customer');
                             if (contractor) {
                                 html = (0, job_emergency_email_1.JobEmergencyEmailTemplate)({ name: contractor.name, emergency: payload.jobEmergency, job: job });
                                 services_1.EmailService.send(contractor.email, "Job Emergency", html);
@@ -389,8 +505,8 @@ exports.JobEvent.on('JOB_DAY_EMERGENCY', function (payload) {
                     }
                     return [3 /*break*/, 5];
                 case 4:
-                    error_6 = _a.sent();
-                    console.error("Error handling JOB_DAY_EMERGENCY event: ".concat(error_6));
+                    error_8 = _a.sent();
+                    logger_1.Logger.error("Error handling JOB_DAY_EMERGENCY event: ".concat(error_8));
                     return [3 /*break*/, 5];
                 case 5: return [2 /*return*/];
             }
@@ -400,12 +516,12 @@ exports.JobEvent.on('JOB_DAY_EMERGENCY', function (payload) {
 exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var customer, contractor, emailSubject, emailContent, html, emailSubject, emailContent, html, error_7;
+        var customer, contractor, emailSubject, emailContent, html, emailSubject, emailContent, html, error_9;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
                     _c.trys.push([0, 3, , 4]);
-                    console.log('handling alert JOB_RESCHEDULE_DECLINED_ACCEPTED event', payload.action);
+                    logger_1.Logger.info('handling alert JOB_RESCHEDULE_DECLINED_ACCEPTED event', payload.action);
                     return [4 /*yield*/, customer_model_1.default.findById(payload.job.customer)];
                 case 1:
                     customer = _c.sent();
@@ -428,8 +544,8 @@ exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
                     }
                     return [3 /*break*/, 4];
                 case 3:
-                    error_7 = _c.sent();
-                    console.error("Error handling JOB_RESCHEDULE_DECLINED_ACCEPTED event: ".concat(error_7));
+                    error_9 = _c.sent();
+                    logger_1.Logger.error("Error handling JOB_RESCHEDULE_DECLINED_ACCEPTED event: ".concat(error_9));
                     return [3 /*break*/, 4];
                 case 4: return [2 /*return*/];
             }
@@ -439,12 +555,12 @@ exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
 exports.JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', function (payload) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var customer, contractor, emailSubject, emailContent, html, emailSubject, emailContent, html, error_8;
+        var customer, contractor, emailSubject, emailContent, html, emailSubject, emailContent, html, error_10;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
                     _c.trys.push([0, 3, , 4]);
-                    console.log('handling alert NEW_JOB_RESCHEDULE_REQUEST event', payload.action);
+                    logger_1.Logger.info('handling alert NEW_JOB_RESCHEDULE_REQUEST event', payload.action);
                     return [4 /*yield*/, customer_model_1.default.findById(payload.job.customer)];
                 case 1:
                     customer = _c.sent();
@@ -467,8 +583,8 @@ exports.JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', function (payload) {
                     }
                     return [3 /*break*/, 4];
                 case 3:
-                    error_8 = _c.sent();
-                    console.error("Error handling NEW_JOB_RESCHEDULE_REQUEST event: ".concat(error_8));
+                    error_10 = _c.sent();
+                    logger_1.Logger.error("Error handling NEW_JOB_RESCHEDULE_REQUEST event: ".concat(error_10));
                     return [3 /*break*/, 4];
                 case 4: return [2 /*return*/];
             }
@@ -478,12 +594,12 @@ exports.JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', function (payload) {
 exports.JobEvent.on('JOB_BOOKED', function (payload) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var customer, contractor, job, quotation, charges, emailSubject, emailContent, html, emailSubject, emailContent, html, error_9;
+        var customer, contractor, job, quotation, charges, emailSubject, emailContent, html, emailSubject, emailContent, html, error_11;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
                     _c.trys.push([0, 7, , 8]);
-                    console.log('handling alert JOB_BOOKED event');
+                    logger_1.Logger.info('handling alert JOB_BOOKED event');
                     return [4 /*yield*/, customer_model_1.default.findById(payload.customerId)];
                 case 1:
                     customer = _c.sent();
@@ -547,8 +663,8 @@ exports.JobEvent.on('JOB_BOOKED', function (payload) {
                     _c.label = 6;
                 case 6: return [3 /*break*/, 8];
                 case 7:
-                    error_9 = _c.sent();
-                    console.error("Error handling JOB_BOOKED event: ".concat(error_9));
+                    error_11 = _c.sent();
+                    logger_1.Logger.error("Error handling JOB_BOOKED event: ".concat(error_11));
                     return [3 /*break*/, 8];
                 case 8: return [2 /*return*/];
             }
@@ -558,12 +674,12 @@ exports.JobEvent.on('JOB_BOOKED', function (payload) {
 exports.JobEvent.on('JOB_DISPUTE_CREATED', function (payload) {
     var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function () {
-        var dispute, job, customer, contractor, error_10;
+        var dispute, job, customer, contractor, error_12;
         return __generator(this, function (_d) {
             switch (_d.label) {
                 case 0:
                     _d.trys.push([0, 4, , 5]);
-                    console.log('handling alert JOB_DISPUTE_CREATED event', payload.dispute);
+                    logger_1.Logger.info('handling alert JOB_DISPUTE_CREATED event', payload.dispute);
                     dispute = payload.dispute;
                     return [4 /*yield*/, job_model_1.JobModel.findById(dispute.job)];
                 case 1:
@@ -636,8 +752,8 @@ exports.JobEvent.on('JOB_DISPUTE_CREATED', function (payload) {
                     });
                     return [3 /*break*/, 5];
                 case 4:
-                    error_10 = _d.sent();
-                    console.error("Error handling JOB_DISPUTE_CREATED event: ".concat(error_10));
+                    error_12 = _d.sent();
+                    logger_1.Logger.error("Error handling JOB_DISPUTE_CREATED event: ".concat(error_12));
                     return [3 /*break*/, 5];
                 case 5: return [2 /*return*/];
             }
@@ -647,12 +763,12 @@ exports.JobEvent.on('JOB_DISPUTE_CREATED', function (payload) {
 exports.JobEvent.on('JOB_MARKED_COMPLETE_BY_CONTRACTOR', function (payload) {
     var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function () {
-        var job, customer, contractor, event_1, error_11;
+        var job, customer, contractor, event_1, error_13;
         return __generator(this, function (_d) {
             switch (_d.label) {
                 case 0:
                     _d.trys.push([0, 4, , 5]);
-                    console.log('handling alert JOB_MARKED_COMPLETE_BY_CONTRACTOR event', payload.job.id);
+                    logger_1.Logger.info('handling alert JOB_MARKED_COMPLETE_BY_CONTRACTOR event', payload.job.id);
                     return [4 /*yield*/, job_model_1.JobModel.findById(payload.job.id)];
                 case 1:
                     job = _d.sent();
@@ -715,8 +831,8 @@ exports.JobEvent.on('JOB_MARKED_COMPLETE_BY_CONTRACTOR', function (payload) {
                     }
                     return [3 /*break*/, 5];
                 case 4:
-                    error_11 = _d.sent();
-                    console.error("Error handling JOB_MARKED_COMPLETE_BY_CONTRACTOR event: ".concat(error_11));
+                    error_13 = _d.sent();
+                    logger_1.Logger.error("Error handling JOB_MARKED_COMPLETE_BY_CONTRACTOR event: ".concat(error_13));
                     return [3 /*break*/, 5];
                 case 5: return [2 /*return*/];
             }
@@ -726,12 +842,12 @@ exports.JobEvent.on('JOB_MARKED_COMPLETE_BY_CONTRACTOR', function (payload) {
 exports.JobEvent.on('JOB_COMPLETED', function (payload) {
     var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function () {
-        var job, customer, contractor, event_2, transaction, metadata, error_12;
+        var job, customer, contractor, event_2, transaction, metadata, error_14;
         return __generator(this, function (_d) {
             switch (_d.label) {
                 case 0:
                     _d.trys.push([0, 5, , 6]);
-                    console.log('handling alert JOB_COMPLETED event', payload.job.id);
+                    logger_1.Logger.info('handling alert JOB_COMPLETED event', payload.job.id);
                     return [4 /*yield*/, job_model_1.JobModel.findById(payload.job.id)];
                 case 1:
                     job = _d.sent();
@@ -790,8 +906,8 @@ exports.JobEvent.on('JOB_COMPLETED', function (payload) {
                     }
                     return [3 /*break*/, 6];
                 case 5:
-                    error_12 = _d.sent();
-                    console.error("Error handling JOB_COMPLETED event: ".concat(error_12));
+                    error_14 = _d.sent();
+                    logger_1.Logger.error("Error handling JOB_COMPLETED event: ".concat(error_14));
                     return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -801,12 +917,12 @@ exports.JobEvent.on('JOB_COMPLETED', function (payload) {
 exports.JobEvent.on('JOB_CHANGE_ORDER', function (payload) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var job, customer, contractor, state, event_3, error_13;
+        var job, customer, contractor, state, event_3, error_15;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
                     _c.trys.push([0, 4, , 5]);
-                    console.log('handling JOB_CHANGE_ORDER event', payload.job.id);
+                    logger_1.Logger.info('handling JOB_CHANGE_ORDER event', payload.job.id);
                     return [4 /*yield*/, job_model_1.JobModel.findById(payload.job.id)];
                 case 1:
                     job = _c.sent();
@@ -855,8 +971,8 @@ exports.JobEvent.on('JOB_CHANGE_ORDER', function (payload) {
                     }
                     return [3 /*break*/, 5];
                 case 4:
-                    error_13 = _c.sent();
-                    console.error("Error handling JOB_CHANGE_ORDER event: ".concat(error_13));
+                    error_15 = _c.sent();
+                    logger_1.Logger.error("Error handling JOB_CHANGE_ORDER event: ".concat(error_15));
                     return [3 /*break*/, 5];
                 case 5: return [2 /*return*/];
             }
@@ -866,12 +982,12 @@ exports.JobEvent.on('JOB_CHANGE_ORDER', function (payload) {
 exports.JobEvent.on('SITE_VISIT_ESTIMATE_SUBMITTED', function (payload) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var job, customer, contractor, jobDay, error_14;
+        var job, customer, contractor, jobDay, error_16;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
                     _c.trys.push([0, 5, , 6]);
-                    console.log('handling SITE_VISIT_ESTIMATE_SUBMITTED event', payload.job.id);
+                    logger_1.Logger.info('handling SITE_VISIT_ESTIMATE_SUBMITTED event', payload.job.id);
                     return [4 /*yield*/, job_model_1.JobModel.findById(payload.job.id)];
                 case 1:
                     job = _c.sent();
@@ -925,8 +1041,8 @@ exports.JobEvent.on('SITE_VISIT_ESTIMATE_SUBMITTED', function (payload) {
                     }, { push: true, socket: true });
                     return [3 /*break*/, 6];
                 case 5:
-                    error_14 = _c.sent();
-                    console.error("Error handling SITE_VISIT_ESTIMATE_SUBMITTED event: ".concat(error_14));
+                    error_16 = _c.sent();
+                    logger_1.Logger.error("Error handling SITE_VISIT_ESTIMATE_SUBMITTED event: ".concat(error_16));
                     return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -936,12 +1052,12 @@ exports.JobEvent.on('SITE_VISIT_ESTIMATE_SUBMITTED', function (payload) {
 exports.JobEvent.on('CHANGE_ORDER_ESTIMATE_SUBMITTED', function (payload) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var job, customer, contractor, jobDay, error_15;
+        var job, customer, contractor, jobDay, error_17;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
                     _c.trys.push([0, 5, , 6]);
-                    console.log('handling CHANGE_ORDER_ESTIMATE_SUBMITTED event', payload.job.id);
+                    logger_1.Logger.info('handling CHANGE_ORDER_ESTIMATE_SUBMITTED event', payload.job.id);
                     return [4 /*yield*/, job_model_1.JobModel.findById(payload.job.id)];
                 case 1:
                     job = _c.sent();
@@ -999,8 +1115,8 @@ exports.JobEvent.on('CHANGE_ORDER_ESTIMATE_SUBMITTED', function (payload) {
                     }
                     return [3 /*break*/, 6];
                 case 5:
-                    error_15 = _c.sent();
-                    console.error("Error handling CHANGE_ORDER_ESTIMATE_SUBMITTED event: ".concat(error_15));
+                    error_17 = _c.sent();
+                    logger_1.Logger.error("Error handling CHANGE_ORDER_ESTIMATE_SUBMITTED event: ".concat(error_17));
                     return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -1010,12 +1126,12 @@ exports.JobEvent.on('CHANGE_ORDER_ESTIMATE_SUBMITTED', function (payload) {
 exports.JobEvent.on('NEW_JOB_QUOTATION', function (payload) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var job, quotation, customer, contractor, error_16;
+        var job, quotation, customer, contractor, error_18;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
                     _c.trys.push([0, 3, , 4]);
-                    console.log('handling NEW_JOB_QUOTATION event', payload.job.id);
+                    logger_1.Logger.info('handling NEW_JOB_QUOTATION event', payload.job.id);
                     job = payload.job;
                     quotation = payload.quotation;
                     return [4 /*yield*/, customer_model_1.default.findById(job.customer)];
@@ -1062,8 +1178,8 @@ exports.JobEvent.on('NEW_JOB_QUOTATION', function (payload) {
                     }
                     return [3 /*break*/, 4];
                 case 3:
-                    error_16 = _c.sent();
-                    console.error("Error handling NEW_JOB_QUOTATION event: ".concat(error_16));
+                    error_18 = _c.sent();
+                    logger_1.Logger.error("Error handling NEW_JOB_QUOTATION event: ".concat(error_18));
                     return [3 /*break*/, 4];
                 case 4: return [2 /*return*/];
             }
@@ -1073,12 +1189,12 @@ exports.JobEvent.on('NEW_JOB_QUOTATION', function (payload) {
 exports.JobEvent.on('JOB_QUOTATION_EDITED', function (payload) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var job, quotation, customer, contractor, error_17;
+        var job, quotation, customer, contractor, error_19;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
                     _c.trys.push([0, 3, , 4]);
-                    console.log('handling JOB_QUOTATION_EDITED event', payload.job.id);
+                    logger_1.Logger.info('handling JOB_QUOTATION_EDITED event', payload.job.id);
                     job = payload.job;
                     quotation = payload.quotation;
                     return [4 /*yield*/, customer_model_1.default.findById(job.customer)];
@@ -1125,8 +1241,8 @@ exports.JobEvent.on('JOB_QUOTATION_EDITED', function (payload) {
                     }
                     return [3 /*break*/, 4];
                 case 3:
-                    error_17 = _c.sent();
-                    console.error("Error handling JOB_QUOTATION_EDITED event: ".concat(error_17));
+                    error_19 = _c.sent();
+                    logger_1.Logger.error("Error handling JOB_QUOTATION_EDITED event: ".concat(error_19));
                     return [3 /*break*/, 4];
                 case 4: return [2 /*return*/];
             }
@@ -1136,12 +1252,12 @@ exports.JobEvent.on('JOB_QUOTATION_EDITED', function (payload) {
 exports.JobEvent.on('CHANGE_ORDER_ESTIMATE_PAID', function (payload) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var job, customer, contractor, error_18;
+        var job, customer, contractor, error_20;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
                     _b.trys.push([0, 3, , 4]);
-                    console.log('handling CHANGE_ORDER_ESTIMATE_PAID event', payload.job.id);
+                    logger_1.Logger.info('handling CHANGE_ORDER_ESTIMATE_PAID event', payload.job.id);
                     job = payload.job;
                     if (!job)
                         return [2 /*return*/];
@@ -1172,8 +1288,8 @@ exports.JobEvent.on('CHANGE_ORDER_ESTIMATE_PAID', function (payload) {
                     }, { push: true, socket: true });
                     return [3 /*break*/, 4];
                 case 3:
-                    error_18 = _b.sent();
-                    console.error("Error handling CHANGE_ORDER_ESTIMATE_PAID event: ".concat(error_18));
+                    error_20 = _b.sent();
+                    logger_1.Logger.error("Error handling CHANGE_ORDER_ESTIMATE_PAID event: ".concat(error_20));
                     return [3 /*break*/, 4];
                 case 4: return [2 /*return*/];
             }
@@ -1183,12 +1299,12 @@ exports.JobEvent.on('CHANGE_ORDER_ESTIMATE_PAID', function (payload) {
 // JOB DAY
 exports.JobEvent.on('JOB_DAY_STARTED', function (payload) {
     return __awaiter(this, void 0, void 0, function () {
-        var job, jobDay, customer, contractor, error_19;
+        var job, jobDay, customer, contractor, error_21;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 5, , 6]);
-                    console.log('handling alert JOB_DAY_STARTED event', payload.job.id);
+                    logger_1.Logger.info('handling alert JOB_DAY_STARTED event', payload.job.id);
                     return [4 /*yield*/, payload.job];
                 case 1:
                     job = _a.sent();
@@ -1252,8 +1368,8 @@ exports.JobEvent.on('JOB_DAY_STARTED', function (payload) {
                     });
                     return [3 /*break*/, 6];
                 case 5:
-                    error_19 = _a.sent();
-                    console.error("Error handling JOB_MARKED_COMPLETE_BY_CONTRACTOR event: ".concat(error_19));
+                    error_21 = _a.sent();
+                    logger_1.Logger.error("Error handling JOB_MARKED_COMPLETE_BY_CONTRACTOR event: ".concat(error_21));
                     return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -1263,12 +1379,12 @@ exports.JobEvent.on('JOB_DAY_STARTED', function (payload) {
 exports.JobEvent.on('JOB_DAY_ARRIVAL', function (payload) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var jobDay, job, verificationCode, customer, contractor, error_20;
+        var jobDay, job, verificationCode, customer, contractor, error_22;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
                     _b.trys.push([0, 5, , 6]);
-                    console.log('handling alert JOB_DAY_ARRIVAL event', payload.jobDay.id);
+                    logger_1.Logger.info('handling alert JOB_DAY_ARRIVAL event', payload.jobDay.id);
                     return [4 /*yield*/, payload.jobDay];
                 case 1:
                     jobDay = _b.sent();
@@ -1328,8 +1444,8 @@ exports.JobEvent.on('JOB_DAY_ARRIVAL', function (payload) {
                     }
                     return [3 /*break*/, 6];
                 case 5:
-                    error_20 = _b.sent();
-                    console.error("Error handling JOB_DAY_ARRIVAL event: ".concat(error_20));
+                    error_22 = _b.sent();
+                    logger_1.Logger.error("Error handling JOB_DAY_ARRIVAL event: ".concat(error_22));
                     return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -1338,12 +1454,12 @@ exports.JobEvent.on('JOB_DAY_ARRIVAL', function (payload) {
 });
 exports.JobEvent.on('JOB_REFUND_REQUESTED', function (payload) {
     return __awaiter(this, void 0, void 0, function () {
-        var job, payment, refund, customer, contractor, emailSubject, emailContent, html, error_21;
+        var job, payment, refund, customer, contractor, emailSubject, emailContent, html, error_23;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 3, , 4]);
-                    console.log('handling alert JOB_REFUND_REQUESTED event', payload.payment.id);
+                    logger_1.Logger.info('handling alert JOB_REFUND_REQUESTED event', payload.payment.id);
                     job = payload.job;
                     payment = payload.payment;
                     refund = payload.refund;
@@ -1366,8 +1482,8 @@ exports.JobEvent.on('JOB_REFUND_REQUESTED', function (payload) {
                     services_1.EmailService.send(contractor.email, emailSubject, html);
                     return [3 /*break*/, 4];
                 case 3:
-                    error_21 = _a.sent();
-                    console.error("Error handling JOB_REFUND_REQUESTED event: ".concat(error_21));
+                    error_23 = _a.sent();
+                    logger_1.Logger.error("Error handling JOB_REFUND_REQUESTED event: ".concat(error_23));
                     return [3 /*break*/, 4];
                 case 4: return [2 /*return*/];
             }
@@ -1377,12 +1493,12 @@ exports.JobEvent.on('JOB_REFUND_REQUESTED', function (payload) {
 exports.JobEvent.on('NEW_JOB_ENQUIRY', function (payload) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var job, enquiry, customer, contractor, savedJobs, contractorIds, devices, deviceTokens, emailSubject, emailContent, html, error_22;
+        var job, enquiry, customer, contractor, savedJobs, contractorIds, devices, deviceTokens, emailSubject, emailContent, html, error_24;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
                     _b.trys.push([0, 7, , 8]);
-                    console.log('handling alert NEW_JOB_ENQUIRY event', payload.jobId);
+                    logger_1.Logger.info('handling alert NEW_JOB_ENQUIRY event', payload.jobId);
                     return [4 /*yield*/, job_model_1.JobModel.findById(payload.jobId)];
                 case 1:
                     job = _b.sent();
@@ -1436,8 +1552,8 @@ exports.JobEvent.on('NEW_JOB_ENQUIRY', function (payload) {
                     }
                     return [3 /*break*/, 8];
                 case 7:
-                    error_22 = _b.sent();
-                    console.error("Error handling NEW_JOB_ENQUIRY event: ".concat(error_22));
+                    error_24 = _b.sent();
+                    logger_1.Logger.error("Error handling NEW_JOB_ENQUIRY event: ".concat(error_24));
                     return [3 /*break*/, 8];
                 case 8: return [2 /*return*/];
             }
@@ -1446,12 +1562,12 @@ exports.JobEvent.on('NEW_JOB_ENQUIRY', function (payload) {
 });
 exports.JobEvent.on('NEW_JOB_ENQUIRY_REPLY', function (payload) {
     return __awaiter(this, void 0, void 0, function () {
-        var job, enquiry, customer, contractor, savedJobs, contractorIds, devices, deviceTokens, emailSubject, emailContent, html, error_23;
+        var job, enquiry, customer, contractor, savedJobs, contractorIds, devices, deviceTokens, emailSubject, emailContent, html, error_25;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 7, , 8]);
-                    console.log('handling alert NEW_JOB_ENQUIRY_REPLY event', payload.jobId);
+                    logger_1.Logger.info('handling alert NEW_JOB_ENQUIRY_REPLY event', payload.jobId);
                     return [4 /*yield*/, job_model_1.JobModel.findById(payload.jobId)];
                 case 1:
                     job = _a.sent();
@@ -1495,8 +1611,8 @@ exports.JobEvent.on('NEW_JOB_ENQUIRY_REPLY', function (payload) {
                     }
                     return [3 /*break*/, 8];
                 case 7:
-                    error_23 = _a.sent();
-                    console.error("Error handling NEW_JOB_ENQUIRY_REPLY event: ".concat(error_23));
+                    error_25 = _a.sent();
+                    logger_1.Logger.error("Error handling NEW_JOB_ENQUIRY_REPLY event: ".concat(error_25));
                     return [3 /*break*/, 8];
                 case 8: return [2 /*return*/];
             }

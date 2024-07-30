@@ -24,12 +24,13 @@ import { profile } from 'console';
 import ContractorDeviceModel from '../database/contractor/models/contractor_devices.model';
 import ContractorSavedJobModel from '../database/contractor/models/contractor_saved_job.model';
 import { IJobEnquiry, JobEnquiryModel } from '../database/common/job_enquiry.model';
+import { Logger } from '../services/logger';
 
 export const JobEvent: EventEmitter = new EventEmitter();
 
 JobEvent.on('NEW_JOB_REQUEST', async function (payload) {
     try {
-        console.log('handling NEW_JOB_REQUEST event')
+        Logger.info('handling NEW_JOB_REQUEST event')
 
         const customer = await CustomerModel.findById(payload.customerId)
         const contractor = await ContractorModel.findById(payload.contractorId)
@@ -77,14 +78,117 @@ JobEvent.on('NEW_JOB_REQUEST', async function (payload) {
 
 
     } catch (error) {
-        console.error(`Error handling NEW_JOB_REQUEST event: ${error}`);
+        Logger.error(`Error handling NEW_JOB_REQUEST event: ${error}`);
+    }
+});
+
+
+
+JobEvent.on('JOB_REQUEST_ACCEPTED', async function (payload) {
+    try {
+        Logger.info('handling JOB_REQUEST_ACCEPTED event')
+
+        const customer = await CustomerModel.findById(payload.job.customer)
+        const contractor = await ContractorModel.findById(payload.job.contractor)
+        const job = payload.job
+
+        if (job && contractor && customer) {
+
+            NotificationService.sendNotification({
+                user: contractor.id,
+                userType: 'contractors',
+                title: 'New Job Request',
+                type: 'JOB_REQUEST_ACCEPTED', //
+                message: `You've accepted a job request from ${customer.firstName}`,
+                heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
+                payload: {
+                    entity: job.id,
+                    entityType: 'jobs',
+                    message: `You've accepted a job request from ${customer.firstName}`,
+                    contractor: contractor.id,
+                    event: 'JOB_REQUEST_ACCEPTED',
+                }
+            }, {push: true, socket: true })
+
+            NotificationService.sendNotification({
+                user: customer.id,
+                userType: 'customers',
+                title: 'New Job Request',
+                type: 'JOB_REQUEST_ACCEPTED', 
+                message: `Contractor has accepted your job request`,
+                heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
+                payload: {
+                    entity: job.id,
+                    entityType: 'jobs',
+                    message: `Contractor has accepted your job request`,
+                    customer: customer.id,
+                    event: 'JOB_REQUEST_ACCEPTED',
+                }
+            }, { database: true, push: true, socket: true })
+
+        }
+
+
+    } catch (error) {
+        Logger.error(`Error handling JOB_REQUEST_ACCEPTED event: ${error}`);
+    }
+});
+
+
+JobEvent.on('JOB_REQUEST_REJECTED', async function (payload) {
+    try {
+        Logger.info('handling JOB_REQUEST_REJECTED event')
+
+        const customer = await CustomerModel.findById(payload.job.customer)
+        const contractor = await ContractorModel.findById(payload.job.contractor)
+        const job = payload.job
+
+        if (job && contractor && customer) {
+
+            NotificationService.sendNotification({
+                user: contractor.id,
+                userType: 'contractors',
+                title: 'New Job Request',
+                type: 'JOB_REQUEST_ACCEPTED', //
+                message: `You've rejected a job request from ${customer.firstName}`,
+                heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
+                payload: {
+                    entity: job.id,
+                    entityType: 'jobs',
+                    message: `You've rejected a job request from ${customer.firstName}`,
+                    contractor: contractor.id,
+                    event: 'JOB_REQUEST_ACCEPTED',
+                }
+            }, {push: true, socket: true })
+
+            NotificationService.sendNotification({
+                user: customer.id,
+                userType: 'customers',
+                title: 'New Job Request',
+                type: 'JOB_REQUEST_ACCEPTED', 
+                message: `Contractor has rejected your job request`,
+                heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
+                payload: {
+                    entity: job.id,
+                    entityType: 'jobs',
+                    message: `Contractor has rejected your job request`,
+                    customer: customer.id,
+                    event: 'JOB_REQUEST_ACCEPTED',
+                }
+            }, { database: true, push: true, socket: true })
+
+        }
+
+
+    } catch (error) {
+        Logger.error(`Error handling JOB_REQUEST_REJECTED event: ${error}`);
     }
 });
 
 
 JobEvent.on('NEW_JOB_LISTING', async function (payload) {
     try {
-        console.log('handling alert NEW_JOB_LISTING event')
+        Logger.info('handling alert NEW_JOB_LISTING event')
         const job = await JobModel.findById(payload.jobId)
 
         if (job) {
@@ -101,8 +205,6 @@ JobEvent.on('NEW_JOB_LISTING', async function (payload) {
 
             const devices = await ContractorDeviceModel.find({ contractor: { $in: contractorIds } })
             const deviceTokens = devices.map(device => device.deviceToken);
-
-            console.log(contractorIds, deviceTokens)
 
             sendPushNotifications(deviceTokens, {
                 title: 'New job listing',
@@ -121,18 +223,18 @@ JobEvent.on('NEW_JOB_LISTING', async function (payload) {
 
 
     } catch (error) {
-        console.error(`Error handling NEW_JOB_REQUEST event: ${error}`);
+        Logger.error(`Error handling NEW_JOB_REQUEST event: ${error}`);
     }
 });
 
 JobEvent.on('JOB_CANCELED', async function (payload: { job: IJob, canceledBy: string }) {
     try {
-        console.log('handling alert JOB_CANCELED event')
+        Logger.info('handling alert JOB_CANCELED event')
         const customer = await CustomerModel.findById(payload.job.customer) as ICustomer
         const contractor = await ContractorModel.findById(payload.job.contractor) as IContractor
 
         if (payload.canceledBy == 'contractor') {
-            console.log('job cancelled by contractor')
+            Logger.info('job cancelled by contractor')
 
             if (customer) {
                 //send email to customer 
@@ -143,7 +245,7 @@ JobEvent.on('JOB_CANCELED', async function (payload: { job: IJob, canceledBy: st
 
         }
         if (payload.canceledBy == 'customer') {
-            console.log('job cancelled by customer')
+            Logger.info('job cancelled by customer')
 
             if (contractor) {
                 //send email to customer 
@@ -166,7 +268,7 @@ JobEvent.on('JOB_CANCELED', async function (payload: { job: IJob, canceledBy: st
         }
 
     } catch (error) {
-        console.error(`Error handling JOB_CANCELED event: ${error}`);
+        Logger.error(`Error handling JOB_CANCELED event: ${error}`);
     }
 });
 
@@ -174,7 +276,7 @@ JobEvent.on('JOB_CANCELED', async function (payload: { job: IJob, canceledBy: st
 JobEvent.on('JOB_QUOTATION_DECLINED', async function (payload: { jobId: ObjectId, contractorId: ObjectId, customerId: ObjectId, reason: string }) {
     try {
 
-        console.log('handling alert JOB_QUOTATION_DECLINED event')
+        Logger.info('handling alert JOB_QUOTATION_DECLINED event')
 
         const customer = await CustomerModel.findById(payload.customerId) as ICustomer
         const contractor = await ContractorModel.findById(payload.contractorId) as IContractor
@@ -206,7 +308,7 @@ JobEvent.on('JOB_QUOTATION_DECLINED', async function (payload: { jobId: ObjectId
                 payload: {
                     entity: job.id,
                     entityType: 'jobs',
-                    message: `Your job quotation for a job  on RepairFind was decline`,
+                    message: `Your job quotation for a job  on RepairFind was declined`,
                     customer: customer.id,
                     event: 'JOB_QUOTATION_DECLINED',
                 }
@@ -218,7 +320,7 @@ JobEvent.on('JOB_QUOTATION_DECLINED', async function (payload: { jobId: ObjectId
 
 
     } catch (error) {
-        console.error(`Error handling JOB_QUOTATION_DECLINED event: ${error}`);
+        Logger.error(`Error handling JOB_QUOTATION_DECLINED event: ${error}`);
     }
 });
 
@@ -226,7 +328,7 @@ JobEvent.on('JOB_QUOTATION_DECLINED', async function (payload: { jobId: ObjectId
 JobEvent.on('JOB_QUOTATION_ACCEPTED', async function (payload: { jobId: ObjectId, contractorId: ObjectId, customerId: ObjectId, reason: string }) {
     try {
 
-        console.log('handling alert JOB_QUOTATION_ACCEPTED event')
+        Logger.info('handling alert JOB_QUOTATION_ACCEPTED event')
 
         const customer = await CustomerModel.findById(payload.customerId) as ICustomer
         const contractor = await ContractorModel.findById(payload.contractorId) as IContractor
@@ -270,14 +372,14 @@ JobEvent.on('JOB_QUOTATION_ACCEPTED', async function (payload: { jobId: ObjectId
 
 
     } catch (error) {
-        console.error(`Error handling JOB_QUOTATION_ACCEPTED event: ${error}`);
+        Logger.error(`Error handling JOB_QUOTATION_ACCEPTED event: ${error}`);
     }
 });
 
 
 JobEvent.on('JOB_DAY_EMERGENCY', async function (payload: { jobEmergency: IJobEmergency }) {
     try {
-        console.log('handling alert JOB_DAY_EMERGENCY event')
+        Logger.info('handling alert JOB_DAY_EMERGENCY event')
         const customer = await CustomerModel.findById(payload.jobEmergency.customer)
         const contractor = await ContractorModel.findById(payload.jobEmergency.contractor)
         const job = await JobModel.findById(payload.jobEmergency.job) as IJob
@@ -285,14 +387,14 @@ JobEvent.on('JOB_DAY_EMERGENCY', async function (payload: { jobEmergency: IJobEm
 
         if (job && contractor && customer) {
             if (payload.jobEmergency.triggeredBy == 'contractor') {
-                console.log('job emergency triggered by contractor')
+                Logger.info('job emergency triggered by contractor')
                 if (customer) {
                     const html = JobEmergencyEmailTemplate({ name: customer.name, emergency: payload.jobEmergency, job })
                     EmailService.send(customer.email, "Job Emergency", html)
                 }
             }
             if (payload.jobEmergency.triggeredBy == 'customer') {
-                console.log('job emergency triggered by customer')
+                Logger.info('job emergency triggered by customer')
                 if (contractor) {
                     const html = JobEmergencyEmailTemplate({ name: contractor.name, emergency: payload.jobEmergency, job })
                     EmailService.send(contractor.email, "Job Emergency", html)
@@ -310,14 +412,14 @@ JobEvent.on('JOB_DAY_EMERGENCY', async function (payload: { jobEmergency: IJobEm
 
 
     } catch (error) {
-        console.error(`Error handling JOB_DAY_EMERGENCY event: ${error}`);
+        Logger.error(`Error handling JOB_DAY_EMERGENCY event: ${error}`);
     }
 });
 
 
 JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: IJob, action: string }) {
     try {
-        console.log('handling alert JOB_RESCHEDULE_DECLINED_ACCEPTED event', payload.action)
+        Logger.info('handling alert JOB_RESCHEDULE_DECLINED_ACCEPTED event', payload.action)
 
         const customer = await CustomerModel.findById(payload.job.customer)
         const contractor = await ContractorModel.findById(payload.job.contractor)
@@ -350,14 +452,14 @@ JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: 
 
 
     } catch (error) {
-        console.error(`Error handling JOB_RESCHEDULE_DECLINED_ACCEPTED event: ${error}`);
+        Logger.error(`Error handling JOB_RESCHEDULE_DECLINED_ACCEPTED event: ${error}`);
     }
 });
 
 
 JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', async function (payload: { job: IJob, action: string }) {
     try {
-        console.log('handling alert NEW_JOB_RESCHEDULE_REQUEST event', payload.action)
+        Logger.info('handling alert NEW_JOB_RESCHEDULE_REQUEST event', payload.action)
 
         const customer = await CustomerModel.findById(payload.job.customer)
         const contractor = await ContractorModel.findById(payload.job.contractor)
@@ -390,14 +492,14 @@ JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', async function (payload: { job: IJob, 
 
 
     } catch (error) {
-        console.error(`Error handling NEW_JOB_RESCHEDULE_REQUEST event: ${error}`);
+        Logger.error(`Error handling NEW_JOB_RESCHEDULE_REQUEST event: ${error}`);
     }
 });
 
 
 JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractorId: ObjectId, customerId: ObjectId, quotationId: ObjectId, paymentType: string }) {
     try {
-        console.log('handling alert JOB_BOOKED event')
+        Logger.info('handling alert JOB_BOOKED event')
 
         const customer = await CustomerModel.findById(payload.customerId)
         const contractor = await ContractorModel.findById(payload.contractorId)
@@ -472,14 +574,14 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
 
 
     } catch (error) {
-        console.error(`Error handling JOB_BOOKED event: ${error}`);
+        Logger.error(`Error handling JOB_BOOKED event: ${error}`);
     }
 });
 
 
 JobEvent.on('JOB_DISPUTE_CREATED', async function (payload: { dispute: IJobDispute }) {
     try {
-        console.log('handling alert JOB_DISPUTE_CREATED event', payload.dispute)
+        Logger.info('handling alert JOB_DISPUTE_CREATED event', payload.dispute)
 
         const dispute = payload.dispute
         const job = await JobModel.findById(dispute.job)
@@ -558,14 +660,14 @@ JobEvent.on('JOB_DISPUTE_CREATED', async function (payload: { dispute: IJobDispu
 
 
     } catch (error) {
-        console.error(`Error handling JOB_DISPUTE_CREATED event: ${error}`);
+        Logger.error(`Error handling JOB_DISPUTE_CREATED event: ${error}`);
     }
 });
 
 
 JobEvent.on('JOB_MARKED_COMPLETE_BY_CONTRACTOR', async function (payload: { job: IJob }) {
     try {
-        console.log('handling alert JOB_MARKED_COMPLETE_BY_CONTRACTOR event', payload.job.id)
+        Logger.info('handling alert JOB_MARKED_COMPLETE_BY_CONTRACTOR event', payload.job.id)
         const job = await JobModel.findById(payload.job.id)
 
         if (!job) {
@@ -633,14 +735,14 @@ JobEvent.on('JOB_MARKED_COMPLETE_BY_CONTRACTOR', async function (payload: { job:
 
 
     } catch (error) {
-        console.error(`Error handling JOB_MARKED_COMPLETE_BY_CONTRACTOR event: ${error}`);
+        Logger.error(`Error handling JOB_MARKED_COMPLETE_BY_CONTRACTOR event: ${error}`);
     }
 });
 
 
 JobEvent.on('JOB_COMPLETED', async function (payload: { job: IJob }) {
     try {
-        console.log('handling alert JOB_COMPLETED event', payload.job.id)
+        Logger.info('handling alert JOB_COMPLETED event', payload.job.id)
 
         const job = await JobModel.findById(payload.job.id)
 
@@ -699,14 +801,14 @@ JobEvent.on('JOB_COMPLETED', async function (payload: { job: IJob }) {
         }
 
     } catch (error) {
-        console.error(`Error handling JOB_COMPLETED event: ${error}`);
+        Logger.error(`Error handling JOB_COMPLETED event: ${error}`);
     }
 });
 
 
 JobEvent.on('JOB_CHANGE_ORDER', async function (payload: { job: IJob }) {
     try {
-        console.log('handling JOB_CHANGE_ORDER event', payload.job.id)
+        Logger.info('handling JOB_CHANGE_ORDER event', payload.job.id)
 
         const job = await JobModel.findById(payload.job.id)
 
@@ -755,14 +857,14 @@ JobEvent.on('JOB_CHANGE_ORDER', async function (payload: { job: IJob }) {
         }
 
     } catch (error) {
-        console.error(`Error handling JOB_CHANGE_ORDER event: ${error}`);
+        Logger.error(`Error handling JOB_CHANGE_ORDER event: ${error}`);
     }
 });
 
 
 JobEvent.on('SITE_VISIT_ESTIMATE_SUBMITTED', async function (payload: { job: IJob, quotation: IJobQuotation }) {
     try {
-        console.log('handling SITE_VISIT_ESTIMATE_SUBMITTED event', payload.job.id)
+        Logger.info('handling SITE_VISIT_ESTIMATE_SUBMITTED event', payload.job.id)
 
         const job = await JobModel.findById(payload.job.id)
 
@@ -815,13 +917,13 @@ JobEvent.on('SITE_VISIT_ESTIMATE_SUBMITTED', async function (payload: { job: IJo
 
 
     } catch (error) {
-        console.error(`Error handling SITE_VISIT_ESTIMATE_SUBMITTED event: ${error}`);
+        Logger.error(`Error handling SITE_VISIT_ESTIMATE_SUBMITTED event: ${error}`);
     }
 });
 
 JobEvent.on('CHANGE_ORDER_ESTIMATE_SUBMITTED', async function (payload: { job: IJob, quotation: IJobQuotation }) {
     try {
-        console.log('handling CHANGE_ORDER_ESTIMATE_SUBMITTED event', payload.job.id)
+        Logger.info('handling CHANGE_ORDER_ESTIMATE_SUBMITTED event', payload.job.id)
 
         const job = await JobModel.findById(payload.job.id)
 
@@ -881,14 +983,14 @@ JobEvent.on('CHANGE_ORDER_ESTIMATE_SUBMITTED', async function (payload: { job: I
 
 
     } catch (error) {
-        console.error(`Error handling CHANGE_ORDER_ESTIMATE_SUBMITTED event: ${error}`);
+        Logger.error(`Error handling CHANGE_ORDER_ESTIMATE_SUBMITTED event: ${error}`);
     }
 });
 
 
 JobEvent.on('NEW_JOB_QUOTATION', async function (payload: { job: IJob, quotation: IJobQuotation }) {
     try {
-        console.log('handling NEW_JOB_QUOTATION event', payload.job.id)
+        Logger.info('handling NEW_JOB_QUOTATION event', payload.job.id)
         const job = payload.job
         const quotation = payload.quotation
         const customer = await CustomerModel.findById(job.customer)
@@ -937,14 +1039,14 @@ JobEvent.on('NEW_JOB_QUOTATION', async function (payload: { job: IJob, quotation
 
 
     } catch (error) {
-        console.error(`Error handling NEW_JOB_QUOTATION event: ${error}`);
+        Logger.error(`Error handling NEW_JOB_QUOTATION event: ${error}`);
     }
 });
 
 
 JobEvent.on('JOB_QUOTATION_EDITED', async function (payload: { job: IJob, quotation: IJobQuotation }) {
     try {
-        console.log('handling JOB_QUOTATION_EDITED event', payload.job.id)
+        Logger.info('handling JOB_QUOTATION_EDITED event', payload.job.id)
         const job = payload.job
         const quotation = payload.quotation
         const customer = await CustomerModel.findById(job.customer)
@@ -993,14 +1095,14 @@ JobEvent.on('JOB_QUOTATION_EDITED', async function (payload: { job: IJob, quotat
 
 
     } catch (error) {
-        console.error(`Error handling JOB_QUOTATION_EDITED event: ${error}`);
+        Logger.error(`Error handling JOB_QUOTATION_EDITED event: ${error}`);
     }
 });
 
 
 JobEvent.on('CHANGE_ORDER_ESTIMATE_PAID', async function (payload: { job: IJob, quotation: IJobQuotation, extraEstimate: IExtraEstimate }) {
     try {
-        console.log('handling CHANGE_ORDER_ESTIMATE_PAID event', payload.job.id)
+        Logger.info('handling CHANGE_ORDER_ESTIMATE_PAID event', payload.job.id)
 
         const job = payload.job
         if (!job) return
@@ -1032,7 +1134,7 @@ JobEvent.on('CHANGE_ORDER_ESTIMATE_PAID', async function (payload: { job: IJob, 
 
 
     } catch (error) {
-        console.error(`Error handling CHANGE_ORDER_ESTIMATE_PAID event: ${error}`);
+        Logger.error(`Error handling CHANGE_ORDER_ESTIMATE_PAID event: ${error}`);
     }
 });
 
@@ -1040,7 +1142,7 @@ JobEvent.on('CHANGE_ORDER_ESTIMATE_PAID', async function (payload: { job: IJob, 
 // JOB DAY
 JobEvent.on('JOB_DAY_STARTED', async function (payload: { job: IJob, jobDay: IJobDay }) {
     try {
-        console.log('handling alert JOB_DAY_STARTED event', payload.job.id)
+        Logger.info('handling alert JOB_DAY_STARTED event', payload.job.id)
 
         const job = await payload.job
         const jobDay = await payload.jobDay
@@ -1113,14 +1215,14 @@ JobEvent.on('JOB_DAY_STARTED', async function (payload: { job: IJob, jobDay: IJo
         )
 
     } catch (error) {
-        console.error(`Error handling JOB_MARKED_COMPLETE_BY_CONTRACTOR event: ${error}`);
+        Logger.error(`Error handling JOB_MARKED_COMPLETE_BY_CONTRACTOR event: ${error}`);
     }
 });
 
 
 JobEvent.on('JOB_DAY_ARRIVAL', async function (payload: { jobDay: IJobDay, verificationCode: number }) {
     try {
-        console.log('handling alert JOB_DAY_ARRIVAL event', payload.jobDay.id)
+        Logger.info('handling alert JOB_DAY_ARRIVAL event', payload.jobDay.id)
 
         const jobDay = await payload.jobDay
         const job = await JobModel.findById(jobDay.job)
@@ -1186,7 +1288,7 @@ JobEvent.on('JOB_DAY_ARRIVAL', async function (payload: { jobDay: IJobDay, verif
         }
 
     } catch (error) {
-        console.error(`Error handling JOB_DAY_ARRIVAL event: ${error}`);
+        Logger.error(`Error handling JOB_DAY_ARRIVAL event: ${error}`);
     }
 });
 
@@ -1194,7 +1296,7 @@ JobEvent.on('JOB_DAY_ARRIVAL', async function (payload: { jobDay: IJobDay, verif
 
 JobEvent.on('JOB_REFUND_REQUESTED', async function (payload: { job: any, payment: any, refund: any }) {
     try {
-        console.log('handling alert JOB_REFUND_REQUESTED event', payload.payment.id)
+        Logger.info('handling alert JOB_REFUND_REQUESTED event', payload.payment.id)
 
         const job = payload.job
         const payment = payload.payment
@@ -1232,7 +1334,7 @@ JobEvent.on('JOB_REFUND_REQUESTED', async function (payload: { job: any, payment
 
 
     } catch (error) {
-        console.error(`Error handling JOB_REFUND_REQUESTED event: ${error}`);
+        Logger.error(`Error handling JOB_REFUND_REQUESTED event: ${error}`);
     }
 });
 
@@ -1240,7 +1342,7 @@ JobEvent.on('JOB_REFUND_REQUESTED', async function (payload: { job: any, payment
 
 JobEvent.on('NEW_JOB_ENQUIRY', async function (payload: { jobId: any, enquiryId: IJobEnquiry }) {
     try {
-        console.log('handling alert NEW_JOB_ENQUIRY event', payload.jobId)
+        Logger.info('handling alert NEW_JOB_ENQUIRY event', payload.jobId)
 
         const job = await JobModel.findById(payload.jobId)
         const enquiry = await JobEnquiryModel.findById(payload.enquiryId)
@@ -1306,14 +1408,14 @@ JobEvent.on('NEW_JOB_ENQUIRY', async function (payload: { jobId: any, enquiryId:
 
 
     } catch (error) {
-        console.error(`Error handling NEW_JOB_ENQUIRY event: ${error}`);
+        Logger.error(`Error handling NEW_JOB_ENQUIRY event: ${error}`);
     }
 });
 
 
 JobEvent.on('NEW_JOB_ENQUIRY_REPLY', async function (payload: { jobId: any, enquiryId: IJobEnquiry }) {
     try {
-        console.log('handling alert NEW_JOB_ENQUIRY_REPLY event', payload.jobId)
+        Logger.info('handling alert NEW_JOB_ENQUIRY_REPLY event', payload.jobId)
 
 
         const job = await JobModel.findById(payload.jobId)
@@ -1365,6 +1467,6 @@ JobEvent.on('NEW_JOB_ENQUIRY_REPLY', async function (payload: { jobId: any, enqu
 
 
     } catch (error) {
-        console.error(`Error handling NEW_JOB_ENQUIRY_REPLY event: ${error}`);
+        Logger.error(`Error handling NEW_JOB_ENQUIRY_REPLY event: ${error}`);
     }
 });

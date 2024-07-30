@@ -255,6 +255,7 @@ var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void
             case 10:
                 _c.sent();
                 events_1.ConversationEvent.emit('NEW_MESSAGE', { message: message });
+                events_1.JobEvent.emit('JOB_REQUEST_ACCEPTED', { job: job });
                 // Return success response
                 res.json({ success: true, message: 'Job request accepted successfully' });
                 return [3 /*break*/, 12];
@@ -332,6 +333,7 @@ var rejectJobRequest = function (req, res) { return __awaiter(void 0, void 0, vo
                     entityType: 'jobs'
                 });
                 events_1.ConversationEvent.emit('NEW_MESSAGE', { message: message });
+                events_1.JobEvent.emit('JOB_REQUEST_REJECTED', { job: job });
                 res.json({ success: true, message: 'Job request rejected successfully' });
                 return [3 /*break*/, 5];
             case 4:
@@ -654,6 +656,7 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
             case 10:
                 _f.sent();
                 events_1.JobEvent.emit('NEW_JOB_QUOTATION', { job: job, quotation: jobQuotation_1 });
+                events_1.ConversationEvent.emit('NEW_MESSAGE', { message: message });
                 res.json({
                     success: true,
                     message: "Job quotation successfully sent",
@@ -1265,17 +1268,14 @@ var createJobEnquiry = function (req, res, next) { return __awaiter(void 0, void
                 return [4 /*yield*/, enquiry.save()];
             case 2:
                 _a.sent();
-                job.enquiries.push(enquiry._id);
+                job.enquiries.push(enquiry.id);
                 return [4 /*yield*/, job.save()];
             case 3:
                 _a.sent();
-                events_1.JobEvent.emit('NEW_JOB_ENQUIRY', { jobId: jobId, enquiryId: enquiry.id });
-                return [4 /*yield*/, contractor_saved_job_model_1.default.findOneAndUpdate({ job: job.id, contractor: contractorId }, {
-                        job: job.id,
-                        contractor: contractorId
-                    }, { new: true, upsert: true })];
+                return [4 /*yield*/, contractor_saved_job_model_1.default.findOneAndUpdate({ job: job.id, contractor: contractorId }, { job: job.id, contractor: contractorId }, { new: true, upsert: true })];
             case 4:
                 _a.sent();
+                events_1.JobEvent.emit('NEW_JOB_ENQUIRY', { jobId: jobId, enquiryId: enquiry.id });
                 return [2 /*return*/, res.status(200).json({ success: true, message: "Question added", question: question })];
             case 5:
                 error_13 = _a.sent();

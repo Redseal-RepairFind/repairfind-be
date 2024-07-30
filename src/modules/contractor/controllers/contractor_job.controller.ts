@@ -215,6 +215,7 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
     await message.save();
 
     ConversationEvent.emit('NEW_MESSAGE', { message })
+    JobEvent.emit('JOB_REQUEST_ACCEPTED', { job });
 
 
     // Return success response
@@ -305,6 +306,7 @@ export const rejectJobRequest = async (req: any, res: Response) => {
     });
 
     ConversationEvent.emit('NEW_MESSAGE', { message })
+    JobEvent.emit('JOB_REQUEST_REJECTED', { job });
 
     res.json({ success: true, message: 'Job request rejected successfully' });
   } catch (error) {
@@ -607,6 +609,7 @@ export const sendJobQuotation = async (
 
 
     JobEvent.emit('NEW_JOB_QUOTATION', { job, quotation: jobQuotation });
+    ConversationEvent.emit('NEW_MESSAGE', { message })
 
 
     res.json({
@@ -827,7 +830,6 @@ export const updateJobQuotation = async (req: any, res: Response, next: NextFunc
     });
     await message.save();
     ConversationEvent.emit('NEW_MESSAGE', { message })
-
     JobEvent.emit('JOB_QUOTATION_EDITED', { job, quotation: jobQuotation });
 
     res.status(200).json({ success: true, message: 'Job application updated successfully', data: jobQuotation });
@@ -1233,18 +1235,17 @@ export const createJobEnquiry = async (req: any, res: Response, next: NextFuncti
 
     await enquiry.save();
 
-    job.enquiries.push(enquiry._id);
+    job.enquiries.push(enquiry.id);
     await job.save();
+
+    await ContractorSavedJobModel.findOneAndUpdate(
+      { job: job.id, contractor: contractorId },
+      { job: job.id, contractor: contractorId },
+      { new: true, upsert: true }
+    );
 
 
     JobEvent.emit('NEW_JOB_ENQUIRY', { jobId, enquiryId: enquiry.id });
-
-
-    await ContractorSavedJobModel.findOneAndUpdate({ job: job.id, contractor: contractorId }, {
-      job: job.id,
-      contractor: contractorId
-    }, { new: true, upsert: true })
-
 
 
     return res.status(200).json({ success: true, message: "Question added", question });

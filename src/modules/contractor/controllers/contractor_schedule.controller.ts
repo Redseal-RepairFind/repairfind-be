@@ -70,7 +70,7 @@ export const createSchedule = async (req: any, res: Response) => {
 
 export const setAvailability = async (req: any, res: Response) => {
   try {
-    const { days, isOffDuty } = req.body;
+    const { availability, isOffDuty } = req.body;
     const contractorId = req.contractor.id;
 
     const contractorProfile = await ContractorProfileModel.findOne({ contractor: contractorId })
@@ -80,7 +80,7 @@ export const setAvailability = async (req: any, res: Response) => {
       return res.status(400).json({ success: false, message: 'Contractor not found' });
     }
 
-    contractorProfile.availability = days
+    contractorProfile.availability = availability
     if (isOffDuty) {
       contractorProfile.isOffDuty = isOffDuty
     }

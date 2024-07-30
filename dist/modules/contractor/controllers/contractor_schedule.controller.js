@@ -130,12 +130,12 @@ var createSchedule = function (req, res) { return __awaiter(void 0, void 0, void
 }); };
 exports.createSchedule = createSchedule;
 var setAvailability = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, days, isOffDuty, contractorId, contractorProfile, error_2;
+    var _a, availability, isOffDuty, contractorId, contractorProfile, error_2;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
                 _b.trys.push([0, 3, , 4]);
-                _a = req.body, days = _a.days, isOffDuty = _a.isOffDuty;
+                _a = req.body, availability = _a.availability, isOffDuty = _a.isOffDuty;
                 contractorId = req.contractor.id;
                 return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: contractorId })];
             case 1:
@@ -143,7 +143,7 @@ var setAvailability = function (req, res) { return __awaiter(void 0, void 0, voi
                 if (!contractorProfile) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Contractor not found' })];
                 }
-                contractorProfile.availability = days;
+                contractorProfile.availability = availability;
                 if (isOffDuty) {
                     contractorProfile.isOffDuty = isOffDuty;
                 }
