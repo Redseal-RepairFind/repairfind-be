@@ -118,44 +118,6 @@ export const toggleOffDuty = async (req: any, res: Response) => {
 };
 
 
-export const getSchedules = async (req: any, res: Response) => {
-  try {
-    const { year, month } = req.query;
-    const contractorId = req.contractor.id;
-
-    if (!year || !isValid(new Date(`${year}-01-01`))) {
-      return res.status(400).json({ success: false, message: 'Invalid year format' });
-    }
-
-
-    let startDate, endDate;
-
-    if (month) {
-      // If month is specified, retrieve schedules for that month
-      if (!isValid(new Date(`${year}-${month}-01`))) {
-        return res.status(400).json({ success: false, message: 'Invalid month format' });
-      }
-
-      startDate = startOfMonth(new Date(`${year}-${month}-01`));
-      endDate = endOfMonth(new Date(`${year}-${month}-01`));
-    } else {
-      // If no month specified, retrieve schedules for the whole year
-      startDate = startOfYear(new Date(`${year}-01-01`));
-      endDate = endOfYear(new Date(`${year}-12-31`));
-    }
-
-    const schedules = await ContractorScheduleModel.find({
-      contractor: contractorId,
-      date: { $gte: startDate, $lte: endDate },
-    });
-
-    res.json({ success: true, message: 'Schedules retrieved successfully', data: schedules });
-  } catch (error) {
-    console.error('Error retrieving schedules:', error);
-    res.status(500).json({ success: false, message: 'Internal Server Error' });
-  }
-};
-
 
 export const getSchedulesByDate = async (req: any, res: Response) => {
   try {
@@ -193,11 +155,7 @@ export const getSchedulesByDate = async (req: any, res: Response) => {
 
 
     // Group schedules by year and month
-
-    const availabilityDays  = contractorProfile.availability.map(availability =>{
-      return availability.day
-    });
-    const expandedSchedules: any = generateExpandedSchedule(availabilityDays, year).filter(schedule => {
+    const expandedSchedules: any = generateExpandedSchedule(contractorProfile.availability, year).filter(schedule => {
       return schedule.date >= startDate && schedule.date <= endDate;
     });
 
@@ -308,131 +266,7 @@ export const getSchedulesByDate = async (req: any, res: Response) => {
 };
 
 
-export const addOrUpdateSchedule = async (req: any, res: Response) => {
-  try {
-    // Check for validation errors
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ success: false, message: 'Validation errors', errors: errors.array() });
-    }
 
-    // Extract data from the request
-    const { date, note, startTime, endTime, booking, title, type } = req.body;
-    const contractorId = req.contractor.id;
-
-    // Check if a schedule already exists for the given date
-    const existingSchedule = await ContractorScheduleModel.findOne({ contractor: contractorId, date });
-
-    if (existingSchedule) {
-
-
-      // Update the existing schedule with the new event
-      let events = existingSchedule.events || []
-
-      let isOverlapping = events.some((event: any) => {
-        const eventStartTime = new Date(event.startTime).getTime();
-        const eventEndTime = new Date(event.endTime).getTime();
-        const newEventStartTime = new Date(startTime).getTime();
-        const newEventEndTime = new Date(endTime).getTime();
-        return (
-          (newEventStartTime >= eventStartTime && newEventStartTime < eventEndTime) ||
-          (newEventEndTime > eventStartTime && newEventEndTime <= eventEndTime) ||
-          (newEventStartTime <= eventStartTime && newEventEndTime >= eventEndTime)
-        );
-      });
-
-      if (isOverlapping) {
-        // Update the existing event with the new event
-        const index = events.findIndex((event: any) => {
-          const eventStartTime = new Date(event.startTime).getTime();
-          const eventEndTime = new Date(event.endTime).getTime();
-          const newEventStartTime = new Date(startTime).getTime();
-          const newEventEndTime = new Date(endTime).getTime();
-          return (
-            (newEventStartTime >= eventStartTime && newEventStartTime < eventEndTime) ||
-            (newEventEndTime > eventStartTime && newEventEndTime <= eventEndTime) ||
-            (newEventStartTime <= eventStartTime && newEventEndTime >= eventEndTime)
-          );
-        });
-
-        if (index !== -1) {
-          events[index] = {
-            ...events[index],
-            startTime,
-            endTime,
-            booking,
-            type,
-            note,
-            title,
-          };
-        }
-      } else {
-        // Add the new event to the events array
-        events.push({
-          startTime,
-          endTime,
-          booking,
-          note,
-          type,
-          title,
-        });
-      }
-
-
-      existingSchedule.events = events;
-      const updatedSchedule = await existingSchedule.save();
-
-      res.json({ success: true, message: 'Event added to the schedule successfully', data: updatedSchedule });
-    } else {
-      // Create a new schedule document
-      const newScheduleData: IContractorSchedule = {
-        contractor: contractorId,
-        date,
-        type: 'default', // Set a default type if needed
-        recurrence: { frequency: 'Once' }, // Set default recurrence if needed
-        events: [{
-          date,
-          startTime,
-          endTime,
-          booking,
-          note,
-          title
-        }],
-      };
-
-      const newSchedule = await ContractorScheduleModel.create(newScheduleData);
-
-      res.json({ success: true, message: 'Schedule created with the event successfully', data: newSchedule });
-    }
-  } catch (error) {
-    console.error('Error adding or updating schedule:', error);
-    res.status(500).json({ success: false, message: 'Internal Server Error' });
-  }
-};
-
-export const addOrUpdateAvailability = async (req: any, res: Response) => {
-  try {
-
-    const { days } = req.body;
-    const contractorId = req.contractor.id;
-
-    let contractorProfile = await ContractorProfileModel.findById({ contractor: contractorId })
-
-    if (!contractorProfile) {
-      return res.status(400).json({ success: false, message: 'Contractor profile not found' });
-    }
-
-    contractorProfile.availability = days;
-    contractorProfile.save()
-
-    res.json({ success: true, message: 'Availability Schedule updated  successfully', data: contractorProfile });
-
-  } catch (error) {
-    console.error('Error adding or updating schedule:', error);
-    res.status(500).json({ success: false, message: 'Internal Server Error' });
-  }
-
-};
 
 
 export const getEventsByMonth = async (req: any, res: Response) => {
@@ -500,9 +334,7 @@ export const isDateInExpandedSchedule = async (req: any, res: Response) => {
 
 export const ScheduleController = {
   createSchedule,
-  getSchedules,
   getSchedulesByDate,
-  addOrUpdateSchedule,
   getEventsByMonth,
   isDateInExpandedSchedule,
   setAvailability,

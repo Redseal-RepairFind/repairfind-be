@@ -501,10 +501,10 @@ export const getContractorSchedules = async (req: any, res: Response) => {
 
 
         // Group schedules by year and month
-        const availabilityDays  = contractorProfile.availability.map(availability =>{
-            return availability.day
-        })
-        const expandedSchedules = generateExpandedSchedule(availabilityDays, year).filter(schedule => {
+        // const availabilityDays  = contractorProfile.availability.map(availability =>{
+        //     return availability.day
+        // })
+        const expandedSchedules = generateExpandedSchedule(contractorProfile.availability, year).filter(schedule => {
             return schedule.date >= startDate && schedule.date <= endDate;
         });
 

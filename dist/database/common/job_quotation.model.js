@@ -78,6 +78,7 @@ var JobQuotationSchema = new mongoose_1.Schema({
     changeOrderEstimate: { type: exports.ExtraEstimateSchema },
     siteVisitEstimate: { type: exports.ExtraEstimateSchema },
     responseTime: { type: Number, default: 0 },
+    estimatedDuration: { type: Number, default: 0 },
 }, { timestamps: true });
 // Define the static method to calculate charges
 JobQuotationSchema.methods.calculateCharges = function (type) {

@@ -496,7 +496,7 @@ var getFavoriteContractors = function (req, res, next) { return __awaiter(void 0
 }); };
 exports.getFavoriteContractors = getFavoriteContractors;
 var getContractorSchedules = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, year, month, contractorId_1, contractorProfile, startDate_1, endDate_1, availabilityDays, expandedSchedules, existingSchedules, mergedSchedules_1, uniqueSchedules, groupedSchedules, error_4;
+    var _a, year, month, contractorId_1, contractorProfile, startDate_1, endDate_1, expandedSchedules, existingSchedules, mergedSchedules_1, uniqueSchedules, groupedSchedules, error_4;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -528,10 +528,7 @@ var getContractorSchedules = function (req, res) { return __awaiter(void 0, void
                     startDate_1 = (0, date_fns_1.startOfYear)(new Date("".concat(year, "-01-01")));
                     endDate_1 = (0, date_fns_1.endOfYear)(new Date("".concat(year, "-12-31")));
                 }
-                availabilityDays = contractorProfile.availability.map(function (availability) {
-                    return availability.day;
-                });
-                expandedSchedules = (0, schedule_util_1.generateExpandedSchedule)(availabilityDays, year).filter(function (schedule) {
+                expandedSchedules = (0, schedule_util_1.generateExpandedSchedule)(contractorProfile.availability, year).filter(function (schedule) {
                     return schedule.date >= startDate_1 && schedule.date <= endDate_1;
                 });
                 return [4 /*yield*/, contractor_schedule_model_1.ContractorScheduleModel.find({

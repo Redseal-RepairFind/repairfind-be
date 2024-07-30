@@ -461,7 +461,7 @@ export const sendJobQuotation = async (
   try {
     const { jobId } = req.params;
     const contractorId = req.contractor.id;
-    let { startDate, endDate, siteVisit, estimates = [] } = req.body;
+    let { startDate, endDate, siteVisit, estimatedDuration, estimates = [] } = req.body;
 
     // Validate request body
     const errors = validationResult(req);
@@ -526,7 +526,7 @@ export const sendJobQuotation = async (
     // Create or update job quotation
     let jobQuotation = await JobQuotationModel.findOneAndUpdate(
       { job: jobId, contractor: contractorId },
-      { startDate: scheduleStartDate, endDate: scheduleEndDate, siteVisit: scheduleSiteVisitDate, estimates, jobId, contractorId },
+      { startDate: scheduleStartDate, endDate: scheduleEndDate, siteVisit: scheduleSiteVisitDate, estimates, jobId, contractorId, estimatedDuration },
       { new: true, upsert: true }
     );
 
@@ -756,7 +756,7 @@ export const updateJobQuotation = async (req: any, res: Response, next: NextFunc
       return res.status(400).json({ success: false, message: 'Job ID is missing from params' });
     }
 
-    const { startDate, endDate, siteVisit, estimates } = req.body;
+    const { startDate, endDate, siteVisit, estimatedDuration, estimates } = req.body;
 
     // Check for validation errors
     const errors = validationResult(req);
@@ -787,6 +787,7 @@ export const updateJobQuotation = async (req: any, res: Response, next: NextFunc
     jobQuotation.endDate = endDate;
     jobQuotation.siteVisit = siteVisit;
     jobQuotation.estimates = estimates;
+    jobQuotation.estimatedDuration = estimatedDuration;
 
     // Save the updated job application
     await jobQuotation.save();

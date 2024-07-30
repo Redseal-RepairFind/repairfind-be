@@ -125,8 +125,6 @@ router.patch("/teams/invitations/:invitationId/reject", contractorRoleCheck_midd
 //  Contractor Schedule
 router.post("/schedules", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateScheduleRequest, contractor_schedule_controller_1.ScheduleController.createSchedule);
 router.get("/schedules", contractorRoleCheck_middleware_1.checkContractorRole, contractor_schedule_controller_1.ScheduleController.getSchedulesByDate);
-// router.get("/schedules", checkContractorRole, ScheduleController.expandWeeklyAvailability);
-router.post("/schedules/events", contractorRoleCheck_middleware_1.checkContractorRole, contractor_schedule_controller_1.ScheduleController.addOrUpdateSchedule);
 router.post("/schedules/availability", contractorRoleCheck_middleware_1.checkContractorRole, contractor_schedule_controller_1.ScheduleController.setAvailability);
 router.get("/schedules/events", contractorRoleCheck_middleware_1.checkContractorRole, contractor_schedule_controller_1.ScheduleController.getEventsByMonth);
 router.post("/schedules/toggle-off-duty", contractorRoleCheck_middleware_1.checkContractorRole, contractor_schedule_controller_1.ScheduleController.toggleOffDuty);

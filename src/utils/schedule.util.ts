@@ -4,9 +4,10 @@ import { IContractorProfile } from "../database/contractor/interface/contractor_
 import { ContractorProfileModel } from "../database/contractor/models/contractor_profile.model";
 import { IContractorSchedule } from "../database/contractor/models/contractor_schedule.model";
 
-export const generateExpandedSchedule = function (availabilityDays: Array<string>, year?: string) {
+export const generateExpandedSchedule = function (availabilities: Array<{day: string, startTime: string, endTime:string}>, year?: string) {
 
-    const expandedSchedule: IContractorSchedule[] = [];
+    // IContractorSchedule[]
+    const expandedSchedule: any[] = [];
     let currentYear = new Date().getFullYear();
 
    
@@ -16,9 +17,9 @@ export const generateExpandedSchedule = function (availabilityDays: Array<string
 
    
     // Iterate over each weekday in the availability days array
-    availabilityDays.forEach(day => {
+    availabilities.forEach(availability => {
 
-        let currentDate = firstWeekdayDate(day, year)
+        let currentDate = firstWeekdayDate(availability.day, year)
 
         if (!currentDate) {
             return
@@ -27,10 +28,23 @@ export const generateExpandedSchedule = function (availabilityDays: Array<string
         
         // Find all occurrences of the current weekday in the year
         while (currentDate.getFullYear() === currentYear) {
-            if (currentDate.toLocaleString('en-us', { weekday: 'long' }) === day) {
+            if (currentDate.toLocaleString('en-us', { weekday: 'long' }) === availability.day) {
+
+                const startTime = availability.startTime ?? "00:00:00"
+                const endTime =  availability.endTime ?? "23:00:00"
+                const times = [];
+
+                // Expand hours from startTime to endTime with one-hour intervals
+                for (let hour = parseInt(startTime.split(":")[0], 10); hour <= parseInt(endTime.split(":")[0], 10); hour++) {
+                    let formattedHour = `${hour.toString().padStart(2, '0')}:00:00`;
+                    times.push(formattedHour);
+                }
+
+
                 expandedSchedule.push({
                     date: new Date(currentDate),
                     type: 'available',
+                    times: times,
                 });
             }
 
@@ -50,12 +64,10 @@ export const isDateInExpandedSchedule = async (dateToCheck: any, contractorId: a
 
         let contractor  = await ContractorProfileModel.findOne({contractor: contractorId})
         if(!contractor) return false
-        let availabilityDays = contractor.availability.map(availability =>{
-            return availability.day
-        }) ?? []
+       
 
         // Check if the date falls within the expanded schedule
-        const expandedSchedule = generateExpandedSchedule(availabilityDays);
+        const expandedSchedule = generateExpandedSchedule(contractor.availability);
         const isDateInExpandedSchedule = expandedSchedule.some((schedule: any) => dateToCheck.toDateString() === schedule.date.toDateString());
         return isDateInExpandedSchedule
     } catch (error) {

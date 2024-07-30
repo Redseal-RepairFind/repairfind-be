@@ -56,7 +56,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ScheduleController = exports.isDateInExpandedSchedule = exports.getEventsByMonth = exports.addOrUpdateAvailability = exports.addOrUpdateSchedule = exports.getSchedulesByDate = exports.getSchedules = exports.toggleOffDuty = exports.setAvailability = exports.createSchedule = void 0;
+exports.ScheduleController = exports.isDateInExpandedSchedule = exports.getEventsByMonth = exports.getSchedulesByDate = exports.toggleOffDuty = exports.setAvailability = exports.createSchedule = void 0;
 var contractor_schedule_model_1 = require("../../../database/contractor/models/contractor_schedule.model");
 var express_validator_1 = require("express-validator");
 var date_fns_1 = require("date-fns");
@@ -191,51 +191,8 @@ var toggleOffDuty = function (req, res) { return __awaiter(void 0, void 0, void 
     });
 }); };
 exports.toggleOffDuty = toggleOffDuty;
-var getSchedules = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, year, month, contractorId, startDate, endDate, schedules, error_4;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0:
-                _b.trys.push([0, 2, , 3]);
-                _a = req.query, year = _a.year, month = _a.month;
-                contractorId = req.contractor.id;
-                if (!year || !(0, date_fns_1.isValid)(new Date("".concat(year, "-01-01")))) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid year format' })];
-                }
-                startDate = void 0, endDate = void 0;
-                if (month) {
-                    // If month is specified, retrieve schedules for that month
-                    if (!(0, date_fns_1.isValid)(new Date("".concat(year, "-").concat(month, "-01")))) {
-                        return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid month format' })];
-                    }
-                    startDate = (0, date_fns_1.startOfMonth)(new Date("".concat(year, "-").concat(month, "-01")));
-                    endDate = (0, date_fns_1.endOfMonth)(new Date("".concat(year, "-").concat(month, "-01")));
-                }
-                else {
-                    // If no month specified, retrieve schedules for the whole year
-                    startDate = (0, date_fns_1.startOfYear)(new Date("".concat(year, "-01-01")));
-                    endDate = (0, date_fns_1.endOfYear)(new Date("".concat(year, "-12-31")));
-                }
-                return [4 /*yield*/, contractor_schedule_model_1.ContractorScheduleModel.find({
-                        contractor: contractorId,
-                        date: { $gte: startDate, $lte: endDate },
-                    })];
-            case 1:
-                schedules = _b.sent();
-                res.json({ success: true, message: 'Schedules retrieved successfully', data: schedules });
-                return [3 /*break*/, 3];
-            case 2:
-                error_4 = _b.sent();
-                console.error('Error retrieving schedules:', error_4);
-                res.status(500).json({ success: false, message: 'Internal Server Error' });
-                return [3 /*break*/, 3];
-            case 3: return [2 /*return*/];
-        }
-    });
-}); };
-exports.getSchedules = getSchedules;
 var getSchedulesByDate = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, year, month, contractorId_1, contractorProfile, startDate_1, endDate_1, availabilityDays, expandedSchedules, jobs, jobSchedules, existingSchedules, mergedSchedules_1, uniqueSchedules_1, groupedSchedules, error_5;
+    var _a, year, month, contractorId_1, contractorProfile, startDate_1, endDate_1, expandedSchedules, jobs, jobSchedules, existingSchedules, mergedSchedules_1, uniqueSchedules_1, groupedSchedules, error_4;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -267,10 +224,7 @@ var getSchedulesByDate = function (req, res) { return __awaiter(void 0, void 0, 
                     startDate_1 = (0, date_fns_1.startOfYear)(new Date("".concat(year, "-01-01")));
                     endDate_1 = (0, date_fns_1.endOfYear)(new Date("".concat(year, "-12-31")));
                 }
-                availabilityDays = contractorProfile.availability.map(function (availability) {
-                    return availability.day;
-                });
-                expandedSchedules = (0, schedule_util_1.generateExpandedSchedule)(availabilityDays, year).filter(function (schedule) {
+                expandedSchedules = (0, schedule_util_1.generateExpandedSchedule)(contractorProfile.availability, year).filter(function (schedule) {
                     return schedule.date >= startDate_1 && schedule.date <= endDate_1;
                 });
                 return [4 /*yield*/, job_model_1.JobModel.find({
@@ -355,8 +309,8 @@ var getSchedulesByDate = function (req, res) { return __awaiter(void 0, void 0, 
                 res.json({ success: true, message: 'Schedules retrieved successfully', data: groupedSchedules });
                 return [3 /*break*/, 7];
             case 6:
-                error_5 = _b.sent();
-                console.error('Error retrieving schedules:', error_5);
+                error_4 = _b.sent();
+                console.error('Error retrieving schedules:', error_4);
                 res.status(500).json({ success: false, message: 'Internal Server Error' });
                 return [3 /*break*/, 7];
             case 7: return [2 /*return*/];
@@ -364,124 +318,8 @@ var getSchedulesByDate = function (req, res) { return __awaiter(void 0, void 0, 
     });
 }); };
 exports.getSchedulesByDate = getSchedulesByDate;
-var addOrUpdateSchedule = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, date, note, startTime_1, endTime_1, booking, title, type, contractorId, existingSchedule, events, isOverlapping, index, updatedSchedule, newScheduleData, newSchedule, error_6;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0:
-                _b.trys.push([0, 6, , 7]);
-                errors = (0, express_validator_1.validationResult)(req);
-                if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation errors', errors: errors.array() })];
-                }
-                _a = req.body, date = _a.date, note = _a.note, startTime_1 = _a.startTime, endTime_1 = _a.endTime, booking = _a.booking, title = _a.title, type = _a.type;
-                contractorId = req.contractor.id;
-                return [4 /*yield*/, contractor_schedule_model_1.ContractorScheduleModel.findOne({ contractor: contractorId, date: date })];
-            case 1:
-                existingSchedule = _b.sent();
-                if (!existingSchedule) return [3 /*break*/, 3];
-                events = existingSchedule.events || [];
-                isOverlapping = events.some(function (event) {
-                    var eventStartTime = new Date(event.startTime).getTime();
-                    var eventEndTime = new Date(event.endTime).getTime();
-                    var newEventStartTime = new Date(startTime_1).getTime();
-                    var newEventEndTime = new Date(endTime_1).getTime();
-                    return ((newEventStartTime >= eventStartTime && newEventStartTime < eventEndTime) ||
-                        (newEventEndTime > eventStartTime && newEventEndTime <= eventEndTime) ||
-                        (newEventStartTime <= eventStartTime && newEventEndTime >= eventEndTime));
-                });
-                if (isOverlapping) {
-                    index = events.findIndex(function (event) {
-                        var eventStartTime = new Date(event.startTime).getTime();
-                        var eventEndTime = new Date(event.endTime).getTime();
-                        var newEventStartTime = new Date(startTime_1).getTime();
-                        var newEventEndTime = new Date(endTime_1).getTime();
-                        return ((newEventStartTime >= eventStartTime && newEventStartTime < eventEndTime) ||
-                            (newEventEndTime > eventStartTime && newEventEndTime <= eventEndTime) ||
-                            (newEventStartTime <= eventStartTime && newEventEndTime >= eventEndTime));
-                    });
-                    if (index !== -1) {
-                        events[index] = __assign(__assign({}, events[index]), { startTime: startTime_1, endTime: endTime_1, booking: booking, type: type, note: note, title: title });
-                    }
-                }
-                else {
-                    // Add the new event to the events array
-                    events.push({
-                        startTime: startTime_1,
-                        endTime: endTime_1,
-                        booking: booking,
-                        note: note,
-                        type: type,
-                        title: title,
-                    });
-                }
-                existingSchedule.events = events;
-                return [4 /*yield*/, existingSchedule.save()];
-            case 2:
-                updatedSchedule = _b.sent();
-                res.json({ success: true, message: 'Event added to the schedule successfully', data: updatedSchedule });
-                return [3 /*break*/, 5];
-            case 3:
-                newScheduleData = {
-                    contractor: contractorId,
-                    date: date,
-                    type: 'default', // Set a default type if needed
-                    recurrence: { frequency: 'Once' }, // Set default recurrence if needed
-                    events: [{
-                            date: date,
-                            startTime: startTime_1,
-                            endTime: endTime_1,
-                            booking: booking,
-                            note: note,
-                            title: title
-                        }],
-                };
-                return [4 /*yield*/, contractor_schedule_model_1.ContractorScheduleModel.create(newScheduleData)];
-            case 4:
-                newSchedule = _b.sent();
-                res.json({ success: true, message: 'Schedule created with the event successfully', data: newSchedule });
-                _b.label = 5;
-            case 5: return [3 /*break*/, 7];
-            case 6:
-                error_6 = _b.sent();
-                console.error('Error adding or updating schedule:', error_6);
-                res.status(500).json({ success: false, message: 'Internal Server Error' });
-                return [3 /*break*/, 7];
-            case 7: return [2 /*return*/];
-        }
-    });
-}); };
-exports.addOrUpdateSchedule = addOrUpdateSchedule;
-var addOrUpdateAvailability = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var days, contractorId, contractorProfile, error_7;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                _a.trys.push([0, 2, , 3]);
-                days = req.body.days;
-                contractorId = req.contractor.id;
-                return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findById({ contractor: contractorId })];
-            case 1:
-                contractorProfile = _a.sent();
-                if (!contractorProfile) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Contractor profile not found' })];
-                }
-                contractorProfile.availability = days;
-                contractorProfile.save();
-                res.json({ success: true, message: 'Availability Schedule updated  successfully', data: contractorProfile });
-                return [3 /*break*/, 3];
-            case 2:
-                error_7 = _a.sent();
-                console.error('Error adding or updating schedule:', error_7);
-                res.status(500).json({ success: false, message: 'Internal Server Error' });
-                return [3 /*break*/, 3];
-            case 3: return [2 /*return*/];
-        }
-    });
-}); };
-exports.addOrUpdateAvailability = addOrUpdateAvailability;
 var getEventsByMonth = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, _b, year, month, contractorId, startDate, endDate, jobs, error_8;
+    var _a, _b, year, month, contractorId, startDate, endDate, jobs, error_5;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
@@ -513,8 +351,8 @@ var getEventsByMonth = function (req, res) { return __awaiter(void 0, void 0, vo
                 res.json({ success: true, message: 'Events retrieved successfully', data: jobs });
                 return [3 /*break*/, 3];
             case 2:
-                error_8 = _c.sent();
-                console.error('Error retrieving events:', error_8);
+                error_5 = _c.sent();
+                console.error('Error retrieving events:', error_5);
                 res.status(500).json({ success: false, message: 'Internal Server Error' });
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
@@ -543,9 +381,7 @@ var isDateInExpandedSchedule = function (req, res) { return __awaiter(void 0, vo
 exports.isDateInExpandedSchedule = isDateInExpandedSchedule;
 exports.ScheduleController = {
     createSchedule: exports.createSchedule,
-    getSchedules: exports.getSchedules,
     getSchedulesByDate: exports.getSchedulesByDate,
-    addOrUpdateSchedule: exports.addOrUpdateSchedule,
     getEventsByMonth: exports.getEventsByMonth,
     isDateInExpandedSchedule: exports.isDateInExpandedSchedule,
     setAvailability: exports.setAvailability,

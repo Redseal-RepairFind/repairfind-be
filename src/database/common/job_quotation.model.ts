@@ -48,6 +48,7 @@ export interface IJobQuotation extends Document {
     changeOrderEstimate: IExtraEstimate;
     siteVisitEstimate: IExtraEstimate;
     responseTime: number;
+    estimatedDuration: number;
     calculateCharges: (type?: string)  => {
         subtotal: number;
         processingFee: number;
@@ -90,6 +91,7 @@ const JobQuotationSchema = new Schema<IJobQuotation>({
     changeOrderEstimate: { type: ExtraEstimateSchema },
     siteVisitEstimate: { type: ExtraEstimateSchema },
     responseTime: { type: Number, default: 0 },
+    estimatedDuration: { type: Number, default: 0 },
 }, { timestamps: true });
 
 

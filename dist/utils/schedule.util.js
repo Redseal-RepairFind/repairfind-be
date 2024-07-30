@@ -38,24 +38,35 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getContractorIdsWithDateInSchedule = exports.getContractorsWithDateInSchedule = exports.isDateInExpandedSchedule = exports.generateExpandedSchedule = void 0;
 var contractor_profile_model_1 = require("../database/contractor/models/contractor_profile.model");
-var generateExpandedSchedule = function (availabilityDays, year) {
+var generateExpandedSchedule = function (availabilities, year) {
+    // IContractorSchedule[]
     var expandedSchedule = [];
     var currentYear = new Date().getFullYear();
     if (year) {
         currentYear = new Date("".concat(year, "-01-02")).getFullYear();
     }
     // Iterate over each weekday in the availability days array
-    availabilityDays.forEach(function (day) {
-        var currentDate = firstWeekdayDate(day, year);
+    availabilities.forEach(function (availability) {
+        var _a, _b;
+        var currentDate = firstWeekdayDate(availability.day, year);
         if (!currentDate) {
             return;
         }
         // Find all occurrences of the current weekday in the year
         while (currentDate.getFullYear() === currentYear) {
-            if (currentDate.toLocaleString('en-us', { weekday: 'long' }) === day) {
+            if (currentDate.toLocaleString('en-us', { weekday: 'long' }) === availability.day) {
+                var startTime = (_a = availability.startTime) !== null && _a !== void 0 ? _a : "00:00:00";
+                var endTime = (_b = availability.endTime) !== null && _b !== void 0 ? _b : "23:00:00";
+                var times = [];
+                // Expand hours from startTime to endTime with one-hour intervals
+                for (var hour = parseInt(startTime.split(":")[0], 10); hour <= parseInt(endTime.split(":")[0], 10); hour++) {
+                    var formattedHour = "".concat(hour.toString().padStart(2, '0'), ":00:00");
+                    times.push(formattedHour);
+                }
                 expandedSchedule.push({
                     date: new Date(currentDate),
                     type: 'available',
+                    times: times,
                 });
             }
             // Move to the next week
@@ -66,25 +77,23 @@ var generateExpandedSchedule = function (availabilityDays, year) {
 };
 exports.generateExpandedSchedule = generateExpandedSchedule;
 var isDateInExpandedSchedule = function (dateToCheck, contractorId) { return __awaiter(void 0, void 0, void 0, function () {
-    var contractor, availabilityDays, expandedSchedule, isDateInExpandedSchedule_1, error_1;
-    var _a;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+    var contractor, expandedSchedule, isDateInExpandedSchedule_1, error_1;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
             case 0:
-                _b.trys.push([0, 2, , 3]);
+                _a.trys.push([0, 2, , 3]);
                 return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: contractorId })];
             case 1:
-                contractor = _b.sent();
+                contractor = _a.sent();
                 if (!contractor)
-                    return [2 /*return*/, false];
-                availabilityDays = (_a = contractor.availability.map(function (availability) {
-                    return availability.day;
-                })) !== null && _a !== void 0 ? _a : [];
-                expandedSchedule = (0, exports.generateExpandedSchedule)(availabilityDays);
+                    return [2 /*return*/, false
+                        // Check if the date falls within the expanded schedule
+                    ];
+                expandedSchedule = (0, exports.generateExpandedSchedule)(contractor.availability);
                 isDateInExpandedSchedule_1 = expandedSchedule.some(function (schedule) { return dateToCheck.toDateString() === schedule.date.toDateString(); });
                 return [2 /*return*/, isDateInExpandedSchedule_1];
             case 2:
-                error_1 = _b.sent();
+                error_1 = _a.sent();
                 console.error('Error checking for date in schedule:', error_1);
                 return [2 /*return*/];
             case 3: return [2 /*return*/];

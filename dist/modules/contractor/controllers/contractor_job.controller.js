@@ -526,7 +526,7 @@ var hideJobListing = function (req, res, next) { return __awaiter(void 0, void 0
 }); };
 exports.hideJobListing = hideJobListing;
 var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var jobId, contractorId, _a, startDate, endDate, siteVisit, _b, estimates, errors, _c, contractor, job, customer, previousQuotation, appliedQuotationsCount, quotation, scheduleStartDate, scheduleEndDate, scheduleSiteVisitDate, jobQuotation_1, siteVisitEstimate, jobCreationTime, quotationTime, responseTimeJob, conversationMembers, conversation, message, err_1;
+    var jobId, contractorId, _a, startDate, endDate, siteVisit, estimatedDuration, _b, estimates, errors, _c, contractor, job, customer, previousQuotation, appliedQuotationsCount, quotation, scheduleStartDate, scheduleEndDate, scheduleSiteVisitDate, jobQuotation_1, siteVisitEstimate, jobCreationTime, quotationTime, responseTimeJob, conversationMembers, conversation, message, err_1;
     var _d, _e;
     return __generator(this, function (_f) {
         switch (_f.label) {
@@ -534,7 +534,7 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                 _f.trys.push([0, 11, , 12]);
                 jobId = req.params.jobId;
                 contractorId = req.contractor.id;
-                _a = req.body, startDate = _a.startDate, endDate = _a.endDate, siteVisit = _a.siteVisit, _b = _a.estimates, estimates = _b === void 0 ? [] : _b;
+                _a = req.body, startDate = _a.startDate, endDate = _a.endDate, siteVisit = _a.siteVisit, estimatedDuration = _a.estimatedDuration, _b = _a.estimates, estimates = _b === void 0 ? [] : _b;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -584,7 +584,7 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                 scheduleStartDate = startDate ? new Date(startDate) : new Date(job.date);
                 scheduleEndDate = endDate ? new Date(startDate) : null;
                 scheduleSiteVisitDate = siteVisit ? new Date(siteVisit) : null;
-                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOneAndUpdate({ job: jobId, contractor: contractorId }, { startDate: scheduleStartDate, endDate: scheduleEndDate, siteVisit: scheduleSiteVisitDate, estimates: estimates, jobId: jobId, contractorId: contractorId }, { new: true, upsert: true })];
+                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOneAndUpdate({ job: jobId, contractor: contractorId }, { startDate: scheduleStartDate, endDate: scheduleEndDate, siteVisit: scheduleSiteVisitDate, estimates: estimates, jobId: jobId, contractorId: contractorId, estimatedDuration: estimatedDuration }, { new: true, upsert: true })];
             case 6:
                 jobQuotation_1 = _f.sent();
                 // Prepare estimates
@@ -808,7 +808,7 @@ var getQuotation = function (req, res, next) { return __awaiter(void 0, void 0, 
 }); };
 exports.getQuotation = getQuotation;
 var updateJobQuotation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var jobId, contractorId, _a, startDate, endDate, siteVisit, estimates, errors, job, jobQuotation, _b, conversationMembers, conversation, message, error_9;
+    var jobId, contractorId, _a, startDate, endDate, siteVisit, estimatedDuration, estimates, errors, job, jobQuotation, _b, conversationMembers, conversation, message, error_9;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
@@ -819,7 +819,7 @@ var updateJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
                 if (!jobId) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Job ID is missing from params' })];
                 }
-                _a = req.body, startDate = _a.startDate, endDate = _a.endDate, siteVisit = _a.siteVisit, estimates = _a.estimates;
+                _a = req.body, startDate = _a.startDate, endDate = _a.endDate, siteVisit = _a.siteVisit, estimatedDuration = _a.estimatedDuration, estimates = _a.estimates;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -843,6 +843,7 @@ var updateJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
                 jobQuotation.endDate = endDate;
                 jobQuotation.siteVisit = siteVisit;
                 jobQuotation.estimates = estimates;
+                jobQuotation.estimatedDuration = estimatedDuration;
                 // Save the updated job application
                 return [4 /*yield*/, jobQuotation.save()];
             case 3:

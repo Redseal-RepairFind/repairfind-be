@@ -259,6 +259,7 @@ exports.CreateJobQuotationRequest = [
     (0, express_validator_1.body)("endDate").optional().isISO8601(),
     (0, express_validator_1.body)("siteVisit").optional().isISO8601(),
     (0, express_validator_1.body)("estimates").optional().isArray(), // Making estimates optional
+    (0, express_validator_1.body)("estimatedDuration").notEmpty(),
     (0, express_validator_1.body)("estimates.*.rate").if((0, express_validator_1.body)("estimates").exists()).notEmpty().isNumeric(), // Checking rate only if estimates is provided
     (0, express_validator_1.body)("estimates.*.quantity").if((0, express_validator_1.body)("estimates").exists()).notEmpty().isNumeric(), // Checking quantity only if estimates is provided
     (0, express_validator_1.body)("estimates.*.description").if((0, express_validator_1.body)("estimates").exists()).notEmpty().isString(), // Checking description only if estimates is provided
