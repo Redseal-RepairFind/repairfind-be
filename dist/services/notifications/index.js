@@ -122,11 +122,15 @@ var NotificationService = /** @class */ (function () {
                         if ('push' in options) {
                             (0, expo_1.sendPushNotifications)(deviceTokens, {
                                 title: params.title,
-                                sound: 'default',
-                                type: params.type,
+                                sound: params.type == 'NEW_INCOMING_CALL' ? 'default' : {
+                                    critical: true,
+                                    name: 'ringtone.wav',
+                                    volume: 100
+                                },
+                                priority: params.type == 'NEW_INCOMING_CALL' ? 'normal' : 'high',
                                 body: params.message,
-                                categoryIdentifier: params.type == 'NEW_INCOMING_CALL' ? 'call' : params.type,
                                 categoryId: params.type == 'NEW_INCOMING_CALL' ? 'call' : params.type,
+                                channelId: params.type == 'NEW_INCOMING_CALL' ? 'call' : params.type,
                                 data: __assign(__assign({}, params.payload), { _displayInForeground: true }),
                             });
                         }
