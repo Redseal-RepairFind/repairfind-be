@@ -292,12 +292,16 @@ JobSchema.methods.getJobDispute = function () {
                     customerContractor = null;
                     if (!dispute.arbitrator) return [3 /*break*/, 6];
                     return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
+                            entity: dispute.id,
+                            entityType: 'job_disputes',
                             $and: [
                                 { members: { $elemMatch: { member: dispute.customer } } },
                                 { members: { $elemMatch: { member: dispute.arbitrator } } }
                             ]
                         }, {
                             type: conversations_schema_1.CONVERSATION_TYPE.TICKET,
+                            entity: dispute.id,
+                            entityType: 'job_disputes',
                             members: [{ memberType: 'customers', member: dispute.customer }, { memberType: 'admins', member: dispute.arbitrator }],
                         }, { new: true, upsert: true })];
                 case 2:
@@ -307,12 +311,16 @@ JobSchema.methods.getJobDispute = function () {
                 case 3:
                     _a.heading = _c.sent();
                     return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
+                            entity: dispute.id,
+                            entityType: 'job_disputes',
                             $and: [
                                 { members: { $elemMatch: { member: dispute.contractor } } },
                                 { members: { $elemMatch: { member: dispute.arbitrator } } }
                             ]
                         }, {
                             type: conversations_schema_1.CONVERSATION_TYPE.TICKET,
+                            entity: dispute.id,
+                            entityType: 'job_disputes',
                             members: [{ memberType: 'contractors', member: dispute.contractor }, { memberType: 'admins', member: dispute.arbitrator }],
                         }, { new: true, upsert: true })];
                 case 4:

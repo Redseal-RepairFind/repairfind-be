@@ -90,6 +90,8 @@ export const getSingleDispute = async (
       
       arbitratorCustomerConversation = await ConversationModel.findOneAndUpdate(
         {
+          entity: dispute.id,
+          entityType: 'job_disputes',
           $and: [
             { members: { $elemMatch: { member: dispute.customer } } },
             { members: { $elemMatch: { member: dispute.arbitrator } } }
@@ -98,6 +100,8 @@ export const getSingleDispute = async (
 
         {
           type: CONVERSATION_TYPE.TICKET,
+          entity: dispute.id,
+          entityType: 'job_disputes',
           members: [{ memberType: 'customers', member: dispute.customer }, { memberType: 'admins', member: dispute.arbitrator }],
         },
         { new: true, upsert: true }
@@ -107,6 +111,8 @@ export const getSingleDispute = async (
 
       arbitratorContractorConversation = await ConversationModel.findOneAndUpdate(
         {
+          entity: dispute.id,
+          entityType: 'job_disputes',
           $and: [
             { members: { $elemMatch: { member: dispute.contractor } } },
             { members: { $elemMatch: { member: dispute.arbitrator } } }
@@ -115,6 +121,8 @@ export const getSingleDispute = async (
 
         {
           type: CONVERSATION_TYPE.TICKET,
+          entity: dispute.id,
+          entityType: 'job_disputes',
           members: [{ memberType: 'contractors', member: dispute.contractor }, { memberType: 'admins', member: dispute.arbitrator }],
         },
         { new: true, upsert: true }
