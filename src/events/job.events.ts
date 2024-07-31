@@ -341,11 +341,12 @@ JobEvent.on('JOB_QUOTATION_ACCEPTED', async function (payload: { jobId: ObjectId
                 <p>
                     <strong>Job Title:</strong> ${job.title} </br>
                     <strong>Customer:</strong> ${customer.name} </br>
-                    <strong>Job date:</strong> ${new Date(job.date).toDateString()}  </br>
                 </p>
               
                 <p>Login to our app to follow up </p>
                 `
+                // <strong>Job date:</strong> ${new Date(job.date).toDateString()}  </br>
+
             let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
             EmailService.send(contractor.email, emailSubject, html)
 

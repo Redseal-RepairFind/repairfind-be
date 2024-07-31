@@ -538,7 +538,7 @@ export const submitEstimate = async (req: any, res: Response, next: NextFunction
         const quotation = await JobQuotationModel.findById(job.contract)
         if(!quotation) return res.status(400).json({ success: false, message: 'Job quotation not found' });
 
-        quotation.startDate = job.date
+        quotation.startDate = job.date ?? new Date()
         quotation.estimates = estimates
 
         

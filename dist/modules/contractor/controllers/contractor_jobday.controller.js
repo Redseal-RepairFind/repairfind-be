@@ -522,28 +522,29 @@ var savePostJobQualityAssurance = function (req, res) { return __awaiter(void 0,
 exports.savePostJobQualityAssurance = savePostJobQualityAssurance;
 var submitEstimate = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var contractorId, jobDayId, estimates, jobDay, contractor, job, quotation, error_4;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var _a;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
-                _a.trys.push([0, 7, , 8]);
+                _b.trys.push([0, 7, , 8]);
                 contractorId = req.contractor.id;
                 jobDayId = req.params.jobDayId;
                 estimates = req.body.estimates;
                 return [4 /*yield*/, job_day_model_1.JobDayModel.findById(jobDayId)];
             case 1:
-                jobDay = _a.sent();
+                jobDay = _b.sent();
                 if (!jobDay) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Job Day not found' })];
                 }
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
             case 2:
-                contractor = _a.sent();
+                contractor = _b.sent();
                 if (!contractor) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Customer not found' })];
                 }
                 return [4 /*yield*/, job_model_1.JobModel.findById(jobDay.job)];
             case 3:
-                job = _a.sent();
+                job = _b.sent();
                 // Check if the job exists
                 if (!job) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found' })];
@@ -554,10 +555,10 @@ var submitEstimate = function (req, res, next) { return __awaiter(void 0, void 0
                 }
                 return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findById(job.contract)];
             case 4:
-                quotation = _a.sent();
+                quotation = _b.sent();
                 if (!quotation)
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Job quotation not found' })];
-                quotation.startDate = job.date;
+                quotation.startDate = (_a = job.date) !== null && _a !== void 0 ? _a : new Date();
                 quotation.estimates = estimates;
                 job.statusUpdate = __assign(__assign({}, job.statusUpdate), { status: 'SITE_VISIT_ESTIMATE_SUBMITTED', isCustomerAccept: false, awaitingConfirmation: true });
                 job.jobHistory.push({
@@ -567,15 +568,15 @@ var submitEstimate = function (req, res, next) { return __awaiter(void 0, void 0
                 });
                 return [4 /*yield*/, quotation.save()];
             case 5:
-                _a.sent();
+                _b.sent();
                 return [4 /*yield*/, job.save()];
             case 6:
-                _a.sent();
+                _b.sent();
                 events_1.JobEvent.emit('SITE_VISIT_ESTIMATE_SUBMITTED', { job: job });
                 res.json({ success: true, message: 'Site visit estimate submitted successfully', data: job });
                 return [3 /*break*/, 8];
             case 7:
-                error_4 = _a.sent();
+                error_4 = _b.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_4))];
             case 8: return [2 /*return*/];
         }

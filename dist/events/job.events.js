@@ -435,7 +435,7 @@ exports.JobEvent.on('JOB_QUOTATION_ACCEPTED', function (payload) {
                     job = _b.sent();
                     if (contractor) {
                         emailSubject = 'Job Quotation Accepted';
-                        emailContent = "\n                <p style=\"color: #333333;\">Congratulations! your job quotation for a job  on RepairFind was accepted.</p>\n                <p>\n                    <strong>Job Title:</strong> ".concat(job.title, " </br>\n                    <strong>Customer:</strong> ").concat(customer.name, " </br>\n                    <strong>Job date:</strong> ").concat(new Date(job.date).toDateString(), "  </br>\n                </p>\n              \n                <p>Login to our app to follow up </p>\n                ");
+                        emailContent = "\n                <p style=\"color: #333333;\">Congratulations! your job quotation for a job  on RepairFind was accepted.</p>\n                <p>\n                    <strong>Job Title:</strong> ".concat(job.title, " </br>\n                    <strong>Customer:</strong> ").concat(customer.name, " </br>\n                </p>\n              \n                <p>Login to our app to follow up </p>\n                ");
                         html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
                         services_1.EmailService.send(contractor.email, emailSubject, html);
                         services_1.NotificationService.sendNotification({

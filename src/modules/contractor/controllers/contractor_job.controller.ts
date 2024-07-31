@@ -519,7 +519,7 @@ export const sendJobQuotation = async (
     }
 
 
-    const scheduleStartDate = startDate ? new Date(startDate) : new Date(job.date)
+    const scheduleStartDate = startDate ? new Date(startDate) : new Date()
     const scheduleEndDate = endDate ? new Date(startDate) : null
     const scheduleSiteVisitDate = siteVisit ? new Date(siteVisit) : null
 
