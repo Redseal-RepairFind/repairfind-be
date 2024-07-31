@@ -245,6 +245,7 @@ var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 message = new messages_schema_1.MessageModel({
                     conversation: conversation === null || conversation === void 0 ? void 0 : conversation._id,
                     sender: contractorId,
+                    senderType: 'contractors',
                     receiver: job.customer,
                     message: "Job request accepted",
                     messageType: messages_schema_1.MessageType.ALERT,
@@ -326,6 +327,7 @@ var rejectJobRequest = function (req, res) { return __awaiter(void 0, void 0, vo
                 message = new messages_schema_1.MessageModel({
                     conversation: conversation === null || conversation === void 0 ? void 0 : conversation._id,
                     sender: contractorId,
+                    senderType: 'contractors',
                     receiver: job.customer,
                     message: "Job request rejected",
                     messageType: messages_schema_1.MessageType.ALERT,
@@ -640,6 +642,7 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                 message = new messages_schema_1.MessageModel({
                     conversation: conversation === null || conversation === void 0 ? void 0 : conversation._id,
                     sender: contractorId,
+                    senderType: 'contractors',
                     receiver: job.customer,
                     message: "Job estimate submitted",
                     messageType: messages_schema_1.MessageType.FILE,
@@ -872,6 +875,7 @@ var updateJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
                 message = new messages_schema_1.MessageModel({
                     conversation: conversation === null || conversation === void 0 ? void 0 : conversation._id,
                     sender: contractorId,
+                    senderType: 'contractors',
                     receiver: job.customer,
                     message: "Job estimate edited",
                     messageType: messages_schema_1.MessageType.FILE,

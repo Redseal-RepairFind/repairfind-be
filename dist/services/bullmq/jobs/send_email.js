@@ -53,7 +53,7 @@ var sendEmail = function (job) { return __awaiter(void 0, void 0, void 0, functi
                 return [3 /*break*/, 3];
             case 2:
                 error_1 = _a.sent();
-                logger_1.Logger.error('Error occurred while syncing certn:', error_1);
+                logger_1.Logger.error('Error occurred while sending mail:', error_1);
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
         }

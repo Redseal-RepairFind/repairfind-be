@@ -46,6 +46,7 @@ var notifications_1 = require("../services/notifications");
 var contractor_model_1 = require("../database/contractor/models/contractor.model");
 var customer_model_1 = __importDefault(require("../database/customer/models/customer.model"));
 var admin_model_1 = __importDefault(require("../database/admin/models/admin.model"));
+var logger_1 = require("../services/logger");
 exports.ConversationEvent = new events_1.EventEmitter();
 exports.ConversationEvent.on('NEW_MESSAGE', function (params) {
     return __awaiter(this, void 0, void 0, function () {
@@ -54,33 +55,37 @@ exports.ConversationEvent.on('NEW_MESSAGE', function (params) {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    _a.trys.push([0, 8, , 9]);
+                    logger_1.Logger.info("Handling NEW_MESSAGE event: ".concat(params.message));
+                    _a.label = 1;
+                case 1:
+                    _a.trys.push([1, 9, , 10]);
                     message_1 = params.message;
                     senderId = message_1.sender;
                     senderType = message_1.senderType;
                     return [4 /*yield*/, conversations_schema_1.ConversationModel.findById(message_1.conversation)];
-                case 1:
+                case 2:
                     conversation_1 = _a.sent();
                     members = conversation_1 === null || conversation_1 === void 0 ? void 0 : conversation_1.members;
                     sender_1 = null;
-                    if (!(senderType === 'contractors')) return [3 /*break*/, 3];
+                    if (!(senderType === 'contractors')) return [3 /*break*/, 4];
                     return [4 /*yield*/, contractor_model_1.ContractorModel.findById(senderId)];
-                case 2:
-                    sender_1 = _a.sent();
-                    _a.label = 3;
                 case 3:
-                    if (!(senderType === 'admins')) return [3 /*break*/, 5];
-                    return [4 /*yield*/, admin_model_1.default.findById(senderId)];
+                    sender_1 = _a.sent();
+                    _a.label = 4;
                 case 4:
-                    sender_1 = _a.sent();
-                    _a.label = 5;
+                    if (!(senderType === 'admins')) return [3 /*break*/, 6];
+                    return [4 /*yield*/, admin_model_1.default.findById(senderId)];
                 case 5:
-                    if (!(senderType === 'customers')) return [3 /*break*/, 7];
-                    return [4 /*yield*/, customer_model_1.default.findById(senderId)];
-                case 6:
                     sender_1 = _a.sent();
-                    _a.label = 7;
+                    _a.label = 6;
+                case 6:
+                    if (!(senderType === 'customers')) return [3 /*break*/, 8];
+                    return [4 /*yield*/, customer_model_1.default.findById(senderId)];
                 case 7:
+                    sender_1 = _a.sent();
+                    _a.label = 8;
+                case 8:
+                    console.log('sender', sender_1);
                     if (!conversation_1 || !members || !sender_1)
                         return [2 /*return*/];
                     members.forEach(function (member) { return __awaiter(_this, void 0, void 0, function () {
@@ -145,12 +150,12 @@ exports.ConversationEvent.on('NEW_MESSAGE', function (params) {
                             }
                         });
                     }); });
-                    return [3 /*break*/, 9];
-                case 8:
+                    return [3 /*break*/, 10];
+                case 9:
                     error_1 = _a.sent();
-                    console.error("Error handling NEW_MESSAGE event: ".concat(error_1));
-                    return [3 /*break*/, 9];
-                case 9: return [2 /*return*/];
+                    logger_1.Logger.error("Error handling NEW_MESSAGE event: ".concat(error_1));
+                    return [3 /*break*/, 10];
+                case 10: return [2 /*return*/];
             }
         });
     });

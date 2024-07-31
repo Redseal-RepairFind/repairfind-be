@@ -237,6 +237,7 @@ export const makeJobPayment = async (req: any, res: Response, next: NextFunction
         const newMessage: IMessage = await MessageModel.create({
             conversation: conversation._id,
             sender: customerId, 
+            senderType: 'customers',
             message: `New Job Payment`, 
             messageType: MessageType.ALERT, 
             createdAt: new Date(),

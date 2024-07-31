@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerJobController = exports.getJobEnquiries = exports.getJobSingleEnquiry = exports.replyJobEnquiry = exports.declineJobQuotation = exports.acceptJobQuotation = exports.getSingleQuotation = exports.getQuotation = exports.getAllQuotations = exports.getJobQuotations = exports.getSingleJob = exports.getJobHistory = exports.getMyJobs = exports.createJobListing = exports.createJobRequest = void 0;
+exports.CustomerJobController = exports.getJobEnquiries = exports.getJobSingleEnquiry = exports.replyJobEnquiry = exports.declineJobQuotation = exports.scheduleJob = exports.acceptJobQuotation = exports.getSingleQuotation = exports.getQuotation = exports.getAllQuotations = exports.getJobQuotations = exports.getSingleJob = exports.getJobHistory = exports.getMyJobs = exports.createJobListing = exports.createJobRequest = void 0;
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var jobRequestTemplate_1 = require("../../../templates/contractor/jobRequestTemplate");
@@ -159,6 +159,7 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 return [4 /*yield*/, messages_schema_1.MessageModel.create({
                         conversation: conversation._id,
                         sender: customerId, // Assuming the customer sends the initial message
+                        senderType: 'customers',
                         message: "New job request", // You can customize the message content as needed
                         messageType: messages_schema_1.MessageType.ALERT, // You can customize the message content as needed
                         createdAt: new Date(),
@@ -612,9 +613,10 @@ var acceptJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
                 conversation = _c.sent();
                 return [4 /*yield*/, messages_schema_1.MessageModel.create({
                         conversation: conversation._id,
-                        sender: customerId, // Assuming the customer sends the initial message
-                        message: "Job estimate accepted", // You can customize the message content as needed
-                        messageType: messages_schema_1.MessageType.ALERT, // You can customize the message content as needed
+                        sender: customerId,
+                        senderType: 'customers',
+                        message: "Job estimate accepted",
+                        messageType: messages_schema_1.MessageType.ALERT,
                         createdAt: new Date(),
                         entity: quotation.id,
                         entityType: 'quotations'
@@ -655,16 +657,101 @@ var acceptJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
     });
 }); };
 exports.acceptJobQuotation = acceptJobQuotation;
+var scheduleJob = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var customerId, _a, jobId, quotationId_2, _b, date, time, quotation, job, jobDateTime, conversationMembers, conversation, newMessage, foundQuotationIndex, contractor, customer, _c, error_11;
+    return __generator(this, function (_d) {
+        switch (_d.label) {
+            case 0:
+                _d.trys.push([0, 10, , 11]);
+                customerId = req.customer.id;
+                _a = req.params, jobId = _a.jobId, quotationId_2 = _a.quotationId;
+                _b = req.body, date = _b.date, time = _b.time;
+                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne({ _id: quotationId_2, job: jobId })];
+            case 1:
+                quotation = _d.sent();
+                return [4 /*yield*/, job_model_1.JobModel.findById(jobId)];
+            case 2:
+                job = _d.sent();
+                // Check if the job exists
+                if (!job) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found' })];
+                }
+                // check if contractor exists
+                if (!quotation) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Quotation not found' })];
+                }
+                jobDateTime = new Date("".concat(date, "T").concat(time));
+                quotation.startDate = jobDateTime;
+                conversationMembers = [
+                    { memberType: 'customers', member: customerId },
+                    { memberType: 'contractors', member: quotation.contractor }
+                ];
+                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
+                        $and: [
+                            { members: { $elemMatch: { member: customerId } } },
+                            { members: { $elemMatch: { member: quotation.contractor } } }
+                        ]
+                    }, {
+                        members: conversationMembers,
+                    }, { new: true, upsert: true })];
+            case 3:
+                conversation = _d.sent();
+                return [4 /*yield*/, messages_schema_1.MessageModel.create({
+                        conversation: conversation._id,
+                        sender: customerId,
+                        senderType: 'customers',
+                        message: "Job schedule created",
+                        messageType: messages_schema_1.MessageType.ALERT,
+                        createdAt: new Date(),
+                        entity: quotation.id,
+                        entityType: 'quotations'
+                    })];
+            case 4:
+                newMessage = _d.sent();
+                events_1.ConversationEvent.emit('NEW_MESSAGE', { message: newMessage });
+                return [4 /*yield*/, quotation.save()];
+            case 5:
+                _d.sent();
+                foundQuotationIndex = job.quotations.findIndex(function (quotation) { return quotation.id == quotationId_2; });
+                if (foundQuotationIndex !== -1) {
+                    job.quotations[foundQuotationIndex].status = job_quotation_model_1.JOB_QUOTATION_STATUS.ACCEPTED;
+                }
+                return [4 /*yield*/, job.save()];
+            case 6:
+                _d.sent();
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(quotation.contractor)];
+            case 7:
+                contractor = _d.sent();
+                return [4 /*yield*/, customer_model_1.default.findById(customerId)];
+            case 8:
+                customer = _d.sent();
+                if (contractor && customer) {
+                    // JobEvent.emit('JOB_QUOTATION_ACCEPTED', { jobId, contractorId: quotation.contractor, customerId })
+                }
+                _c = quotation;
+                return [4 /*yield*/, quotation.calculateCharges()];
+            case 9:
+                _c.charges = _d.sent();
+                res.json({ success: true, message: 'Job scheduled' });
+                return [3 /*break*/, 11];
+            case 10:
+                error_11 = _d.sent();
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred ', error_11))];
+            case 11: return [2 /*return*/];
+        }
+    });
+}); };
+exports.scheduleJob = scheduleJob;
 var declineJobQuotation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, _a, jobId, quotationId_2, reason, quotation, job, foundQuotationIndex, conversationMembers, conversation, newMessage, contractor, customer, error_11;
+    var customerId, _a, jobId, quotationId_3, reason, quotation, job, foundQuotationIndex, conversationMembers, conversation, newMessage, contractor, customer, error_12;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
                 _b.trys.push([0, 9, , 10]);
                 customerId = req.customer.id;
-                _a = req.params, jobId = _a.jobId, quotationId_2 = _a.quotationId;
+                _a = req.params, jobId = _a.jobId, quotationId_3 = _a.quotationId;
                 reason = req.body.reason;
-                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne({ _id: quotationId_2, job: jobId })];
+                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne({ _id: quotationId_3, job: jobId })];
             case 1:
                 quotation = _b.sent();
                 return [4 /*yield*/, job_model_1.JobModel.findById(jobId)];
@@ -684,7 +771,7 @@ var declineJobQuotation = function (req, res, next) { return __awaiter(void 0, v
             case 3:
                 // maybe send mail out ?
                 _b.sent();
-                foundQuotationIndex = job.quotations.findIndex(function (quotation) { return quotation.id == quotationId_2; });
+                foundQuotationIndex = job.quotations.findIndex(function (quotation) { return quotation.id == quotationId_3; });
                 if (foundQuotationIndex !== -1) {
                     job.quotations[foundQuotationIndex].status = job_quotation_model_1.JOB_QUOTATION_STATUS.DECLINED;
                 }
@@ -710,6 +797,7 @@ var declineJobQuotation = function (req, res, next) { return __awaiter(void 0, v
                 return [4 /*yield*/, messages_schema_1.MessageModel.create({
                         conversation: conversation._id,
                         sender: customerId, // Assuming the customer sends the initial message
+                        senderType: 'customers',
                         message: "Job estimate declined: (".concat(reason, ")"), // You can customize the message content as needed
                         messageType: messages_schema_1.MessageType.ALERT, // You can customize the message content as needed
                         createdAt: new Date(),
@@ -732,15 +820,15 @@ var declineJobQuotation = function (req, res, next) { return __awaiter(void 0, v
                 res.json({ success: true, message: 'Job quotation declined' });
                 return [3 /*break*/, 10];
             case 9:
-                error_11 = _b.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_11))];
+                error_12 = _b.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_12))];
             case 10: return [2 /*return*/];
         }
     });
 }); };
 exports.declineJobQuotation = declineJobQuotation;
 var replyJobEnquiry = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, jobId, _a, replyText, enquiryId, job, question, error_12;
+    var customerId, jobId, _a, replyText, enquiryId, job, question, error_13;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -769,15 +857,15 @@ var replyJobEnquiry = function (req, res, next) { return __awaiter(void 0, void 
                 res.json({ success: true, message: 'Reply added', question: question });
                 return [3 /*break*/, 5];
             case 4:
-                error_12 = _b.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_12))];
+                error_13 = _b.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_13))];
             case 5: return [2 /*return*/];
         }
     });
 }); };
 exports.replyJobEnquiry = replyJobEnquiry;
 var getJobSingleEnquiry = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, _a, jobId, enquiryId, job, enquiry, error_13;
+    var customerId, _a, jobId, enquiryId, job, enquiry, error_14;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -816,16 +904,16 @@ var getJobSingleEnquiry = function (req, res, next) { return __awaiter(void 0, v
                 res.json({ success: true, message: 'Reply added', enquiry: enquiry });
                 return [3 /*break*/, 5];
             case 4:
-                error_13 = _b.sent();
-                console.log(error_13);
-                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred', error_13))];
+                error_14 = _b.sent();
+                console.log(error_14);
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred', error_14))];
             case 5: return [2 /*return*/];
         }
     });
 }); };
 exports.getJobSingleEnquiry = getJobSingleEnquiry;
 var getJobEnquiries = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var jobId, job, enquiries, error_14;
+    var jobId, job, enquiries, error_15;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -845,8 +933,8 @@ var getJobEnquiries = function (req, res, next) { return __awaiter(void 0, void 
                 enquiries = _a.sent();
                 return [2 /*return*/, res.status(200).json({ success: true, message: "Enquiries retrieved", data: enquiries })];
             case 3:
-                error_14 = _a.sent();
-                next(error_14);
+                error_15 = _a.sent();
+                next(error_15);
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
         }
@@ -863,6 +951,7 @@ exports.CustomerJobController = {
     getSingleQuotation: exports.getSingleQuotation,
     acceptJobQuotation: exports.acceptJobQuotation,
     declineJobQuotation: exports.declineJobQuotation,
+    scheduleJob: exports.scheduleJob,
     getQuotation: exports.getQuotation,
     replyJobEnquiry: exports.replyJobEnquiry,
     getAllQuotations: exports.getAllQuotations,

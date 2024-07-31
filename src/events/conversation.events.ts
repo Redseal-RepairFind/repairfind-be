@@ -5,10 +5,12 @@ import { NotificationService } from '../services/notifications';
 import { ContractorModel } from '../database/contractor/models/contractor.model';
 import CustomerModel from '../database/customer/models/customer.model';
 import AdminModel from '../database/admin/models/admin.model';
+import { Logger } from '../services/logger';
 
 export const ConversationEvent: EventEmitter = new EventEmitter();
 
 ConversationEvent.on('NEW_MESSAGE', async function (params) {
+    Logger.info(`Handling NEW_MESSAGE event: ${params.message}`);
     try {
         const message = params.message
         const senderId = message.sender
@@ -27,6 +29,7 @@ ConversationEvent.on('NEW_MESSAGE', async function (params) {
             sender = await CustomerModel.findById(senderId)
         }
 
+        console.log('sender', sender)
         if (!conversation || !members || !sender) return
 
         members.forEach(async member => {
@@ -77,6 +80,6 @@ ConversationEvent.on('NEW_MESSAGE', async function (params) {
 
 
     } catch (error) {
-        console.error(`Error handling NEW_MESSAGE event: ${error}`);
+        Logger.error(`Error handling NEW_MESSAGE event: ${error}`);
     }
 });

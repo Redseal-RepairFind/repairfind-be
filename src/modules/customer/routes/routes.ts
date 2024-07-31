@@ -71,6 +71,7 @@ router.get("/jobs/:jobId/quotations", checkCustomerRole, CustomerJobController.g
 router.get("/jobs/:jobId/quotations/:quotationId", checkCustomerRole, CustomerJobController.getSingleQuotation ); 
 router.post("/jobs/:jobId/quotations/:quotationId/accept", checkCustomerRole, CustomerJobController.acceptJobQuotation ); 
 router.post("/jobs/:jobId/quotations/:quotationId/decline", checkCustomerRole, CustomerJobController.declineJobQuotation ); 
+router.post("/jobs/:jobId/quotations/:quotationId/schedule", checkCustomerRole, CustomerJobController.scheduleJob ); 
 router.post("/jobs/:jobId/pay", checkCustomerRole, CustomerPaymentController.makeJobPayment ); 
 router.post("/jobs/:jobId/payment-capture", checkCustomerRole, CustomerPaymentController.captureJobPayment ); 
 router.post("/jobs/:jobId/change-order-payment", checkCustomerRole, CustomerPaymentController.makeChangeOrderEstimatePayment ); 

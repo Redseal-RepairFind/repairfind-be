@@ -206,6 +206,7 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
     const message = new MessageModel({
       conversation: conversation?._id,
       sender: contractorId,
+      senderType: 'contractors',
       receiver: job.customer,
       message: "Job request accepted",
       messageType: MessageType.ALERT,
@@ -298,6 +299,7 @@ export const rejectJobRequest = async (req: any, res: Response) => {
     const message = new MessageModel({
       conversation: conversation?._id,
       sender: contractorId,
+      senderType: 'contractors',
       receiver: job.customer,
       message: "Job request rejected",
       messageType: MessageType.ALERT,
@@ -495,8 +497,6 @@ export const sendJobQuotation = async (
 
 
 
-
-
     // Check maximum number of applied quotations
     const appliedQuotationsCount = await JobQuotationModel.countDocuments({
       job: jobId,
@@ -593,6 +593,7 @@ export const sendJobQuotation = async (
     const message = new MessageModel({
       conversation: conversation?._id,
       sender: contractorId,
+      senderType: 'contractors',
       receiver: job.customer,
       message: "Job estimate submitted",
       messageType: MessageType.FILE,
@@ -817,6 +818,7 @@ export const updateJobQuotation = async (req: any, res: Response, next: NextFunc
     const message = new MessageModel({
       conversation: conversation?._id,
       sender: contractorId,
+      senderType: 'contractors',
       receiver: job.customer,
       message: "Job estimate edited",
       messageType: MessageType.FILE,

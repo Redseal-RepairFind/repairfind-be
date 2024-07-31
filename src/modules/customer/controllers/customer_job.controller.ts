@@ -151,6 +151,7 @@ export const createJobRequest = async (
         const newMessage: IMessage = await MessageModel.create({
             conversation: conversation._id,
             sender: customerId, // Assuming the customer sends the initial message
+            senderType: 'customers',
             message: `New job request`, // You can customize the message content as needed
             messageType: MessageType.ALERT, // You can customize the message content as needed
             createdAt: new Date(),
@@ -563,9 +564,10 @@ export const acceptJobQuotation = async (req: any, res: Response, next: NextFunc
         // Create a message in the conversation
         const newMessage: IMessage = await MessageModel.create({
             conversation: conversation._id,
-            sender: customerId, // Assuming the customer sends the initial message
-            message: `Job estimate accepted`, // You can customize the message content as needed
-            messageType: MessageType.ALERT, // You can customize the message content as needed
+            sender: customerId, 
+            senderType: 'customers',
+            message: `Job estimate accepted`, 
+            messageType: MessageType.ALERT,
             createdAt: new Date(),
             entity: quotation.id,
             entityType: 'quotations'
@@ -595,6 +597,88 @@ export const acceptJobQuotation = async (req: any, res: Response, next: NextFunc
         res.json({ success: true, message: 'Job quotation accepted' });
     } catch (error: any) {
         return next(new BadRequestError('An error occurred ', error))
+    }
+};
+
+
+export const scheduleJob = async (req: any, res: Response, next: NextFunction) => {
+    try {
+        const customerId = req.customer.id;
+        const { jobId, quotationId } = req.params;
+        const { date, time } = req.body;
+
+        const quotation = await JobQuotationModel.findOne({ _id: quotationId, job: jobId });
+        const job = await JobModel.findById(jobId);
+
+
+        // Check if the job exists
+        if (!job) {
+            return res.status(404).json({ success: false, message: 'Job not found' });
+        }
+        // check if contractor exists
+        if (!quotation) {
+            return res.status(404).json({ success: false, message: 'Quotation not found' });
+        }
+
+        // Combine date and time into a single DateTime object
+        const jobDateTime = new Date(`${date}T${time}`);
+
+        
+        
+
+        quotation.startDate = jobDateTime;
+
+        const conversationMembers = [
+            { memberType: 'customers', member: customerId },
+            { memberType: 'contractors', member: quotation.contractor }
+        ];
+        const conversation = await ConversationModel.findOneAndUpdate(
+            {
+                $and: [
+                    { members: { $elemMatch: { member: customerId } } },
+                    { members: { $elemMatch: { member: quotation.contractor } } }
+                ]
+            },
+            {
+                members: conversationMembers,
+            },
+            { new: true, upsert: true });
+
+
+        // Create a message in the conversation
+        const newMessage: IMessage = await MessageModel.create({
+            conversation: conversation._id,
+            sender: customerId,
+            senderType: 'customers',
+            message: `Job schedule created`,
+            messageType: MessageType.ALERT,
+            createdAt: new Date(),
+            entity: quotation.id,
+            entityType: 'quotations'
+        });
+
+
+        ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
+
+        await quotation.save()
+
+        const foundQuotationIndex = job.quotations.findIndex(quotation => quotation.id == quotationId);
+        if (foundQuotationIndex !== -1) {
+            job.quotations[foundQuotationIndex].status = JOB_QUOTATION_STATUS.ACCEPTED;
+        }
+        await job.save()
+
+
+        const contractor = await ContractorModel.findById(quotation.contractor)
+        const customer = await CustomerModel.findById(customerId)
+        if (contractor && customer) {
+            // JobEvent.emit('JOB_QUOTATION_ACCEPTED', { jobId, contractorId: quotation.contractor, customerId })
+        }
+
+        quotation.charges = await quotation.calculateCharges()
+        res.json({ success: true, message: 'Job scheduled' });
+    } catch (error: any) {
+        return next(new InternalServerError('An error occurred ', error))
     }
 };
 
@@ -653,6 +737,7 @@ export const declineJobQuotation = async (req: any, res: Response, next: NextFun
         const newMessage: IMessage = await MessageModel.create({
             conversation: conversation._id,
             sender: customerId, // Assuming the customer sends the initial message
+            senderType: 'customers',
             message: `Job estimate declined: (${reason})`, // You can customize the message content as needed
             messageType: MessageType.ALERT, // You can customize the message content as needed
             createdAt: new Date(),
@@ -729,7 +814,7 @@ export const getJobSingleEnquiry = async (req: any, res: Response, next: NextFun
             return res.status(404).json({ success: false, message: "Enquiry not found" });
         }
 
-       await Promise.all(
+        await Promise.all(
             enquiry.replies.map(async (reply: any) => {
                 const user = await CustomerModel.findById(reply.userId).select('id firstName lastName profilePhoto');
                 reply.user = user;
@@ -775,6 +860,7 @@ export const CustomerJobController = {
     getSingleQuotation,
     acceptJobQuotation,
     declineJobQuotation,
+    scheduleJob,
     getQuotation,
     replyJobEnquiry,
     getAllQuotations,

@@ -16,6 +16,6 @@ export const sendEmail = async (job: any) => {
         Logger.info(`Email sent successfully to ${mailOptions.to} with CC to ${mailOptions.cc}`);
 
     } catch (error) {
-        Logger.error('Error occurred while syncing certn:', error);
+        Logger.error('Error occurred while sending mail:', error);
     }
 };

@@ -313,6 +313,7 @@ var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0
                 return [4 /*yield*/, messages_schema_1.MessageModel.create({
                         conversation: conversation._id,
                         sender: customerId,
+                        senderType: 'customers',
                         message: "New Job Payment",
                         messageType: messages_schema_1.MessageType.ALERT,
                         createdAt: new Date(),
