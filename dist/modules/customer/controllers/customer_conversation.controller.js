@@ -225,10 +225,12 @@ var sendMessage = function (req, res, next) { return __awaiter(void 0, void 0, v
                     media: media,
                     createdAt: new Date()
                 });
-                restrictedContentCheck = content_moderation_util_1.ContentModeration.containsRestrictedMessageContent(message);
-                if (restrictedContentCheck.isRestricted) {
-                    newMessage.messageType = messages_schema_1.MessageType.ALERT;
-                    newMessage.message = restrictedContentCheck.errorMessage;
+                if (message) {
+                    restrictedContentCheck = content_moderation_util_1.ContentModeration.containsRestrictedMessageContent(message);
+                    if (restrictedContentCheck.isRestricted) {
+                        newMessage.messageType = messages_schema_1.MessageType.ALERT;
+                        newMessage.message = restrictedContentCheck.errorMessage;
+                    }
                 }
                 return [4 /*yield*/, newMessage.save()];
             case 2:

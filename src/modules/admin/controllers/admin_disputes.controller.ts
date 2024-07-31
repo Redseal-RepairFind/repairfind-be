@@ -21,7 +21,7 @@ export const getJobDisputes = async (
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-
+ 
     const adminId = req.admin.id
     const filter = {}
     const {data, error} = await applyAPIFeature(JobDisputeModel.find(filter).populate({

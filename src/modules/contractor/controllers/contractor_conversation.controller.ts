@@ -143,15 +143,15 @@ export const sendMessage = async (req: any, res: Response, next: NextFunction) =
         });
 
 
-        if(ContentModeration.containsRestrictedMessageContent(message)){
-            
-        }
 
-        const restrictedContentCheck = ContentModeration.containsRestrictedMessageContent(message);
-        if (restrictedContentCheck.isRestricted) {
-            newMessage.messageType  = MessageType.ALERT
-            newMessage.message  =  restrictedContentCheck.errorMessage
+        if(message){
+            const restrictedContentCheck = ContentModeration.containsRestrictedMessageContent(message);
+            if (restrictedContentCheck.isRestricted) {
+                newMessage.messageType  = MessageType.ALERT
+                newMessage.message  =  restrictedContentCheck.errorMessage
+            }
         }
+        
 
         await newMessage.save()
 
