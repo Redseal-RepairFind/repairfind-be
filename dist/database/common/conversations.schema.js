@@ -71,6 +71,7 @@ var CONVERSATION_TYPE;
 (function (CONVERSATION_TYPE) {
     CONVERSATION_TYPE["DIRECT_MESSAGE"] = "DIRECT_MESSAGE";
     CONVERSATION_TYPE["GROUP_CHAT"] = "GROUP_CHAT";
+    CONVERSATION_TYPE["TICKET"] = "TICKET";
 })(CONVERSATION_TYPE || (exports.CONVERSATION_TYPE = CONVERSATION_TYPE = {}));
 var ConversationSchema = new mongoose_1.default.Schema({
     members: [{ member: { type: mongoose_1.Schema.Types.ObjectId, refPath: 'members.memberType' }, memberType: String }],

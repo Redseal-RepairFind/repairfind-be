@@ -297,6 +297,7 @@ JobSchema.methods.getJobDispute = function () {
                                 { members: { $elemMatch: { member: dispute.arbitrator } } }
                             ]
                         }, {
+                            type: conversations_schema_1.CONVERSATION_TYPE.TICKET,
                             members: [{ memberType: 'customers', member: dispute.customer }, { memberType: 'admins', member: dispute.arbitrator }],
                         }, { new: true, upsert: true })];
                 case 2:
@@ -311,6 +312,7 @@ JobSchema.methods.getJobDispute = function () {
                                 { members: { $elemMatch: { member: dispute.arbitrator } } }
                             ]
                         }, {
+                            type: conversations_schema_1.CONVERSATION_TYPE.TICKET,
                             members: [{ memberType: 'contractors', member: dispute.contractor }, { memberType: 'admins', member: dispute.arbitrator }],
                         }, { new: true, upsert: true })];
                 case 4:

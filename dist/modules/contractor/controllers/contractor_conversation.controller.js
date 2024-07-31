@@ -58,7 +58,7 @@ var getConversations = function (req, res, next) { return __awaiter(void 0, void
                 _c.trys.push([0, 4, , 5]);
                 _a = req.query, startDate = _a.startDate, endDate = _a.endDate, read = _a.read, unread = _a.unread;
                 contractorId_1 = req.contractor.id;
-                filter = { 'members.member': contractorId_1, 'members.memberType': 'contractors' };
+                filter = { 'members.member': contractorId_1, 'members.memberType': 'contractors', type: conversations_schema_1.CONVERSATION_TYPE.DIRECT_MESSAGE };
                 // Filtering by startDate and endDate
                 if (startDate && endDate) {
                     filter.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };

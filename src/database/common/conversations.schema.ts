@@ -10,6 +10,7 @@ export enum ConversationEntityType {
 export enum CONVERSATION_TYPE {
     DIRECT_MESSAGE = 'DIRECT_MESSAGE',
     GROUP_CHAT = 'GROUP_CHAT',
+    TICKET = 'TICKET',
 }
 
 export interface IConversation extends Document {

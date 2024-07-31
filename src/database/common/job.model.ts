@@ -5,7 +5,7 @@ import { JobDayModel } from "./job_day.model";
 import { JobEnquiryModel } from "./job_enquiry.model";
 import ContractorSavedJobModel from "../contractor/models/contractor_saved_job.model";
 import { JobDisputeModel } from "./job_dispute.model";
-import { ConversationModel } from "./conversations.schema";
+import { CONVERSATION_TYPE, ConversationModel } from "./conversations.schema";
 
 export interface IJobLocation extends Document {
     address?: string;
@@ -408,6 +408,7 @@ JobSchema.methods.getJobDispute = async function () {
             },
 
             {
+                type: CONVERSATION_TYPE.TICKET,
                 members: [{ memberType: 'customers', member: dispute.customer }, { memberType: 'admins', member: dispute.arbitrator }],
             },
             { new: true, upsert: true }
@@ -425,6 +426,7 @@ JobSchema.methods.getJobDispute = async function () {
             },
 
             {
+                type: CONVERSATION_TYPE.TICKET,
                 members: [{ memberType: 'contractors', member: dispute.contractor }, { memberType: 'admins', member: dispute.arbitrator }],
             },
             { new: true, upsert: true }

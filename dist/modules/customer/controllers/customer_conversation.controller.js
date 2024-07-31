@@ -52,7 +52,7 @@ var getConversations = function (req, res) { return __awaiter(void 0, void 0, vo
                 _c.trys.push([0, 4, , 5]);
                 _a = req.query, startDate = _a.startDate, endDate = _a.endDate, read = _a.read, unread = _a.unread;
                 customerId_1 = req.customer.id;
-                filter = { 'members.member': customerId_1, 'members.memberType': 'customers' };
+                filter = { 'members.member': customerId_1, 'members.memberType': 'customers', type: conversations_schema_1.CONVERSATION_TYPE.DIRECT_MESSAGE };
                 // Filtering by startDate and endDate
                 if (startDate && endDate) {
                     filter.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };

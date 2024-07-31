@@ -131,6 +131,7 @@ var getSingleDispute = function (req, res, next) { return __awaiter(void 0, void
                             { members: { $elemMatch: { member: dispute.arbitrator } } }
                         ]
                     }, {
+                        type: conversations_schema_1.CONVERSATION_TYPE.TICKET,
                         members: [{ memberType: 'customers', member: dispute.customer }, { memberType: 'admins', member: dispute.arbitrator }],
                     }, { new: true, upsert: true })];
             case 3:
@@ -145,6 +146,7 @@ var getSingleDispute = function (req, res, next) { return __awaiter(void 0, void
                             { members: { $elemMatch: { member: dispute.arbitrator } } }
                         ]
                     }, {
+                        type: conversations_schema_1.CONVERSATION_TYPE.TICKET,
                         members: [{ memberType: 'contractors', member: dispute.contractor }, { memberType: 'admins', member: dispute.arbitrator }],
                     }, { new: true, upsert: true })];
             case 5:

@@ -5,7 +5,7 @@ import { applyAPIFeature } from "../../../utils/api.feature";
 import { JOB_STATUS } from "../../../database/common/job.model";
 import { InternalServerError } from "../../../utils/custom.errors";
 import { JobDayModel } from "../../../database/common/job_day.model";
-import { ConversationModel } from "../../../database/common/conversations.schema";
+import { CONVERSATION_TYPE, ConversationModel } from "../../../database/common/conversations.schema";
 
 
 
@@ -97,6 +97,7 @@ export const getSingleDispute = async (
         },
 
         {
+          type: CONVERSATION_TYPE.TICKET,
           members: [{ memberType: 'customers', member: dispute.customer }, { memberType: 'admins', member: dispute.arbitrator }],
         },
         { new: true, upsert: true }
@@ -113,6 +114,7 @@ export const getSingleDispute = async (
         },
 
         {
+          type: CONVERSATION_TYPE.TICKET,
           members: [{ memberType: 'contractors', member: dispute.contractor }, { memberType: 'admins', member: dispute.arbitrator }],
         },
         { new: true, upsert: true }

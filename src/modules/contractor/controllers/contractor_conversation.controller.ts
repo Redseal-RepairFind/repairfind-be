@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { applyAPIFeature } from "../../../utils/api.feature";
-import { ConversationModel } from "../../../database/common/conversations.schema";
+import { CONVERSATION_TYPE, ConversationModel } from "../../../database/common/conversations.schema";
 import { IMessage, MessageModel, MessageType } from "../../../database/common/messages.schema";
 import { ConversationEvent } from "../../../events";
 import { BadRequestError, InternalServerError } from "../../../utils/custom.errors";
@@ -14,7 +14,7 @@ export const getConversations = async (req: any, res: Response, next: NextFuncti
     try {
         const { startDate, endDate, read, unread } = req.query;
         const contractorId = req.contractor.id;
-        const filter: any = { 'members.member': contractorId, 'members.memberType': 'contractors'};
+        const filter: any = { 'members.member': contractorId, 'members.memberType': 'contractors', type: CONVERSATION_TYPE.DIRECT_MESSAGE};
 
         // Filtering by startDate and endDate
         if (startDate && endDate) {

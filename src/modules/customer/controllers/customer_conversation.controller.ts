@@ -1,7 +1,7 @@
 import { validationResult } from "express-validator";
 import { NextFunction, Request, Response } from "express";
 import { applyAPIFeature } from "../../../utils/api.feature";
-import { ConversationModel } from "../../../database/common/conversations.schema";
+import { CONVERSATION_TYPE, ConversationModel } from "../../../database/common/conversations.schema";
 import { MessageModel, MessageType } from "../../../database/common/messages.schema";
 import { ConversationEvent } from "../../../events";
 import { BadRequestError, InternalServerError } from "../../../utils/custom.errors";
@@ -12,7 +12,7 @@ export const getConversations = async (req: any, res: Response): Promise<void> =
     try {
         const { startDate, endDate, read, unread } = req.query;
         const customerId = req.customer.id
-        const filter: any = { 'members.member': customerId, 'members.memberType': 'customers'};
+        const filter: any = { 'members.member': customerId, 'members.memberType': 'customers', type: CONVERSATION_TYPE.DIRECT_MESSAGE};
 
         // Filtering by startDate and endDate
         if (startDate && endDate) {
