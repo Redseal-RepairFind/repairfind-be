@@ -57,12 +57,12 @@ var mongoose_1 = __importDefault(require("mongoose"));
 var contractor_profile_model_1 = require("../../../database/contractor/models/contractor_profile.model");
 var job_enquiry_model_1 = require("../../../database/common/job_enquiry.model");
 var createJobRequest = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, contractorId, category, description, location_1, date, _b, expiresIn, emergency, media, voiceDescription, time, customerId, customer, contractor, contractorProfile, dateParts, formattedDate, dateTimeString, jobDate, startOfToday, existingJobRequest, currentDate, expiryDate, newJob, conversationMembers, conversation, newMessage, html, error_1;
+    var errors, _a, contractorId, category, description, location_1, date, _b, expiresIn, emergency, media, voiceDescription, time, customerId, customer, contractor, contractorProfile, currentDate, expiryDate, newJob, conversationMembers, conversation, newMessage, html, error_1;
     var _c, _d;
     return __generator(this, function (_e) {
         switch (_e.label) {
             case 0:
-                _e.trys.push([0, 8, , 9]);
+                _e.trys.push([0, 7, , 8]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ message: 'Validation error occurred', errors: errors.array() })];
@@ -93,29 +93,6 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 if (!contractor.onboarding.hasStripeAccount || !(((_c = contractor.stripeAccountStatus) === null || _c === void 0 ? void 0 : _c.card_payments_enabled) && ((_d = contractor.stripeAccountStatus) === null || _d === void 0 ? void 0 : _d.transfers_enabled))) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "You cannot send a job request to this contractor because  stripe account is not set up" })];
                 }
-                dateParts = date.split('-').map(function (part) { return part.padStart(2, '0'); });
-                formattedDate = dateParts.join('-');
-                dateTimeString = "".concat(new Date(formattedDate).toISOString().split('T')[0], "T").concat('23:59:59.000Z');
-                jobDate = new Date(dateTimeString);
-                startOfToday = (0, date_fns_1.startOfDay)(new Date());
-                if (!(0, date_fns_1.isValid)(new Date(jobDate))) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid date format' })];
-                }
-                if ((!(0, date_fns_1.isFuture)(new Date(jobDate)) && new Date(jobDate) < startOfToday)) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Selected Job Date is in the past' })];
-                }
-                return [4 /*yield*/, job_model_1.JobModel.findOne({
-                        customer: customerId,
-                        contractor: contractorId,
-                        status: job_model_1.JOB_STATUS.PENDING,
-                        date: { $eq: new Date(jobDate) }, // consider all past jobs
-                        createdAt: { $gte: (0, date_fns_1.addHours)(new Date(), -24) }, // Check for job requests within the last 72 hours
-                    })];
-            case 4:
-                existingJobRequest = _e.sent();
-                if (existingJobRequest) {
-                    // return res.status(400).json({ success: false, message: 'A similar job request has already been sent to this contractor within the last 24 hours' });
-                }
                 currentDate = new Date();
                 expiryDate = new Date(currentDate);
                 expiryDate.setDate(currentDate.getDate() + Number(expiresIn));
@@ -124,8 +101,8 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                     contractor: contractorId,
                     description: description,
                     location: location_1,
-                    date: jobDate,
-                    time: jobDate,
+                    // date: jobDate,
+                    // time: jobDate,
                     type: job_model_1.JobType.REQUEST,
                     expiresIn: Number(expiresIn),
                     expiryDate: expiryDate,
@@ -137,7 +114,7 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 });
                 // Save the job document to the database
                 return [4 /*yield*/, newJob.save()];
-            case 5:
+            case 4:
                 // Save the job document to the database
                 _e.sent();
                 conversationMembers = [
@@ -154,7 +131,7 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                         lastMessage: "New job request: ".concat(description), // Set the last message to the job description
                         lastMessageAt: new Date() // Set the last message timestamp to now
                     }, { new: true, upsert: true })];
-            case 6:
+            case 5:
                 conversation = _e.sent();
                 return [4 /*yield*/, messages_schema_1.MessageModel.create({
                         conversation: conversation._id,
@@ -166,18 +143,18 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                         entity: newJob.id,
                         entityType: 'jobs'
                     })];
-            case 7:
+            case 6:
                 newMessage = _e.sent();
                 events_1.ConversationEvent.emit('NEW_MESSAGE', { message: newMessage });
                 events_1.JobEvent.emit('NEW_JOB_REQUEST', { jobId: newJob.id, contractorId: contractorId, customerId: customerId, conversationId: conversation.id });
                 html = (0, jobRequestTemplate_1.htmlJobRequestTemplate)(customer.firstName, customer.firstName, "".concat(newJob.date), description);
                 services_1.EmailService.send(contractor.email, 'Job request from customer', html);
                 res.status(201).json({ success: true, message: 'Job request submitted successfully', data: newJob });
-                return [3 /*break*/, 9];
-            case 8:
+                return [3 /*break*/, 8];
+            case 7:
                 error_1 = _e.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('Bad Request', error_1))];
-            case 9: return [2 /*return*/];
+            case 8: return [2 /*return*/];
         }
     });
 }); };

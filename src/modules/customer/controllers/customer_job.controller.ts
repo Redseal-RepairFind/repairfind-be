@@ -62,35 +62,35 @@ export const createJobRequest = async (
         // const dateParts = date.split('-').map( (part: any) => part.replace(/^0+/, ''));
         // const formattedDate = dateParts.join('-');
 
-        const dateParts = date.split('-').map((part: any) => part.padStart(2, '0'));
-        const formattedDate = dateParts.join('-');
+        // const dateParts = date.split('-').map((part: any) => part.padStart(2, '0'));
+        // const formattedDate = dateParts.join('-');
 
-        let dateTimeString = `${new Date(formattedDate).toISOString().split('T')[0]}T${'23:59:59.000Z'}`; // Combine date and time
-        let jobDate = new Date(dateTimeString);
+        // let dateTimeString = `${new Date(formattedDate).toISOString().split('T')[0]}T${'23:59:59.000Z'}`; // Combine date and time
+        // let jobDate = new Date(dateTimeString);
 
 
-        // Get the end of the current day (11:59:59 PM)
-        const startOfToday = startOfDay(new Date());
-        if (!isValid(new Date(jobDate))) {
-            return res.status(400).json({ success: false, message: 'Invalid date format' });
-        }
+        // // Get the end of the current day (11:59:59 PM)
+        // const startOfToday = startOfDay(new Date());
+        // if (!isValid(new Date(jobDate))) {
+        //     return res.status(400).json({ success: false, message: 'Invalid date format' });
+        // }
 
-        if ((!isFuture(new Date(jobDate)) && new Date(jobDate) < startOfToday)) {
-            return res.status(400).json({ success: false, message: 'Selected Job Date is in the past' });
-        }
+        // if ((!isFuture(new Date(jobDate)) && new Date(jobDate) < startOfToday)) {
+        //     return res.status(400).json({ success: false, message: 'Selected Job Date is in the past' });
+        // }
 
         // Check if there is a similar job request sent to the same contractor within the last 72 hours
-        const existingJobRequest = await JobModel.findOne({
-            customer: customerId,
-            contractor: contractorId,
-            status: JOB_STATUS.PENDING,
-            date: { $eq: new Date(jobDate) }, // consider all past jobs
-            createdAt: { $gte: addHours(new Date(), -24) }, // Check for job requests within the last 72 hours
-        });
+        // const existingJobRequest = await JobModel.findOne({
+        //     customer: customerId,
+        //     contractor: contractorId,
+        //     status: JOB_STATUS.PENDING,
+        //     date: { $eq: new Date(jobDate) }, // consider all past jobs
+        //     createdAt: { $gte: addHours(new Date(), -24) }, // Check for job requests within the last 72 hours
+        // });
 
-        if (existingJobRequest) {
-            // return res.status(400).json({ success: false, message: 'A similar job request has already been sent to this contractor within the last 24 hours' });
-        }
+        // if (existingJobRequest) {
+        //     // return res.status(400).json({ success: false, message: 'A similar job request has already been sent to this contractor within the last 24 hours' });
+        // }
 
 
 
@@ -109,8 +109,8 @@ export const createJobRequest = async (
             contractor: contractorId,
             description,
             location,
-            date: jobDate,
-            time: jobDate,
+            // date: jobDate,
+            // time: jobDate,
             type: JobType.REQUEST,
             expiresIn: Number(expiresIn),
             expiryDate,

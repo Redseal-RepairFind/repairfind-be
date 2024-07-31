@@ -193,7 +193,7 @@ exports.createJobRequestParams = [
     (0, express_validator_1.body)("location").notEmpty(),
     (0, express_validator_1.body)("media").optional(),
     (0, express_validator_1.body)("emergency").optional(),
-    (0, express_validator_1.body)("date").notEmpty(),
+    (0, express_validator_1.body)("date").optional(),
     (0, express_validator_1.body)("time").optional(),
 ];
 exports.createJoListingParams = [

@@ -210,7 +210,7 @@ export const createJobRequestParams = [
   body("location").notEmpty(),
   body("media").optional(),
   body("emergency").optional(),
-  body("date").notEmpty(),
+  body("date").optional(),
   body("time").optional(),
 ];
 

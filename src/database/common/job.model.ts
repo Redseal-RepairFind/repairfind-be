@@ -124,11 +124,11 @@ export interface IJob extends Document {
     voiceDescription: IVoiceDescription;
     statusUpdate: IStatusUpdate;
     location: IJobLocation;
-    date: Date;
-    startDate: Date;
-    endDate: Date;
+    date?: Date;
+    startDate?: Date;
+    endDate?: Date;
     expiryDate?: Date;
-    time: Date;
+    time?: Date;
     expiresIn: number;
     media: string[];
     tags?: string[];
@@ -268,7 +268,7 @@ const JobSchema = new Schema<IJob>({
     title: { type: String },
     voiceDescription: VoiceDescriptionSchema,
     location: { type: JobLocationSchema, required: true },
-    date: { type: Date, required: true },
+    date: { type: Date, required: false },
     time: { type: Date, required: false },
     startDate: { type: Date },
     expiryDate: {

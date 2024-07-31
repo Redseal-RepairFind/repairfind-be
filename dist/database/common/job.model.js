@@ -169,7 +169,7 @@ var JobSchema = new mongoose_1.Schema({
     title: { type: String },
     voiceDescription: VoiceDescriptionSchema,
     location: { type: JobLocationSchema, required: true },
-    date: { type: Date, required: true },
+    date: { type: Date, required: false },
     time: { type: Date, required: false },
     startDate: { type: Date },
     expiryDate: {
