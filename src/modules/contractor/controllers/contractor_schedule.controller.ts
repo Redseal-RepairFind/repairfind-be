@@ -3,7 +3,7 @@
 import { Response } from 'express';
 import { ContractorScheduleModel, IContractorSchedule } from '../../../database/contractor/models/contractor_schedule.model';
 import { validationResult } from 'express-validator';
-import { isValid, startOfMonth, endOfMonth, startOfYear, endOfYear, format, getDate } from 'date-fns';
+import { isValid, startOfMonth, endOfMonth, startOfYear, endOfYear, format, getDate, endOfDay } from 'date-fns';
 import { ContractorProfileModel } from '../../../database/contractor/models/contractor_profile.model';
 import { generateExpandedSchedule } from '../../../utils/schedule.util';
 import { JOB_STATUS, JobModel } from '../../../database/common/job.model';
@@ -27,6 +27,18 @@ export const createSchedule = async (req: any, res: Response) => {
 
     // Iterate through the array of dates and create/update each schedule
     for (const date of dates) {
+
+
+       // Get the end of the current day (11:59:59 PM)
+        const dateParts = date.split('-').map((part: any) => part.padStart(2, '0'));
+        const formattedDate = dateParts.join('-');
+
+        let dateTimeString = `${new Date(formattedDate).toISOString().split('T')[0]}T${'23:59:59.000Z'}`; // Combine date and time
+        let newDate = new Date(dateTimeString);
+
+        console.log(newDate)
+
+
       // Find the existing schedule for the given date and type
       const existingSchedule = await ContractorScheduleModel.findOne({ contractor: contractorId, date });
 
@@ -34,13 +46,14 @@ export const createSchedule = async (req: any, res: Response) => {
         // Update the existing schedule if it exists
         existingSchedule.recurrence = recurrence;
         existingSchedule.type = type;
+        existingSchedule.date = newDate;
         const updatedSchedule = await existingSchedule.save();
         schedules.push(updatedSchedule);
       } else {
         // Create a new schedule if it doesn't exist
         const newScheduleData: IContractorSchedule = {
           contractor: contractorId,
-          date,
+          date: newDate,
           type,
           recurrence,
         };
@@ -50,7 +63,7 @@ export const createSchedule = async (req: any, res: Response) => {
 
         schedules.push(newSchedule);
       }
-    }
+    }  
 
     res.json({
       success: true,

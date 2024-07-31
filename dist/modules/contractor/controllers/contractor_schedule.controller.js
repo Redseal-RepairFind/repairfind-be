@@ -65,7 +65,7 @@ var schedule_util_1 = require("../../../utils/schedule.util");
 var job_model_1 = require("../../../database/common/job.model");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var createSchedule = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, dates, type, recurrence, contractorId, schedules, _i, dates_1, date, existingSchedule, updatedSchedule, newScheduleData, newSchedule, error_1;
+    var errors, _a, dates, type, recurrence, contractorId, schedules, _i, dates_1, date, dateParts, formattedDate, dateTimeString, newDate, existingSchedule, updatedSchedule, newScheduleData, newSchedule, error_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -82,6 +82,11 @@ var createSchedule = function (req, res) { return __awaiter(void 0, void 0, void
             case 1:
                 if (!(_i < dates_1.length)) return [3 /*break*/, 7];
                 date = dates_1[_i];
+                dateParts = date.split('-').map(function (part) { return part.padStart(2, '0'); });
+                formattedDate = dateParts.join('-');
+                dateTimeString = "".concat(new Date(formattedDate).toISOString().split('T')[0], "T").concat('23:59:59.000Z');
+                newDate = new Date(dateTimeString);
+                console.log(newDate);
                 return [4 /*yield*/, contractor_schedule_model_1.ContractorScheduleModel.findOne({ contractor: contractorId, date: date })];
             case 2:
                 existingSchedule = _b.sent();
@@ -89,6 +94,7 @@ var createSchedule = function (req, res) { return __awaiter(void 0, void 0, void
                 // Update the existing schedule if it exists
                 existingSchedule.recurrence = recurrence;
                 existingSchedule.type = type;
+                existingSchedule.date = newDate;
                 return [4 /*yield*/, existingSchedule.save()];
             case 3:
                 updatedSchedule = _b.sent();
@@ -97,7 +103,7 @@ var createSchedule = function (req, res) { return __awaiter(void 0, void 0, void
             case 4:
                 newScheduleData = {
                     contractor: contractorId,
-                    date: date,
+                    date: newDate,
                     type: type,
                     recurrence: recurrence,
                 };
