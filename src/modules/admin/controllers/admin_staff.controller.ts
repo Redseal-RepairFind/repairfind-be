@@ -45,7 +45,7 @@ export const getAdminStaffs = async (
 
         const { data, error } = await applyAPIFeature(AdminRegModel.find().select('-password'), req.query)
 
-        return res.json({ success: false, data });
+        return res.json({ success: true, data });
 
     } catch (error: any) {
         next(new InternalServerError("An error occurred", error))

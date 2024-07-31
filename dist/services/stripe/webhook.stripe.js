@@ -819,6 +819,7 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                     quotation.status = job_quotation_model_1.JOB_QUOTATION_STATUS.ACCEPTED;
                     job.schedule = {
                         startDate: (_b = quotation.startDate) !== null && _b !== void 0 ? _b : job.date,
+                        estimatedDuration: quotation.estimatedDuration,
                         type: job_model_1.JOB_SCHEDULE_TYPE.JOB_DAY,
                         remark: 'Initial job schedule'
                     };
@@ -833,6 +834,7 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                     if (quotation.siteVisit instanceof Date) {
                         job.schedule = {
                             startDate: quotation.siteVisit,
+                            estimatedDuration: quotation.estimatedDuration,
                             type: job_model_1.JOB_SCHEDULE_TYPE.SITE_VISIT,
                             remark: 'Site visit schedule'
                         };

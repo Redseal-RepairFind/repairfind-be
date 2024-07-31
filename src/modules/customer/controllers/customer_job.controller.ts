@@ -620,12 +620,15 @@ export const scheduleJob = async (req: any, res: Response, next: NextFunction) =
             return res.status(404).json({ success: false, message: 'Quotation not found' });
         }
 
+
+        // pad the date 
+        const dateParts = date.split('-').map((part: any) => part.padStart(2, '0'));
+        const formattedDate = dateParts.join('-');
+
         // Combine date and time into a single DateTime object
-        const jobDateTime = new Date(`${date}T${time}`);
+        const jobDateTime = new Date(`${formattedDate}T${time}`);
 
         
-        
-
         quotation.startDate = jobDateTime;
 
         const conversationMembers = [
@@ -666,6 +669,8 @@ export const scheduleJob = async (req: any, res: Response, next: NextFunction) =
         if (foundQuotationIndex !== -1) {
             job.quotations[foundQuotationIndex].status = JOB_QUOTATION_STATUS.ACCEPTED;
         }
+
+        job.date = jobDateTime;
         await job.save()
 
 

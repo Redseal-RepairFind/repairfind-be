@@ -69,6 +69,7 @@ export enum JOB_SCHEDULE_REMINDER {
 export interface IJobSchedule {
     startDate: Date;
     endDate?: Date;
+    estimatedDuration?: number;
     createdBy?: 'customer' | 'contractor'
     type: JOB_SCHEDULE_TYPE
     remark: string
@@ -124,7 +125,7 @@ export interface IJob extends Document {
     voiceDescription: IVoiceDescription;
     statusUpdate: IStatusUpdate;
     location: IJobLocation;
-    date?: Date;
+    date: Date;
     startDate?: Date;
     endDate?: Date;
     expiryDate?: Date;
@@ -198,6 +199,7 @@ const VoiceDescriptionSchema = new Schema<IVoiceDescription>({
 const ScheduleSchema = new Schema<IJobSchedule>({
     startDate: { type: Date },
     endDate: { type: Date },
+    estimatedDuration: { type: Number, default: 0 },
     createdBy: String,
     type: { type: String, enum: Object.values(JOB_SCHEDULE_TYPE) },
     remark: String,

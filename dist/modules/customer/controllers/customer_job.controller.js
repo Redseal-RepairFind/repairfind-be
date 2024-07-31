@@ -635,7 +635,7 @@ var acceptJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
 }); };
 exports.acceptJobQuotation = acceptJobQuotation;
 var scheduleJob = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, _a, jobId, quotationId_2, _b, date, time, quotation, job, jobDateTime, conversationMembers, conversation, newMessage, foundQuotationIndex, contractor, customer, _c, error_11;
+    var customerId, _a, jobId, quotationId_2, _b, date, time, quotation, job, dateParts, formattedDate, jobDateTime, conversationMembers, conversation, newMessage, foundQuotationIndex, contractor, customer, _c, error_11;
     return __generator(this, function (_d) {
         switch (_d.label) {
             case 0:
@@ -657,7 +657,9 @@ var scheduleJob = function (req, res, next) { return __awaiter(void 0, void 0, v
                 if (!quotation) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Quotation not found' })];
                 }
-                jobDateTime = new Date("".concat(date, "T").concat(time));
+                dateParts = date.split('-').map(function (part) { return part.padStart(2, '0'); });
+                formattedDate = dateParts.join('-');
+                jobDateTime = new Date("".concat(formattedDate, "T").concat(time));
                 quotation.startDate = jobDateTime;
                 conversationMembers = [
                     { memberType: 'customers', member: customerId },
@@ -693,6 +695,7 @@ var scheduleJob = function (req, res, next) { return __awaiter(void 0, void 0, v
                 if (foundQuotationIndex !== -1) {
                     job.quotations[foundQuotationIndex].status = job_quotation_model_1.JOB_QUOTATION_STATUS.ACCEPTED;
                 }
+                job.date = jobDateTime;
                 return [4 /*yield*/, job.save()];
             case 6:
                 _d.sent();

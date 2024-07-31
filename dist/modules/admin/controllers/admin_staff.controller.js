@@ -74,7 +74,7 @@ var getAdminStaffs = function (req, res, next) { return __awaiter(void 0, void 0
                 return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(admin_model_1.default.find().select('-password'), req.query)];
             case 2:
                 _b = _c.sent(), data = _b.data, error = _b.error;
-                return [2 /*return*/, res.json({ success: false, data: data })];
+                return [2 /*return*/, res.json({ success: true, data: data })];
             case 3:
                 error_1 = _c.sent();
                 next(new custom_errors_1.InternalServerError("An error occurred", error_1));

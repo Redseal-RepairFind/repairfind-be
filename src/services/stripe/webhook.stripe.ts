@@ -636,6 +636,7 @@ export const chargeSucceeded = async (payload: any) => {
                         
                         job.schedule = {
                             startDate: quotation.startDate ?? job.date,
+                            estimatedDuration: quotation.estimatedDuration,
                             type: JOB_SCHEDULE_TYPE.JOB_DAY,
                             remark: 'Initial job schedule'
                         };
@@ -657,6 +658,7 @@ export const chargeSucceeded = async (payload: any) => {
                         if (quotation.siteVisit instanceof Date) {
                             job.schedule = {
                                 startDate: quotation.siteVisit,
+                                estimatedDuration: quotation.estimatedDuration,
                                 type: JOB_SCHEDULE_TYPE.SITE_VISIT,
                                 remark: 'Site visit schedule'
                             };

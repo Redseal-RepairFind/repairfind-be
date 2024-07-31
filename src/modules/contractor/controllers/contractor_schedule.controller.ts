@@ -29,14 +29,14 @@ export const createSchedule = async (req: any, res: Response) => {
     for (const date of dates) {
 
 
-       // Get the end of the current day (11:59:59 PM)
-        const dateParts = date.split('-').map((part: any) => part.padStart(2, '0'));
-        const formattedDate = dateParts.join('-');
+      // Get the end of the current day (11:59:59 PM)
+      const dateParts = date.split('-').map((part: any) => part.padStart(2, '0'));
+      const formattedDate = dateParts.join('-');
 
-        let dateTimeString = `${new Date(formattedDate).toISOString().split('T')[0]}T${'23:59:59.000Z'}`; // Combine date and time
-        let newDate = new Date(dateTimeString);
+      let dateTimeString = `${new Date(formattedDate).toISOString().split('T')[0]}T${'23:59:59.000Z'}`; // Combine date and time
+      let newDate = new Date(dateTimeString);
 
-        console.log(newDate)
+      console.log(newDate)
 
 
       // Find the existing schedule for the given date and type
@@ -63,7 +63,7 @@ export const createSchedule = async (req: any, res: Response) => {
 
         schedules.push(newSchedule);
       }
-    }  
+    }
 
     res.json({
       success: true,
@@ -173,32 +173,30 @@ export const getSchedulesByDate = async (req: any, res: Response) => {
     });
 
 
-    // const jobSchedules = await JobModel.find({
-    //   contractor: contractorId,
-    //   'schedule.startDate': { $gte: startDate, $lte: endDate },
-    // }).then(jobs => jobs.map(job => ({ date: job.schedule.startDate, type: job.schedule.type, contractor: job.contractor, events: [{ job: job.id }] })));
-
     const jobs = await JobModel.find({
       contractor: contractorId,
       'schedule.startDate': { $gte: startDate, $lte: endDate },
     }).populate('contract')
-    
+
     const jobSchedules = await Promise.all(jobs.map(async (job) => {
       const contractor = await ContractorModel.findById(job.contractor);
-      return { date: job.schedule.startDate, type: job.schedule.type, contractor: contractor, events: [
-        {
-          //@ts-ignore
-          totalAmount: job.contract.charges.totalAmount, 
-         job: job.id, 
-         skill: job?.category ,
-         date: job?.schedule.startDate 
-        }
-    ]};
+      return {
+        date: job.schedule.startDate, type: job.schedule.type, contractor: contractor, events: [
+          {
+            //@ts-ignore
+            totalAmount: job.contract.charges.totalAmount,
+            job: job.id,
+            skill: job?.category,
+            date: job?.schedule.startDate,
+            estimatedDuration: job?.schedule.estimatedDuration
+          }
+        ]
+      };
     }));
-    
-    
 
-    const existingSchedules = await ContractorScheduleModel.find({contractor: contractorId})
+
+
+    const existingSchedules = await ContractorScheduleModel.find({ contractor: contractorId })
 
 
     // Concatenate expandedSchedules and existingSchedules

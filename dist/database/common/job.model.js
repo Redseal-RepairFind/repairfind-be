@@ -113,6 +113,7 @@ var VoiceDescriptionSchema = new mongoose_1.Schema({
 var ScheduleSchema = new mongoose_1.Schema({
     startDate: { type: Date },
     endDate: { type: Date },
+    estimatedDuration: { type: Number, default: 0 },
     createdBy: String,
     type: { type: String, enum: Object.values(JOB_SCHEDULE_TYPE) },
     remark: String,
