@@ -257,7 +257,9 @@ export const exploreContractors = async (
             { $match: { "stripeAccountStatus.status": 'active' } },
 
             //example filter out employees and contractors 
-            { $match: { accountType: { $ne: CONTRACTOR_TYPES.Employee } } }
+            { $match: { accountType: { $ne: CONTRACTOR_TYPES.Employee } } },
+
+            { $match: { "profile.isOffDuty": { $eq: false } } }
         ];
 
 

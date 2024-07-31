@@ -267,7 +267,8 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
                     //example filter out who do not have stripe account
                     { $match: { "stripeAccountStatus.status": 'active' } },
                     //example filter out employees and contractors 
-                    { $match: { accountType: { $ne: contractor_interface_1.CONTRACTOR_TYPES.Employee } } }
+                    { $match: { accountType: { $ne: contractor_interface_1.CONTRACTOR_TYPES.Employee } } },
+                    { $match: { "profile.isOffDuty": { $eq: false } } }
                 ];
                 // Add stages conditionally based on query parameters
                 if (searchName) {

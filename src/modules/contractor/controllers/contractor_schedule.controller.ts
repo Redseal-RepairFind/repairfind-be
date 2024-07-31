@@ -180,15 +180,22 @@ export const getSchedulesByDate = async (req: any, res: Response) => {
 
     const jobSchedules = await Promise.all(jobs.map(async (job) => {
       const contractor = await ContractorModel.findById(job.contractor);
+
+      // spread time
       return {
-        date: job.schedule.startDate, type: job.schedule.type, contractor: contractor, events: [
+        date: job.schedule.startDate, 
+        type: job.schedule.type, 
+        contractor: contractor, 
+        times: [], 
+        events: [
           {
             //@ts-ignore
             totalAmount: job.contract.charges.totalAmount,
             job: job.id,
             skill: job?.category,
             date: job?.schedule.startDate,
-            estimatedDuration: job?.schedule.estimatedDuration
+            estimatedDuration: job?.schedule.estimatedDuration,
+
           }
         ]
       };

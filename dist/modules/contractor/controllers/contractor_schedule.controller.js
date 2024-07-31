@@ -246,15 +246,20 @@ var getSchedulesByDate = function (req, res) { return __awaiter(void 0, void 0, 
                                 case 0: return [4 /*yield*/, contractor_model_1.ContractorModel.findById(job.contractor)];
                                 case 1:
                                     contractor = _a.sent();
+                                    // spread time
                                     return [2 /*return*/, {
-                                            date: job.schedule.startDate, type: job.schedule.type, contractor: contractor, events: [
+                                            date: job.schedule.startDate,
+                                            type: job.schedule.type,
+                                            contractor: contractor,
+                                            times: [],
+                                            events: [
                                                 {
                                                     //@ts-ignore
                                                     totalAmount: job.contract.charges.totalAmount,
                                                     job: job.id,
                                                     skill: job === null || job === void 0 ? void 0 : job.category,
                                                     date: job === null || job === void 0 ? void 0 : job.schedule.startDate,
-                                                    estimatedDuration: job === null || job === void 0 ? void 0 : job.schedule.estimatedDuration
+                                                    estimatedDuration: job === null || job === void 0 ? void 0 : job.schedule.estimatedDuration,
                                                 }
                                             ]
                                         }];
