@@ -530,7 +530,7 @@ export const chargeSucceeded = async (payload: any) => {
 
         let stripeChargeDTO: IPayment = castPayloadToDTO(payload, payload as IPayment);
         stripeChargeDTO.charge = payload.id
-        stripeChargeDTO.type = payload.metadata.type
+        stripeChargeDTO.type = payload.metadata.paymentType
         stripeChargeDTO.user = user.id
         stripeChargeDTO.userType = userType
         delete (stripeChargeDTO as { id?: any }).id;

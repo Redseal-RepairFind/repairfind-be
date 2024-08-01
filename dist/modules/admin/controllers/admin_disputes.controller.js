@@ -318,18 +318,18 @@ var createDisputeRefund = function (req, res, next) { return __awaiter(void 0, v
                             .status(401)
                             .json({ message: "Invalid disputeId" })];
                 }
-                return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobDispute.job })];
+                return [4 /*yield*/, job_model_1.JobModel.findById(jobDispute.job)];
             case 2:
                 job = _c.sent();
                 if (!job) {
                     return [2 /*return*/, res
                             .status(400)
-                            .json({ message: "Disputed Job not found" })];
+                            .json({ success: false, message: "Disputed Job not found" })];
                 }
-                if (jobDispute.status != job_dispute_model_1.JOB_DISPUTE_STATUS.ONGOING) {
+                if (job.status == job_model_1.JOB_STATUS.REFUNDED) {
                     return [2 /*return*/, res
                             .status(401)
-                            .json({ message: "Dispute not is not ongoing" })];
+                            .json({ success: false, message: "Job is already refunded" })];
                 }
                 if (jobDispute.arbitrator != adminId) {
                     return [2 /*return*/, res
@@ -337,12 +337,9 @@ var createDisputeRefund = function (req, res, next) { return __awaiter(void 0, v
                             .json({ success: false, message: "Only dispute arbitrator can settle a dispute" })];
                 }
                 jobDispute.status = job_dispute_model_1.JOB_DISPUTE_STATUS.RESOLVED;
-                // jobDispute.resolvedWay = resolvedWay
-                return [4 /*yield*/, jobDispute.save()
-                    // choose which payment to refund ? SITE_VISIT_PAYMENT, JOB_DAY_PAYMENT, CHANGE_ORDER_PAYMENT
-                ];
+                jobDispute.resolvedWay = 'Refunded';
+                return [4 /*yield*/, jobDispute.save()];
             case 3:
-                // jobDispute.resolvedWay = resolvedWay
                 _c.sent();
                 paymentType = (job.schedule.type == 'JOB_DAY') ? [payment_schema_1.PAYMENT_TYPE.JOB_DAY_PAYMENT, payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT] : [payment_schema_1.PAYMENT_TYPE.SITE_VISIT_PAYMENT];
                 return [4 /*yield*/, job.getPayments(paymentType)];
@@ -395,14 +392,14 @@ var createDisputeRefund = function (req, res, next) { return __awaiter(void 0, v
                 return [3 /*break*/, 5];
             case 8:
                 // Update the job status to canceled
-                job.status = job_model_1.JOB_STATUS.CANCELED;
+                job.status = job_model_1.JOB_STATUS.REFUNDED;
                 job.jobHistory.push({
                     eventType: 'JOB_DISPUTE_REFUND',
                     timestamp: new Date(),
-                    payload: { reason: 'Settlement by admin', canceledBy: jobDispute.disputerType }
+                    payload: { reason: 'Settlement by admin', dispute: disputeId }
                 });
                 // emit job cancelled event 
-                events_1.JobEvent.emit('JOB_CANCELED', { job: job, canceledBy: 'customer' });
+                events_1.JobEvent.emit('JOB_DISPUTE_REFUND_CREATED', { job: job, dispute: jobDispute });
                 return [4 /*yield*/, job.save()];
             case 9:
                 _c.sent();

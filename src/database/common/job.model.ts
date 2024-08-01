@@ -29,6 +29,7 @@ export enum JOB_STATUS {
     ACCEPTED = 'ACCEPTED',
     SUBMITTED = 'SUBMITTED',
     EXPIRED = 'EXPIRED',
+    REFUNDED = 'REFUNDED',
     BOOKED = 'BOOKED',
     ONGOING = 'ONGOING',
     COMPLETED = 'COMPLETED',
@@ -517,7 +518,10 @@ JobSchema.methods.getPayments = async function (types = null) {
         jobPayments = await PaymentModel.find({ _id: { $in: paymentIds } })
     }
 
+
     if (!jobPayments) return { totalAmount: 0, paymentCount: 0, payments: null }
+
+
 
     totalAmount = jobPayments.reduce((acc: number, payment: any) => acc + payment.amount, 0);
     const payments = jobPayments.map((payment: any) => {

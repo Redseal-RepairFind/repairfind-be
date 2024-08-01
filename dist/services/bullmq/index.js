@@ -55,31 +55,31 @@ var JobQueue = /** @class */ (function () {
     }
     JobQueue.prototype.createQueue = function () {
         var redisConfig = this.getRedisConfig();
-        // const connection = new Redis(redisConfig);
+        var connection = new ioredis_1.default(redisConfig);
         //   const connection = new Redis({
         //     host: 'repairfindrediscluster.hcr6d2.ng.0001.euw3.cache.amazonaws.com',
         //     port: 6379,
         //     maxRetriesPerRequest: null,
         //     connectTimeout: 10000,
         // });
-        var clusterOptions = {
-            // enableReadyCheck: true,
-            // retryDelayOnClusterDown: 300,
-            // retryDelayOnFailover: 1000,
-            // retryDelayOnTryAgain: 3000,
-            // slotsRefreshTimeout: 200000000000000,
-            // clusterRetryStrategy: (times:any) => Math.min(times * 1000, 10000),
-            // dnsLookup: (address: any, callback: any) => callback(null, address),
-            // scaleReads: 'slave',
-            // showFriendlyErrorStack: true,
-            redisOptions: {
-                // keyPrefix: 'config.queue.prefix',
-                autoResubscribe: true,
-                autoResendUnfulfilledCommands: true,
-                // tls: true 
-            }
-        };
-        var connection = new ioredis_1.default.Cluster([{ host: 'repairfindrediscluster.hcr6d2.ng.0001.euw3.cache.amazonaws.com:6379', port: 6379 }], clusterOptions);
+        // const clusterOptions = {
+        //   // enableReadyCheck: true,
+        //   // retryDelayOnClusterDown: 300,
+        //   // retryDelayOnFailover: 1000,
+        //   // retryDelayOnTryAgain: 3000,
+        //   // slotsRefreshTimeout: 200000000000000,
+        //   // clusterRetryStrategy: (times:any) => Math.min(times * 1000, 10000),
+        //   // dnsLookup: (address: any, callback: any) => callback(null, address),
+        //   // scaleReads: 'slave',
+        //   // showFriendlyErrorStack: true,
+        //   redisOptions: {
+        //       // keyPrefix: 'config.queue.prefix',
+        //       autoResubscribe: true,
+        //       autoResendUnfulfilledCommands: true,
+        //       // tls: true 
+        //   }
+        // }
+        // const connection = new Redis.Cluster([{ host: 'repairfindrediscluster.hcr6d2.ng.0001.euw3.cache.amazonaws.com:6379', port: 6379}], clusterOptions);
         connection.on('connect', function () {
             console.log('Connected to Redis');
         });

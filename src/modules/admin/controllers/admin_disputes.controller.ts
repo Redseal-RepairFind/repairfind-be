@@ -290,19 +290,21 @@ export const createDisputeRefund = async (
         .json({ message: "Invalid disputeId" });
     }
 
-    const job = await JobModel.findOne({ _id: jobDispute.job })
+    const job = await JobModel.findById(jobDispute.job)
 
     if (!job) {
       return res
         .status(400)
-        .json({ message: "Disputed Job not found" });
+        .json({success: false, message: "Disputed Job not found" });
     }
 
-    if (jobDispute.status != JOB_DISPUTE_STATUS.ONGOING) {
+
+    if (job.status == JOB_STATUS.REFUNDED) {
       return res
         .status(401)
-        .json({ message: "Dispute not is not ongoing" });
+        .json({ success: false, message: "Job is already refunded" });
     }
+
 
     if (jobDispute.arbitrator != adminId) {
       return res
@@ -311,14 +313,11 @@ export const createDisputeRefund = async (
     }
 
     jobDispute.status = JOB_DISPUTE_STATUS.RESOLVED
-    // jobDispute.resolvedWay = resolvedWay
+    jobDispute.resolvedWay = 'Refunded'
     await jobDispute.save()
 
-
-    // choose which payment to refund ? SITE_VISIT_PAYMENT, JOB_DAY_PAYMENT, CHANGE_ORDER_PAYMENT
     const paymentType = (job.schedule.type == 'JOB_DAY') ? [PAYMENT_TYPE.JOB_DAY_PAYMENT, PAYMENT_TYPE.CHANGE_ORDER_PAYMENT] : [PAYMENT_TYPE.SITE_VISIT_PAYMENT]
     const payments = await job.getPayments(paymentType)
-
 
 
     for (const payment of payments.payments) {
@@ -332,6 +331,7 @@ export const createDisputeRefund = async (
         intiatedBy: 'admin',
         policyApplied: 'dispute_refund',
       };
+
 
       //create refund transaction - 
       await TransactionModel.create({
@@ -367,20 +367,19 @@ export const createDisputeRefund = async (
 
     }
 
-
     // Update the job status to canceled
-    job.status = JOB_STATUS.CANCELED;
+    job.status = JOB_STATUS.REFUNDED;
 
     job.jobHistory.push({
       eventType: 'JOB_DISPUTE_REFUND',
       timestamp: new Date(),
-      payload: { reason: 'Settlement by admin', canceledBy: jobDispute.disputerType }
+      payload: { reason: 'Settlement by admin', dispute: disputeId }
     });
 
     // emit job cancelled event 
-    JobEvent.emit('JOB_CANCELED', { job, canceledBy: 'customer' })
-    await job.save();
+    JobEvent.emit('JOB_DISPUTE_REFUND_CREATED', { job, dispute: jobDispute })
 
+    await job.save();
 
     return res.json({ success: true, message: "Dispute refund created" });
 

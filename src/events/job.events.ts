@@ -273,6 +273,59 @@ JobEvent.on('JOB_CANCELED', async function (payload: { job: IJob, canceledBy: st
 });
 
 
+JobEvent.on('JOB_DISPUTE_REFUND_CREATED', async function (payload: { job: IJob, dispute: IJobDispute }) {
+    try {
+        Logger.info('handling alert JOB_DISPUTE_REFUND_CREATED event')
+        const job = payload.job
+        const dispute = payload.dispute
+        const customer = await CustomerModel.findById(payload.job.customer) as ICustomer
+        const contractor = await ContractorModel.findById(payload.job.contractor) as IContractor
+
+
+        if (job && contractor && customer) {
+
+            NotificationService.sendNotification({
+                user: contractor.id,
+                userType: 'contractors',
+                title: 'Job Dispute Refund Created',
+                type: 'JOB_DISPUTE_REFUND_CREATED', //
+                message: `Full refund of your disputed job has been approved  on Repairfind`,
+                heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
+                payload: {
+                    entity: dispute.id,
+                    entityType: 'job_disputes',
+                    message: `Full refund of your disputed job has been approved  on Repairfind`,
+                    contractor: contractor.id,
+                    event: 'JOB_DISPUTE_REFUND_CREATED',
+                }
+            }, {push: true, socket: true })
+
+            NotificationService.sendNotification({
+                user: customer.id,
+                userType: 'customers',
+                title: 'Job Dispute Refund Created',
+                type: 'JOB_DISPUTE_REFUND_CREATED', 
+                message: `Full refund of your disputed job has been approved  on Repairfind`,
+                heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
+                payload: {
+                    entity: dispute.id,
+                    entityType: 'job_disputes',
+                    message: `Full refund of your disputed job has been approved  on Repairfind`,
+                    customer: customer.id,
+                    event: 'JOB_DISPUTE_REFUND_CREATED',
+                }
+            }, { database: true, push: true, socket: true })
+
+        }
+
+
+
+    } catch (error) {
+        Logger.error(`Error handling JOB_DISPUTE_REFUND_CREATED event: ${error}`);
+    }
+});
+
+
 JobEvent.on('JOB_QUOTATION_DECLINED', async function (payload: { jobId: ObjectId, contractorId: ObjectId, customerId: ObjectId, reason: string }) {
     try {
 

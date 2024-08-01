@@ -733,7 +733,7 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                 payload.application_fee_amount = payload.application_fee_amount / 100;
                 stripeChargeDTO = (0, interface_dto_util_1.castPayloadToDTO)(payload, payload);
                 stripeChargeDTO.charge = payload.id;
-                stripeChargeDTO.type = payload.metadata.type;
+                stripeChargeDTO.type = payload.metadata.paymentType;
                 stripeChargeDTO.user = user.id;
                 stripeChargeDTO.userType = userType;
                 delete stripeChargeDTO.id;

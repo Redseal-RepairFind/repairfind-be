@@ -74,14 +74,11 @@ const setupWorkerEventListeners = (worker: Worker): void => {
 
   worker.on('completed', job => {
     Logger.info(`Job Completed: ${job.name} - ${job.id} has completed!`);
-    // const mailOptions = job.data;
-    // await EmailService.createTransport().sendMail(mailOptions);
-    // console.log(`Email sent successfully to ${mailOptions.to} with CC to ${mailOptions.cc}`);
   });
 };
 
 const redisConfig = getRedisConfig();
-const redisConnection = new Redis(redisConfig);
+const connection = new Redis(redisConfig);
 
 
 // const connection = new Redis({
@@ -92,7 +89,7 @@ const redisConnection = new Redis(redisConfig);
 //     // connectTimeout: 10000,
 // });
 
-const clusterOptions = {
+// const clusterOptions = {
   // enableReadyCheck: true,
   // retryDelayOnClusterDown: 300,
   // retryDelayOnFailover: 1000,
@@ -103,18 +100,16 @@ const clusterOptions = {
   // scaleReads: 'slave',
 
   // showFriendlyErrorStack: true,
-  redisOptions: {
-      // keyPrefix: 'config.queue.prefix',
-      autoResubscribe: true,
-      autoResendUnfulfilledCommands: true,
-      // tls: true 
-  }
-}
+//   redisOptions: {
+//       // keyPrefix: 'config.queue.prefix',
+//       autoResubscribe: true,
+//       autoResendUnfulfilledCommands: true,
+//       // tls: true 
+//   }
+// }
 
 
-const connection = new Redis.Cluster([{ host: 'repairfindrediscluster.hcr6d2.ng.0001.euw3.cache.amazonaws.com:6379', port: 6379}], clusterOptions);
-
-
+// const connection = new Redis.Cluster([{ host: 'repairfindrediscluster.hcr6d2.ng.0001.euw3.cache.amazonaws.com:6379', port: 6379}], clusterOptions);
 
 
 connection.on('connect', () => {
