@@ -84,25 +84,47 @@ const redisConfig = getRedisConfig();
 const redisConnection = new Redis(redisConfig);
 
 
-const connection = new Redis({
-  host: 'repairfindelasticcacheredisoss-hcr6d2.serverless.euw3.cache.amazonaws.com',
-  port: 6379,
-  // If your Redis instance is password protected, uncomment the line below and replace with your password
-  // password: 'your_redis_password'
-  maxRetriesPerRequest: null,
-  connectTimeout: 10000,
+// const connection = new Redis({
+//     // host: 'repairfindrediscluster.hcr6d2.ng.0001.euw3.cache.amazonaws.com',
+//     // port: 6379,
+//     // tls: {},
+//     // maxRetriesPerRequest: null,
+//     // connectTimeout: 10000,
+// });
+
+const clusterOptions = {
+  // enableReadyCheck: true,
+  // retryDelayOnClusterDown: 300,
+  // retryDelayOnFailover: 1000,
+  // retryDelayOnTryAgain: 3000,
+  // slotsRefreshTimeout: 200000000000000,
+  // clusterRetryStrategy: (times:any) => Math.min(times * 1000, 10000),
+  // dnsLookup: (address: any, callback: any) => callback(null, address),
+  // scaleReads: 'slave',
+
+  // showFriendlyErrorStack: true,
+  redisOptions: {
+      // keyPrefix: 'config.queue.prefix',
+      autoResubscribe: true,
+      autoResendUnfulfilledCommands: true,
+      // tls: true 
+  }
+}
 
 
-  tls: {},
-  // password: process.env.REDIS_AUTH,
-  retryStrategy: (times) => Math.min(times * 30, 1000),
+const connection = new Redis.Cluster([{ host: 'repairfindrediscluster.hcr6d2.ng.0001.euw3.cache.amazonaws.com:6379', port: 6379}], clusterOptions);
 
+
+
+
+connection.on('connect', () => {
+  console.log('Connected to Redis');
 });
 
-
-connection.on('error', (err) => {
-  console.error('Redis connection error:', err);
+connection.on('error', (error: any) => {
+  console.error('Error connecting to Redis:', error);
 });
+
 
 export const RepairFindQueueWorker = new Worker(
   config.redis.queueName,
