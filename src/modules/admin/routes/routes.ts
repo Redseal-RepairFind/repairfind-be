@@ -99,6 +99,7 @@ router.get("/disputes", checkAdminRole, AdminDisputeController.getJobDisputes );
 router.get("/disputes/:disputeId", checkAdminRole, AdminDisputeController.getSingleDispute ); 
 router.post("/disputes/:disputeId/accept", checkAdminRole, AdminDisputeController.acceptDispute ); 
 router.post("/disputes/:disputeId/settle", Validations.SettleDisputeParams, checkAdminRole, AdminDisputeController.settleDispute  ); 
+router.post("/disputes/:disputeId/refund", checkAdminRole, AdminDisputeController.createDisputeRefund  ); 
 
 
 //refactored conversation

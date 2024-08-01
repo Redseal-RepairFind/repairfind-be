@@ -594,7 +594,6 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
             fee: 0, //
         }
 
-
         if (timeDifferenceInHours >= 48) {
             // Free cancellation up to 48 hours before the scheduled job time.
 

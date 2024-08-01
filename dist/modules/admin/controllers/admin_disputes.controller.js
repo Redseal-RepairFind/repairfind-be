@@ -10,6 +10,29 @@ var __assign = (this && this.__assign) || function () {
     };
     return __assign.apply(this, arguments);
 };
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -51,9 +74,13 @@ exports.AdminDisputeController = exports.createDisputeRefund = exports.settleDis
 var express_validator_1 = require("express-validator");
 var job_dispute_model_1 = require("../../../database/common/job_dispute.model");
 var api_feature_1 = require("../../../utils/api.feature");
+var job_model_1 = require("../../../database/common/job.model");
 var custom_errors_1 = require("../../../utils/custom.errors");
 var job_day_model_1 = require("../../../database/common/job_day.model");
 var conversations_schema_1 = require("../../../database/common/conversations.schema");
+var payment_schema_1 = require("../../../database/common/payment.schema");
+var transaction_model_1 = __importStar(require("../../../database/common/transaction.model"));
+var events_1 = require("../../../events");
 var getJobDisputes = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, adminId, filter, _a, data, error, err_1;
     return __generator(this, function (_b) {
@@ -248,7 +275,7 @@ var settleDispute = function (req, res, next) { return __awaiter(void 0, void 0,
                 if (jobDispute.status != job_dispute_model_1.JOB_DISPUTE_STATUS.ONGOING) {
                     return [2 /*return*/, res
                             .status(401)
-                            .json({ message: "Dispute not yet accepted" })];
+                            .json({ message: "Dispute not ongoing" })];
                 }
                 if (jobDispute.arbitrator != adminId) {
                     return [2 /*return*/, res
@@ -270,11 +297,11 @@ var settleDispute = function (req, res, next) { return __awaiter(void 0, void 0,
 }); };
 exports.settleDispute = settleDispute;
 var createDisputeRefund = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, refundAmount, refundPercentage, disputeId, errors, admin, adminId, jobDispute, error_4;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+    var _a, refundAmount, refundPercentage, disputeId, errors, admin, adminId, jobDispute, job, paymentType, payments, _i, _b, payment, refund, error_4;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
             case 0:
-                _b.trys.push([0, 3, , 4]);
+                _c.trys.push([0, 10, , 11]);
                 _a = req.body, refundAmount = _a.refundAmount, refundPercentage = _a.refundPercentage;
                 disputeId = req.params.disputeId;
                 errors = (0, express_validator_1.validationResult)(req);
@@ -285,16 +312,24 @@ var createDisputeRefund = function (req, res, next) { return __awaiter(void 0, v
                 adminId = admin.id;
                 return [4 /*yield*/, job_dispute_model_1.JobDisputeModel.findOne({ _id: disputeId })];
             case 1:
-                jobDispute = _b.sent();
+                jobDispute = _c.sent();
                 if (!jobDispute) {
                     return [2 /*return*/, res
                             .status(401)
                             .json({ message: "Invalid disputeId" })];
                 }
+                return [4 /*yield*/, job_model_1.JobModel.findOne({ _id: jobDispute.job })];
+            case 2:
+                job = _c.sent();
+                if (!job) {
+                    return [2 /*return*/, res
+                            .status(400)
+                            .json({ message: "Disputed Job not found" })];
+                }
                 if (jobDispute.status != job_dispute_model_1.JOB_DISPUTE_STATUS.ONGOING) {
                     return [2 /*return*/, res
                             .status(401)
-                            .json({ message: "Dispute not yet accepted" })];
+                            .json({ message: "Dispute not is not ongoing" })];
                 }
                 if (jobDispute.arbitrator != adminId) {
                     return [2 /*return*/, res
@@ -303,15 +338,79 @@ var createDisputeRefund = function (req, res, next) { return __awaiter(void 0, v
                 }
                 jobDispute.status = job_dispute_model_1.JOB_DISPUTE_STATUS.RESOLVED;
                 // jobDispute.resolvedWay = resolvedWay
-                return [4 /*yield*/, jobDispute.save()];
-            case 2:
-                // jobDispute.resolvedWay = resolvedWay
-                _b.sent();
-                return [2 /*return*/, res.json({ success: true, message: "Dispute resolved successfully" })];
+                return [4 /*yield*/, jobDispute.save()
+                    // choose which payment to refund ? SITE_VISIT_PAYMENT, JOB_DAY_PAYMENT, CHANGE_ORDER_PAYMENT
+                ];
             case 3:
-                error_4 = _b.sent();
+                // jobDispute.resolvedWay = resolvedWay
+                _c.sent();
+                paymentType = (job.schedule.type == 'JOB_DAY') ? [payment_schema_1.PAYMENT_TYPE.JOB_DAY_PAYMENT, payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT] : [payment_schema_1.PAYMENT_TYPE.SITE_VISIT_PAYMENT];
+                return [4 /*yield*/, job.getPayments(paymentType)];
+            case 4:
+                payments = _c.sent();
+                _i = 0, _b = payments.payments;
+                _c.label = 5;
+            case 5:
+                if (!(_i < _b.length)) return [3 /*break*/, 8];
+                payment = _b[_i];
+                if (payment.refunded)
+                    return [3 /*break*/, 7];
+                refund = {
+                    refundAmount: payment.amount,
+                    totalAmount: payment.amount,
+                    fee: 0,
+                    contractorAmount: 0,
+                    companyAmount: 0,
+                    intiatedBy: 'admin',
+                    policyApplied: 'dispute_refund',
+                };
+                //create refund transaction - 
+                return [4 /*yield*/, transaction_model_1.default.create({
+                        type: transaction_model_1.TRANSACTION_TYPE.REFUND,
+                        amount: payments.totalAmount,
+                        initiatorUser: adminId,
+                        initiatorUserType: 'admins',
+                        fromUser: job.contractor,
+                        fromUserType: 'contractors',
+                        toUser: jobDispute.customer,
+                        toUserType: 'customers',
+                        description: "Refund from job: ".concat(job === null || job === void 0 ? void 0 : job.title, " payment"),
+                        status: transaction_model_1.TRANSACTION_STATUS.PENDING,
+                        remark: 'job_refund',
+                        invoice: {
+                            items: [],
+                            charges: refund
+                        },
+                        metadata: __assign(__assign({}, refund), { payment: payment.id.toString(), charge: payment.charge }),
+                        job: job.id,
+                        payment: payment.id,
+                    })];
+            case 6:
+                //create refund transaction - 
+                _c.sent();
+                events_1.JobEvent.emit('JOB_REFUND_REQUESTED', { job: job, payment: payment, refund: refund });
+                _c.label = 7;
+            case 7:
+                _i++;
+                return [3 /*break*/, 5];
+            case 8:
+                // Update the job status to canceled
+                job.status = job_model_1.JOB_STATUS.CANCELED;
+                job.jobHistory.push({
+                    eventType: 'JOB_DISPUTE_REFUND',
+                    timestamp: new Date(),
+                    payload: { reason: 'Settlement by admin', canceledBy: jobDispute.disputerType }
+                });
+                // emit job cancelled event 
+                events_1.JobEvent.emit('JOB_CANCELED', { job: job, canceledBy: 'customer' });
+                return [4 /*yield*/, job.save()];
+            case 9:
+                _c.sent();
+                return [2 /*return*/, res.json({ success: true, message: "Dispute refund created" })];
+            case 10:
+                error_4 = _c.sent();
                 return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred', error_4))];
-            case 4: return [2 /*return*/];
+            case 11: return [2 /*return*/];
         }
     });
 }); };

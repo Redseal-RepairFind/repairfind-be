@@ -143,5 +143,36 @@ var setupWorkerEventListeners = function (worker) {
 };
 var redisConfig = getRedisConfig();
 var redisConnection = new ioredis_1.default(redisConfig);
-exports.RepairFindQueueWorker = new bullmq_1.Worker(config_1.config.redis.queueName, processJob, { connection: redisConnection });
+// const connection = new Redis({
+//     // host: 'repairfindrediscluster.hcr6d2.ng.0001.euw3.cache.amazonaws.com',
+//     // port: 6379,
+//     // tls: {},
+//     // maxRetriesPerRequest: null,
+//     // connectTimeout: 10000,
+// });
+var clusterOptions = {
+    // enableReadyCheck: true,
+    // retryDelayOnClusterDown: 300,
+    // retryDelayOnFailover: 1000,
+    // retryDelayOnTryAgain: 3000,
+    // slotsRefreshTimeout: 200000000000000,
+    // clusterRetryStrategy: (times:any) => Math.min(times * 1000, 10000),
+    // dnsLookup: (address: any, callback: any) => callback(null, address),
+    // scaleReads: 'slave',
+    // showFriendlyErrorStack: true,
+    redisOptions: {
+        // keyPrefix: 'config.queue.prefix',
+        autoResubscribe: true,
+        autoResendUnfulfilledCommands: true,
+        // tls: true 
+    }
+};
+var connection = new ioredis_1.default.Cluster([{ host: 'repairfindrediscluster.hcr6d2.ng.0001.euw3.cache.amazonaws.com:6379', port: 6379 }], clusterOptions);
+connection.on('connect', function () {
+    console.log('Connected to Redis');
+});
+connection.on('error', function (error) {
+    console.error('Error connecting to Redis:', error);
+});
+exports.RepairFindQueueWorker = new bullmq_1.Worker(config_1.config.redis.queueName, processJob, { connection: connection });
 setupWorkerEventListeners(exports.RepairFindQueueWorker);
