@@ -75,7 +75,8 @@ router.get("/disputes", adminRoleChecker_middleware_1.checkAdminRole, admin_disp
 router.get("/disputes/:disputeId", adminRoleChecker_middleware_1.checkAdminRole, admin_disputes_controller_1.AdminDisputeController.getSingleDispute);
 router.post("/disputes/:disputeId/accept", adminRoleChecker_middleware_1.checkAdminRole, admin_disputes_controller_1.AdminDisputeController.acceptDispute);
 router.post("/disputes/:disputeId/settle", admin_validations_middleware_1.Validations.SettleDisputeParams, adminRoleChecker_middleware_1.checkAdminRole, admin_disputes_controller_1.AdminDisputeController.settleDispute);
-router.post("/disputes/:disputeId/refund", adminRoleChecker_middleware_1.checkAdminRole, admin_disputes_controller_1.AdminDisputeController.createDisputeRefund);
+router.post("/disputes/:disputeId/refund-customer", adminRoleChecker_middleware_1.checkAdminRole, admin_disputes_controller_1.AdminDisputeController.createDisputeRefund);
+router.post("/disputes/:disputeId/refund-contractor", adminRoleChecker_middleware_1.checkAdminRole, admin_disputes_controller_1.AdminDisputeController.markJobAsComplete);
 //refactored conversation
 router.post("/conversations", admin_validations_middleware_1.Validations.StartCoversaionParams, adminRoleChecker_middleware_1.checkAdminRole, conversation_controller_1.AdminConversationController.startConversation); // admin start conversation
 router.get("/conversations", adminRoleChecker_middleware_1.checkAdminRole, conversation_controller_1.AdminConversationController.getConversations); // admin get conversation 

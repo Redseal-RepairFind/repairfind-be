@@ -2,13 +2,14 @@ import { validationResult } from "express-validator";
 import { NextFunction, Request, Response } from "express";
 import { JobDisputeModel, JOB_DISPUTE_STATUS } from "../../../database/common/job_dispute.model";
 import { applyAPIFeature } from "../../../utils/api.feature";
-import { JOB_STATUS, JobModel } from "../../../database/common/job.model";
+import { JOB_SCHEDULE_TYPE, JOB_STATUS, JobModel } from "../../../database/common/job.model";
 import { InternalServerError } from "../../../utils/custom.errors";
 import { JobDayModel } from "../../../database/common/job_day.model";
 import { CONVERSATION_TYPE, ConversationModel } from "../../../database/common/conversations.schema";
 import { PAYMENT_TYPE } from "../../../database/common/payment.schema";
 import TransactionModel, { TRANSACTION_STATUS, TRANSACTION_TYPE } from "../../../database/common/transaction.model";
 import { JobEvent } from "../../../events";
+import AdminModel from "../../../database/admin/models/admin.model";
 
 
 
@@ -205,7 +206,6 @@ export const acceptDispute = async (
 }
 
 
-
 //admin settle Dispute /////////////
 export const settleDispute = async (
   req: any,
@@ -389,10 +389,81 @@ export const createDisputeRefund = async (
 }
 
 
+
+export const markJobAsComplete = async (req: any, res: Response, next: NextFunction) => {
+  try {
+      const adminId = req.admin.id;
+      const { disputeId } = req.params;
+      const { reason } = req.body;
+
+
+      const dispute = await JobDisputeModel.findOne({ _id: disputeId })
+
+    if (!dispute) {
+      return res
+        .status(401)
+        .json({success: false, message: "Invalid disputeId" });
+    }
+
+      const job = await JobModel.findById(dispute.job);
+      if (!job) {
+        return res.status(404).json({ success: false, message: 'Job not found' });
+    }
+
+      const admin = await AdminModel.findById(adminId);
+      if (!admin) {
+          return res.status(404).json({ success: false, message: 'Admin not found' });
+      }
+
+
+      
+
+
+      if (job.status === JOB_STATUS.COMPLETED) {
+          return res.status(400).json({ success: false, message: 'The booking is already marked as complete' });
+      }
+
+
+      if (job.status == JOB_STATUS.REFUNDED) {
+        return res
+          .status(401)
+          .json({ success: false, message: "Job is already refunded" });
+      }
+      
+      const jobStatus = (job.schedule.type == JOB_SCHEDULE_TYPE.SITE_VISIT) ? JOB_STATUS.COMPLETED_SITE_VISIT : JOB_STATUS.COMPLETED
+      job.statusUpdate = {
+          ...job.statusUpdate,
+          status: jobStatus,
+          isCustomerAccept: true,
+          awaitingConfirmation: false
+      }
+
+      job.status = jobStatus  // since its customer accepting job completion
+      job.jobHistory.push({
+          eventType: 'JOB_MARKED_COMPLETE_VIA_DISPUTE',
+          timestamp: new Date(),
+          payload: {
+            markedBy: 'admin',
+            dispute: dispute.id
+          }
+      });
+
+      JobEvent.emit('JOB_COMPLETED', { job })
+      await job.save();
+
+      res.json({ success: true, message: 'Job marked as complete', data: job });
+  } catch (error: any) {
+      console.log(error)
+      return next(new InternalServerError('An error occurred', error));
+  }
+};
+
+
 export const AdminDisputeController = {
   getJobDisputes,
   getSingleDispute,
   acceptDispute,
   settleDispute,
-  createDisputeRefund
+  createDisputeRefund,
+  markJobAsComplete
 }

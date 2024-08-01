@@ -69,8 +69,11 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AdminDisputeController = exports.createDisputeRefund = exports.settleDispute = exports.acceptDispute = exports.getSingleDispute = exports.getJobDisputes = void 0;
+exports.AdminDisputeController = exports.markJobAsComplete = exports.createDisputeRefund = exports.settleDispute = exports.acceptDispute = exports.getSingleDispute = exports.getJobDisputes = void 0;
 var express_validator_1 = require("express-validator");
 var job_dispute_model_1 = require("../../../database/common/job_dispute.model");
 var api_feature_1 = require("../../../utils/api.feature");
@@ -81,6 +84,7 @@ var conversations_schema_1 = require("../../../database/common/conversations.sch
 var payment_schema_1 = require("../../../database/common/payment.schema");
 var transaction_model_1 = __importStar(require("../../../database/common/transaction.model"));
 var events_1 = require("../../../events");
+var admin_model_1 = __importDefault(require("../../../database/admin/models/admin.model"));
 var getJobDisputes = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, adminId, filter, _a, data, error, err_1;
     return __generator(this, function (_b) {
@@ -412,10 +416,74 @@ var createDisputeRefund = function (req, res, next) { return __awaiter(void 0, v
     });
 }); };
 exports.createDisputeRefund = createDisputeRefund;
+var markJobAsComplete = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var adminId, disputeId, reason, dispute, job, admin, jobStatus, error_5;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 5, , 6]);
+                adminId = req.admin.id;
+                disputeId = req.params.disputeId;
+                reason = req.body.reason;
+                return [4 /*yield*/, job_dispute_model_1.JobDisputeModel.findOne({ _id: disputeId })];
+            case 1:
+                dispute = _a.sent();
+                if (!dispute) {
+                    return [2 /*return*/, res
+                            .status(401)
+                            .json({ success: false, message: "Invalid disputeId" })];
+                }
+                return [4 /*yield*/, job_model_1.JobModel.findById(dispute.job)];
+            case 2:
+                job = _a.sent();
+                if (!job) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found' })];
+                }
+                return [4 /*yield*/, admin_model_1.default.findById(adminId)];
+            case 3:
+                admin = _a.sent();
+                if (!admin) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Admin not found' })];
+                }
+                if (job.status === job_model_1.JOB_STATUS.COMPLETED) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'The booking is already marked as complete' })];
+                }
+                if (job.status == job_model_1.JOB_STATUS.REFUNDED) {
+                    return [2 /*return*/, res
+                            .status(401)
+                            .json({ success: false, message: "Job is already refunded" })];
+                }
+                jobStatus = (job.schedule.type == job_model_1.JOB_SCHEDULE_TYPE.SITE_VISIT) ? job_model_1.JOB_STATUS.COMPLETED_SITE_VISIT : job_model_1.JOB_STATUS.COMPLETED;
+                job.statusUpdate = __assign(__assign({}, job.statusUpdate), { status: jobStatus, isCustomerAccept: true, awaitingConfirmation: false });
+                job.status = jobStatus; // since its customer accepting job completion
+                job.jobHistory.push({
+                    eventType: 'JOB_MARKED_COMPLETE_VIA_DISPUTE',
+                    timestamp: new Date(),
+                    payload: {
+                        markedBy: 'admin',
+                        dispute: dispute.id
+                    }
+                });
+                events_1.JobEvent.emit('JOB_COMPLETED', { job: job });
+                return [4 /*yield*/, job.save()];
+            case 4:
+                _a.sent();
+                res.json({ success: true, message: 'Job marked as complete', data: job });
+                return [3 /*break*/, 6];
+            case 5:
+                error_5 = _a.sent();
+                console.log(error_5);
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred', error_5))];
+            case 6: return [2 /*return*/];
+        }
+    });
+}); };
+exports.markJobAsComplete = markJobAsComplete;
 exports.AdminDisputeController = {
     getJobDisputes: exports.getJobDisputes,
     getSingleDispute: exports.getSingleDispute,
     acceptDispute: exports.acceptDispute,
     settleDispute: exports.settleDispute,
-    createDisputeRefund: exports.createDisputeRefund
+    createDisputeRefund: exports.createDisputeRefund,
+    markJobAsComplete: exports.markJobAsComplete
 };
