@@ -83,10 +83,31 @@ const setupWorkerEventListeners = (worker: Worker): void => {
 const redisConfig = getRedisConfig();
 const redisConnection = new Redis(redisConfig);
 
+
+const connection = new Redis({
+  host: 'repairfindelasticcacheredisoss-hcr6d2.serverless.euw3.cache.amazonaws.com',
+  port: 6379,
+  // If your Redis instance is password protected, uncomment the line below and replace with your password
+  // password: 'your_redis_password'
+  maxRetriesPerRequest: null,
+  connectTimeout: 10000,
+
+
+  tls: {},
+  // password: process.env.REDIS_AUTH,
+  retryStrategy: (times) => Math.min(times * 30, 1000),
+
+});
+
+
+connection.on('error', (err) => {
+  console.error('Redis connection error:', err);
+});
+
 export const RepairFindQueueWorker = new Worker(
   config.redis.queueName,
   processJob,
-  { connection: redisConnection }
+  { connection: connection }
 );
 
 setupWorkerEventListeners(RepairFindQueueWorker);
