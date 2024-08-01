@@ -20,7 +20,11 @@ class JobQueue {
   private createQueue(): Queue {
     const redisConfig = this.getRedisConfig();
     const redisConnection = new Redis(redisConfig);
-    return new Queue(config.redis.queueName, { connection: redisConnection });
+    // return new Queue(config.redis.queueName, { connection: redisConnection });
+    //@ts-ignore
+    return new Queue(config.redis.queueName, "redis://repairfindelasticcacheredisoss-hcr6d2.serverless.euw3.cache.amazonaws.com:6379");
+
+    // repairfindelasticcacheredisoss-hcr6d2.serverless.euw3.cache.amazonaws.com:6379
   }
 
   private getRedisConfig(): RedisOptions {

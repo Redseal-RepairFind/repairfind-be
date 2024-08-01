@@ -56,7 +56,10 @@ var JobQueue = /** @class */ (function () {
     JobQueue.prototype.createQueue = function () {
         var redisConfig = this.getRedisConfig();
         var redisConnection = new ioredis_1.default(redisConfig);
-        return new bullmq_1.Queue(config_1.config.redis.queueName, { connection: redisConnection });
+        // return new Queue(config.redis.queueName, { connection: redisConnection });
+        //@ts-ignore
+        return new bullmq_1.Queue(config_1.config.redis.queueName, "redis://repairfindelasticcacheredisoss-hcr6d2.serverless.euw3.cache.amazonaws.com:6379");
+        // repairfindelasticcacheredisoss-hcr6d2.serverless.euw3.cache.amazonaws.com:6379
     };
     JobQueue.prototype.getRedisConfig = function () {
         var redisConfig = {
