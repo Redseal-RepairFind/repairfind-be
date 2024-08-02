@@ -27,7 +27,7 @@ const getRedisConfig = (): RedisOptions => {
   return redisConfig;
 };
 
-const processJob = async (job:any): Promise<void> => {
+const processJob = async (job: any): Promise<void> => {
   try {
     switch (job.name) {
       case 'CapturePayments':
@@ -80,44 +80,12 @@ const setupWorkerEventListeners = (worker: Worker): void => {
 const redisConfig = getRedisConfig();
 const connection = new Redis(redisConfig);
 
-
-// const connection = new Redis({
-//     // host: 'repairfindrediscluster.hcr6d2.ng.0001.euw3.cache.amazonaws.com',
-//     // port: 6379,
-//     // tls: {},
-//     // maxRetriesPerRequest: null,
-//     // connectTimeout: 10000,
-// });
-
-// const clusterOptions = {
-  // enableReadyCheck: true,
-  // retryDelayOnClusterDown: 300,
-  // retryDelayOnFailover: 1000,
-  // retryDelayOnTryAgain: 3000,
-  // slotsRefreshTimeout: 200000000000000,
-  // clusterRetryStrategy: (times:any) => Math.min(times * 1000, 10000),
-  // dnsLookup: (address: any, callback: any) => callback(null, address),
-  // scaleReads: 'slave',
-
-  // showFriendlyErrorStack: true,
-//   redisOptions: {
-//       // keyPrefix: 'config.queue.prefix',
-//       autoResubscribe: true,
-//       autoResendUnfulfilledCommands: true,
-//       // tls: true 
-//   }
-// }
-
-
-// const connection = new Redis.Cluster([{ host: 'repairfindrediscluster.hcr6d2.ng.0001.euw3.cache.amazonaws.com:6379', port: 6379}], clusterOptions);
-
-
 connection.on('connect', () => {
-  console.log('Connected to Redis');
+  Logger.info('Connected to Redis');
 });
 
 connection.on('error', (error: any) => {
-  console.error('Error connecting to Redis:', error);
+  Logger.error('Error connecting to Redis:', error);
 });
 
 

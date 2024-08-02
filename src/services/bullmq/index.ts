@@ -4,6 +4,7 @@ import { config } from '../../config';
 import { createBullBoard } from '@bull-board/api';
 import { BullAdapter } from '@bull-board/api/bullAdapter';
 import { ExpressAdapter } from '@bull-board/express';
+import { Logger } from '../logger';
 
 class JobQueue {
   private queue: Queue;
@@ -20,47 +21,13 @@ class JobQueue {
   private createQueue(): Queue {
     const redisConfig = this.getRedisConfig();
     const connection = new Redis(redisConfig);
+    connection.on('connect', () => {
+      Logger.info('Connected to Redis');
+    });
 
-  //   const connection = new Redis({
-  //     host: 'repairfindrediscluster.hcr6d2.ng.0001.euw3.cache.amazonaws.com',
-  //     port: 6379,
-  //     maxRetriesPerRequest: null,
-  //     connectTimeout: 10000,
-  // });
-  
-
-  // const clusterOptions = {
-  //   // enableReadyCheck: true,
-  //   // retryDelayOnClusterDown: 300,
-  //   // retryDelayOnFailover: 1000,
-  //   // retryDelayOnTryAgain: 3000,
-  //   // slotsRefreshTimeout: 200000000000000,
-  //   // clusterRetryStrategy: (times:any) => Math.min(times * 1000, 10000),
-  //   // dnsLookup: (address: any, callback: any) => callback(null, address),
-  //   // scaleReads: 'slave',
-  
-  //   // showFriendlyErrorStack: true,
-  //   redisOptions: {
-  //       // keyPrefix: 'config.queue.prefix',
-  //       autoResubscribe: true,
-  //       autoResendUnfulfilledCommands: true,
-  //       // tls: true 
-  //   }
-  // }
-  
-  
-  // const connection = new Redis.Cluster([{ host: 'repairfindrediscluster.hcr6d2.ng.0001.euw3.cache.amazonaws.com:6379', port: 6379}], clusterOptions);
-  
-  
-  
-  
-  connection.on('connect', () => {
-    console.log('Connected to Redis');
-  });
-  
-  connection.on('error', (error: any) => {
-    console.error('Error connecting to Redis:', error);
-  });
+    connection.on('error', (error: any) => {
+      Logger.error('Error connecting to Redis:', error);
+    });
 
 
     return new Queue(config.redis.queueName, { connection: connection });
@@ -124,8 +91,8 @@ class JobQueue {
     this.addJob('expireJobs', {}, { repeat: { every: 7200000 } });
     this.addJob('handleEscrowTransfer', {}, { repeat: { every: 600000 } });
     // this.addJob('jobDayScheduleCheck', {}, { repeat: { cron: '0 0 * * *', tz: 'America/Los_Angeles',} }); //America/Los_Angeles
-    this.addJob('jobDayScheduleCheck', {}, { repeat: { cron: '* * * * *'} }); //every minute
-    this.addJob('quizReminderCheck', {}, { repeat: { cron: '0 0 */4 * *'} }); //4 days
+    this.addJob('jobDayScheduleCheck', {}, { repeat: { cron: '* * * * *' } }); //every minute
+    this.addJob('quizReminderCheck', {}, { repeat: { cron: '0 0 */4 * *' } }); //4 days
   }
 
   public getQueue(queueName: string): Queue | undefined {
@@ -138,7 +105,7 @@ class JobQueue {
     this.addCronJobs();
 
     console.log(`Queue ${config.redis.queueName} restarted successfully.`);
-    
+
   }
 }
 
