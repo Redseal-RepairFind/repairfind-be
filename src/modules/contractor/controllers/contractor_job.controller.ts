@@ -1247,6 +1247,7 @@ export const createJobEnquiry = async (req: any, res: Response, next: NextFuncti
       { new: true, upsert: true }
     );
 
+    
 
     JobEvent.emit('NEW_JOB_ENQUIRY', { jobId, enquiryId: enquiry.id });
 
