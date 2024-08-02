@@ -61,7 +61,10 @@ var getRedisConfig = function () {
         maxRetriesPerRequest: null,
     };
     if (config_1.config.environment !== 'development') {
-        redisConfig.tls = {};
+        // redisConfig.tls = {
+        //   rejectUnauthorized: false, // Accept self-signed certificates
+        //   minVersion: 'TLSv1.2', // Set minimum TLS version
+        // };
     }
     return redisConfig;
 };

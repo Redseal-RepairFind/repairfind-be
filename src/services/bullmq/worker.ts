@@ -21,10 +21,10 @@ const getRedisConfig = (): RedisOptions => {
   };
 
   if (config.environment !== 'development') {
-    redisConfig.tls = {
-      rejectUnauthorized: false, // Accept self-signed certificates
-      minVersion: 'TLSv1.2', // Set minimum TLS version
-    };
+    // redisConfig.tls = {
+    //   rejectUnauthorized: false, // Accept self-signed certificates
+    //   minVersion: 'TLSv1.2', // Set minimum TLS version
+    // };
   }
 
   return redisConfig;
