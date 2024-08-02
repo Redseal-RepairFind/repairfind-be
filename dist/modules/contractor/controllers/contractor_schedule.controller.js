@@ -318,7 +318,6 @@ var getSchedulesByDate = function (req, res) { return __awaiter(void 0, void 0, 
                         uniqueSchedules_1.push(schedule);
                     }
                 });
-                console.log('uniqueSchedules', uniqueSchedules_1);
                 filterAvailableTimes = function (schedules) {
                     // Create a map of dates to unavailable and job times
                     var conflictTimes = schedules.reduce(function (acc, schedule) {
@@ -342,8 +341,7 @@ var getSchedulesByDate = function (req, res) { return __awaiter(void 0, void 0, 
                     });
                 };
                 updatedSchedules = filterAvailableTimes(uniqueSchedules_1);
-                console.log('updatedSchedules', updatedSchedules);
-                return [4 /*yield*/, uniqueSchedules_1.reduce(function (acc, schedule) {
+                return [4 /*yield*/, updatedSchedules.reduce(function (acc, schedule) {
                         var key = (0, date_fns_1.format)(new Date(schedule.date), 'yyyy-M');
                         if (!acc[key]) {
                             acc[key] = { schedules: [], summary: {}, events: [] };

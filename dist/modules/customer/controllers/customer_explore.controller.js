@@ -498,7 +498,7 @@ var getFavoriteContractors = function (req, res, next) { return __awaiter(void 0
 }); };
 exports.getFavoriteContractors = getFavoriteContractors;
 var getContractorSchedules = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, year, month, contractorId_1, contractorProfile, startDate_1, endDate_1, expandedSchedules, jobs, jobSchedules, contractorExistingSchedules, existingSchedules, mergedSchedules_1, uniqueSchedules, groupedSchedules, error_4;
+    var _a, year, month, contractorId_1, contractorProfile, startDate_1, endDate_1, expandedSchedules, jobs, jobSchedules, contractorExistingSchedules, existingSchedules, mergedSchedules_1, uniqueSchedules, filterAvailableTimes, updatedSchedules, groupedSchedules, error_4;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -609,7 +609,30 @@ var getContractorSchedules = function (req, res) { return __awaiter(void 0, void
                     // Retain the existing schedule and the first occurrence of other dates
                     return schedule.events ? schedule : isFirstOccurrence;
                 });
-                groupedSchedules = uniqueSchedules.reduce(function (acc, schedule) {
+                filterAvailableTimes = function (schedules) {
+                    // Create a map of dates to unavailable and job times
+                    var conflictTimes = schedules.reduce(function (acc, schedule) {
+                        if (schedule.type !== 'available') {
+                            var date_1 = new Date(schedule.date).toDateString();
+                            if (!acc[date_1])
+                                acc[date_1] = new Set();
+                            schedule.times.forEach(function (time) { return acc[date_1].add(time); });
+                        }
+                        return acc;
+                    }, {});
+                    // Filter out the conflicting times for available schedules
+                    return schedules.map(function (schedule) {
+                        if (schedule.type === 'available') {
+                            var date_2 = new Date(schedule.date).toDateString();
+                            if (conflictTimes[date_2]) {
+                                schedule.times = schedule.times.filter(function (time) { return !conflictTimes[date_2].has(time); });
+                            }
+                        }
+                        return schedule;
+                    });
+                };
+                updatedSchedules = filterAvailableTimes(uniqueSchedules);
+                groupedSchedules = updatedSchedules.reduce(function (acc, schedule) {
                     var key = (0, date_fns_1.format)(new Date(schedule.date), 'yyyy-M');
                     if (!acc[key]) {
                         acc[key] = { schedules: [], summary: {}, events: [] };

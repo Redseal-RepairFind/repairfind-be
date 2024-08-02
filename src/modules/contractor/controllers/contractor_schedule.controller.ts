@@ -270,10 +270,7 @@ export const getSchedulesByDate = async (req: any, res: Response) => {
     });
 
 
-
-    console.log('uniqueSchedules', uniqueSchedules)
-
-
+    // Filter out conflicting times from availability
     const filterAvailableTimes = (schedules: any) => {
       // Create a map of dates to unavailable and job times
       const conflictTimes = schedules.reduce((acc: any, schedule: any) => {
@@ -296,17 +293,10 @@ export const getSchedulesByDate = async (req: any, res: Response) => {
         return schedule;
       });
     };
-    
     const updatedSchedules = filterAvailableTimes(uniqueSchedules);
     
-    console.log('updatedSchedules', updatedSchedules);
 
-
-
-
-
-
-    const groupedSchedules = await uniqueSchedules.reduce((acc: any, schedule: any) => {
+    const groupedSchedules = await updatedSchedules.reduce((acc: any, schedule: any) => {
       const key = format(new Date(schedule.date), 'yyyy-M');
       if (!acc[key]) {
         acc[key] = { schedules: [], summary: {}, events: [] };

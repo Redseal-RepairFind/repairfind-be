@@ -595,7 +595,32 @@ export const getContractorSchedules = async (req: any, res: Response) => {
         });
 
 
-        const groupedSchedules = uniqueSchedules.reduce((acc: any, schedule) => {
+        // Filter out conflicting times from availability
+        const filterAvailableTimes = (schedules: any) => {
+            // Create a map of dates to unavailable and job times
+            const conflictTimes = schedules.reduce((acc: any, schedule: any) => {
+                if (schedule.type !== 'available') {
+                    const date = new Date(schedule.date).toDateString();
+                    if (!acc[date]) acc[date] = new Set();
+                    schedule.times.forEach((time: any) => acc[date].add(time));
+                }
+                return acc;
+            }, {});
+
+            // Filter out the conflicting times for available schedules
+            return schedules.map((schedule: any) => {
+                if (schedule.type === 'available') {
+                    const date = new Date(schedule.date).toDateString();
+                    if (conflictTimes[date]) {
+                        schedule.times = schedule.times.filter((time: any) => !conflictTimes[date].has(time));
+                    }
+                }
+                return schedule;
+            });
+        };
+        const updatedSchedules = filterAvailableTimes(uniqueSchedules);
+
+        const groupedSchedules = updatedSchedules.reduce((acc: any, schedule: any) => {
             const key = format(new Date(schedule.date), 'yyyy-M');
             if (!acc[key]) {
                 acc[key] = { schedules: [], summary: {}, events: [] };
