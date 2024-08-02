@@ -17,7 +17,7 @@ export const getNotifications = async (req: any, res: Response, next: NextFuncti
         // Filtering by read or unread status
         if (read === 'true') {
             filter.readAt = { $ne: null }; // Filter for read notifications
-        } else {
+        } else if (read === 'false') {
             filter.readAt = null; // Filter for unread notifications
         }
 

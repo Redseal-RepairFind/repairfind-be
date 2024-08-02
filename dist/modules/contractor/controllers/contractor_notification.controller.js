@@ -70,7 +70,7 @@ var getNotifications = function (req, res, next) { return __awaiter(void 0, void
                 if (read === 'true') {
                     filter.readAt = { $ne: null }; // Filter for read notifications
                 }
-                else {
+                else if (read === 'false') {
                     filter.readAt = null; // Filter for unread notifications
                 }
                 return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(notification_model_1.default.find(filter), query)];
