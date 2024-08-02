@@ -176,7 +176,7 @@ var toggleOffDuty = function (req, res) { return __awaiter(void 0, void 0, void 
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 3, , 4]);
+                _a.trys.push([0, 4, , 5]);
                 contractorId = req.contractor.id;
                 return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: contractorId })];
             case 1:
@@ -188,15 +188,17 @@ var toggleOffDuty = function (req, res) { return __awaiter(void 0, void 0, void 
                 return [4 /*yield*/, contractorProfile.save()];
             case 2:
                 _a.sent();
-                contractor = contractor_model_1.ContractorModel.findById(contractorId).populate('profile');
-                res.json({ success: true, message: 'Vacation mode updated successfully', data: contractor });
-                return [3 /*break*/, 4];
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId).populate('profile')];
             case 3:
+                contractor = _a.sent();
+                res.json({ success: true, message: 'Vacation mode updated successfully', data: contractor });
+                return [3 /*break*/, 5];
+            case 4:
                 error_3 = _a.sent();
                 console.error('Error retrieving schedules:', error_3);
                 res.status(500).json({ success: false, message: 'Internal Server Error' });
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/];
+                return [3 /*break*/, 5];
+            case 5: return [2 /*return*/];
         }
     });
 }); };

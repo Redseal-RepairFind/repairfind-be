@@ -126,7 +126,7 @@ export const toggleOffDuty = async (req: any, res: Response) => {
     contractorProfile.isOffDuty = !contractorProfile.isOffDuty;
     await contractorProfile.save()
 
-    const contractor = ContractorModel.findById(contractorId).populate('profile');
+    const contractor = await ContractorModel.findById(contractorId).populate('profile');
 
     res.json({ success: true, message: 'Vacation mode updated successfully', data: contractor });
 
