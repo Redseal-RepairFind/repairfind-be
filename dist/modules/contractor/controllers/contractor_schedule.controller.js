@@ -172,7 +172,7 @@ var setAvailability = function (req, res) { return __awaiter(void 0, void 0, voi
 }); };
 exports.setAvailability = setAvailability;
 var toggleOffDuty = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var contractorId, contractorProfile, error_3;
+    var contractorId, contractorProfile, contractor, error_3;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -188,7 +188,8 @@ var toggleOffDuty = function (req, res) { return __awaiter(void 0, void 0, void 
                 return [4 /*yield*/, contractorProfile.save()];
             case 2:
                 _a.sent();
-                res.json({ success: true, message: 'Vacation mode updated successfully' });
+                contractor = contractor_model_1.ContractorModel.findById(contractorId).populate('profile');
+                res.json({ success: true, message: 'Vacation mode updated successfully', data: contractor });
                 return [3 /*break*/, 4];
             case 3:
                 error_3 = _a.sent();
