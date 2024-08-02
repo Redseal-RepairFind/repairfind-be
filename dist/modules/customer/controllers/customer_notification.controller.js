@@ -50,7 +50,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerNotificationController = exports.markNotificationAsRead = exports.getSingleNotification = exports.getNotifications = void 0;
+exports.CustomerNotificationController = exports.markAllNotificationsAsRead = exports.markNotificationAsRead = exports.getSingleNotification = exports.getNotifications = void 0;
 var api_feature_1 = require("../../../utils/api.feature");
 var notification_model_1 = __importDefault(require("../../../database/common/notification.model"));
 var getNotifications = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
@@ -155,8 +155,38 @@ var markNotificationAsRead = function (req, res) { return __awaiter(void 0, void
     });
 }); };
 exports.markNotificationAsRead = markNotificationAsRead;
+var markAllNotificationsAsRead = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var customerId, filter, query, _a, data, error, error_4;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 3, , 4]);
+                customerId = req.customer.id;
+                filter = { user: customerId, userType: 'customers' };
+                return [4 /*yield*/, notification_model_1.default.updateMany(filter, {
+                        readAt: new Date()
+                    })];
+            case 1:
+                _b.sent();
+                query = { page: 1, limit: 50 };
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(notification_model_1.default.find(filter), query)];
+            case 2:
+                _a = _b.sent(), data = _a.data, error = _a.error;
+                res.status(200).json({ success: true, message: "Notifications marked as read", data: data });
+                return [3 /*break*/, 4];
+            case 3:
+                error_4 = _b.sent();
+                console.error("Error marking notification as read:", error_4);
+                res.status(500).json({ success: false, message: "Server error" });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.markAllNotificationsAsRead = markAllNotificationsAsRead;
 exports.CustomerNotificationController = {
     getNotifications: exports.getNotifications,
     getSingleNotification: exports.getSingleNotification,
-    markNotificationAsRead: exports.markNotificationAsRead
+    markNotificationAsRead: exports.markNotificationAsRead,
+    markAllNotificationsAsRead: exports.markAllNotificationsAsRead
 };

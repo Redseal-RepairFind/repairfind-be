@@ -72,6 +72,7 @@ var contractor_interface_1 = require("../../../database/contractor/interface/con
 var review_model_1 = require("../../../database/common/review.model");
 var customer_favorite_contractors_model_1 = __importDefault(require("../../../database/customer/models/customer_favorite_contractors.model"));
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
+var job_model_1 = require("../../../database/common/job.model");
 var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, customerId, customer, _a, searchName, listing, minDistance, maxDistance, radius, _b, latitude, _c, longitude, emergencyJobs, category, location_1, city, country, address, accountType, date, isOffDuty, availability, experienceYear, gstNumber, _d, page, _e, limit, sort, minResponseTime, maxResponseTime, sortByResponseTime, availableDaysArray, skip, toRadians, pipeline, contractorIdsWithDateInSchedule, _f, sortField, sortOrder, sortStage, result, contractors, metadata, err_1;
     var _g;
@@ -497,11 +498,11 @@ var getFavoriteContractors = function (req, res, next) { return __awaiter(void 0
 }); };
 exports.getFavoriteContractors = getFavoriteContractors;
 var getContractorSchedules = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, year, month, contractorId_1, contractorProfile, startDate_1, endDate_1, expandedSchedules, existingSchedules, mergedSchedules_1, uniqueSchedules, groupedSchedules, error_4;
+    var _a, year, month, contractorId_1, contractorProfile, startDate_1, endDate_1, expandedSchedules, jobs, jobSchedules, contractorExistingSchedules, existingSchedules, mergedSchedules_1, uniqueSchedules, groupedSchedules, error_4;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 3, , 4]);
+                _b.trys.push([0, 5, , 6]);
                 _a = req.query, year = _a.year, month = _a.month;
                 contractorId_1 = req.params.contractorId;
                 return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: contractorId_1 })];
@@ -532,13 +533,75 @@ var getContractorSchedules = function (req, res) { return __awaiter(void 0, void
                 expandedSchedules = (0, schedule_util_1.generateExpandedSchedule)(contractorProfile.availability, year).filter(function (schedule) {
                     return schedule.date >= startDate_1 && schedule.date <= endDate_1;
                 });
-                return [4 /*yield*/, contractor_schedule_model_1.ContractorScheduleModel.find({
+                return [4 /*yield*/, job_model_1.JobModel.find({
                         contractor: contractorId_1,
-                        date: { $gte: startDate_1, $lte: endDate_1 },
-                    })];
+                        'schedule.startDate': { $gte: startDate_1, $lte: endDate_1 },
+                    }).populate('contract')];
             case 2:
-                existingSchedules = _b.sent();
-                mergedSchedules_1 = __spreadArray(__spreadArray([], expandedSchedules, true), existingSchedules, true);
+                jobs = _b.sent();
+                return [4 /*yield*/, Promise.all(jobs.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
+                        var contractor, scheduleDate, startTime, estimatedDuration, start, endTime, times, hour, formattedHour;
+                        var _a;
+                        return __generator(this, function (_b) {
+                            switch (_b.label) {
+                                case 0: return [4 /*yield*/, contractor_model_1.ContractorModel.findById(job.contractor)];
+                                case 1:
+                                    contractor = _b.sent();
+                                    scheduleDate = job.schedule.startDate;
+                                    startTime = scheduleDate ? scheduleDate.toTimeString().slice(0, 8) : "00:00:00";
+                                    estimatedDuration = (_a = job.schedule.estimatedDuration) !== null && _a !== void 0 ? _a : 1;
+                                    start = new Date(scheduleDate);
+                                    start.setHours(start.getHours() + estimatedDuration);
+                                    endTime = start.toTimeString().slice(0, 8);
+                                    times = [];
+                                    // Expand hours from startTime to endTime with one-hour intervals
+                                    for (hour = parseInt(startTime.split(":")[0], 10); hour <= parseInt(endTime.split(":")[0], 10); hour++) {
+                                        formattedHour = "".concat(hour.toString().padStart(2, '0'), ":00:00");
+                                        times.push(formattedHour);
+                                    }
+                                    return [2 /*return*/, {
+                                            date: job.schedule.startDate,
+                                            type: job.schedule.type,
+                                            contractor: contractor,
+                                            times: times,
+                                            events: [
+                                                {
+                                                    //@ts-ignore
+                                                    totalAmount: job.contract.charges.totalAmount,
+                                                    job: job.id,
+                                                    skill: job === null || job === void 0 ? void 0 : job.category,
+                                                    date: job === null || job === void 0 ? void 0 : job.schedule.startDate,
+                                                    estimatedDuration: estimatedDuration
+                                                }
+                                            ]
+                                        }];
+                            }
+                        });
+                    }); }))];
+            case 3:
+                jobSchedules = _b.sent();
+                return [4 /*yield*/, contractor_schedule_model_1.ContractorScheduleModel.find({ contractor: contractorId_1 })];
+            case 4:
+                contractorExistingSchedules = _b.sent();
+                existingSchedules = contractorExistingSchedules.map(function (schedule) {
+                    var _a, _b;
+                    var startTime = (_a = schedule.startTime) !== null && _a !== void 0 ? _a : "00:00:00";
+                    var endTime = (_b = schedule.endTime) !== null && _b !== void 0 ? _b : "23:00:00";
+                    var times = [];
+                    // Expand hours from startTime to endTime with one-hour intervals
+                    for (var hour = parseInt(startTime.split(":")[0], 10); hour <= parseInt(endTime.split(":")[0], 10); hour++) {
+                        var formattedHour = "".concat(hour.toString().padStart(2, '0'), ":00:00");
+                        times.push(formattedHour);
+                    }
+                    return {
+                        date: schedule.date,
+                        type: schedule.type,
+                        contractor: schedule.contractor,
+                        times: times,
+                        events: schedule.events
+                    };
+                });
+                mergedSchedules_1 = __spreadArray(__spreadArray(__spreadArray([], expandedSchedules, true), jobSchedules, true), existingSchedules, true);
                 uniqueSchedules = mergedSchedules_1.filter(function (schedule, index) {
                     var date = schedule.date.toDateString();
                     // Check if the current schedule's date is unique within the mergedSchedules array
@@ -573,13 +636,13 @@ var getContractorSchedules = function (req, res) { return __awaiter(void 0, void
                     return acc;
                 }, {});
                 res.json({ success: true, message: 'Contractor schedules retrieved successfully', data: groupedSchedules });
-                return [3 /*break*/, 4];
-            case 3:
+                return [3 /*break*/, 6];
+            case 5:
                 error_4 = _b.sent();
                 console.error('Error retrieving schedules:', error_4);
                 res.status(500).json({ success: false, message: 'Internal Server Error' });
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/];
+                return [3 /*break*/, 6];
+            case 6: return [2 /*return*/];
         }
     });
 }); };

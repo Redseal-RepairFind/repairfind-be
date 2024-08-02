@@ -1,9 +1,10 @@
 import { callServiceController } from "../controllers/call.controller";
 import { CliController } from "../controllers/cli.controller";
 import { CommonController } from "../controllers/common.controller";
+import { SessionController } from "../controllers/session.controller";
 import { TrainingController } from "../controllers/training.controller";
 import { WebhookController } from "../controllers/webhook.controller";
-import { CustomerHttpRequest } from "../requests";
+import { CommonHttpRequest } from "../requests";
 
 
 const express = require("express");
@@ -16,14 +17,13 @@ router.get("/options",  CommonController.getOptions ); // customer update is pro
 router.get("/trainings/get-quiz",  TrainingController.getQuiz ); 
 router.post("/trainings/submit-quiz",  TrainingController.submitQuiz ); 
 
+router.post("/sessions/clear", CommonHttpRequest.clearSessionParams,  SessionController.clearAuthSession ); 
+
 
 
 router.post("/webhooks/stripe",  WebhookController.stripeWebook ); // stripe webhook
 router.post("/webhooks/certn",  WebhookController.certnWebook ); //  certn webhook
 
-
-router.post("/call", CustomerHttpRequest.callsParams,  callServiceController.callController ); //
-router.post("/incoming-call",  callServiceController.incommingCallController ); //
 
 router.post("/clear-queue",  CliController.clearQueue ); //
 

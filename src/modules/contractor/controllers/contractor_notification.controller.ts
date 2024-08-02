@@ -8,8 +8,8 @@ import NotificationModel from "../../../database/common/notification.model";
 export const getNotifications = async (req: any, res: Response, next: NextFunction): Promise<void> => {
     try {
         const { startDate, endDate, read, ...query } = req.query;
-        const contractorId  = req.contractor.id
-        const filter: any = {user: contractorId, userType: 'contractors'};
+        const contractorId = req.contractor.id
+        const filter: any = { user: contractorId, userType: 'contractors' };
         if (startDate && endDate) {
             filter.createdAt = { $gte: new Date(startDate as string), $lte: new Date(endDate as string) };
         }
@@ -21,10 +21,10 @@ export const getNotifications = async (req: any, res: Response, next: NextFuncti
             filter.readAt = null; // Filter for unread notifications
         }
 
-        const {data, error}: any = await applyAPIFeature(NotificationModel.find(filter), query)
-       
+        const { data, error }: any = await applyAPIFeature(NotificationModel.find(filter), query)
+
         res.status(200).json({
-            success: true, message: "Notifications retrieved", 
+            success: true, message: "Notifications retrieved",
             data: data
         });
     } catch (error) {
@@ -34,13 +34,13 @@ export const getNotifications = async (req: any, res: Response, next: NextFuncti
 };
 
 
-export const getSingleNotification = async (req: any, res: Response,  next: NextFunction): Promise<void> => {
+export const getSingleNotification = async (req: any, res: Response, next: NextFunction): Promise<void> => {
     try {
         const { notificationId } = req.params;
-        const contractorId  = req.contractor.id
+        const contractorId = req.contractor.id
 
         const notification = await NotificationModel.findById(notificationId).populate('entity');
-        
+
         // If notification does not exist, throw a NotFoundError
         if (!notification) {
             return next(new NotFoundError('Notification not found'));
@@ -50,7 +50,7 @@ export const getSingleNotification = async (req: any, res: Response,  next: Next
         notification.readAt = new Date();
         await notification.save();
 
-        res.status(200).json({ success: true,  message: "Notification retrieved", data: notification });
+        res.status(200).json({ success: true, message: "Notification retrieved", data: notification });
     } catch (error: any) {
         // use this to show error file and line
         const stackLines = error?.stack?.split('\n') ?? [];
@@ -86,8 +86,31 @@ export const markNotificationAsRead = async (req: any, res: Response): Promise<a
 };
 
 
+
+
+export const markAllNotificationsAsRead = async (req: any, res: Response): Promise<any> => {
+    try {
+        const contractorId = req.contractor.id;
+
+        // Find the notification by ID and customer ID
+        const filter = { user: contractorId, userType: 'contractors' }
+        await NotificationModel.updateMany(filter, {
+            readAt: new Date()
+        });
+
+        const query = { page: 1, limit: 50 }
+        const { data, error } = await applyAPIFeature(NotificationModel.find(filter), query)
+        res.status(200).json({ success: true, message: "Notifications marked as read", data: data });
+    } catch (error) {
+        console.error("Error marking notification as read:", error);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+};
+
+
 export const ContractorNotificationController = {
     getNotifications,
     getSingleNotification,
-    markNotificationAsRead
+    markNotificationAsRead,
+    markAllNotificationsAsRead
 }

@@ -12,6 +12,7 @@ import { CONTRACTOR_TYPES } from "../../../database/contractor/interface/contrac
 import { REVIEW_TYPE, ReviewModel } from "../../../database/common/review.model";
 import CustomerFavoriteContractorModel from "../../../database/customer/models/customer_favorite_contractors.model";
 import CustomerModel from "../../../database/customer/models/customer.model";
+import { JobModel } from "../../../database/common/job.model";
 
 
 type PipelineStage =
@@ -502,26 +503,87 @@ export const getContractorSchedules = async (req: any, res: Response) => {
         }
 
 
-        // Group schedules by year and month
-        // const availabilityDays  = contractorProfile.availability.map(availability =>{
-        //     return availability.day
-        // })
-        const expandedSchedules = generateExpandedSchedule(contractorProfile.availability, year).filter(schedule => {
+
+        // Expand schedules from contractor availability
+        const expandedSchedules: any = generateExpandedSchedule(contractorProfile.availability, year).filter(schedule => {
             return schedule.date >= startDate && schedule.date <= endDate;
         });
 
 
-        // Fetch existing schedules within the specified timeframe
-        const existingSchedules = await ContractorScheduleModel.find({
+        // Expand schedule from Booked jobs schedule
+        const jobs = await JobModel.find({
             contractor: contractorId,
-            date: { $gte: startDate, $lte: endDate },
-        });
+            'schedule.startDate': { $gte: startDate, $lte: endDate },
+        }).populate('contract')
 
+        const jobSchedules = await Promise.all(jobs.map(async (job) => {
+            const contractor = await ContractorModel.findById(job.contractor);
+
+            // spread time
+            const scheduleDate = job.schedule.startDate
+
+            const startTime = scheduleDate ? scheduleDate.toTimeString().slice(0, 8) : "00:00:00";
+            const estimatedDuration = job.schedule.estimatedDuration ?? 1
+
+            const start = new Date(scheduleDate);
+            start.setHours(start.getHours() + estimatedDuration);
+            const endTime = start.toTimeString().slice(0, 8);
+
+            const times = [];
+
+            // Expand hours from startTime to endTime with one-hour intervals
+            for (let hour = parseInt(startTime.split(":")[0], 10); hour <= parseInt(endTime.split(":")[0], 10); hour++) {
+                let formattedHour = `${hour.toString().padStart(2, '0')}:00:00`;
+                times.push(formattedHour);
+            }
+
+            return {
+                date: job.schedule.startDate,
+                type: job.schedule.type,
+                contractor: contractor,
+                times,
+                events: [
+                    {
+                        //@ts-ignore
+                        totalAmount: job.contract.charges.totalAmount,
+                        job: job.id,
+                        skill: job?.category,
+                        date: job?.schedule.startDate,
+                        estimatedDuration
+
+                    }
+                ]
+            };
+
+
+        }));
+
+
+        // Expand schedule from stored specific day kind of schedule
+        const contractorExistingSchedules = await ContractorScheduleModel.find({ contractor: contractorId })
+        const existingSchedules = contractorExistingSchedules.map(schedule => {
+            const startTime = schedule.startTime ?? "00:00:00"
+            const endTime = schedule.endTime ?? "23:00:00"
+            const times = [];
+            // Expand hours from startTime to endTime with one-hour intervals
+            for (let hour = parseInt(startTime.split(":")[0], 10); hour <= parseInt(endTime.split(":")[0], 10); hour++) {
+                let formattedHour = `${hour.toString().padStart(2, '0')}:00:00`;
+                times.push(formattedHour);
+            }
+
+            return {
+                date: schedule.date,
+                type: schedule.type,
+                contractor: schedule.contractor,
+                times,
+                events: schedule.events
+            };
+        })
 
 
 
         // Concatenate expandedSchedules and existingSchedules
-        const mergedSchedules = [...expandedSchedules, ...existingSchedules];
+        const mergedSchedules = [...expandedSchedules, ...jobSchedules, ...existingSchedules];
 
         // Remove duplicates based on the date, retaining existing schedules
         const uniqueSchedules = mergedSchedules.filter((schedule, index) => {

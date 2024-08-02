@@ -65,7 +65,7 @@ var schedule_util_1 = require("../../../utils/schedule.util");
 var job_model_1 = require("../../../database/common/job.model");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var createSchedule = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, dates, type, recurrence, contractorId, schedules, _i, dates_1, date, dateParts, formattedDate, dateTimeString, newDate, existingSchedule, updatedSchedule, newScheduleData, newSchedule, error_1;
+    var errors, _a, dates, type, recurrence, contractorId, schedules, _i, dates_1, schedule_1, dateParts, formattedDate, dateTimeString, newDate, existingSchedule, updatedSchedule, newScheduleData, newSchedule, error_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -81,13 +81,12 @@ var createSchedule = function (req, res) { return __awaiter(void 0, void 0, void
                 _b.label = 1;
             case 1:
                 if (!(_i < dates_1.length)) return [3 /*break*/, 7];
-                date = dates_1[_i];
-                dateParts = date.split('-').map(function (part) { return part.padStart(2, '0'); });
+                schedule_1 = dates_1[_i];
+                dateParts = schedule_1.date.split('-').map(function (part) { return part.padStart(2, '0'); });
                 formattedDate = dateParts.join('-');
-                dateTimeString = "".concat(new Date(formattedDate).toISOString().split('T')[0], "T").concat('23:59:59.000Z');
+                dateTimeString = "".concat(new Date(formattedDate).toISOString().split('T')[0], "T").concat(schedule_1.startTime + '.000+00:00');
                 newDate = new Date(dateTimeString);
-                console.log(newDate);
-                return [4 /*yield*/, contractor_schedule_model_1.ContractorScheduleModel.findOne({ contractor: contractorId, date: date })];
+                return [4 /*yield*/, contractor_schedule_model_1.ContractorScheduleModel.findOne({ contractor: contractorId, date: newDate })];
             case 2:
                 existingSchedule = _b.sent();
                 if (!existingSchedule) return [3 /*break*/, 4];
@@ -95,6 +94,8 @@ var createSchedule = function (req, res) { return __awaiter(void 0, void 0, void
                 existingSchedule.recurrence = recurrence;
                 existingSchedule.type = type;
                 existingSchedule.date = newDate;
+                existingSchedule.startTime = schedule_1.startTime;
+                existingSchedule.endTime = schedule_1.endTime;
                 return [4 /*yield*/, existingSchedule.save()];
             case 3:
                 updatedSchedule = _b.sent();
@@ -104,6 +105,8 @@ var createSchedule = function (req, res) { return __awaiter(void 0, void 0, void
                 newScheduleData = {
                     contractor: contractorId,
                     date: newDate,
+                    startTime: schedule_1.startTime,
+                    endTime: schedule_1.endTime,
                     type: type,
                     recurrence: recurrence,
                 };
@@ -198,7 +201,7 @@ var toggleOffDuty = function (req, res) { return __awaiter(void 0, void 0, void 
 }); };
 exports.toggleOffDuty = toggleOffDuty;
 var getSchedulesByDate = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, year, month, contractorId_1, contractorProfile, startDate_1, endDate_1, expandedSchedules, jobs, jobSchedules, existingSchedules, mergedSchedules_1, uniqueSchedules_1, groupedSchedules, error_4;
+    var _a, year, month, contractorId_1, contractorProfile, startDate_1, endDate_1, expandedSchedules, jobs, jobSchedules, contractorExistingSchedules, existingSchedules, mergedSchedules_1, uniqueSchedules_1, filterAvailableTimes, updatedSchedules, groupedSchedules, error_4;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -240,18 +243,30 @@ var getSchedulesByDate = function (req, res) { return __awaiter(void 0, void 0, 
             case 2:
                 jobs = _b.sent();
                 return [4 /*yield*/, Promise.all(jobs.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
-                        var contractor;
-                        return __generator(this, function (_a) {
-                            switch (_a.label) {
+                        var contractor, scheduleDate, startTime, estimatedDuration, start, endTime, times, hour, formattedHour;
+                        var _a;
+                        return __generator(this, function (_b) {
+                            switch (_b.label) {
                                 case 0: return [4 /*yield*/, contractor_model_1.ContractorModel.findById(job.contractor)];
                                 case 1:
-                                    contractor = _a.sent();
-                                    // spread time
+                                    contractor = _b.sent();
+                                    scheduleDate = job.schedule.startDate;
+                                    startTime = scheduleDate ? scheduleDate.toTimeString().slice(0, 8) : "00:00:00";
+                                    estimatedDuration = (_a = job.schedule.estimatedDuration) !== null && _a !== void 0 ? _a : 1;
+                                    start = new Date(scheduleDate);
+                                    start.setHours(start.getHours() + estimatedDuration);
+                                    endTime = start.toTimeString().slice(0, 8);
+                                    times = [];
+                                    // Expand hours from startTime to endTime with one-hour intervals
+                                    for (hour = parseInt(startTime.split(":")[0], 10); hour <= parseInt(endTime.split(":")[0], 10); hour++) {
+                                        formattedHour = "".concat(hour.toString().padStart(2, '0'), ":00:00");
+                                        times.push(formattedHour);
+                                    }
                                     return [2 /*return*/, {
                                             date: job.schedule.startDate,
                                             type: job.schedule.type,
-                                            contractor: contractor,
-                                            times: [],
+                                            contractor: contractor === null || contractor === void 0 ? void 0 : contractor.id,
+                                            times: times,
                                             events: [
                                                 {
                                                     //@ts-ignore
@@ -259,7 +274,7 @@ var getSchedulesByDate = function (req, res) { return __awaiter(void 0, void 0, 
                                                     job: job.id,
                                                     skill: job === null || job === void 0 ? void 0 : job.category,
                                                     date: job === null || job === void 0 ? void 0 : job.schedule.startDate,
-                                                    estimatedDuration: job === null || job === void 0 ? void 0 : job.schedule.estimatedDuration,
+                                                    estimatedDuration: estimatedDuration
                                                 }
                                             ]
                                         }];
@@ -268,11 +283,27 @@ var getSchedulesByDate = function (req, res) { return __awaiter(void 0, void 0, 
                     }); }))];
             case 3:
                 jobSchedules = _b.sent();
-                return [4 /*yield*/, contractor_schedule_model_1.ContractorScheduleModel.find({ contractor: contractorId_1 })
-                    // Concatenate expandedSchedules and existingSchedules
-                ];
+                return [4 /*yield*/, contractor_schedule_model_1.ContractorScheduleModel.find({ contractor: contractorId_1 })];
             case 4:
-                existingSchedules = _b.sent();
+                contractorExistingSchedules = _b.sent();
+                existingSchedules = contractorExistingSchedules.map(function (schedule) {
+                    var _a, _b;
+                    var startTime = (_a = schedule.startTime) !== null && _a !== void 0 ? _a : "00:00:00";
+                    var endTime = (_b = schedule.endTime) !== null && _b !== void 0 ? _b : "23:00:00";
+                    var times = [];
+                    // Expand hours from startTime to endTime with one-hour intervals
+                    for (var hour = parseInt(startTime.split(":")[0], 10); hour <= parseInt(endTime.split(":")[0], 10); hour++) {
+                        var formattedHour = "".concat(hour.toString().padStart(2, '0'), ":00:00");
+                        times.push(formattedHour);
+                    }
+                    return {
+                        date: schedule.date,
+                        type: schedule.type,
+                        contractor: schedule.contractor,
+                        times: times,
+                        events: schedule.events
+                    };
+                });
                 mergedSchedules_1 = __spreadArray(__spreadArray(__spreadArray([], expandedSchedules, true), jobSchedules, true), existingSchedules, true);
                 uniqueSchedules_1 = [];
                 mergedSchedules_1.forEach(function (schedule, index) {
@@ -281,12 +312,37 @@ var getSchedulesByDate = function (req, res) { return __awaiter(void 0, void 0, 
                     if (isFirstOccurrence || schedule.type !== 'available') {
                         // Check if the schedule is the first occurrence or its type is not 'available'
                         var indexOfExistingSchedule = uniqueSchedules_1.findIndex(function (su) { return (0, date_fns_1.format)(su.date, 'yyyy-M-d') === date && su.type === 'available'; });
-                        if (indexOfExistingSchedule !== -1) {
-                            uniqueSchedules_1.splice(indexOfExistingSchedule, 1); // Remove existing 'available' schedule
-                        }
+                        // if (indexOfExistingSchedule !== -1) {
+                        //   uniqueSchedules.splice(indexOfExistingSchedule, 1); // Remove existing 'available' schedule
+                        // }
                         uniqueSchedules_1.push(schedule);
                     }
                 });
+                console.log('uniqueSchedules', uniqueSchedules_1);
+                filterAvailableTimes = function (schedules) {
+                    // Create a map of dates to unavailable and job times
+                    var conflictTimes = schedules.reduce(function (acc, schedule) {
+                        if (schedule.type !== 'available') {
+                            var date_1 = new Date(schedule.date).toDateString();
+                            if (!acc[date_1])
+                                acc[date_1] = new Set();
+                            schedule.times.forEach(function (time) { return acc[date_1].add(time); });
+                        }
+                        return acc;
+                    }, {});
+                    // Filter out the conflicting times for available schedules
+                    return schedules.map(function (schedule) {
+                        if (schedule.type === 'available') {
+                            var date_2 = new Date(schedule.date).toDateString();
+                            if (conflictTimes[date_2]) {
+                                schedule.times = schedule.times.filter(function (time) { return !conflictTimes[date_2].has(time); });
+                            }
+                        }
+                        return schedule;
+                    });
+                };
+                updatedSchedules = filterAvailableTimes(uniqueSchedules_1);
+                console.log('updatedSchedules', updatedSchedules);
                 return [4 /*yield*/, uniqueSchedules_1.reduce(function (acc, schedule) {
                         var key = (0, date_fns_1.format)(new Date(schedule.date), 'yyyy-M');
                         if (!acc[key]) {

@@ -110,6 +110,7 @@ router.get("/transactions/:transactionId", checkCustomerRole, CustomerTransactio
 // Notifications
 router.get('/notifications', checkCustomerRole, CustomerNotificationController.getNotifications)
 router.get('/notifications/:notificationId', checkCustomerRole, CustomerNotificationController.getSingleNotification)
+router.post('/notifications/mark-all-read', checkCustomerRole, CustomerNotificationController.markAllNotificationsAsRead)
 router.post('/notifications/:notificationId', checkCustomerRole, CustomerNotificationController.markNotificationAsRead)
 
 

@@ -84,9 +84,28 @@ export const markNotificationAsRead = async (req: any, res: Response): Promise<a
 };
 
 
+export const markAllNotificationsAsRead = async (req: any, res: Response): Promise<any> => {
+    try {
+        const customerId = req.customer.id;
+
+        // Find the notification by ID and customer ID
+        const filter = { user: customerId, userType: 'customers' }
+        await NotificationModel.updateMany(filter, {
+            readAt: new Date()
+        });
+
+        const query = { page: 1, limit: 50 }
+        const { data, error } = await applyAPIFeature(NotificationModel.find(filter), query)
+        res.status(200).json({ success: true, message: "Notifications marked as read", data: data });
+    } catch (error) {
+        console.error("Error marking notification as read:", error);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+};
 
 export const CustomerNotificationController = {
     getNotifications,
     getSingleNotification,
-    markNotificationAsRead
+    markNotificationAsRead,
+    markAllNotificationsAsRead
 }

@@ -23,6 +23,8 @@ export interface IContractorSchedule {
   contractor?: Types.ObjectId;
   date: Date;
   type: string;
+  startTime?: string | undefined;
+  endTime?: string | undefined;
   recurrence?: IRecurrence;
   events?: Array<IEvent>;
   originalSchedule?: Types.ObjectId; // Reference to the original schedule
@@ -47,10 +49,10 @@ const EventSchema = new Schema<IEvent>({
     type: Number,
   },
   startTime: {
-    type: Date,
+    type: String,
   },
   endTime: {
-    type: Date,
+    type: String,
   },
   note: {
     type: String,
@@ -73,6 +75,12 @@ const ContractorScheduleSchema = new Schema<IContractorSchedule>({
   date: {
     type: Date,
     required: true,
+  },
+  startTime: {
+    type: String,
+  },
+  endTime: {
+    type: String,
   },
   type: {
     type: String,
@@ -124,7 +132,7 @@ ContractorScheduleSchema.statics.handleRecurringEvents = async function (
 
     // Check if the new date is within the same year as the original schedule's date
     if (newDate.getFullYear() == originalSchedule.date.getFullYear()) {
-      await this.findOneAndUpdate({ contractor: originalSchedule.contractor, date: newDate },{
+      await this.findOneAndUpdate({ contractor: originalSchedule.contractor, date: newDate }, {
         contractor: originalSchedule.contractor,
         date: newDate,
         type: originalSchedule.type,
@@ -184,7 +192,7 @@ const generateExpandedSchedule = function (startDate: Date, availabilityDays: an
 // Method to expand weekly availability for a whole year based on an array of week days
 ContractorScheduleSchema.statics.expandWeeklyAvailability = async function (startDate: Date, availabilityDays: string[]) {
   const expandedSchedule = generateExpandedSchedule(startDate, availabilityDays);
-  
+
   // Fetch existing schedules within the specified timeframe
   const existingSchedules = await this.find({
     date: { $gte: startDate },
@@ -204,5 +212,5 @@ ContractorScheduleSchema.statics.expandWeeklyAvailability = async function (star
 // Method to check if a given date falls within the expanded schedule
 ContractorScheduleSchema.statics.isDateInExpandedSchedule = function (dateToCheck, expandedSchedule) {
   // Check if the date falls within the expanded schedule
-  return expandedSchedule.some( (date: Date) => dateToCheck.toDateString() === date.toDateString());
+  return expandedSchedule.some((date: Date) => dateToCheck.toDateString() === date.toDateString());
 };

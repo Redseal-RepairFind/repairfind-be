@@ -56,10 +56,10 @@ var EventSchema = new mongoose_1.Schema({
         type: Number,
     },
     startTime: {
-        type: Date,
+        type: String,
     },
     endTime: {
-        type: Date,
+        type: String,
     },
     note: {
         type: String,
@@ -81,6 +81,12 @@ var ContractorScheduleSchema = new mongoose_1.Schema({
     date: {
         type: Date,
         required: true,
+    },
+    startTime: {
+        type: String,
+    },
+    endTime: {
+        type: String,
     },
     type: {
         type: String,

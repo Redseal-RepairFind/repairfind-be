@@ -8,6 +8,7 @@ import { ContractorProfileModel } from '../../../database/contractor/models/cont
 import { generateExpandedSchedule } from '../../../utils/schedule.util';
 import { JOB_STATUS, JobModel } from '../../../database/common/job.model';
 import { ContractorModel } from '../../../database/contractor/models/contractor.model';
+import { schedule } from 'node-cron';
 
 
 export const createSchedule = async (req: any, res: Response) => {
@@ -26,42 +27,45 @@ export const createSchedule = async (req: any, res: Response) => {
     const schedules: IContractorSchedule[] = [];
 
     // Iterate through the array of dates and create/update each schedule
-    for (const date of dates) {
+    for (const schedule of dates) {
 
 
       // Get the end of the current day (11:59:59 PM)
-      const dateParts = date.split('-').map((part: any) => part.padStart(2, '0'));
+      const dateParts = schedule.date.split('-').map((part: any) => part.padStart(2, '0'));
       const formattedDate = dateParts.join('-');
 
-      let dateTimeString = `${new Date(formattedDate).toISOString().split('T')[0]}T${'23:59:59.000Z'}`; // Combine date and time
+      let dateTimeString = `${new Date(formattedDate).toISOString().split('T')[0]}T${schedule.startTime + '.000+00:00'}`; // Combine date and time
       let newDate = new Date(dateTimeString);
 
-      console.log(newDate)
 
 
       // Find the existing schedule for the given date and type
-      const existingSchedule = await ContractorScheduleModel.findOne({ contractor: contractorId, date });
+      const existingSchedule = await ContractorScheduleModel.findOne({ contractor: contractorId, date: newDate });
 
       if (existingSchedule) {
         // Update the existing schedule if it exists
         existingSchedule.recurrence = recurrence;
         existingSchedule.type = type;
         existingSchedule.date = newDate;
+        existingSchedule.startTime = schedule.startTime;
+        existingSchedule.endTime = schedule.endTime;
         const updatedSchedule = await existingSchedule.save();
         schedules.push(updatedSchedule);
       } else {
-        // Create a new schedule if it doesn't exist
+
         const newScheduleData: IContractorSchedule = {
           contractor: contractorId,
           date: newDate,
+          startTime: schedule.startTime,
+          endTime: schedule.endTime,
           type,
           recurrence,
         };
 
         const newSchedule = await ContractorScheduleModel.create(newScheduleData);
-
-
         schedules.push(newSchedule);
+
+
       }
     }
 
@@ -167,12 +171,14 @@ export const getSchedulesByDate = async (req: any, res: Response) => {
     }
 
 
-    // Group schedules by year and month
+    // Expand schedules from contractor availability
     const expandedSchedules: any = generateExpandedSchedule(contractorProfile.availability, year).filter(schedule => {
       return schedule.date >= startDate && schedule.date <= endDate;
     });
 
 
+
+    // Expand schedule from Booked jobs schedule
     const jobs = await JobModel.find({
       contractor: contractorId,
       'schedule.startDate': { $gte: startDate, $lte: endDate },
@@ -182,11 +188,28 @@ export const getSchedulesByDate = async (req: any, res: Response) => {
       const contractor = await ContractorModel.findById(job.contractor);
 
       // spread time
+      const scheduleDate = job.schedule.startDate
+
+      const startTime = scheduleDate ? scheduleDate.toTimeString().slice(0, 8) : "00:00:00";
+      const estimatedDuration = job.schedule.estimatedDuration ?? 1
+
+      const start = new Date(scheduleDate);
+      start.setHours(start.getHours() + estimatedDuration);
+      const endTime = start.toTimeString().slice(0, 8);
+
+      const times = [];
+
+      // Expand hours from startTime to endTime with one-hour intervals
+      for (let hour = parseInt(startTime.split(":")[0], 10); hour <= parseInt(endTime.split(":")[0], 10); hour++) {
+        let formattedHour = `${hour.toString().padStart(2, '0')}:00:00`;
+        times.push(formattedHour);
+      }
+
       return {
-        date: job.schedule.startDate, 
-        type: job.schedule.type, 
-        contractor: contractor, 
-        times: [], 
+        date: job.schedule.startDate,
+        type: job.schedule.type,
+        contractor: contractor?.id,
+        times,
         events: [
           {
             //@ts-ignore
@@ -194,21 +217,40 @@ export const getSchedulesByDate = async (req: any, res: Response) => {
             job: job.id,
             skill: job?.category,
             date: job?.schedule.startDate,
-            estimatedDuration: job?.schedule.estimatedDuration,
+            estimatedDuration
 
           }
         ]
       };
+
+
     }));
 
 
 
-    const existingSchedules = await ContractorScheduleModel.find({ contractor: contractorId })
+    // Expand schedule from stored specific day kind of schedule
+    const contractorExistingSchedules = await ContractorScheduleModel.find({ contractor: contractorId })
+    const existingSchedules = contractorExistingSchedules.map(schedule => {
+      const startTime = schedule.startTime ?? "00:00:00"
+      const endTime = schedule.endTime ?? "23:00:00"
+      const times = [];
+      // Expand hours from startTime to endTime with one-hour intervals
+      for (let hour = parseInt(startTime.split(":")[0], 10); hour <= parseInt(endTime.split(":")[0], 10); hour++) {
+        let formattedHour = `${hour.toString().padStart(2, '0')}:00:00`;
+        times.push(formattedHour);
+      }
 
+      return {
+        date: schedule.date,
+        type: schedule.type,
+        contractor: schedule.contractor,
+        times,
+        events: schedule.events
+      };
+    })
 
     // Concatenate expandedSchedules and existingSchedules
     const mergedSchedules = [...expandedSchedules, ...jobSchedules, ...existingSchedules];
-
 
     let uniqueSchedules: any = [];
     mergedSchedules.forEach((schedule, index) => {
@@ -219,14 +261,45 @@ export const getSchedulesByDate = async (req: any, res: Response) => {
         // Check if the schedule is the first occurrence or its type is not 'available'
         const indexOfExistingSchedule = uniqueSchedules.findIndex((su: any) => format(su.date, 'yyyy-M-d') === date && su.type === 'available');
 
-        if (indexOfExistingSchedule !== -1) {
-          uniqueSchedules.splice(indexOfExistingSchedule, 1); // Remove existing 'available' schedule
-        }
+        // if (indexOfExistingSchedule !== -1) {
+        //   uniqueSchedules.splice(indexOfExistingSchedule, 1); // Remove existing 'available' schedule
+        // }
 
         uniqueSchedules.push(schedule);
       }
     });
 
+
+
+    console.log('uniqueSchedules', uniqueSchedules)
+
+
+    const filterAvailableTimes = (schedules: any) => {
+      // Create a map of dates to unavailable and job times
+      const conflictTimes = schedules.reduce((acc: any, schedule: any) => {
+        if (schedule.type !== 'available') {
+          const date = new Date(schedule.date).toDateString();
+          if (!acc[date]) acc[date] = new Set();
+          schedule.times.forEach((time: any) => acc[date].add(time));
+        }
+        return acc;
+      }, {});
+    
+      // Filter out the conflicting times for available schedules
+      return schedules.map((schedule: any) => {
+        if (schedule.type === 'available') {
+          const date = new Date(schedule.date).toDateString();
+          if (conflictTimes[date]) {
+            schedule.times = schedule.times.filter((time: any) => !conflictTimes[date].has(time));
+          }
+        }
+        return schedule;
+      });
+    };
+    
+    const updatedSchedules = filterAvailableTimes(uniqueSchedules);
+    
+    console.log('updatedSchedules', updatedSchedules);
 
 
 
