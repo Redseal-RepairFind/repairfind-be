@@ -218,7 +218,7 @@ var updateOrCreateDevice = function (req, res) { return __awaiter(void 0, void 0
                 if (device) {
                     //return res.status(404).json({ success: false, message: 'Device already exits' });
                 }
-                return [4 /*yield*/, customer_devices_model_1.default.findOneAndUpdate({ customer: customerId, deviceToken: deviceToken }, { $set: { deviceToken: deviceToken, deviceType: deviceType } }, { new: true, upsert: true })];
+                return [4 /*yield*/, customer_devices_model_1.default.findOneAndUpdate({ customer: customerId, deviceToken: deviceToken }, { $set: { deviceToken: deviceToken, deviceType: deviceType, customer: customerId } }, { new: true, upsert: true })];
             case 3:
                 customerDevice = _d.sent();
                 return [2 /*return*/, res.json({ success: true, message: 'Customer device updated', data: customerDevice })];

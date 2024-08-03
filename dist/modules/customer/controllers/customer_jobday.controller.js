@@ -52,7 +52,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CustomerJobDayController = exports.rejectJobDayCompletion = exports.confirmJobDayCompletion = exports.createJobDispute = exports.createJobEmergency = exports.savePostJobQualityAssurance = exports.savePreJobJobQualityAssurance = exports.confirmContractorArrival = exports.initiateJobDay = void 0;
 var express_validator_1 = require("express-validator");
-var index_1 = require("../../../services/notifications/index");
 var job_day_model_1 = require("../../../database/common/job_day.model");
 var job_emergency_model_1 = require("../../../database/common/job_emergency.model");
 var custom_errors_1 = require("../../../utils/custom.errors");
@@ -197,60 +196,15 @@ var confirmContractorArrival = function (req, res) { return __awaiter(void 0, vo
                 return [4 /*yield*/, jobDay.save()];
             case 3:
                 _a.sent();
-                return [4 /*yield*/, job.save()
-                    // send notification to  contractor
-                ];
+                return [4 /*yield*/, job.save()];
             case 4:
                 _a.sent();
-                // send notification to  contractor
-                index_1.NotificationService.sendNotification({
-                    user: job.contractor,
-                    userType: 'contractors',
-                    title: 'JobDay confirmation',
-                    heading: {},
-                    type: 'JOB_DAY_CONFIRMED',
-                    message: 'Customer has confirmed your arrival.',
-                    payload: { event: 'JOB_DAY_CONFIRMED', jobDay: jobDay }
-                }, {
-                    push: true,
-                    socket: true,
-                    // database: true
-                });
-                if (job.assignment) {
-                    index_1.NotificationService.sendNotification({
-                        user: job.assignment.contractor,
-                        userType: 'contractors',
-                        title: 'JobDay confirmation',
-                        heading: {},
-                        type: 'JOB_DAY_CONFIRMED',
-                        message: 'Customer has confirmed your arrival.',
-                        payload: { event: 'JOB_DAY_CONFIRMED', jobDay: jobDay }
-                    }, {
-                        push: true,
-                        socket: true,
-                        // database: true
-                    });
-                }
-                // send notification to  customer
-                index_1.NotificationService.sendNotification({
-                    user: job.customer,
-                    userType: 'customers',
-                    title: 'JobDay confirmation',
-                    heading: {},
-                    type: 'JOB_DAY_CONFIRMED',
-                    message: "You successfully confirmed the contractor's arrival.",
-                    payload: { event: 'JOB_DAY_CONFIRMED', jobDay: jobDay }
-                }, {
-                    push: true,
-                    socket: true,
-                    // database: true
-                });
-                res.json({
-                    success: true,
-                    message: "Contractor arrival successfully confirmed",
-                    data: jobDay
-                });
-                return [3 /*break*/, 6];
+                events_1.JobEvent.emit('JOB_DAY_CONFIRMED', { jobDay: jobDay });
+                return [2 /*return*/, res.json({
+                        success: true,
+                        message: "Contractor arrival successfully confirmed",
+                        data: jobDay
+                    })];
             case 5:
                 err_2 = _a.sent();
                 console.log("error", err_2);
