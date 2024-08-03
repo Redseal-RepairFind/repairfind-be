@@ -127,7 +127,8 @@ var NotificationService = /** @class */ (function () {
                                 body: params.message,
                                 categoryId: params.type == 'NEW_INCOMING_CALL' ? 'call' : params.type,
                                 channelId: params.type == 'NEW_INCOMING_CALL' ? 'call' : params.type,
-                                data: __assign(__assign({}, params.payload), { _displayInForeground: true }),
+                                categoryIdentifier: params.type == 'NEW_INCOMING_CALL' ? 'call' : params.type,
+                                data: __assign({}, params.payload),
                             });
                         }
                         if (!options.hasOwnProperty('database')) return [3 /*break*/, 11];

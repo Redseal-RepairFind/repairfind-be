@@ -84,9 +84,9 @@ export class NotificationService  {
                 body:   params.message,
                 categoryId: params.type == 'NEW_INCOMING_CALL'  ? 'call' : params.type,
                 channelId: params.type == 'NEW_INCOMING_CALL'  ? 'call' : params.type,
+                categoryIdentifier: params.type == 'NEW_INCOMING_CALL'  ? 'call' : params.type,
                 data: { 
-                    ...params.payload,
-                    _displayInForeground: true
+                    ...params.payload
                 },
             })
 
