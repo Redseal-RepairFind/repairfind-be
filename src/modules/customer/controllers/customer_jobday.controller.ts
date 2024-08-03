@@ -165,63 +165,9 @@ export const confirmContractorArrival = async (
         await jobDay.save(),
         await job.save()
 
-        // send notification to  contractor
-        NotificationService.sendNotification(
-            {
-                user: job.contractor,
-                userType: 'contractors',
-                title: 'JobDay confirmation',
-                heading: {},
-                type: 'JOB_DAY_CONFIRMED',
-                message: 'Customer has confirmed your arrival.',
-                payload: { event: 'JOB_DAY_CONFIRMED', jobDay }
-            },
-            {
-                push: true,
-                socket: true,
-                // database: true
-            }
-        )
+        JobEvent.emit('JOB_DAY_CONFIRMED', {jobDay})
 
-        if(job.assignment){
-            NotificationService.sendNotification(
-                {
-                    user: job.assignment.contractor,
-                    userType: 'contractors',
-                    title: 'JobDay confirmation',
-                    heading: {},
-                    type: 'JOB_DAY_CONFIRMED',
-                    message: 'Customer has confirmed your arrival.',
-                    payload: { event: 'JOB_DAY_CONFIRMED', jobDay }
-                },
-                {
-                    push: true,
-                    socket: true,
-                    // database: true
-                }
-            )
-    
-        }
-
-        // send notification to  customer
-        NotificationService.sendNotification(
-            {
-                user: job.customer,
-                userType: 'customers',
-                title: 'JobDay confirmation',
-                heading: {},
-                type: 'JOB_DAY_CONFIRMED',
-                message: "You successfully confirmed the contractor's arrival.",
-                payload: { event: 'JOB_DAY_CONFIRMED', jobDay }
-            },
-            {
-                push: true,
-                socket: true,
-                // database: true
-            }
-        )
-
-        res.json({
+        return res.json({
             success: true,
             message: "Contractor arrival successfully confirmed",
             data: jobDay

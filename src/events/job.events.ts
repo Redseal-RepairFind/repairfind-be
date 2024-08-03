@@ -227,6 +227,8 @@ JobEvent.on('NEW_JOB_LISTING', async function (payload) {
     }
 });
 
+
+
 JobEvent.on('JOB_CANCELED', async function (payload: { job: IJob, canceledBy: string }) {
     try {
         Logger.info('handling alert JOB_CANCELED event')
@@ -271,6 +273,7 @@ JobEvent.on('JOB_CANCELED', async function (payload: { job: IJob, canceledBy: st
         Logger.error(`Error handling JOB_CANCELED event: ${error}`);
     }
 });
+
 
 
 JobEvent.on('JOB_DISPUTE_REFUND_CREATED', async function (payload: { job: IJob, dispute: IJobDispute }) {
@@ -378,6 +381,7 @@ JobEvent.on('JOB_QUOTATION_DECLINED', async function (payload: { jobId: ObjectId
 });
 
 
+
 JobEvent.on('JOB_QUOTATION_ACCEPTED', async function (payload: { jobId: ObjectId, contractorId: ObjectId, customerId: ObjectId, reason: string }) {
     try {
 
@@ -409,7 +413,7 @@ JobEvent.on('JOB_QUOTATION_ACCEPTED', async function (payload: { jobId: ObjectId
                 userType: 'contractors',
                 title: 'Job quotation accepted',
                 type: 'JOB_QUOTATION_ACCEPTED', // Conversation, Conversation_Notification
-                message: `Your job quotation for a job on RepairFind was accepted`,
+                message: `Your  quotation for a job on RepairFind was accepted`,
                 heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
                 payload: {
                     entity: job.id,
@@ -422,13 +426,11 @@ JobEvent.on('JOB_QUOTATION_ACCEPTED', async function (payload: { jobId: ObjectId
 
         }
 
-
-
-
     } catch (error) {
         Logger.error(`Error handling JOB_QUOTATION_ACCEPTED event: ${error}`);
     }
 });
+
 
 
 JobEvent.on('JOB_DAY_EMERGENCY', async function (payload: { jobEmergency: IJobEmergency }) {
@@ -442,17 +444,17 @@ JobEvent.on('JOB_DAY_EMERGENCY', async function (payload: { jobEmergency: IJobEm
         if (job && contractor && customer) {
             if (payload.jobEmergency.triggeredBy == 'contractor') {
                 Logger.info('job emergency triggered by contractor')
-                if (customer) {
-                    const html = JobEmergencyEmailTemplate({ name: customer.name, emergency: payload.jobEmergency, job })
-                    EmailService.send(customer.email, "Job Emergency", html)
-                }
+                // if (customer) {
+                //     const html = JobEmergencyEmailTemplate({ name: customer.name, emergency: payload.jobEmergency, job })
+                //     EmailService.send(customer.email, "Job Emergency", html)
+                // }
             }
             if (payload.jobEmergency.triggeredBy == 'customer') {
                 Logger.info('job emergency triggered by customer')
-                if (contractor) {
-                    const html = JobEmergencyEmailTemplate({ name: contractor.name, emergency: payload.jobEmergency, job })
-                    EmailService.send(contractor.email, "Job Emergency", html)
-                }
+                // if (contractor) {
+                //     const html = JobEmergencyEmailTemplate({ name: contractor.name, emergency: payload.jobEmergency, job })
+                //     EmailService.send(contractor.email, "Job Emergency", html)
+                // }
             }
 
             // send socket notification to general admins alert channel
@@ -477,11 +479,12 @@ JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: 
 
         const customer = await CustomerModel.findById(payload.job.customer)
         const contractor = await ContractorModel.findById(payload.job.contractor)
-
+        const job = payload.job
+        const event = payload.action == 'accepted' ? 'JOB_RESCHEDULE_ACCEPTED' : 'JOB_RESCHEDULE_DECLINED'
 
         if (contractor && customer) {
             if (payload.job.reschedule?.createdBy == 'contractor') { // send mail to contractor
-                let emailSubject = 'Job Schedule'
+                let emailSubject = 'Job Reschedule Request'
                 let emailContent = `
                 <p style="color: #333333;">Your Job reschedule request on Repairfind has been ${payload.action} by customer</p>
                 <p><strong>Job Title:</strong> ${payload.job.description}</p>
@@ -490,9 +493,27 @@ JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: 
                 let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
                 EmailService.send(contractor.email, emailSubject, html)
 
+                NotificationService.sendNotification({
+                    user: customer.id,
+                    userType: 'customers',
+                    title: `Job Reschedule Request ${payload.action}`,
+                    type: event, 
+                    message: `Your Job reschedule request on Repairfind has been ${payload.action} by customer`,
+                    heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
+                    payload: {
+                        entity: job.id,
+                        entityType: 'jobs',
+                        message: `Your Job reschedule request on Repairfind has been ${payload.action} by customer`,
+                        customer: customer.id,
+                        contractor: contractor.id,
+                        event: event,
+                    }
+                }, { push: true, socket: true,  database: true })
+
+
             }
             if (payload.job.reschedule?.createdBy == 'customer') { // send mail to  customer
-                let emailSubject = 'Job Schedule'
+                let emailSubject = 'Job Reschedule Request'
                 let emailContent = `
                 <p style="color: #333333;">Your Job reschedule request on Repairfind has been ${payload.action}  by the contractor</p>
                 <p><strong>Job Title:</strong> ${payload.job.description}</p>
@@ -500,6 +521,26 @@ JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: 
                 `
                 let html = GenericEmailTemplate({ name: customer.name, subject: emailSubject, content: emailContent })
                 EmailService.send(customer.email, emailSubject, html)
+
+
+                NotificationService.sendNotification({
+                    user: contractor.id,
+                    userType: 'contractors',
+                    title: `Job Reschedule Request ${payload.action}`,
+                    type: event, //
+                    message: `Your Job reschedule request on Repairfind has been ${payload.action} by customer`,
+                    heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
+                    payload: {
+                        entity: job.id,
+                        entityType: 'jobs',
+                        message: `Your Job reschedule request on Repairfind has been ${payload.action} by customer`,
+                        contractor: contractor.id,
+                        customer: customer.id,
+                        event: event,
+                    }
+                }, { push: true, socket: true, database: true })
+
+
             }
 
         }
@@ -517,7 +558,7 @@ JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', async function (payload: { job: IJob, 
 
         const customer = await CustomerModel.findById(payload.job.customer)
         const contractor = await ContractorModel.findById(payload.job.contractor)
-
+        const job = payload.job
 
         if (contractor && customer) {
             if (payload.job.reschedule?.createdBy == 'contractor') { // send mail to contractor
@@ -530,6 +571,24 @@ JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', async function (payload: { job: IJob, 
                 let html = GenericEmailTemplate({ name: customer.name, subject: emailSubject, content: emailContent })
                 EmailService.send(customer.email, emailSubject, html)
 
+
+                NotificationService.sendNotification({
+                    user: customer.id,
+                    userType: 'customers',
+                    title: 'Job Reschedule Request',
+                    type: 'NEW_JOB_RESCHEDULE_REQUEST', // Conversation, Conversation_Notification
+                    message: `Contractor has requested  to reschedule a job on RepairFind`,
+                    heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
+                    payload: {
+                        entity: job.id,
+                        entityType: 'jobs',
+                        message: `Contractor has requested  to reschedule a job on RepairFind`,
+                        customer: customer.id,
+                        contractor: contractor.id,
+                        event: 'NEW_JOB_RESCHEDULE_REQUEST',
+                    }
+                }, { push: true, socket: true,  database: true })
+
             }
             if (payload.job.reschedule?.createdBy == 'customer') { // send mail to  customer
                 let emailSubject = 'Job Schedule'
@@ -540,6 +599,24 @@ JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', async function (payload: { job: IJob, 
                 `
                 let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
                 EmailService.send(contractor.email, emailSubject, html)
+
+                NotificationService.sendNotification({
+                    user: contractor.id,
+                    userType: 'contractors',
+                    title: 'Job Booked',
+                    type: 'NEW_JOB_RESCHEDULE_REQUEST', //
+                    message: `Customer has requested to reschedule your job on RepairFind`,
+                    heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
+                    payload: {
+                        entity: job.id,
+                        entityType: 'jobs',
+                        message: `Customer has requested to reschedule your job on RepairFind`,
+                        contractor: contractor.id,
+                        customer: customer.id,
+                        event: 'NEW_JOB_RESCHEDULE_REQUEST',
+                    }
+                }, { push: true, socket: true, database: true })
+                
             }
 
         }
@@ -604,14 +681,14 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
                     contractor: contractor.id,
                     event: 'JOB_BOOKED',
                 }
-            }, { push: true, socket: true })
+            }, { push: true, socket: true,  database: true })
 
 
             NotificationService.sendNotification({
                 user: contractor.id,
                 userType: 'contractors',
                 title: 'Job Booked',
-                type: 'JOB_DISPUTED', //
+                type: 'JOB_BOOKED', //
                 message: `You have a booked job on Repairfind`,
                 heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
                 payload: {
@@ -622,7 +699,7 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
                     customer: customer.id,
                     event: 'JOB_BOOKED',
                 }
-            }, { push: true, socket: true })
+            }, { push: true, socket: true, database: true })
 
         }
 
@@ -649,16 +726,12 @@ JobEvent.on('JOB_DISPUTE_CREATED', async function (payload: { dispute: IJobDispu
         if (!customer || !contractor) return
 
 
-
-
         NotificationService.sendNotification({
             user: customer.id,
             userType: 'customers',
             title: 'Job Disputed',
-            type: 'JOB_DISPUTED', // Conversation, Conversation_Notification
-            //@ts-ignore
+            type: 'JOB_DISPUTED',
             message: `You have an open job dispute`,
-            //@ts-ignore
             heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
             payload: {
                 entity: job.id,
@@ -678,31 +751,31 @@ JobEvent.on('JOB_DISPUTE_CREATED', async function (payload: { dispute: IJobDispu
             message: `You have an open job dispute`,
             heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
             payload: {
-                entity: dispute.id,
-                entityType: 'job_disputes',
+                entity: job.id,
+                entityType: 'jobs',
                 message: `You have an open job dispute`,
                 contractor: contractor.id,
                 event: 'JOB_DISPUTED',
             }
         }, { database: true, push: true, socket: true })
 
-        if (job.isAssigned) {
-            NotificationService.sendNotification({
-                user: job.assignment.contractor,
-                userType: 'contractors',
-                title: 'Job Disputed',
-                type: 'JOB_DISPUTED', //
-                message: `You have an open job dispute`,
-                heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
-                payload: {
-                    entity: dispute.id,
-                    entityType: 'job_disputes',
-                    message: `You have an open job dispute`,
-                    contractor: contractor.id,
-                    event: 'JOB_DISPUTED',
-                }
-            }, { database: true, push: true, socket: true })
-        }
+        // if (job.isAssigned) {
+        //     NotificationService.sendNotification({
+        //         user: job.assignment.contractor,
+        //         userType: 'contractors',
+        //         title: 'Job Disputed',
+        //         type: 'JOB_DISPUTED', //
+        //         message: `You have an open job dispute`,
+        //         heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
+        //         payload: {
+        //             entity: dispute.id,
+        //             entityType: 'job_disputes',
+        //             message: `You have an open job dispute`,
+        //             contractor: contractor.id,
+        //             event: 'JOB_DISPUTED',
+        //         }
+        //     }, { database: true, push: true, socket: true })
+        // }
 
         // send socket notification to general admins alert channel
         SocketService.broadcastChannel('admin_alerts', 'NEW_DISPUTED_JOB', {
@@ -717,6 +790,7 @@ JobEvent.on('JOB_DISPUTE_CREATED', async function (payload: { dispute: IJobDispu
         Logger.error(`Error handling JOB_DISPUTE_CREATED event: ${error}`);
     }
 });
+
 
 
 JobEvent.on('JOB_MARKED_COMPLETE_BY_CONTRACTOR', async function (payload: { job: IJob }) {
@@ -825,25 +899,26 @@ JobEvent.on('JOB_COMPLETED', async function (payload: { job: IJob }) {
                 contractor: contractor.id,
                 event: event,
             }
-        }, { push: true, socket: true })
+        }, { push: true, socket: true, database: true })
 
-        if (job.isAssigned) {
-            NotificationService.sendNotification({
-                user: job.assignment.contractor,
-                userType: 'contractors',
-                title: 'Job Completed',
-                type: event,
-                message: `Job completion confirmed by customer`,
-                heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
-                payload: {
-                    entity: job.id,
-                    entityType: 'jobs',
-                    message: `Job completion confirmed by customer`,
-                    contractor: contractor.id,
-                    event: event,
-                }
-            }, { push: true, socket: true })
-        }
+
+        // if (job.isAssigned) {
+        //     NotificationService.sendNotification({
+        //         user: job.assignment.contractor,
+        //         userType: 'contractors',
+        //         title: 'Job Completed',
+        //         type: event,
+        //         message: `Job completion confirmed by customer`,
+        //         heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
+        //         payload: {
+        //             entity: job.id,
+        //             entityType: 'jobs',
+        //             message: `Job completion confirmed by customer`,
+        //             contractor: contractor.id,
+        //             event: event,
+        //         }
+        //     }, { push: true, socket: true })
+        // }
 
         //approve payout here - change status to approved and use  cron jobs to schedule the transfer
         const transaction = await TransactionModel.findOne({ job: job.id, type: TRANSACTION_TYPE.ESCROW })
@@ -870,6 +945,7 @@ JobEvent.on('JOB_CHANGE_ORDER', async function (payload: { job: IJob }) {
             return
         }
 
+        const jobDay = await JobDayModel.findOne({ job: job.id })
         const customer = await CustomerModel.findById(job.customer)
         const contractor = await ContractorModel.findById(job.contractor)
 
@@ -888,27 +964,32 @@ JobEvent.on('JOB_CHANGE_ORDER', async function (payload: { job: IJob }) {
             payload: {
                 entity: job.id,
                 entityType: 'jobs',
+                jobId: job.id,
+                jobDayId: jobDay?.id,
                 message: `Change order is ${state} for your job`,
                 event: event,
             }
-        }, { push: true, socket: true })
+        }, { push: true, socket: true, database: true })
 
-        if (job.isAssigned) {
-            NotificationService.sendNotification({
-                user: job.assignment.contractor,
-                userType: 'contractors',
-                title: 'Job Completed',
-                type: event, //
-                message: `Change order is ${state}`,
-                heading: { name: `${customer.name}`, image: customer.profilePhoto?.url },
-                payload: {
-                    entity: job.id,
-                    entityType: 'jobs',
-                    message: `Change order is ${state}`,
-                    event: event,
-                }
-            }, { push: true, socket: true })
-        }
+
+        // if (job.isAssigned) {
+        //     NotificationService.sendNotification({
+        //         user: job.assignment.contractor,
+        //         userType: 'contractors',
+        //         title: 'Job Completed',
+        //         type: event, //
+        //         message: `Change order is ${state}`,
+        //         heading: { name: `${customer.name}`, image: customer.profilePhoto?.url },
+        //         payload: {
+        //             entity: job.id,
+        //             entityType: 'jobs',
+        //             message: `Change order is ${state}`,
+        //             event: event,
+        //         }
+        //     }, { push: true, socket: true })
+        // }
+
+
 
     } catch (error) {
         Logger.error(`Error handling JOB_CHANGE_ORDER event: ${error}`);
@@ -921,7 +1002,7 @@ JobEvent.on('SITE_VISIT_ESTIMATE_SUBMITTED', async function (payload: { job: IJo
         Logger.info('handling SITE_VISIT_ESTIMATE_SUBMITTED event', payload.job.id)
 
         const job = await JobModel.findById(payload.job.id)
-
+        const quotation = payload.quotation
         if (!job) {
             return
         }
@@ -948,8 +1029,9 @@ JobEvent.on('SITE_VISIT_ESTIMATE_SUBMITTED', async function (payload: { job: IJo
                 event: 'SITE_VISIT_ESTIMATE_SUBMITTED',
                 jobDayId: jobDay?.id,
                 jobId: job.id,
+                quotationId: quotation.id,
             }
-        }, { push: true, socket: true })
+        }, { push: true, socket: true, database: true })
 
         NotificationService.sendNotification({
             user: contractor.id,
@@ -966,8 +1048,9 @@ JobEvent.on('SITE_VISIT_ESTIMATE_SUBMITTED', async function (payload: { job: IJo
                 event: 'SITE_VISIT_ESTIMATE_SUBMITTED',
                 jobDayId: jobDay?.id,
                 jobId: job.id,
+                quotationId: quotation.id,
             }
-        }, { push: true, socket: true })
+        }, { push: true, socket: true, database: true })
 
 
     } catch (error) {
@@ -975,11 +1058,14 @@ JobEvent.on('SITE_VISIT_ESTIMATE_SUBMITTED', async function (payload: { job: IJo
     }
 });
 
+
+
 JobEvent.on('CHANGE_ORDER_ESTIMATE_SUBMITTED', async function (payload: { job: IJob, quotation: IJobQuotation }) {
     try {
         Logger.info('handling CHANGE_ORDER_ESTIMATE_SUBMITTED event', payload.job.id)
 
         const job = await JobModel.findById(payload.job.id)
+        const quotation = payload.quotation
 
         if (!job) {
             return
@@ -1007,31 +1093,31 @@ JobEvent.on('CHANGE_ORDER_ESTIMATE_SUBMITTED', async function (payload: { job: I
                 event: 'CHANGE_ORDER_ESTIMATE_SUBMITTED',
                 jobDayId: jobDay?.id,
                 jobId: job.id,
-                extraEstimate: payload.quotation
+                quotationId: quotation.id
             }
-        }, { push: true, socket: true })
+        }, { push: true, socket: true, database: true })
 
 
-        if (job.isAssigned) {
-            NotificationService.sendNotification({
-                user: contractor.id,
-                userType: 'contractors',
-                title: 'Change order estimate submitted',
-                type: 'CHANGE_ORDER_ESTIMATE_SUBMITTED', //
-                message: `Change order estimate has been submitted`,
-                heading: { name: `${customer.name}`, image: customer.profilePhoto?.url },
-                payload: {
-                    entity: job.id,
-                    entityType: 'jobs',
-                    message: `Change order estimate has been submitted`,
-                    customer: customer.id,
-                    event: 'CHANGE_ORDER_ESTIMATE_SUBMITTED',
-                    jobDayId: jobDay?.id,
-                    jobId: job.id,
-                    extraEstimate: payload.quotation
-                }
-            }, { push: true, socket: true })
-        }
+        // if (job.isAssigned) {
+        //     NotificationService.sendNotification({
+        //         user: contractor.id,
+        //         userType: 'contractors',
+        //         title: 'Change order estimate submitted',
+        //         type: 'CHANGE_ORDER_ESTIMATE_SUBMITTED', //
+        //         message: `Change order estimate has been submitted`,
+        //         heading: { name: `${customer.name}`, image: customer.profilePhoto?.url },
+        //         payload: {
+        //             entity: job.id,
+        //             entityType: 'jobs',
+        //             message: `Change order estimate has been submitted`,
+        //             customer: customer.id,
+        //             event: 'CHANGE_ORDER_ESTIMATE_SUBMITTED',
+        //             jobDayId: jobDay?.id,
+        //             jobId: job.id,
+        //             extraEstimate: payload.quotation
+        //         }
+        //     }, { push: true, socket: true })
+        // }
 
 
 
@@ -1040,6 +1126,7 @@ JobEvent.on('CHANGE_ORDER_ESTIMATE_SUBMITTED', async function (payload: { job: I
         Logger.error(`Error handling CHANGE_ORDER_ESTIMATE_SUBMITTED event: ${error}`);
     }
 });
+
 
 
 JobEvent.on('NEW_JOB_QUOTATION', async function (payload: { job: IJob, quotation: IJobQuotation }) {
@@ -1067,29 +1154,27 @@ JobEvent.on('NEW_JOB_QUOTATION', async function (payload: { job: IJob, quotation
                 event: 'NEW_JOB_QUOTATION',
                 quotationId: quotation.id,
             }
-        }, { push: true, socket: true })
+        }, { push: true, socket: true, database: true })
 
 
-        if (job.isAssigned) {
-            NotificationService.sendNotification({
-                user: contractor.id,
-                userType: 'contractors',
-                title: 'New Job Bid',
-                type: 'NEW_JOB_QUOTATION', //
-                message: `You have submitted a bid for a job on Repairfind`,
-                heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
-                payload: {
-                    entity: job.id,
-                    entityType: 'jobs',
-                    message: `You have submitted a bid for a job on Repairfind`,
-                    customer: customer.id,
-                    event: 'NEW_JOB_QUOTATION',
-                    quotationId: quotation.id,
-                }
-            }, { push: true, socket: true })
-        }
-
-
+        // if (job.isAssigned) {
+        //     NotificationService.sendNotification({
+        //         user: contractor.id,
+        //         userType: 'contractors',
+        //         title: 'New Job Bid',
+        //         type: 'NEW_JOB_QUOTATION', //
+        //         message: `You have submitted a bid for a job on Repairfind`,
+        //         heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
+        //         payload: {
+        //             entity: job.id,
+        //             entityType: 'jobs',
+        //             message: `You have submitted a bid for a job on Repairfind`,
+        //             customer: customer.id,
+        //             event: 'NEW_JOB_QUOTATION',
+        //             quotationId: quotation.id,
+        //         }
+        //     }, { push: true, socket: true })
+        // }
 
 
     } catch (error) {
@@ -1123,29 +1208,27 @@ JobEvent.on('JOB_QUOTATION_EDITED', async function (payload: { job: IJob, quotat
                 event: 'JOB_QUOTATION_EDITED',
                 quotationId: quotation.id,
             }
-        }, { push: true, socket: true })
+        }, { push: true, socket: true, database: true })
 
 
-        if (job.isAssigned) {
-            NotificationService.sendNotification({
-                user: contractor.id,
-                userType: 'contractors',
-                title: 'New Job Bid',
-                type: 'JOB_QUOTATION_EDITED', //
-                message: `You have edited a=your bid for a job on Repairfind`,
-                heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
-                payload: {
-                    entity: job.id,
-                    entityType: 'jobs',
-                    message: `You have edited a=your bid for a job on Repairfind`,
-                    customer: customer.id,
-                    event: 'JOB_QUOTATION_EDITED',
-                    quotationId: quotation.id,
-                }
-            }, { push: true, socket: true })
-        }
-
-
+        // if (job.isAssigned) {
+        //     NotificationService.sendNotification({
+        //         user: contractor.id,
+        //         userType: 'contractors',
+        //         title: 'New Job Bid',
+        //         type: 'JOB_QUOTATION_EDITED', //
+        //         message: `You have edited your bid for a job on Repairfind`,
+        //         heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
+        //         payload: {
+        //             entity: job.id,
+        //             entityType: 'jobs',
+        //             message: `You have edited a=your bid for a job on Repairfind`,
+        //             customer: customer.id,
+        //             event: 'JOB_QUOTATION_EDITED',
+        //             quotationId: quotation.id,
+        //         }
+        //     }, { push: true, socket: true, database: true })
+        // }
 
 
     } catch (error) {
@@ -1161,11 +1244,11 @@ JobEvent.on('CHANGE_ORDER_ESTIMATE_PAID', async function (payload: { job: IJob, 
         const job = payload.job
         if (!job) return
 
+        const jobDay = await JobDayModel.findOne({job: job.id})
         const customer = await CustomerModel.findById(job.customer)
         const contractor = await ContractorModel.findById(job.contractor)
 
-        if (!customer || !contractor) return
-
+        if (!customer || !contractor ) return
 
 
         NotificationService.sendNotification({
@@ -1174,17 +1257,17 @@ JobEvent.on('CHANGE_ORDER_ESTIMATE_PAID', async function (payload: { job: IJob, 
             title: 'Change Order Estimate Paid',
             type: 'CHANGE_ORDER_ESTIMATE_PAID', //
             message: `Change order estimate has been paid`,
-            heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
+            heading: { name: `${customer.name}`, image: customer.profilePhoto?.url },
             payload: {
                 entity: job.id,
                 entityType: 'jobs',
                 message: `Change order estimate has been paid`,
                 customer: customer.id,
                 event: 'CHANGE_ORDER_ESTIMATE_PAID',
-                extraEstimate: payload.extraEstimate,
-                jobId: job.id
+                jobId: job.id,
+                jobDayId: jobDay?.id
             }
-        }, { push: true, socket: true })
+        }, { push: true, socket: true,  database: true })
 
 
     } catch (error) {
@@ -1226,7 +1309,7 @@ JobEvent.on('JOB_DAY_STARTED', async function (payload: { job: IJob, jobDay: IJo
             {
                 push: true,
                 socket: true,
-                // database: true
+                database: true
             }
         )
 
@@ -1245,7 +1328,7 @@ JobEvent.on('JOB_DAY_STARTED', async function (payload: { job: IJob, jobDay: IJo
                 {
                     push: true,
                     socket: true,
-                    // database: true
+                    database: true
                 }
             )
         }
@@ -1264,7 +1347,7 @@ JobEvent.on('JOB_DAY_STARTED', async function (payload: { job: IJob, jobDay: IJo
             {
                 push: true,
                 socket: true,
-                // database: true
+                database: true
             }
         )
 
@@ -1303,6 +1386,7 @@ JobEvent.on('JOB_DAY_ARRIVAL', async function (payload: { jobDay: IJobDay, verif
             {
                 push: true,
                 socket: true,
+                database: true
             }
         )
 
@@ -1312,7 +1396,7 @@ JobEvent.on('JOB_DAY_ARRIVAL', async function (payload: { jobDay: IJobDay, verif
                 user: contractor.id,
                 userType: 'contractors',
                 title: 'JobDay',
-                heading: {},
+                heading: { name: customer.name, image: customer.profilePhoto?.url },
                 type: 'JOB_DAY_ARRIVAL',
                 message: 'Job Day arrival, waiting for confirmation from customer.',
                 payload: { event: 'JOB_DAY_ARRIVAL', jobDayId: jobDay.id, verificationCode, entityType: 'jobs', entity: job.id }
@@ -1320,6 +1404,7 @@ JobEvent.on('JOB_DAY_ARRIVAL', async function (payload: { jobDay: IJobDay, verif
             {
                 push: true,
                 socket: true,
+                database: true
             }
         )
 
@@ -1329,7 +1414,7 @@ JobEvent.on('JOB_DAY_ARRIVAL', async function (payload: { jobDay: IJobDay, verif
                     user: job.assignment.contractor,
                     userType: 'contractors',
                     title: 'JobDay',
-                    heading: {},
+                    heading: { name: customer.name, image: customer.profilePhoto?.url },
                     type: 'JOB_DAY_ARRIVAL',
                     message: 'Job Day arrival, waiting for confirmation from customer.',
                     payload: { event: 'JOB_DAY_ARRIVAL', jobDayId: jobDay.id, verificationCode, entityType: 'jobs', entity: job.id }
@@ -1337,12 +1422,91 @@ JobEvent.on('JOB_DAY_ARRIVAL', async function (payload: { jobDay: IJobDay, verif
                 {
                     push: true,
                     socket: true,
+                    database: true
                 }
             )
         }
 
     } catch (error) {
         Logger.error(`Error handling JOB_DAY_ARRIVAL event: ${error}`);
+    }
+});
+
+
+
+JobEvent.on('JOB_DAY_CONFIRMED', async function (payload: { jobDay: IJobDay }) {
+    try {
+        Logger.info('handling alert JOB_DAY_CONFIRMED event', payload.jobDay.id)
+
+        const jobDay = await payload.jobDay
+        const job = await JobModel.findById(jobDay.job)
+
+        if (!job || !jobDay) return
+
+        const customer = await CustomerModel.findById(jobDay.customer)
+        const contractor = await ContractorModel.findById(jobDay.contractor)
+
+        if (!customer || !contractor) return
+
+        // send notification to  contractor
+        NotificationService.sendNotification(
+            {
+                user: job.contractor,
+                userType: 'contractors',
+                title: 'JobDay confirmation',
+                heading: { name: customer.name, image: customer.profilePhoto?.url },
+                type: 'JOB_DAY_CONFIRMED',
+                message: 'Customer has confirmed your arrival.',
+                payload: { event: 'JOB_DAY_CONFIRMED',  jobDayId: jobDay.id, entityType: 'jobs', entity: job.id  }
+            },
+            {
+                push: true,
+                socket: true,
+                database: true
+            }
+        )
+
+        if(job.assignment){
+            NotificationService.sendNotification(
+                {
+                    user: job.assignment.contractor,
+                    userType: 'contractors',
+                    title: 'JobDay confirmation',
+                    heading: { name: customer.name, image: customer.profilePhoto?.url },
+                    type: 'JOB_DAY_CONFIRMED',
+                    message: 'Customer has confirmed your arrival.',
+                    payload: { event: 'JOB_DAY_CONFIRMED', jobDayId: jobDay.id, entityType: 'jobs', entity: job.id  }
+                },
+                {
+                    push: true,
+                    socket: true,
+                    database: true
+                }
+            )
+    
+        }
+
+        // send notification to  customer
+        NotificationService.sendNotification(
+            {
+                user: job.customer,
+                userType: 'customers',
+                title: 'JobDay confirmation',
+                heading: { name: contractor.name, image: contractor.profilePhoto?.url },
+                type: 'JOB_DAY_CONFIRMED',
+                message: "You successfully confirmed the contractor's arrival.",
+                payload: { event: 'JOB_DAY_CONFIRMED', jobDayId: jobDay.id, entityType: 'jobs', entity: job.id  }
+            },
+            {
+                push: true,
+                socket: true,
+                database: true
+            }
+        )
+
+
+    } catch (error) {
+        Logger.error(`Error handling JOB_DAY_CONFIRMED event: ${error}`);
     }
 });
 
@@ -1406,29 +1570,34 @@ JobEvent.on('NEW_JOB_ENQUIRY', async function (payload: { jobId: any, enquiryId:
         const customer = await CustomerModel.findOne({ _id: job.customer })
         const contractor = await ContractorModel.findOne({ _id: enquiry.contractor })
 
+        if (!customer || !contractor) return
+
+
         // send push to all contractors that match the job ?
         const savedJobs = await ContractorSavedJobModel.find({ job: job.id })
         const contractorIds = savedJobs.map(savedJob => savedJob.contractor)
         const devices = await ContractorDeviceModel.find({ contractor: { $in: contractorIds } })
-        const deviceTokens = devices.map(device => device.deviceToken);
+        devices.map(device => {
+            NotificationService.sendNotification(
+                {
+                    user: device.contractor.toString(),
+                    userType: 'contractors',
+                    title: 'New Job Enquiry',
+                    type: 'NEW_JOB_ENQUIRY',
+                    heading: { name: customer.name, image: customer.profilePhoto?.url },
+                    message: 'A Job you  saved on Repairfind has a new enquiry',
+                    payload: { event: 'NEW_JOB_ENQUIRY', entityType: 'jobs', entity: job.id  }
+                },
+                {
+                    push: true,
+                    socket: true,
+                    database: true
+                }
+            )
+        });
 
-        sendPushNotifications(deviceTokens, {
-            title: 'New Job Enquiry',
-            type: 'NEW_JOB_ENQUIRY',
-            icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
-            body: 'A Job you  saved on Repairfind has a new enquiry',
-            data: {
-                entity: job.id,
-                entityType: 'jobs',
-                message: `A Job you  saved on Repairfind has a new enquiry`,
-                event: 'NEW_JOB_ENQUIRY',
-            }
-        })
-
-
-
-
-        if (customer && contractor) {
+    
+        if (customer) {
             NotificationService.sendNotification(
                 {
                     user: job.customer,
@@ -1439,7 +1608,7 @@ JobEvent.on('NEW_JOB_ENQUIRY', async function (payload: { jobId: any, enquiryId:
                     message: 'Your job on Repairfind has a new enquiry',
                     payload: { event: 'NEW_JOB_ENQUIRY', entityType: 'jobs', entity: job.id }
                 },
-                { push: true, socket: true }
+                { push: true, socket: true, database: true }
             )
             let emailSubject = 'New Job Enquiry '
             let emailContent = `
@@ -1453,13 +1622,6 @@ JobEvent.on('NEW_JOB_ENQUIRY', async function (payload: { jobId: any, enquiryId:
             let html = GenericEmailTemplate({ name: customer.name, subject: emailSubject, content: emailContent })
             EmailService.send(customer.email, emailSubject, html)
         }
-
-
-
-
-
-
-
 
     } catch (error) {
         Logger.error(`Error handling NEW_JOB_ENQUIRY event: ${error}`);
@@ -1480,6 +1642,7 @@ JobEvent.on('NEW_JOB_ENQUIRY_REPLY', async function (payload: { jobId: any, enqu
         const customer = await CustomerModel.findOne({ _id: job.customer })
         const contractor = await ContractorModel.findOne({ _id: enquiry.contractor })
 
+        if (!customer || !contractor) return
 
         const savedJobs = await ContractorSavedJobModel.find({ job: job.id })
         const contractorIds = savedJobs.map(savedJob => savedJob.contractor)
@@ -1488,18 +1651,40 @@ JobEvent.on('NEW_JOB_ENQUIRY_REPLY', async function (payload: { jobId: any, enqu
         // send push to all contractors that match the job ?
         const devices = await ContractorDeviceModel.find({ contractor: { $in: contractorIds } })
         const deviceTokens = devices.map(device => device.deviceToken);
-        sendPushNotifications(deviceTokens, {
-            title: 'New Job QnA',
-            type: 'NEW_JOB_QUESTION_REPLY',
-            icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
-            body: 'A job you are following on Repairfind has a new reply from the customer',
-            data: {
-                entity: job.id,
-                entityType: 'jobs',
-                message: `A job you are following on Repairfind has a new reply from the customer`,
-                event: 'NEW_JOB_QUESTION_REPLY',
-            }
-        })
+        
+
+        devices.map(device => {
+            NotificationService.sendNotification(
+                {
+                    user: device.contractor.toString(),
+                    userType: 'contractors',
+                    title: 'New Job Enquiry Reply',
+                    type: 'NEW_JOB_ENQUIRY_REPLY',
+                    heading: { name: customer.name, image: customer.profilePhoto?.url },
+                    message: 'A job you are following on Repairfind has a new reply from the customer',
+                    payload: { event: 'NEW_JOB_ENQUIRY_REPLY', entityType: 'jobs', entity: job.id  }
+                },
+                {
+                    push: true,
+                    socket: true,
+                    database: true
+                }
+            )
+        });
+
+        
+        // sendPushNotifications(deviceTokens, {
+        //     title: 'New Job Enquiry Reply',
+        //     type: 'NEW_JOB_ENQUIRY_REPLY',
+        //     icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
+        //     body: 'A job you are following on Repairfind has a new reply from the customer',
+        //     data: {
+        //         entity: job.id,
+        //         entityType: 'jobs',
+        //         message: `A job you are following on Repairfind has a new reply from the customer`,
+        //         event: 'NEW_JOB_QUESTION_REPLY',
+        //     }
+        // })
 
 
 

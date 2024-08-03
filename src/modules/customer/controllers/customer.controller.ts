@@ -239,7 +239,7 @@ export const updateOrCreateDevice = async (
     // Find the customer device with the provided device ID and type
     let customerDevice = await CustomerDeviceModel.findOneAndUpdate(
       { customer: customerId, deviceToken: deviceToken },
-      { $set: { deviceToken, deviceType } },
+      { $set: { deviceToken, deviceType, customer: customerId } },
       { new: true, upsert: true }
     );
 
