@@ -51,7 +51,7 @@ export const handleEscrowTransfer = async () => {
                 await transaction.save()
                 //emit event and handle notifications from there ?
 
-                TransactionEvent.emit('ESCROW_TRANSFER_SUCCESSFUL', transaction)
+                TransactionEvent.emit('ESCROW_TRANSFER_SUCCESSFUL ', transaction)
                 
             } catch (error) {
                 Logger.info(`Error processing payout transfer: ${transaction.id}`, error);
