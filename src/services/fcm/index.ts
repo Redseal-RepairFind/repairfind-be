@@ -1,7 +1,7 @@
 import admin from 'firebase-admin';
 import serviceAccount from '../../../fcm.json'; 
 
-// Initialize the Firebase Admin SDK
+// Initialize the Firebase Admin SDKv
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount as admin.ServiceAccount)
 });
