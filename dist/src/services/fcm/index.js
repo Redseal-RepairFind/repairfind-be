@@ -41,7 +41,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var firebase_admin_1 = __importDefault(require("firebase-admin"));
 var fcm_json_1 = __importDefault(require("../../../fcm.json"));
-// Initialize the Firebase Admin SDK
+// Initialize the Firebase Admin SDKv
 firebase_admin_1.default.initializeApp({
     credential: firebase_admin_1.default.credential.cert(fcm_json_1.default)
 });

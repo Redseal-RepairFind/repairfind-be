@@ -41,15 +41,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createTransfer = void 0;
 var stripe_1 = __importDefault(require("stripe"));
+var logger_1 = require("../logger");
 var STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 var stripeClient = new stripe_1.default(STRIPE_SECRET_KEY);
 var createTransfer = function (connectedAccountId, amount, metadata) { return __awaiter(void 0, void 0, void 0, function () {
-    var payout, error_1;
+    var payout;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 2, , 3]);
-                console.log(amount);
+                logger_1.Logger.info('stripe createTransfer', amount);
                 return [4 /*yield*/, stripeClient.transfers.create({
                         amount: amount,
                         currency: 'cad',
@@ -59,12 +59,7 @@ var createTransfer = function (connectedAccountId, amount, metadata) { return __
                     })];
             case 1:
                 payout = _a.sent();
-                console.log("Transfer created with ID ".concat(payout.id));
-                return [3 /*break*/, 3];
-            case 2:
-                error_1 = _a.sent();
-                throw error_1.message;
-            case 3: return [2 /*return*/];
+                return [2 /*return*/];
         }
     });
 }); };
