@@ -18,4 +18,5 @@ router.post("/sessions/clear", requests_1.CommonHttpRequest.clearSessionParams, 
 router.post("/webhooks/stripe", webhook_controller_1.WebhookController.stripeWebook); // stripe webhook
 router.post("/webhooks/certn", webhook_controller_1.WebhookController.certnWebook); //  certn webhook
 router.post("/clear-queue", cli_controller_1.CliController.clearQueue); //
+router.post("/test-fcm-notification", common_controller_1.CommonController.sendTestNotification); //
 exports.default = router;

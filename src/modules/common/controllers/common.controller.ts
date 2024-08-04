@@ -4,6 +4,8 @@ import SkillRegrModel from "../../../database/admin/models/skill.model";
 import { InternalServerError } from "../../../utils/custom.errors";
 import { CountryModel } from "../../../database/common/country.schema";
 import { BankModel } from "../../../database/common/bank.schema";
+import sendWebNotification from "../../../services/fcm";
+import { Logger } from "../../../services/logger";
 
 
 export const getBankList = async (
@@ -99,11 +101,30 @@ export const getOptions = async (
 }
 
 
+export const sendTestNotification = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+
+  try {
+    
+    const response = sendWebNotification('ExponentPushToken[E9UaBJN6Gm2Hf1m0fJdKxf]')
+
+    return res.json({ success: true, message: "Options retrieved"});
+  } catch (err: any) {
+    return next(new InternalServerError('Error fetching skills', err))
+  }
+
+}
+
+
 
 export const CommonController = {
   getBankList,
   getSkills,
   getCountries,
-  getOptions
+  getOptions,
+  sendTestNotification
 }
 

@@ -26,6 +26,7 @@ router.post("/webhooks/certn",  WebhookController.certnWebook ); //  certn webho
 
 
 router.post("/clear-queue",  CliController.clearQueue ); //
+router.post("/test-fcm-notification",  CommonController.sendTestNotification ); //
 
 
 
