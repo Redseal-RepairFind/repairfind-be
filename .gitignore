@@ -4,4 +4,4 @@
 # /dist
 /uploads/*
 /.clinic
-fcm.json
+# fcm.json

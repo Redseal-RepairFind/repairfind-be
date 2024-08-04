@@ -130,7 +130,7 @@ var handleEscrowTransfer = function () { return __awaiter(void 0, void 0, void 0
             case 7:
                 _b.sent();
                 //emit event and handle notifications from there ?
-                transaction_events_1.TransactionEvent.emit('ESCROW_TRANSFER_SUCCESSFUL', transaction);
+                transaction_events_1.TransactionEvent.emit('ESCROW_TRANSFER_SUCCESSFUL ', transaction);
                 return [3 /*break*/, 9];
             case 8:
                 error_1 = _b.sent();

@@ -1,0 +1,13 @@
+{
+    "type": "service_account",
+    "project_id": "lustrous-maxim-419405",
+    "private_key_id": "a115b3e2b3101d4059dab25049fcc7c82bbbcb93",
+    "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDciwkieXPoaV3y\nPbEsO5HYt2aBoorP5m9UkBtwZkHMOnX3H/CFdpNh6apmon41cJdDII79u6Mlb3EK\nE8gw1cB778AVusRQOBiFqCWtn+CqV568wBngqhpTkBYchN7Tc/vA8sFbkLFgfztc\ncGBcz7Mvt/DDfIMogNMTM0FXtLFmm9r/EwN3mUAE0KRo9QXVKgQSIa64o0j/ZQlG\n3i2BCs/BluZWfqQlseV+7/3DC8hhwb3o9ltzBao7jHXimY2G30Le5zGpfh9LlixB\n5uVwKFUF9xyGGob3OLJUZSM+HjnaJCW6tNuEJyPgfbiN0LpNLRwP9WNmdN/R0uWo\naJ4ZHW+3AgMBAAECggEAQO0Hh+gkaMfYOe/SgFibI6c+XKya3ACVRtpT0Z+xACw3\nvURgXRIe6mTNXwC4Uggu57qmjekW6vbnWtWfCk1rKLFYpa0BjTIuee6aBQa7r7oy\nx5NwKtU5Ad+5urSdGrga5d8xcEDlDyj1s017+ObGdCZdEVfPDvX57b2Zn3XZAgEV\nKxYrG8mJXYUGQHGnJpPWC0CDUXZz/Tm0Z9icQn3gWhjh8C5rEeEMuzQzs9ke6ARi\n6Mt9OinOLW9c9fpqW7A+yngKewfb5pYCAdZzsWqX9q8pzSrXyYI95ILDXe+OkD7y\nbkQqstXmhCp+W/boULuTLrBTWCZAwy9/n6o+iGT+PQKBgQDwA143vmdeDi4D5lvw\nNsXcunhQgXW0vAla1BMFuWI1t1GNNKMyxPsU5lOSwcDpa7n/+B7rfjZo5eA4CJND\neZBuOc5tL/IXdM4qNLxgoqOG191CrhmFO/N87A/nFQuL0LRoV9dlypQatVNbdn7Q\nuWBAsId4a6zwXlHwBjqXezw4qwKBgQDrO6uVr+lVfJxoMQXu4KzfC/FiEFSMzcFC\nJE8UBX0wRNX9cByCZBbkY8M5PXSGUv5eW2/oahCXrXpfXSkzkRdqA8BaIAS5SfYr\nLFkeOxFxLr4qD+Iawh+NpdaInLX6WsDxJrkrnnwmNNF+/kPdH29d3frKmrG86wgS\nHNZqoLm9JQKBgE0FV6vdz0AQntWji+dnPFGcCVYUZVhtazcZjU0t84U3YdVFigWV\nztkjHLigsq51Yofw8MMzinRZKH3yyodBsIaeyE6jrzW1xx8mMzlzl7SC+z8VrZzi\n4z04Z9YJG95vSCWf4sCIpMR5YdmdCg8jHe9EdwS+0Q2FxxeWeCD6bBXnAoGBAIEC\nxdUfmEIJSKKgGFftowHlQ+p7eFOM2OwUi8Y4SHN7nT0VCp28lQ2HZV90Q/8Tb2yC\ni3qVCSqWuyGoL1uXvJapHgqPuueAF+GPvgSlcqh3cVYSRfhU9Qczp9he0jNPKLhZ\ne37fuckeeLNEciXJAsQhZVVOyCILaO6+IB50rcl9AoGBAKgceO1/avM4kvbaBFxS\n80PEsoJFCH/bvmAF1mF5s6RYgiAsqFtzY5FvhNgmrupgZI/YiK2w4/QgVjVmsUOG\npQxGAiyMXkLkXMvX6D4R4KgAtrks8ysxxkYTLjD/U488WVM+3FmXBgfw+x3lm12E\nj3bK7425qhsR/b0nCGxhl8KI\n-----END PRIVATE KEY-----\n",
+    "client_email": "repairfind-ca@lustrous-maxim-419405.iam.gserviceaccount.com",
+    "client_id": "111419058049340347686",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/repairfind-ca%40lustrous-maxim-419405.iam.gserviceaccount.com",
+    "universe_domain": "googleapis.com"
+}
