@@ -1,5 +1,5 @@
 import admin from 'firebase-admin';
-import serviceAccount from './fcm.json'; 
+import serviceAccount from '../../../fcm.json'; 
 
 // Initialize the Firebase Admin SDK
 admin.initializeApp({
