@@ -93,7 +93,7 @@ class JobQueue {
     this.addJob('syncCertnApplications', {}, { repeat: { every: 600000 } });
     this.addJob('expireJobs', {}, { repeat: { every: 7200000 } });
     this.addJob('handleEscrowTransfer', {}, { repeat: { every: 600000 } });
-    // this.addJob('jobDayScheduleCheck', {}, { repeat: { cron: '0 0 * * *', tz: 'America/Los_Angeles',} }); //America/Los_Angeles
+    this.addJob('jobNotStartedScheduleCheck', {}, { repeat: { cron: '0 0 * * *', tz: 'America/Los_Angeles',} }); //midnight
     this.addJob('jobDayScheduleCheck', {}, { repeat: { cron: '* * * * *' } }); //every minute
     this.addJob('quizReminderCheck', {}, { repeat: { cron: '0 0 */4 * *' } }); //4 days
   }

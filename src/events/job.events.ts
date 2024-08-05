@@ -359,7 +359,7 @@ JobEvent.on('JOB_QUOTATION_DECLINED', async function (payload: { jobId: ObjectId
                 userType: 'contractors',
                 title: 'Job quotation declined',
                 type: 'JOB_QUOTATION_DECLINED', // Conversation, Conversation_Notification
-                message: `Your job quotation for a job on RepairFind was decline`,
+                message: `Your job quotation for a job on RepairFind was declined`,
                 heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
                 payload: {
                     entity: job.id,

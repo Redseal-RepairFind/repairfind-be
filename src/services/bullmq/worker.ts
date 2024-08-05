@@ -10,6 +10,7 @@ import { handleJobRefunds } from './jobs/job_refunds';
 import { handleEscrowTransfer } from './jobs/escrow_transfer';
 import { sendEmail } from './jobs/send_email';
 import { quizReminderCheck } from './jobs/training_reminder';
+import { jobNotStartedScheduleCheck } from './jobs/job_not_started_schedule';
 
 const getRedisConfig = (): RedisOptions => {
   const redisConfig: RedisOptions = {
@@ -44,6 +45,9 @@ const processJob = async (job: any): Promise<void> => {
         break;
       case 'jobDayScheduleCheck':
         await jobDayScheduleCheck();
+        break;
+      case 'jobNotStartedScheduleCheck':
+        await jobNotStartedScheduleCheck();
         break;
       case 'quizReminderCheck':
         await quizReminderCheck();

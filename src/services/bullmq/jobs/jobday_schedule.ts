@@ -31,15 +31,19 @@ export const jobDayScheduleCheck = async () => {
                 Logger.info(`JobSchedule Reminder: currentDate: ${currentDate} jobStartDate: ${jobStartDate} formattedJobStartDate: ${formattedJobStartDate} daysDifference: ${daysDifference} hourDifference: ${hourDifference}`);
 
                 if (customer && contractor) {
+
+                    
                     if (daysDifference <= -1) {
-                        if (!job.reminders.includes(JOB_SCHEDULE_REMINDER.NOT_STARTED)) {
-                            sendReminderContractor(customer, contractor, job, `Your job with ${customer.name} scheduled for yesterday: ${formattedJobStartDate} was not started`);
-                            job.status = JOB_STATUS.NOT_STARTED;
-                            job.reminders.push(JOB_SCHEDULE_REMINDER.NOT_STARTED);
-                            await job.save();
-                        }
-                        continue;
+                        // if (!job.reminders.includes(JOB_SCHEDULE_REMINDER.NOT_STARTED)) {
+                        //     sendReminderContractor(customer, contractor, job, `Your job with ${customer.name} scheduled for yesterday: ${formattedJobStartDate} was not started`);
+                        //     job.status = JOB_STATUS.NOT_STARTED;
+                        //     job.reminders.push(JOB_SCHEDULE_REMINDER.NOT_STARTED);
+                        //     await job.save();
+                        // }
+                        // continue;
                     }
+
+
 
                     if (hourDifference <= 1) {
                         if (!job.reminders.includes(JOB_SCHEDULE_REMINDER.HOURS_1)) {
