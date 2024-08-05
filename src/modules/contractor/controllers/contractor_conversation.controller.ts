@@ -8,7 +8,7 @@ import { validationResult } from "express-validator";
 import { ContractorModel } from "../../../database/contractor/models/contractor.model";
 import CustomerModel from "../../../database/customer/models/customer.model";
 import mongoose, { Schema } from "mongoose";
-import { ContentModeration } from "../../../utils/content_moderation.util";
+import { ConversationUtil } from "../../../utils/conversation.util";
 
 export const getConversations = async (req: any, res: Response, next: NextFunction) => {
     try {
@@ -145,7 +145,7 @@ export const sendMessage = async (req: any, res: Response, next: NextFunction) =
 
 
         if(message){
-            const restrictedContentCheck = ContentModeration.containsRestrictedMessageContent(message);
+            const restrictedContentCheck = ConversationUtil.containsRestrictedMessageContent(message);
             if (restrictedContentCheck.isRestricted) {
                 newMessage.messageType  = MessageType.ALERT
                 newMessage.message  =  restrictedContentCheck.errorMessage

@@ -67,6 +67,7 @@ var stripe_1 = require("../../../services/stripe");
 var events_1 = require("../../../events");
 var job_enquiry_model_1 = require("../../../database/common/job_enquiry.model");
 var contractor_saved_job_model_1 = __importDefault(require("../../../database/contractor/models/contractor_saved_job.model"));
+var conversation_util_1 = require("../../../utils/conversation.util");
 var getJobRequests = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, customerId, status_1, startDate, endDate, date, contractorId, contractorProfile_1, filter, start, end, selectedDate, startOfDay, endOfDay, jobRequests, _b, data, error, error_1;
     return __generator(this, function (_c) {
@@ -153,7 +154,7 @@ var getJobRequests = function (req, res) { return __awaiter(void 0, void 0, void
 }); };
 exports.getJobRequests = getJobRequests;
 var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, jobId, contractorId, contractor, job, customer, account, stripeAccount, jobEvent, conversationMembers, conversation, message, error_2;
+    var errors, jobId, contractorId, contractor, job, customer, account, stripeAccount, jobEvent, conversation, message, error_2;
     var _a, _b;
     return __generator(this, function (_c) {
         switch (_c.label) {
@@ -226,20 +227,7 @@ var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 return [4 /*yield*/, job.save()];
             case 8:
                 _c.sent();
-                conversationMembers = [
-                    { memberType: 'customers', member: job.customer },
-                    { memberType: 'contractors', member: contractorId }
-                ];
-                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
-                        $and: [
-                            { members: { $elemMatch: { member: job.customer } } }, // memberType: 'customers'
-                            { members: { $elemMatch: { member: contractorId } } } // memberType: 'contractors'
-                        ]
-                    }, {
-                        members: conversationMembers,
-                        // lastMessage: 'I have accepted your Job request', // Set the last message to the job description
-                        // lastMessageAt: new Date() // Set the last message timestamp to now
-                    }, { new: true, upsert: true })];
+                return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(job.customer, 'customers', contractorId, 'contractors')];
             case 9:
                 conversation = _c.sent();
                 message = new messages_schema_1.MessageModel({
@@ -269,7 +257,7 @@ var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void
 }); };
 exports.acceptJobRequest = acceptJobRequest;
 var rejectJobRequest = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, jobId, rejectionReason, contractorId, job, jobEvent, conversationMembers, conversation, message, error_3;
+    var errors, jobId, rejectionReason, contractorId, job, jobEvent, conversation, message, error_3;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -308,20 +296,9 @@ var rejectJobRequest = function (req, res) { return __awaiter(void 0, void 0, vo
                 return [4 /*yield*/, job.save()];
             case 2:
                 _a.sent();
-                conversationMembers = [
-                    { memberType: 'customers', member: job.customer },
-                    { memberType: 'contractors', member: contractorId }
+                return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(job.customer, 'customers', contractorId, 'contractors')
+                    // Send a message to the customer
                 ];
-                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
-                        $and: [
-                            { members: { $elemMatch: { member: job.customer } } }, // memberType: 'customers'
-                            { members: { $elemMatch: { member: contractorId } } } // memberType: 'contractors'
-                        ]
-                    }, {
-                        entity: jobId,
-                        entityType: conversations_schema_1.ConversationEntityType.JOB,
-                        members: conversationMembers
-                    }, { new: true, upsert: true })];
             case 3:
                 conversation = _a.sent();
                 message = new messages_schema_1.MessageModel({

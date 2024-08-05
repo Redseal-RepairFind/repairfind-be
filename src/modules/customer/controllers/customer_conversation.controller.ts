@@ -5,7 +5,7 @@ import { CONVERSATION_TYPE, ConversationModel } from "../../../database/common/c
 import { MessageModel, MessageType } from "../../../database/common/messages.schema";
 import { ConversationEvent } from "../../../events";
 import { BadRequestError, InternalServerError } from "../../../utils/custom.errors";
-import { ContentModeration } from "../../../utils/content_moderation.util";
+import { ConversationUtil } from "../../../utils/conversation.util";
 
  
 export const getConversations = async (req: any, res: Response): Promise<void> => {
@@ -153,7 +153,7 @@ export const sendMessage = async (req: any, res: Response, next: NextFunction) =
 
 
         if(message){
-            const restrictedContentCheck = ContentModeration.containsRestrictedMessageContent(message);
+            const restrictedContentCheck = ConversationUtil.containsRestrictedMessageContent(message);
             if (restrictedContentCheck.isRestricted) {
                 newMessage.messageType  = MessageType.ALERT
                 newMessage.message  =  restrictedContentCheck.errorMessage

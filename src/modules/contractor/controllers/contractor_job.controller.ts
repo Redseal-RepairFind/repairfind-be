@@ -17,6 +17,7 @@ import { IStripeAccount } from "../../../database/common/stripe_account.schema";
 import { ConversationEvent, JobEvent } from "../../../events";
 import { JobEnquiryModel } from "../../../database/common/job_enquiry.model";
 import ContractorSavedJobModel from "../../../database/contractor/models/contractor_saved_job.model";
+import { ConversationUtil } from "../../../utils/conversation.util";
 
 
 export const getJobRequests = async (req: any, res: Response) => {
@@ -181,28 +182,8 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
     await job.save();
 
 
-    // Create or update conversation
-    const conversationMembers = [
-      { memberType: 'customers', member: job.customer },
-      { memberType: 'contractors', member: contractorId }
-    ];
-    const conversation = await ConversationModel.findOneAndUpdate(
-      {
-        $and: [
-          { members: { $elemMatch: { member: job.customer } } }, // memberType: 'customers'
-          { members: { $elemMatch: { member: contractorId } } } // memberType: 'contractors'
-        ]
-      },
-
-      {
-        members: conversationMembers,
-        // lastMessage: 'I have accepted your Job request', // Set the last message to the job description
-        // lastMessageAt: new Date() // Set the last message timestamp to now
-      },
-      { new: true, upsert: true });
-
-
     // Send a message to the customer
+    const conversation = await ConversationUtil.updateOrCreateConversation(job.customer, 'customers', contractorId, 'contractors')
     const message = new MessageModel({
       conversation: conversation?._id,
       sender: contractorId,
@@ -274,26 +255,8 @@ export const rejectJobRequest = async (req: any, res: Response) => {
     await job.save();
 
 
-    // Create or update conversation
-    const conversationMembers = [
-      { memberType: 'customers', member: job.customer },
-      { memberType: 'contractors', member: contractorId }
-    ];
-
-    const conversation = await ConversationModel.findOneAndUpdate(
-      {
-        $and: [
-          { members: { $elemMatch: { member: job.customer } } }, // memberType: 'customers'
-          { members: { $elemMatch: { member: contractorId } } } // memberType: 'contractors'
-        ]
-      },
-
-      {
-        entity: jobId,
-        entityType: ConversationEntityType.JOB,
-        members: conversationMembers
-      },
-      { new: true, upsert: true });
+    // Create a message in the conversation
+    const conversation = await ConversationUtil.updateOrCreateConversation(job.customer, 'customers', contractorId, 'contractors')
 
     // Send a message to the customer
     const message = new MessageModel({
@@ -1247,7 +1210,7 @@ export const createJobEnquiry = async (req: any, res: Response, next: NextFuncti
       { new: true, upsert: true }
     );
 
-    
+
 
     JobEvent.emit('NEW_JOB_ENQUIRY', { jobId, enquiryId: enquiry.id });
 

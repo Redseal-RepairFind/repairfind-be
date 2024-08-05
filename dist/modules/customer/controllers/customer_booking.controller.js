@@ -80,6 +80,7 @@ var customer_model_1 = __importDefault(require("../../../database/customer/model
 var job_model_1 = require("../../../database/common/job.model");
 var custom_errors_1 = require("../../../utils/custom.errors");
 var api_feature_1 = require("../../../utils/api.feature");
+var messages_schema_1 = require("../../../database/common/messages.schema");
 var job_quotation_model_1 = require("../../../database/common/job_quotation.model");
 var events_1 = require("../../../events");
 var mongoose_1 = __importDefault(require("mongoose"));
@@ -89,8 +90,9 @@ var job_dispute_model_1 = require("../../../database/common/job_dispute.model");
 var review_model_1 = require("../../../database/common/review.model");
 var customer_favorite_contractors_model_1 = __importDefault(require("../../../database/customer/models/customer_favorite_contractors.model"));
 var job_emergency_model_1 = require("../../../database/common/job_emergency.model");
+var conversation_util_1 = require("../../../utils/conversation.util");
 var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, _b, limit, _c, page, _d, sort, contractorId, _e, status_1, startDate, endDate, date, type, customerId, filter, start, end, selectedDate, startOfDay_1, endOfDay, _f, data, error, error_1;
+    var errors, _a, _b, limit, _c, page, _d, sort, contractorId, _e, status_1, startDate, endDate, date, type, customerId, filter, start, end, selectedDate, startOfDay, endOfDay, _f, data, error, error_1;
     return __generator(this, function (_g) {
         switch (_g.label) {
             case 0:
@@ -128,10 +130,10 @@ var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0,
                 }
                 if (date) {
                     selectedDate = new Date(date);
-                    startOfDay_1 = new Date(selectedDate.setUTCHours(0, 0, 0, 0));
-                    endOfDay = new Date(startOfDay_1);
-                    endOfDay.setDate(startOfDay_1.getUTCDate() + 1);
-                    req.query.date = { $gte: startOfDay_1, $lt: endOfDay };
+                    startOfDay = new Date(selectedDate.setUTCHours(0, 0, 0, 0));
+                    endOfDay = new Date(startOfDay);
+                    endOfDay.setDate(startOfDay.getUTCDate() + 1);
+                    req.query.date = { $gte: startOfDay, $lt: endOfDay };
                 }
                 return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_model_1.JobModel.find(filter).populate(['contractor', 'contract']), req.query)];
             case 1:
@@ -611,12 +613,12 @@ var getRefundable = function (req, res, next) { return __awaiter(void 0, void 0,
 }); };
 exports.getRefundable = getRefundable;
 var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, bookingId, reason, job, _a, customer, contractor, contract, jobDate, charges, paymentType, payments, currentTime, timeDifferenceInHours, refundPolicy, _i, _b, payment, refund, error_9;
+    var customerId, bookingId, reason, job, _a, customer, contractor, contract, jobDate, charges, paymentType, payments, currentTime, timeDifferenceInHours, refundPolicy, _i, _b, payment, refund, conversation, newMessage, error_9;
     var _c;
     return __generator(this, function (_d) {
         switch (_d.label) {
             case 0:
-                _d.trys.push([0, 10, , 11]);
+                _d.trys.push([0, 12, , 13]);
                 customerId = req.customer.id;
                 bookingId = req.params.bookingId;
                 reason = req.body.reason;
@@ -746,12 +748,28 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
                 return [4 /*yield*/, job.save()];
             case 9:
                 _d.sent();
-                res.json({ success: true, message: 'Booking canceled successfully', data: { job: job, payments: payments } });
-                return [3 /*break*/, 11];
+                return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(customerId, 'customers', contractor.id, 'contractors')];
             case 10:
+                conversation = _d.sent();
+                return [4 /*yield*/, messages_schema_1.MessageModel.create({
+                        conversation: conversation.id,
+                        sender: customerId,
+                        senderType: 'customers',
+                        message: "Job canceled by ".concat(customer.name),
+                        messageType: messages_schema_1.MessageType.ALERT,
+                        createdAt: new Date(),
+                        entity: job.id,
+                        entityType: 'jobs'
+                    })];
+            case 11:
+                newMessage = _d.sent();
+                events_1.ConversationEvent.emit('NEW_MESSAGE', { message: newMessage });
+                res.json({ success: true, message: 'Booking canceled successfully', data: { job: job, payments: payments } });
+                return [3 /*break*/, 13];
+            case 12:
                 error_9 = _d.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_9))];
-            case 11: return [2 /*return*/];
+            case 13: return [2 /*return*/];
         }
     });
 }); };

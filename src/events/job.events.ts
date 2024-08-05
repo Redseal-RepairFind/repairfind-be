@@ -1338,10 +1338,10 @@ JobEvent.on('JOB_DAY_STARTED', async function (payload: { job: IJob, jobDay: IJo
             {
                 user: customer.id,
                 userType: 'customers',
-                title: 'jobDay',
+                title: 'Job Day',
                 heading: {},
                 type: 'JOB_DAY_STARTED',
-                message: 'Contractor has started JobDay trip to your site.',
+                message: 'Contractor is on his way',
                 payload: { event: 'JOB_DAY_STARTED', jobDayId: jobDay._id, entityType: 'jobs', entity: job.id }
             },
             {

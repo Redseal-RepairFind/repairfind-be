@@ -49,7 +49,7 @@ var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var mongoose_1 = __importDefault(require("mongoose"));
-var content_moderation_util_1 = require("../../../utils/content_moderation.util");
+var conversation_util_1 = require("../../../utils/conversation.util");
 var getConversations = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, startDate, endDate, read, unread, contractorId_1, filter, _b, data, error, error_1;
     return __generator(this, function (_c) {
@@ -230,7 +230,7 @@ var sendMessage = function (req, res, next) { return __awaiter(void 0, void 0, v
                     createdAt: new Date()
                 });
                 if (message) {
-                    restrictedContentCheck = content_moderation_util_1.ContentModeration.containsRestrictedMessageContent(message);
+                    restrictedContentCheck = conversation_util_1.ConversationUtil.containsRestrictedMessageContent(message);
                     if (restrictedContentCheck.isRestricted) {
                         newMessage.messageType = messages_schema_1.MessageType.ALERT;
                         newMessage.message = restrictedContentCheck.errorMessage;

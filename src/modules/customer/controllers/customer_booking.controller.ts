@@ -1,17 +1,14 @@
 import { validationResult } from "express-validator";
 import { NextFunction, Request, Response } from "express";
 import { ContractorModel } from "../../../database/contractor/models/contractor.model";
-import { htmlJobRequestTemplate } from "../../../templates/contractor/jobRequestTemplate";
 import CustomerModel from "../../../database/customer/models/customer.model";
-import { EmailService, NotificationService } from "../../../services";
-import { addHours, isFuture, isValid, startOfDay } from "date-fns";
 import { IJob, JobModel, JOB_STATUS, JobType, IJobSchedule, JOB_SCHEDULE_TYPE, IJobReSchedule } from "../../../database/common/job.model";
 import { BadRequestError, InternalServerError } from "../../../utils/custom.errors";
 import { applyAPIFeature } from "../../../utils/api.feature";
 import { CONVERSATION_TYPE, ConversationModel } from "../../../database/common/conversations.schema";
 import { IMessage, MessageModel, MessageType } from "../../../database/common/messages.schema";
 import { JOB_QUOTATION_STATUS, JobQuotationModel } from "../../../database/common/job_quotation.model";
-import { JobEvent } from "../../../events";
+import { ConversationEvent, JobEvent } from "../../../events";
 import { htmlJobQuotationAcceptedContractorEmailTemplate } from "../../../templates/contractor/job_quotation_accepted.template";
 import { htmlJobQuotationDeclinedContractorEmailTemplate } from "../../../templates/contractor/job_quotation_declined.template";
 import mongoose from "mongoose";
@@ -24,6 +21,7 @@ import { IReview, REVIEW_TYPE, ReviewModel } from "../../../database/common/revi
 import CustomerFavoriteContractorModel from "../../../database/customer/models/customer_favorite_contractors.model";
 import { JOB_DAY_STATUS, JobDayModel } from "../../../database/common/job_day.model";
 import { JobEmergencyModel } from "../../../database/common/job_emergency.model";
+import { ConversationUtil } from "../../../utils/conversation.util";
 
 
 
@@ -251,7 +249,7 @@ export const getSingleBooking = async (req: any, res: Response, next: NextFuncti
         if (!job) {
             return res.status(404).json({ success: false, message: 'Booking not found' });
         }
-       
+
         let responseData: any = { ...job.toJSON() };
         responseData.dispute = await job.getJobDispute()
         responseData.jobDay = await job.getJobDay()
@@ -664,9 +662,26 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
             payload: { reason, canceledBy: 'customer' }
         });
 
+
+
         // emit job cancelled event 
         JobEvent.emit('JOB_CANCELED', { job, canceledBy: 'customer' })
         await job.save();
+
+
+        // Create a message in the conversation
+        const conversation = await ConversationUtil.updateOrCreateConversation(customerId, 'customers', contractor.id, 'contractors')
+        const newMessage: IMessage = await MessageModel.create({
+            conversation: conversation.id,
+            sender: customerId,
+            senderType: 'customers',
+            message: `Job canceled by ${customer.name}`,
+            messageType: MessageType.ALERT,
+            createdAt: new Date(),
+            entity: job.id,
+            entityType: 'jobs'
+        });
+        ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
 
         res.json({ success: true, message: 'Booking canceled successfully', data: { job, payments } });
     } catch (error: any) {
@@ -975,29 +990,6 @@ export const createBookingDispute = async (req: any, res: Response, next: NextFu
         }, { new: true, upsert: true });
 
 
-        // const contractorId = job.contractor
-        // const conversationMembers = [
-        //     { memberType: 'customers', member: customerId },
-        //     { memberType: 'contractors', member: contractorId }
-        // ];
-
-        // const conversation = await ConversationModel.findOneAndUpdate(
-        //     {
-        //         type: CONVERSATION_TYPE.GROUP_CHAT,
-        //         entity: dispute.id,
-        //         entityType: 'job_disputes',
-        //         $and: [
-        //             { members: { $elemMatch: { member: customerId } } }, // memberType: 'customers'
-        //             { members: { $elemMatch: { member: contractorId } } } // memberType: 'contractors'
-        //         ]
-        //     },
-        //     {
-        //         members: conversationMembers,
-        //         lastMessage: `New Dispute Created: ${description}`, // Set the last message to the job description
-        //         lastMessageAt: new Date() // Set the last message timestamp to now
-        //     },
-        //     { new: true, upsert: true }
-        // );
 
         const disputeEvidence = evidence.map((url: string) => ({
             url,

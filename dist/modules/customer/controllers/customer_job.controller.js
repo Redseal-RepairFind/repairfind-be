@@ -56,6 +56,7 @@ var events_1 = require("../../../events");
 var mongoose_1 = __importDefault(require("mongoose"));
 var contractor_profile_model_1 = require("../../../database/contractor/models/contractor_profile.model");
 var job_enquiry_model_1 = require("../../../database/common/job_enquiry.model");
+var conversation_util_1 = require("../../../utils/conversation.util");
 var createJobRequest = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, contractorId, category, description, location_1, date, _b, expiresIn, emergency, media, voiceDescription, time, customerId, customer, contractor, contractorProfile, currentDate, expiryDate, newJob, conversationMembers, conversation, newMessage, html, error_1;
     var _c, _d;
@@ -121,16 +122,7 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                     { memberType: 'customers', member: customerId },
                     { memberType: 'contractors', member: contractorId }
                 ];
-                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
-                        $and: [
-                            { members: { $elemMatch: { member: customer.id } } }, // memberType: 'customers'
-                            { members: { $elemMatch: { member: contractorId } } } // memberType: 'contractors'
-                        ]
-                    }, {
-                        members: conversationMembers,
-                        lastMessage: "New job request: ".concat(description), // Set the last message to the job description
-                        lastMessageAt: new Date() // Set the last message timestamp to now
-                    }, { new: true, upsert: true })];
+                return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(customerId, 'customers', contractorId, 'contractors')];
             case 5:
                 conversation = _e.sent();
                 return [4 /*yield*/, messages_schema_1.MessageModel.create({
@@ -635,11 +627,11 @@ var acceptJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
 }); };
 exports.acceptJobQuotation = acceptJobQuotation;
 var scheduleJob = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, _a, jobId, quotationId_2, _b, date, time, quotation, job, dateParts, formattedDate, jobDateTime, conversationMembers, conversation, newMessage, foundQuotationIndex, contractor, customer, _c, error_11;
+    var customerId, _a, jobId, quotationId_2, _b, date, time, quotation, job, dateParts, formattedDate, jobDateTime, foundQuotationIndex, contractor, customer, _c, error_11;
     return __generator(this, function (_d) {
         switch (_d.label) {
             case 0:
-                _d.trys.push([0, 10, , 11]);
+                _d.trys.push([0, 8, , 9]);
                 customerId = req.customer.id;
                 _a = req.params, jobId = _a.jobId, quotationId_2 = _a.quotationId;
                 _b = req.body, date = _b.date, time = _b.time;
@@ -661,35 +653,62 @@ var scheduleJob = function (req, res, next) { return __awaiter(void 0, void 0, v
                 formattedDate = dateParts.join('-');
                 jobDateTime = new Date("".concat(formattedDate, "T").concat(time));
                 quotation.startDate = jobDateTime;
-                conversationMembers = [
-                    { memberType: 'customers', member: customerId },
-                    { memberType: 'contractors', member: quotation.contractor }
-                ];
-                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
-                        $and: [
-                            { members: { $elemMatch: { member: customerId } } },
-                            { members: { $elemMatch: { member: quotation.contractor } } }
-                        ]
-                    }, {
-                        members: conversationMembers,
-                    }, { new: true, upsert: true })];
-            case 3:
-                conversation = _d.sent();
-                return [4 /*yield*/, messages_schema_1.MessageModel.create({
-                        conversation: conversation._id,
-                        sender: customerId,
-                        senderType: 'customers',
-                        message: "Job schedule created",
-                        messageType: messages_schema_1.MessageType.ALERT,
-                        createdAt: new Date(),
-                        entity: quotation.id,
-                        entityType: 'quotations'
-                    })];
-            case 4:
-                newMessage = _d.sent();
-                events_1.ConversationEvent.emit('NEW_MESSAGE', { message: newMessage });
+                // const conversationMembers = [
+                //     { memberType: 'customers', member: customerId },
+                //     { memberType: 'contractors', member: quotation.contractor }
+                // ];
+                // const conversation = await ConversationModel.findOneAndUpdate(
+                //     {
+                //         $and: [
+                //             { members: { $elemMatch: { member: customerId } } },
+                //             { members: { $elemMatch: { member: quotation.contractor } } }
+                //         ]
+                //     },
+                //     {
+                //         members: conversationMembers,
+                //     },
+                //     { new: true, upsert: true });
+                // // Create a message in the conversation
+                // const newMessage: IMessage = await MessageModel.create({
+                //     conversation: conversation._id,
+                //     sender: customerId,
+                //     senderType: 'customers',
+                //     message: `Job schedule created`,
+                //     messageType: MessageType.ALERT,
+                //     createdAt: new Date(),
+                //     entity: quotation.id,
+                //     entityType: 'quotations'
+                // });
+                // ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
                 return [4 /*yield*/, quotation.save()];
-            case 5:
+            case 3:
+                // const conversationMembers = [
+                //     { memberType: 'customers', member: customerId },
+                //     { memberType: 'contractors', member: quotation.contractor }
+                // ];
+                // const conversation = await ConversationModel.findOneAndUpdate(
+                //     {
+                //         $and: [
+                //             { members: { $elemMatch: { member: customerId } } },
+                //             { members: { $elemMatch: { member: quotation.contractor } } }
+                //         ]
+                //     },
+                //     {
+                //         members: conversationMembers,
+                //     },
+                //     { new: true, upsert: true });
+                // // Create a message in the conversation
+                // const newMessage: IMessage = await MessageModel.create({
+                //     conversation: conversation._id,
+                //     sender: customerId,
+                //     senderType: 'customers',
+                //     message: `Job schedule created`,
+                //     messageType: MessageType.ALERT,
+                //     createdAt: new Date(),
+                //     entity: quotation.id,
+                //     entityType: 'quotations'
+                // });
+                // ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
                 _d.sent();
                 foundQuotationIndex = job.quotations.findIndex(function (quotation) { return quotation.id == quotationId_2; });
                 if (foundQuotationIndex !== -1) {
@@ -697,27 +716,27 @@ var scheduleJob = function (req, res, next) { return __awaiter(void 0, void 0, v
                 }
                 job.date = jobDateTime;
                 return [4 /*yield*/, job.save()];
-            case 6:
+            case 4:
                 _d.sent();
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(quotation.contractor)];
-            case 7:
+            case 5:
                 contractor = _d.sent();
                 return [4 /*yield*/, customer_model_1.default.findById(customerId)];
-            case 8:
+            case 6:
                 customer = _d.sent();
                 if (contractor && customer) {
                     // JobEvent.emit('JOB_QUOTATION_ACCEPTED', { jobId, contractorId: quotation.contractor, customerId })
                 }
                 _c = quotation;
                 return [4 /*yield*/, quotation.calculateCharges()];
-            case 9:
+            case 7:
                 _c.charges = _d.sent();
                 res.json({ success: true, message: 'Job scheduled' });
-                return [3 /*break*/, 11];
-            case 10:
+                return [3 /*break*/, 9];
+            case 8:
                 error_11 = _d.sent();
                 return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred ', error_11))];
-            case 11: return [2 /*return*/];
+            case 9: return [2 /*return*/];
         }
     });
 }); };

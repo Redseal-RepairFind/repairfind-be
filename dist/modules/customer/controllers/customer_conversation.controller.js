@@ -43,7 +43,7 @@ var conversations_schema_1 = require("../../../database/common/conversations.sch
 var messages_schema_1 = require("../../../database/common/messages.schema");
 var events_1 = require("../../../events");
 var custom_errors_1 = require("../../../utils/custom.errors");
-var content_moderation_util_1 = require("../../../utils/content_moderation.util");
+var conversation_util_1 = require("../../../utils/conversation.util");
 var getConversations = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, startDate, endDate, read, unread, customerId_1, filter, _b, data, error, error_1;
     return __generator(this, function (_c) {
@@ -226,7 +226,7 @@ var sendMessage = function (req, res, next) { return __awaiter(void 0, void 0, v
                     createdAt: new Date()
                 });
                 if (message) {
-                    restrictedContentCheck = content_moderation_util_1.ContentModeration.containsRestrictedMessageContent(message);
+                    restrictedContentCheck = conversation_util_1.ConversationUtil.containsRestrictedMessageContent(message);
                     if (restrictedContentCheck.isRestricted) {
                         newMessage.messageType = messages_schema_1.MessageType.ALERT;
                         newMessage.message = restrictedContentCheck.errorMessage;

@@ -1,3 +1,6 @@
+import { ObjectId } from "mongoose";
+import { ConversationModel, IConversation } from "../database/common/conversations.schema";
+
 // Function to check if the message contains phone numbers, email addresses, contact addresses, or specific keywords
 const containsRestrictedMessageContent = (message: string): { isRestricted: boolean, errorMessage?: string } => {
     // Enhanced regex for matching various phone number formats
@@ -27,6 +30,31 @@ const containsRestrictedMessageContent = (message: string): { isRestricted: bool
 };
 
 
-export const ContentModeration = {
-    containsRestrictedMessageContent
+
+const updateOrCreateConversation = async (userOne: ObjectId, userOneType: string, userTwo: ObjectId, userTwoType: string) => {
+    const conversationMembers = [
+        { memberType: userOneType, member: userOne },
+        { memberType: userTwoType, member: userTwo }
+    ];
+
+    const conversation = await ConversationModel.findOneAndUpdate(
+        {
+            $and: [
+                { members: { $elemMatch: { member: userOne } } },
+                { members: { $elemMatch: { member: userTwo } } }
+            ]
+        },
+        {
+            members: conversationMembers,
+        },
+        { new: true, upsert: true }
+    )
+
+    return conversation as IConversation;
+};
+
+
+export const ConversationUtil = {
+    containsRestrictedMessageContent,
+    updateOrCreateConversation
 }

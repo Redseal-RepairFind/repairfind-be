@@ -17,6 +17,7 @@ import { htmlJobQuotationDeclinedContractorEmailTemplate } from "../../../templa
 import mongoose from "mongoose";
 import { ContractorProfileModel } from "../../../database/contractor/models/contractor_profile.model";
 import { JobEnquiryModel } from "../../../database/common/job_enquiry.model";
+import { ConversationUtil } from "../../../utils/conversation.util";
 
 
 
@@ -59,41 +60,6 @@ export const createJobRequest = async (
         }
 
 
-        // const dateParts = date.split('-').map( (part: any) => part.replace(/^0+/, ''));
-        // const formattedDate = dateParts.join('-');
-
-        // const dateParts = date.split('-').map((part: any) => part.padStart(2, '0'));
-        // const formattedDate = dateParts.join('-');
-
-        // let dateTimeString = `${new Date(formattedDate).toISOString().split('T')[0]}T${'23:59:59.000Z'}`; // Combine date and time
-        // let jobDate = new Date(dateTimeString);
-
-
-        // // Get the end of the current day (11:59:59 PM)
-        // const startOfToday = startOfDay(new Date());
-        // if (!isValid(new Date(jobDate))) {
-        //     return res.status(400).json({ success: false, message: 'Invalid date format' });
-        // }
-
-        // if ((!isFuture(new Date(jobDate)) && new Date(jobDate) < startOfToday)) {
-        //     return res.status(400).json({ success: false, message: 'Selected Job Date is in the past' });
-        // }
-
-        // Check if there is a similar job request sent to the same contractor within the last 72 hours
-        // const existingJobRequest = await JobModel.findOne({
-        //     customer: customerId,
-        //     contractor: contractorId,
-        //     status: JOB_STATUS.PENDING,
-        //     date: { $eq: new Date(jobDate) }, // consider all past jobs
-        //     createdAt: { $gte: addHours(new Date(), -24) }, // Check for job requests within the last 72 hours
-        // });
-
-        // if (existingJobRequest) {
-        //     // return res.status(400).json({ success: false, message: 'A similar job request has already been sent to this contractor within the last 24 hours' });
-        // }
-
-
-
 
 
 
@@ -131,23 +97,9 @@ export const createJobRequest = async (
             { memberType: 'contractors', member: contractorId }
         ];
 
-        const conversation = await ConversationModel.findOneAndUpdate(
-            {
-                $and: [
-                    { members: { $elemMatch: { member: customer.id } } }, // memberType: 'customers'
-                    { members: { $elemMatch: { member: contractorId } } } // memberType: 'contractors'
-                ]
-            },
-
-            {
-                members: conversationMembers,
-                lastMessage: `New job request: ${description}`, // Set the last message to the job description
-                lastMessageAt: new Date() // Set the last message timestamp to now
-            },
-            { new: true, upsert: true }
-        );
 
         // Create a message in the conversation
+        const conversation = await ConversationUtil.updateOrCreateConversation(customerId, 'customers', contractorId, 'contractors')
         const newMessage: IMessage = await MessageModel.create({
             conversation: conversation._id,
             sender: customerId, // Assuming the customer sends the initial message
@@ -163,7 +115,6 @@ export const createJobRequest = async (
         JobEvent.emit('NEW_JOB_REQUEST', { jobId: newJob.id, contractorId, customerId, conversationId: conversation.id })
         const html = htmlJobRequestTemplate(customer.firstName, customer.firstName, `${newJob.date}`, description)
         EmailService.send(contractor.email, 'Job request from customer', html)
-
 
         res.status(201).json({ success: true, message: 'Job request submitted successfully', data: newJob });
     } catch (error: any) {
@@ -564,9 +515,9 @@ export const acceptJobQuotation = async (req: any, res: Response, next: NextFunc
         // Create a message in the conversation
         const newMessage: IMessage = await MessageModel.create({
             conversation: conversation._id,
-            sender: customerId, 
+            sender: customerId,
             senderType: 'customers',
-            message: `Job estimate accepted`, 
+            message: `Job estimate accepted`,
             messageType: MessageType.ALERT,
             createdAt: new Date(),
             entity: quotation.id,
@@ -628,40 +579,40 @@ export const scheduleJob = async (req: any, res: Response, next: NextFunction) =
         // Combine date and time into a single DateTime object
         const jobDateTime = new Date(`${formattedDate}T${time}`);
 
-        
+
         quotation.startDate = jobDateTime;
 
-        const conversationMembers = [
-            { memberType: 'customers', member: customerId },
-            { memberType: 'contractors', member: quotation.contractor }
-        ];
-        const conversation = await ConversationModel.findOneAndUpdate(
-            {
-                $and: [
-                    { members: { $elemMatch: { member: customerId } } },
-                    { members: { $elemMatch: { member: quotation.contractor } } }
-                ]
-            },
-            {
-                members: conversationMembers,
-            },
-            { new: true, upsert: true });
+        // const conversationMembers = [
+        //     { memberType: 'customers', member: customerId },
+        //     { memberType: 'contractors', member: quotation.contractor }
+        // ];
+        // const conversation = await ConversationModel.findOneAndUpdate(
+        //     {
+        //         $and: [
+        //             { members: { $elemMatch: { member: customerId } } },
+        //             { members: { $elemMatch: { member: quotation.contractor } } }
+        //         ]
+        //     },
+        //     {
+        //         members: conversationMembers,
+        //     },
+        //     { new: true, upsert: true });
 
 
-        // Create a message in the conversation
-        const newMessage: IMessage = await MessageModel.create({
-            conversation: conversation._id,
-            sender: customerId,
-            senderType: 'customers',
-            message: `Job schedule created`,
-            messageType: MessageType.ALERT,
-            createdAt: new Date(),
-            entity: quotation.id,
-            entityType: 'quotations'
-        });
+        // // Create a message in the conversation
+        // const newMessage: IMessage = await MessageModel.create({
+        //     conversation: conversation._id,
+        //     sender: customerId,
+        //     senderType: 'customers',
+        //     message: `Job schedule created`,
+        //     messageType: MessageType.ALERT,
+        //     createdAt: new Date(),
+        //     entity: quotation.id,
+        //     entityType: 'quotations'
+        // });
 
 
-        ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
+        // ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
 
         await quotation.save()
 
