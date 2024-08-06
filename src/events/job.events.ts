@@ -108,13 +108,13 @@ JobEvent.on('JOB_REQUEST_ACCEPTED', async function (payload) {
                     contractor: contractor.id,
                     event: 'JOB_REQUEST_ACCEPTED',
                 }
-            }, {push: true, socket: true })
+            }, { push: true, socket: true })
 
             NotificationService.sendNotification({
                 user: customer.id,
                 userType: 'customers',
                 title: 'New Job Request',
-                type: 'JOB_REQUEST_ACCEPTED', 
+                type: 'JOB_REQUEST_ACCEPTED',
                 message: `Contractor has accepted your job request`,
                 heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
                 payload: {
@@ -159,13 +159,13 @@ JobEvent.on('JOB_REQUEST_REJECTED', async function (payload) {
                     contractor: contractor.id,
                     event: 'JOB_REQUEST_ACCEPTED',
                 }
-            }, {push: true, socket: true })
+            }, { push: true, socket: true })
 
             NotificationService.sendNotification({
                 user: customer.id,
                 userType: 'customers',
                 title: 'New Job Request',
-                type: 'JOB_REQUEST_ACCEPTED', 
+                type: 'JOB_REQUEST_ACCEPTED',
                 message: `Contractor has rejected your job request`,
                 heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
                 payload: {
@@ -234,40 +234,54 @@ JobEvent.on('JOB_CANCELED', async function (payload: { job: IJob, canceledBy: st
         Logger.info('handling alert JOB_CANCELED event')
         const customer = await CustomerModel.findById(payload.job.customer) as ICustomer
         const contractor = await ContractorModel.findById(payload.job.contractor) as IContractor
+        const job = payload.job
+
+        if (!customer || !contractor || !job || !payload.canceledBy) return
 
         if (payload.canceledBy == 'contractor') {
             Logger.info('job cancelled by contractor')
-
-            if (customer) {
-                //send email to customer 
-                const html = JobCanceledEmailTemplate({ name: customer.name, canceledBy: 'contractor', job: payload.job })
-                EmailService.send(customer.email, "Job Canceled", html)
-            }
-
-
+            const html = JobCanceledEmailTemplate({ name: customer.name, canceledBy: payload.canceledBy, job: payload.job })
+            EmailService.send(customer.email, "Job Canceled", html)
         }
         if (payload.canceledBy == 'customer') {
             Logger.info('job cancelled by customer')
-
-            if (contractor) {
-                //send email to customer 
-                const html = JobCanceledEmailTemplate({ name: contractor.name, canceledBy: 'customer', job: payload.job })
-                EmailService.send(contractor.email, "Job Canceled", html)
-            }
-
-
-
-
-            // TODO: apply the guideline below and create cancelationData
-            // Cancel jobs: Customers have the option to cancel jobs based on the following guidelines:
-            // Free cancellation up to 48 hours before the scheduled job time..
-            // For cancellations made within 24 hours, regardless of the job's cost, a $50 cancellation fee is applied. 80% of this fee is directed to the contractor, while the remaining 20% is retained by us.
-
-
-
-
-
+            const html = JobCanceledEmailTemplate({ name: contractor.name, canceledBy: 'customer', job: payload.job })
+            EmailService.send(contractor.email, "Job Canceled", html)
+           
         }
+
+        NotificationService.sendNotification({
+            user: customer.id,
+            userType: 'customers',
+            title: 'Job Canceled',
+            type: 'JOB_CANCELED', //
+            message: `Your job on Repairfind has been canceled`,
+            heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
+            payload: {
+                entity: job.id,
+                entityType: 'jobs',
+                message: `Your job on Repairfind has been canceled`,
+                customer: customer.id,
+                event: 'JOB_CANCELED',
+            }
+        }, { push: true, socket: true, database: true })
+
+
+        NotificationService.sendNotification({
+            user: contractor.id,
+            userType: 'contractors',
+            title: 'Job Canceled',
+            type: 'JOB_CANCELED', //
+            message: `Your job on Repairfind has been canceled`,
+            heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
+            payload: {
+                entity: job.id,
+                entityType: 'jobs',
+                message: `Your job on Repairfind has been canceled`,
+                customer: customer.id,
+                event: 'JOB_CANCELED',
+            }
+        }, { push: true, socket: true, database: true })
 
     } catch (error) {
         Logger.error(`Error handling JOB_CANCELED event: ${error}`);
@@ -301,13 +315,13 @@ JobEvent.on('JOB_DISPUTE_REFUND_CREATED', async function (payload: { job: IJob, 
                     contractor: contractor.id,
                     event: 'JOB_DISPUTE_REFUND_CREATED',
                 }
-            }, {push: true, socket: true })
+            }, { push: true, socket: true, database: true })
 
             NotificationService.sendNotification({
                 user: customer.id,
                 userType: 'customers',
                 title: 'Job Dispute Refund Created',
-                type: 'JOB_DISPUTE_REFUND_CREATED', 
+                type: 'JOB_DISPUTE_REFUND_CREATED',
                 message: `Full refund of your disputed job has been approved  on Repairfind`,
                 heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
                 payload: {
@@ -402,7 +416,7 @@ JobEvent.on('JOB_QUOTATION_ACCEPTED', async function (payload: { jobId: ObjectId
               
                 <p>Login to our app to follow up </p>
                 `
-                // <strong>Job date:</strong> ${new Date(job.date).toDateString()}  </br>
+            // <strong>Job date:</strong> ${new Date(job.date).toDateString()}  </br>
 
             let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
             EmailService.send(contractor.email, emailSubject, html)
@@ -497,7 +511,7 @@ JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: 
                     user: customer.id,
                     userType: 'customers',
                     title: `Job Reschedule Request ${payload.action}`,
-                    type: event, 
+                    type: event,
                     message: `Your Job reschedule request on Repairfind has been ${payload.action} by customer`,
                     heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
                     payload: {
@@ -508,7 +522,7 @@ JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: 
                         contractor: contractor.id,
                         event: event,
                     }
-                }, { push: true, socket: true,  database: true })
+                }, { push: true, socket: true, database: true })
 
 
             }
@@ -587,7 +601,7 @@ JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', async function (payload: { job: IJob, 
                         contractor: contractor.id,
                         event: 'NEW_JOB_RESCHEDULE_REQUEST',
                     }
-                }, { push: true, socket: true,  database: true })
+                }, { push: true, socket: true, database: true })
 
             }
             if (payload.job.reschedule?.createdBy == 'customer') { // send mail to  customer
@@ -616,7 +630,7 @@ JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', async function (payload: { job: IJob, 
                         event: 'NEW_JOB_RESCHEDULE_REQUEST',
                     }
                 }, { push: true, socket: true, database: true })
-                
+
             }
 
         }
@@ -681,7 +695,7 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
                     contractor: contractor.id,
                     event: 'JOB_BOOKED',
                 }
-            }, { push: true, socket: true,  database: true })
+            }, { push: true, socket: true, database: true })
 
 
             NotificationService.sendNotification({
@@ -1244,11 +1258,11 @@ JobEvent.on('CHANGE_ORDER_ESTIMATE_PAID', async function (payload: { job: IJob, 
         const job = payload.job
         if (!job) return
 
-        const jobDay = await JobDayModel.findOne({job: job.id})
+        const jobDay = await JobDayModel.findOne({ job: job.id })
         const customer = await CustomerModel.findById(job.customer)
         const contractor = await ContractorModel.findById(job.contractor)
 
-        if (!customer || !contractor ) return
+        if (!customer || !contractor) return
 
 
         NotificationService.sendNotification({
@@ -1267,7 +1281,7 @@ JobEvent.on('CHANGE_ORDER_ESTIMATE_PAID', async function (payload: { job: IJob, 
                 jobId: job.id,
                 jobDayId: jobDay?.id
             }
-        }, { push: true, socket: true,  database: true })
+        }, { push: true, socket: true, database: true })
 
 
     } catch (error) {
@@ -1457,7 +1471,7 @@ JobEvent.on('JOB_DAY_CONFIRMED', async function (payload: { jobDay: IJobDay }) {
                 heading: { name: customer.name, image: customer.profilePhoto?.url },
                 type: 'JOB_DAY_CONFIRMED',
                 message: 'Customer has confirmed your arrival.',
-                payload: { event: 'JOB_DAY_CONFIRMED',  jobDayId: jobDay.id, entityType: 'jobs', entity: job.id  }
+                payload: { event: 'JOB_DAY_CONFIRMED', jobDayId: jobDay.id, entityType: 'jobs', entity: job.id }
             },
             {
                 push: true,
@@ -1466,7 +1480,7 @@ JobEvent.on('JOB_DAY_CONFIRMED', async function (payload: { jobDay: IJobDay }) {
             }
         )
 
-        if(job.assignment){
+        if (job.assignment) {
             NotificationService.sendNotification(
                 {
                     user: job.assignment.contractor,
@@ -1475,7 +1489,7 @@ JobEvent.on('JOB_DAY_CONFIRMED', async function (payload: { jobDay: IJobDay }) {
                     heading: { name: customer.name, image: customer.profilePhoto?.url },
                     type: 'JOB_DAY_CONFIRMED',
                     message: 'Customer has confirmed your arrival.',
-                    payload: { event: 'JOB_DAY_CONFIRMED', jobDayId: jobDay.id, entityType: 'jobs', entity: job.id  }
+                    payload: { event: 'JOB_DAY_CONFIRMED', jobDayId: jobDay.id, entityType: 'jobs', entity: job.id }
                 },
                 {
                     push: true,
@@ -1483,7 +1497,7 @@ JobEvent.on('JOB_DAY_CONFIRMED', async function (payload: { jobDay: IJobDay }) {
                     database: true
                 }
             )
-    
+
         }
 
         // send notification to  customer
@@ -1495,7 +1509,7 @@ JobEvent.on('JOB_DAY_CONFIRMED', async function (payload: { jobDay: IJobDay }) {
                 heading: { name: contractor.name, image: contractor.profilePhoto?.url },
                 type: 'JOB_DAY_CONFIRMED',
                 message: "You successfully confirmed the contractor's arrival.",
-                payload: { event: 'JOB_DAY_CONFIRMED', jobDayId: jobDay.id, entityType: 'jobs', entity: job.id  }
+                payload: { event: 'JOB_DAY_CONFIRMED', jobDayId: jobDay.id, entityType: 'jobs', entity: job.id }
             },
             {
                 push: true,
@@ -1586,7 +1600,7 @@ JobEvent.on('NEW_JOB_ENQUIRY', async function (payload: { jobId: any, enquiryId:
                     type: 'NEW_JOB_ENQUIRY',
                     heading: { name: customer.name, image: customer.profilePhoto?.url },
                     message: 'A Job you  saved on Repairfind has a new enquiry',
-                    payload: { event: 'NEW_JOB_ENQUIRY', entityType: 'jobs', entity: job.id  }
+                    payload: { event: 'NEW_JOB_ENQUIRY', entityType: 'jobs', entity: job.id }
                 },
                 {
                     push: true,
@@ -1596,7 +1610,7 @@ JobEvent.on('NEW_JOB_ENQUIRY', async function (payload: { jobId: any, enquiryId:
             )
         });
 
-    
+
         if (customer) {
             NotificationService.sendNotification(
                 {
@@ -1651,7 +1665,7 @@ JobEvent.on('NEW_JOB_ENQUIRY_REPLY', async function (payload: { jobId: any, enqu
         // send push to all contractors that match the job ?
         const devices = await ContractorDeviceModel.find({ contractor: { $in: contractorIds } })
         const deviceTokens = devices.map(device => device.deviceToken);
-        
+
 
         devices.map(device => {
             NotificationService.sendNotification(
@@ -1662,7 +1676,7 @@ JobEvent.on('NEW_JOB_ENQUIRY_REPLY', async function (payload: { jobId: any, enqu
                     type: 'NEW_JOB_ENQUIRY_REPLY',
                     heading: { name: customer.name, image: customer.profilePhoto?.url },
                     message: 'A job you are following on Repairfind has a new reply from the customer',
-                    payload: { event: 'NEW_JOB_ENQUIRY_REPLY', entityType: 'jobs', entity: job.id  }
+                    payload: { event: 'NEW_JOB_ENQUIRY_REPLY', entityType: 'jobs', entity: job.id }
                 },
                 {
                     push: true,
@@ -1672,7 +1686,7 @@ JobEvent.on('NEW_JOB_ENQUIRY_REPLY', async function (payload: { jobId: any, enqu
             )
         });
 
-        
+
         // sendPushNotifications(deviceTokens, {
         //     title: 'New Job Enquiry Reply',
         //     type: 'NEW_JOB_ENQUIRY_REPLY',

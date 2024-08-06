@@ -324,40 +324,66 @@ exports.JobEvent.on('NEW_JOB_LISTING', function (payload) {
     });
 });
 exports.JobEvent.on('JOB_CANCELED', function (payload) {
+    var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var customer, contractor, html, html, error_5;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        var customer, contractor, job, html, html, error_5;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
                 case 0:
-                    _a.trys.push([0, 3, , 4]);
+                    _c.trys.push([0, 3, , 4]);
                     logger_1.Logger.info('handling alert JOB_CANCELED event');
                     return [4 /*yield*/, customer_model_1.default.findById(payload.job.customer)];
                 case 1:
-                    customer = _a.sent();
+                    customer = _c.sent();
                     return [4 /*yield*/, contractor_model_1.ContractorModel.findById(payload.job.contractor)];
                 case 2:
-                    contractor = _a.sent();
+                    contractor = _c.sent();
+                    job = payload.job;
+                    if (!customer || !contractor || !job || !payload.canceledBy)
+                        return [2 /*return*/];
                     if (payload.canceledBy == 'contractor') {
                         logger_1.Logger.info('job cancelled by contractor');
-                        if (customer) {
-                            html = (0, job_canceled_template_1.JobCanceledEmailTemplate)({ name: customer.name, canceledBy: 'contractor', job: payload.job });
-                            services_1.EmailService.send(customer.email, "Job Canceled", html);
-                        }
+                        html = (0, job_canceled_template_1.JobCanceledEmailTemplate)({ name: customer.name, canceledBy: payload.canceledBy, job: payload.job });
+                        services_1.EmailService.send(customer.email, "Job Canceled", html);
                     }
                     if (payload.canceledBy == 'customer') {
                         logger_1.Logger.info('job cancelled by customer');
-                        if (contractor) {
-                            html = (0, job_canceled_template_1.JobCanceledEmailTemplate)({ name: contractor.name, canceledBy: 'customer', job: payload.job });
-                            services_1.EmailService.send(contractor.email, "Job Canceled", html);
-                        }
-                        // TODO: apply the guideline below and create cancelationData
-                        // Cancel jobs: Customers have the option to cancel jobs based on the following guidelines:
-                        // Free cancellation up to 48 hours before the scheduled job time..
-                        // For cancellations made within 24 hours, regardless of the job's cost, a $50 cancellation fee is applied. 80% of this fee is directed to the contractor, while the remaining 20% is retained by us.
+                        html = (0, job_canceled_template_1.JobCanceledEmailTemplate)({ name: contractor.name, canceledBy: 'customer', job: payload.job });
+                        services_1.EmailService.send(contractor.email, "Job Canceled", html);
                     }
+                    services_1.NotificationService.sendNotification({
+                        user: customer.id,
+                        userType: 'customers',
+                        title: 'Job Canceled',
+                        type: 'JOB_CANCELED', //
+                        message: "Your job on Repairfind has been canceled",
+                        heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_a = customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
+                        payload: {
+                            entity: job.id,
+                            entityType: 'jobs',
+                            message: "Your job on Repairfind has been canceled",
+                            customer: customer.id,
+                            event: 'JOB_CANCELED',
+                        }
+                    }, { push: true, socket: true, database: true });
+                    services_1.NotificationService.sendNotification({
+                        user: contractor.id,
+                        userType: 'contractors',
+                        title: 'Job Canceled',
+                        type: 'JOB_CANCELED', //
+                        message: "Your job on Repairfind has been canceled",
+                        heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_b = customer.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
+                        payload: {
+                            entity: job.id,
+                            entityType: 'jobs',
+                            message: "Your job on Repairfind has been canceled",
+                            customer: customer.id,
+                            event: 'JOB_CANCELED',
+                        }
+                    }, { push: true, socket: true, database: true });
                     return [3 /*break*/, 4];
                 case 3:
-                    error_5 = _a.sent();
+                    error_5 = _c.sent();
                     logger_1.Logger.error("Error handling JOB_CANCELED event: ".concat(error_5));
                     return [3 /*break*/, 4];
                 case 4: return [2 /*return*/];
@@ -397,7 +423,7 @@ exports.JobEvent.on('JOB_DISPUTE_REFUND_CREATED', function (payload) {
                                 contractor: contractor.id,
                                 event: 'JOB_DISPUTE_REFUND_CREATED',
                             }
-                        }, { push: true, socket: true });
+                        }, { push: true, socket: true, database: true });
                         services_1.NotificationService.sendNotification({
                             user: customer.id,
                             userType: 'customers',

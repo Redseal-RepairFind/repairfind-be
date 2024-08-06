@@ -119,14 +119,17 @@ var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0,
                     // req.query.status = status.toUpperCase();
                     delete req.query.status;
                 }
-                if (startDate && endDate) {
+                if (startDate) {
                     start = new Date(startDate);
-                    end = new Date(endDate);
-                    // Ensure that end date is adjusted to include the entire day
-                    end.setDate(end.getDate() + 1);
-                    req.query.createdAt = { $gte: start, $lt: end };
+                    end = new Date(startDate);
+                    if (endDate)
+                        end = new Date(endDate);
+                    start.setHours(0, 0, 0, 0); // Set to midnight
+                    end.setHours(23, 59, 59, 999); // Set to end of the day
+                    filter['schedule.startDate'] = { $gte: start, $lte: end };
                     delete req.query.startDate;
                     delete req.query.endDate;
+                    console.log(req.query);
                 }
                 if (date) {
                     selectedDate = new Date(date);

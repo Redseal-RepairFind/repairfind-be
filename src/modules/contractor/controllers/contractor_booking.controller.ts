@@ -72,17 +72,21 @@ export const getMyBookings = async (req: any, res: Response, next: NextFunction)
             // req.query.status = status.toUpperCase();
             delete req.query.status
         }
-        if (startDate && endDate) {
-            // Parse startDate and endDate into Date objects
-            const start = new Date(startDate);
-            const end = new Date(endDate);
-            // Ensure that end date is adjusted to include the entire day
-            end.setDate(end.getDate() + 1);
-            req.query.createdAt = { $gte: start, $lt: end };
+       
 
-            delete req.query.startDate
-            delete req.query.endDate
+        if (startDate) {
+            const start = new Date(startDate);
+            let end = new Date(startDate);
+            if (endDate) end = new Date(endDate);
+            start.setHours(0, 0, 0, 0); // Set to midnight
+            end.setHours(23, 59, 59, 999); // Set to end of the day
+            filter['schedule.startDate'] = { $gte: start, $lte: end };
+            delete req.query.startDate;
+            delete req.query.endDate;
+        
+            console.log(req.query);
         }
+
 
         if (date) {
             const selectedDate = new Date(date);
