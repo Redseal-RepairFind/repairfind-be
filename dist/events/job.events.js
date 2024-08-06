@@ -92,6 +92,7 @@ var contractor_devices_model_1 = __importDefault(require("../database/contractor
 var contractor_saved_job_model_1 = __importDefault(require("../database/contractor/models/contractor_saved_job.model"));
 var job_enquiry_model_1 = require("../database/common/job_enquiry.model");
 var logger_1 = require("../services/logger");
+var conversation_util_1 = require("../utils/conversation.util");
 exports.JobEvent = new events_1.EventEmitter();
 exports.JobEvent.on('NEW_JOB_REQUEST', function (payload) {
     var _a, _b;
@@ -1231,11 +1232,11 @@ exports.JobEvent.on('CHANGE_ORDER_ESTIMATE_SUBMITTED', function (payload) {
 exports.JobEvent.on('NEW_JOB_QUOTATION', function (payload) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var job, quotation, customer, contractor, error_19;
+        var job, quotation, customer, contractor, conversation, error_19;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
-                    _b.trys.push([0, 3, , 4]);
+                    _b.trys.push([0, 4, , 5]);
                     logger_1.Logger.info('handling NEW_JOB_QUOTATION event', payload.job.id);
                     job = payload.job;
                     quotation = payload.quotation;
@@ -1247,6 +1248,9 @@ exports.JobEvent.on('NEW_JOB_QUOTATION', function (payload) {
                     contractor = _b.sent();
                     if (!customer || !contractor)
                         return [2 /*return*/];
+                    return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(customer.id, 'customers', contractor.id, 'contractors')];
+                case 3:
+                    conversation = _b.sent();
                     services_1.NotificationService.sendNotification({
                         user: customer.id,
                         userType: 'customers',
@@ -1261,14 +1265,16 @@ exports.JobEvent.on('NEW_JOB_QUOTATION', function (payload) {
                             customer: customer.id,
                             event: 'NEW_JOB_QUOTATION',
                             quotationId: quotation.id,
+                            jobType: job.type,
+                            conversation: conversation.id,
                         }
                     }, { push: true, socket: true, database: true });
-                    return [3 /*break*/, 4];
-                case 3:
+                    return [3 /*break*/, 5];
+                case 4:
                     error_19 = _b.sent();
                     logger_1.Logger.error("Error handling NEW_JOB_QUOTATION event: ".concat(error_19));
-                    return [3 /*break*/, 4];
-                case 4: return [2 /*return*/];
+                    return [3 /*break*/, 5];
+                case 5: return [2 /*return*/];
             }
         });
     });

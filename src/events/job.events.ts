@@ -3,7 +3,7 @@ import { EmailService, NotificationService } from '../services';
 import { htmlJobRequestTemplate } from '../templates/contractor/jobRequestTemplate';
 import CustomerModel from '../database/customer/models/customer.model';
 import { ContractorModel } from '../database/contractor/models/contractor.model';
-import { IJob, JOB_SCHEDULE_TYPE, JOB_STATUS, JobModel } from '../database/common/job.model';
+import { IJob, JOB_SCHEDULE_TYPE, JOB_STATUS, JobModel, JobType } from '../database/common/job.model';
 import { ConversationModel } from '../database/common/conversations.schema';
 import { SocketService } from '../services/socket';
 import { IContractor } from '../database/contractor/interface/contractor.interface';
@@ -25,6 +25,7 @@ import ContractorDeviceModel from '../database/contractor/models/contractor_devi
 import ContractorSavedJobModel from '../database/contractor/models/contractor_saved_job.model';
 import { IJobEnquiry, JobEnquiryModel } from '../database/common/job_enquiry.model';
 import { Logger } from '../services/logger';
+import { ConversationUtil } from '../utils/conversation.util';
 
 export const JobEvent: EventEmitter = new EventEmitter();
 
@@ -1152,6 +1153,7 @@ JobEvent.on('NEW_JOB_QUOTATION', async function (payload: { job: IJob, quotation
         const contractor = await ContractorModel.findById(quotation.contractor)
         if (!customer || !contractor) return
 
+        const conversation = await ConversationUtil.updateOrCreateConversation(customer.id, 'customers', contractor.id, 'contractors')
 
         NotificationService.sendNotification({
             user: customer.id,
@@ -1167,28 +1169,10 @@ JobEvent.on('NEW_JOB_QUOTATION', async function (payload: { job: IJob, quotation
                 customer: customer.id,
                 event: 'NEW_JOB_QUOTATION',
                 quotationId: quotation.id,
+                jobType: job.type,
+                conversation: conversation.id,
             }
         }, { push: true, socket: true, database: true })
-
-
-        // if (job.isAssigned) {
-        //     NotificationService.sendNotification({
-        //         user: contractor.id,
-        //         userType: 'contractors',
-        //         title: 'New Job Bid',
-        //         type: 'NEW_JOB_QUOTATION', //
-        //         message: `You have submitted a bid for a job on Repairfind`,
-        //         heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
-        //         payload: {
-        //             entity: job.id,
-        //             entityType: 'jobs',
-        //             message: `You have submitted a bid for a job on Repairfind`,
-        //             customer: customer.id,
-        //             event: 'NEW_JOB_QUOTATION',
-        //             quotationId: quotation.id,
-        //         }
-        //     }, { push: true, socket: true })
-        // }
 
 
     } catch (error) {
