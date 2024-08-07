@@ -255,12 +255,12 @@ var acceptDispute = function (req, res, next) { return __awaiter(void 0, void 0,
 exports.acceptDispute = acceptDispute;
 //admin settle Dispute /////////////
 var settleDispute = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var resolvedWay, disputeId, errors, admin, adminId, jobDispute, error_3;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var _a, resolvedWay, remark, disputeId, errors, admin, adminId, jobDispute, job, jobStatus, error_3;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
-                _a.trys.push([0, 3, , 4]);
-                resolvedWay = req.body.resolvedWay;
+                _b.trys.push([0, 5, , 6]);
+                _a = req.body, resolvedWay = _a.resolvedWay, remark = _a.remark;
                 disputeId = req.params.disputeId;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
@@ -270,7 +270,7 @@ var settleDispute = function (req, res, next) { return __awaiter(void 0, void 0,
                 adminId = admin.id;
                 return [4 /*yield*/, job_dispute_model_1.JobDisputeModel.findOne({ _id: disputeId })];
             case 1:
-                jobDispute = _a.sent();
+                jobDispute = _b.sent();
                 if (!jobDispute) {
                     return [2 /*return*/, res
                             .status(401)
@@ -286,16 +286,41 @@ var settleDispute = function (req, res, next) { return __awaiter(void 0, void 0,
                             .status(401)
                             .json({ success: false, message: "Only dispute arbitrator can settle a dispute" })];
                 }
-                jobDispute.status = job_dispute_model_1.JOB_DISPUTE_STATUS.RESOLVED;
-                jobDispute.resolvedWay = resolvedWay;
-                return [4 /*yield*/, jobDispute.save()];
+                return [4 /*yield*/, job_model_1.JobModel.findById(jobDispute.job)];
             case 2:
-                _a.sent();
-                return [2 /*return*/, res.json({ success: true, message: "Dispute resolved successfully" })];
+                job = _b.sent();
+                if (!job) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found' })];
+                }
+                if (job.status === job_model_1.JOB_STATUS.COMPLETED) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'The booking is already marked as complete' })];
+                }
+                jobDispute.status = job_dispute_model_1.JOB_DISPUTE_STATUS.RESOLVED;
+                jobDispute.resolvedWay = 'DISPUTE_SETTLED';
+                jobDispute.remark = remark;
+                return [4 /*yield*/, jobDispute.save()];
             case 3:
-                error_3 = _a.sent();
+                _b.sent();
+                jobStatus = (job.schedule.type == job_model_1.JOB_SCHEDULE_TYPE.SITE_VISIT) ? job_model_1.JOB_STATUS.COMPLETED_SITE_VISIT : job_model_1.JOB_STATUS.COMPLETED;
+                job.statusUpdate = __assign(__assign({}, job.statusUpdate), { status: jobStatus, isCustomerAccept: true, awaitingConfirmation: false });
+                job.status = jobStatus; // since its customer accepting job completion
+                job.jobHistory.push({
+                    eventType: 'JOB_MARKED_COMPLETE_VIA_DISPUTE',
+                    timestamp: new Date(),
+                    payload: {
+                        markedBy: 'admin',
+                        dispute: jobDispute.id
+                    }
+                });
+                return [4 /*yield*/, job.save()];
+            case 4:
+                _b.sent();
+                events_1.JobEvent.emit('JOB_COMPLETED', { job: job });
+                return [2 /*return*/, res.json({ success: true, message: "Dispute resolved successfully" })];
+            case 5:
+                error_3 = _b.sent();
                 return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred', error_3))];
-            case 4: return [2 /*return*/];
+            case 6: return [2 /*return*/];
         }
     });
 }); };

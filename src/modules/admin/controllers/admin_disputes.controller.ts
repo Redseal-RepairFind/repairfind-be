@@ -214,7 +214,7 @@ export const settleDispute = async (
 ) => {
 
   try {
-    const { resolvedWay } = req.body;
+    const { resolvedWay, remark } = req.body;
     const { disputeId } = req.params;
 
 
@@ -248,9 +248,45 @@ export const settleDispute = async (
         .json({ success: false, message: "Only dispute arbitrator can settle a dispute" });
     }
 
+
+    const job = await JobModel.findById(jobDispute.job);
+    if (!job) {
+      return res.status(404).json({ success: false, message: 'Job not found' });
+  }
+
+    if (job.status === JOB_STATUS.COMPLETED) {
+        return res.status(400).json({ success: false, message: 'The booking is already marked as complete' });
+    }
+
+
     jobDispute.status = JOB_DISPUTE_STATUS.RESOLVED
-    jobDispute.resolvedWay = resolvedWay
+    jobDispute.resolvedWay = 'DISPUTE_SETTLED'
+    jobDispute.remark = remark
     await jobDispute.save()
+
+
+    const jobStatus = (job.schedule.type == JOB_SCHEDULE_TYPE.SITE_VISIT) ? JOB_STATUS.COMPLETED_SITE_VISIT : JOB_STATUS.COMPLETED
+      job.statusUpdate = {
+          ...job.statusUpdate,
+          status: jobStatus,
+          isCustomerAccept: true,
+          awaitingConfirmation: false
+      }
+
+      job.status = jobStatus  // since its customer accepting job completion
+      job.jobHistory.push({
+          eventType: 'JOB_MARKED_COMPLETE_VIA_DISPUTE',
+          timestamp: new Date(),
+          payload: {
+            markedBy: 'admin',
+            dispute: jobDispute.id
+          }
+      });
+
+      await job.save()
+      JobEvent.emit('JOB_COMPLETED', { job })
+
+
 
     return res.json({ success: true, message: "Dispute resolved successfully" });
 
@@ -415,9 +451,6 @@ export const markJobAsComplete = async (req: any, res: Response, next: NextFunct
       if (!admin) {
           return res.status(404).json({ success: false, message: 'Admin not found' });
       }
-
-
-      
 
 
       if (job.status === JOB_STATUS.COMPLETED) {
