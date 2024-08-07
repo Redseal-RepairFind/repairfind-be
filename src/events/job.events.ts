@@ -109,7 +109,7 @@ JobEvent.on('JOB_REQUEST_ACCEPTED', async function (payload) {
                     contractor: contractor.id,
                     event: 'JOB_REQUEST_ACCEPTED',
                 }
-            }, { push: true, socket: true })
+            }, { push: true, socket: true, database: true })
 
             NotificationService.sendNotification({
                 user: customer.id,
@@ -160,7 +160,7 @@ JobEvent.on('JOB_REQUEST_REJECTED', async function (payload) {
                     contractor: contractor.id,
                     event: 'JOB_REQUEST_ACCEPTED',
                 }
-            }, { push: true, socket: true })
+            }, { push: true, socket: true, database: true })
 
             NotificationService.sendNotification({
                 user: customer.id,
@@ -383,7 +383,7 @@ JobEvent.on('JOB_QUOTATION_DECLINED', async function (payload: { jobId: ObjectId
                     customer: customer.id,
                     event: 'JOB_QUOTATION_DECLINED',
                 }
-            }, { push: true, socket: true })
+            }, { push: true, socket: true , database: true })
 
         }
 
@@ -437,7 +437,7 @@ JobEvent.on('JOB_QUOTATION_ACCEPTED', async function (payload: { jobId: ObjectId
                     customer: customer.id,
                     event: 'JOB_QUOTATION_ACCEPTED',
                 }
-            }, { push: true, socket: true })
+            }, { push: true, socket: true, database: true })
 
         }
 
@@ -873,7 +873,7 @@ JobEvent.on('JOB_MARKED_COMPLETE_BY_CONTRACTOR', async function (payload: { job:
                     contractor: contractor.id,
                     event: event,
                 }
-            }, { push: true, socket: true })
+            }, { push: true, socket: true, database: true })
         }
 
 

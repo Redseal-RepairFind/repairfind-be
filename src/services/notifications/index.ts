@@ -102,7 +102,10 @@ export class NotificationService  {
             SocketService.sendNotification(user.email, params.type, {
                 type: 'NEW_NOTIFICATION', 
                 message: params.message, 
-                data: params.payload
+                data: {
+                    type: 'NEW_NOTIFICATION',
+                    ...params.payload
+                }
             });
 
         }

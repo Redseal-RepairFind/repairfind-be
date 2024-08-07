@@ -191,7 +191,7 @@ exports.JobEvent.on('JOB_REQUEST_ACCEPTED', function (payload) {
                                 contractor: contractor.id,
                                 event: 'JOB_REQUEST_ACCEPTED',
                             }
-                        }, { push: true, socket: true });
+                        }, { push: true, socket: true, database: true });
                         services_1.NotificationService.sendNotification({
                             user: customer.id,
                             userType: 'customers',
@@ -249,7 +249,7 @@ exports.JobEvent.on('JOB_REQUEST_REJECTED', function (payload) {
                                 contractor: contractor.id,
                                 event: 'JOB_REQUEST_ACCEPTED',
                             }
-                        }, { push: true, socket: true });
+                        }, { push: true, socket: true, database: true });
                         services_1.NotificationService.sendNotification({
                             user: customer.id,
                             userType: 'customers',
@@ -488,7 +488,7 @@ exports.JobEvent.on('JOB_QUOTATION_DECLINED', function (payload) {
                                 customer: customer.id,
                                 event: 'JOB_QUOTATION_DECLINED',
                             }
-                        }, { push: true, socket: true });
+                        }, { push: true, socket: true, database: true });
                     }
                     return [3 /*break*/, 5];
                 case 4:
@@ -537,7 +537,7 @@ exports.JobEvent.on('JOB_QUOTATION_ACCEPTED', function (payload) {
                                 customer: customer.id,
                                 event: 'JOB_QUOTATION_ACCEPTED',
                             }
-                        }, { push: true, socket: true });
+                        }, { push: true, socket: true, database: true });
                     }
                     return [3 /*break*/, 5];
                 case 4:
@@ -977,7 +977,7 @@ exports.JobEvent.on('JOB_MARKED_COMPLETE_BY_CONTRACTOR', function (payload) {
                                 contractor: contractor.id,
                                 event: event_2,
                             }
-                        }, { push: true, socket: true });
+                        }, { push: true, socket: true, database: true });
                     }
                     return [3 /*break*/, 5];
                 case 4:

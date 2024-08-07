@@ -141,7 +141,7 @@ var NotificationService = /** @class */ (function () {
                         socket_1.SocketService.sendNotification(user.email, params.type, {
                             type: 'NEW_NOTIFICATION',
                             message: params.message,
-                            data: params.payload
+                            data: __assign({ type: 'NEW_NOTIFICATION' }, params.payload)
                         });
                         _a.label = 11;
                     case 11: return [2 /*return*/];
