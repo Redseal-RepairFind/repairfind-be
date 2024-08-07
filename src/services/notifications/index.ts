@@ -99,13 +99,10 @@ export class NotificationService  {
             const notification = new NotificationModel(params.payload)
             await notification.save();
 
-            SocketService.sendNotification(user.email, params.type, {
+            SocketService.sendNotification(user.email, 'NEW_NOTIFICATION', {
                 type: 'NEW_NOTIFICATION', 
                 message: params.message, 
-                data: {
-                    type: 'NEW_NOTIFICATION',
-                    ...params.payload
-                }
+                data: params.payload
             });
 
         }
