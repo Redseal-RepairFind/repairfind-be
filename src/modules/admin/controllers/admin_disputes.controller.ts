@@ -268,7 +268,7 @@ export const createDisputeRefund = async (
 ) => {
 
   try {
-    const { refundAmount, refundPercentage } = req.body;
+    const { refundAmount, refundPercentage, remark } = req.body;
     const { disputeId } = req.params;
 
 
@@ -313,7 +313,8 @@ export const createDisputeRefund = async (
     }
 
     jobDispute.status = JOB_DISPUTE_STATUS.RESOLVED
-    jobDispute.resolvedWay = 'Refunded'
+    jobDispute.resolvedWay = "JOB_REFUNDED"
+    jobDispute.remark = remark
     await jobDispute.save()
 
     const paymentType = (job.schedule.type == 'JOB_DAY') ? [PAYMENT_TYPE.JOB_DAY_PAYMENT, PAYMENT_TYPE.CHANGE_ORDER_PAYMENT] : [PAYMENT_TYPE.SITE_VISIT_PAYMENT]
@@ -394,7 +395,7 @@ export const markJobAsComplete = async (req: any, res: Response, next: NextFunct
   try {
       const adminId = req.admin.id;
       const { disputeId } = req.params;
-      const { reason } = req.body;
+      const { resolvedWay, remark } = req.body;
 
 
       const dispute = await JobDisputeModel.findOne({ _id: disputeId })
@@ -448,8 +449,15 @@ export const markJobAsComplete = async (req: any, res: Response, next: NextFunct
           }
       });
 
-      JobEvent.emit('JOB_COMPLETED', { job })
+      dispute.status = JOB_DISPUTE_STATUS.RESOLVED
+      dispute.resolvedWay = "JOB_MARKED_COMPLETE"
+      dispute.remark = remark
+      await dispute.save()
       await job.save();
+
+
+      JobEvent.emit('JOB_COMPLETED', { job })
+     
 
       res.json({ success: true, message: 'Job marked as complete', data: job });
   } catch (error: any) {

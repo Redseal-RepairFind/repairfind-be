@@ -301,12 +301,12 @@ var settleDispute = function (req, res, next) { return __awaiter(void 0, void 0,
 }); };
 exports.settleDispute = settleDispute;
 var createDisputeRefund = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, refundAmount, refundPercentage, disputeId, errors, admin, adminId, jobDispute, job, paymentType, payments, _i, _b, payment, refund, error_4;
+    var _a, refundAmount, refundPercentage, remark, disputeId, errors, admin, adminId, jobDispute, job, paymentType, payments, _i, _b, payment, refund, error_4;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
                 _c.trys.push([0, 10, , 11]);
-                _a = req.body, refundAmount = _a.refundAmount, refundPercentage = _a.refundPercentage;
+                _a = req.body, refundAmount = _a.refundAmount, refundPercentage = _a.refundPercentage, remark = _a.remark;
                 disputeId = req.params.disputeId;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
@@ -341,7 +341,8 @@ var createDisputeRefund = function (req, res, next) { return __awaiter(void 0, v
                             .json({ success: false, message: "Only dispute arbitrator can settle a dispute" })];
                 }
                 jobDispute.status = job_dispute_model_1.JOB_DISPUTE_STATUS.RESOLVED;
-                jobDispute.resolvedWay = 'Refunded';
+                jobDispute.resolvedWay = "JOB_REFUNDED";
+                jobDispute.remark = remark;
                 return [4 /*yield*/, jobDispute.save()];
             case 3:
                 _c.sent();
@@ -417,17 +418,17 @@ var createDisputeRefund = function (req, res, next) { return __awaiter(void 0, v
 }); };
 exports.createDisputeRefund = createDisputeRefund;
 var markJobAsComplete = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var adminId, disputeId, reason, dispute, job, admin, jobStatus, error_5;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var adminId, disputeId, _a, resolvedWay, remark, dispute, job, admin, jobStatus, error_5;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
-                _a.trys.push([0, 5, , 6]);
+                _b.trys.push([0, 6, , 7]);
                 adminId = req.admin.id;
                 disputeId = req.params.disputeId;
-                reason = req.body.reason;
+                _a = req.body, resolvedWay = _a.resolvedWay, remark = _a.remark;
                 return [4 /*yield*/, job_dispute_model_1.JobDisputeModel.findOne({ _id: disputeId })];
             case 1:
-                dispute = _a.sent();
+                dispute = _b.sent();
                 if (!dispute) {
                     return [2 /*return*/, res
                             .status(401)
@@ -435,13 +436,13 @@ var markJobAsComplete = function (req, res, next) { return __awaiter(void 0, voi
                 }
                 return [4 /*yield*/, job_model_1.JobModel.findById(dispute.job)];
             case 2:
-                job = _a.sent();
+                job = _b.sent();
                 if (!job) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found' })];
                 }
                 return [4 /*yield*/, admin_model_1.default.findById(adminId)];
             case 3:
-                admin = _a.sent();
+                admin = _b.sent();
                 if (!admin) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Admin not found' })];
                 }
@@ -464,17 +465,23 @@ var markJobAsComplete = function (req, res, next) { return __awaiter(void 0, voi
                         dispute: dispute.id
                     }
                 });
-                events_1.JobEvent.emit('JOB_COMPLETED', { job: job });
-                return [4 /*yield*/, job.save()];
+                dispute.status = job_dispute_model_1.JOB_DISPUTE_STATUS.RESOLVED;
+                dispute.resolvedWay = "JOB_MARKED_COMPLETE";
+                dispute.remark = remark;
+                return [4 /*yield*/, dispute.save()];
             case 4:
-                _a.sent();
-                res.json({ success: true, message: 'Job marked as complete', data: job });
-                return [3 /*break*/, 6];
+                _b.sent();
+                return [4 /*yield*/, job.save()];
             case 5:
-                error_5 = _a.sent();
+                _b.sent();
+                events_1.JobEvent.emit('JOB_COMPLETED', { job: job });
+                res.json({ success: true, message: 'Job marked as complete', data: job });
+                return [3 /*break*/, 7];
+            case 6:
+                error_5 = _b.sent();
                 console.log(error_5);
                 return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred', error_5))];
-            case 6: return [2 /*return*/];
+            case 7: return [2 /*return*/];
         }
     });
 }); };

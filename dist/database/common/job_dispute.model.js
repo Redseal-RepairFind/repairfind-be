@@ -58,6 +58,9 @@ var JobDisputeSchema = new mongoose_1.Schema({
     resolvedWay: {
         type: String,
     },
+    remark: {
+        type: String,
+    },
     conversation: {
         type: mongoose_1.Schema.Types.ObjectId
     }

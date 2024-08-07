@@ -25,6 +25,7 @@ export interface IJobDispute extends Document {
     status: JOB_DISPUTE_STATUS;
     arbitrator: Types.ObjectId, 
     resolvedWay: string;
+    remark: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -77,6 +78,9 @@ const JobDisputeSchema = new Schema<IJobDispute>(
             ref: 'admins'
         },
         resolvedWay: {
+            type: String,
+        },
+        remark: {
             type: String,
         },
         conversation: {
