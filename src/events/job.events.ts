@@ -618,7 +618,7 @@ JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', async function (payload: { job: IJob, 
                 NotificationService.sendNotification({
                     user: contractor.id,
                     userType: 'contractors',
-                    title: 'Job Booked',
+                    title: 'Job Reschedule Request',
                     type: 'NEW_JOB_RESCHEDULE_REQUEST', //
                     message: `Customer has requested to reschedule your job on RepairFind`,
                     heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },

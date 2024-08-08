@@ -718,7 +718,7 @@ exports.JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', function (payload) {
                             services_1.NotificationService.sendNotification({
                                 user: contractor.id,
                                 userType: 'contractors',
-                                title: 'Job Booked',
+                                title: 'Job Reschedule Request',
                                 type: 'NEW_JOB_RESCHEDULE_REQUEST', //
                                 message: "Customer has requested to reschedule your job on RepairFind",
                                 heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_d = customer.profilePhoto) === null || _d === void 0 ? void 0 : _d.url },
