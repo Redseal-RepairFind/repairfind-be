@@ -324,7 +324,7 @@ export const requestBookingReschedule = async (req: any, res: Response, next: Ne
         await job.save();
 
         //emit event here
-        JobEvent.emit('NEW_JOB_RESHEDULE_REQUEST', { job })
+        JobEvent.emit('NEW_JOB_RESCHEDULE_REQUEST', { job })
 
 
         res.json({ success: true, message: 'Job reschedule request sent' });
@@ -381,9 +381,9 @@ export const acceptOrDeclineReschedule = async (req: any, res: Response, next: N
                 timestamp: new Date(), // Timestamp of the event
                 payload: job.reschedule // Additional payload specific to the event
             });
-            JobEvent.emit('JOB_RESHEDULE_DECLINED_ACCEPTED', { job, action: 'accepted' })
+            JobEvent.emit('JOB_RESCHEDULE_DECLINED_ACCEPTED', { job, action: 'accepted' })
         } else {
-            JobEvent.emit('JOB_RESHEDULE_DECLINED_ACCEPTED', { job, action: 'declined' })
+            JobEvent.emit('JOB_RESCHEDULE_DECLINED_ACCEPTED', { job, action: 'declined' })
             job.reschedule = null;
         }
 

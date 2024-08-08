@@ -392,7 +392,7 @@ var requestBookingReschedule = function (req, res, next) { return __awaiter(void
                 return [4 /*yield*/, job.save()];
             case 2:
                 _b.sent();
-                events_1.JobEvent.emit('NEW_JOB_RESHEDULE_REQUEST', { job: job });
+                events_1.JobEvent.emit('NEW_JOB_RESCHEDULE_REQUEST', { job: job });
                 res.json({ success: true, message: 'Job reschedule request sent' });
                 return [3 /*break*/, 4];
             case 3:
@@ -443,10 +443,10 @@ var acceptOrDeclineReschedule = function (req, res, next) { return __awaiter(voi
                         timestamp: new Date(), // Timestamp of the event
                         payload: job.reschedule // Additional payload specific to the event
                     });
-                    events_1.JobEvent.emit('JOB_RESHEDULE_DECLINED_ACCEPTED', { job: job, action: 'accepted' });
+                    events_1.JobEvent.emit('JOB_RESCHEDULE_DECLINED_ACCEPTED', { job: job, action: 'accepted' });
                 }
                 else {
-                    events_1.JobEvent.emit('JOB_RESHEDULE_DECLINED_ACCEPTED', { job: job, action: 'declined' });
+                    events_1.JobEvent.emit('JOB_RESCHEDULE_DECLINED_ACCEPTED', { job: job, action: 'declined' });
                     job.reschedule = null;
                 }
                 return [4 /*yield*/, job.save()];
