@@ -110,6 +110,7 @@ export const endCall = async (
 ) => {
     try {
         const { callId } = req.params;
+        const { event } = req.body;
         const call = await CallModel.findById(callId);
         if (!call) return res.status(404).json({ success: false, message: 'Call not found' });
 
@@ -123,39 +124,52 @@ export const endCall = async (
         const toUser = call.toUserType === 'contractors' ? await ContractorModel.findById(call.toUser) : await CustomerModel.findById(call.toUser);
         if (!fromUser || !toUser) return res.status(404).json({ success: false, message: 'Call parties not found' });
 
-        NotificationService.sendNotification({
-            user: call.fromUser,
-            userType: call.fromUserType, 
-            title: 'Call Ended',
-            type: 'CALL_ENDED',
-            message: `Your call with ${toUser.name} has ended`,
-            heading: { name: `${toUser.name}`, image: toUser.profilePhoto?.url },
-            payload: {
-                entity: call.id,
-                entityType: 'calls',
-                message: `Your call with ${toUser.name} has ended`,
-                name: `${toUser.name}`,
-                image: toUser.profilePhoto?.url,
-                event: 'CALL_ENDED',
-            },
-        }, { database: true, push: true, socket: true });
+        let message = ``
+        if(fromUser){
+            message = `Your call with ${toUser.name} has ended`
+            if(event == 'missed')   message = `Your call to  ${toUser.name} was not answered`
+            if(event == 'rejected')   message = `Your call to  ${toUser.name} was declined`
 
-        NotificationService.sendNotification({
-            user: call.toUser,
-            userType: call.toUserType,
-            title: 'Call Ended',
-            type: 'CALL_ENDED',
-            message: `Your call with ${fromUser.name} has ended`,
-            heading: { name: `${fromUser.name}`, image: fromUser.profilePhoto?.url },
-            payload: {
-                entity: call.id,
-                entityType: 'calls',
-                message: `Your call with ${fromUser.name} has ended`,
-                name: `${fromUser.name}`,
-                image: fromUser.profilePhoto?.url,
-                event: 'CALL_ENDED',
-            },
-        }, { database: true, push: true, socket: true });
+            NotificationService.sendNotification({
+                user: call.fromUser,
+                userType: call.fromUserType, 
+                title: 'Call Ended',
+                type: 'CALL_ENDED',
+                message,
+                heading: { name: `${toUser.name}`, image: toUser.profilePhoto?.url },
+                payload: {
+                    entity: call.id,
+                    entityType: 'calls',
+                    message,
+                    name: `${toUser.name}`,
+                    image: toUser.profilePhoto?.url,
+                    event: 'CALL_ENDED',
+                },
+            }, { database: true, push: true, socket: true });
+        }
+       
+        if(toUser){
+            message = `Your call with ${toUser.name} has ended`
+            if(event == 'missed')   message = `You have a missed call from  ${fromUser.name}`
+            if(event == 'rejected')   message = `You declined a call from  ${fromUser.name}`
+
+            NotificationService.sendNotification({
+                user: call.toUser,
+                userType: call.toUserType,
+                title: 'Call Ended',
+                type: 'CALL_ENDED',
+                message,
+                heading: { name: `${fromUser.name}`, image: fromUser.profilePhoto?.url },
+                payload: {
+                    entity: call.id,
+                    entityType: 'calls',
+                    message,
+                    name: `${fromUser.name}`,
+                    image: fromUser.profilePhoto?.url,
+                    event: 'CALL_ENDED',
+                },
+            }, { database: true, push: true, socket: true });
+        }
 
         res.status(200).json({ success: true, message: 'Call ended successfully' });
     } catch (err: any) {

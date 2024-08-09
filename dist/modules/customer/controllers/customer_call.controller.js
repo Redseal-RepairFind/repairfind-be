@@ -168,13 +168,14 @@ var startCall = function (req, res, next) { return __awaiter(void 0, void 0, voi
 }); };
 exports.startCall = startCall;
 var endCall = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var callId, call, fromUser, _a, toUser, _b, err_4;
+    var callId, event_1, call, fromUser, _a, toUser, _b, message, err_4;
     var _c, _d, _e, _f;
     return __generator(this, function (_g) {
         switch (_g.label) {
             case 0:
                 _g.trys.push([0, 11, , 12]);
                 callId = req.params.callId;
+                event_1 = req.body.event;
                 return [4 /*yield*/, call_schema_1.CallModel.findById(callId)];
             case 1:
                 call = _g.sent();
@@ -210,38 +211,53 @@ var endCall = function (req, res, next) { return __awaiter(void 0, void 0, void 
                 toUser = _b;
                 if (!fromUser || !toUser)
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Call parties not found' })];
-                services_1.NotificationService.sendNotification({
-                    user: call.fromUser,
-                    userType: call.fromUserType,
-                    title: 'Call Ended',
-                    type: 'CALL_ENDED',
-                    message: "Your call with ".concat(toUser.name, " has ended"),
-                    heading: { name: "".concat(toUser.name), image: (_c = toUser.profilePhoto) === null || _c === void 0 ? void 0 : _c.url },
-                    payload: {
-                        entity: call.id,
-                        entityType: 'calls',
-                        message: "Your call with ".concat(toUser.name, " has ended"),
-                        name: "".concat(toUser.name),
-                        image: (_d = toUser.profilePhoto) === null || _d === void 0 ? void 0 : _d.url,
-                        event: 'CALL_ENDED',
-                    },
-                }, { database: true, push: true, socket: true });
-                services_1.NotificationService.sendNotification({
-                    user: call.toUser,
-                    userType: call.toUserType,
-                    title: 'Call Ended',
-                    type: 'CALL_ENDED',
-                    message: "Your call with ".concat(fromUser.name, " has ended"),
-                    heading: { name: "".concat(fromUser.name), image: (_e = fromUser.profilePhoto) === null || _e === void 0 ? void 0 : _e.url },
-                    payload: {
-                        entity: call.id,
-                        entityType: 'calls',
-                        message: "Your call with ".concat(fromUser.name, " has ended"),
-                        name: "".concat(fromUser.name),
-                        image: (_f = fromUser.profilePhoto) === null || _f === void 0 ? void 0 : _f.url,
-                        event: 'CALL_ENDED',
-                    },
-                }, { database: true, push: true, socket: true });
+                message = "";
+                if (fromUser) {
+                    message = "Your call with ".concat(toUser.name, " has ended");
+                    if (event_1 == 'missed')
+                        message = "Your call to  ".concat(toUser.name, " was not answered");
+                    if (event_1 == 'rejected')
+                        message = "Your call to  ".concat(toUser.name, " was declined");
+                    services_1.NotificationService.sendNotification({
+                        user: call.fromUser,
+                        userType: call.fromUserType,
+                        title: 'Call Ended',
+                        type: 'CALL_ENDED',
+                        message: message,
+                        heading: { name: "".concat(toUser.name), image: (_c = toUser.profilePhoto) === null || _c === void 0 ? void 0 : _c.url },
+                        payload: {
+                            entity: call.id,
+                            entityType: 'calls',
+                            message: message,
+                            name: "".concat(toUser.name),
+                            image: (_d = toUser.profilePhoto) === null || _d === void 0 ? void 0 : _d.url,
+                            event: 'CALL_ENDED',
+                        },
+                    }, { database: true, push: true, socket: true });
+                }
+                if (toUser) {
+                    message = "Your call with ".concat(toUser.name, " has ended");
+                    if (event_1 == 'missed')
+                        message = "You have a missed call from  ".concat(fromUser.name);
+                    if (event_1 == 'rejected')
+                        message = "You declined a call from  ".concat(fromUser.name);
+                    services_1.NotificationService.sendNotification({
+                        user: call.toUser,
+                        userType: call.toUserType,
+                        title: 'Call Ended',
+                        type: 'CALL_ENDED',
+                        message: message,
+                        heading: { name: "".concat(fromUser.name), image: (_e = fromUser.profilePhoto) === null || _e === void 0 ? void 0 : _e.url },
+                        payload: {
+                            entity: call.id,
+                            entityType: 'calls',
+                            message: message,
+                            name: "".concat(fromUser.name),
+                            image: (_f = fromUser.profilePhoto) === null || _f === void 0 ? void 0 : _f.url,
+                            event: 'CALL_ENDED',
+                        },
+                    }, { database: true, push: true, socket: true });
+                }
                 res.status(200).json({ success: true, message: 'Call ended successfully' });
                 return [3 /*break*/, 12];
             case 11:

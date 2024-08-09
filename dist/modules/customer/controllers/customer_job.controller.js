@@ -651,6 +651,8 @@ var scheduleJob = function (req, res, next) { return __awaiter(void 0, void 0, v
                 }
                 dateParts = date.split('-').map(function (part) { return part.padStart(2, '0'); });
                 formattedDate = dateParts.join('-');
+                // Combine date and time into a single DateTime object
+                // const jobDateTime = new Date(`${formattedDate}T${time}`);
                 quotation.startDate = jobDateTime;
                 return [4 /*yield*/, quotation.save()];
             case 3:

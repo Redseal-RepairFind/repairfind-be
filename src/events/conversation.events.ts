@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import { ConversationModel } from '../database/common/conversations.schema';
+import { CONVERSATION_TYPE, ConversationModel } from '../database/common/conversations.schema';
 import { param } from 'express-validator';
 import { NotificationService } from '../services/notifications';
 import { ContractorModel } from '../database/contractor/models/contractor.model';
@@ -59,20 +59,42 @@ ConversationEvent.on('NEW_MESSAGE', async function (params) {
             if (!message.isOwn) {
 
                 //TODO: still separate this and only send push for aggregated unread message notification user
-                NotificationService.sendNotification({
-                    user: toUserId,
-                    userType: toUserType,
-                    title: 'New unread message',
-                    type: 'NEW_UNREAD_MESSAGE',
-                    message: `You have a new unread message from ${sender.name}`,
-                    heading: { name: `${user.name}`, image: user.profilePhoto?.url },
-                    payload: {
-                        entity: conversation.id,
-                        entityType: 'conversations',
-                        message: message,
-                        event: 'NEW_UNREAD_MESSAGE',
-                    }
-                }, { socket: true, push: true })
+
+                if(conversation.type == CONVERSATION_TYPE.DIRECT_MESSAGE){
+                    NotificationService.sendNotification({
+                        user: toUserId,
+                        userType: toUserType,
+                        title: 'New unread message',
+                        type: 'NEW_UNREAD_MESSAGE',
+                        message: `You have a new unread message from ${sender.name}`,
+                        heading: { name: `${user.name}`, image: user.profilePhoto?.url },
+                        payload: {
+                            entity: conversation.id,
+                            entityType: 'conversations',
+                            message: message,
+                            event: 'NEW_UNREAD_MESSAGE',
+                        }
+                    }, { socket: true, push: true, database:true })
+                }
+                
+                if(conversation.type == CONVERSATION_TYPE.TICKET){
+                    NotificationService.sendNotification({
+                        user: toUserId,
+                        userType: toUserType,
+                        title: 'New unread dispute message',
+                        type: 'NEW_DISPUTE_MESSAGE',
+                        message: `You have a new unread job dispute message from ${sender.name}`,
+                        heading: { name: `${user.name}`, image: user.profilePhoto?.url },
+                        payload: {
+                            entity: conversation.id,
+                            entityType: 'conversations',
+                            message: message,
+                            event: 'NEW_DISPUTE_MESSAGE',
+                        }
+                    }, { socket: true, push: true, database:true })
+                }
+
+                
             }
             message.isOwn = false
 

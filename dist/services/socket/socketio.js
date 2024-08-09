@@ -103,6 +103,9 @@ var SocketIOService = /** @class */ (function () {
                     channels_1.push(cha);
                 });
                 logger_1.Logger.info("User ".concat(socket.user.email, " joined channels: ").concat(channels_1));
+                // setInterval(()=>{
+                //     console.log(`Send red alerts to user  ${socket.user.email} every 5 secs`);
+                // }, 2000)
             }
             // Handle notification events from client here
             socket.on("join_channel", function (channel) {

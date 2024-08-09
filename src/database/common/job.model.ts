@@ -14,6 +14,7 @@ export interface IJobLocation extends Document {
     country?: string;
     latitude: string;
     longitude: string;
+    description?: string;
 }
 
 
@@ -243,6 +244,7 @@ const JobLocationSchema = new Schema<IJobLocation>({
     country: { type: String },
     latitude: { type: String },
     longitude: { type: String },
+    description: { type: String },
 });
 
 

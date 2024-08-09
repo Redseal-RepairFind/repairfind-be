@@ -60,6 +60,10 @@ class SocketIOService {
                     channels.push(cha)
                 })
                 Logger.info(`User ${socket.user.email} joined channels: ${channels}`);
+
+                // setInterval(()=>{
+                //     console.log(`Send red alerts to user  ${socket.user.email} every 5 secs`);
+                // }, 2000)
             }
 
             // Handle notification events from client here

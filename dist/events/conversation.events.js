@@ -90,19 +90,19 @@ exports.ConversationEvent.on('NEW_MESSAGE', function (params) {
                         return [2 /*return*/];
                     members.forEach(function (member) { return __awaiter(_this, void 0, void 0, function () {
                         var user, _a, _b, toUserId, toUserType;
-                        var _c, _d;
-                        return __generator(this, function (_e) {
-                            switch (_e.label) {
+                        var _c, _d, _e;
+                        return __generator(this, function (_f) {
+                            switch (_f.label) {
                                 case 0:
                                     if (!(member.memberType === 'contractors')) return [3 /*break*/, 2];
                                     return [4 /*yield*/, contractor_model_1.ContractorModel.findById(member.member)];
                                 case 1:
-                                    _a = _e.sent();
+                                    _a = _f.sent();
                                     return [3 /*break*/, 4];
                                 case 2: return [4 /*yield*/, customer_model_1.default.findById(member.member)];
                                 case 3:
-                                    _a = _e.sent();
-                                    _e.label = 4;
+                                    _a = _f.sent();
+                                    _f.label = 4;
                                 case 4:
                                     user = _a;
                                     if (!user)
@@ -110,7 +110,7 @@ exports.ConversationEvent.on('NEW_MESSAGE', function (params) {
                                     _b = message_1;
                                     return [4 /*yield*/, message_1.getIsOwn(user.id)];
                                 case 5:
-                                    _b.isOwn = _e.sent();
+                                    _b.isOwn = _f.sent();
                                     toUserId = member.member;
                                     toUserType = member.memberType;
                                     notifications_1.NotificationService.sendNotification({
@@ -130,20 +130,38 @@ exports.ConversationEvent.on('NEW_MESSAGE', function (params) {
                                     // send push notification and unread message alert to the other user
                                     if (!message_1.isOwn) {
                                         //TODO: still separate this and only send push for aggregated unread message notification user
-                                        notifications_1.NotificationService.sendNotification({
-                                            user: toUserId,
-                                            userType: toUserType,
-                                            title: 'New unread message',
-                                            type: 'NEW_UNREAD_MESSAGE',
-                                            message: "You have a new unread message from ".concat(sender_1.name),
-                                            heading: { name: "".concat(user.name), image: (_d = user.profilePhoto) === null || _d === void 0 ? void 0 : _d.url },
-                                            payload: {
-                                                entity: conversation_1.id,
-                                                entityType: 'conversations',
-                                                message: message_1,
-                                                event: 'NEW_UNREAD_MESSAGE',
-                                            }
-                                        }, { socket: true, push: true });
+                                        if (conversation_1.type == conversations_schema_1.CONVERSATION_TYPE.DIRECT_MESSAGE) {
+                                            notifications_1.NotificationService.sendNotification({
+                                                user: toUserId,
+                                                userType: toUserType,
+                                                title: 'New unread message',
+                                                type: 'NEW_UNREAD_MESSAGE',
+                                                message: "You have a new unread message from ".concat(sender_1.name),
+                                                heading: { name: "".concat(user.name), image: (_d = user.profilePhoto) === null || _d === void 0 ? void 0 : _d.url },
+                                                payload: {
+                                                    entity: conversation_1.id,
+                                                    entityType: 'conversations',
+                                                    message: message_1,
+                                                    event: 'NEW_UNREAD_MESSAGE',
+                                                }
+                                            }, { socket: true, push: true, database: true });
+                                        }
+                                        if (conversation_1.type == conversations_schema_1.CONVERSATION_TYPE.TICKET) {
+                                            notifications_1.NotificationService.sendNotification({
+                                                user: toUserId,
+                                                userType: toUserType,
+                                                title: 'New unread dispute message',
+                                                type: 'NEW_DISPUTE_MESSAGE',
+                                                message: "You have a new unread job dispute message from ".concat(sender_1.name),
+                                                heading: { name: "".concat(user.name), image: (_e = user.profilePhoto) === null || _e === void 0 ? void 0 : _e.url },
+                                                payload: {
+                                                    entity: conversation_1.id,
+                                                    entityType: 'conversations',
+                                                    message: message_1,
+                                                    event: 'NEW_DISPUTE_MESSAGE',
+                                                }
+                                            }, { socket: true, push: true, database: true });
+                                        }
                                     }
                                     message_1.isOwn = false;
                                     return [2 /*return*/];

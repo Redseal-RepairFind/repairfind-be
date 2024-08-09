@@ -150,6 +150,7 @@ var JobLocationSchema = new mongoose_1.Schema({
     country: { type: String },
     latitude: { type: String },
     longitude: { type: String },
+    description: { type: String },
 });
 var JobHistorySchema = new mongoose_1.Schema({
     eventType: { type: String, required: false }, // Identify the type of event - JOB_REJECTED, JOB_ACCEPTED, JOB_CLOSED, JOB_EXPIRED

@@ -576,6 +576,9 @@ export const scheduleJob = async (req: any, res: Response, next: NextFunction) =
         const dateParts = date.split('-').map((part: any) => part.padStart(2, '0'));
         const formattedDate = dateParts.join('-');
 
+        // Combine date and time into a single DateTime object
+        // const jobDateTime = new Date(`${formattedDate}T${time}`);
+
         quotation.startDate = jobDateTime;
         await quotation.save()
 
