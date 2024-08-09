@@ -556,7 +556,7 @@ export const scheduleJob = async (req: any, res: Response, next: NextFunction) =
     try {
         const customerId = req.customer.id;
         const { jobId, quotationId } = req.params;
-        const { date, time } = req.body;
+        const { date, time, jobDateTime } = req.body;
 
         const quotation = await JobQuotationModel.findOne({ _id: quotationId, job: jobId });
         const job = await JobModel.findById(jobId);
@@ -576,44 +576,7 @@ export const scheduleJob = async (req: any, res: Response, next: NextFunction) =
         const dateParts = date.split('-').map((part: any) => part.padStart(2, '0'));
         const formattedDate = dateParts.join('-');
 
-        // Combine date and time into a single DateTime object
-        const jobDateTime = new Date(`${formattedDate}T${time}`);
-
-
         quotation.startDate = jobDateTime;
-
-        // const conversationMembers = [
-        //     { memberType: 'customers', member: customerId },
-        //     { memberType: 'contractors', member: quotation.contractor }
-        // ];
-        // const conversation = await ConversationModel.findOneAndUpdate(
-        //     {
-        //         $and: [
-        //             { members: { $elemMatch: { member: customerId } } },
-        //             { members: { $elemMatch: { member: quotation.contractor } } }
-        //         ]
-        //     },
-        //     {
-        //         members: conversationMembers,
-        //     },
-        //     { new: true, upsert: true });
-
-
-        // // Create a message in the conversation
-        // const newMessage: IMessage = await MessageModel.create({
-        //     conversation: conversation._id,
-        //     sender: customerId,
-        //     senderType: 'customers',
-        //     message: `Job schedule created`,
-        //     messageType: MessageType.ALERT,
-        //     createdAt: new Date(),
-        //     entity: quotation.id,
-        //     entityType: 'quotations'
-        // });
-
-
-        // ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
-
         await quotation.save()
 
         const foundQuotationIndex = job.quotations.findIndex(quotation => quotation.id == quotationId);

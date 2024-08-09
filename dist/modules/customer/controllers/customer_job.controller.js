@@ -627,14 +627,14 @@ var acceptJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
 }); };
 exports.acceptJobQuotation = acceptJobQuotation;
 var scheduleJob = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, _a, jobId, quotationId_2, _b, date, time, quotation, job, dateParts, formattedDate, jobDateTime, foundQuotationIndex, contractor, customer, _c, error_11;
+    var customerId, _a, jobId, quotationId_2, _b, date, time, jobDateTime, quotation, job, dateParts, formattedDate, foundQuotationIndex, contractor, customer, _c, error_11;
     return __generator(this, function (_d) {
         switch (_d.label) {
             case 0:
                 _d.trys.push([0, 8, , 9]);
                 customerId = req.customer.id;
                 _a = req.params, jobId = _a.jobId, quotationId_2 = _a.quotationId;
-                _b = req.body, date = _b.date, time = _b.time;
+                _b = req.body, date = _b.date, time = _b.time, jobDateTime = _b.jobDateTime;
                 return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne({ _id: quotationId_2, job: jobId })];
             case 1:
                 quotation = _d.sent();
@@ -651,64 +651,9 @@ var scheduleJob = function (req, res, next) { return __awaiter(void 0, void 0, v
                 }
                 dateParts = date.split('-').map(function (part) { return part.padStart(2, '0'); });
                 formattedDate = dateParts.join('-');
-                jobDateTime = new Date("".concat(formattedDate, "T").concat(time));
                 quotation.startDate = jobDateTime;
-                // const conversationMembers = [
-                //     { memberType: 'customers', member: customerId },
-                //     { memberType: 'contractors', member: quotation.contractor }
-                // ];
-                // const conversation = await ConversationModel.findOneAndUpdate(
-                //     {
-                //         $and: [
-                //             { members: { $elemMatch: { member: customerId } } },
-                //             { members: { $elemMatch: { member: quotation.contractor } } }
-                //         ]
-                //     },
-                //     {
-                //         members: conversationMembers,
-                //     },
-                //     { new: true, upsert: true });
-                // // Create a message in the conversation
-                // const newMessage: IMessage = await MessageModel.create({
-                //     conversation: conversation._id,
-                //     sender: customerId,
-                //     senderType: 'customers',
-                //     message: `Job schedule created`,
-                //     messageType: MessageType.ALERT,
-                //     createdAt: new Date(),
-                //     entity: quotation.id,
-                //     entityType: 'quotations'
-                // });
-                // ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
                 return [4 /*yield*/, quotation.save()];
             case 3:
-                // const conversationMembers = [
-                //     { memberType: 'customers', member: customerId },
-                //     { memberType: 'contractors', member: quotation.contractor }
-                // ];
-                // const conversation = await ConversationModel.findOneAndUpdate(
-                //     {
-                //         $and: [
-                //             { members: { $elemMatch: { member: customerId } } },
-                //             { members: { $elemMatch: { member: quotation.contractor } } }
-                //         ]
-                //     },
-                //     {
-                //         members: conversationMembers,
-                //     },
-                //     { new: true, upsert: true });
-                // // Create a message in the conversation
-                // const newMessage: IMessage = await MessageModel.create({
-                //     conversation: conversation._id,
-                //     sender: customerId,
-                //     senderType: 'customers',
-                //     message: `Job schedule created`,
-                //     messageType: MessageType.ALERT,
-                //     createdAt: new Date(),
-                //     entity: quotation.id,
-                //     entityType: 'quotations'
-                // });
-                // ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
                 _d.sent();
                 foundQuotationIndex = job.quotations.findIndex(function (quotation) { return quotation.id == quotationId_2; });
                 if (foundQuotationIndex !== -1) {
