@@ -127,6 +127,9 @@ router.post("/signout", checkContractorRole, (req: Request, res: Response, next:
 router.post("/feedback", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
     ContractorController(req, res, next).submitFeedback();
 });
+router.post("/feedback", checkContractorRole, (req: Request, res: Response, next: NextFunction) => {
+    ContractorController(req, res, next).submitFeedback();
+});
 
 
 //  QUiz
@@ -204,6 +207,7 @@ router.get('/quotations/:quotationId', checkContractorRole, ContractorJobControl
 
 // Notifications
 router.get('/notifications', checkContractorRole, ContractorNotificationController.getNotifications)
+router.get('/notifications/alerts', checkContractorRole, ContractorNotificationController.redAlerts)
 router.get('/notifications/:notificationId', checkContractorRole, ContractorNotificationController.getSingleNotification)
 router.post('/notifications/mark-all-read', checkContractorRole, ContractorNotificationController.markAllNotificationsAsRead)
 router.post('/notifications/:notificationId', checkContractorRole, ContractorNotificationController.getSingleNotification)

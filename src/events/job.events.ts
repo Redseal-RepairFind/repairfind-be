@@ -368,6 +368,7 @@ JobEvent.on('JOB_QUOTATION_DECLINED', async function (payload: { jobId: ObjectId
             let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
             EmailService.send(contractor.email, emailSubject, html)
 
+            const conversation = await ConversationUtil.updateOrCreateConversation(customer.id, 'customers', contractor.id, 'contractors')
 
             NotificationService.sendNotification({
                 user: contractor.id,
@@ -380,7 +381,8 @@ JobEvent.on('JOB_QUOTATION_DECLINED', async function (payload: { jobId: ObjectId
                     entity: job.id,
                     entityType: 'jobs',
                     message: `Your job quotation for a job  on RepairFind was declined`,
-                    customer: customer.id,
+                    customerId: customer.id,
+                    conversationId: conversation.id,
                     event: 'JOB_QUOTATION_DECLINED',
                 }
             }, { push: true, socket: true , database: true })
@@ -422,6 +424,7 @@ JobEvent.on('JOB_QUOTATION_ACCEPTED', async function (payload: { jobId: ObjectId
             let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
             EmailService.send(contractor.email, emailSubject, html)
 
+            const conversation = await ConversationUtil.updateOrCreateConversation(customer.id, 'customers', contractor.id, 'contractors')
 
             NotificationService.sendNotification({
                 user: contractor.id,
@@ -434,7 +437,8 @@ JobEvent.on('JOB_QUOTATION_ACCEPTED', async function (payload: { jobId: ObjectId
                     entity: job.id,
                     entityType: 'jobs',
                     message: `Your job quotation for a job  on RepairFind was accepted`,
-                    customer: customer.id,
+                    customerId: customer.id,
+                    conversationId: conversation.id,
                     event: 'JOB_QUOTATION_ACCEPTED',
                 }
             }, { push: true, socket: true, database: true })
@@ -509,8 +513,8 @@ JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: 
                 EmailService.send(contractor.email, emailSubject, html)
 
                 NotificationService.sendNotification({
-                    user: customer.id,
-                    userType: 'customers',
+                    user: contractor.id,
+                    userType: 'contractors',
                     title: `Job Reschedule Request ${payload.action}`,
                     type: event,
                     message: `Your Job reschedule request on Repairfind has been ${payload.action} by customer`,
@@ -539,16 +543,16 @@ JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: 
 
 
                 NotificationService.sendNotification({
-                    user: contractor.id,
-                    userType: 'contractors',
+                    user: customer.id,
+                    userType: 'customers',
                     title: `Job Reschedule Request ${payload.action}`,
                     type: event, //
-                    message: `Your Job reschedule request on Repairfind has been ${payload.action} by customer`,
+                    message: `Your Job reschedule request on Repairfind has been ${payload.action} by contractor`,
                     heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
                     payload: {
                         entity: job.id,
                         entityType: 'jobs',
-                        message: `Your Job reschedule request on Repairfind has been ${payload.action} by customer`,
+                        message: `Your Job reschedule request on Repairfind has been ${payload.action} by contractor`,
                         contractor: contractor.id,
                         customer: customer.id,
                         event: event,

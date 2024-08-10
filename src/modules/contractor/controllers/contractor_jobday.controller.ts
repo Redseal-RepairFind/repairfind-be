@@ -301,28 +301,7 @@ export const createJobDispute = async (req: any, res: Response, next: NextFuncti
 
         
         const customerId = job.customer
-        const conversationMembers = [
-            { memberType: 'customers', member: customerId },
-            { memberType: 'contractors', member: contractorId }
-        ];
-
-        const conversation = await ConversationModel.findOneAndUpdate(
-            {
-                type: CONVERSATION_TYPE.GROUP_CHAT,
-                entity: dispute.id,
-                entityType: 'job_disputes',
-                $and: [
-                    { members: { $elemMatch: { member: customerId } } }, // memberType: 'customers'
-                    { members: { $elemMatch: { member: contractorId } } } // memberType: 'contractors'
-                ]
-            },
-            {
-                members: conversationMembers,
-                lastMessage: `New Dispute Created: ${description}`, // Set the last message to the job description
-                lastMessageAt: new Date() // Set the last message timestamp to now
-            },
-            { new: true, upsert: true }
-        );
+       
 
         const disputeEvidence = evidence.map((url: string) => ({
             url,
@@ -332,9 +311,7 @@ export const createJobDispute = async (req: any, res: Response, next: NextFuncti
 
         dispute.evidence.push(...disputeEvidence);
 
-        dispute.conversation = conversation.id
         await dispute.save()
-
 
         job.status = JOB_STATUS.DISPUTED
         await job.save()

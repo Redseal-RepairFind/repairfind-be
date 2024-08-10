@@ -9,6 +9,8 @@ import CustomerModel from "../../../database/customer/models/customer.model";
 import { NotificationService } from "../../../services";
 import { CallModel } from "../../../database/common/call.schema";
 import { v4 as uuid } from 'uuid';
+import { ConversationUtil } from "../../../utils/conversation.util";
+import { ObjectId } from "mongoose";
 
 
 export const createRtmToken = async (
@@ -128,7 +130,7 @@ export const endCall = async (
         const fromUser = call.fromUserType === 'contractors' ? await ContractorModel.findById(call.fromUser) : await CustomerModel.findById(call.fromUser);
         const toUser = call.toUserType === 'contractors' ? await ContractorModel.findById(call.toUser) : await CustomerModel.findById(call.toUser);
         if (!fromUser || !toUser) return res.status(404).json({ success: false, message: 'Call parties not found' });
-
+        const conversation = await ConversationUtil.updateOrCreateConversation(fromUser.id, call.fromUserType, toUser.id, call.toUserType )
         let message = ``
         if(fromUser){
             message = `Your call with ${toUser.name} has ended`
@@ -145,6 +147,7 @@ export const endCall = async (
                 payload: {
                     entity: call.id,
                     entityType: 'calls',
+                    conversationId: conversation.id,
                     message,
                     name: `${toUser.name}`,
                     image: toUser.profilePhoto?.url,
@@ -168,6 +171,7 @@ export const endCall = async (
                 payload: {
                     entity: call.id,
                     entityType: 'calls',
+                    conversationId: conversation.id,
                     message,
                     name: `${fromUser.name}`,
                     image: fromUser.profilePhoto?.url,

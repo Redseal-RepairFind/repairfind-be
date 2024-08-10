@@ -293,12 +293,12 @@ var createJobEmergency = function (req, res, next) { return __awaiter(void 0, vo
 }); };
 exports.createJobEmergency = createJobEmergency;
 var createJobDispute = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, description, reason, evidence, jobDayId, contractorId, errors, jobDay, job, dispute, customerId, conversationMembers, conversation, disputeEvidence, error_2;
+    var _a, description, reason, evidence, jobDayId, contractorId, errors, jobDay, job, dispute, customerId, disputeEvidence, error_2;
     var _b;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
-                _c.trys.push([0, 7, , 8]);
+                _c.trys.push([0, 6, , 7]);
                 _a = req.body, description = _a.description, reason = _a.reason, evidence = _a.evidence;
                 jobDayId = req.params.jobDayId;
                 contractorId = req.contractor.id;
@@ -336,46 +336,26 @@ var createJobDispute = function (req, res, next) { return __awaiter(void 0, void
             case 3:
                 dispute = _c.sent();
                 customerId = job.customer;
-                conversationMembers = [
-                    { memberType: 'customers', member: customerId },
-                    { memberType: 'contractors', member: contractorId }
-                ];
-                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
-                        type: conversations_schema_1.CONVERSATION_TYPE.GROUP_CHAT,
-                        entity: dispute.id,
-                        entityType: 'job_disputes',
-                        $and: [
-                            { members: { $elemMatch: { member: customerId } } }, // memberType: 'customers'
-                            { members: { $elemMatch: { member: contractorId } } } // memberType: 'contractors'
-                        ]
-                    }, {
-                        members: conversationMembers,
-                        lastMessage: "New Dispute Created: ".concat(description), // Set the last message to the job description
-                        lastMessageAt: new Date() // Set the last message timestamp to now
-                    }, { new: true, upsert: true })];
-            case 4:
-                conversation = _c.sent();
                 disputeEvidence = evidence.map(function (url) { return ({
                     url: url,
                     addedBy: 'customer',
                     addedAt: new Date(),
                 }); });
                 (_b = dispute.evidence).push.apply(_b, disputeEvidence);
-                dispute.conversation = conversation.id;
                 return [4 /*yield*/, dispute.save()];
-            case 5:
+            case 4:
                 _c.sent();
                 job.status = job_model_1.JOB_STATUS.DISPUTED;
                 return [4 /*yield*/, job.save()];
-            case 6:
+            case 5:
                 _c.sent();
                 events_1.JobEvent.emit('JOB_DISPUTE_CREATED', { dispute: dispute });
                 return [2 /*return*/, res.status(201).json({ success: true, message: 'Job dispute created successfully', data: dispute })];
-            case 7:
+            case 6:
                 error_2 = _c.sent();
                 next(new custom_errors_1.InternalServerError('Error creating job dispute:', error_2));
-                return [3 /*break*/, 8];
-            case 8: return [2 /*return*/];
+                return [3 /*break*/, 7];
+            case 7: return [2 /*return*/];
         }
     });
 }); };

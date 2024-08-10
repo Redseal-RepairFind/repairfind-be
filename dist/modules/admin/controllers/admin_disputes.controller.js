@@ -80,11 +80,11 @@ var api_feature_1 = require("../../../utils/api.feature");
 var job_model_1 = require("../../../database/common/job.model");
 var custom_errors_1 = require("../../../utils/custom.errors");
 var job_day_model_1 = require("../../../database/common/job_day.model");
-var conversations_schema_1 = require("../../../database/common/conversations.schema");
 var payment_schema_1 = require("../../../database/common/payment.schema");
 var transaction_model_1 = __importStar(require("../../../database/common/transaction.model"));
 var events_1 = require("../../../events");
 var admin_model_1 = __importDefault(require("../../../database/admin/models/admin.model"));
+var conversation_util_1 = require("../../../utils/conversation.util");
 var getJobDisputes = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, adminId, filter, _a, data, error, err_1;
     return __generator(this, function (_b) {
@@ -115,11 +115,11 @@ var getJobDisputes = function (req, res) { return __awaiter(void 0, void 0, void
 exports.getJobDisputes = getJobDisputes;
 //get single dispute /////////////
 var getSingleDispute = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var disputeId, errors, admin, adminId, dispute, jobDay, arbitratorCustomerConversation, arbitratorContractorConversation, _a, _b, customerContractorConversation, jobDispute, error_1;
-    return __generator(this, function (_c) {
-        switch (_c.label) {
+    var disputeId, errors, admin, adminId, dispute, jobDay, jobDispute, error_1;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
             case 0:
-                _c.trys.push([0, 9, , 10]);
+                _a.trys.push([0, 3, , 4]);
                 disputeId = req.params.disputeId;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
@@ -142,92 +142,38 @@ var getSingleDispute = function (req, res, next) { return __awaiter(void 0, void
                         }
                     ])];
             case 1:
-                dispute = _c.sent();
+                dispute = _a.sent();
                 if (!dispute) {
                     return [2 /*return*/, res
                             .status(404)
                             .json({ success: false, message: " Job dispute not found" })];
                 }
-                return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ job: dispute.job })
-                    // create conversations here
-                ];
+                return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ job: dispute.job })];
             case 2:
-                jobDay = _c.sent();
-                arbitratorCustomerConversation = null;
-                arbitratorContractorConversation = null;
-                if (!dispute.arbitrator) return [3 /*break*/, 7];
-                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
-                        entity: dispute.id,
-                        entityType: 'job_disputes',
-                        $and: [
-                            { members: { $elemMatch: { member: dispute.customer } } },
-                            { members: { $elemMatch: { member: dispute.arbitrator } } }
-                        ]
-                    }, {
-                        type: conversations_schema_1.CONVERSATION_TYPE.TICKET,
-                        entity: dispute.id,
-                        entityType: 'job_disputes',
-                        members: [{ memberType: 'customers', member: dispute.customer }, { memberType: 'admins', member: dispute.arbitrator }],
-                    }, { new: true, upsert: true })];
-            case 3:
-                arbitratorCustomerConversation = _c.sent();
-                _a = arbitratorCustomerConversation;
-                return [4 /*yield*/, arbitratorCustomerConversation.getHeading(dispute.arbitrator)];
-            case 4:
-                _a.heading = _c.sent();
-                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
-                        entity: dispute.id,
-                        entityType: 'job_disputes',
-                        $and: [
-                            { members: { $elemMatch: { member: dispute.contractor } } },
-                            { members: { $elemMatch: { member: dispute.arbitrator } } }
-                        ]
-                    }, {
-                        type: conversations_schema_1.CONVERSATION_TYPE.TICKET,
-                        entity: dispute.id,
-                        entityType: 'job_disputes',
-                        members: [{ memberType: 'contractors', member: dispute.contractor }, { memberType: 'admins', member: dispute.arbitrator }],
-                    }, { new: true, upsert: true })];
-            case 5:
-                arbitratorContractorConversation = _c.sent();
-                _b = arbitratorContractorConversation;
-                return [4 /*yield*/, arbitratorContractorConversation.getHeading(dispute.arbitrator)];
-            case 6:
-                _b.heading = _c.sent();
-                _c.label = 7;
-            case 7: return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
-                    $and: [
-                        { members: { $elemMatch: { member: dispute.contractor } } },
-                        { members: { $elemMatch: { member: dispute.customer } } }
-                    ]
-                }, {
-                    members: [{ memberType: 'customers', member: dispute.customer }, { memberType: 'contractors', member: dispute.contractor }],
-                }, { new: true, upsert: true })];
-            case 8:
-                customerContractorConversation = _c.sent();
-                jobDispute = __assign({ conversations: { customerContractorConversation: customerContractorConversation, arbitratorContractorConversation: arbitratorContractorConversation, arbitratorCustomerConversation: arbitratorCustomerConversation }, jobDay: jobDay }, dispute === null || dispute === void 0 ? void 0 : dispute.toJSON());
+                jobDay = _a.sent();
+                jobDispute = __assign({ jobDay: jobDay }, dispute === null || dispute === void 0 ? void 0 : dispute.toJSON());
                 res.json({ success: true, message: "Job dispute retrieved", data: jobDispute });
-                return [3 /*break*/, 10];
-            case 9:
-                error_1 = _c.sent();
+                return [3 /*break*/, 4];
+            case 3:
+                error_1 = _a.sent();
                 return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred', error_1))];
-            case 10: return [2 /*return*/];
+            case 4: return [2 /*return*/];
         }
     });
 }); };
 exports.getSingleDispute = getSingleDispute;
 var acceptDispute = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var disputeId, adminId, jobDispute, error_2;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var disputeId, adminId, jobDispute, _a, customerContractor, arbitratorContractor, arbitratorCustomer, error_2;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
-                _a.trys.push([0, 3, , 4]);
+                _b.trys.push([0, 4, , 5]);
                 disputeId = req.params.disputeId;
                 adminId = req.admin.id;
                 return [4 /*yield*/, job_dispute_model_1.JobDisputeModel.findOne({ _id: disputeId })
                         .populate(['customer', 'contractor'])];
             case 1:
-                jobDispute = _a.sent();
+                jobDispute = _b.sent();
                 if (!jobDispute) {
                     return [2 /*return*/, res
                             .status(401)
@@ -240,15 +186,19 @@ var acceptDispute = function (req, res, next) { return __awaiter(void 0, void 0,
                 }
                 jobDispute.status = job_dispute_model_1.JOB_DISPUTE_STATUS.ONGOING;
                 jobDispute.arbitrator = adminId;
-                return [4 /*yield*/, jobDispute.save()];
+                return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateDisputeConversations(jobDispute)];
             case 2:
-                _a.sent();
-                res.json({ success: true, message: "Dispute accepted successfully" });
-                return [3 /*break*/, 4];
+                _a = _b.sent(), customerContractor = _a.customerContractor, arbitratorContractor = _a.arbitratorContractor, arbitratorCustomer = _a.arbitratorCustomer;
+                jobDispute.conversations = { customerContractor: customerContractor, arbitratorContractor: arbitratorContractor, arbitratorCustomer: arbitratorCustomer };
+                return [4 /*yield*/, jobDispute.save()];
             case 3:
-                error_2 = _a.sent();
+                _b.sent();
+                res.json({ success: true, message: "Dispute accepted successfully" });
+                return [3 /*break*/, 5];
+            case 4:
+                error_2 = _b.sent();
                 return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred', error_2))];
-            case 4: return [2 /*return*/];
+            case 5: return [2 /*return*/];
         }
     });
 }); };

@@ -8,8 +8,10 @@ import { JobDayModel } from "../../../database/common/job_day.model";
 import { CONVERSATION_TYPE, ConversationModel } from "../../../database/common/conversations.schema";
 import { PAYMENT_TYPE } from "../../../database/common/payment.schema";
 import TransactionModel, { TRANSACTION_STATUS, TRANSACTION_TYPE } from "../../../database/common/transaction.model";
-import { JobEvent } from "../../../events";
+import { ConversationEvent, JobEvent } from "../../../events";
 import AdminModel from "../../../database/admin/models/admin.model";
+import { MessageModel, MessageType } from "../../../database/common/messages.schema";
+import { ConversationUtil } from "../../../utils/conversation.util";
 
 
 
@@ -82,83 +84,11 @@ export const getSingleDispute = async (
         .json({ success: false, message: " Job dispute not found" });
     }
 
-
-
     const jobDay = await JobDayModel.findOne({ job: dispute.job })
-
-    // create conversations here
-    let arbitratorCustomerConversation = null
-    let arbitratorContractorConversation = null
-
-    if (dispute.arbitrator) {
-
-      arbitratorCustomerConversation = await ConversationModel.findOneAndUpdate(
-        {
-          entity: dispute.id,
-          entityType: 'job_disputes',
-          $and: [
-            { members: { $elemMatch: { member: dispute.customer } } },
-            { members: { $elemMatch: { member: dispute.arbitrator } } }
-          ]
-        },
-
-        {
-          type: CONVERSATION_TYPE.TICKET,
-          entity: dispute.id,
-          entityType: 'job_disputes',
-          members: [{ memberType: 'customers', member: dispute.customer }, { memberType: 'admins', member: dispute.arbitrator }],
-        },
-        { new: true, upsert: true }
-      );
-      arbitratorCustomerConversation.heading = await arbitratorCustomerConversation.getHeading(dispute.arbitrator)
-
-
-      arbitratorContractorConversation = await ConversationModel.findOneAndUpdate(
-        {
-          entity: dispute.id,
-          entityType: 'job_disputes',
-          $and: [
-            { members: { $elemMatch: { member: dispute.contractor } } },
-            { members: { $elemMatch: { member: dispute.arbitrator } } }
-          ]
-        },
-
-        {
-          type: CONVERSATION_TYPE.TICKET,
-          entity: dispute.id,
-          entityType: 'job_disputes',
-          members: [{ memberType: 'contractors', member: dispute.contractor }, { memberType: 'admins', member: dispute.arbitrator }],
-        },
-        { new: true, upsert: true }
-      );
-      arbitratorContractorConversation.heading = await arbitratorContractorConversation.getHeading(dispute.arbitrator)
-    }
-
-
-    const customerContractorConversation = await ConversationModel.findOneAndUpdate(
-      {
-        $and: [
-          { members: { $elemMatch: { member: dispute.contractor } } },
-          { members: { $elemMatch: { member: dispute.customer } } }
-        ]
-      },
-
-      {
-        members: [{ memberType: 'customers', member: dispute.customer }, { memberType: 'contractors', member: dispute.contractor }],
-      },
-      { new: true, upsert: true }
-    );
-
-
-
     const jobDispute = {
-      conversations: { customerContractorConversation, arbitratorContractorConversation, arbitratorCustomerConversation },
       jobDay,
       ...dispute?.toJSON()
     }
-
-
-
     res.json({ success: true, message: "Job dispute retrieved", data: jobDispute });
 
   } catch (error: any) {
@@ -194,10 +124,10 @@ export const acceptDispute = async (
 
     jobDispute.status = JOB_DISPUTE_STATUS.ONGOING
     jobDispute.arbitrator = adminId
+    const { customerContractor, arbitratorContractor, arbitratorCustomer } = await ConversationUtil.updateOrCreateDisputeConversations(jobDispute)
+    jobDispute.conversations = { customerContractor, arbitratorContractor, arbitratorCustomer }
+
     await jobDispute.save()
-
-
-
     res.json({ success: true, message: "Dispute accepted successfully" });
 
   } catch (error: any) {
@@ -252,10 +182,10 @@ export const settleDispute = async (
     const job = await JobModel.findById(jobDispute.job);
     if (!job) {
       return res.status(404).json({ success: false, message: 'Job not found' });
-  }
+    }
 
     if (job.status === JOB_STATUS.COMPLETED) {
-        return res.status(400).json({ success: false, message: 'The booking is already marked as complete' });
+      return res.status(400).json({ success: false, message: 'The booking is already marked as complete' });
     }
 
 
@@ -266,25 +196,25 @@ export const settleDispute = async (
 
 
     const jobStatus = (job.schedule.type == JOB_SCHEDULE_TYPE.SITE_VISIT) ? JOB_STATUS.COMPLETED_SITE_VISIT : JOB_STATUS.COMPLETED
-      job.statusUpdate = {
-          ...job.statusUpdate,
-          status: jobStatus,
-          isCustomerAccept: true,
-          awaitingConfirmation: false
+    job.statusUpdate = {
+      ...job.statusUpdate,
+      status: jobStatus,
+      isCustomerAccept: true,
+      awaitingConfirmation: false
+    }
+
+    job.status = jobStatus  // since its customer accepting job completion
+    job.jobHistory.push({
+      eventType: 'JOB_MARKED_COMPLETE_VIA_DISPUTE',
+      timestamp: new Date(),
+      payload: {
+        markedBy: 'admin',
+        dispute: jobDispute.id
       }
+    });
 
-      job.status = jobStatus  // since its customer accepting job completion
-      job.jobHistory.push({
-          eventType: 'JOB_MARKED_COMPLETE_VIA_DISPUTE',
-          timestamp: new Date(),
-          payload: {
-            markedBy: 'admin',
-            dispute: jobDispute.id
-          }
-      });
-
-      await job.save()
-      JobEvent.emit('JOB_COMPLETED', { job })
+    await job.save()
+    JobEvent.emit('JOB_COMPLETED', { job })
 
 
 
@@ -331,7 +261,7 @@ export const createDisputeRefund = async (
     if (!job) {
       return res
         .status(400)
-        .json({success: false, message: "Disputed Job not found" });
+        .json({ success: false, message: "Disputed Job not found" });
     }
 
 
@@ -429,73 +359,73 @@ export const createDisputeRefund = async (
 
 export const markJobAsComplete = async (req: any, res: Response, next: NextFunction) => {
   try {
-      const adminId = req.admin.id;
-      const { disputeId } = req.params;
-      const { resolvedWay, remark } = req.body;
+    const adminId = req.admin.id;
+    const { disputeId } = req.params;
+    const { resolvedWay, remark } = req.body;
 
 
-      const dispute = await JobDisputeModel.findOne({ _id: disputeId })
+    const dispute = await JobDisputeModel.findOne({ _id: disputeId })
 
     if (!dispute) {
       return res
         .status(401)
-        .json({success: false, message: "Invalid disputeId" });
+        .json({ success: false, message: "Invalid disputeId" });
     }
 
-      const job = await JobModel.findById(dispute.job);
-      if (!job) {
-        return res.status(404).json({ success: false, message: 'Job not found' });
+    const job = await JobModel.findById(dispute.job);
+    if (!job) {
+      return res.status(404).json({ success: false, message: 'Job not found' });
     }
 
-      const admin = await AdminModel.findById(adminId);
-      if (!admin) {
-          return res.status(404).json({ success: false, message: 'Admin not found' });
+    const admin = await AdminModel.findById(adminId);
+    if (!admin) {
+      return res.status(404).json({ success: false, message: 'Admin not found' });
+    }
+
+
+    if (job.status === JOB_STATUS.COMPLETED) {
+      return res.status(400).json({ success: false, message: 'The booking is already marked as complete' });
+    }
+
+
+    if (job.status == JOB_STATUS.REFUNDED) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Job is already refunded" });
+    }
+
+    const jobStatus = (job.schedule.type == JOB_SCHEDULE_TYPE.SITE_VISIT) ? JOB_STATUS.COMPLETED_SITE_VISIT : JOB_STATUS.COMPLETED
+    job.statusUpdate = {
+      ...job.statusUpdate,
+      status: jobStatus,
+      isCustomerAccept: true,
+      awaitingConfirmation: false
+    }
+
+    job.status = jobStatus  // since its customer accepting job completion
+    job.jobHistory.push({
+      eventType: 'JOB_MARKED_COMPLETE_VIA_DISPUTE',
+      timestamp: new Date(),
+      payload: {
+        markedBy: 'admin',
+        dispute: dispute.id
       }
+    });
+
+    dispute.status = JOB_DISPUTE_STATUS.RESOLVED
+    dispute.resolvedWay = "JOB_MARKED_COMPLETE"
+    dispute.remark = remark
+    await dispute.save()
+    await job.save();
 
 
-      if (job.status === JOB_STATUS.COMPLETED) {
-          return res.status(400).json({ success: false, message: 'The booking is already marked as complete' });
-      }
+    JobEvent.emit('JOB_COMPLETED', { job })
 
 
-      if (job.status == JOB_STATUS.REFUNDED) {
-        return res
-          .status(401)
-          .json({ success: false, message: "Job is already refunded" });
-      }
-      
-      const jobStatus = (job.schedule.type == JOB_SCHEDULE_TYPE.SITE_VISIT) ? JOB_STATUS.COMPLETED_SITE_VISIT : JOB_STATUS.COMPLETED
-      job.statusUpdate = {
-          ...job.statusUpdate,
-          status: jobStatus,
-          isCustomerAccept: true,
-          awaitingConfirmation: false
-      }
-
-      job.status = jobStatus  // since its customer accepting job completion
-      job.jobHistory.push({
-          eventType: 'JOB_MARKED_COMPLETE_VIA_DISPUTE',
-          timestamp: new Date(),
-          payload: {
-            markedBy: 'admin',
-            dispute: dispute.id
-          }
-      });
-
-      dispute.status = JOB_DISPUTE_STATUS.RESOLVED
-      dispute.resolvedWay = "JOB_MARKED_COMPLETE"
-      dispute.remark = remark
-      await dispute.save()
-      await job.save();
-
-
-      JobEvent.emit('JOB_COMPLETED', { job })
-     
-
-      res.json({ success: true, message: 'Job marked as complete', data: job });
+    res.json({ success: true, message: 'Job marked as complete', data: job });
   } catch (error: any) {
-      console.log(error)
-      return next(new InternalServerError('An error occurred', error));
+    console.log(error)
+    return next(new InternalServerError('An error occurred', error));
   }
 };
 

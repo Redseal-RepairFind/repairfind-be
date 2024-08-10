@@ -3,6 +3,9 @@ import { NextFunction, Request, Response } from "express";
 import { APIFeatures, applyAPIFeature } from "../../../utils/api.feature";
 import CustomError, { InternalServerError, NotFoundError } from "../../../utils/custom.errors";
 import NotificationModel from "../../../database/common/notification.model";
+import { CONVERSATION_TYPE, ConversationModel } from "../../../database/common/conversations.schema";
+import { MessageModel } from "../../../database/common/messages.schema";
+import { NotificationUtil } from "../../../utils/notification.util";
 
 
 export const getNotifications = async (req: any, res: Response, next: NextFunction): Promise<void> => {
@@ -107,10 +110,31 @@ export const markAllNotificationsAsRead = async (req: any, res: Response): Promi
     }
 };
 
+export const redAlerts = async (req: any, res: Response, next: NextFunction): Promise<any> => {
+
+    try {
+        const contractorId = req.contractor.id;
+
+       const {disputeAlerts} = await NotificationUtil.redAlerts(contractorId)
+
+        // const recentPayment = TransactionModel.find({type: {$in: [TRANSACTION_TYPE.JOB_PAYMENT, TRANSACTION_TYPE.SITE_VISIT]} })
+
+        res.json({ success: true, message: 'Alerts retreived', data: {disputeAlerts} });
+    } catch (err: any) {
+        next(new InternalServerError("An error occurred", err));
+    }
+
+
+};
+
+
+
+
 
 export const ContractorNotificationController = {
     getNotifications,
     getSingleNotification,
     markNotificationAsRead,
-    markAllNotificationsAsRead
+    markAllNotificationsAsRead,
+    redAlerts
 }

@@ -454,11 +454,11 @@ exports.JobEvent.on('JOB_DISPUTE_REFUND_CREATED', function (payload) {
 exports.JobEvent.on('JOB_QUOTATION_DECLINED', function (payload) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var customer, contractor, job, emailSubject, emailContent, html, error_7;
+        var customer, contractor, job, emailSubject, emailContent, html, conversation, error_7;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
-                    _b.trys.push([0, 4, , 5]);
+                    _b.trys.push([0, 6, , 7]);
                     logger_1.Logger.info('handling alert JOB_QUOTATION_DECLINED event');
                     return [4 /*yield*/, customer_model_1.default.findById(payload.customerId)];
                 case 1:
@@ -469,33 +469,37 @@ exports.JobEvent.on('JOB_QUOTATION_DECLINED', function (payload) {
                     return [4 /*yield*/, job_model_1.JobModel.findById(payload.jobId)];
                 case 3:
                     job = _b.sent();
-                    if (contractor) {
-                        emailSubject = 'Job Quotation Decline';
-                        emailContent = "\n                <p style=\"color: #333333;\">Your job  quotation for a job  on RepairFind was declined.</p>\n                <p>\n                    <strong>Job Title:</strong> ".concat(job.title, " </br>\n                    <strong>Customer:</strong> ").concat(customer.name, " </br>\n                    <strong>Reason:</strong> ").concat(payload.reason, "  </br>\n                </p>\n              \n                <p>Login to our app to follow up </p>\n                ");
-                        html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
-                        services_1.EmailService.send(contractor.email, emailSubject, html);
-                        services_1.NotificationService.sendNotification({
-                            user: contractor.id,
-                            userType: 'contractors',
-                            title: 'Job quotation declined',
-                            type: 'JOB_QUOTATION_DECLINED', // Conversation, Conversation_Notification
-                            message: "Your job quotation for a job on RepairFind was declined",
-                            heading: { name: "".concat(contractor.name), image: (_a = contractor.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
-                            payload: {
-                                entity: job.id,
-                                entityType: 'jobs',
-                                message: "Your job quotation for a job  on RepairFind was declined",
-                                customer: customer.id,
-                                event: 'JOB_QUOTATION_DECLINED',
-                            }
-                        }, { push: true, socket: true, database: true });
-                    }
-                    return [3 /*break*/, 5];
+                    if (!contractor) return [3 /*break*/, 5];
+                    emailSubject = 'Job Quotation Decline';
+                    emailContent = "\n                <p style=\"color: #333333;\">Your job  quotation for a job  on RepairFind was declined.</p>\n                <p>\n                    <strong>Job Title:</strong> ".concat(job.title, " </br>\n                    <strong>Customer:</strong> ").concat(customer.name, " </br>\n                    <strong>Reason:</strong> ").concat(payload.reason, "  </br>\n                </p>\n              \n                <p>Login to our app to follow up </p>\n                ");
+                    html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
+                    services_1.EmailService.send(contractor.email, emailSubject, html);
+                    return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(customer.id, 'customers', contractor.id, 'contractors')];
                 case 4:
+                    conversation = _b.sent();
+                    services_1.NotificationService.sendNotification({
+                        user: contractor.id,
+                        userType: 'contractors',
+                        title: 'Job quotation declined',
+                        type: 'JOB_QUOTATION_DECLINED', // Conversation, Conversation_Notification
+                        message: "Your job quotation for a job on RepairFind was declined",
+                        heading: { name: "".concat(contractor.name), image: (_a = contractor.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
+                        payload: {
+                            entity: job.id,
+                            entityType: 'jobs',
+                            message: "Your job quotation for a job  on RepairFind was declined",
+                            customerId: customer.id,
+                            conversationId: conversation.id,
+                            event: 'JOB_QUOTATION_DECLINED',
+                        }
+                    }, { push: true, socket: true, database: true });
+                    _b.label = 5;
+                case 5: return [3 /*break*/, 7];
+                case 6:
                     error_7 = _b.sent();
                     logger_1.Logger.error("Error handling JOB_QUOTATION_DECLINED event: ".concat(error_7));
-                    return [3 /*break*/, 5];
-                case 5: return [2 /*return*/];
+                    return [3 /*break*/, 7];
+                case 7: return [2 /*return*/];
             }
         });
     });
@@ -503,11 +507,11 @@ exports.JobEvent.on('JOB_QUOTATION_DECLINED', function (payload) {
 exports.JobEvent.on('JOB_QUOTATION_ACCEPTED', function (payload) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var customer, contractor, job, emailSubject, emailContent, html, error_8;
+        var customer, contractor, job, emailSubject, emailContent, html, conversation, error_8;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
-                    _b.trys.push([0, 4, , 5]);
+                    _b.trys.push([0, 6, , 7]);
                     logger_1.Logger.info('handling alert JOB_QUOTATION_ACCEPTED event');
                     return [4 /*yield*/, customer_model_1.default.findById(payload.customerId)];
                 case 1:
@@ -518,33 +522,37 @@ exports.JobEvent.on('JOB_QUOTATION_ACCEPTED', function (payload) {
                     return [4 /*yield*/, job_model_1.JobModel.findById(payload.jobId)];
                 case 3:
                     job = _b.sent();
-                    if (contractor) {
-                        emailSubject = 'Job Quotation Accepted';
-                        emailContent = "\n                <p style=\"color: #333333;\">Congratulations! your job quotation for a job  on RepairFind was accepted.</p>\n                <p>\n                    <strong>Job Title:</strong> ".concat(job.title, " </br>\n                    <strong>Customer:</strong> ").concat(customer.name, " </br>\n                </p>\n              \n                <p>Login to our app to follow up </p>\n                ");
-                        html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
-                        services_1.EmailService.send(contractor.email, emailSubject, html);
-                        services_1.NotificationService.sendNotification({
-                            user: contractor.id,
-                            userType: 'contractors',
-                            title: 'Job quotation accepted',
-                            type: 'JOB_QUOTATION_ACCEPTED', // Conversation, Conversation_Notification
-                            message: "Your  quotation for a job on RepairFind was accepted",
-                            heading: { name: "".concat(contractor.name), image: (_a = contractor.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
-                            payload: {
-                                entity: job.id,
-                                entityType: 'jobs',
-                                message: "Your job quotation for a job  on RepairFind was accepted",
-                                customer: customer.id,
-                                event: 'JOB_QUOTATION_ACCEPTED',
-                            }
-                        }, { push: true, socket: true, database: true });
-                    }
-                    return [3 /*break*/, 5];
+                    if (!contractor) return [3 /*break*/, 5];
+                    emailSubject = 'Job Quotation Accepted';
+                    emailContent = "\n                <p style=\"color: #333333;\">Congratulations! your job quotation for a job  on RepairFind was accepted.</p>\n                <p>\n                    <strong>Job Title:</strong> ".concat(job.title, " </br>\n                    <strong>Customer:</strong> ").concat(customer.name, " </br>\n                </p>\n              \n                <p>Login to our app to follow up </p>\n                ");
+                    html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
+                    services_1.EmailService.send(contractor.email, emailSubject, html);
+                    return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(customer.id, 'customers', contractor.id, 'contractors')];
                 case 4:
+                    conversation = _b.sent();
+                    services_1.NotificationService.sendNotification({
+                        user: contractor.id,
+                        userType: 'contractors',
+                        title: 'Job quotation accepted',
+                        type: 'JOB_QUOTATION_ACCEPTED', // Conversation, Conversation_Notification
+                        message: "Your  quotation for a job on RepairFind was accepted",
+                        heading: { name: "".concat(contractor.name), image: (_a = contractor.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
+                        payload: {
+                            entity: job.id,
+                            entityType: 'jobs',
+                            message: "Your job quotation for a job  on RepairFind was accepted",
+                            customerId: customer.id,
+                            conversationId: conversation.id,
+                            event: 'JOB_QUOTATION_ACCEPTED',
+                        }
+                    }, { push: true, socket: true, database: true });
+                    _b.label = 5;
+                case 5: return [3 /*break*/, 7];
+                case 6:
                     error_8 = _b.sent();
                     logger_1.Logger.error("Error handling JOB_QUOTATION_ACCEPTED event: ".concat(error_8));
-                    return [3 /*break*/, 5];
-                case 5: return [2 /*return*/];
+                    return [3 /*break*/, 7];
+                case 7: return [2 /*return*/];
             }
         });
     });
@@ -622,8 +630,8 @@ exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
                             html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
                             services_1.EmailService.send(contractor.email, emailSubject, html);
                             services_1.NotificationService.sendNotification({
-                                user: customer.id,
-                                userType: 'customers',
+                                user: contractor.id,
+                                userType: 'contractors',
                                 title: "Job Reschedule Request ".concat(payload.action),
                                 type: event_1,
                                 message: "Your Job reschedule request on Repairfind has been ".concat(payload.action, " by customer"),
@@ -644,16 +652,16 @@ exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
                             html = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: emailSubject, content: emailContent });
                             services_1.EmailService.send(customer.email, emailSubject, html);
                             services_1.NotificationService.sendNotification({
-                                user: contractor.id,
-                                userType: 'contractors',
+                                user: customer.id,
+                                userType: 'customers',
                                 title: "Job Reschedule Request ".concat(payload.action),
                                 type: event_1, //
-                                message: "Your Job reschedule request on Repairfind has been ".concat(payload.action, " by customer"),
+                                message: "Your Job reschedule request on Repairfind has been ".concat(payload.action, " by contractor"),
                                 heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_d = customer.profilePhoto) === null || _d === void 0 ? void 0 : _d.url },
                                 payload: {
                                     entity: job.id,
                                     entityType: 'jobs',
-                                    message: "Your Job reschedule request on Repairfind has been ".concat(payload.action, " by customer"),
+                                    message: "Your Job reschedule request on Repairfind has been ".concat(payload.action, " by contractor"),
                                     contractor: contractor.id,
                                     customer: customer.id,
                                     event: event_1,

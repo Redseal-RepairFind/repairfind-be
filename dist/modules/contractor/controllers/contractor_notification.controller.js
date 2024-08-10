@@ -50,10 +50,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorNotificationController = exports.markAllNotificationsAsRead = exports.markNotificationAsRead = exports.getSingleNotification = exports.getNotifications = void 0;
+exports.ContractorNotificationController = exports.redAlerts = exports.markAllNotificationsAsRead = exports.markNotificationAsRead = exports.getSingleNotification = exports.getNotifications = void 0;
 var api_feature_1 = require("../../../utils/api.feature");
 var custom_errors_1 = require("../../../utils/custom.errors");
 var notification_model_1 = __importDefault(require("../../../database/common/notification.model"));
+var notification_util_1 = require("../../../utils/notification.util");
 var getNotifications = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, startDate, endDate, read, query, contractorId, filter, _b, data, error, error_1;
     return __generator(this, function (_c) {
@@ -185,9 +186,34 @@ var markAllNotificationsAsRead = function (req, res) { return __awaiter(void 0, 
     });
 }); };
 exports.markAllNotificationsAsRead = markAllNotificationsAsRead;
+var redAlerts = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var contractorId, disputeAlerts, err_1;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                contractorId = req.contractor.id;
+                return [4 /*yield*/, notification_util_1.NotificationUtil.redAlerts(contractorId)
+                    // const recentPayment = TransactionModel.find({type: {$in: [TRANSACTION_TYPE.JOB_PAYMENT, TRANSACTION_TYPE.SITE_VISIT]} })
+                ];
+            case 1:
+                disputeAlerts = (_a.sent()).disputeAlerts;
+                // const recentPayment = TransactionModel.find({type: {$in: [TRANSACTION_TYPE.JOB_PAYMENT, TRANSACTION_TYPE.SITE_VISIT]} })
+                res.json({ success: true, message: 'Alerts retreived', data: { disputeAlerts: disputeAlerts } });
+                return [3 /*break*/, 3];
+            case 2:
+                err_1 = _a.sent();
+                next(new custom_errors_1.InternalServerError("An error occurred", err_1));
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.redAlerts = redAlerts;
 exports.ContractorNotificationController = {
     getNotifications: exports.getNotifications,
     getSingleNotification: exports.getSingleNotification,
     markNotificationAsRead: exports.markNotificationAsRead,
-    markAllNotificationsAsRead: exports.markAllNotificationsAsRead
+    markAllNotificationsAsRead: exports.markAllNotificationsAsRead,
+    redAlerts: exports.redAlerts
 };

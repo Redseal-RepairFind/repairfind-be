@@ -24,6 +24,9 @@ import { applyAPIFeature } from "../../../utils/api.feature";
 import { ReviewModel } from "../../../database/common/review.model";
 import { FeedbackModel } from "../../../database/common/feedback.model";
 import { AdminEvent } from "../../../events/admin.events";
+import { CONVERSATION_TYPE, ConversationModel } from "../../../database/common/conversations.schema";
+import { MessageModel } from "../../../database/common/messages.schema";
+import TransactionModel, { TRANSACTION_TYPE } from "../../../database/common/transaction.model";
 
 
 class ProfileHandler extends Base {
@@ -1065,7 +1068,6 @@ class ProfileHandler extends Base {
       next(new InternalServerError("An error occurred", err))
     }
   }
-
 
 
 }

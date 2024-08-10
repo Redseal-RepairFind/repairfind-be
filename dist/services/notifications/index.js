@@ -58,6 +58,7 @@ var customer_model_1 = __importDefault(require("../../database/customer/models/c
 var customer_devices_model_1 = __importDefault(require("../../database/customer/models/customer_devices.model"));
 var expo_1 = require("../expo");
 var socket_1 = require("../socket");
+var notification_util_1 = require("../../utils/notification.util");
 var NotificationService = /** @class */ (function () {
     function NotificationService() {
     }
@@ -68,7 +69,7 @@ var NotificationService = /** @class */ (function () {
             database: true
         }; }
         return __awaiter(this, void 0, void 0, function () {
-            var user, deviceTokens, devices, notification;
+            var user, deviceTokens, devices, alerts, notification;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -112,13 +113,22 @@ var NotificationService = /** @class */ (function () {
                             return [2 /*return*/];
                         if ('firebase' in options) {
                         }
-                        if ('socket' in options) {
-                            socket_1.SocketService.sendNotification(user.email, params.type, {
-                                type: params.type,
-                                message: params.message,
-                                data: params.payload
-                            });
-                        }
+                        if (!('socket' in options)) return [3 /*break*/, 11];
+                        socket_1.SocketService.sendNotification(user.email, params.type, {
+                            type: params.type,
+                            message: params.message,
+                            data: params.payload
+                        });
+                        return [4 /*yield*/, notification_util_1.NotificationUtil.redAlerts(params.user)];
+                    case 10:
+                        alerts = _a.sent();
+                        socket_1.SocketService.sendNotification(user.email, 'RED_DOT_ALERT', {
+                            type: 'RED_DOT_ALERT',
+                            message: 'New alert update',
+                            data: alerts
+                        });
+                        _a.label = 11;
+                    case 11:
                         if ('push' in options) {
                             (0, expo_1.sendPushNotifications)(deviceTokens, {
                                 title: params.title,
@@ -132,19 +142,19 @@ var NotificationService = /** @class */ (function () {
                                 data: __assign({ _contentAvailable: true }, params.payload),
                             });
                         }
-                        if (!options.hasOwnProperty('database')) return [3 /*break*/, 11];
+                        if (!options.hasOwnProperty('database')) return [3 /*break*/, 13];
                         params.payload.message = params.message;
                         notification = new notification_model_1.default(params.payload);
                         return [4 /*yield*/, notification.save()];
-                    case 10:
+                    case 12:
                         _a.sent();
                         socket_1.SocketService.sendNotification(user.email, 'NEW_NOTIFICATION', {
                             type: 'NEW_NOTIFICATION',
                             message: params.message,
                             data: params.payload
                         });
-                        _a.label = 11;
-                    case 11: return [2 /*return*/];
+                        _a.label = 13;
+                    case 13: return [2 /*return*/];
                 }
             });
         });

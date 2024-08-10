@@ -394,75 +394,7 @@ JobSchema.methods.getJobDispute = async function () {
         return null
     }
 
-
-    // create conversations here
-    let arbitratorCustomer = null
-    let arbitratorContractor = null
-    let customerContractor = null
-
-    if (dispute.arbitrator) {
-
-        arbitratorCustomer = await ConversationModel.findOneAndUpdate(
-            {
-                entity: dispute.id,
-                entityType: 'job_disputes',
-                $and: [
-                    { members: { $elemMatch: { member: dispute.customer } } },
-                    { members: { $elemMatch: { member: dispute.arbitrator } } }
-                ]
-            },
-
-            {
-                type: CONVERSATION_TYPE.TICKET,
-                entity: dispute.id,
-                entityType: 'job_disputes',
-                members: [{ memberType: 'customers', member: dispute.customer }, { memberType: 'admins', member: dispute.arbitrator }],
-            },
-            { new: true, upsert: true }
-        );
-        arbitratorCustomer.heading = await arbitratorCustomer.getHeading(dispute.arbitrator)
-
-
-
-        arbitratorContractor = await ConversationModel.findOneAndUpdate(
-            {
-                entity: dispute.id,
-                entityType: 'job_disputes',
-                $and: [
-                    { members: { $elemMatch: { member: dispute.contractor } } },
-                    { members: { $elemMatch: { member: dispute.arbitrator } } }
-                ]
-            },
-
-            {
-                type: CONVERSATION_TYPE.TICKET,
-                entity: dispute.id,
-                entityType: 'job_disputes',
-                members: [{ memberType: 'contractors', member: dispute.contractor }, { memberType: 'admins', member: dispute.arbitrator }],
-            },
-            { new: true, upsert: true }
-        );
-        arbitratorContractor.heading = await arbitratorContractor.getHeading(dispute.arbitrator)
-    }
-
-
-    customerContractor = await ConversationModel.findOneAndUpdate(
-        {
-            $and: [
-                { members: { $elemMatch: { member: dispute.contractor } } },
-                { members: { $elemMatch: { member: dispute.customer } } }
-            ]
-        },
-
-        {
-            members: [{ memberType: 'customers', member: dispute.customer }, { memberType: 'contractors', member: dispute.contractor }],
-        },
-        { new: true, upsert: true }
-    );
-
-
     return {
-        conversations: { customerContractor, arbitratorContractor, arbitratorCustomer },
         ...dispute?.toJSON()
     }
 

@@ -38,6 +38,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ConversationUtil = void 0;
 var conversations_schema_1 = require("../database/common/conversations.schema");
+var messages_schema_1 = require("../database/common/messages.schema");
+var events_1 = require("../events");
 // Function to check if the message contains phone numbers, email addresses, contact addresses, or specific keywords
 var containsRestrictedMessageContent = function (message) {
     // Enhanced regex for matching various phone number formats
@@ -87,7 +89,96 @@ var updateOrCreateConversation = function (userOne, userOneType, userTwo, userTw
         }
     });
 }); };
+var updateOrCreateDisputeConversations = function (dispute) { return __awaiter(void 0, void 0, void 0, function () {
+    var arbitratorCustomerConversation, arbitratorContractorConversation, _a, message, _b, customerContractorConversation;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
+            case 0:
+                arbitratorCustomerConversation = null;
+                arbitratorContractorConversation = null;
+                if (!dispute.arbitrator) return [3 /*break*/, 5];
+                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
+                        entity: dispute.id,
+                        entityType: 'job_disputes',
+                        $and: [
+                            { members: { $elemMatch: { member: dispute.customer } } },
+                            { members: { $elemMatch: { member: dispute.arbitrator } } }
+                        ]
+                    }, {
+                        type: conversations_schema_1.CONVERSATION_TYPE.TICKET,
+                        entity: dispute.id,
+                        entityType: 'job_disputes',
+                        members: [{ memberType: 'customers', member: dispute.customer }, { memberType: 'admins', member: dispute.arbitrator }],
+                    }, { new: true, upsert: true })];
+            case 1:
+                arbitratorCustomerConversation = _c.sent();
+                _a = arbitratorCustomerConversation;
+                return [4 /*yield*/, arbitratorCustomerConversation.getHeading(dispute.arbitrator)
+                    // Send a message
+                ];
+            case 2:
+                _a.heading = _c.sent();
+                message = new messages_schema_1.MessageModel({
+                    conversation: arbitratorCustomerConversation === null || arbitratorCustomerConversation === void 0 ? void 0 : arbitratorCustomerConversation._id,
+                    sender: dispute.arbitrator,
+                    senderType: 'admins',
+                    receiver: dispute.arbitrator,
+                    message: dispute.reason,
+                    messageType: messages_schema_1.MessageType.ALERT,
+                    entity: dispute.id,
+                    entityType: 'job_disputes'
+                });
+                events_1.ConversationEvent.emit('NEW_MESSAGE', { message: message });
+                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
+                        entity: dispute.id,
+                        entityType: 'job_disputes',
+                        $and: [
+                            { members: { $elemMatch: { member: dispute.contractor } } },
+                            { members: { $elemMatch: { member: dispute.arbitrator } } }
+                        ]
+                    }, {
+                        type: conversations_schema_1.CONVERSATION_TYPE.TICKET,
+                        entity: dispute.id,
+                        entityType: 'job_disputes',
+                        members: [{ memberType: 'contractors', member: dispute.contractor }, { memberType: 'admins', member: dispute.arbitrator }],
+                    }, { new: true, upsert: true })];
+            case 3:
+                arbitratorContractorConversation = _c.sent();
+                _b = arbitratorContractorConversation;
+                return [4 /*yield*/, arbitratorContractorConversation.getHeading(dispute.arbitrator)
+                    // Send a message
+                ];
+            case 4:
+                _b.heading = _c.sent();
+                // Send a message
+                message = new messages_schema_1.MessageModel({
+                    conversation: arbitratorContractorConversation === null || arbitratorContractorConversation === void 0 ? void 0 : arbitratorContractorConversation._id,
+                    sender: dispute.arbitrator,
+                    senderType: 'admins',
+                    receiver: dispute.contractor,
+                    message: dispute.reason,
+                    messageType: messages_schema_1.MessageType.ALERT,
+                    entity: dispute.id,
+                    entityType: 'job_disputes'
+                });
+                events_1.ConversationEvent.emit('NEW_MESSAGE', { message: message });
+                _c.label = 5;
+            case 5: return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
+                    $and: [
+                        { members: { $elemMatch: { member: dispute.contractor } } },
+                        { members: { $elemMatch: { member: dispute.customer } } }
+                    ]
+                }, {
+                    members: [{ memberType: 'customers', member: dispute.customer }, { memberType: 'contractors', member: dispute.contractor }],
+                }, { new: true, upsert: true })];
+            case 6:
+                customerContractorConversation = _c.sent();
+                return [2 /*return*/, { customerContractor: customerContractorConversation, arbitratorContractor: arbitratorContractorConversation, arbitratorCustomer: arbitratorCustomerConversation }];
+        }
+    });
+}); };
 exports.ConversationUtil = {
     containsRestrictedMessageContent: containsRestrictedMessageContent,
-    updateOrCreateConversation: updateOrCreateConversation
+    updateOrCreateConversation: updateOrCreateConversation,
+    updateOrCreateDisputeConversations: updateOrCreateDisputeConversations
 };

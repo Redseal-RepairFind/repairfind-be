@@ -8,6 +8,7 @@ import { sendPushNotifications } from '../expo';
 import { SocketService } from '../socket';
 import { ObjectId } from 'mongoose';
 import { url } from 'inspector';
+import { NotificationUtil } from '../../utils/notification.util';
 
 
 
@@ -72,6 +73,14 @@ export class NotificationService  {
                 type: params.type, 
                 message: params.message, 
                 data: params.payload
+            });
+
+            // send red alert notification here also, for mobile to update red dots - lol
+            const alerts = await NotificationUtil.redAlerts(params.user as ObjectId)
+            SocketService.sendNotification(user.email, 'RED_DOT_ALERT', {
+                type: 'RED_DOT_ALERT', 
+                message: 'New alert update', 
+                data: alerts
             });
         }
 

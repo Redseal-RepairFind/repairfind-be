@@ -1,5 +1,8 @@
-import { ObjectId } from "mongoose";
-import { ConversationModel, IConversation } from "../database/common/conversations.schema";
+import mongoose, { ObjectId } from "mongoose";
+import { CONVERSATION_TYPE, ConversationModel, IConversation } from "../database/common/conversations.schema";
+import { IJobDispute } from "../database/common/job_dispute.model";
+import { MessageModel, MessageType } from "../database/common/messages.schema";
+import { ConversationEvent } from "../events";
 
 // Function to check if the message contains phone numbers, email addresses, contact addresses, or specific keywords
 const containsRestrictedMessageContent = (message: string): { isRestricted: boolean, errorMessage?: string } => {
@@ -54,7 +57,104 @@ const updateOrCreateConversation = async (userOne: ObjectId, userOneType: string
 };
 
 
+
+const updateOrCreateDisputeConversations = async (dispute: IJobDispute) => {
+         // create conversations here
+         let arbitratorCustomerConversation = null
+         let arbitratorContractorConversation = null
+     
+         if (dispute.arbitrator) {
+     
+           arbitratorCustomerConversation = await ConversationModel.findOneAndUpdate(
+             {
+               entity: dispute.id,
+               entityType: 'job_disputes',
+               $and: [
+                 { members: { $elemMatch: { member: dispute.customer } } },
+                 { members: { $elemMatch: { member: dispute.arbitrator } } }
+               ]
+             },
+      
+             {
+               type: CONVERSATION_TYPE.TICKET,
+               entity: dispute.id,
+               entityType: 'job_disputes',
+               members: [{ memberType: 'customers', member: dispute.customer }, { memberType: 'admins', member: dispute.arbitrator }],
+             },
+             { new: true, upsert: true }
+           );
+           arbitratorCustomerConversation.heading = await arbitratorCustomerConversation.getHeading(dispute.arbitrator)
+           
+           // Send a message
+           let message = new MessageModel({
+             conversation: arbitratorCustomerConversation?._id,
+             sender: dispute.arbitrator,
+             senderType: 'admins',
+             receiver: dispute.arbitrator,
+             message: dispute.reason,
+             messageType: MessageType.ALERT,
+             entity: dispute.id,
+             entityType: 'job_disputes'
+           });
+           ConversationEvent.emit('NEW_MESSAGE', { message })
+           
+     
+           arbitratorContractorConversation = await ConversationModel.findOneAndUpdate(
+             {
+               entity: dispute.id,
+               entityType: 'job_disputes',
+               $and: [
+                 { members: { $elemMatch: { member: dispute.contractor } } },
+                 { members: { $elemMatch: { member: dispute.arbitrator } } }
+               ]
+             },
+     
+             {
+               type: CONVERSATION_TYPE.TICKET,
+               entity: dispute.id,
+               entityType: 'job_disputes',
+               members: [{ memberType: 'contractors', member: dispute.contractor }, { memberType: 'admins', member: dispute.arbitrator }],
+             },
+             { new: true, upsert: true }
+           );
+           arbitratorContractorConversation.heading = await arbitratorContractorConversation.getHeading(dispute.arbitrator)
+            // Send a message
+             message = new MessageModel({
+             conversation: arbitratorContractorConversation?._id,
+             sender: dispute.arbitrator,
+             senderType: 'admins',
+             receiver: dispute.contractor,
+             message: dispute.reason,
+             messageType: MessageType.ALERT,
+             entity: dispute.id,
+             entityType: 'job_disputes'
+           });
+           ConversationEvent.emit('NEW_MESSAGE', { message })
+     
+         }
+     
+     
+        const customerContractorConversation = await ConversationModel.findOneAndUpdate(
+           {
+             $and: [
+               { members: { $elemMatch: { member: dispute.contractor } } },
+               { members: { $elemMatch: { member: dispute.customer } } }
+             ]
+           },
+     
+           {
+             members: [{ memberType: 'customers', member: dispute.customer }, { memberType: 'contractors', member: dispute.contractor }],
+           },
+           { new: true, upsert: true }
+        );
+     
+     
+        return { customerContractor: customerContractorConversation, arbitratorContractor:arbitratorContractorConversation, arbitratorCustomer: arbitratorCustomerConversation } ;
+};
+
+
 export const ConversationUtil = {
     containsRestrictedMessageContent,
-    updateOrCreateConversation
+    updateOrCreateConversation,
+    updateOrCreateDisputeConversations
 }

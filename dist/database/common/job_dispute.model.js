@@ -61,8 +61,14 @@ var JobDisputeSchema = new mongoose_1.Schema({
     remark: {
         type: String,
     },
+    reason: {
+        type: String,
+    },
     conversation: {
         type: mongoose_1.Schema.Types.ObjectId
+    },
+    conversations: {
+        type: Object,
     }
 }, {
     timestamps: true,

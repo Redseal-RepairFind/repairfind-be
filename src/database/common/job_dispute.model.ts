@@ -1,4 +1,5 @@
-import { Document, Schema, model, Types } from "mongoose";
+import { Document, Schema, model, Types, ObjectId } from "mongoose";
+import { IConversation } from "./conversations.schema";
 
 export enum JOB_DISPUTE_STATUS {
     OPEN = "OPEN",
@@ -17,6 +18,7 @@ export interface IJobDispute extends Document {
     description: string;
     job: Types.ObjectId;
     conversation: Types.ObjectId;
+    conversations: { customerContractor: IConversation['id'], arbitratorContractor:  IConversation['id'], arbitratorCustomer:  IConversation['id'] };
     customer: Types.ObjectId;
     contractor: Types.ObjectId;
     disputer: Types.ObjectId;
@@ -26,6 +28,7 @@ export interface IJobDispute extends Document {
     arbitrator: Types.ObjectId, 
     resolvedWay: string;
     remark: string;
+    reason: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -83,8 +86,14 @@ const JobDisputeSchema = new Schema<IJobDispute>(
         remark: {
             type: String,
         },
+        reason: {
+            type: String,
+        },
         conversation: {
             type: Schema.Types.ObjectId
+        },
+        conversations: {
+            type: Object,
         }
     },
     {

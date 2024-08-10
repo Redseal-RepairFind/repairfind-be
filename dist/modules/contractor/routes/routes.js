@@ -105,6 +105,9 @@ router.post("/signout", contractorRoleCheck_middleware_1.checkContractorRole, fu
 router.post("/feedback", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
     (0, contractor_controller_1.ContractorController)(req, res, next).submitFeedback();
 });
+router.post("/feedback", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
+    (0, contractor_controller_1.ContractorController)(req, res, next).submitFeedback();
+});
 //  QUiz
 router.get("/quiz-start", contractorRoleCheck_middleware_1.checkContractorRole, contractor_training_controller_1.QuizController.StartQuiz);
 router.post("/quiz-submit", contractorRoleCheck_middleware_1.checkContractorRole, contractor_training_controller_1.QuizController.SubmitQuiz);
@@ -161,6 +164,7 @@ router.get('/quotations/:quotationId', contractorRoleCheck_middleware_1.checkCon
 router.get('/quotations/:quotationId', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.getQuotation); // 
 // Notifications
 router.get('/notifications', contractorRoleCheck_middleware_1.checkContractorRole, contractor_notification_controller_1.ContractorNotificationController.getNotifications);
+router.get('/notifications/alerts', contractorRoleCheck_middleware_1.checkContractorRole, contractor_notification_controller_1.ContractorNotificationController.redAlerts);
 router.get('/notifications/:notificationId', contractorRoleCheck_middleware_1.checkContractorRole, contractor_notification_controller_1.ContractorNotificationController.getSingleNotification);
 router.post('/notifications/mark-all-read', contractorRoleCheck_middleware_1.checkContractorRole, contractor_notification_controller_1.ContractorNotificationController.markAllNotificationsAsRead);
 router.post('/notifications/:notificationId', contractorRoleCheck_middleware_1.checkContractorRole, contractor_notification_controller_1.ContractorNotificationController.getSingleNotification);

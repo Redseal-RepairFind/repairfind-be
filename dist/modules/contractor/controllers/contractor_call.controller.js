@@ -46,6 +46,7 @@ var contractor_model_1 = require("../../../database/contractor/models/contractor
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var services_1 = require("../../../services");
 var call_schema_1 = require("../../../database/common/call.schema");
+var conversation_util_1 = require("../../../utils/conversation.util");
 var createRtmToken = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var uid, rtmToken, err_1;
     return __generator(this, function (_a) {
@@ -168,12 +169,12 @@ var startCall = function (req, res, next) { return __awaiter(void 0, void 0, voi
 }); };
 exports.startCall = startCall;
 var endCall = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var callId, event_1, call, fromUser, _a, toUser, _b, message, err_4;
+    var callId, event_1, call, fromUser, _a, toUser, _b, conversation, message, err_4;
     var _c, _d, _e, _f;
     return __generator(this, function (_g) {
         switch (_g.label) {
             case 0:
-                _g.trys.push([0, 11, , 12]);
+                _g.trys.push([0, 12, , 13]);
                 callId = req.params.callId;
                 event_1 = req.body.event;
                 return [4 /*yield*/, call_schema_1.CallModel.findById(callId)];
@@ -211,6 +212,9 @@ var endCall = function (req, res, next) { return __awaiter(void 0, void 0, void 
                 toUser = _b;
                 if (!fromUser || !toUser)
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Call parties not found' })];
+                return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(fromUser.id, call.fromUserType, toUser.id, call.toUserType)];
+            case 11:
+                conversation = _g.sent();
                 message = "";
                 if (fromUser) {
                     message = "Your call with ".concat(toUser.name, " has ended");
@@ -228,6 +232,7 @@ var endCall = function (req, res, next) { return __awaiter(void 0, void 0, void 
                         payload: {
                             entity: call.id,
                             entityType: 'calls',
+                            conversationId: conversation.id,
                             message: message,
                             name: "".concat(toUser.name),
                             image: (_d = toUser.profilePhoto) === null || _d === void 0 ? void 0 : _d.url,
@@ -251,6 +256,7 @@ var endCall = function (req, res, next) { return __awaiter(void 0, void 0, void 
                         payload: {
                             entity: call.id,
                             entityType: 'calls',
+                            conversationId: conversation.id,
                             message: message,
                             name: "".concat(fromUser.name),
                             image: (_f = fromUser.profilePhoto) === null || _f === void 0 ? void 0 : _f.url,
@@ -259,12 +265,12 @@ var endCall = function (req, res, next) { return __awaiter(void 0, void 0, void 
                     }, { database: true, push: true, socket: true });
                 }
                 res.status(200).json({ success: true, message: 'Call ended successfully' });
-                return [3 /*break*/, 12];
-            case 11:
+                return [3 /*break*/, 13];
+            case 12:
                 err_4 = _g.sent();
                 res.status(500).json({ message: err_4.message });
-                return [3 /*break*/, 12];
-            case 12: return [2 /*return*/];
+                return [3 /*break*/, 13];
+            case 13: return [2 /*return*/];
         }
     });
 }); };

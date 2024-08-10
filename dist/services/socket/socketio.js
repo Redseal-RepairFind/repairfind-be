@@ -62,6 +62,7 @@ var messages_schema_1 = require("../../database/common/messages.schema");
 var conversations_schema_1 = require("../../database/common/conversations.schema");
 var mongoose_1 = require("mongoose");
 var notifications_1 = require("../notifications");
+var admin_model_1 = __importDefault(require("../../database/admin/models/admin.model"));
 var SocketIOService = /** @class */ (function () {
     function SocketIOService() {
     }
@@ -186,22 +187,33 @@ var SocketIOService = /** @class */ (function () {
                             if (!conversation_1 || !members)
                                 return [2 /*return*/];
                             members.forEach(function (member) { return __awaiter(_this, void 0, void 0, function () {
-                                var user, _a, toUserId, toUserType;
-                                var _b;
-                                return __generator(this, function (_c) {
-                                    switch (_c.label) {
+                                var user, toUserId, toUserType;
+                                var _a;
+                                return __generator(this, function (_b) {
+                                    switch (_b.label) {
                                         case 0:
-                                            if (!(member.memberType === 'contractors')) return [3 /*break*/, 2];
+                                            console.log(' member.memberType', member.memberType);
                                             return [4 /*yield*/, contractor_model_1.ContractorModel.findById(member.member)];
                                         case 1:
-                                            _a = _c.sent();
-                                            return [3 /*break*/, 4];
-                                        case 2: return [4 /*yield*/, customer_model_1.default.findById(member.member)];
+                                            user = _b.sent();
+                                            if (!(member.memberType === 'contractors')) return [3 /*break*/, 3];
+                                            return [4 /*yield*/, contractor_model_1.ContractorModel.findById(member.member)];
+                                        case 2:
+                                            user = _b.sent();
+                                            _b.label = 3;
                                         case 3:
-                                            _a = _c.sent();
-                                            _c.label = 4;
+                                            if (!(member.memberType === 'customers')) return [3 /*break*/, 5];
+                                            return [4 /*yield*/, customer_model_1.default.findById(member.member)];
                                         case 4:
-                                            user = _a;
+                                            user = _b.sent();
+                                            _b.label = 5;
+                                        case 5:
+                                            if (!(member.memberType === 'admins')) return [3 /*break*/, 7];
+                                            return [4 /*yield*/, admin_model_1.default.findById(member.member)];
+                                        case 6:
+                                            user = _b.sent();
+                                            _b.label = 7;
+                                        case 7:
                                             if (!user)
                                                 return [2 /*return*/];
                                             toUserId = member.member;
@@ -214,7 +226,7 @@ var SocketIOService = /** @class */ (function () {
                                                 title: 'Conversation read',
                                                 type: 'CONVERSATION_READ',
                                                 message: "Conversation messages marked as read",
-                                                heading: { name: "".concat(user.name), image: (_b = user.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
+                                                heading: { name: "".concat(user.name), image: (_a = user.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
                                                 payload: {
                                                     entity: conversation_1.id,
                                                     entityType: 'conversations',

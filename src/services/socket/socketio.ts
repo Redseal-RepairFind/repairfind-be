@@ -10,6 +10,7 @@ import { MessageModel } from "../../database/common/messages.schema";
 import { ConversationModel } from "../../database/common/conversations.schema";
 import { isValidObjectId } from "mongoose";
 import { NotificationService } from "../notifications";
+import AdminModel from "../../database/admin/models/admin.model";
 
 interface CustomSocket extends Socket {
     user?: any; // Define a custom property to store user information
@@ -135,7 +136,14 @@ class SocketIOService {
                     if (!conversation || !members) return
 
                     members.forEach(async member => {
-                        const user = member.memberType === 'contractors' ? await ContractorModel.findById(member.member) : await CustomerModel.findById(member.member)
+                        console.log(' member.memberType',  member.memberType)
+                        
+                        let user = await ContractorModel.findById(member.member)
+                        if(member.memberType === 'contractors')user =  await ContractorModel.findById(member.member)
+                        if(member.memberType === 'customers') user = await CustomerModel.findById(member.member)
+                        if(member.memberType === 'admins') user = await AdminModel.findById(member.member)
+
+
                         if (!user) return
 
                         const toUserId = member.member
