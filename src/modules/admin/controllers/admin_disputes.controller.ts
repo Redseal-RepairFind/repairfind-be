@@ -430,11 +430,85 @@ export const markJobAsComplete = async (req: any, res: Response, next: NextFunct
 };
 
 
+export const enableRevisit = async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const adminId = req.admin.id;
+    const { disputeId } = req.params;
+    const { resolvedWay, remark } = req.body;
+
+
+    const dispute = await JobDisputeModel.findOne({ _id: disputeId })
+
+    if (!dispute) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Invalid disputeId" });
+    }
+
+    const job = await JobModel.findById(dispute.job);
+    if (!job) {
+      return res.status(404).json({ success: false, message: 'Job not found' });
+    }
+
+    const jobDay = await JobDayModel.findOne({job: job.id});
+    if (!jobDay) {
+      return res.status(404).json({ success: false, message: 'Existing job day not found' });
+    }
+
+    const admin = await AdminModel.findById(adminId);
+    if (!admin) {
+      return res.status(404).json({ success: false, message: 'Admin not found' });
+    }
+
+
+    if (job.status === JOB_STATUS.COMPLETED) {
+      return res.status(400).json({ success: false, message: 'The booking is already marked as complete' });
+    }
+
+
+    if (job.status == JOB_STATUS.REFUNDED) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Job is already refunded" });
+    }
+
+    job.revisitEnabled = true
+    job.status = JOB_STATUS.BOOKED 
+
+    job.jobHistory.push({
+      eventType: 'REVISIT_ENABLED_VIA_DISPUTE',
+      timestamp: new Date(),
+      payload: {
+        markedBy: 'admin',
+        dispute: dispute.id
+      }
+    });
+
+    dispute.status = JOB_DISPUTE_STATUS.REVISIT
+    dispute.resolvedWay = "REVISIT_ENABLED"
+    dispute.remark = remark
+
+    await dispute.save()
+    await job.save();
+
+
+    JobEvent.emit('JOB_REVISIT_ENABLED', { job, dispute })
+
+
+    res.json({ success: true, message: 'Job marked as complete', data: job });
+  } catch (error: any) {
+    console.log(error)
+    return next(new InternalServerError('An error occurred', error));
+  }
+};
+
+
 export const AdminDisputeController = {
   getJobDisputes,
   getSingleDispute,
   acceptDispute,
   settleDispute,
   createDisputeRefund,
-  markJobAsComplete
+  markJobAsComplete,
+  enableRevisit
 }

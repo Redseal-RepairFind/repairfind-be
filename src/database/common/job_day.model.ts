@@ -7,6 +7,7 @@ export enum JOB_DAY_STATUS {
   CANCELED = 'CANCELED',
   CONFIRMED = 'CONFIRMED',
   COMPLETED = 'COMPLETED',
+  DISPUTED = 'DISPUTED',
 }
 
 export enum JOB_DAY_TYPE {
@@ -44,6 +45,7 @@ export interface IJobDay extends Document {
   customerPostJobMedia: string[]; // Array of customer's post-job media URLs or references
   jobLocation: ILocation,
   contractorLocation: ILocation,
+  isRevisit: boolean;
 }
 
 
@@ -119,6 +121,7 @@ const JobDayShema = new Schema <IJobDay>(
       type: Date,
       default: Date.now,
     },
+    isRevisit: { type: Schema.Types.Boolean, default: false },
   },
   {
     timestamps: true,

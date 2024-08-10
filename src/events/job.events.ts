@@ -345,6 +345,60 @@ JobEvent.on('JOB_DISPUTE_REFUND_CREATED', async function (payload: { job: IJob, 
 });
 
 
+JobEvent.on('JOB_REVISIT_ENABLED', async function (payload: { job: IJob, dispute: IJobDispute }) {
+    try {
+        Logger.info('handling alert JOB_REVISIT_ENABLED event')
+        const job = payload.job
+        const dispute = payload.dispute
+        const customer = await CustomerModel.findById(payload.job.customer) as ICustomer
+        const contractor = await ContractorModel.findById(payload.job.contractor) as IContractor
+
+
+        if (job && contractor && customer) {
+
+            NotificationService.sendNotification({
+                user: contractor.id,
+                userType: 'contractors',
+                title: 'Job Revisit  Enabled',
+                type: 'JOB_REVISIT_ENABLED', //
+                message: `A revisit for your disputed job has been enabled on Repairfind`,
+                heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
+                payload: {
+                    entity: dispute.id,
+                    entityType: 'job_disputes',
+                    message: `A revisit for your disputed job has been enabled on Repairfind`,
+                    contractor: contractor.id,
+                    event: 'JOB_REVISIT_ENABLED',
+                }
+            }, { push: true, socket: true, database: true })
+
+            NotificationService.sendNotification({
+                user: customer.id,
+                userType: 'customers',
+                title: 'Job Dispute Refund Created',
+                type: 'JOB_REVISIT_ENABLED',
+                message: `A revisit for your disputed job has been enabled on Repairfind`,
+                heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
+                payload: {
+                    entity: dispute.id,
+                    entityType: 'job_disputes',
+                    jobType: job.type,
+                    message: `A revisit for your disputed job has been enabled on Repairfind`,
+                    customer: customer.id,
+                    event: 'JOB_REVISIT_ENABLED',
+                }
+            }, { database: true, push: true, socket: true })
+
+        }
+
+
+
+    } catch (error) {
+        Logger.error(`Error handling JOB_REVISIT_ENABLED event: ${error}`);
+    }
+});
+
+
 JobEvent.on('JOB_QUOTATION_DECLINED', async function (payload: { jobId: ObjectId, contractorId: ObjectId, customerId: ObjectId, reason: string }) {
     try {
 

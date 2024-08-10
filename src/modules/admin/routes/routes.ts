@@ -101,6 +101,7 @@ router.post("/disputes/:disputeId/accept", checkAdminRole, AdminDisputeControlle
 router.post("/disputes/:disputeId/settle", Validations.SettleDisputeParams, checkAdminRole, AdminDisputeController.settleDispute  ); 
 router.post("/disputes/:disputeId/refund-customer", checkAdminRole, AdminDisputeController.createDisputeRefund  ); 
 router.post("/disputes/:disputeId/refund-contractor", checkAdminRole, AdminDisputeController.markJobAsComplete  ); 
+router.post("/disputes/:disputeId/enable-revisit", checkAdminRole, AdminDisputeController.enableRevisit  ); 
 
 
 //refactored conversation

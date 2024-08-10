@@ -8,6 +8,7 @@ var JOB_DISPUTE_STATUS;
     JOB_DISPUTE_STATUS["ONGOING"] = "ONGOING";
     JOB_DISPUTE_STATUS["RESOLVED"] = "RESOLVED";
     JOB_DISPUTE_STATUS["CLOSED"] = "CLOSED";
+    JOB_DISPUTE_STATUS["REVISIT"] = "REVISIT";
 })(JOB_DISPUTE_STATUS || (exports.JOB_DISPUTE_STATUS = JOB_DISPUTE_STATUS = {}));
 var JobDisputeSchema = new mongoose_1.Schema({
     description: {
@@ -59,9 +60,6 @@ var JobDisputeSchema = new mongoose_1.Schema({
         type: String,
     },
     remark: {
-        type: String,
-    },
-    reason: {
         type: String,
     },
     conversation: {

@@ -123,7 +123,7 @@ var updateOrCreateDisputeConversations = function (dispute) { return __awaiter(v
                     sender: dispute.arbitrator,
                     senderType: 'admins',
                     receiver: dispute.arbitrator,
-                    message: dispute.reason,
+                    message: dispute.description,
                     messageType: messages_schema_1.MessageType.ALERT,
                     entity: dispute.id,
                     entityType: 'job_disputes'
@@ -156,7 +156,7 @@ var updateOrCreateDisputeConversations = function (dispute) { return __awaiter(v
                     sender: dispute.arbitrator,
                     senderType: 'admins',
                     receiver: dispute.contractor,
-                    message: dispute.reason,
+                    message: dispute.description,
                     messageType: messages_schema_1.MessageType.ALERT,
                     entity: dispute.id,
                     entityType: 'job_disputes'

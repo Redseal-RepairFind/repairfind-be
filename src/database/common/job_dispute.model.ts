@@ -6,6 +6,7 @@ export enum JOB_DISPUTE_STATUS {
     ONGOING = "ONGOING",
     RESOLVED = "RESOLVED",
     CLOSED = "CLOSED",
+    REVISIT = "REVISIT",
 }
 
 interface Evidence {
@@ -28,7 +29,6 @@ export interface IJobDispute extends Document {
     arbitrator: Types.ObjectId, 
     resolvedWay: string;
     remark: string;
-    reason: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -84,9 +84,6 @@ const JobDisputeSchema = new Schema<IJobDispute>(
             type: String,
         },
         remark: {
-            type: String,
-        },
-        reason: {
             type: String,
         },
         conversation: {

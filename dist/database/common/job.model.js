@@ -217,6 +217,7 @@ var JobSchema = new mongoose_1.Schema({
     totalEnquires: { type: mongoose_1.Schema.Types.Number, default: 0 },
     hasUnrepliedEnquiry: { type: mongoose_1.Schema.Types.Boolean, default: false },
     isSaved: { type: mongoose_1.Schema.Types.Boolean, default: false },
+    revisitEnabled: { type: mongoose_1.Schema.Types.Boolean, default: false },
 }, { timestamps: true });
 JobSchema.virtual('totalQuotations').get(function () {
     var pendingQuotations = this.quotations ? this.quotations.filter(function (quote) { return quote.status !== job_quotation_model_1.JOB_QUOTATION_STATUS.DECLINED; }) : [];

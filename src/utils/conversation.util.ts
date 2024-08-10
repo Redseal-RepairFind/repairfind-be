@@ -91,7 +91,7 @@ const updateOrCreateDisputeConversations = async (dispute: IJobDispute) => {
              sender: dispute.arbitrator,
              senderType: 'admins',
              receiver: dispute.arbitrator,
-             message: dispute.reason,
+             message: dispute.description,
              messageType: MessageType.ALERT,
              entity: dispute.id,
              entityType: 'job_disputes'
@@ -124,7 +124,7 @@ const updateOrCreateDisputeConversations = async (dispute: IJobDispute) => {
              sender: dispute.arbitrator,
              senderType: 'admins',
              receiver: dispute.contractor,
-             message: dispute.reason,
+             message: dispute.description,
              messageType: MessageType.ALERT,
              entity: dispute.id,
              entityType: 'job_disputes'

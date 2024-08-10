@@ -10,6 +10,7 @@ var JOB_DAY_STATUS;
     JOB_DAY_STATUS["CANCELED"] = "CANCELED";
     JOB_DAY_STATUS["CONFIRMED"] = "CONFIRMED";
     JOB_DAY_STATUS["COMPLETED"] = "COMPLETED";
+    JOB_DAY_STATUS["DISPUTED"] = "DISPUTED";
 })(JOB_DAY_STATUS || (exports.JOB_DAY_STATUS = JOB_DAY_STATUS = {}));
 var JOB_DAY_TYPE;
 (function (JOB_DAY_TYPE) {
@@ -83,6 +84,7 @@ var JobDayShema = new mongoose_1.Schema({
         type: Date,
         default: Date.now,
     },
+    isRevisit: { type: mongoose_1.Schema.Types.Boolean, default: false },
 }, {
     timestamps: true,
 });

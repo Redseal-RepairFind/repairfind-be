@@ -73,7 +73,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AdminDisputeController = exports.markJobAsComplete = exports.createDisputeRefund = exports.settleDispute = exports.acceptDispute = exports.getSingleDispute = exports.getJobDisputes = void 0;
+exports.AdminDisputeController = exports.enableRevisit = exports.markJobAsComplete = exports.createDisputeRefund = exports.settleDispute = exports.acceptDispute = exports.getSingleDispute = exports.getJobDisputes = void 0;
 var express_validator_1 = require("express-validator");
 var job_dispute_model_1 = require("../../../database/common/job_dispute.model");
 var api_feature_1 = require("../../../utils/api.feature");
@@ -461,11 +461,86 @@ var markJobAsComplete = function (req, res, next) { return __awaiter(void 0, voi
     });
 }); };
 exports.markJobAsComplete = markJobAsComplete;
+var enableRevisit = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var adminId, disputeId, _a, resolvedWay, remark, dispute, job, jobDay, admin, error_6;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 7, , 8]);
+                adminId = req.admin.id;
+                disputeId = req.params.disputeId;
+                _a = req.body, resolvedWay = _a.resolvedWay, remark = _a.remark;
+                return [4 /*yield*/, job_dispute_model_1.JobDisputeModel.findOne({ _id: disputeId })];
+            case 1:
+                dispute = _b.sent();
+                if (!dispute) {
+                    return [2 /*return*/, res
+                            .status(401)
+                            .json({ success: false, message: "Invalid disputeId" })];
+                }
+                return [4 /*yield*/, job_model_1.JobModel.findById(dispute.job)];
+            case 2:
+                job = _b.sent();
+                if (!job) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found' })];
+                }
+                return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ job: job.id })];
+            case 3:
+                jobDay = _b.sent();
+                if (!jobDay) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Existing job day not found' })];
+                }
+                return [4 /*yield*/, admin_model_1.default.findById(adminId)];
+            case 4:
+                admin = _b.sent();
+                if (!admin) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Admin not found' })];
+                }
+                if (job.status === job_model_1.JOB_STATUS.COMPLETED) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'The booking is already marked as complete' })];
+                }
+                if (job.status == job_model_1.JOB_STATUS.REFUNDED) {
+                    return [2 /*return*/, res
+                            .status(401)
+                            .json({ success: false, message: "Job is already refunded" })];
+                }
+                job.revisitEnabled = true;
+                job.status = job_model_1.JOB_STATUS.BOOKED;
+                job.jobHistory.push({
+                    eventType: 'REVISIT_ENABLED_VIA_DISPUTE',
+                    timestamp: new Date(),
+                    payload: {
+                        markedBy: 'admin',
+                        dispute: dispute.id
+                    }
+                });
+                dispute.status = job_dispute_model_1.JOB_DISPUTE_STATUS.REVISIT;
+                dispute.resolvedWay = "REVISIT_ENABLED";
+                dispute.remark = remark;
+                return [4 /*yield*/, dispute.save()];
+            case 5:
+                _b.sent();
+                return [4 /*yield*/, job.save()];
+            case 6:
+                _b.sent();
+                events_1.JobEvent.emit('JOB_REVISIT_ENABLED', { job: job, dispute: dispute });
+                res.json({ success: true, message: 'Job marked as complete', data: job });
+                return [3 /*break*/, 8];
+            case 7:
+                error_6 = _b.sent();
+                console.log(error_6);
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred', error_6))];
+            case 8: return [2 /*return*/];
+        }
+    });
+}); };
+exports.enableRevisit = enableRevisit;
 exports.AdminDisputeController = {
     getJobDisputes: exports.getJobDisputes,
     getSingleDispute: exports.getSingleDispute,
     acceptDispute: exports.acceptDispute,
     settleDispute: exports.settleDispute,
     createDisputeRefund: exports.createDisputeRefund,
-    markJobAsComplete: exports.markJobAsComplete
+    markJobAsComplete: exports.markJobAsComplete,
+    enableRevisit: exports.enableRevisit
 };
