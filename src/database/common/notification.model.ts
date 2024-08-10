@@ -51,7 +51,7 @@ const NotificationSchema = new Schema(
       updatedAt: {
         type: Date,
         default: Date.now,
-      },
+      }, 
       readAt: {
         type: Date,
         default: null,
