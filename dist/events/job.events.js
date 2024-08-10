@@ -435,6 +435,7 @@ exports.JobEvent.on('JOB_DISPUTE_REFUND_CREATED', function (payload) {
                             payload: {
                                 entity: dispute.id,
                                 entityType: 'job_disputes',
+                                jobType: job.type,
                                 message: "Full refund of your disputed job has been approved  on Repairfind",
                                 customer: customer.id,
                                 event: 'JOB_DISPUTE_REFUND_CREATED',
@@ -489,6 +490,7 @@ exports.JobEvent.on('JOB_QUOTATION_DECLINED', function (payload) {
                             entityType: 'jobs',
                             message: "Your job quotation for a job  on RepairFind was declined",
                             customerId: customer.id,
+                            jobType: job.type,
                             conversationId: conversation.id,
                             event: 'JOB_QUOTATION_DECLINED',
                         }

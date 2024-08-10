@@ -79,6 +79,7 @@ var NotificationService = /** @class */ (function () {
                         params.payload.userType = params.userType;
                         params.payload.user = params.user;
                         params.payload.heading = params.heading;
+                        params.payload.data = __assign({}, params.payload);
                         if (!(params.userType == 'contractors')) return [3 /*break*/, 3];
                         return [4 /*yield*/, contractor_model_1.ContractorModel.findById(params.user)];
                     case 1:

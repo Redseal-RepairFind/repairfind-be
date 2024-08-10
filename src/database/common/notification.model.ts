@@ -9,6 +9,7 @@ export interface INotification extends Document {
     entity: ObjectId;
     entityType: string; // bookings, jobs, customers, 
     heading: object; //{name, image}
+    data: object; 
     createdAt: Date;
     updatedAt: Date;
     readAt: Date;
@@ -43,6 +44,9 @@ const NotificationSchema = new Schema(
       createdAt: {
         type: Date,
         default: Date.now,
+      },
+      data: {
+        type: Object,
       },
       updatedAt: {
         type: Date,

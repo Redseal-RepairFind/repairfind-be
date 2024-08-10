@@ -29,6 +29,9 @@ var NotificationSchema = new mongoose_1.Schema({
         type: Date,
         default: Date.now,
     },
+    data: {
+        type: Object,
+    },
     updatedAt: {
         type: Date,
         default: Date.now,

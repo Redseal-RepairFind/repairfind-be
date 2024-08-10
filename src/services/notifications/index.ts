@@ -43,6 +43,7 @@ export class NotificationService  {
         params.payload.userType = params.userType
         params.payload.user = params.user
         params.payload.heading = params.heading
+        params.payload.data = {...params.payload}
         
         if(params.userType == 'contractors'){
             user  = await ContractorModel.findById(params.user)
