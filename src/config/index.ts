@@ -29,7 +29,7 @@ export const config = {
 
     google: {
         clientID: <string>process.env.GOOGLE_CLIENT_ID,
-        serviceJson: <string>process.env.GOOGLE_SERVICE_JSON
+        serviceJson: <string>process.env.GOOGLE_SERVICE_JSON || "https://repairfindbucket.s3.eu-west-3.amazonaws.com/googleService.json"
     },
 
     redis: {
