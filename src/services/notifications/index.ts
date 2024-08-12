@@ -87,7 +87,9 @@ export class NotificationService  {
 
 
         if ('push' in options) {
-            sendPushNotifications( deviceTokens , {
+
+            
+            let pushLoad : any = {
                 title: params.title, 
                 sound: 'default',
                 priority: 'high', 
@@ -100,7 +102,17 @@ export class NotificationService  {
                     _contentAvailable: true,
                     ...params.payload
                 },
-            })
+            }
+
+            if(params.type == 'NEW_INCOMING_CALL'){
+                pushLoad = {
+                    data: { 
+                        _contentAvailable: true,
+                        ...params.payload
+                    },
+                }
+            }
+            sendPushNotifications( deviceTokens , pushLoad)
 
         }
        

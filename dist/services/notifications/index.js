@@ -69,7 +69,7 @@ var NotificationService = /** @class */ (function () {
             database: true
         }; }
         return __awaiter(this, void 0, void 0, function () {
-            var user, deviceTokens, devices, alerts, notification;
+            var user, deviceTokens, devices, alerts, pushLoad, notification;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -131,7 +131,7 @@ var NotificationService = /** @class */ (function () {
                         _a.label = 11;
                     case 11:
                         if ('push' in options) {
-                            (0, expo_1.sendPushNotifications)(deviceTokens, {
+                            pushLoad = {
                                 title: params.title,
                                 sound: 'default',
                                 priority: 'high',
@@ -141,7 +141,13 @@ var NotificationService = /** @class */ (function () {
                                 categoryIdentifier: params.type,
                                 _contentAvailable: true,
                                 data: __assign({ _contentAvailable: true }, params.payload),
-                            });
+                            };
+                            if (params.type == 'NEW_INCOMING_CALL') {
+                                pushLoad = {
+                                    data: __assign({ _contentAvailable: true }, params.payload),
+                                };
+                            }
+                            (0, expo_1.sendPushNotifications)(deviceTokens, pushLoad);
                         }
                         if (!options.hasOwnProperty('database')) return [3 /*break*/, 13];
                         params.payload.message = params.message;
