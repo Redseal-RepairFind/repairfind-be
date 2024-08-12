@@ -96,7 +96,7 @@ var updateOrCreateDisputeConversations = function (dispute) { return __awaiter(v
             case 0:
                 arbitratorCustomerConversation = null;
                 arbitratorContractorConversation = null;
-                if (!dispute.arbitrator) return [3 /*break*/, 5];
+                if (!dispute.arbitrator) return [3 /*break*/, 7];
                 return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
                         entity: dispute.id,
                         entityType: 'job_disputes',
@@ -129,6 +129,9 @@ var updateOrCreateDisputeConversations = function (dispute) { return __awaiter(v
                     entityType: 'job_disputes'
                 });
                 events_1.ConversationEvent.emit('NEW_MESSAGE', { message: message });
+                return [4 /*yield*/, message.save()];
+            case 3:
+                _c.sent();
                 return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
                         entity: dispute.id,
                         entityType: 'job_disputes',
@@ -142,13 +145,13 @@ var updateOrCreateDisputeConversations = function (dispute) { return __awaiter(v
                         entityType: 'job_disputes',
                         members: [{ memberType: 'contractors', member: dispute.contractor }, { memberType: 'admins', member: dispute.arbitrator }],
                     }, { new: true, upsert: true })];
-            case 3:
+            case 4:
                 arbitratorContractorConversation = _c.sent();
                 _b = arbitratorContractorConversation;
                 return [4 /*yield*/, arbitratorContractorConversation.getHeading(dispute.arbitrator)
                     // Send a message
                 ];
-            case 4:
+            case 5:
                 _b.heading = _c.sent();
                 // Send a message
                 message = new messages_schema_1.MessageModel({
@@ -162,8 +165,11 @@ var updateOrCreateDisputeConversations = function (dispute) { return __awaiter(v
                     entityType: 'job_disputes'
                 });
                 events_1.ConversationEvent.emit('NEW_MESSAGE', { message: message });
-                _c.label = 5;
-            case 5: return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
+                return [4 /*yield*/, message.save()];
+            case 6:
+                _c.sent();
+                _c.label = 7;
+            case 7: return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
                     $and: [
                         { members: { $elemMatch: { member: dispute.contractor } } },
                         { members: { $elemMatch: { member: dispute.customer } } }
@@ -171,7 +177,7 @@ var updateOrCreateDisputeConversations = function (dispute) { return __awaiter(v
                 }, {
                     members: [{ memberType: 'customers', member: dispute.customer }, { memberType: 'contractors', member: dispute.contractor }],
                 }, { new: true, upsert: true })];
-            case 6:
+            case 8:
                 customerContractorConversation = _c.sent();
                 return [2 /*return*/, { customerContractor: customerContractorConversation, arbitratorContractor: arbitratorContractorConversation, arbitratorCustomer: arbitratorCustomerConversation }];
         }
