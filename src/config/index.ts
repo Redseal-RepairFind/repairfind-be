@@ -28,7 +28,8 @@ export const config = {
     },
 
     google: {
-        clientID: <string>process.env.GOOGLE_CLIENT_ID
+        clientID: <string>process.env.GOOGLE_CLIENT_ID,
+        serviceJson: <string>process.env.GOOGLE_SERVICE_JSON
     },
 
     redis: {

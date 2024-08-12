@@ -35,15 +35,62 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-// import serviceAccount from '../../../fcm.json'; 
-// Initialize the Firebase Admin SDKv
-// admin.initializeApp({
-//     credential: admin.credential.cert('serviceAccount' as admin.ServiceAccount)
-// });
-var sendWebNotification = function (FcmToken) { return __awaiter(void 0, void 0, void 0, function () {
+var firebase_admin_1 = __importDefault(require("firebase-admin"));
+var axios_1 = __importDefault(require("axios"));
+var config_1 = require("../../config");
+var initializeFirebase = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var serviceAccount, error_1;
     return __generator(this, function (_a) {
-        return [2 /*return*/];
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                return [4 /*yield*/, axios_1.default.get(config_1.config.google.serviceJson)];
+            case 1:
+                serviceAccount = (_a.sent()).data;
+                firebase_admin_1.default.initializeApp({
+                    credential: firebase_admin_1.default.credential.cert(serviceAccount)
+                });
+                console.log('Firebase Admin SDK initialized');
+                return [3 /*break*/, 3];
+            case 2:
+                error_1 = _a.sent();
+                console.error('Error fetching service account JSON:', error_1);
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
+        }
     });
 }); };
+var sendWebNotification = function (FcmToken) { return __awaiter(void 0, void 0, void 0, function () {
+    var message, response, error_2;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                message = {
+                    tokens: [FcmToken],
+                    data: {
+                        title: 'req.body.title',
+                        body: 'req.body.body',
+                        icon: "https://upload.wikimedia.org/wikipedia/en/thumb/0/04/Facebook_f_logo_%282021%29.svg/2048px-Facebook_f_logo_%282021%29.svg.png",
+                        click_action: "http://localhost:8081"
+                    }
+                };
+                return [4 /*yield*/, firebase_admin_1.default.messaging().sendMulticast(message)];
+            case 1:
+                response = _a.sent();
+                console.log(response);
+                return [2 /*return*/, response];
+            case 2:
+                error_2 = _a.sent();
+                console.log('Error sending notification', error_2);
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+initializeFirebase();
 exports.default = sendWebNotification;

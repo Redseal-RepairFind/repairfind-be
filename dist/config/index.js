@@ -51,7 +51,8 @@ exports.config = {
         }
     },
     google: {
-        clientID: process.env.GOOGLE_CLIENT_ID
+        clientID: process.env.GOOGLE_CLIENT_ID,
+        serviceJson: process.env.GOOGLE_SERVICE_JSON
     },
     redis: {
         uri: process.env.REDIS_URI,
