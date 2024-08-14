@@ -81,7 +81,7 @@ var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void
                 if (!job) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Job  not found' })];
                 }
-                return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ job: jobId, type: job.schedule.type, status: { $ne: [job_day_model_1.JOB_DAY_STATUS.DISPUTED, job_day_model_1.JOB_DAY_STATUS.COMPLETED] } })];
+                return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ job: jobId, type: job.schedule.type, status: { $nin: [job_day_model_1.JOB_DAY_STATUS.DISPUTED, job_day_model_1.JOB_DAY_STATUS.COMPLETED] } })];
             case 2:
                 jobDay = _a.sent();
                 if (!jobDay) {

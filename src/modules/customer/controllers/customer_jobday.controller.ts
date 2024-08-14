@@ -39,7 +39,7 @@ export const initiateJobDay = async (
         }
 
 
-        const jobDay = await JobDayModel.findOne({ job: jobId, type: job.schedule.type, status: {$ne: [JOB_DAY_STATUS.DISPUTED, JOB_DAY_STATUS.COMPLETED ]} });
+        const jobDay = await JobDayModel.findOne({ job: jobId, type: job.schedule.type, status: {$nin: [JOB_DAY_STATUS.DISPUTED, JOB_DAY_STATUS.COMPLETED ]} });
         if (!jobDay) {
             // return res.status(400).json({ success: false, message: 'No job for the current schedule type' });
         }

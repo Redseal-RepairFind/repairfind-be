@@ -83,7 +83,7 @@ var startTrip = function (req, res) { return __awaiter(void 0, void 0, void 0, f
                 if (!job) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Job booking not found' })];
                 }
-                return [4 /*yield*/, job_day_model_1.JobDayModel.findOneAndUpdate({ job: jobId, type: job.schedule.type, status: { $ne: [job_day_model_1.JOB_DAY_STATUS.DISPUTED, job_day_model_1.JOB_DAY_STATUS.COMPLETED] } }, {
+                return [4 /*yield*/, job_day_model_1.JobDayModel.findOneAndUpdate({ job: jobId, type: job.schedule.type, status: { $nin: [job_day_model_1.JOB_DAY_STATUS.DISPUTED, job_day_model_1.JOB_DAY_STATUS.COMPLETED] } }, {
                         customer: job.customer,
                         contractor: contractorId,
                         status: job_day_model_1.JOB_DAY_STATUS.STARTED,
@@ -148,7 +148,7 @@ var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void
                 if (!customer) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Job Customer not found' })];
                 }
-                return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ job: jobId, type: job.schedule.type, status: { $ne: [job_day_model_1.JOB_DAY_STATUS.DISPUTED, job_day_model_1.JOB_DAY_STATUS.COMPLETED] } })];
+                return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ job: jobId, type: job.schedule.type, status: { $nin: [job_day_model_1.JOB_DAY_STATUS.DISPUTED, job_day_model_1.JOB_DAY_STATUS.COMPLETED] } })];
             case 5:
                 jobDay = _a.sent();
                 conversationMembers = [
