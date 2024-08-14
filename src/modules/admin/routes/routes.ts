@@ -3,7 +3,7 @@ import { AdminJobController } from "../controllers/admin_job.controller";
 import { AdminSkillController } from "../controllers/admin_skill.controller";
 import { AdminContractorController } from "../controllers/admin_contractors.controller";
 import { AdminCustomerController } from "../controllers/adminGetCustomerDetail.contractor";
-import { adminGetNotificationrController, adminUnseenNotificationrController, adminViewNotificationrController } from "../controllers/adminNotification.controller";
+import { AdminNotificationController } from "../controllers/admin_notification.controller";
 import { AdminGetAppDetailController } from "../controllers/appDetails.Controller";
 import { AdminGetRevenueAnalysisControlleer } from "../controllers/averageRevenue.controller";
 import { AdminConversationController } from "../controllers/conversation.controller";
@@ -113,11 +113,15 @@ router.post("/conversations/:conversationId/messages", Validations.sendMessagePa
 
 
 
-// TODO:
-// router.post("/update_profile", checkAdminRole, memoryUpload.single('profileImg'), adminUpdateBioController ); // admin update profile
-router.get("/get_all_notification", checkAdminRole,  adminGetNotificationrController ); // admin get all notification
-router.post("/view_unseen_notification", checkAdminRole,  adminViewNotificationrController ); // admin view unseen notification
-router.get("/get_unseen_notification", checkAdminRole,  adminUnseenNotificationrController  ); // admin get total number of unseen notification
+// Notifications
+router.get('/notifications', checkAdminRole, AdminNotificationController.getNotifications)
+router.get('/notifications/alerts', checkAdminRole, AdminNotificationController.redAlerts)
+router.get('/notifications/:notificationId', checkAdminRole, AdminNotificationController.getSingleNotification)
+router.post('/notifications/mark-all-read', checkAdminRole, AdminNotificationController.markAllNotificationsAsRead)
+router.post('/notifications/:notificationId', checkAdminRole, AdminNotificationController.getSingleNotification)
+
+
+
 router.get("/get_revenue_par_day", validateRevenueDateParams, checkAdminRole, AdminGetRevenueAnalysisControlleer ); // admin get total number of unseen notification
 router.get("/get_all_pending_payout", checkAdminRole, AdminGetPendingPayoutDetailController ); // admin get all pending payout
 router.get("/get_all_completed_payout", checkAdminRole, AdminGetCompletedPayoutDetailController ); // admin get all completed payout

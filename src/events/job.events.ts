@@ -364,8 +364,8 @@ JobEvent.on('JOB_REVISIT_ENABLED', async function (payload: { job: IJob, dispute
                 message: `A revisit for your disputed job has been enabled on Repairfind`,
                 heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
                 payload: {
-                    entity: dispute.id,
-                    entityType: 'job_disputes',
+                    entity: job.id,
+                    entityType: 'jobs',
                     message: `A revisit for your disputed job has been enabled on Repairfind`,
                     contractor: contractor.id,
                     event: 'JOB_REVISIT_ENABLED',
@@ -380,8 +380,8 @@ JobEvent.on('JOB_REVISIT_ENABLED', async function (payload: { job: IJob, dispute
                 message: `A revisit for your disputed job has been enabled on Repairfind`,
                 heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
                 payload: {
-                    entity: dispute.id,
-                    entityType: 'job_disputes',
+                    entity: job.id,
+                    entityType: 'jobs',
                     jobType: job.type,
                     message: `A revisit for your disputed job has been enabled on Repairfind`,
                     customer: customer.id,

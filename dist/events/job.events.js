@@ -478,8 +478,8 @@ exports.JobEvent.on('JOB_REVISIT_ENABLED', function (payload) {
                             message: "A revisit for your disputed job has been enabled on Repairfind",
                             heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_a = customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
                             payload: {
-                                entity: dispute.id,
-                                entityType: 'job_disputes',
+                                entity: job.id,
+                                entityType: 'jobs',
                                 message: "A revisit for your disputed job has been enabled on Repairfind",
                                 contractor: contractor.id,
                                 event: 'JOB_REVISIT_ENABLED',
@@ -493,8 +493,8 @@ exports.JobEvent.on('JOB_REVISIT_ENABLED', function (payload) {
                             message: "A revisit for your disputed job has been enabled on Repairfind",
                             heading: { name: "".concat(contractor.name), image: (_b = contractor.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
                             payload: {
-                                entity: dispute.id,
-                                entityType: 'job_disputes',
+                                entity: job.id,
+                                entityType: 'jobs',
                                 jobType: job.type,
                                 message: "A revisit for your disputed job has been enabled on Repairfind",
                                 customer: customer.id,

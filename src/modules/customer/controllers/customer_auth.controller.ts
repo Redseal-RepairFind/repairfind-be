@@ -6,7 +6,6 @@ import CustomerModel from "../../../database/customer/models/customer.model";
 import { OTP_EXPIRY_TIME, generateOTP } from "../../../utils/otpGenerator";
 import { sendEmail } from "../../../utils/send_email_utility";
 import { htmlMailTemplate } from "../../../templates/sendEmailTemplate";
-import AdminNoficationModel from "../../../database/admin/models/admin_notification.model";
 import { GoogleServiceProvider } from "../../../services/google";
 import { CustomerAuthProviders } from "../../../database/customer/interface/customer.interface";
 import { FacebookServiceProvider } from "../../../services/facebook";
@@ -82,13 +81,13 @@ export const signUp = async (
     let customerSaved = await customer.save();
 
     // admin notification 
-    const adminNoti = new AdminNoficationModel({
-      title: "New Account Created",
-      message: `A customer - ${lastName}  just created an account.`,
-      status: "unseen"
-    })
+    // const adminNoti = new AdminNoficationModel({
+    //   title: "New Account Created",
+    //   message: `A customer - ${lastName}  just created an account.`,
+    //   status: "unseen"
+    // })
 
-    await adminNoti.save();
+    // await adminNoti.save();
 
     res.json({
       success: true,

@@ -9,7 +9,6 @@ import { uploadToS3 } from "../../../utils/upload.utility";
 import { v4 as uuidv4 } from "uuid";
 import { htmlMailTemplate } from "../../../templates/sendEmailTemplate";
 import { ContractorWelcomeTemplate } from "../../../templates/contractor/welcome_email";
-import AdminNoficationModel from "../../../database/admin/models/admin_notification.model";
 import { handleAsyncError } from "../../../abstracts/decorators.abstract";
 import { Base } from "../../../abstracts/base.abstract";
 import { EmailService } from "../../../services";

@@ -47,7 +47,6 @@ var customer_model_1 = __importDefault(require("../../../database/customer/model
 var otpGenerator_1 = require("../../../utils/otpGenerator");
 var send_email_utility_1 = require("../../../utils/send_email_utility");
 var sendEmailTemplate_1 = require("../../../templates/sendEmailTemplate");
-var admin_notification_model_1 = __importDefault(require("../../../database/admin/models/admin_notification.model"));
 var google_1 = require("../../../services/google");
 var customer_interface_1 = require("../../../database/customer/interface/customer.interface");
 var facebook_1 = require("../../../services/facebook");
@@ -57,11 +56,11 @@ var welcome_email_1 = require("../../../templates/customer/welcome_email");
 var email_verification_1 = require("../../../templates/common/email_verification");
 //customer signup /////////////
 var signUp = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, email, password, firstName, lastName, acceptTerms, phoneNumber, errors, userEmailExists, otp, createdTime, emailOtp, welcomeHtml, emailVerificationHtml, hashedPassword, customer, customerSaved, adminNoti, err_1;
+    var _a, email, password, firstName, lastName, acceptTerms, phoneNumber, errors, userEmailExists, otp, createdTime, emailOtp, welcomeHtml, emailVerificationHtml, hashedPassword, customer, customerSaved, err_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 5, , 6]);
+                _b.trys.push([0, 4, , 5]);
                 _a = req.body, email = _a.email, password = _a.password, firstName = _a.firstName, lastName = _a.lastName, acceptTerms = _a.acceptTerms, phoneNumber = _a.phoneNumber;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
@@ -102,14 +101,13 @@ var signUp = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                 return [4 /*yield*/, customer.save()];
             case 3:
                 customerSaved = _b.sent();
-                adminNoti = new admin_notification_model_1.default({
-                    title: "New Account Created",
-                    message: "A customer - ".concat(lastName, "  just created an account."),
-                    status: "unseen"
-                });
-                return [4 /*yield*/, adminNoti.save()];
-            case 4:
-                _b.sent();
+                // admin notification 
+                // const adminNoti = new AdminNoficationModel({
+                //   title: "New Account Created",
+                //   message: `A customer - ${lastName}  just created an account.`,
+                //   status: "unseen"
+                // })
+                // await adminNoti.save();
                 res.json({
                     success: true,
                     message: "Signup successful",
@@ -121,13 +119,13 @@ var signUp = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                         email: customerSaved.email,
                     },
                 });
-                return [3 /*break*/, 6];
-            case 5:
+                return [3 /*break*/, 5];
+            case 4:
                 err_1 = _b.sent();
                 // signup error
                 res.status(500).json({ success: false, message: err_1.message });
-                return [3 /*break*/, 6];
-            case 6: return [2 /*return*/];
+                return [3 /*break*/, 5];
+            case 5: return [2 /*return*/];
         }
     });
 }); };

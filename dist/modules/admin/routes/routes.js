@@ -4,7 +4,7 @@ var admin_job_controller_1 = require("../controllers/admin_job.controller");
 var admin_skill_controller_1 = require("../controllers/admin_skill.controller");
 var admin_contractors_controller_1 = require("../controllers/admin_contractors.controller");
 var adminGetCustomerDetail_contractor_1 = require("../controllers/adminGetCustomerDetail.contractor");
-var adminNotification_controller_1 = require("../controllers/adminNotification.controller");
+var admin_notification_controller_1 = require("../controllers/admin_notification.controller");
 var appDetails_Controller_1 = require("../controllers/appDetails.Controller");
 var averageRevenue_controller_1 = require("../controllers/averageRevenue.controller");
 var conversation_controller_1 = require("../controllers/conversation.controller");
@@ -84,11 +84,12 @@ router.get("/conversations", adminRoleChecker_middleware_1.checkAdminRole, conve
 router.get("/conversations/:conversationId", adminRoleChecker_middleware_1.checkAdminRole, conversation_controller_1.AdminConversationController.getSingleConversation); // admin get single conversation 
 router.get("/conversations/:conversationId/messages", adminRoleChecker_middleware_1.checkAdminRole, conversation_controller_1.AdminConversationController.getConversationMessages); // admin get  conversation message
 router.post("/conversations/:conversationId/messages", admin_validations_middleware_1.Validations.sendMessageParams, adminRoleChecker_middleware_1.checkAdminRole, conversation_controller_1.AdminConversationController.sendMessage); // admin send message
-// TODO:
-// router.post("/update_profile", checkAdminRole, memoryUpload.single('profileImg'), adminUpdateBioController ); // admin update profile
-router.get("/get_all_notification", adminRoleChecker_middleware_1.checkAdminRole, adminNotification_controller_1.adminGetNotificationrController); // admin get all notification
-router.post("/view_unseen_notification", adminRoleChecker_middleware_1.checkAdminRole, adminNotification_controller_1.adminViewNotificationrController); // admin view unseen notification
-router.get("/get_unseen_notification", adminRoleChecker_middleware_1.checkAdminRole, adminNotification_controller_1.adminUnseenNotificationrController); // admin get total number of unseen notification
+// Notifications
+router.get('/notifications', adminRoleChecker_middleware_1.checkAdminRole, admin_notification_controller_1.AdminNotificationController.getNotifications);
+router.get('/notifications/alerts', adminRoleChecker_middleware_1.checkAdminRole, admin_notification_controller_1.AdminNotificationController.redAlerts);
+router.get('/notifications/:notificationId', adminRoleChecker_middleware_1.checkAdminRole, admin_notification_controller_1.AdminNotificationController.getSingleNotification);
+router.post('/notifications/mark-all-read', adminRoleChecker_middleware_1.checkAdminRole, admin_notification_controller_1.AdminNotificationController.markAllNotificationsAsRead);
+router.post('/notifications/:notificationId', adminRoleChecker_middleware_1.checkAdminRole, admin_notification_controller_1.AdminNotificationController.getSingleNotification);
 router.get("/get_revenue_par_day", admin_validations_middleware_1.validateRevenueDateParams, adminRoleChecker_middleware_1.checkAdminRole, averageRevenue_controller_1.AdminGetRevenueAnalysisControlleer); // admin get total number of unseen notification
 router.get("/get_all_pending_payout", adminRoleChecker_middleware_1.checkAdminRole, payout_controller_1.AdminGetPendingPayoutDetailController); // admin get all pending payout
 router.get("/get_all_completed_payout", adminRoleChecker_middleware_1.checkAdminRole, payout_controller_1.AdminGetCompletedPayoutDetailController); // admin get all completed payout
