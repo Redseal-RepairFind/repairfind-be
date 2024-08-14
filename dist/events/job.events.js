@@ -488,7 +488,7 @@ exports.JobEvent.on('JOB_REVISIT_ENABLED', function (payload) {
                         services_1.NotificationService.sendNotification({
                             user: customer.id,
                             userType: 'customers',
-                            title: 'Job Dispute Refund Created',
+                            title: 'Job Revisit  Enabled',
                             type: 'JOB_REVISIT_ENABLED',
                             message: "A revisit for your disputed job has been enabled on Repairfind",
                             heading: { name: "".concat(contractor.name), image: (_b = contractor.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },

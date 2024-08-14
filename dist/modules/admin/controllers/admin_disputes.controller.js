@@ -511,7 +511,8 @@ var enableRevisit = function (req, res, next) { return __awaiter(void 0, void 0,
                     timestamp: new Date(),
                     payload: {
                         markedBy: 'admin',
-                        dispute: dispute.id
+                        dispute: dispute.id,
+                        previousJobDay: jobDay
                     }
                 });
                 dispute.status = job_dispute_model_1.JOB_DISPUTE_STATUS.REVISIT;

@@ -12,6 +12,7 @@ import { ConversationEvent, JobEvent } from "../../../events";
 import AdminModel from "../../../database/admin/models/admin.model";
 import { MessageModel, MessageType } from "../../../database/common/messages.schema";
 import { ConversationUtil } from "../../../utils/conversation.util";
+import { previousDay } from "date-fns";
 
 
 
@@ -480,7 +481,8 @@ export const enableRevisit = async (req: any, res: Response, next: NextFunction)
       timestamp: new Date(),
       payload: {
         markedBy: 'admin',
-        dispute: dispute.id
+        dispute: dispute.id,
+        previousJobDay: jobDay
       }
     });
 

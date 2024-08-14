@@ -1,7 +1,7 @@
 import { Document, ObjectId, Schema, model } from "mongoose";
 import { IJobQuotation, JOB_QUOTATION_STATUS, JobQuotationModel } from "./job_quotation.model";
 import { PAYMENT_TYPE, PaymentModel } from "./payment.schema";
-import { JobDayModel } from "./job_day.model";
+import { JOB_DAY_STATUS, JobDayModel } from "./job_day.model";
 import { JobEnquiryModel } from "./job_enquiry.model";
 import ContractorSavedJobModel from "../contractor/models/contractor_saved_job.model";
 import { JobDisputeModel } from "./job_dispute.model";
@@ -376,7 +376,7 @@ JobSchema.methods.getDistance = async function (contractorLatitude: number, cont
 //get job day that match with the schedule type
 JobSchema.methods.getJobDay = async function (scheduleType = null) {
     if (!scheduleType && this.schedule) scheduleType = this.schedule?.type;
-    return await JobDayModel.findOne({ job: this.id, type: scheduleType })
+    return await JobDayModel.findOne({ job: this.id, type: scheduleType, status: {$ne: [JOB_DAY_STATUS.DISPUTED ]} })
 };
 
 

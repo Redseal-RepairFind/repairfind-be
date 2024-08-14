@@ -375,7 +375,7 @@ JobEvent.on('JOB_REVISIT_ENABLED', async function (payload: { job: IJob, dispute
             NotificationService.sendNotification({
                 user: customer.id,
                 userType: 'customers',
-                title: 'Job Dispute Refund Created',
+                title: 'Job Revisit  Enabled',
                 type: 'JOB_REVISIT_ENABLED',
                 message: `A revisit for your disputed job has been enabled on Repairfind`,
                 heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },

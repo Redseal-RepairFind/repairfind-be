@@ -40,7 +40,7 @@ export const startTrip = async (
         }
 
         const jobDay = await JobDayModel.findOneAndUpdate(
-            { job: jobId, type: job.schedule.type },
+            { job: jobId, type: job.schedule.type, status: {$ne: [JOB_DAY_STATUS.DISPUTED, JOB_DAY_STATUS.COMPLETED ]} },
             {
                 customer: job.customer,
                 contractor: contractorId,
@@ -111,7 +111,7 @@ export const initiateJobDay = async (
         }
 
 
-        const jobDay = await JobDayModel.findOne({ job: jobId, type: job.schedule.type });
+        const jobDay = await JobDayModel.findOne({ job: jobId, type: job.schedule.type, status: {$ne: [JOB_DAY_STATUS.DISPUTED, JOB_DAY_STATUS.COMPLETED ]} });
         // if(jobDay){
         //     return res.status(400).json({ success: false, message: 'Jobday does not exists for the current schedule, kindly start a job' });
         // }

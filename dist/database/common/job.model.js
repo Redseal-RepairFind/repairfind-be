@@ -264,7 +264,7 @@ JobSchema.methods.getJobDay = function (scheduleType) {
                 case 0:
                     if (!scheduleType && this.schedule)
                         scheduleType = (_a = this.schedule) === null || _a === void 0 ? void 0 : _a.type;
-                    return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ job: this.id, type: scheduleType })];
+                    return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ job: this.id, type: scheduleType, status: { $ne: [job_day_model_1.JOB_DAY_STATUS.DISPUTED] } })];
                 case 1: return [2 /*return*/, _b.sent()];
             }
         });
