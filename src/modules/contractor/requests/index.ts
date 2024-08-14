@@ -255,7 +255,7 @@ export const sendMessageParams = [
 
 
 export const CreateJobDisputeRequest = [
-  body("evidence").notEmpty(),
+  body("evidence").optional(),
   body("description").notEmpty(),
 ];
 

@@ -53,6 +53,7 @@ var jobNotStartedScheduleCheck = function () { return __awaiter(void 0, void 0, 
                 _a.trys.push([0, 12, , 13]);
                 return [4 /*yield*/, job_model_1.JobModel.find({
                         status: { $in: ['BOOKED'] },
+                        revisitEnabled: false, // this is important so has not to move a disputed job with revisit enabled to not started
                         'schedule.startDate': { $exists: true }
                     })];
             case 1:

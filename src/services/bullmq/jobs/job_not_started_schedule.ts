@@ -10,6 +10,7 @@ export const jobNotStartedScheduleCheck = async () => {
     try {
         const jobs = await JobModel.find({
             status: { $in: ['BOOKED'] },
+            revisitEnabled: false, // this is important so has not to move a disputed job with revisit enabled to not started
             'schedule.startDate': { $exists: true }
         }) as IJob[];
 

@@ -290,7 +290,7 @@ exports.sendMessageParams = [
     }),
 ];
 exports.CreateJobDisputeRequest = [
-    (0, express_validator_1.body)("evidence").notEmpty(),
+    (0, express_validator_1.body)("evidence").optional(),
     (0, express_validator_1.body)("description").notEmpty(),
 ];
 exports.ContractorHttpRequest = {

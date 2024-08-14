@@ -221,7 +221,7 @@ exports.tripArrivalComfirmParams = [
     (0, express_validator_1.body)("verificationCode").notEmpty(),
 ];
 exports.createJobDisputeParams = [
-    (0, express_validator_1.body)("evidence").notEmpty(),
+    (0, express_validator_1.body)("evidence").optional(),
     (0, express_validator_1.body)("description").notEmpty(),
 ];
 // Define the validation rules for the message request

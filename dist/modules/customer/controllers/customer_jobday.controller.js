@@ -488,6 +488,8 @@ var confirmJobDayCompletion = function (req, res, next) { return __awaiter(void 
                     timestamp: new Date(),
                     payload: {}
                 });
+                //TODO: Set job ended date on job.schedule
+                job.schedule.endDate = new Date();
                 events_1.JobEvent.emit('JOB_COMPLETED', { job: job });
                 return [4 /*yield*/, job.save()];
             case 5:

@@ -241,7 +241,7 @@ export const tripArrivalComfirmParams = [
 
 
 export const createJobDisputeParams = [
-  body("evidence").notEmpty(),
+  body("evidence").optional(),
   body("description").notEmpty(),
 ];
 
