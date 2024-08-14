@@ -376,7 +376,7 @@ JobSchema.methods.getDistance = async function (contractorLatitude: number, cont
 //get job day that match with the schedule type
 JobSchema.methods.getJobDay = async function (scheduleType = null) {
     if (!scheduleType && this.schedule) scheduleType = this.schedule?.type;
-    return await JobDayModel.findOne({ job: this.id, type: scheduleType, status: {$ni: [JOB_DAY_STATUS.DISPUTED ]} })
+    return await JobDayModel.findOne({ job: this.id, type: scheduleType, status: {$nin: [JOB_DAY_STATUS.DISPUTED ]} })
 };
 
 
