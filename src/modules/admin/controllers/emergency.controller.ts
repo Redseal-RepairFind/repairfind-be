@@ -45,7 +45,13 @@ export const getSingleEmergency = async (
     const adminId = admin.id
 
     const jobEmergency = await JobEmergencyModel.findOne({ _id: emergencyId })
-      .populate(['customer', 'contractor']);
+      .populate([ {
+        path:'customer',
+        select: 'firstName lastName name profilePhoto _id'
+      }, {
+        path:'contractor',
+        select: 'firstName lastName name profilePhoto _id'
+      }, {path:'job'}]);
 
     if (!jobEmergency) {
       return res

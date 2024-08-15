@@ -72,7 +72,13 @@ var getSingleEmergency = function (req, res, next) { return __awaiter(void 0, vo
                 admin = req.admin;
                 adminId = admin.id;
                 return [4 /*yield*/, job_emergency_model_1.JobEmergencyModel.findOne({ _id: emergencyId })
-                        .populate(['customer', 'contractor'])];
+                        .populate([{
+                            path: 'customer',
+                            select: 'firstName lastName name profilePhoto _id'
+                        }, {
+                            path: 'contractor',
+                            select: 'firstName lastName name profilePhoto _id'
+                        }, { path: 'job' }])];
             case 1:
                 jobEmergency = _a.sent();
                 if (!jobEmergency) {

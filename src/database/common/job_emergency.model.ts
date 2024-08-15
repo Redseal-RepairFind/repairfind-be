@@ -37,12 +37,15 @@ const JobEmergencySchema = new Schema<IJobEmergency>(
         },
         customer: {
             type: Schema.Types.ObjectId,
+            ref: 'customers'
         },
         contractor: {
             type: Schema.Types.ObjectId,
+             ref: 'contractors'
         },
         job: {
             type: Schema.Types.ObjectId,
+             ref: 'jobs'
         },
         triggeredBy: {
             type: String,

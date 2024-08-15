@@ -21,12 +21,15 @@ var JobEmergencySchema = new mongoose_1.Schema({
     },
     customer: {
         type: mongoose_1.Schema.Types.ObjectId,
+        ref: 'customers'
     },
     contractor: {
         type: mongoose_1.Schema.Types.ObjectId,
+        ref: 'contractors'
     },
     job: {
         type: mongoose_1.Schema.Types.ObjectId,
+        ref: 'jobs'
     },
     triggeredBy: {
         type: String,
