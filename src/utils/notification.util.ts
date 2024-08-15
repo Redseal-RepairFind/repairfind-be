@@ -27,7 +27,9 @@ const redAlerts = async (userId: ObjectId, ) => {
         );
 
         // Filter out null values (conversations without unread messages)
-        const disputeAlerts = unreadTickets.filter(conversation => conversation !== null);
+        // const disputeAlerts = unreadTickets.filter(conversation => conversation !== null);
+        const disputeAlerts = unreadTickets.filter(conversation => conversation !== null).map(conversation => conversation?.entity);
+
      
         return { disputeAlerts} ;
 };

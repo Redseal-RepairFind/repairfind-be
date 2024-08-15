@@ -65,7 +65,7 @@ var redAlerts = function (userId) { return __awaiter(void 0, void 0, void 0, fun
                     }); }))];
             case 2:
                 unreadTickets = _a.sent();
-                disputeAlerts = unreadTickets.filter(function (conversation) { return conversation !== null; });
+                disputeAlerts = unreadTickets.filter(function (conversation) { return conversation !== null; }).map(function (conversation) { return conversation === null || conversation === void 0 ? void 0 : conversation.entity; });
                 return [2 /*return*/, { disputeAlerts: disputeAlerts }];
         }
     });
