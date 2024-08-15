@@ -62,7 +62,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.s3FileUpload = exports.uploadDifferentTypeToS3 = exports.uploadToS3 = exports.diskUpload = exports.memoryUpload = void 0;
+exports.s3FileUpload = exports.uploadToS3 = exports.diskUpload = exports.memoryUpload = void 0;
 var multer_1 = __importDefault(require("multer"));
 var client_s3_1 = require("@aws-sdk/client-s3");
 var config_1 = require("../config");
@@ -126,49 +126,10 @@ var uploadToS3 = function (buffer, originalFilename) { return __awaiter(void 0, 
     });
 }); };
 exports.uploadToS3 = uploadToS3;
-var uploadDifferentTypeToS3 = function (buffer, originalFilename, contentType) { return __awaiter(void 0, void 0, void 0, function () {
-    var s3, timestamp, key, params, command, response, fileLocation, error_2;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                s3 = new client_s3_1.S3Client({
-                    region: 'us-east-1',
-                    credentials: {
-                        accessKeyId: 'AKIAT4MDTHO7SHD5CHJD',
-                        secretAccessKey: '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',
-                    },
-                });
-                timestamp = Date.now().toString();
-                key = "".concat(timestamp, "-").concat(originalFilename);
-                params = {
-                    Bucket: 'saheedwale',
-                    Key: key,
-                    Body: buffer,
-                    ContentType: contentType,
-                    ACL: 'public-read',
-                };
-                command = new client_s3_1.PutObjectCommand(params);
-                _a.label = 1;
-            case 1:
-                _a.trys.push([1, 3, , 4]);
-                return [4 /*yield*/, s3.send(command)];
-            case 2:
-                response = _a.sent();
-                fileLocation = "https://".concat(params.Bucket, ".s3.amazonaws.com/").concat(params.Key);
-                return [2 /*return*/, { response: response, Location: fileLocation }];
-            case 3:
-                error_2 = _a.sent();
-                console.error('Error uploading to S3:', error_2);
-                throw error_2;
-            case 4: return [2 /*return*/];
-        }
-    });
-}); };
-exports.uploadDifferentTypeToS3 = uploadDifferentTypeToS3;
 var readFileAsync = (0, util_1.promisify)(fs.readFile);
 var s3UploadAsync = (0, util_1.promisify)(config_1.s3.upload.bind(config_1.s3));
 var s3FileUpload = function (files) { return __awaiter(void 0, void 0, void 0, function () {
-    var uploadedUrls, _i, files_1, file, originalname, buffer, mimetype, path, fileName, objectName, fileExtension, parameters, data, error_3;
+    var uploadedUrls, _i, files_1, file, originalname, buffer, mimetype, path, fileName, objectName, fileExtension, parameters, data, error_2;
     var _a, _b, _c;
     return __generator(this, function (_d) {
         switch (_d.label) {
@@ -207,8 +168,8 @@ var s3FileUpload = function (files) { return __awaiter(void 0, void 0, void 0, f
                 return [3 /*break*/, 1];
             case 6: return [2 /*return*/, uploadedUrls];
             case 7:
-                error_3 = _d.sent();
-                console.error('Error uploading files to s3:', error_3);
+                error_2 = _d.sent();
+                console.error('Error uploading files to s3:', error_2);
                 return [2 /*return*/, undefined];
             case 8: return [2 /*return*/];
         }

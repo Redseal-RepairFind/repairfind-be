@@ -83,6 +83,9 @@ export const StripeWebhookHandler = async (req: Request) => {
             case 'account.updated':
                 accountUpdated(eventData.object);
                 break;
+            case 'capability.updated':
+                accountCapabilityUpdated(eventData.object);
+                break;
 
             // Payment and Intents
             case 'payment_intent.succeeded':
@@ -366,8 +369,34 @@ export const accountUpdated = async (payload: any) => {
         await user.save()
     } catch (error: any) {
         // throw new BadRequestError(error.message || "Something went wrong");
-        Logger.info('accountUpdated', error)
+        Logger.error('accountUpdated', error)
     }
+
+};
+
+
+export const accountCapabilityUpdated = async (payload: any) => {
+    Logger.info('Stripe Event Handler: accountCapabilityUpdated', payload)
+    // try {
+
+    //     if (payload.object != 'capability') return
+    //     const userType = payload?.metadata?.userType
+    //     const userId = payload?.metadata?.userId
+    //     const email = payload?.metadata?.email
+    //     if (!userType || !email) return // Ensure userType and email are valid,  userId can change on our end
+    //     const user = userType === 'contractors' ? await ContractorModel.findOne({ email }) : await CustomerModel.findOne({ email })
+    //     if (!user) return // Ensure user exists
+
+
+    //     // Casting payload to DTO
+    //     const stripeAccountDTO: IStripeAccount = castPayloadToDTO(payload, payload as IStripeAccount);
+    //     user.stripeAccount = stripeAccountDTO
+
+    //     await user.save()
+    // } catch (error: any) {
+    //     // throw new BadRequestError(error.message || "Something went wrong");
+    //     Logger.error('accountCapabilityUpdated', error)
+    // }
 
 };
 

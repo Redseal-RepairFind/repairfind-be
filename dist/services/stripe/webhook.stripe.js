@@ -62,7 +62,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.chargeRefundUpdated = exports.chargeRefunded = exports.chargeSucceeded = exports.paymentMethodDetached = exports.paymentMethodAttached = exports.setupIntentSucceeded = exports.setupIntentCreated = exports.paymentIntentSucceeded = exports.accountUpdated = exports.identityVerificationVerified = exports.identityVerificationRequiresInput = exports.identityVerificationCreated = exports.customerCreated = exports.customerUpdated = exports.StripeWebhookHandler = void 0;
+exports.chargeRefundUpdated = exports.chargeRefunded = exports.chargeSucceeded = exports.paymentMethodDetached = exports.paymentMethodAttached = exports.setupIntentSucceeded = exports.setupIntentCreated = exports.paymentIntentSucceeded = exports.accountCapabilityUpdated = exports.accountUpdated = exports.identityVerificationVerified = exports.identityVerificationRequiresInput = exports.identityVerificationCreated = exports.customerCreated = exports.customerUpdated = exports.StripeWebhookHandler = void 0;
 var stripe_1 = __importDefault(require("stripe"));
 var _1 = require(".");
 var contractor_model_1 = require("../../database/contractor/models/contractor.model");
@@ -127,6 +127,9 @@ var StripeWebhookHandler = function (req) { return __awaiter(void 0, void 0, voi
                 // Account
                 case 'account.updated':
                     (0, exports.accountUpdated)(eventData.object);
+                    break;
+                case 'capability.updated':
+                    (0, exports.accountCapabilityUpdated)(eventData.object);
                     break;
                 // Payment and Intents
                 case 'payment_intent.succeeded':
@@ -486,13 +489,20 @@ var accountUpdated = function (payload) { return __awaiter(void 0, void 0, void 
             case 7:
                 error_6 = _e.sent();
                 // throw new BadRequestError(error.message || "Something went wrong");
-                logger_1.Logger.info('accountUpdated', error_6);
+                logger_1.Logger.error('accountUpdated', error_6);
                 return [3 /*break*/, 8];
             case 8: return [2 /*return*/];
         }
     });
 }); };
 exports.accountUpdated = accountUpdated;
+var accountCapabilityUpdated = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
+    return __generator(this, function (_a) {
+        logger_1.Logger.info('Stripe Event Handler: accountCapabilityUpdated', payload);
+        return [2 /*return*/];
+    });
+}); };
+exports.accountCapabilityUpdated = accountCapabilityUpdated;
 // Payment Intent and Payment Method
 var paymentIntentSucceeded = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
     var customer, userType, userId, user, _a, paymentMethod_1, existingPaymentMethodIndex, error_7;

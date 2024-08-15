@@ -94,7 +94,7 @@ export const config = {
 export const s3 = new AWS.S3({
     accessKeyId: <string>process.env.AWS_ACCESS_KEY_ID,
     secretAccessKey: <string>process.env.AWS_SECRET_KEY,
-    endpoint: 's3-eu-central-1.amazonaws.com',
+    endpoint: <string>process.env.AWS_S3_ENDPOINT || 's3-eu-west-3.amazonaws.com',
     signatureVersion: 'v4',
     region: config.aws.region
 });
