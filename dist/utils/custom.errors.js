@@ -14,17 +14,6 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.errorHandler = exports.InternalServerError = exports.NotFoundError = exports.ServiceUnavailableError = exports.ForbiddenError = exports.UnAuthorizedError = exports.BadRequestError = void 0;
 var logger_1 = require("../services/logger");
@@ -93,13 +82,13 @@ var InternalServerError = /** @class */ (function (_super) {
 }(CustomError));
 exports.InternalServerError = InternalServerError;
 function errorHandler(err, req, res, next) {
-    logger_1.Logger.error(err);
+    logger_1.Logger.error(err.error);
     // Default status code and error message
     var statusCode = err.code || 500;
     var errorMessage = err.message || 'Internal Server Error';
     // Send JSON response with error details
     if (process.env.APN_ENV === "development") {
-        return res.status(statusCode).json(__assign(__assign({ success: false, message: errorMessage }, err.error), { stack: err.stack }));
+        return res.status(statusCode).json({ success: false, message: errorMessage, stack: err.error.stack });
     }
     else {
         if (err.error.name === "CastError")
@@ -115,8 +104,8 @@ function errorHandler(err, req, res, next) {
         if (err && err.error.code === 'EBADCSRFTOKEN') {
             errorMessage = 'Invalid CSRF token';
         }
-        return res.status(statusCode).json({ success: false, message: errorMessage });
+        return res.status(statusCode).json({ success: false, message: errorMessage, stack: err.error.stack });
     }
-    return res.status(statusCode).json({ success: false, message: errorMessage });
+    return res.status(statusCode).json({ success: false, message: errorMessage, stack: err.error.stack });
 }
 exports.errorHandler = errorHandler;

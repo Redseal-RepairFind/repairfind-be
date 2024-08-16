@@ -57,7 +57,7 @@ export class InternalServerError extends CustomError {
 }
 
 export function errorHandler(err: CustomError, req: Request, res: Response, next: NextFunction) {
-   Logger.error(err);
+   Logger.error(err.error);
 
    // Default status code and error message
    let statusCode = err.code || 500;
@@ -66,7 +66,7 @@ export function errorHandler(err: CustomError, req: Request, res: Response, next
    // Send JSON response with error details
    if (process.env.APN_ENV === "development") {
 
-      return res.status(statusCode).json({ success: false, message: errorMessage, ...err.error,  stack: err.stack, });
+      return res.status(statusCode).json({ success: false, message: errorMessage,  stack: err.error.stack});
 
    } else {
       if (err.error.name === "CastError") errorMessage = `Invalid ${err.error.path}: ${ JSON.stringify(err.error.value)}.`
@@ -86,10 +86,10 @@ export function errorHandler(err: CustomError, req: Request, res: Response, next
          errorMessage ='Invalid CSRF token';
        }
 
-      return res.status(statusCode).json({ success: false, message: errorMessage });
+      return res.status(statusCode).json({ success: false, message: errorMessage, stack: err.error.stack});
 
    }
-   return res.status(statusCode).json({ success: false, message: errorMessage });
+   return res.status(statusCode).json({ success: false, message: errorMessage, stack: err.error.stack});
 
 
 }

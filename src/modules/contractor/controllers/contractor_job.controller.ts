@@ -477,6 +477,7 @@ export const sendJobQuotation = async (
 
 
     // Check if contractor has a verified connected account
+    contractor.onboarding = await contractor.getOnboarding()
     if (!contractor.onboarding.hasStripeAccount || !(contractor.stripeAccountStatus?.card_payments_enabled && contractor.stripeAccountStatus?.transfers_enabled)) {
       return res.status(400).json({ success: false, message: "Kindly connect your bank account to receive payment" });
     }

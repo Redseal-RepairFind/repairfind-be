@@ -18,6 +18,7 @@ import mongoose from "mongoose";
 import { ContractorProfileModel } from "../../../database/contractor/models/contractor_profile.model";
 import { JobEnquiryModel } from "../../../database/common/job_enquiry.model";
 import { ConversationUtil } from "../../../utils/conversation.util";
+import { PAYMENT_TYPE } from "../../../database/common/payment.schema";
 
 
 
@@ -440,12 +441,17 @@ export const getQuotation = async (req: any, res: Response, next: NextFunction) 
             return res.status(404).json({ success: false, message: 'Job quotation found' });
         }
 
-        quotation.charges = await quotation.calculateCharges()
+
+        if(quotation.changeOrderEstimate)quotation.changeOrderEstimate.charges  = await quotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
+        if(quotation.siteVisitEstimate)quotation.siteVisitEstimate.charges  = await quotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
+        quotation.charges  = await quotation.calculateCharges()
+
 
         // If the job exists, return its quo as a response
         res.json({ success: true, message: 'Job quotation retrieved', data: quotation });
     } catch (error: any) {
-        return next(new BadRequestError('An error occurred ', error))
+        // console.log(error)
+        return next(new InternalServerError('An error occurred ', error))
     }
 };
 
@@ -461,7 +467,10 @@ export const getSingleQuotation = async (req: any, res: Response, next: NextFunc
             return res.status(404).json({ success: false, message: 'Qoutation not found' });
         }
 
-        quotation.charges = await quotation.calculateCharges()
+        if(quotation.changeOrderEstimate)quotation.changeOrderEstimate.charges  = await quotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
+        if(quotation.siteVisitEstimate)quotation.siteVisitEstimate.charges  = await quotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
+        quotation.charges  = await quotation.calculateCharges()
+    
         res.json({ success: true, message: 'Job quotation retrieved', data: quotation });
     } catch (error: any) {
         return next(new BadRequestError('An error occurred ', error))

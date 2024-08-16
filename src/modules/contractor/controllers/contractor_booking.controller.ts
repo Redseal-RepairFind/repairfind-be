@@ -261,15 +261,23 @@ export const getSingleBooking = async (req: any, res: Response, next: NextFuncti
                 { contractor: contractorId },
                 { 'assignment.contractor': contractorId }
             ], _id: bookingId
-        }).populate(['contractor', 'contract', 'customer', 'assignment.contractor']);
+        }).populate(['contractor', 'customer', 'assignment.contractor']);
 
         // Check if the job exists
         if (!job) {
             return res.status(404).json({ success: false, message: 'Booking not found' });
         }
 
+        const contract = await JobQuotationModel.findOne(job.contract)
+        if(contract){
+            if(contract.changeOrderEstimate)contract.changeOrderEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
+            if(contract.siteVisitEstimate)contract.siteVisitEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
+            contract.charges  = await contract.calculateCharges()
+        }
+
         let responseData: any = { ...job.toJSON() };
         responseData.dispute = await job.getJobDispute()
+        responseData.contract = contract
         responseData.jobDay = await job.getJobDay()
 
 

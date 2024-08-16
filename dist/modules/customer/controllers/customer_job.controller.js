@@ -57,6 +57,7 @@ var mongoose_1 = __importDefault(require("mongoose"));
 var contractor_profile_model_1 = require("../../../database/contractor/models/contractor_profile.model");
 var job_enquiry_model_1 = require("../../../database/common/job_enquiry.model");
 var conversation_util_1 = require("../../../utils/conversation.util");
+var payment_schema_1 = require("../../../database/common/payment.schema");
 var createJobRequest = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, contractorId, category, description, location_1, date, _b, expiresIn, emergency, media, voiceDescription, time, customerId, customer, contractor, contractorProfile, currentDate, expiryDate, newJob, conversationMembers, conversation, newMessage, html, error_1;
     var _c, _d;
@@ -482,61 +483,92 @@ var getAllQuotations = function (req, res, next) { return __awaiter(void 0, void
 }); };
 exports.getAllQuotations = getAllQuotations;
 var getQuotation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, quotationId, quotation, _a, error_8;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+    var customerId, quotationId, quotation, _a, _b, _c, error_8;
+    var _d;
+    return __generator(this, function (_e) {
+        switch (_e.label) {
             case 0:
-                _b.trys.push([0, 3, , 4]);
+                _e.trys.push([0, 7, , 8]);
                 customerId = req.customer.id;
                 quotationId = req.params.quotationId;
                 return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findById(quotationId).populate([{ path: 'contractor' }])];
             case 1:
-                quotation = _b.sent();
+                quotation = _e.sent();
                 if (!quotation) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Job quotation found' })];
                 }
-                _a = quotation;
+                if (!quotation.changeOrderEstimate) return [3 /*break*/, 3];
+                _a = quotation.changeOrderEstimate;
+                return [4 /*yield*/, quotation.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
+            case 2:
+                _a.charges = (_d = _e.sent()) !== null && _d !== void 0 ? _d : {};
+                _e.label = 3;
+            case 3:
+                if (!quotation.siteVisitEstimate) return [3 /*break*/, 5];
+                _b = quotation.siteVisitEstimate;
+                return [4 /*yield*/, quotation.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
+            case 4:
+                _b.charges = _e.sent();
+                _e.label = 5;
+            case 5:
+                _c = quotation;
                 return [4 /*yield*/, quotation.calculateCharges()
                     // If the job exists, return its quo as a response
                 ];
-            case 2:
-                _a.charges = _b.sent();
+            case 6:
+                _c.charges = _e.sent();
                 // If the job exists, return its quo as a response
                 res.json({ success: true, message: 'Job quotation retrieved', data: quotation });
-                return [3 /*break*/, 4];
-            case 3:
-                error_8 = _b.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_8))];
-            case 4: return [2 /*return*/];
+                return [3 /*break*/, 8];
+            case 7:
+                error_8 = _e.sent();
+                // console.log(error)
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred ', error_8))];
+            case 8: return [2 /*return*/];
         }
     });
 }); };
 exports.getQuotation = getQuotation;
 var getSingleQuotation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, _a, jobId, quotationId, quotation, _b, error_9;
-    return __generator(this, function (_c) {
-        switch (_c.label) {
+    var customerId, _a, jobId, quotationId, quotation, _b, _c, _d, error_9;
+    var _e;
+    return __generator(this, function (_f) {
+        switch (_f.label) {
             case 0:
-                _c.trys.push([0, 3, , 4]);
+                _f.trys.push([0, 7, , 8]);
                 customerId = req.customer.id;
                 _a = req.params, jobId = _a.jobId, quotationId = _a.quotationId;
                 return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne({ _id: quotationId, job: jobId }).populate('contractor')];
             case 1:
-                quotation = _c.sent();
+                quotation = _f.sent();
                 // Check if the job exists
                 if (!quotation) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Qoutation not found' })];
                 }
-                _b = quotation;
-                return [4 /*yield*/, quotation.calculateCharges()];
+                if (!quotation.changeOrderEstimate) return [3 /*break*/, 3];
+                _b = quotation.changeOrderEstimate;
+                return [4 /*yield*/, quotation.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
             case 2:
-                _b.charges = _c.sent();
-                res.json({ success: true, message: 'Job quotation retrieved', data: quotation });
-                return [3 /*break*/, 4];
+                _b.charges = (_e = _f.sent()) !== null && _e !== void 0 ? _e : {};
+                _f.label = 3;
             case 3:
-                error_9 = _c.sent();
+                if (!quotation.siteVisitEstimate) return [3 /*break*/, 5];
+                _c = quotation.siteVisitEstimate;
+                return [4 /*yield*/, quotation.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
+            case 4:
+                _c.charges = _f.sent();
+                _f.label = 5;
+            case 5:
+                _d = quotation;
+                return [4 /*yield*/, quotation.calculateCharges()];
+            case 6:
+                _d.charges = _f.sent();
+                res.json({ success: true, message: 'Job quotation retrieved', data: quotation });
+                return [3 /*break*/, 8];
+            case 7:
+                error_9 = _f.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_9))];
-            case 4: return [2 /*return*/];
+            case 8: return [2 /*return*/];
         }
     });
 }); };

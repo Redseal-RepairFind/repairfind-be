@@ -248,7 +248,7 @@ JobEvent.on('JOB_CANCELED', async function (payload: { job: IJob, canceledBy: st
             Logger.info('job cancelled by customer')
             const html = JobCanceledEmailTemplate({ name: contractor.name, canceledBy: 'customer', job: payload.job })
             EmailService.send(contractor.email, "Job Canceled", html)
-           
+
         }
 
         NotificationService.sendNotification({
@@ -441,7 +441,7 @@ JobEvent.on('JOB_QUOTATION_DECLINED', async function (payload: { jobId: ObjectId
                     conversationId: conversation.id,
                     event: 'JOB_QUOTATION_DECLINED',
                 }
-            }, { push: true, socket: true , database: true })
+            }, { push: true, socket: true, database: true })
 
         }
 
@@ -716,12 +716,24 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
         if (job && contractor && customer && quotation) {
             const charges = await quotation.calculateCharges();
 
-            if (contractor) { // send mail to contractor
-                let emailSubject = 'Job Payment'
+
+
+            if (contractor) {
+                // send mail to contractor
+                // Email for contractors:
+
+                let emailSubject = 'Job Payment Receipt'
                 let emailContent = `
-                <p style="color: #333333;">Customer has made payment for your estimate on RepairFind</p>
-                <p><strong>Job Title:</strong> ${job.description}</p>
-                <p><strong>Proposed Date:</strong> ${job.date}</p>
+                <p style="color: #333333;">You have received payment for a job on RepairFind</p>
+                <div style="background: whitesmoke;padding: 10px; border-radius: 10px;">
+                <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Job Title:</strong> ${job.description}</p>
+                <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Scheduled Date:</strong> ${job.date}</p>
+                <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Sub Total:</strong> ${charges.subtotal}</p>
+                <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>GST: (${charges.gstRate}%):</strong> ${charges.gstAmount}</p>
+                <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Service Charge: (${charges.repairfindServiceFeeRate}%):</strong> -${charges.repairfindServiceFee}</p>
+                <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Processing Fee: (${charges.contractorProcessingFeeRate}%):</strong> -${charges.contractorProcessingFee}</p>
+                <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Total Amount:</strong> ${charges.contractorPayable}</p>
+                </div>
                 <p style="color: #333333;">Kindly open the App for more information</p>
 \                `
                 let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
@@ -729,11 +741,18 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
 
             }
             if (customer) { // send mail to  customer
-                let emailSubject = 'Job Payment'
+                let emailSubject = 'Job Payment Receipt'
                 let emailContent = `
                 <p style="color: #333333;">You have made payment for a job on RepairFind</p>
-                <p><strong>Job Title:</strong> ${job.description}</p>
-                <p><strong>Proposed Date:</strong> ${job.date}</p>
+                <div style="background: whitesmoke;padding: 10px; border-radius: 10px;">
+                <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Job Title:</strong> ${job.description}</p>
+                <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Scheduled Date:</strong> ${job.date}</p>
+                <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Sub Total:</strong> ${charges.subtotal}</p>
+                <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>GST: (${charges.gstRate}%):</strong> ${charges.gstAmount}</p>
+                <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Service Charge: (${charges.repairfindServiceFeeRate}%):</strong> ${charges.repairfindServiceFee}</p>
+                <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Processing Fee: (${charges.customerProcessingFeeRate}%):</strong> ${charges.customerProcessingFee}</p>
+                <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Total Amount:</strong> ${charges.customerPayable}</p>
+                </div>
                 <p style="color: #333333;">If you did not initiate this payment, kindly reach out to us via support</p>
                 `
                 let html = GenericEmailTemplate({ name: customer.name, subject: emailSubject, content: emailContent })
