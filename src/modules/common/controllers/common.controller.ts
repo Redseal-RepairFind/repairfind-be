@@ -6,6 +6,7 @@ import { CountryModel } from "../../../database/common/country.schema";
 import { BankModel } from "../../../database/common/bank.schema";
 import sendWebNotification from "../../../services/fcm";
 import { Logger } from "../../../services/logger";
+import { PaymentUtil } from "../../../utils/payment.util";
 
 
 export const getBankList = async (
@@ -101,6 +102,26 @@ export const getOptions = async (
 }
 
 
+export const calculateCharges = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+
+  try {
+    const {amount = 0} = req.body
+
+  
+    const charges = await PaymentUtil.calculateCharges(Number(amount))
+    return res.json({ success: true, message: "Payment charges calculated", data: charges });
+
+  } catch (err: any) {
+    return next(new InternalServerError('Error calculating payment charges', err))
+  }
+
+}
+
+
 export const sendTestNotification = async (
   req: Request,
   res: Response,
@@ -125,6 +146,7 @@ export const CommonController = {
   getSkills,
   getCountries,
   getOptions,
-  sendTestNotification
+  sendTestNotification,
+  calculateCharges
 }
 

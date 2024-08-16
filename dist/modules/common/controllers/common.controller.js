@@ -39,12 +39,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CommonController = exports.sendTestNotification = exports.getOptions = exports.getSkills = exports.getCurrencies = exports.getCountries = exports.getBankList = void 0;
+exports.CommonController = exports.sendTestNotification = exports.calculateCharges = exports.getOptions = exports.getSkills = exports.getCurrencies = exports.getCountries = exports.getBankList = void 0;
 var skill_model_1 = __importDefault(require("../../../database/admin/models/skill.model"));
 var custom_errors_1 = require("../../../utils/custom.errors");
 var country_schema_1 = require("../../../database/common/country.schema");
 var bank_schema_1 = require("../../../database/common/bank.schema");
 var fcm_1 = __importDefault(require("../../../services/fcm"));
+var payment_util_1 = require("../../../utils/payment.util");
 var getBankList = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var data, err_1;
     return __generator(this, function (_a) {
@@ -140,6 +141,25 @@ var getOptions = function (req, res, next) { return __awaiter(void 0, void 0, vo
     });
 }); };
 exports.getOptions = getOptions;
+var calculateCharges = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, amount, charges, err_4;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 2, , 3]);
+                _a = req.body.amount, amount = _a === void 0 ? 0 : _a;
+                return [4 /*yield*/, payment_util_1.PaymentUtil.calculateCharges(Number(amount))];
+            case 1:
+                charges = _b.sent();
+                return [2 /*return*/, res.json({ success: true, message: "Payment charges calculated", data: charges })];
+            case 2:
+                err_4 = _b.sent();
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError('Error calculating payment charges', err_4))];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.calculateCharges = calculateCharges;
 var sendTestNotification = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var response;
     return __generator(this, function (_a) {
@@ -159,5 +179,6 @@ exports.CommonController = {
     getSkills: exports.getSkills,
     getCountries: exports.getCountries,
     getOptions: exports.getOptions,
-    sendTestNotification: exports.sendTestNotification
+    sendTestNotification: exports.sendTestNotification,
+    calculateCharges: exports.calculateCharges
 };

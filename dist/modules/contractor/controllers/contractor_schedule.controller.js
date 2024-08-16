@@ -64,6 +64,7 @@ var contractor_profile_model_1 = require("../../../database/contractor/models/co
 var schedule_util_1 = require("../../../utils/schedule.util");
 var job_model_1 = require("../../../database/common/job.model");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
+var job_quotation_model_1 = require("../../../database/common/job_quotation.model");
 var createSchedule = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, dates, type, recurrence, contractorId, schedules, _i, dates_1, schedule_1, dateParts, formattedDate, dateTimeString, newDate, existingSchedule, updatedSchedule, newScheduleData, newSchedule, error_1;
     return __generator(this, function (_b) {
@@ -242,17 +243,25 @@ var getSchedulesByDate = function (req, res) { return __awaiter(void 0, void 0, 
                 return [4 /*yield*/, job_model_1.JobModel.find({
                         contractor: contractorId_1,
                         'schedule.startDate': { $gte: startDate_1, $lte: endDate_1 },
-                    }).populate('contract')];
+                    })];
             case 2:
                 jobs = _b.sent();
                 return [4 /*yield*/, Promise.all(jobs.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
-                        var contractor, scheduleDate, startTime, estimatedDuration, start, endTime, times, hour, formattedHour;
+                        var contractor, contract, charges, scheduleDate, startTime, estimatedDuration, start, endTime, times, hour, formattedHour;
                         var _a;
                         return __generator(this, function (_b) {
                             switch (_b.label) {
                                 case 0: return [4 /*yield*/, contractor_model_1.ContractorModel.findById(job.contractor)];
                                 case 1:
                                     contractor = _b.sent();
+                                    return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne(job.contract)];
+                                case 2:
+                                    contract = _b.sent();
+                                    return [4 /*yield*/, (contract === null || contract === void 0 ? void 0 : contract.calculateCharges())
+                                        // spread time
+                                    ];
+                                case 3:
+                                    charges = _b.sent();
                                     scheduleDate = job.schedule.startDate;
                                     startTime = scheduleDate ? scheduleDate.toTimeString().slice(0, 8) : "00:00:00";
                                     estimatedDuration = (_a = job.schedule.estimatedDuration) !== null && _a !== void 0 ? _a : 1;
@@ -273,7 +282,7 @@ var getSchedulesByDate = function (req, res) { return __awaiter(void 0, void 0, 
                                             events: [
                                                 {
                                                     //@ts-ignore
-                                                    totalAmount: job.contract.charges.totalAmount,
+                                                    totalAmount: charges.totalAmount,
                                                     job: job.id,
                                                     skill: job === null || job === void 0 ? void 0 : job.category,
                                                     date: job === null || job === void 0 ? void 0 : job.schedule.startDate,

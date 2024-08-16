@@ -19,6 +19,8 @@ router.post("/trainings/submit-quiz",  TrainingController.submitQuiz );
 
 router.post("/sessions/clear", CommonHttpRequest.clearSessionParams,  SessionController.clearAuthSession ); 
 
+router.post("/payments/charges", CommonHttpRequest.clearSessionParams,  CommonController.calculateCharges ); 
+
 
 
 router.post("/webhooks/stripe",  WebhookController.stripeWebook ); // stripe webhook

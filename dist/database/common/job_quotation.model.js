@@ -38,6 +38,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.JobQuotationModel = exports.ExtraEstimateSchema = exports.JOB_QUOTATION_TYPE = exports.JOB_QUOTATION_STATUS = void 0;
 var mongoose_1 = require("mongoose");
+var payment_schema_1 = require("./payment.schema");
+var payment_util_1 = require("../../utils/payment.util");
 var JOB_QUOTATION_STATUS;
 (function (JOB_QUOTATION_STATUS) {
     JOB_QUOTATION_STATUS["PENDING"] = "PENDING";
@@ -84,34 +86,26 @@ var JobQuotationSchema = new mongoose_1.Schema({
 JobQuotationSchema.methods.calculateCharges = function (type) {
     if (type === void 0) { type = null; }
     return __awaiter(this, void 0, void 0, function () {
-        var estimates, subtotal, processingFee, gst, totalAmount, contractorAmount, siteVisitAmount, totalEstimateAmount;
+        var estimates, totalEstimateAmount, charges;
         return __generator(this, function (_a) {
-            estimates = this.estimates;
-            if (type == 'CHANGE_ORDER') {
-                estimates = this.changeOrderEstimate.estimates;
+            switch (_a.label) {
+                case 0:
+                    estimates = this.estimates;
+                    if (type == payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) {
+                        estimates = this.changeOrderEstimate.estimates;
+                    }
+                    if (type == payment_schema_1.PAYMENT_TYPE.SITE_VISIT_PAYMENT) {
+                        estimates = this.siteVisitEstimate.estimates;
+                    }
+                    totalEstimateAmount = 0;
+                    estimates.forEach(function (estimate) {
+                        totalEstimateAmount += estimate.rate * estimate.quantity;
+                    });
+                    return [4 /*yield*/, payment_util_1.PaymentUtil.calculateCharges(totalEstimateAmount)];
+                case 1:
+                    charges = _a.sent();
+                    return [2 /*return*/, charges];
             }
-            if (type == 'SITE_VISIT') {
-                estimates = this.siteVisitEstimate.estimates;
-            }
-            siteVisitAmount = 0;
-            totalEstimateAmount = 0;
-            estimates.forEach(function (estimate) {
-                totalEstimateAmount += estimate.rate * estimate.quantity;
-            });
-            if (totalEstimateAmount <= 1000) {
-                processingFee = parseFloat(((20 / 100) * totalEstimateAmount).toFixed(2));
-            }
-            else if (totalEstimateAmount <= 5000) {
-                processingFee = parseFloat(((15 / 100) * totalEstimateAmount).toFixed(2));
-            }
-            else {
-                processingFee = parseFloat(((10 / 100) * totalEstimateAmount).toFixed(2));
-            }
-            gst = parseFloat(((5 / 100) * totalEstimateAmount).toFixed(2));
-            subtotal = totalEstimateAmount;
-            totalAmount = (subtotal + processingFee + gst).toFixed(2);
-            contractorAmount = (subtotal + gst).toFixed(2);
-            return [2 /*return*/, { subtotal: subtotal, processingFee: processingFee, gst: gst, totalAmount: totalAmount, contractorAmount: contractorAmount }];
         });
     });
 };
@@ -121,21 +115,23 @@ JobQuotationSchema.virtual('charges').get(function () {
     estimates.forEach(function (estimate) {
         totalEstimateAmount += estimate.rate * estimate.quantity;
     });
-    var subtotal, processingFee, gst, totalAmount, contractorAmount, siteVisitAmount = 0;
+    var subtotal, repairfindServiceFee, gst, totalAmount, contractorAmount, customerProcessingFee, contractorProcessingFee, siteVisitAmount = 0;
     if (totalEstimateAmount <= 1000) {
-        processingFee = parseFloat(((20 / 100) * totalEstimateAmount).toFixed(2));
+        repairfindServiceFee = parseFloat(((10 / 100) * totalEstimateAmount).toFixed(2));
     }
     else if (totalEstimateAmount <= 5000) {
-        processingFee = parseFloat(((15 / 100) * totalEstimateAmount).toFixed(2));
+        repairfindServiceFee = parseFloat(((8 / 100) * totalEstimateAmount).toFixed(2));
     }
     else {
-        processingFee = parseFloat(((10 / 100) * totalEstimateAmount).toFixed(2));
+        repairfindServiceFee = parseFloat(((5 / 100) * totalEstimateAmount).toFixed(2));
     }
+    customerProcessingFee = parseFloat(((3 / 100) * totalEstimateAmount).toFixed(2));
+    contractorProcessingFee = parseFloat(((3 / 100) * totalEstimateAmount).toFixed(2));
     gst = parseFloat(((5 / 100) * totalEstimateAmount).toFixed(2));
     subtotal = totalEstimateAmount;
-    totalAmount = (subtotal + processingFee + gst).toFixed(2);
-    contractorAmount = (subtotal + gst).toFixed(2);
-    return { subtotal: subtotal, processingFee: processingFee, gst: gst, totalAmount: totalAmount, contractorAmount: contractorAmount };
+    totalAmount = (subtotal + repairfindServiceFee + gst + customerProcessingFee).toFixed(2);
+    contractorAmount = (subtotal + gst - contractorProcessingFee).toFixed(2);
+    return { subtotal: subtotal, repairfindServiceFee: repairfindServiceFee, gst: gst, totalAmount: totalAmount, contractorAmount: contractorAmount, customerProcessingFee: customerProcessingFee, contractorProcessingFee: contractorProcessingFee };
 });
 JobQuotationSchema.virtual('changeOrderEstimate.charges').get(function () {
     var totalEstimateAmount = 0;

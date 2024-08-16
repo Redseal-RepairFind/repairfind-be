@@ -1,5 +1,6 @@
 import { Document, ObjectId, Schema, model } from "mongoose";
 import { PAYMENT_TYPE } from "./payment.schema";
+import { PaymentUtil } from "../../utils/payment.util";
 
 export enum JOB_QUOTATION_STATUS {
     PENDING = 'PENDING',
@@ -100,37 +101,21 @@ const JobQuotationSchema = new Schema<IJobQuotation>({
 JobQuotationSchema.methods.calculateCharges = async function (type = null) {
 
     let estimates = this.estimates
-    if (type == 'CHANGE_ORDER') {
+    if (type == PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) {
         estimates = this.changeOrderEstimate.estimates
     }
 
-    if (type == 'SITE_VISIT') {
+    if (type == PAYMENT_TYPE.SITE_VISIT_PAYMENT) {
         estimates = this.siteVisitEstimate.estimates
     }
-
-    let subtotal, processingFee, gst, totalAmount, contractorAmount, siteVisitAmount = 0;
     let totalEstimateAmount = 0
 
     estimates.forEach((estimate: any) => {
         totalEstimateAmount += estimate.rate * estimate.quantity;
     });
 
-    if (totalEstimateAmount <= 1000) {
-        processingFee = parseFloat(((20 / 100) * totalEstimateAmount).toFixed(2));
-    } else if (totalEstimateAmount <= 5000) {
-        processingFee = parseFloat(((15 / 100) * totalEstimateAmount).toFixed(2));
-    } else {
-        processingFee = parseFloat(((10 / 100) * totalEstimateAmount).toFixed(2));
-    }
-
-    gst = parseFloat(((5 / 100) * totalEstimateAmount).toFixed(2));
-    subtotal = totalEstimateAmount;
-    totalAmount = (subtotal + processingFee + gst).toFixed(2);
-    contractorAmount = (subtotal + gst).toFixed(2);
-
-    return { subtotal, processingFee, gst, totalAmount, contractorAmount };
-
-
+    const charges = await PaymentUtil.calculateCharges(totalEstimateAmount)
+    return charges
 };
 
 
@@ -144,24 +129,27 @@ JobQuotationSchema.virtual('charges').get(function () {
         totalEstimateAmount += estimate.rate * estimate.quantity;
     });
 
-    let subtotal, processingFee, gst, totalAmount, contractorAmount, siteVisitAmount = 0;
+    let subtotal, repairfindServiceFee, gst, totalAmount, contractorAmount, customerProcessingFee, contractorProcessingFee, siteVisitAmount = 0;
 
     if (totalEstimateAmount <= 1000) {
-        processingFee = parseFloat(((20 / 100) * totalEstimateAmount).toFixed(2));
+        repairfindServiceFee = parseFloat(((10 / 100) * totalEstimateAmount).toFixed(2));
     } else if (totalEstimateAmount <= 5000) {
-        processingFee = parseFloat(((15 / 100) * totalEstimateAmount).toFixed(2));
+        repairfindServiceFee = parseFloat(((8 / 100) * totalEstimateAmount).toFixed(2));
     } else {
-        processingFee = parseFloat(((10 / 100) * totalEstimateAmount).toFixed(2));
+        repairfindServiceFee = parseFloat(((5 / 100) * totalEstimateAmount).toFixed(2));
     }
+
+    customerProcessingFee   = parseFloat(((3 / 100) * totalEstimateAmount).toFixed(2));
+    contractorProcessingFee   = parseFloat(((3 / 100) * totalEstimateAmount).toFixed(2));
 
     gst = parseFloat(((5 / 100) * totalEstimateAmount).toFixed(2));
     subtotal = totalEstimateAmount;
-    totalAmount = (subtotal + processingFee + gst).toFixed(2);
-    contractorAmount = (subtotal + gst).toFixed(2);
+    totalAmount = (subtotal + repairfindServiceFee + gst + customerProcessingFee).toFixed(2);
+    contractorAmount = (subtotal + gst - contractorProcessingFee).toFixed(2);
 
-    return { subtotal, processingFee, gst, totalAmount, contractorAmount };
+    
+    return { subtotal, repairfindServiceFee, gst, totalAmount, contractorAmount, customerProcessingFee, contractorProcessingFee };
 });
-
 
 
 
@@ -229,6 +217,9 @@ JobQuotationSchema.virtual('siteVisitEstimate.charges').get(function () {
 
     return { subtotal, processingFee, gst, totalAmount, contractorAmount };
 });
+
+
+
 
 JobQuotationSchema.set('toObject', { virtuals: true });
 JobQuotationSchema.set('toJSON', { virtuals: true });

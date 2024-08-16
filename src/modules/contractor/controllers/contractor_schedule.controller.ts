@@ -9,6 +9,7 @@ import { generateExpandedSchedule } from '../../../utils/schedule.util';
 import { JOB_STATUS, JobModel } from '../../../database/common/job.model';
 import { ContractorModel } from '../../../database/contractor/models/contractor.model';
 import { schedule } from 'node-cron';
+import { JobQuotationModel } from '../../../database/common/job_quotation.model';
 
 
 export const createSchedule = async (req: any, res: Response) => {
@@ -184,11 +185,13 @@ export const getSchedulesByDate = async (req: any, res: Response) => {
     const jobs = await JobModel.find({
       contractor: contractorId,
       'schedule.startDate': { $gte: startDate, $lte: endDate },
-    }).populate('contract')
+    })
 
     const jobSchedules = await Promise.all(jobs.map(async (job) => {
       const contractor = await ContractorModel.findById(job.contractor);
-
+      const contract = await JobQuotationModel.findOne(job.contract)
+      const charges = await contract?.calculateCharges()
+      
       // spread time
       const scheduleDate = job.schedule.startDate
 
@@ -207,6 +210,7 @@ export const getSchedulesByDate = async (req: any, res: Response) => {
         times.push(formattedHour);
       }
 
+
       return {
         date: job.schedule.startDate,
         type: job.schedule.type,
@@ -215,7 +219,7 @@ export const getSchedulesByDate = async (req: any, res: Response) => {
         events: [
           {
             //@ts-ignore
-            totalAmount: job.contract.charges.totalAmount,
+            totalAmount: charges.totalAmount,
             job: job.id,
             skill: job?.category,
             date: job?.schedule.startDate,

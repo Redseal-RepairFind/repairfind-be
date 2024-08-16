@@ -1,4 +1,15 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     var desc = Object.getOwnPropertyDescriptor(m, k);
@@ -135,7 +146,7 @@ var findContractor = function (contractorId) { return __awaiter(void 0, void 0, 
         }
     });
 }); };
-var createTransaction = function (customerId, contractorId, jobId, charges, paymentMethod, transactionType, metadata) {
+var createTransaction = function (customerId, contractorId, jobId, charges, quotation, paymentMethod, transactionType, metadata) {
     if (metadata === void 0) { metadata = null; }
     return __awaiter(void 0, void 0, void 0, function () {
         return __generator(this, function (_a) {
@@ -145,8 +156,8 @@ var createTransaction = function (customerId, contractorId, jobId, charges, paym
                         type: transactionType,
                     }, {
                         type: transactionType,
-                        amount: charges.totalAmount,
-                        currency: 'USD',
+                        amount: charges.customerPayable,
+                        currency: 'cad',
                         initiatorUser: customerId,
                         initiatorUserType: 'customers',
                         fromUser: customerId,
@@ -156,10 +167,7 @@ var createTransaction = function (customerId, contractorId, jobId, charges, paym
                         description: "Quotation from ".concat(contractorId, " payment"),
                         remark: 'quotation',
                         metadata: metadata,
-                        invoice: {
-                            items: charges.estimates,
-                            charges: charges.charges
-                        },
+                        invoice: __assign(__assign({}, quotation), { charges: charges }),
                         paymentMethod: paymentMethod,
                         job: jobId,
                         status: transaction_model_1.TRANSACTION_STATUS.PENDING
@@ -206,11 +214,19 @@ var prepareStripePayload = function (data) {
     // The number of days that a pending balance is held before being paid out depends on the delay_days setting on the connected account.
     var paymentMethodId = data.paymentMethodId, customer = data.customer, contractor = data.contractor, charges = data.charges, jobId = data.jobId, metadata = data.metadata, manualCapture = data.manualCapture;
     // const repairfindStripeAccount = 'null'
+    //Charges
+    // subtotal, 
+    // gstAmount, 
+    // customerPayable,
+    // contractorPayable, 
+    // repairfindServiceFee, 
+    // customerProcessingFee, 
+    // contractorProcessingFee,
     var payload = {
         payment_method_types: ['card'],
         payment_method: paymentMethodId,
         currency: 'cad',
-        amount: Math.ceil(charges.totalAmount * 100),
+        amount: Math.ceil(charges.customerPayable * 100),
         // send amount  minus processingFee to contractor
         // application_fee_amount: Math.ceil(charges.processingFee * 100),
         // transfer_data: {

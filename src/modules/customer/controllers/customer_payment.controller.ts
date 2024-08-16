@@ -49,14 +49,14 @@ const findContractor = async (contractorId: ObjectId) => {
     return contractor;
 };
 
-const createTransaction = async (customerId: string, contractorId: string, jobId: string, charges: any, paymentMethod: any, transactionType: any, metadata: any = null) => {
+const createTransaction = async (customerId: string, contractorId: string, jobId: string, charges: any, quotation: any, paymentMethod: any, transactionType: any, metadata: any = null) => {
     return await TransactionModel.findOneAndUpdate({
         job: jobId,
         type: transactionType,
     },{
         type: transactionType,
-        amount: charges.totalAmount,
-        currency: 'USD',
+        amount: charges.customerPayable,
+        currency: 'cad',
         initiatorUser: customerId,
         initiatorUserType: 'customers',
         fromUser: customerId,
@@ -67,8 +67,8 @@ const createTransaction = async (customerId: string, contractorId: string, jobId
         remark: 'quotation',
         metadata,
         invoice: {
-            items: charges.estimates,
-            charges: charges.charges
+            ...quotation,
+            charges: charges
         },
         paymentMethod: paymentMethod,
         job: jobId,
@@ -126,11 +126,21 @@ const prepareStripePayload = (data:{paymentMethodId: string, customer: any, cont
 
     // const repairfindStripeAccount = 'null'
 
+    //Charges
+        // subtotal, 
+        // gstAmount, 
+        // customerPayable,
+        // contractorPayable, 
+        // repairfindServiceFee, 
+        // customerProcessingFee, 
+        // contractorProcessingFee,
+
+
     const payload: Stripe.PaymentIntentCreateParams = {
         payment_method_types: ['card'],
         payment_method: paymentMethodId,
         currency: 'cad',
-        amount: Math.ceil(charges.totalAmount * 100),
+        amount: Math.ceil(charges.customerPayable * 100),
         
         // send amount  minus processingFee to contractor
         // application_fee_amount: Math.ceil(charges.processingFee * 100),
@@ -194,6 +204,8 @@ export const makeJobPayment = async (req: any, res: Response, next: NextFunction
         if(transactionType == JOB_QUOTATION_TYPE.JOB_DAY) paymentType = PAYMENT_TYPE.JOB_DAY_PAYMENT
         const charges = await quotation.calculateCharges(paymentType);
 
+
+
         const metadata = {
             customerId: customer.id,
             contractorId: contractor?.id,
@@ -207,7 +219,7 @@ export const makeJobPayment = async (req: any, res: Response, next: NextFunction
 
      
 
-        // const transaction = await createTransaction(customerId, contractor.id, jobId, charges, paymentMethod, transactionType, metadata  );
+        // const transaction = await createTransaction(customerId, contractor.id, jobId, quotation, charges, paymentMethod, transactionType, metadata  );
         // metadata.transactionId = transaction.id
         const payload = prepareStripePayload({paymentMethodId: paymentMethod.id, customer, contractor, charges, jobId, metadata, manualCapture:false});
 
