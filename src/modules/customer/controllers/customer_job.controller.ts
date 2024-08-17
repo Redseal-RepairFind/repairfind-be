@@ -12,8 +12,6 @@ import { ConversationModel } from "../../../database/common/conversations.schema
 import { IMessage, MessageModel, MessageType } from "../../../database/common/messages.schema";
 import { JOB_QUOTATION_STATUS, JobQuotationModel } from "../../../database/common/job_quotation.model";
 import { ConversationEvent, JobEvent } from "../../../events";
-import { htmlJobQuotationAcceptedContractorEmailTemplate } from "../../../templates/contractor/job_quotation_accepted.template";
-import { htmlJobQuotationDeclinedContractorEmailTemplate } from "../../../templates/contractor/job_quotation_declined.template";
 import mongoose from "mongoose";
 import { ContractorProfileModel } from "../../../database/contractor/models/contractor_profile.model";
 import { JobEnquiryModel } from "../../../database/common/job_enquiry.model";
@@ -293,9 +291,16 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
             await Promise.all(data.data.map(async (job: any) => {
                 if (contractorId) {
                     job.myQuotation = await job.getMyQuotation(contractorId)
-
-                    
                 }
+
+                const contract = await JobQuotationModel.findOne({ _id: job.contract, job: job.id });
+                if(contract){
+                    if(contract.changeOrderEstimate)contract.changeOrderEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
+                    if(contract.siteVisitEstimate)contract.siteVisitEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
+                    contract.charges  = await contract.calculateCharges()
+                    job.contract = contract
+                }
+
                 job.totalEnquires = await job.getTotalEnquires()
                 job.hasUnrepliedEnquiry = await job.getHasUnrepliedEnquiry()
             }));
@@ -356,6 +361,13 @@ export const getJobHistory = async (req: any, res: Response, next: NextFunction)
             // Map through each job and attach myQuotation if contractor has applied 
             await Promise.all(data.data.map(async (job: any) => {
                 job.myQuotation = await job.getMyQuotation(contractorId)
+                const contract = await JobQuotationModel.findOne({ _id: job.contract, job: job.id });
+                if(contract){
+                    if(contract.changeOrderEstimate)contract.changeOrderEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
+                    if(contract.siteVisitEstimate)contract.siteVisitEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
+                    contract.charges  = await contract.calculateCharges()
+                    job.contract = contract
+                }
             }));
         }
 

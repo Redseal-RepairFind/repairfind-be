@@ -281,25 +281,50 @@ var getMyJobs = function (req, res, next) { return __awaiter(void 0, void 0, voi
                 _e = _f.sent(), data = _e.data, error = _e.error;
                 if (!data) return [3 /*break*/, 5];
                 return [4 /*yield*/, Promise.all(data.data.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
-                        var _a, _b, _c;
-                        return __generator(this, function (_d) {
-                            switch (_d.label) {
+                        var _a, contract, _b, _c, _d, _e, _f;
+                        var _g;
+                        return __generator(this, function (_h) {
+                            switch (_h.label) {
                                 case 0:
                                     if (!contractorId_1) return [3 /*break*/, 2];
                                     _a = job;
                                     return [4 /*yield*/, job.getMyQuotation(contractorId_1)];
                                 case 1:
-                                    _a.myQuotation = _d.sent();
-                                    _d.label = 2;
-                                case 2:
-                                    _b = job;
-                                    return [4 /*yield*/, job.getTotalEnquires()];
+                                    _a.myQuotation = _h.sent();
+                                    _h.label = 2;
+                                case 2: return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne({ _id: job.contract, job: job.id })];
                                 case 3:
-                                    _b.totalEnquires = _d.sent();
-                                    _c = job;
-                                    return [4 /*yield*/, job.getHasUnrepliedEnquiry()];
+                                    contract = _h.sent();
+                                    if (!contract) return [3 /*break*/, 9];
+                                    if (!contract.changeOrderEstimate) return [3 /*break*/, 5];
+                                    _b = contract.changeOrderEstimate;
+                                    return [4 /*yield*/, contract.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
                                 case 4:
-                                    _c.hasUnrepliedEnquiry = _d.sent();
+                                    _b.charges = (_g = _h.sent()) !== null && _g !== void 0 ? _g : {};
+                                    _h.label = 5;
+                                case 5:
+                                    if (!contract.siteVisitEstimate) return [3 /*break*/, 7];
+                                    _c = contract.siteVisitEstimate;
+                                    return [4 /*yield*/, contract.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
+                                case 6:
+                                    _c.charges = _h.sent();
+                                    _h.label = 7;
+                                case 7:
+                                    _d = contract;
+                                    return [4 /*yield*/, contract.calculateCharges()];
+                                case 8:
+                                    _d.charges = _h.sent();
+                                    job.contract = contract;
+                                    _h.label = 9;
+                                case 9:
+                                    _e = job;
+                                    return [4 /*yield*/, job.getTotalEnquires()];
+                                case 10:
+                                    _e.totalEnquires = _h.sent();
+                                    _f = job;
+                                    return [4 /*yield*/, job.getHasUnrepliedEnquiry()];
+                                case 11:
+                                    _f.hasUnrepliedEnquiry = _h.sent();
                                     return [2 /*return*/];
                             }
                         });
@@ -357,15 +382,40 @@ var getJobHistory = function (req, res, next) { return __awaiter(void 0, void 0,
                 if (!data) return [3 /*break*/, 5];
                 // Map through each job and attach myQuotation if contractor has applied 
                 return [4 /*yield*/, Promise.all(data.data.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
-                        var _a;
-                        return __generator(this, function (_b) {
-                            switch (_b.label) {
+                        var _a, contract, _b, _c, _d;
+                        var _e;
+                        return __generator(this, function (_f) {
+                            switch (_f.label) {
                                 case 0:
                                     _a = job;
                                     return [4 /*yield*/, job.getMyQuotation(contractorId_2)];
                                 case 1:
-                                    _a.myQuotation = _b.sent();
-                                    return [2 /*return*/];
+                                    _a.myQuotation = _f.sent();
+                                    return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne({ _id: job.contract, job: job.id })];
+                                case 2:
+                                    contract = _f.sent();
+                                    if (!contract) return [3 /*break*/, 8];
+                                    if (!contract.changeOrderEstimate) return [3 /*break*/, 4];
+                                    _b = contract.changeOrderEstimate;
+                                    return [4 /*yield*/, contract.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
+                                case 3:
+                                    _b.charges = (_e = _f.sent()) !== null && _e !== void 0 ? _e : {};
+                                    _f.label = 4;
+                                case 4:
+                                    if (!contract.siteVisitEstimate) return [3 /*break*/, 6];
+                                    _c = contract.siteVisitEstimate;
+                                    return [4 /*yield*/, contract.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
+                                case 5:
+                                    _c.charges = _f.sent();
+                                    _f.label = 6;
+                                case 6:
+                                    _d = contract;
+                                    return [4 /*yield*/, contract.calculateCharges()];
+                                case 7:
+                                    _d.charges = _f.sent();
+                                    job.contract = contract;
+                                    _f.label = 8;
+                                case 8: return [2 /*return*/];
                             }
                         });
                     }); }))];
