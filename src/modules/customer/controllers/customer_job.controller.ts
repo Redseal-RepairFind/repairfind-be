@@ -17,6 +17,7 @@ import { ContractorProfileModel } from "../../../database/contractor/models/cont
 import { JobEnquiryModel } from "../../../database/common/job_enquiry.model";
 import { ConversationUtil } from "../../../utils/conversation.util";
 import { PAYMENT_TYPE } from "../../../database/common/payment.schema";
+import { JobUtil } from "../../../utils/job.util";
 
 
 
@@ -289,20 +290,12 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
         if (data) {
 
             await Promise.all(data.data.map(async (job: any) => {
-                if (contractorId) {
-                    job.myQuotation = await job.getMyQuotation(contractorId)
-                }
+                const {contract, totalEnquires, hasUnrepliedEnquiry, myQuotation }  = await JobUtil.populate(job, contractorId)
+                job.myQuotation = myQuotation
+                job.contract = contract
+                job.totalEnquires = totalEnquires
+                job.hasUnrepliedEnquiry = hasUnrepliedEnquiry
 
-                const contract = await JobQuotationModel.findOne({ _id: job.contract, job: job.id });
-                if(contract){
-                    if(contract.changeOrderEstimate)contract.changeOrderEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
-                    if(contract.siteVisitEstimate)contract.siteVisitEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
-                    contract.charges  = await contract.calculateCharges()
-                    job.contract = contract
-                }
-
-                job.totalEnquires = await job.getTotalEnquires()
-                job.hasUnrepliedEnquiry = await job.getHasUnrepliedEnquiry()
             }));
         }
 

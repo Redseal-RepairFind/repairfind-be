@@ -58,6 +58,7 @@ var contractor_profile_model_1 = require("../../../database/contractor/models/co
 var job_enquiry_model_1 = require("../../../database/common/job_enquiry.model");
 var conversation_util_1 = require("../../../utils/conversation.util");
 var payment_schema_1 = require("../../../database/common/payment.schema");
+var job_util_1 = require("../../../utils/job.util");
 var createJobRequest = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, contractorId, category, description, location_1, date, _b, expiresIn, emergency, media, voiceDescription, time, customerId, customer, contractor, contractorProfile, currentDate, expiryDate, newJob, conversationMembers, conversation, newMessage, html, error_1;
     var _c, _d;
@@ -281,50 +282,16 @@ var getMyJobs = function (req, res, next) { return __awaiter(void 0, void 0, voi
                 _e = _f.sent(), data = _e.data, error = _e.error;
                 if (!data) return [3 /*break*/, 5];
                 return [4 /*yield*/, Promise.all(data.data.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
-                        var _a, contract, _b, _c, _d, _e, _f;
-                        var _g;
-                        return __generator(this, function (_h) {
-                            switch (_h.label) {
-                                case 0:
-                                    if (!contractorId_1) return [3 /*break*/, 2];
-                                    _a = job;
-                                    return [4 /*yield*/, job.getMyQuotation(contractorId_1)];
+                        var _a, contract, totalEnquires, hasUnrepliedEnquiry, myQuotation;
+                        return __generator(this, function (_b) {
+                            switch (_b.label) {
+                                case 0: return [4 /*yield*/, job_util_1.JobUtil.populate(job, contractorId_1)];
                                 case 1:
-                                    _a.myQuotation = _h.sent();
-                                    _h.label = 2;
-                                case 2: return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne({ _id: job.contract, job: job.id })];
-                                case 3:
-                                    contract = _h.sent();
-                                    if (!contract) return [3 /*break*/, 9];
-                                    if (!contract.changeOrderEstimate) return [3 /*break*/, 5];
-                                    _b = contract.changeOrderEstimate;
-                                    return [4 /*yield*/, contract.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
-                                case 4:
-                                    _b.charges = (_g = _h.sent()) !== null && _g !== void 0 ? _g : {};
-                                    _h.label = 5;
-                                case 5:
-                                    if (!contract.siteVisitEstimate) return [3 /*break*/, 7];
-                                    _c = contract.siteVisitEstimate;
-                                    return [4 /*yield*/, contract.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
-                                case 6:
-                                    _c.charges = _h.sent();
-                                    _h.label = 7;
-                                case 7:
-                                    _d = contract;
-                                    return [4 /*yield*/, contract.calculateCharges()];
-                                case 8:
-                                    _d.charges = _h.sent();
+                                    _a = _b.sent(), contract = _a.contract, totalEnquires = _a.totalEnquires, hasUnrepliedEnquiry = _a.hasUnrepliedEnquiry, myQuotation = _a.myQuotation;
+                                    job.myQuotation = myQuotation;
                                     job.contract = contract;
-                                    _h.label = 9;
-                                case 9:
-                                    _e = job;
-                                    return [4 /*yield*/, job.getTotalEnquires()];
-                                case 10:
-                                    _e.totalEnquires = _h.sent();
-                                    _f = job;
-                                    return [4 /*yield*/, job.getHasUnrepliedEnquiry()];
-                                case 11:
-                                    _f.hasUnrepliedEnquiry = _h.sent();
+                                    job.totalEnquires = totalEnquires;
+                                    job.hasUnrepliedEnquiry = hasUnrepliedEnquiry;
                                     return [2 /*return*/];
                             }
                         });
