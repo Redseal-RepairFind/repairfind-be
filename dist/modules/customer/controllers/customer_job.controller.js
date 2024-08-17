@@ -504,29 +504,62 @@ var getJobQuotations = function (req, res, next) { return __awaiter(void 0, void
 }); };
 exports.getJobQuotations = getJobQuotations;
 var getAllQuotations = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, jobId, jobs, jobIds, quotations, error_7;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var customerId, jobId, jobs, jobIds, _a, data, error, error_7;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
-                _a.trys.push([0, 3, , 4]);
+                _b.trys.push([0, 5, , 6]);
                 customerId = req.customer.id;
                 jobId = req.params.jobId;
                 return [4 /*yield*/, job_model_1.JobModel.find({ customer: customerId })];
             case 1:
-                jobs = _a.sent();
+                jobs = _b.sent();
                 jobIds = jobs.map(function (job) { return job._id; });
-                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_quotation_model_1.JobQuotationModel.find({ job: { $in: jobIds }, status: { $ne: job_quotation_model_1.JOB_QUOTATION_STATUS.DECLINED } }).populate([{ path: 'contractor' }, { path: 'job' }]), req.query)
-                    // If the job exists, return its quo as a response
-                ];
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_quotation_model_1.JobQuotationModel.find({ job: { $in: jobIds }, status: { $ne: job_quotation_model_1.JOB_QUOTATION_STATUS.DECLINED } }).populate([{ path: 'contractor' }, { path: 'job' }]), req.query)];
             case 2:
-                quotations = _a.sent();
-                // If the job exists, return its quo as a response
-                res.json({ success: true, message: 'Job quotations retrieved', data: quotations });
-                return [3 /*break*/, 4];
+                _a = _b.sent(), data = _a.data, error = _a.error;
+                if (!data) return [3 /*break*/, 4];
+                return [4 /*yield*/, Promise.all(data.data.map(function (contract) { return __awaiter(void 0, void 0, void 0, function () {
+                        var _a, _b, _c;
+                        var _d;
+                        return __generator(this, function (_e) {
+                            switch (_e.label) {
+                                case 0:
+                                    if (!contract) return [3 /*break*/, 6];
+                                    if (!contract.changeOrderEstimate) return [3 /*break*/, 2];
+                                    _a = contract.changeOrderEstimate;
+                                    return [4 /*yield*/, contract.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
+                                case 1:
+                                    _a.charges = (_d = _e.sent()) !== null && _d !== void 0 ? _d : {};
+                                    _e.label = 2;
+                                case 2:
+                                    if (!contract.siteVisitEstimate) return [3 /*break*/, 4];
+                                    _b = contract.siteVisitEstimate;
+                                    return [4 /*yield*/, contract.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
+                                case 3:
+                                    _b.charges = _e.sent();
+                                    _e.label = 4;
+                                case 4:
+                                    _c = contract;
+                                    return [4 /*yield*/, contract.calculateCharges()];
+                                case 5:
+                                    _c.charges = _e.sent();
+                                    _e.label = 6;
+                                case 6: return [2 /*return*/];
+                            }
+                        });
+                    }); }))];
             case 3:
-                error_7 = _a.sent();
+                _b.sent();
+                _b.label = 4;
+            case 4:
+                // If the job exists, return its quo as a response
+                res.json({ success: true, message: 'Job quotations retrieved', data: data });
+                return [3 /*break*/, 6];
+            case 5:
+                error_7 = _b.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_7))];
-            case 4: return [2 /*return*/];
+            case 6: return [2 /*return*/];
         }
     });
 }); };

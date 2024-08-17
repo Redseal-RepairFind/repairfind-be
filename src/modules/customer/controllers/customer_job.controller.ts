@@ -433,11 +433,21 @@ export const getAllQuotations = async (req: any, res: Response, next: NextFuncti
         const jobId = req.params.jobId;
         const jobs = await JobModel.find({ customer: customerId })
         const jobIds = jobs.map((job: { _id: any; }) => job._id);
-        const quotations = await applyAPIFeature(JobQuotationModel.find({ job: { $in: jobIds }, status: { $ne: JOB_QUOTATION_STATUS.DECLINED } }).populate([{ path: 'contractor' }, { path: 'job' }]), req.query)
-
+        const { data, error } = await applyAPIFeature(JobQuotationModel.find({ job: { $in: jobIds }, status: { $ne: JOB_QUOTATION_STATUS.DECLINED } }).populate([{ path: 'contractor' }, { path: 'job' }]), req.query)
+       
+        if(data){
+            await Promise.all(data.data.map(async (contract: any) => {
+                if(contract){
+                    if(contract.changeOrderEstimate)contract.changeOrderEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
+                    if(contract.siteVisitEstimate)contract.siteVisitEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
+                    contract.charges  = await contract.calculateCharges()
+                }
+            }));
+        }
+        
 
         // If the job exists, return its quo as a response
-        res.json({ success: true, message: 'Job quotations retrieved', data: quotations });
+        res.json({ success: true, message: 'Job quotations retrieved', data });
     } catch (error: any) {
         return next(new BadRequestError('An error occurred ', error))
     }
