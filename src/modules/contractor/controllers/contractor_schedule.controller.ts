@@ -218,8 +218,7 @@ export const getSchedulesByDate = async (req: any, res: Response) => {
         times,
         events: [
           {
-            //@ts-ignore
-            totalAmount: charges.totalAmount,
+            totalAmount: charges?.customerPayable ?? 0,
             job: job.id,
             skill: job?.category,
             date: job?.schedule.startDate,

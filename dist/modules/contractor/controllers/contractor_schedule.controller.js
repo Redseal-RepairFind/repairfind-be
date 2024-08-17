@@ -248,20 +248,20 @@ var getSchedulesByDate = function (req, res) { return __awaiter(void 0, void 0, 
                 jobs = _b.sent();
                 return [4 /*yield*/, Promise.all(jobs.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
                         var contractor, contract, charges, scheduleDate, startTime, estimatedDuration, start, endTime, times, hour, formattedHour;
-                        var _a;
-                        return __generator(this, function (_b) {
-                            switch (_b.label) {
+                        var _a, _b;
+                        return __generator(this, function (_c) {
+                            switch (_c.label) {
                                 case 0: return [4 /*yield*/, contractor_model_1.ContractorModel.findById(job.contractor)];
                                 case 1:
-                                    contractor = _b.sent();
+                                    contractor = _c.sent();
                                     return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne(job.contract)];
                                 case 2:
-                                    contract = _b.sent();
+                                    contract = _c.sent();
                                     return [4 /*yield*/, (contract === null || contract === void 0 ? void 0 : contract.calculateCharges())
                                         // spread time
                                     ];
                                 case 3:
-                                    charges = _b.sent();
+                                    charges = _c.sent();
                                     scheduleDate = job.schedule.startDate;
                                     startTime = scheduleDate ? scheduleDate.toTimeString().slice(0, 8) : "00:00:00";
                                     estimatedDuration = (_a = job.schedule.estimatedDuration) !== null && _a !== void 0 ? _a : 1;
@@ -281,8 +281,7 @@ var getSchedulesByDate = function (req, res) { return __awaiter(void 0, void 0, 
                                             times: times,
                                             events: [
                                                 {
-                                                    //@ts-ignore
-                                                    totalAmount: charges.totalAmount,
+                                                    totalAmount: (_b = charges === null || charges === void 0 ? void 0 : charges.customerPayable) !== null && _b !== void 0 ? _b : 0,
                                                     job: job.id,
                                                     skill: job === null || job === void 0 ? void 0 : job.category,
                                                     date: job === null || job === void 0 ? void 0 : job.schedule.startDate,

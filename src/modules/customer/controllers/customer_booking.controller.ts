@@ -166,6 +166,14 @@ export const getBookingHistory = async (req: any, res: Response, next: NextFunct
             await Promise.all(data.data.map(async (job: any) => {
                 job.myQuotation = await job.getMyQuotation(contractorId)
                 job.jobDay = await job.getJobDay()
+
+                const contract = await JobQuotationModel.findOne({ _id: job.contract, job: job.id });
+                if(contract){
+                    if(contract.changeOrderEstimate)contract.changeOrderEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
+                    if(contract.siteVisitEstimate)contract.siteVisitEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
+                    contract.charges  = await contract.calculateCharges()
+                    job.contract = contract
+                }
             }));
         }
 
@@ -229,6 +237,13 @@ export const getBookingDisputes = async (req: any, res: Response, next: NextFunc
             await Promise.all(data.data.map(async (job: any) => {
                 job.jobDay = await job.getJobDay()
                 job.dispute = await job.getJobDispute()
+                const contract = await JobQuotationModel.findOne({ _id: job.contract, job: job.id });
+                if(contract){
+                    if(contract.changeOrderEstimate)contract.changeOrderEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
+                    if(contract.siteVisitEstimate)contract.siteVisitEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
+                    contract.charges  = await contract.calculateCharges()
+                    job.contract = contract
+                }
             }));
         }
 
