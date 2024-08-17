@@ -13,6 +13,7 @@ import { REVIEW_TYPE, ReviewModel } from "../../../database/common/review.model"
 import CustomerFavoriteContractorModel from "../../../database/customer/models/customer_favorite_contractors.model";
 import CustomerModel from "../../../database/customer/models/customer.model";
 import { JobModel } from "../../../database/common/job.model";
+import { JobQuotationModel } from "../../../database/common/job_quotation.model";
 
 
 type PipelineStage =
@@ -518,7 +519,8 @@ export const getContractorSchedules = async (req: any, res: Response) => {
 
         const jobSchedules = await Promise.all(jobs.map(async (job) => {
             const contractor = await ContractorModel.findById(job.contractor);
-
+            const contract = await JobQuotationModel.findOne(job.contract)
+            const charges = await contract?.calculateCharges()
             // spread time
             const scheduleDate = job.schedule.startDate
 
@@ -545,7 +547,7 @@ export const getContractorSchedules = async (req: any, res: Response) => {
                 events: [
                     {
                         //@ts-ignore
-                        totalAmount: job.contract.charges.totalAmount,
+                        totalAmount: charges.customerPayable,
                         job: job.id,
                         skill: job?.category,
                         date: job?.schedule.startDate,

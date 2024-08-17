@@ -73,6 +73,7 @@ var review_model_1 = require("../../../database/common/review.model");
 var customer_favorite_contractors_model_1 = __importDefault(require("../../../database/customer/models/customer_favorite_contractors.model"));
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var job_model_1 = require("../../../database/common/job.model");
+var job_quotation_model_1 = require("../../../database/common/job_quotation.model");
 var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, customerId, customer, _a, searchName, listing, minDistance, maxDistance, radius, _b, latitude, _c, longitude, emergencyJobs, category, location_1, city, country, address, accountType, date, isOffDuty, availability, experienceYear, gstNumber, _d, page, _e, limit, sort, minResponseTime, maxResponseTime, sortByResponseTime, availableDaysArray, skip, toRadians, pipeline, contractorIdsWithDateInSchedule, _f, sortField, sortOrder, sortStage, result, contractors, metadata, err_1;
     var _g;
@@ -540,13 +541,21 @@ var getContractorSchedules = function (req, res) { return __awaiter(void 0, void
             case 2:
                 jobs = _b.sent();
                 return [4 /*yield*/, Promise.all(jobs.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
-                        var contractor, scheduleDate, startTime, estimatedDuration, start, endTime, times, hour, formattedHour;
+                        var contractor, contract, charges, scheduleDate, startTime, estimatedDuration, start, endTime, times, hour, formattedHour;
                         var _a;
                         return __generator(this, function (_b) {
                             switch (_b.label) {
                                 case 0: return [4 /*yield*/, contractor_model_1.ContractorModel.findById(job.contractor)];
                                 case 1:
                                     contractor = _b.sent();
+                                    return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne(job.contract)];
+                                case 2:
+                                    contract = _b.sent();
+                                    return [4 /*yield*/, (contract === null || contract === void 0 ? void 0 : contract.calculateCharges())
+                                        // spread time
+                                    ];
+                                case 3:
+                                    charges = _b.sent();
                                     scheduleDate = job.schedule.startDate;
                                     startTime = scheduleDate ? scheduleDate.toTimeString().slice(0, 8) : "00:00:00";
                                     estimatedDuration = (_a = job.schedule.estimatedDuration) !== null && _a !== void 0 ? _a : 1;
@@ -567,7 +576,7 @@ var getContractorSchedules = function (req, res) { return __awaiter(void 0, void
                                             events: [
                                                 {
                                                     //@ts-ignore
-                                                    totalAmount: job.contract.charges.totalAmount,
+                                                    totalAmount: charges.customerPayable,
                                                     job: job.id,
                                                     skill: job === null || job === void 0 ? void 0 : job.category,
                                                     date: job === null || job === void 0 ? void 0 : job.schedule.startDate,

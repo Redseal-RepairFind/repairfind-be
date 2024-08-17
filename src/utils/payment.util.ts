@@ -23,7 +23,7 @@ const calculateCharges = async (totalEstimateAmount: number) => {
     gstAmount = parseFloat(((gstRate / 100) * totalEstimateAmount).toFixed(2));
     
     subtotal = totalEstimateAmount;
-    customerPayable = parseFloat((subtotal + customerProcessingFee ).toFixed(2));
+    customerPayable = parseFloat((subtotal + customerProcessingFee + gstAmount ).toFixed(2));
     contractorPayable = parseFloat(((subtotal + gstAmount )- (contractorProcessingFee +repairfindServiceFee)).toFixed(2));
 
     return { 
