@@ -93,14 +93,19 @@ export const getMyBookings = async (req: any, res: Response, next: NextFunction)
         }
 
         // Execute query
-        const { data, error } = await applyAPIFeature(JobModel.find(filter).populate(['contractor', 'contract']), req.query);
+        const { data, error } = await applyAPIFeature(JobModel.find(filter).populate(['contractor']), req.query);
 
         if (data) {
 
             await Promise.all(data.data.map(async (job: any) => {
-                // if (contractorId) {
-                //     job.myQuotation = await job.getMyQuotation(contractorId)
-                // }
+               
+                const contract = await JobQuotationModel.findOne({ _id: job.contract, job: job.id });
+                if(contract){
+                    if(contract.changeOrderEstimate)contract.changeOrderEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
+                    if(contract.siteVisitEstimate)contract.siteVisitEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
+                    contract.charges  = await contract.calculateCharges()
+                    job.contract = contract
+                }
                 job.jobDay = await job.getJobDay()
 
             }));

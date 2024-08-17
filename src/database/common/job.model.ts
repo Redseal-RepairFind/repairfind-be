@@ -430,6 +430,9 @@ JobSchema.methods.getHasUnrepliedEnquiry = async function () {
 JobSchema.methods.getMyQuotation = async function (contractor: any) {
     const contractorQuotation = await JobQuotationModel.findOne({ job: this.id, contractor })
     if (contractorQuotation) {
+        if(contractorQuotation.changeOrderEstimate)contractorQuotation.changeOrderEstimate.charges  = await contractorQuotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
+        if(contractorQuotation.siteVisitEstimate)contractorQuotation.siteVisitEstimate.charges  = await contractorQuotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
+            contractorQuotation.charges  = await contractorQuotation.calculateCharges()
         return contractorQuotation
     } else {
         return null

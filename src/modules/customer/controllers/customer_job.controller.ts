@@ -255,7 +255,6 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
             const quotations = await JobQuotationModel.find({ contractor: contractorId })
             const quotationIds = quotations.map(quotation => quotation._id);
 
-            console.log(quotationIds)
             filter['quotations.id'] = { $in: quotationIds };
             // filter['quotations.contractor'] = {$in: contractorId};
             delete req.query.contractorId
@@ -294,6 +293,8 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
             await Promise.all(data.data.map(async (job: any) => {
                 if (contractorId) {
                     job.myQuotation = await job.getMyQuotation(contractorId)
+
+                    
                 }
                 job.totalEnquires = await job.getTotalEnquires()
                 job.hasUnrepliedEnquiry = await job.getHasUnrepliedEnquiry()
@@ -440,7 +441,6 @@ export const getQuotation = async (req: any, res: Response, next: NextFunction) 
         if (!quotation) {
             return res.status(404).json({ success: false, message: 'Job quotation found' });
         }
-
 
         if(quotation.changeOrderEstimate)quotation.changeOrderEstimate.charges  = await quotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
         if(quotation.siteVisitEstimate)quotation.siteVisitEstimate.charges  = await quotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)

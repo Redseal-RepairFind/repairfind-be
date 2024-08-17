@@ -138,25 +138,44 @@ var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0,
                     endOfDay.setDate(startOfDay.getUTCDate() + 1);
                     req.query.date = { $gte: startOfDay, $lt: endOfDay };
                 }
-                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_model_1.JobModel.find(filter).populate(['contractor', 'contract']), req.query)];
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_model_1.JobModel.find(filter).populate(['contractor']), req.query)];
             case 1:
                 _f = _g.sent(), data = _f.data, error = _f.error;
                 if (!data) return [3 /*break*/, 3];
                 return [4 /*yield*/, Promise.all(data.data.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
-                        var _a;
-                        return __generator(this, function (_b) {
-                            switch (_b.label) {
-                                case 0:
-                                    // if (contractorId) {
-                                    //     job.myQuotation = await job.getMyQuotation(contractorId)
-                                    // }
-                                    _a = job;
-                                    return [4 /*yield*/, job.getJobDay()];
+                        var contract, _a, _b, _c, _d;
+                        var _e;
+                        return __generator(this, function (_f) {
+                            switch (_f.label) {
+                                case 0: return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne({ _id: job.contract, job: job.id })];
                                 case 1:
-                                    // if (contractorId) {
-                                    //     job.myQuotation = await job.getMyQuotation(contractorId)
-                                    // }
-                                    _a.jobDay = _b.sent();
+                                    contract = _f.sent();
+                                    if (!contract) return [3 /*break*/, 7];
+                                    if (!contract.changeOrderEstimate) return [3 /*break*/, 3];
+                                    _a = contract.changeOrderEstimate;
+                                    return [4 /*yield*/, contract.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
+                                case 2:
+                                    _a.charges = (_e = _f.sent()) !== null && _e !== void 0 ? _e : {};
+                                    _f.label = 3;
+                                case 3:
+                                    if (!contract.siteVisitEstimate) return [3 /*break*/, 5];
+                                    _b = contract.siteVisitEstimate;
+                                    return [4 /*yield*/, contract.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
+                                case 4:
+                                    _b.charges = _f.sent();
+                                    _f.label = 5;
+                                case 5:
+                                    _c = contract;
+                                    return [4 /*yield*/, contract.calculateCharges()];
+                                case 6:
+                                    _c.charges = _f.sent();
+                                    job.contract = contract;
+                                    _f.label = 7;
+                                case 7:
+                                    _d = job;
+                                    return [4 /*yield*/, job.getJobDay()];
+                                case 8:
+                                    _d.jobDay = _f.sent();
                                     return [2 /*return*/];
                             }
                         });

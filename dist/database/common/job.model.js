@@ -336,20 +336,35 @@ JobSchema.methods.getHasUnrepliedEnquiry = function () {
     });
 };
 JobSchema.methods.getMyQuotation = function (contractor) {
+    var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var contractorQuotation;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        var contractorQuotation, _b, _c, _d;
+        return __generator(this, function (_e) {
+            switch (_e.label) {
                 case 0: return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne({ job: this.id, contractor: contractor })];
                 case 1:
-                    contractorQuotation = _a.sent();
-                    if (contractorQuotation) {
-                        return [2 /*return*/, contractorQuotation];
-                    }
-                    else {
-                        return [2 /*return*/, null];
-                    }
-                    return [2 /*return*/];
+                    contractorQuotation = _e.sent();
+                    if (!contractorQuotation) return [3 /*break*/, 7];
+                    if (!contractorQuotation.changeOrderEstimate) return [3 /*break*/, 3];
+                    _b = contractorQuotation.changeOrderEstimate;
+                    return [4 /*yield*/, contractorQuotation.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
+                case 2:
+                    _b.charges = (_a = _e.sent()) !== null && _a !== void 0 ? _a : {};
+                    _e.label = 3;
+                case 3:
+                    if (!contractorQuotation.siteVisitEstimate) return [3 /*break*/, 5];
+                    _c = contractorQuotation.siteVisitEstimate;
+                    return [4 /*yield*/, contractorQuotation.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
+                case 4:
+                    _c.charges = _e.sent();
+                    _e.label = 5;
+                case 5:
+                    _d = contractorQuotation;
+                    return [4 /*yield*/, contractorQuotation.calculateCharges()];
+                case 6:
+                    _d.charges = _e.sent();
+                    return [2 /*return*/, contractorQuotation];
+                case 7: return [2 /*return*/, null];
             }
         });
     });
