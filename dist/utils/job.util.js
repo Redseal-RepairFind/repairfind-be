@@ -39,53 +39,89 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.JobUtil = void 0;
 var job_quotation_model_1 = require("../database/common/job_quotation.model");
 var payment_schema_1 = require("../database/common/payment.schema");
-var populate = function (job, contractorId) { return __awaiter(void 0, void 0, void 0, function () {
-    var contract, _a, _b, _c, myQuotation, totalEnquires, hasUnrepliedEnquiry;
-    var _d, _e;
-    return __generator(this, function (_f) {
-        switch (_f.label) {
-            case 0: return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne({ _id: job.contract, job: job.id })];
-            case 1:
-                contract = _f.sent();
-                if (!contract) return [3 /*break*/, 7];
-                if (!contract.changeOrderEstimate) return [3 /*break*/, 3];
-                _a = contract.changeOrderEstimate;
-                return [4 /*yield*/, contract.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
-            case 2:
-                _a.charges = (_d = _f.sent()) !== null && _d !== void 0 ? _d : {};
-                _f.label = 3;
-            case 3:
-                if (!contract.siteVisitEstimate) return [3 /*break*/, 5];
-                _b = contract.siteVisitEstimate;
-                return [4 /*yield*/, contract.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
-            case 4:
-                _b.charges = (_e = _f.sent()) !== null && _e !== void 0 ? _e : {};
-                _f.label = 5;
-            case 5:
-                _c = contract;
-                return [4 /*yield*/, contract.calculateCharges()];
-            case 6:
-                _c.charges = _f.sent();
-                job.contract = contract;
-                _f.label = 7;
-            case 7: return [4 /*yield*/, job.getMyQuotation(contractorId)];
-            case 8:
-                myQuotation = _f.sent();
-                return [4 /*yield*/, job.getTotalEnquires()];
-            case 9:
-                totalEnquires = _f.sent();
-                return [4 /*yield*/, job.getHasUnrepliedEnquiry()];
-            case 10:
-                hasUnrepliedEnquiry = _f.sent();
-                return [2 /*return*/, {
-                        contract: contract,
-                        totalEnquires: totalEnquires,
-                        hasUnrepliedEnquiry: hasUnrepliedEnquiry,
-                        myQuotation: myQuotation
-                    }];
-        }
+var populate = function (job, options) {
+    if (options === void 0) { options = {}; }
+    return __awaiter(void 0, void 0, void 0, function () {
+        var tasks, result, contractTask, totalEnquiresTask, hasUnrepliedEnquiryTask, myQuotationTask, jobDayTask, disputeTask;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    tasks = [];
+                    result = {};
+                    if (options.contract) {
+                        contractTask = job_quotation_model_1.JobQuotationModel.findOne({ _id: job.contract, job: job.id }).then(function (contract) { return __awaiter(void 0, void 0, void 0, function () {
+                            var _a, _b, _c;
+                            var _d, _e;
+                            return __generator(this, function (_f) {
+                                switch (_f.label) {
+                                    case 0:
+                                        if (!contract) return [3 /*break*/, 6];
+                                        if (!contract.changeOrderEstimate) return [3 /*break*/, 2];
+                                        _a = contract.changeOrderEstimate;
+                                        return [4 /*yield*/, contract.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
+                                    case 1:
+                                        _a.charges = (_d = _f.sent()) !== null && _d !== void 0 ? _d : {};
+                                        _f.label = 2;
+                                    case 2:
+                                        if (!contract.siteVisitEstimate) return [3 /*break*/, 4];
+                                        _b = contract.siteVisitEstimate;
+                                        return [4 /*yield*/, contract.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
+                                    case 3:
+                                        _b.charges = (_e = _f.sent()) !== null && _e !== void 0 ? _e : {};
+                                        _f.label = 4;
+                                    case 4:
+                                        _c = contract;
+                                        return [4 /*yield*/, contract.calculateCharges()];
+                                    case 5:
+                                        _c.charges = _f.sent();
+                                        result.contract = contract;
+                                        _f.label = 6;
+                                    case 6: return [2 /*return*/];
+                                }
+                            });
+                        }); });
+                        tasks.push(contractTask);
+                    }
+                    if (options.totalEnquires) {
+                        totalEnquiresTask = job.getTotalEnquires().then(function (totalEnquires) {
+                            result.totalEnquires = totalEnquires;
+                        });
+                        tasks.push(totalEnquiresTask);
+                    }
+                    if (options.hasUnrepliedEnquiry) {
+                        hasUnrepliedEnquiryTask = job.getHasUnrepliedEnquiry().then(function (hasUnrepliedEnquiry) {
+                            result.hasUnrepliedEnquiry = hasUnrepliedEnquiry;
+                        });
+                        tasks.push(hasUnrepliedEnquiryTask);
+                    }
+                    if (options.myQuotation) {
+                        myQuotationTask = job.getMyQuotation(options.myQuotation).then(function (myQuotation) {
+                            result.myQuotation = myQuotation;
+                        });
+                        tasks.push(myQuotationTask);
+                    }
+                    if (options.jobDay) {
+                        jobDayTask = job.getJobDay().then(function (jobDay) {
+                            result.jobDay = jobDay;
+                        });
+                        tasks.push(jobDayTask);
+                    }
+                    if (options.dispute) {
+                        disputeTask = job.getJobDispute().then(function (dispute) {
+                            result.dispute = dispute;
+                        });
+                        tasks.push(disputeTask);
+                    }
+                    // Wait for all tasks to complete
+                    return [4 /*yield*/, Promise.all(tasks)];
+                case 1:
+                    // Wait for all tasks to complete
+                    _a.sent();
+                    return [2 /*return*/, result];
+            }
+        });
     });
-}); };
+};
 exports.JobUtil = {
     populate: populate
 };

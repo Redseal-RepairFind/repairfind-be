@@ -290,11 +290,24 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
         if (data) {
 
             await Promise.all(data.data.map(async (job: any) => {
-                const {contract, totalEnquires, hasUnrepliedEnquiry, myQuotation }  = await JobUtil.populate(job, contractorId)
+                // const { contract, totalEnquires, hasUnrepliedEnquiry, myQuotation } = await JobUtil.populate(job, contractorId)
+                // job.myQuotation = myQuotation
+                // job.contract = contract
+                // job.totalEnquires = totalEnquires
+                // job.hasUnrepliedEnquiry = hasUnrepliedEnquiry
+
+                const { contract, totalEnquires, hasUnrepliedEnquiry, myQuotation } = await JobUtil.populate(job, {
+                    contract: true,
+                    myQuotation: contractorId,
+                    totalEnquires: true,
+                    hasUnrepliedEnquiry: true,
+                });
+
                 job.myQuotation = myQuotation
                 job.contract = contract
                 job.totalEnquires = totalEnquires
                 job.hasUnrepliedEnquiry = hasUnrepliedEnquiry
+
 
             }));
         }
@@ -353,14 +366,27 @@ export const getJobHistory = async (req: any, res: Response, next: NextFunction)
         if (data) {
             // Map through each job and attach myQuotation if contractor has applied 
             await Promise.all(data.data.map(async (job: any) => {
-                job.myQuotation = await job.getMyQuotation(contractorId)
-                const contract = await JobQuotationModel.findOne({ _id: job.contract, job: job.id });
-                if(contract){
-                    if(contract.changeOrderEstimate)contract.changeOrderEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
-                    if(contract.siteVisitEstimate)contract.siteVisitEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
-                    contract.charges  = await contract.calculateCharges()
-                    job.contract = contract
-                }
+                // job.myQuotation = await job.getMyQuotation(contractorId)
+                // const contract = await JobQuotationModel.findOne({ _id: job.contract, job: job.id });
+                // if(contract){
+                //     if(contract.changeOrderEstimate)contract.changeOrderEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
+                //     if(contract.siteVisitEstimate)contract.siteVisitEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
+                //     contract.charges  = await contract.calculateCharges()
+                //     job.contract = contract
+                // }
+
+                const { contract, totalEnquires, hasUnrepliedEnquiry, myQuotation } = await JobUtil.populate(job, {
+                    contract: true,
+                    myQuotation: contractorId,
+                    totalEnquires: true,
+                    hasUnrepliedEnquiry: true,
+                });
+
+                job.myQuotation = myQuotation
+                job.contract = contract
+                job.totalEnquires = totalEnquires
+                job.hasUnrepliedEnquiry = hasUnrepliedEnquiry
+
             }));
         }
 
@@ -388,8 +414,24 @@ export const getSingleJob = async (req: any, res: Response, next: NextFunction) 
             return res.status(404).json({ success: false, message: 'Job not found' });
         }
 
-        job.totalEnquires = await job.getTotalEnquires() as number
-        job.hasUnrepliedEnquiry = await job.getHasUnrepliedEnquiry() as boolean
+        // const { totalEnquires, hasUnrepliedEnquiry } = await JobUtil.populate(job, {
+        //     totalEnquires: true,
+        //     hasUnrepliedEnquiry: true,
+        // });
+
+        // job.totalEnquires = totalEnquires
+        // job.hasUnrepliedEnquiry = hasUnrepliedEnquiry
+
+        const { contract, totalEnquires, hasUnrepliedEnquiry } = await JobUtil.populate(job, {
+            contract: true,
+            totalEnquires: true,
+            hasUnrepliedEnquiry: true,
+        });
+
+        job.contract = contract
+        job.totalEnquires = totalEnquires
+        job.hasUnrepliedEnquiry = hasUnrepliedEnquiry
+
 
         // If the job exists, return it as a response
         res.json({ success: true, message: 'Job retrieved', data: job });
@@ -410,7 +452,14 @@ export const getJobQuotations = async (req: any, res: Response, next: NextFuncti
             return res.status(404).json({ success: false, message: 'Job not found or does not belong to customer' });
         }
         const quotations = await JobQuotationModel.find({ job: jobId, status: { $ne: JOB_QUOTATION_STATUS.DECLINED } }).populate([{ path: 'contractor' }])
-
+        await Promise.all(quotations.map(async (quotation: any) => {
+            
+            if (quotation) {
+                if (quotation.changeOrderEstimate) quotation.changeOrderEstimate.charges = await quotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
+                if (quotation.siteVisitEstimate) quotation.siteVisitEstimate.charges = await quotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
+                quotation.charges = await quotation.calculateCharges()
+            }
+        }));
 
         // If the job exists, return its quo as a response
         res.json({ success: true, message: 'Job quotations retrieved', data: quotations });
@@ -427,17 +476,17 @@ export const getAllQuotations = async (req: any, res: Response, next: NextFuncti
         const jobs = await JobModel.find({ customer: customerId })
         const jobIds = jobs.map((job: { _id: any; }) => job._id);
         const { data, error } = await applyAPIFeature(JobQuotationModel.find({ job: { $in: jobIds }, status: { $ne: JOB_QUOTATION_STATUS.DECLINED } }).populate([{ path: 'contractor' }, { path: 'job' }]), req.query)
-       
-        if(data){
+
+        if (data) {
             await Promise.all(data.data.map(async (contract: any) => {
-                if(contract){
-                    if(contract.changeOrderEstimate)contract.changeOrderEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
-                    if(contract.siteVisitEstimate)contract.siteVisitEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
-                    contract.charges  = await contract.calculateCharges()
+                if (contract) {
+                    if (contract.changeOrderEstimate) contract.changeOrderEstimate.charges = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
+                    if (contract.siteVisitEstimate) contract.siteVisitEstimate.charges = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
+                    contract.charges = await contract.calculateCharges()
                 }
             }));
         }
-        
+
 
         // If the job exists, return its quo as a response
         res.json({ success: true, message: 'Job quotations retrieved', data });
@@ -457,9 +506,9 @@ export const getQuotation = async (req: any, res: Response, next: NextFunction) 
             return res.status(404).json({ success: false, message: 'Job quotation found' });
         }
 
-        if(quotation.changeOrderEstimate)quotation.changeOrderEstimate.charges  = await quotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
-        if(quotation.siteVisitEstimate)quotation.siteVisitEstimate.charges  = await quotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
-        quotation.charges  = await quotation.calculateCharges()
+        if (quotation.changeOrderEstimate) quotation.changeOrderEstimate.charges = await quotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
+        if (quotation.siteVisitEstimate) quotation.siteVisitEstimate.charges = await quotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
+        quotation.charges = await quotation.calculateCharges()
 
 
         // If the job exists, return its quo as a response
@@ -482,10 +531,10 @@ export const getSingleQuotation = async (req: any, res: Response, next: NextFunc
             return res.status(404).json({ success: false, message: 'Qoutation not found' });
         }
 
-        if(quotation.changeOrderEstimate)quotation.changeOrderEstimate.charges  = await quotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
-        if(quotation.siteVisitEstimate)quotation.siteVisitEstimate.charges  = await quotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
-        quotation.charges  = await quotation.calculateCharges()
-    
+        if (quotation.changeOrderEstimate) quotation.changeOrderEstimate.charges = await quotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
+        if (quotation.siteVisitEstimate) quotation.siteVisitEstimate.charges = await quotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
+        quotation.charges = await quotation.calculateCharges()
+
         res.json({ success: true, message: 'Job quotation retrieved', data: quotation });
     } catch (error: any) {
         return next(new BadRequestError('An error occurred ', error))
