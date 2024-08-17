@@ -339,35 +339,61 @@ var getBookingDisputes = function (req, res, next) { return __awaiter(void 0, vo
 }); };
 exports.getBookingDisputes = getBookingDisputes;
 var getSingleBooking = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, bookingId, job, responseData, _a, _b, error_4;
-    return __generator(this, function (_c) {
-        switch (_c.label) {
+    var customerId, bookingId, job, responseData, contract, _a, _b, _c, _d, _e, error_4;
+    var _f;
+    return __generator(this, function (_g) {
+        switch (_g.label) {
             case 0:
-                _c.trys.push([0, 4, , 5]);
+                _g.trys.push([0, 11, , 12]);
                 customerId = req.customer.id;
                 bookingId = req.params.bookingId;
-                return [4 /*yield*/, job_model_1.JobModel.findOne({ customer: customerId, _id: bookingId }).populate(['contractor', 'contract', 'review'])];
+                return [4 /*yield*/, job_model_1.JobModel.findOne({ customer: customerId, _id: bookingId }).populate(['contractor', 'review'])];
             case 1:
-                job = _c.sent();
+                job = _g.sent();
                 // Check if the job exists
                 if (!job) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Booking not found' })];
                 }
                 responseData = __assign({}, job.toJSON());
-                _a = responseData;
-                return [4 /*yield*/, job.getJobDispute()];
+                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne({ _id: job.contract, job: job.id })];
             case 2:
-                _a.dispute = _c.sent();
-                _b = responseData;
-                return [4 /*yield*/, job.getJobDay()];
+                contract = _g.sent();
+                if (!contract) return [3 /*break*/, 8];
+                if (!contract.changeOrderEstimate) return [3 /*break*/, 4];
+                _a = contract.changeOrderEstimate;
+                return [4 /*yield*/, contract.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
             case 3:
-                _b.jobDay = _c.sent();
-                res.json({ success: true, message: 'Booking retrieved', data: responseData });
-                return [3 /*break*/, 5];
+                _a.charges = (_f = _g.sent()) !== null && _f !== void 0 ? _f : {};
+                _g.label = 4;
             case 4:
-                error_4 = _c.sent();
+                if (!contract.siteVisitEstimate) return [3 /*break*/, 6];
+                _b = contract.siteVisitEstimate;
+                return [4 /*yield*/, contract.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
+            case 5:
+                _b.charges = _g.sent();
+                _g.label = 6;
+            case 6:
+                _c = contract;
+                return [4 /*yield*/, contract.calculateCharges()];
+            case 7:
+                _c.charges = _g.sent();
+                responseData.contract = contract;
+                _g.label = 8;
+            case 8:
+                _d = responseData;
+                return [4 /*yield*/, job.getJobDispute()];
+            case 9:
+                _d.dispute = _g.sent();
+                _e = responseData;
+                return [4 /*yield*/, job.getJobDay()];
+            case 10:
+                _e.jobDay = _g.sent();
+                res.json({ success: true, message: 'Booking retrieved', data: responseData });
+                return [3 /*break*/, 12];
+            case 11:
+                error_4 = _g.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_4))];
-            case 5: return [2 /*return*/];
+            case 12: return [2 /*return*/];
         }
     });
 }); };

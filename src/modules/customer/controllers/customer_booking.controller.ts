@@ -251,7 +251,7 @@ export const getSingleBooking = async (req: any, res: Response, next: NextFuncti
         const customerId = req.customer.id
         const bookingId = req.params.bookingId;
 
-        const job = await JobModel.findOne({ customer: customerId, _id: bookingId }).populate(['contractor', 'contract', 'review']);
+        const job = await JobModel.findOne({ customer: customerId, _id: bookingId }).populate(['contractor', 'review']);
 
         // Check if the job exists
         if (!job) {
@@ -259,6 +259,16 @@ export const getSingleBooking = async (req: any, res: Response, next: NextFuncti
         }
 
         let responseData: any = { ...job.toJSON() };
+
+        const contract = await JobQuotationModel.findOne({ _id: job.contract, job: job.id });
+        if(contract){
+            if(contract.changeOrderEstimate)contract.changeOrderEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
+            if(contract.siteVisitEstimate)contract.siteVisitEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
+            contract.charges  = await contract.calculateCharges()
+            responseData.contract = contract
+        }
+
+
         responseData.dispute = await job.getJobDispute()
         responseData.jobDay = await job.getJobDay()
 
