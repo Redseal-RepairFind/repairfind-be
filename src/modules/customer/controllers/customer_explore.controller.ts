@@ -547,7 +547,7 @@ export const getContractorSchedules = async (req: any, res: Response) => {
                 events: [
                     {
                         //@ts-ignore
-                        totalAmount: charges.customerPayable,
+                        totalAmount: charges?.customerPayable,
                         job: job.id,
                         skill: job?.category,
                         date: job?.schedule.startDate,

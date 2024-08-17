@@ -576,7 +576,7 @@ var getContractorSchedules = function (req, res) { return __awaiter(void 0, void
                                             events: [
                                                 {
                                                     //@ts-ignore
-                                                    totalAmount: charges.customerPayable,
+                                                    totalAmount: charges === null || charges === void 0 ? void 0 : charges.customerPayable,
                                                     job: job.id,
                                                     skill: job === null || job === void 0 ? void 0 : job.category,
                                                     date: job === null || job === void 0 ? void 0 : job.schedule.startDate,
