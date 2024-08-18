@@ -18,6 +18,8 @@ import { ConversationEvent, JobEvent } from "../../../events";
 import { JobEnquiryModel } from "../../../database/common/job_enquiry.model";
 import ContractorSavedJobModel from "../../../database/contractor/models/contractor_saved_job.model";
 import { ConversationUtil } from "../../../utils/conversation.util";
+import { JobUtil } from "../../../utils/job.util";
+import { PAYMENT_TYPE } from "../../../database/common/payment.schema";
 
 
 export const getJobRequests = async (req: any, res: Response) => {
@@ -669,16 +671,18 @@ export const getQuotationForJob = async (req: any, res: Response, next: NextFunc
     }
 
     // Find the job application for the specified job and contractor
-    const jobQuotation = await JobQuotationModel.findOne({ job: jobId, contractor: contractorId });
+    const quotation = await JobQuotationModel.findOne({ job: jobId, contractor: contractorId });
 
     // Check if the job application exists
-    if (!jobQuotation) {
+    if (!quotation) {
       return res.status(404).json({ success: false, message: 'You have not submitted quotation for this job' });
     }
 
-    jobQuotation.charges = await jobQuotation.calculateCharges()
+    if (quotation.changeOrderEstimate) quotation.changeOrderEstimate.charges = await quotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
+    if (quotation.siteVisitEstimate) quotation.siteVisitEstimate.charges = await quotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
+    quotation.charges = await quotation.calculateCharges()
 
-    res.status(200).json({ success: true, message: 'Job quotation retrieved successfully', data: jobQuotation });
+    res.status(200).json({ success: true, message: 'Job quotation retrieved successfully', data: quotation });
   } catch (error: any) {
     return next(new BadRequestError('An error occurred ', error))
   }
@@ -696,16 +700,19 @@ export const getQuotation = async (req: any, res: Response, next: NextFunction) 
     }
 
     // Find the job application for the specified job and contractor
-    const jobQuotation = await JobQuotationModel.findById(quotationId);
+    const quotation = await JobQuotationModel.findById(quotationId);
 
     // Check if the job application exists
-    if (!jobQuotation) {
+    if (!quotation) {
       return res.status(404).json({ success: false, message: 'Quotation not found' });
     }
 
-    jobQuotation.charges = await jobQuotation.calculateCharges()
+    if (quotation.changeOrderEstimate) quotation.changeOrderEstimate.charges = await quotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
+    if (quotation.siteVisitEstimate) quotation.siteVisitEstimate.charges = await quotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
+    quotation.charges = await quotation.calculateCharges()
 
-    res.status(200).json({ success: true, message: 'Job quotation retrieved successfully', data: jobQuotation });
+
+    res.status(200).json({ success: true, message: 'Job quotation retrieved successfully', data: quotation });
   } catch (error: any) {
     return next(new BadRequestError('An error occurred ', error))
   }
@@ -739,24 +746,27 @@ export const updateJobQuotation = async (req: any, res: Response, next: NextFunc
 
 
     // Find the job application for the specified job and contractor
-    let jobQuotation = await JobQuotationModel.findOne({ job: jobId, contractor: contractorId });
+    let quotation = await JobQuotationModel.findOne({ job: jobId, contractor: contractorId });
 
 
     // If the job application does not exist, create a new one
-    if (!jobQuotation) {
+    if (!quotation) {
       return res.status(400).json({ status: false, message: 'Job quotation not found' });
     }
 
     // Update the job application fields
-    jobQuotation.startDate = startDate;
-    jobQuotation.endDate = endDate;
-    jobQuotation.siteVisit = siteVisit;
-    jobQuotation.estimates = estimates;
-    jobQuotation.estimatedDuration = estimatedDuration;
+    quotation.startDate = startDate;
+    quotation.endDate = endDate;
+    quotation.siteVisit = siteVisit;
+    quotation.estimates = estimates;
+    quotation.estimatedDuration = estimatedDuration;
 
     // Save the updated job application
-    await jobQuotation.save();
-    jobQuotation.charges = await jobQuotation.calculateCharges()
+    await quotation.save();
+    quotation.charges = await quotation.calculateCharges()
+    if (quotation.changeOrderEstimate) quotation.changeOrderEstimate.charges = await quotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
+    if (quotation.siteVisitEstimate) quotation.siteVisitEstimate.charges = await quotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
+    quotation.charges = await quotation.calculateCharges()
 
 
     // Create or update conversation
@@ -786,20 +796,20 @@ export const updateJobQuotation = async (req: any, res: Response, next: NextFunc
       receiver: job.customer,
       message: "Job estimate edited",
       messageType: MessageType.FILE,
-      entity: jobQuotation.id,
+      entity: quotation.id,
       entityType: 'quotations',
       payload: {
         job: job.id,
-        quotation: jobQuotation.id,
-        quotationType: jobQuotation.type,
+        quotation: quotation.id,
+        quotationType: quotation.type,
         JobType: job.type
       }
     });
     await message.save();
     ConversationEvent.emit('NEW_MESSAGE', { message })
-    JobEvent.emit('JOB_QUOTATION_EDITED', { job, quotation: jobQuotation });
+    JobEvent.emit('JOB_QUOTATION_EDITED', { job, quotation: quotation });
 
-    res.status(200).json({ success: true, message: 'Job application updated successfully', data: jobQuotation });
+    res.status(200).json({ success: true, message: 'Job application updated successfully', data: quotation });
   } catch (error: any) {
     return next(new BadRequestError('An error occurred ', error))
   }
@@ -1096,11 +1106,29 @@ export const getMyJobs = async (req: any, res: Response, next: NextFunction) => 
     if (data) {
       // Map through each job and attach myQuotation if contractor has applied 
       await Promise.all(data.data.map(async (job: any) => {
-        if (job.isAssigned) {
-          job.myQuotation = await job.getMyQuotation(job.contractor)
-        } else {
-          job.myQuotation = await job.getMyQuotation(contractorId)
-        }
+        // if (job.isAssigned) {
+        //   job.myQuotation = await job.getMyQuotation(job.contractor)
+        // } else {
+        //   job.myQuotation = await job.getMyQuotation(contractorId)
+        // }
+
+        const { contract, totalEnquires, hasUnrepliedEnquiry, jobDay, dispute, myQuotation } = await JobUtil.populate(job, {
+          contract: true,
+          dispute: true,
+          jobDay: true,
+          totalEnquires: true,
+          hasUnrepliedEnquiry: true,
+          myQuotation: contractorId
+        });
+
+        job.myQuotation = myQuotation
+        job.contract = contract
+        job.jobDay = jobDay
+        job.dispute = dispute
+        job.totalEnquires = totalEnquires
+        job.hasUnrepliedEnquiry = hasUnrepliedEnquiry
+
+
       }));
     }
 
@@ -1160,12 +1188,29 @@ export const getJobHistory = async (req: any, res: Response, next: NextFunction)
     if (data) {
       // Map through each job and attach myQuotation if contractor has applied 
       await Promise.all(data.data.map(async (job: any) => {
-        // job.myQuotation = await job.getMyQuotation(contractorId)
-        if (job.isAssigned) {
-          job.myQuotation = await job.getMyQuotation(job.contractor)
-        } else {
-          job.myQuotation = await job.getMyQuotation(contractorId)
-        }
+        // // job.myQuotation = await job.getMyQuotation(contractorId)
+        // if (job.isAssigned) {
+        //   job.myQuotation = await job.getMyQuotation(job.contractor)
+        // } else {
+        //   job.myQuotation = await job.getMyQuotation(contractorId)
+        // }
+        const { contract, totalEnquires, hasUnrepliedEnquiry, jobDay, dispute, myQuotation } = await JobUtil.populate(job, {
+          contract: true,
+          dispute: true,
+          jobDay: true,
+          totalEnquires: true,
+          hasUnrepliedEnquiry: true,
+          myQuotation: contractorId
+        });
+
+        job.myQuotation = myQuotation
+        job.contract = contract
+        job.jobDay = jobDay
+        job.dispute = dispute
+        job.totalEnquires = totalEnquires
+        job.hasUnrepliedEnquiry = hasUnrepliedEnquiry
+
+
       }));
     }
 

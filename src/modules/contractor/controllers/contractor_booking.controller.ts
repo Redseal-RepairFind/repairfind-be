@@ -8,7 +8,6 @@ import { IJob, JobModel, JOB_STATUS, JobType, IJobSchedule, JOB_SCHEDULE_TYPE, I
 import { BadRequestError, InternalServerError } from "../../../utils/custom.errors";
 import { applyAPIFeature } from "../../../utils/api.feature";
 import { ConversationModel } from "../../../database/common/conversations.schema";
-import { IMessage, MessageModel, MessageType } from "../../../database/common/messages.schema";
 import { JOB_QUOTATION_STATUS, JobQuotationModel } from "../../../database/common/job_quotation.model";
 import { JobEvent } from "../../../events";
 import mongoose from "mongoose";
@@ -20,6 +19,7 @@ import { REVIEW_TYPE, ReviewModel } from "../../../database/common/review.model"
 import { JobDayModel } from "../../../database/common/job_day.model";
 import { PAYMENT_TYPE } from "../../../database/common/payment.schema";
 import TransactionModel, { TRANSACTION_STATUS, TRANSACTION_TYPE } from "../../../database/common/transaction.model";
+import { JobUtil } from "../../../utils/job.util";
 
 
 
@@ -104,22 +104,39 @@ export const getMyBookings = async (req: any, res: Response, next: NextFunction)
             await Promise.all(data.data.map(async (job: any) => {
                 if (contractorId) {
 
-                    if (job.isAssigned) {
-                        job.myQuotation = await job.getMyQuotation(job.contractor)
-                    } else {
-                        job.myQuotation = await job.getMyQuotation(contractorId)
-                    }
+                    // if (job.isAssigned) {
+                    //     job.myQuotation = await job.getMyQuotation(job.contractor)
+                    // } else {
+                    //     job.myQuotation = await job.getMyQuotation(contractorId)
+                    // }
 
-                    const contract = await JobQuotationModel.findOne({ _id: job.contract, job: job.id });
-                    if(contract){
-                        if(contract.changeOrderEstimate)contract.changeOrderEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
-                        if(contract.siteVisitEstimate)contract.siteVisitEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
-                        contract.charges  = await contract.calculateCharges()
-                        job.contract = contract
-                    }
+                    // const contract = await JobQuotationModel.findOne({ _id: job.contract, job: job.id });
+                    // if(contract){
+                    //     if(contract.changeOrderEstimate)contract.changeOrderEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
+                    //     if(contract.siteVisitEstimate)contract.siteVisitEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
+                    //     contract.charges  = await contract.calculateCharges()
+                    //     job.contract = contract
+                    // }
+                    // job.jobDay = await job.getJobDay()
 
+                    
+                    const { contract, totalEnquires, hasUnrepliedEnquiry, jobDay, dispute, myQuotation } = await JobUtil.populate(job, {
+                        contract: true,
+                        dispute: true,
+                        jobDay: true,
+                        totalEnquires: true,
+                        hasUnrepliedEnquiry: true,
+                        myQuotation: contractorId
+                    });
+            
+                    job.myQuotation = myQuotation
+                    job.contract = contract
+                    job.jobDay = jobDay
+                    job.dispute = dispute
+                    job.totalEnquires = totalEnquires
+                    job.hasUnrepliedEnquiry = hasUnrepliedEnquiry
 
-                    job.jobDay = await job.getJobDay()
+                    
 
                 }
             }));
@@ -177,19 +194,37 @@ export const getBookingHistory = async (req: any, res: Response, next: NextFunct
         if (data) {
             // Map through each job and attach myQuotation if contractor has applied 
             await Promise.all(data.data.map(async (job: any) => {
-                if (job.isAssigned) {
-                    job.myQuotation = await job.getMyQuotation(job.contractor)
-                } else {
-                    job.myQuotation = await job.getMyQuotation(contractorId)
-                }
-                job.jobDay = await job.getJobDay()
-                const contract = await JobQuotationModel.findOne({ _id: job.contract, job: job.id });
-                if(contract){
-                    if(contract.changeOrderEstimate)contract.changeOrderEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
-                    if(contract.siteVisitEstimate)contract.siteVisitEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
-                    contract.charges  = await contract.calculateCharges()
-                    job.contract = contract
-                }
+                // if (job.isAssigned) {
+                //     job.myQuotation = await job.getMyQuotation(job.contractor)
+                // } else {
+                //     job.myQuotation = await job.getMyQuotation(contractorId)
+                // }
+                // job.jobDay = await job.getJobDay()
+                // const contract = await JobQuotationModel.findOne({ _id: job.contract, job: job.id });
+                // if(contract){
+                //     if(contract.changeOrderEstimate)contract.changeOrderEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
+                //     if(contract.siteVisitEstimate)contract.siteVisitEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
+                //     contract.charges  = await contract.calculateCharges()
+                //     job.contract = contract
+                // }
+
+                const { contract, totalEnquires, hasUnrepliedEnquiry, jobDay, dispute, myQuotation } = await JobUtil.populate(job, {
+                    contract: true,
+                    dispute: true,
+                    jobDay: true,
+                    totalEnquires: true,
+                    hasUnrepliedEnquiry: true,
+                    myQuotation: contractorId
+                });
+        
+                job.myQuotation = myQuotation
+                job.contract = contract
+                job.jobDay = jobDay
+                job.dispute = dispute
+                job.totalEnquires = totalEnquires
+                job.hasUnrepliedEnquiry = hasUnrepliedEnquiry
+
+
 
             }));
         }
@@ -248,15 +283,33 @@ export const getBookingDisputes = async (req: any, res: Response, next: NextFunc
         if (data) {
 
             await Promise.all(data.data.map(async (job: any) => {
-                job.jobDay = await job.getJobDay()
-                job.dispute = await job.getJobDispute()
-                const contract = await JobQuotationModel.findOne({ _id: job.contract, job: job.id });
-                if(contract){
-                    if(contract.changeOrderEstimate)contract.changeOrderEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
-                    if(contract.siteVisitEstimate)contract.siteVisitEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
-                    contract.charges  = await contract.calculateCharges()
-                    job.contract = contract
-                }
+                // job.jobDay = await job.getJobDay()
+                // job.dispute = await job.getJobDispute()
+                // const contract = await JobQuotationModel.findOne({ _id: job.contract, job: job.id });
+                // if(contract){
+                //     if(contract.changeOrderEstimate)contract.changeOrderEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
+                //     if(contract.siteVisitEstimate)contract.siteVisitEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
+                //     contract.charges  = await contract.calculateCharges()
+                //     job.contract = contract
+                // }
+
+                const { contract, totalEnquires, hasUnrepliedEnquiry, jobDay, dispute, myQuotation } = await JobUtil.populate(job, {
+                    contract: true,
+                    dispute: true,
+                    jobDay: true,
+                    totalEnquires: true,
+                    hasUnrepliedEnquiry: true,
+                    myQuotation: contractorId
+                });
+        
+                job.myQuotation = myQuotation
+                job.contract = contract
+                job.jobDay = jobDay
+                job.dispute = dispute
+                job.totalEnquires = totalEnquires
+                job.hasUnrepliedEnquiry = hasUnrepliedEnquiry
+
+
             }));
         }
 
@@ -291,21 +344,39 @@ export const getSingleBooking = async (req: any, res: Response, next: NextFuncti
             return res.status(404).json({ success: false, message: 'Booking not found' });
         }
 
-        const contract = await JobQuotationModel.findOne(job.contract)
-        if(contract){
-            if(contract.changeOrderEstimate)contract.changeOrderEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
-            if(contract.siteVisitEstimate)contract.siteVisitEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
-            contract.charges  = await contract.calculateCharges()
-        }
+        // const contract = await JobQuotationModel.findOne(job.contract)
+        // if(contract){
+        //     if(contract.changeOrderEstimate)contract.changeOrderEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
+        //     if(contract.siteVisitEstimate)contract.siteVisitEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
+        //     contract.charges  = await contract.calculateCharges()
+        // }
 
-        let responseData: any = { ...job.toJSON() };
-        responseData.dispute = await job.getJobDispute()
-        responseData.contract = contract
-        responseData.jobDay = await job.getJobDay()
+        // let responseData: any = { ...job.toJSON() };
+        // responseData.dispute = await job.getJobDispute()
+        // responseData.contract = contract
+        // responseData.jobDay = await job.getJobDay()
+
+        const { contract, totalEnquires, hasUnrepliedEnquiry, jobDay, dispute, myQuotation } = await JobUtil.populate(job, {
+            contract: true,
+            dispute: true,
+            jobDay: true,
+            totalEnquires: true,
+            hasUnrepliedEnquiry: true,
+            myQuotation: contractorId
+        });
+
+        job.myQuotation = myQuotation
+        job.contract = contract
+        job.jobDay = jobDay
+        job.dispute = dispute
+        job.totalEnquires = totalEnquires
+        job.hasUnrepliedEnquiry = hasUnrepliedEnquiry
+
+
 
 
         // If the job exists, return it as a response
-        res.json({ success: true, message: 'Booking retrieved', data: responseData });
+        res.json({ success: true, message: 'Booking retrieved', data: job });
     } catch (error: any) {
         return next(new BadRequestError('An error occurred ', error))
     }

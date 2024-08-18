@@ -68,6 +68,8 @@ var events_1 = require("../../../events");
 var job_enquiry_model_1 = require("../../../database/common/job_enquiry.model");
 var contractor_saved_job_model_1 = __importDefault(require("../../../database/contractor/models/contractor_saved_job.model"));
 var conversation_util_1 = require("../../../utils/conversation.util");
+var job_util_1 = require("../../../utils/job.util");
+var payment_schema_1 = require("../../../database/common/payment.schema");
 var getJobRequests = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, customerId, status_1, startDate, endDate, date, contractorId, contractorProfile_1, filter, start, end, selectedDate, startOfDay, endOfDay, jobRequests, _b, data, error, error_1;
     return __generator(this, function (_c) {
@@ -727,11 +729,12 @@ var sendChangeOrderEstimate = function (req, res, next) { return __awaiter(void 
 }); };
 exports.sendChangeOrderEstimate = sendChangeOrderEstimate;
 var getQuotationForJob = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var jobId, contractorId, jobQuotation, _a, error_7;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+    var jobId, contractorId, quotation, _a, _b, _c, error_7;
+    var _d;
+    return __generator(this, function (_e) {
+        switch (_e.label) {
             case 0:
-                _b.trys.push([0, 3, , 4]);
+                _e.trys.push([0, 7, , 8]);
                 jobId = req.params.jobId;
                 contractorId = req.contractor.id;
                 // Check if the jobId and contractorId are provided
@@ -740,31 +743,46 @@ var getQuotationForJob = function (req, res, next) { return __awaiter(void 0, vo
                 }
                 return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne({ job: jobId, contractor: contractorId })];
             case 1:
-                jobQuotation = _b.sent();
+                quotation = _e.sent();
                 // Check if the job application exists
-                if (!jobQuotation) {
+                if (!quotation) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'You have not submitted quotation for this job' })];
                 }
-                _a = jobQuotation;
-                return [4 /*yield*/, jobQuotation.calculateCharges()];
+                if (!quotation.changeOrderEstimate) return [3 /*break*/, 3];
+                _a = quotation.changeOrderEstimate;
+                return [4 /*yield*/, quotation.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
             case 2:
-                _a.charges = _b.sent();
-                res.status(200).json({ success: true, message: 'Job quotation retrieved successfully', data: jobQuotation });
-                return [3 /*break*/, 4];
+                _a.charges = (_d = _e.sent()) !== null && _d !== void 0 ? _d : {};
+                _e.label = 3;
             case 3:
-                error_7 = _b.sent();
+                if (!quotation.siteVisitEstimate) return [3 /*break*/, 5];
+                _b = quotation.siteVisitEstimate;
+                return [4 /*yield*/, quotation.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
+            case 4:
+                _b.charges = _e.sent();
+                _e.label = 5;
+            case 5:
+                _c = quotation;
+                return [4 /*yield*/, quotation.calculateCharges()];
+            case 6:
+                _c.charges = _e.sent();
+                res.status(200).json({ success: true, message: 'Job quotation retrieved successfully', data: quotation });
+                return [3 /*break*/, 8];
+            case 7:
+                error_7 = _e.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_7))];
-            case 4: return [2 /*return*/];
+            case 8: return [2 /*return*/];
         }
     });
 }); };
 exports.getQuotationForJob = getQuotationForJob;
 var getQuotation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var quotationId, contractorId, jobQuotation, _a, error_8;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+    var quotationId, contractorId, quotation, _a, _b, _c, error_8;
+    var _d;
+    return __generator(this, function (_e) {
+        switch (_e.label) {
             case 0:
-                _b.trys.push([0, 3, , 4]);
+                _e.trys.push([0, 7, , 8]);
                 quotationId = req.params.quotationId;
                 contractorId = req.contractor.id;
                 // Check if the jobId and contractorId are provided
@@ -773,31 +791,46 @@ var getQuotation = function (req, res, next) { return __awaiter(void 0, void 0, 
                 }
                 return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findById(quotationId)];
             case 1:
-                jobQuotation = _b.sent();
+                quotation = _e.sent();
                 // Check if the job application exists
-                if (!jobQuotation) {
+                if (!quotation) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Quotation not found' })];
                 }
-                _a = jobQuotation;
-                return [4 /*yield*/, jobQuotation.calculateCharges()];
+                if (!quotation.changeOrderEstimate) return [3 /*break*/, 3];
+                _a = quotation.changeOrderEstimate;
+                return [4 /*yield*/, quotation.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
             case 2:
-                _a.charges = _b.sent();
-                res.status(200).json({ success: true, message: 'Job quotation retrieved successfully', data: jobQuotation });
-                return [3 /*break*/, 4];
+                _a.charges = (_d = _e.sent()) !== null && _d !== void 0 ? _d : {};
+                _e.label = 3;
             case 3:
-                error_8 = _b.sent();
+                if (!quotation.siteVisitEstimate) return [3 /*break*/, 5];
+                _b = quotation.siteVisitEstimate;
+                return [4 /*yield*/, quotation.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
+            case 4:
+                _b.charges = _e.sent();
+                _e.label = 5;
+            case 5:
+                _c = quotation;
+                return [4 /*yield*/, quotation.calculateCharges()];
+            case 6:
+                _c.charges = _e.sent();
+                res.status(200).json({ success: true, message: 'Job quotation retrieved successfully', data: quotation });
+                return [3 /*break*/, 8];
+            case 7:
+                error_8 = _e.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_8))];
-            case 4: return [2 /*return*/];
+            case 8: return [2 /*return*/];
         }
     });
 }); };
 exports.getQuotation = getQuotation;
 var updateJobQuotation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var jobId, contractorId, _a, startDate, endDate, siteVisit, estimatedDuration, estimates, errors, job, jobQuotation, _b, conversationMembers, conversation, message, error_9;
-    return __generator(this, function (_c) {
-        switch (_c.label) {
+    var jobId, contractorId, _a, startDate, endDate, siteVisit, estimatedDuration, estimates, errors, job, quotation, _b, _c, _d, _e, conversationMembers, conversation, message, error_9;
+    var _f;
+    return __generator(this, function (_g) {
+        switch (_g.label) {
             case 0:
-                _c.trys.push([0, 7, , 8]);
+                _g.trys.push([0, 12, , 13]);
                 jobId = req.params.jobId;
                 contractorId = req.contractor.id;
                 // Check if the jobId and contractorId are provided
@@ -811,35 +844,53 @@ var updateJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
                 }
                 return [4 /*yield*/, job_model_1.JobModel.findById(jobId)];
             case 1:
-                job = _c.sent();
+                job = _g.sent();
                 // If the job application does not exist, create a new one
                 if (!job) {
                     return [2 /*return*/, res.status(400).json({ status: false, message: 'Job not found' })];
                 }
                 return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne({ job: jobId, contractor: contractorId })];
             case 2:
-                jobQuotation = _c.sent();
+                quotation = _g.sent();
                 // If the job application does not exist, create a new one
-                if (!jobQuotation) {
+                if (!quotation) {
                     return [2 /*return*/, res.status(400).json({ status: false, message: 'Job quotation not found' })];
                 }
                 // Update the job application fields
-                jobQuotation.startDate = startDate;
-                jobQuotation.endDate = endDate;
-                jobQuotation.siteVisit = siteVisit;
-                jobQuotation.estimates = estimates;
-                jobQuotation.estimatedDuration = estimatedDuration;
+                quotation.startDate = startDate;
+                quotation.endDate = endDate;
+                quotation.siteVisit = siteVisit;
+                quotation.estimates = estimates;
+                quotation.estimatedDuration = estimatedDuration;
                 // Save the updated job application
-                return [4 /*yield*/, jobQuotation.save()];
+                return [4 /*yield*/, quotation.save()];
             case 3:
                 // Save the updated job application
-                _c.sent();
-                _b = jobQuotation;
-                return [4 /*yield*/, jobQuotation.calculateCharges()
+                _g.sent();
+                _b = quotation;
+                return [4 /*yield*/, quotation.calculateCharges()];
+            case 4:
+                _b.charges = _g.sent();
+                if (!quotation.changeOrderEstimate) return [3 /*break*/, 6];
+                _c = quotation.changeOrderEstimate;
+                return [4 /*yield*/, quotation.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
+            case 5:
+                _c.charges = (_f = _g.sent()) !== null && _f !== void 0 ? _f : {};
+                _g.label = 6;
+            case 6:
+                if (!quotation.siteVisitEstimate) return [3 /*break*/, 8];
+                _d = quotation.siteVisitEstimate;
+                return [4 /*yield*/, quotation.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
+            case 7:
+                _d.charges = _g.sent();
+                _g.label = 8;
+            case 8:
+                _e = quotation;
+                return [4 /*yield*/, quotation.calculateCharges()
                     // Create or update conversation
                 ];
-            case 4:
-                _b.charges = _c.sent();
+            case 9:
+                _e.charges = _g.sent();
                 conversationMembers = [
                     { memberType: 'customers', member: job.customer },
                     { memberType: 'contractors', member: contractorId }
@@ -852,8 +903,8 @@ var updateJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
                     }, {
                         members: conversationMembers,
                     }, { new: true, upsert: true })];
-            case 5:
-                conversation = _c.sent();
+            case 10:
+                conversation = _g.sent();
                 message = new messages_schema_1.MessageModel({
                     conversation: conversation === null || conversation === void 0 ? void 0 : conversation._id,
                     sender: contractorId,
@@ -861,26 +912,26 @@ var updateJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
                     receiver: job.customer,
                     message: "Job estimate edited",
                     messageType: messages_schema_1.MessageType.FILE,
-                    entity: jobQuotation.id,
+                    entity: quotation.id,
                     entityType: 'quotations',
                     payload: {
                         job: job.id,
-                        quotation: jobQuotation.id,
-                        quotationType: jobQuotation.type,
+                        quotation: quotation.id,
+                        quotationType: quotation.type,
                         JobType: job.type
                     }
                 });
                 return [4 /*yield*/, message.save()];
-            case 6:
-                _c.sent();
+            case 11:
+                _g.sent();
                 events_1.ConversationEvent.emit('NEW_MESSAGE', { message: message });
-                events_1.JobEvent.emit('JOB_QUOTATION_EDITED', { job: job, quotation: jobQuotation });
-                res.status(200).json({ success: true, message: 'Job application updated successfully', data: jobQuotation });
-                return [3 /*break*/, 8];
-            case 7:
-                error_9 = _c.sent();
+                events_1.JobEvent.emit('JOB_QUOTATION_EDITED', { job: job, quotation: quotation });
+                res.status(200).json({ success: true, message: 'Job application updated successfully', data: quotation });
+                return [3 /*break*/, 13];
+            case 12:
+                error_9 = _g.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_9))];
-            case 8: return [2 /*return*/];
+            case 13: return [2 /*return*/];
         }
     });
 }); };
@@ -1116,23 +1167,26 @@ var getMyJobs = function (req, res, next) { return __awaiter(void 0, void 0, voi
                 if (!data) return [3 /*break*/, 5];
                 // Map through each job and attach myQuotation if contractor has applied 
                 return [4 /*yield*/, Promise.all(data.data.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
-                        var _a, _b;
-                        return __generator(this, function (_c) {
-                            switch (_c.label) {
-                                case 0:
-                                    if (!job.isAssigned) return [3 /*break*/, 2];
-                                    _a = job;
-                                    return [4 /*yield*/, job.getMyQuotation(job.contractor)];
+                        var _a, contract, totalEnquires, hasUnrepliedEnquiry, jobDay, dispute, myQuotation;
+                        return __generator(this, function (_b) {
+                            switch (_b.label) {
+                                case 0: return [4 /*yield*/, job_util_1.JobUtil.populate(job, {
+                                        contract: true,
+                                        dispute: true,
+                                        jobDay: true,
+                                        totalEnquires: true,
+                                        hasUnrepliedEnquiry: true,
+                                        myQuotation: contractorId
+                                    })];
                                 case 1:
-                                    _a.myQuotation = _c.sent();
-                                    return [3 /*break*/, 4];
-                                case 2:
-                                    _b = job;
-                                    return [4 /*yield*/, job.getMyQuotation(contractorId)];
-                                case 3:
-                                    _b.myQuotation = _c.sent();
-                                    _c.label = 4;
-                                case 4: return [2 /*return*/];
+                                    _a = _b.sent(), contract = _a.contract, totalEnquires = _a.totalEnquires, hasUnrepliedEnquiry = _a.hasUnrepliedEnquiry, jobDay = _a.jobDay, dispute = _a.dispute, myQuotation = _a.myQuotation;
+                                    job.myQuotation = myQuotation;
+                                    job.contract = contract;
+                                    job.jobDay = jobDay;
+                                    job.dispute = dispute;
+                                    job.totalEnquires = totalEnquires;
+                                    job.hasUnrepliedEnquiry = hasUnrepliedEnquiry;
+                                    return [2 /*return*/];
                             }
                         });
                     }); }))];
@@ -1191,23 +1245,26 @@ var getJobHistory = function (req, res, next) { return __awaiter(void 0, void 0,
                 if (!data) return [3 /*break*/, 5];
                 // Map through each job and attach myQuotation if contractor has applied 
                 return [4 /*yield*/, Promise.all(data.data.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
-                        var _a, _b;
-                        return __generator(this, function (_c) {
-                            switch (_c.label) {
-                                case 0:
-                                    if (!job.isAssigned) return [3 /*break*/, 2];
-                                    _a = job;
-                                    return [4 /*yield*/, job.getMyQuotation(job.contractor)];
+                        var _a, contract, totalEnquires, hasUnrepliedEnquiry, jobDay, dispute, myQuotation;
+                        return __generator(this, function (_b) {
+                            switch (_b.label) {
+                                case 0: return [4 /*yield*/, job_util_1.JobUtil.populate(job, {
+                                        contract: true,
+                                        dispute: true,
+                                        jobDay: true,
+                                        totalEnquires: true,
+                                        hasUnrepliedEnquiry: true,
+                                        myQuotation: contractorId
+                                    })];
                                 case 1:
-                                    _a.myQuotation = _c.sent();
-                                    return [3 /*break*/, 4];
-                                case 2:
-                                    _b = job;
-                                    return [4 /*yield*/, job.getMyQuotation(contractorId)];
-                                case 3:
-                                    _b.myQuotation = _c.sent();
-                                    _c.label = 4;
-                                case 4: return [2 /*return*/];
+                                    _a = _b.sent(), contract = _a.contract, totalEnquires = _a.totalEnquires, hasUnrepliedEnquiry = _a.hasUnrepliedEnquiry, jobDay = _a.jobDay, dispute = _a.dispute, myQuotation = _a.myQuotation;
+                                    job.myQuotation = myQuotation;
+                                    job.contract = contract;
+                                    job.jobDay = jobDay;
+                                    job.dispute = dispute;
+                                    job.totalEnquires = totalEnquires;
+                                    job.hasUnrepliedEnquiry = hasUnrepliedEnquiry;
+                                    return [2 /*return*/];
                             }
                         });
                     }); }))];

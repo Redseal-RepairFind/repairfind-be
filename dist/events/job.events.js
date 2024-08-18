@@ -93,6 +93,7 @@ var contractor_saved_job_model_1 = __importDefault(require("../database/contract
 var job_enquiry_model_1 = require("../database/common/job_enquiry.model");
 var logger_1 = require("../services/logger");
 var conversation_util_1 = require("../utils/conversation.util");
+var messages_schema_1 = require("../database/common/messages.schema");
 exports.JobEvent = new events_1.EventEmitter();
 exports.JobEvent.on('NEW_JOB_REQUEST', function (payload) {
     var _a, _b;
@@ -671,11 +672,11 @@ exports.JobEvent.on('JOB_DAY_EMERGENCY', function (payload) {
 exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
     var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function () {
-        var customer, contractor, job, event_1, emailSubject, emailContent, html, emailSubject, emailContent, html, error_11;
+        var customer, contractor, job, event_1, conversation, message, emailSubject, emailContent, html, emailSubject, emailContent, html, error_11;
         return __generator(this, function (_e) {
             switch (_e.label) {
                 case 0:
-                    _e.trys.push([0, 3, , 4]);
+                    _e.trys.push([0, 6, , 7]);
                     logger_1.Logger.info('handling alert JOB_RESCHEDULE_DECLINED_ACCEPTED event', payload.action);
                     return [4 /*yield*/, customer_model_1.default.findById(payload.job.customer)];
                 case 1:
@@ -685,58 +686,75 @@ exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
                     contractor = _e.sent();
                     job = payload.job;
                     event_1 = payload.action == 'accepted' ? 'JOB_RESCHEDULE_ACCEPTED' : 'JOB_RESCHEDULE_DECLINED';
-                    if (contractor && customer) {
-                        if (((_a = payload.job.reschedule) === null || _a === void 0 ? void 0 : _a.createdBy) == 'contractor') { // send mail to contractor
-                            emailSubject = 'Job Reschedule Request';
-                            emailContent = "\n                <p style=\"color: #333333;\">Your Job reschedule request on Repairfind has been ".concat(payload.action, " by customer</p>\n                <p><strong>Job Title:</strong> ").concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(payload.job.reschedule.date, "</p>\n                ");
-                            html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
-                            services_1.EmailService.send(contractor.email, emailSubject, html);
-                            services_1.NotificationService.sendNotification({
-                                user: contractor.id,
-                                userType: 'contractors',
-                                title: "Job Reschedule Request ".concat(payload.action),
-                                type: event_1,
-                                message: "Your Job reschedule request on Repairfind has been ".concat(payload.action, " by customer"),
-                                heading: { name: "".concat(contractor.name), image: (_b = contractor.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
-                                payload: {
-                                    entity: job.id,
-                                    entityType: 'jobs',
-                                    message: "Your Job reschedule request on Repairfind has been ".concat(payload.action, " by customer"),
-                                    customer: customer.id,
-                                    contractor: contractor.id,
-                                    event: event_1,
-                                }
-                            }, { push: true, socket: true, database: true });
-                        }
-                        if (((_c = payload.job.reschedule) === null || _c === void 0 ? void 0 : _c.createdBy) == 'customer') { // send mail to  customer
-                            emailSubject = 'Job Reschedule Request';
-                            emailContent = "\n                <p style=\"color: #333333;\">Your Job reschedule request on Repairfind has been ".concat(payload.action, "  by the contractor</p>\n                <p><strong>Job Title:</strong> ").concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(payload.job.reschedule.date, "</p>\n                ");
-                            html = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: emailSubject, content: emailContent });
-                            services_1.EmailService.send(customer.email, emailSubject, html);
-                            services_1.NotificationService.sendNotification({
-                                user: customer.id,
-                                userType: 'customers',
-                                title: "Job Reschedule Request ".concat(payload.action),
-                                type: event_1, //
-                                message: "Your Job reschedule request on Repairfind has been ".concat(payload.action, " by contractor"),
-                                heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_d = customer.profilePhoto) === null || _d === void 0 ? void 0 : _d.url },
-                                payload: {
-                                    entity: job.id,
-                                    entityType: 'jobs',
-                                    message: "Your Job reschedule request on Repairfind has been ".concat(payload.action, " by contractor"),
-                                    contractor: contractor.id,
-                                    customer: customer.id,
-                                    event: event_1,
-                                }
-                            }, { push: true, socket: true, database: true });
-                        }
-                    }
-                    return [3 /*break*/, 4];
+                    if (!(contractor && customer)) return [3 /*break*/, 5];
+                    return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(customer.id, 'customers', contractor.id, 'contractors')];
                 case 3:
+                    conversation = _e.sent();
+                    message = new messages_schema_1.MessageModel({
+                        conversation: conversation.id,
+                        message: "Job reschedule request ".concat(event_1),
+                        messageType: messages_schema_1.MessageType.ALERT,
+                        entity: job.id,
+                        entityType: 'jobs'
+                    });
+                    if (((_a = payload.job.reschedule) === null || _a === void 0 ? void 0 : _a.createdBy) == 'contractor') { // send mail to contractor
+                        emailSubject = 'Job Reschedule Request';
+                        emailContent = "\n                <p style=\"color: #333333;\">Your Job reschedule request on Repairfind has been ".concat(payload.action, " by customer</p>\n                <p><strong>Job Title:</strong> ").concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(payload.job.reschedule.date, "</p>\n                ");
+                        html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
+                        services_1.EmailService.send(contractor.email, emailSubject, html);
+                        services_1.NotificationService.sendNotification({
+                            user: contractor.id,
+                            userType: 'contractors',
+                            title: "Job Reschedule Request ".concat(payload.action),
+                            type: event_1,
+                            message: "Your Job reschedule request on Repairfind has been ".concat(payload.action, " by customer"),
+                            heading: { name: "".concat(contractor.name), image: (_b = contractor.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
+                            payload: {
+                                entity: job.id,
+                                entityType: 'jobs',
+                                message: "Your Job reschedule request on Repairfind has been ".concat(payload.action, " by customer"),
+                                customer: customer.id,
+                                contractor: contractor.id,
+                                event: event_1,
+                            }
+                        }, { push: true, socket: true, database: true });
+                        message.sender = customer.id;
+                        message.senderType = 'customers';
+                    }
+                    if (((_c = payload.job.reschedule) === null || _c === void 0 ? void 0 : _c.createdBy) == 'customer') { // send mail to  customer
+                        emailSubject = 'Job Reschedule Request';
+                        emailContent = "\n                <p style=\"color: #333333;\">Your Job reschedule request on Repairfind has been ".concat(payload.action, "  by the contractor</p>\n                <p><strong>Job Title:</strong> ").concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(payload.job.reschedule.date, "</p>\n                ");
+                        html = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: emailSubject, content: emailContent });
+                        services_1.EmailService.send(customer.email, emailSubject, html);
+                        services_1.NotificationService.sendNotification({
+                            user: customer.id,
+                            userType: 'customers',
+                            title: "Job Reschedule Request ".concat(payload.action),
+                            type: event_1, //
+                            message: "Your Job reschedule request on Repairfind has been ".concat(payload.action, " by contractor"),
+                            heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_d = customer.profilePhoto) === null || _d === void 0 ? void 0 : _d.url },
+                            payload: {
+                                entity: job.id,
+                                entityType: 'jobs',
+                                message: "Your Job reschedule request on Repairfind has been ".concat(payload.action, " by contractor"),
+                                contractor: contractor.id,
+                                customer: customer.id,
+                                event: event_1,
+                            }
+                        }, { push: true, socket: true, database: true });
+                        message.sender = contractor.id;
+                        message.senderType = 'contractors';
+                    }
+                    return [4 /*yield*/, message.save()];
+                case 4:
+                    _e.sent();
+                    _e.label = 5;
+                case 5: return [3 /*break*/, 7];
+                case 6:
                     error_11 = _e.sent();
                     logger_1.Logger.error("Error handling JOB_RESCHEDULE_DECLINED_ACCEPTED event: ".concat(error_11));
-                    return [3 /*break*/, 4];
-                case 4: return [2 /*return*/];
+                    return [3 /*break*/, 7];
+                case 7: return [2 /*return*/];
             }
         });
     });
@@ -744,11 +762,11 @@ exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
 exports.JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', function (payload) {
     var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function () {
-        var customer, contractor, job, emailSubject, emailContent, html, emailSubject, emailContent, html, error_12;
+        var customer, contractor, job, conversation, message, emailSubject, emailContent, html, emailSubject, emailContent, html, error_12;
         return __generator(this, function (_e) {
             switch (_e.label) {
                 case 0:
-                    _e.trys.push([0, 3, , 4]);
+                    _e.trys.push([0, 6, , 7]);
                     logger_1.Logger.info('handling alert NEW_JOB_RESCHEDULE_REQUEST event', payload.action);
                     return [4 /*yield*/, customer_model_1.default.findById(payload.job.customer)];
                 case 1:
@@ -757,58 +775,75 @@ exports.JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', function (payload) {
                 case 2:
                     contractor = _e.sent();
                     job = payload.job;
-                    if (contractor && customer) {
-                        if (((_a = payload.job.reschedule) === null || _a === void 0 ? void 0 : _a.createdBy) == 'contractor') { // send mail to contractor
-                            emailSubject = 'Job Schedule';
-                            emailContent = "\n                <p style=\"color: #333333;\">Contractor has requested  to reschedule a job on RepairFind</p>\n                <p><strong>Job Title:</strong> ".concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(payload.job.reschedule.date, "</p>\n                ");
-                            html = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: emailSubject, content: emailContent });
-                            services_1.EmailService.send(customer.email, emailSubject, html);
-                            services_1.NotificationService.sendNotification({
-                                user: customer.id,
-                                userType: 'customers',
-                                title: 'Job Reschedule Request',
-                                type: 'NEW_JOB_RESCHEDULE_REQUEST', // Conversation, Conversation_Notification
-                                message: "Contractor has requested  to reschedule a job on RepairFind",
-                                heading: { name: "".concat(contractor.name), image: (_b = contractor.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
-                                payload: {
-                                    entity: job.id,
-                                    entityType: 'jobs',
-                                    message: "Contractor has requested  to reschedule a job on RepairFind",
-                                    customer: customer.id,
-                                    contractor: contractor.id,
-                                    event: 'NEW_JOB_RESCHEDULE_REQUEST',
-                                }
-                            }, { push: true, socket: true, database: true });
-                        }
-                        if (((_c = payload.job.reschedule) === null || _c === void 0 ? void 0 : _c.createdBy) == 'customer') { // send mail to  customer
-                            emailSubject = 'Job Schedule';
-                            emailContent = "\n                <p style=\"color: #333333;\">Customer has requested  to reschedule a job on RepairFind</p>\n                <p><strong>Job Title:</strong> ".concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(payload.job.reschedule.date, "</p>\n                ");
-                            html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
-                            services_1.EmailService.send(contractor.email, emailSubject, html);
-                            services_1.NotificationService.sendNotification({
-                                user: contractor.id,
-                                userType: 'contractors',
-                                title: 'Job Reschedule Request',
-                                type: 'NEW_JOB_RESCHEDULE_REQUEST', //
-                                message: "Customer has requested to reschedule your job on RepairFind",
-                                heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_d = customer.profilePhoto) === null || _d === void 0 ? void 0 : _d.url },
-                                payload: {
-                                    entity: job.id,
-                                    entityType: 'jobs',
-                                    message: "Customer has requested to reschedule your job on RepairFind",
-                                    contractor: contractor.id,
-                                    customer: customer.id,
-                                    event: 'NEW_JOB_RESCHEDULE_REQUEST',
-                                }
-                            }, { push: true, socket: true, database: true });
-                        }
-                    }
-                    return [3 /*break*/, 4];
+                    if (!(contractor && customer)) return [3 /*break*/, 5];
+                    return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(customer.id, 'customers', contractor.id, 'contractors')];
                 case 3:
+                    conversation = _e.sent();
+                    message = new messages_schema_1.MessageModel({
+                        conversation: conversation.id,
+                        message: "Job reschedule request",
+                        messageType: messages_schema_1.MessageType.ALERT,
+                        entity: job.id,
+                        entityType: 'jobs'
+                    });
+                    if (((_a = payload.job.reschedule) === null || _a === void 0 ? void 0 : _a.createdBy) == 'contractor') { // send mail to contractor
+                        emailSubject = 'Job Schedule';
+                        emailContent = "\n                <p style=\"color: #333333;\">Contractor has requested  to reschedule a job on RepairFind</p>\n                <p><strong>Job Title:</strong> ".concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(payload.job.reschedule.date, "</p>\n                ");
+                        html = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: emailSubject, content: emailContent });
+                        services_1.EmailService.send(customer.email, emailSubject, html);
+                        services_1.NotificationService.sendNotification({
+                            user: customer.id,
+                            userType: 'customers',
+                            title: 'Job Reschedule Request',
+                            type: 'NEW_JOB_RESCHEDULE_REQUEST', // Conversation, Conversation_Notification
+                            message: "Contractor has requested  to reschedule a job on RepairFind",
+                            heading: { name: "".concat(contractor.name), image: (_b = contractor.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
+                            payload: {
+                                entity: job.id,
+                                entityType: 'jobs',
+                                message: "Contractor has requested  to reschedule a job on RepairFind",
+                                customer: customer.id,
+                                contractor: contractor.id,
+                                event: 'NEW_JOB_RESCHEDULE_REQUEST',
+                            }
+                        }, { push: true, socket: true, database: true });
+                        message.sender = contractor.id;
+                        message.senderType = 'contractors';
+                    }
+                    if (((_c = payload.job.reschedule) === null || _c === void 0 ? void 0 : _c.createdBy) == 'customer') { // send mail to  customer
+                        emailSubject = 'Job Schedule';
+                        emailContent = "\n                <p style=\"color: #333333;\">Customer has requested  to reschedule a job on RepairFind</p>\n                <p><strong>Job Title:</strong> ".concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(payload.job.reschedule.date, "</p>\n                ");
+                        html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
+                        services_1.EmailService.send(contractor.email, emailSubject, html);
+                        services_1.NotificationService.sendNotification({
+                            user: contractor.id,
+                            userType: 'contractors',
+                            title: 'Job Reschedule Request',
+                            type: 'NEW_JOB_RESCHEDULE_REQUEST', //
+                            message: "Customer has requested to reschedule your job on RepairFind",
+                            heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_d = customer.profilePhoto) === null || _d === void 0 ? void 0 : _d.url },
+                            payload: {
+                                entity: job.id,
+                                entityType: 'jobs',
+                                message: "Customer has requested to reschedule your job on RepairFind",
+                                contractor: contractor.id,
+                                customer: customer.id,
+                                event: 'NEW_JOB_RESCHEDULE_REQUEST',
+                            }
+                        }, { push: true, socket: true, database: true });
+                        message.sender = customer.id;
+                        message.senderType = 'customer';
+                    }
+                    return [4 /*yield*/, message.save()];
+                case 4:
+                    _e.sent();
+                    _e.label = 5;
+                case 5: return [3 /*break*/, 7];
+                case 6:
                     error_12 = _e.sent();
                     logger_1.Logger.error("Error handling NEW_JOB_RESCHEDULE_REQUEST event: ".concat(error_12));
-                    return [3 /*break*/, 4];
-                case 4: return [2 /*return*/];
+                    return [3 /*break*/, 7];
+                case 7: return [2 /*return*/];
             }
         });
     });

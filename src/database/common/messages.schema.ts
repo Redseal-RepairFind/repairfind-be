@@ -25,7 +25,7 @@ export interface IMessage extends Document {
     id: string;
     conversation: string;
     sender: Types.ObjectId; // Reference to the sender (contractor or customer)
-    senderType: 'contractor' | 'customer'; // Type of the sender
+    senderType: string; // Type of the sender
     messageType: 'TEXT' | 'ALERT' | 'MEDIA'; //
     message?: string; // Optional message
     media: IMedia[]; // Array of media objects

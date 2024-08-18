@@ -89,6 +89,7 @@ var job_assigned_template_1 = require("../../../templates/contractor/job_assigne
 var review_model_1 = require("../../../database/common/review.model");
 var payment_schema_1 = require("../../../database/common/payment.schema");
 var transaction_model_1 = __importStar(require("../../../database/common/transaction.model"));
+var job_util_1 = require("../../../utils/job.util");
 var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, _b, limit, _c, page, _d, sort, customerId, _e, status_1, startDate, endDate, date, type, contractorId_1, filter, start, end, selectedDate, startOfDay_1, endOfDay, _f, data, error, error_1;
     return __generator(this, function (_g) {
@@ -147,55 +148,29 @@ var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0,
                 _f = _g.sent(), data = _f.data, error = _f.error;
                 if (!data) return [3 /*break*/, 3];
                 return [4 /*yield*/, Promise.all(data.data.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
-                        var _a, _b, contract, _c, _d, _e, _f;
-                        var _g;
-                        return __generator(this, function (_h) {
-                            switch (_h.label) {
+                        var _a, contract, totalEnquires, hasUnrepliedEnquiry, jobDay, dispute, myQuotation;
+                        return __generator(this, function (_b) {
+                            switch (_b.label) {
                                 case 0:
-                                    if (!contractorId_1) return [3 /*break*/, 13];
-                                    if (!job.isAssigned) return [3 /*break*/, 2];
-                                    _a = job;
-                                    return [4 /*yield*/, job.getMyQuotation(job.contractor)];
+                                    if (!contractorId_1) return [3 /*break*/, 2];
+                                    return [4 /*yield*/, job_util_1.JobUtil.populate(job, {
+                                            contract: true,
+                                            dispute: true,
+                                            jobDay: true,
+                                            totalEnquires: true,
+                                            hasUnrepliedEnquiry: true,
+                                            myQuotation: contractorId_1
+                                        })];
                                 case 1:
-                                    _a.myQuotation = _h.sent();
-                                    return [3 /*break*/, 4];
-                                case 2:
-                                    _b = job;
-                                    return [4 /*yield*/, job.getMyQuotation(contractorId_1)];
-                                case 3:
-                                    _b.myQuotation = _h.sent();
-                                    _h.label = 4;
-                                case 4: return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne({ _id: job.contract, job: job.id })];
-                                case 5:
-                                    contract = _h.sent();
-                                    if (!contract) return [3 /*break*/, 11];
-                                    if (!contract.changeOrderEstimate) return [3 /*break*/, 7];
-                                    _c = contract.changeOrderEstimate;
-                                    return [4 /*yield*/, contract.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
-                                case 6:
-                                    _c.charges = (_g = _h.sent()) !== null && _g !== void 0 ? _g : {};
-                                    _h.label = 7;
-                                case 7:
-                                    if (!contract.siteVisitEstimate) return [3 /*break*/, 9];
-                                    _d = contract.siteVisitEstimate;
-                                    return [4 /*yield*/, contract.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
-                                case 8:
-                                    _d.charges = _h.sent();
-                                    _h.label = 9;
-                                case 9:
-                                    _e = contract;
-                                    return [4 /*yield*/, contract.calculateCharges()];
-                                case 10:
-                                    _e.charges = _h.sent();
+                                    _a = _b.sent(), contract = _a.contract, totalEnquires = _a.totalEnquires, hasUnrepliedEnquiry = _a.hasUnrepliedEnquiry, jobDay = _a.jobDay, dispute = _a.dispute, myQuotation = _a.myQuotation;
+                                    job.myQuotation = myQuotation;
                                     job.contract = contract;
-                                    _h.label = 11;
-                                case 11:
-                                    _f = job;
-                                    return [4 /*yield*/, job.getJobDay()];
-                                case 12:
-                                    _f.jobDay = _h.sent();
-                                    _h.label = 13;
-                                case 13: return [2 /*return*/];
+                                    job.jobDay = jobDay;
+                                    job.dispute = dispute;
+                                    job.totalEnquires = totalEnquires;
+                                    job.hasUnrepliedEnquiry = hasUnrepliedEnquiry;
+                                    _b.label = 2;
+                                case 2: return [2 /*return*/];
                             }
                         });
                     }); }))];
@@ -248,53 +223,26 @@ var getBookingHistory = function (req, res, next) { return __awaiter(void 0, voi
                 if (!data) return [3 /*break*/, 4];
                 // Map through each job and attach myQuotation if contractor has applied 
                 return [4 /*yield*/, Promise.all(data.data.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
-                        var _a, _b, _c, contract, _d, _e, _f;
-                        var _g;
-                        return __generator(this, function (_h) {
-                            switch (_h.label) {
-                                case 0:
-                                    if (!job.isAssigned) return [3 /*break*/, 2];
-                                    _a = job;
-                                    return [4 /*yield*/, job.getMyQuotation(job.contractor)];
+                        var _a, contract, totalEnquires, hasUnrepliedEnquiry, jobDay, dispute, myQuotation;
+                        return __generator(this, function (_b) {
+                            switch (_b.label) {
+                                case 0: return [4 /*yield*/, job_util_1.JobUtil.populate(job, {
+                                        contract: true,
+                                        dispute: true,
+                                        jobDay: true,
+                                        totalEnquires: true,
+                                        hasUnrepliedEnquiry: true,
+                                        myQuotation: contractorId
+                                    })];
                                 case 1:
-                                    _a.myQuotation = _h.sent();
-                                    return [3 /*break*/, 4];
-                                case 2:
-                                    _b = job;
-                                    return [4 /*yield*/, job.getMyQuotation(contractorId)];
-                                case 3:
-                                    _b.myQuotation = _h.sent();
-                                    _h.label = 4;
-                                case 4:
-                                    _c = job;
-                                    return [4 /*yield*/, job.getJobDay()];
-                                case 5:
-                                    _c.jobDay = _h.sent();
-                                    return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne({ _id: job.contract, job: job.id })];
-                                case 6:
-                                    contract = _h.sent();
-                                    if (!contract) return [3 /*break*/, 12];
-                                    if (!contract.changeOrderEstimate) return [3 /*break*/, 8];
-                                    _d = contract.changeOrderEstimate;
-                                    return [4 /*yield*/, contract.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
-                                case 7:
-                                    _d.charges = (_g = _h.sent()) !== null && _g !== void 0 ? _g : {};
-                                    _h.label = 8;
-                                case 8:
-                                    if (!contract.siteVisitEstimate) return [3 /*break*/, 10];
-                                    _e = contract.siteVisitEstimate;
-                                    return [4 /*yield*/, contract.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
-                                case 9:
-                                    _e.charges = _h.sent();
-                                    _h.label = 10;
-                                case 10:
-                                    _f = contract;
-                                    return [4 /*yield*/, contract.calculateCharges()];
-                                case 11:
-                                    _f.charges = _h.sent();
+                                    _a = _b.sent(), contract = _a.contract, totalEnquires = _a.totalEnquires, hasUnrepliedEnquiry = _a.hasUnrepliedEnquiry, jobDay = _a.jobDay, dispute = _a.dispute, myQuotation = _a.myQuotation;
+                                    job.myQuotation = myQuotation;
                                     job.contract = contract;
-                                    _h.label = 12;
-                                case 12: return [2 /*return*/];
+                                    job.jobDay = jobDay;
+                                    job.dispute = dispute;
+                                    job.totalEnquires = totalEnquires;
+                                    job.hasUnrepliedEnquiry = hasUnrepliedEnquiry;
+                                    return [2 /*return*/];
                             }
                         });
                     }); }))];
@@ -351,44 +299,26 @@ var getBookingDisputes = function (req, res, next) { return __awaiter(void 0, vo
                 _f = _g.sent(), data = _f.data, error = _f.error;
                 if (!data) return [3 /*break*/, 4];
                 return [4 /*yield*/, Promise.all(data.data.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
-                        var _a, _b, contract, _c, _d, _e;
-                        var _f;
-                        return __generator(this, function (_g) {
-                            switch (_g.label) {
-                                case 0:
-                                    _a = job;
-                                    return [4 /*yield*/, job.getJobDay()];
+                        var _a, contract, totalEnquires, hasUnrepliedEnquiry, jobDay, dispute, myQuotation;
+                        return __generator(this, function (_b) {
+                            switch (_b.label) {
+                                case 0: return [4 /*yield*/, job_util_1.JobUtil.populate(job, {
+                                        contract: true,
+                                        dispute: true,
+                                        jobDay: true,
+                                        totalEnquires: true,
+                                        hasUnrepliedEnquiry: true,
+                                        myQuotation: contractorId
+                                    })];
                                 case 1:
-                                    _a.jobDay = _g.sent();
-                                    _b = job;
-                                    return [4 /*yield*/, job.getJobDispute()];
-                                case 2:
-                                    _b.dispute = _g.sent();
-                                    return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne({ _id: job.contract, job: job.id })];
-                                case 3:
-                                    contract = _g.sent();
-                                    if (!contract) return [3 /*break*/, 9];
-                                    if (!contract.changeOrderEstimate) return [3 /*break*/, 5];
-                                    _c = contract.changeOrderEstimate;
-                                    return [4 /*yield*/, contract.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
-                                case 4:
-                                    _c.charges = (_f = _g.sent()) !== null && _f !== void 0 ? _f : {};
-                                    _g.label = 5;
-                                case 5:
-                                    if (!contract.siteVisitEstimate) return [3 /*break*/, 7];
-                                    _d = contract.siteVisitEstimate;
-                                    return [4 /*yield*/, contract.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
-                                case 6:
-                                    _d.charges = _g.sent();
-                                    _g.label = 7;
-                                case 7:
-                                    _e = contract;
-                                    return [4 /*yield*/, contract.calculateCharges()];
-                                case 8:
-                                    _e.charges = _g.sent();
+                                    _a = _b.sent(), contract = _a.contract, totalEnquires = _a.totalEnquires, hasUnrepliedEnquiry = _a.hasUnrepliedEnquiry, jobDay = _a.jobDay, dispute = _a.dispute, myQuotation = _a.myQuotation;
+                                    job.myQuotation = myQuotation;
                                     job.contract = contract;
-                                    _g.label = 9;
-                                case 9: return [2 /*return*/];
+                                    job.jobDay = jobDay;
+                                    job.dispute = dispute;
+                                    job.totalEnquires = totalEnquires;
+                                    job.hasUnrepliedEnquiry = hasUnrepliedEnquiry;
+                                    return [2 /*return*/];
                             }
                         });
                     }); }))];
@@ -411,12 +341,11 @@ var getBookingDisputes = function (req, res, next) { return __awaiter(void 0, vo
 }); };
 exports.getBookingDisputes = getBookingDisputes;
 var getSingleBooking = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var contractorId, bookingId, job, contract, _a, _b, _c, responseData, _d, _e, error_4;
-    var _f;
-    return __generator(this, function (_g) {
-        switch (_g.label) {
+    var contractorId, bookingId, job, _a, contract, totalEnquires, hasUnrepliedEnquiry, jobDay, dispute, myQuotation, error_4;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
-                _g.trys.push([0, 11, , 12]);
+                _b.trys.push([0, 3, , 4]);
                 contractorId = req.contractor.id;
                 bookingId = req.params.bookingId;
                 return [4 /*yield*/, job_model_1.JobModel.findOne({
@@ -426,54 +355,34 @@ var getSingleBooking = function (req, res, next) { return __awaiter(void 0, void
                         ], _id: bookingId
                     }).populate(['contractor', 'customer', 'assignment.contractor'])];
             case 1:
-                job = _g.sent();
+                job = _b.sent();
                 // Check if the job exists
                 if (!job) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Booking not found' })];
                 }
-                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne(job.contract)];
+                return [4 /*yield*/, job_util_1.JobUtil.populate(job, {
+                        contract: true,
+                        dispute: true,
+                        jobDay: true,
+                        totalEnquires: true,
+                        hasUnrepliedEnquiry: true,
+                        myQuotation: contractorId
+                    })];
             case 2:
-                contract = _g.sent();
-                if (!contract) return [3 /*break*/, 8];
-                if (!contract.changeOrderEstimate) return [3 /*break*/, 4];
-                _a = contract.changeOrderEstimate;
-                return [4 /*yield*/, contract.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
-            case 3:
-                _a.charges = (_f = _g.sent()) !== null && _f !== void 0 ? _f : {};
-                _g.label = 4;
-            case 4:
-                if (!contract.siteVisitEstimate) return [3 /*break*/, 6];
-                _b = contract.siteVisitEstimate;
-                return [4 /*yield*/, contract.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
-            case 5:
-                _b.charges = _g.sent();
-                _g.label = 6;
-            case 6:
-                _c = contract;
-                return [4 /*yield*/, contract.calculateCharges()];
-            case 7:
-                _c.charges = _g.sent();
-                _g.label = 8;
-            case 8:
-                responseData = __assign({}, job.toJSON());
-                _d = responseData;
-                return [4 /*yield*/, job.getJobDispute()];
-            case 9:
-                _d.dispute = _g.sent();
-                responseData.contract = contract;
-                _e = responseData;
-                return [4 /*yield*/, job.getJobDay()
-                    // If the job exists, return it as a response
-                ];
-            case 10:
-                _e.jobDay = _g.sent();
+                _a = _b.sent(), contract = _a.contract, totalEnquires = _a.totalEnquires, hasUnrepliedEnquiry = _a.hasUnrepliedEnquiry, jobDay = _a.jobDay, dispute = _a.dispute, myQuotation = _a.myQuotation;
+                job.myQuotation = myQuotation;
+                job.contract = contract;
+                job.jobDay = jobDay;
+                job.dispute = dispute;
+                job.totalEnquires = totalEnquires;
+                job.hasUnrepliedEnquiry = hasUnrepliedEnquiry;
                 // If the job exists, return it as a response
-                res.json({ success: true, message: 'Booking retrieved', data: responseData });
-                return [3 /*break*/, 12];
-            case 11:
-                error_4 = _g.sent();
+                res.json({ success: true, message: 'Booking retrieved', data: job });
+                return [3 /*break*/, 4];
+            case 3:
+                error_4 = _b.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_4))];
-            case 12: return [2 /*return*/];
+            case 4: return [2 /*return*/];
         }
     });
 }); };

@@ -26,6 +26,7 @@ import ContractorSavedJobModel from '../database/contractor/models/contractor_sa
 import { IJobEnquiry, JobEnquiryModel } from '../database/common/job_enquiry.model';
 import { Logger } from '../services/logger';
 import { ConversationUtil } from '../utils/conversation.util';
+import { MessageModel, MessageType } from '../database/common/messages.schema';
 
 export const JobEvent: EventEmitter = new EventEmitter();
 
@@ -558,6 +559,16 @@ JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: 
         const event = payload.action == 'accepted' ? 'JOB_RESCHEDULE_ACCEPTED' : 'JOB_RESCHEDULE_DECLINED'
 
         if (contractor && customer) {
+
+            const conversation = await ConversationUtil.updateOrCreateConversation(customer.id, 'customers', contractor.id, 'contractors')
+            const message = new MessageModel({
+                conversation: conversation.id,
+                message: `Job reschedule request ${event}`,
+                messageType: MessageType.ALERT,
+                entity: job.id,
+                entityType: 'jobs'
+              });
+
             if (payload.job.reschedule?.createdBy == 'contractor') { // send mail to contractor
                 let emailSubject = 'Job Reschedule Request'
                 let emailContent = `
@@ -585,6 +596,8 @@ JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: 
                     }
                 }, { push: true, socket: true, database: true })
 
+                message.sender = customer.id
+                message.senderType = 'customers'
 
             }
             if (payload.job.reschedule?.createdBy == 'customer') { // send mail to  customer
@@ -615,8 +628,12 @@ JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: 
                     }
                 }, { push: true, socket: true, database: true })
 
+                message.sender = contractor.id
+                message.senderType = 'contractors'
 
             }
+
+            await message.save()
 
         }
 
@@ -635,7 +652,20 @@ JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', async function (payload: { job: IJob, 
         const contractor = await ContractorModel.findById(payload.job.contractor)
         const job = payload.job
 
+
         if (contractor && customer) {
+
+            const conversation = await ConversationUtil.updateOrCreateConversation(customer.id, 'customers', contractor.id, 'contractors')
+            const message = new MessageModel({
+                conversation: conversation.id,
+                message: "Job reschedule request",
+                messageType: MessageType.ALERT,
+                entity: job.id,
+                entityType: 'jobs'
+              });
+             
+
+              
             if (payload.job.reschedule?.createdBy == 'contractor') { // send mail to contractor
                 let emailSubject = 'Job Schedule'
                 let emailContent = `
@@ -663,6 +693,9 @@ JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', async function (payload: { job: IJob, 
                         event: 'NEW_JOB_RESCHEDULE_REQUEST',
                     }
                 }, { push: true, socket: true, database: true })
+
+                message.sender = contractor.id
+                message.senderType = 'contractors'
 
             }
             if (payload.job.reschedule?.createdBy == 'customer') { // send mail to  customer
@@ -692,7 +725,12 @@ JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', async function (payload: { job: IJob, 
                     }
                 }, { push: true, socket: true, database: true })
 
+                message.sender = customer.id
+                message.senderType = 'customer'
             }
+
+
+            await message.save();
 
         }
 
