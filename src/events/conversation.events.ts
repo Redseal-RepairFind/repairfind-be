@@ -89,7 +89,7 @@ ConversationEvent.on('NEW_MESSAGE', async function (params) {
                             entity: conversation.id,
                             entityType: 'conversations',
                             message: message,
-                            event: 'NEW_DISPUTE_MESSAGE',
+                            event: 'NEW_DISPUTE_MESSAGE', 
                         }
                     }, { socket: true, push: true, database:true })
                 }

@@ -1096,12 +1096,14 @@ var createBookingDispute = function (req, res, next) { return __awaiter(void 0, 
                     }, { new: true, upsert: true })];
             case 2:
                 dispute = _c.sent();
-                disputeEvidence = evidence.map(function (url) { return ({
-                    url: url,
-                    addedBy: 'customer',
-                    addedAt: new Date(),
-                }); });
-                (_b = dispute.evidence).push.apply(_b, disputeEvidence);
+                if (evidence.length > 0) {
+                    disputeEvidence = evidence.map(function (url) { return ({
+                        url: url,
+                        addedBy: 'customer',
+                        addedAt: new Date(),
+                    }); });
+                    (_b = dispute.evidence).push.apply(_b, disputeEvidence);
+                }
                 // dispute.conversation = conversation.id
                 return [4 /*yield*/, dispute.save()];
             case 3:
