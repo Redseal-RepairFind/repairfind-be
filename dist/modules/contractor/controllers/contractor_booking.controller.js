@@ -90,6 +90,8 @@ var review_model_1 = require("../../../database/common/review.model");
 var payment_schema_1 = require("../../../database/common/payment.schema");
 var transaction_model_1 = __importStar(require("../../../database/common/transaction.model"));
 var job_util_1 = require("../../../utils/job.util");
+var notification_util_1 = require("../../../utils/notification.util");
+var socket_1 = require("../../../services/socket");
 var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, _b, limit, _c, page, _d, sort, customerId, _e, status_1, startDate, endDate, date, type, contractorId_1, filter, start, end, selectedDate, startOfDay_1, endOfDay, _f, data, error, error_1;
     return __generator(this, function (_g) {
@@ -341,34 +343,51 @@ var getBookingDisputes = function (req, res, next) { return __awaiter(void 0, vo
 }); };
 exports.getBookingDisputes = getBookingDisputes;
 var getSingleBooking = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var contractorId, bookingId, job, _a, contract, totalEnquires, hasUnrepliedEnquiry, jobDay, dispute, myQuotation, error_4;
+    var contractorId, bookingId, contractor, job, alerts, _a, contract, totalEnquires, hasUnrepliedEnquiry, jobDay, dispute, myQuotation, error_4;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 3, , 4]);
+                _b.trys.push([0, 7, , 8]);
                 contractorId = req.contractor.id;
                 bookingId = req.params.bookingId;
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
+            case 1:
+                contractor = _b.sent();
                 return [4 /*yield*/, job_model_1.JobModel.findOne({
                         $or: [
                             { contractor: contractorId },
                             { 'assignment.contractor': contractorId }
                         ], _id: bookingId
                     }).populate(['contractor', 'customer', 'assignment.contractor'])];
-            case 1:
+            case 2:
                 job = _b.sent();
                 // Check if the job exists
                 if (!job) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Booking not found' })];
                 }
-                return [4 /*yield*/, job_util_1.JobUtil.populate(job, {
-                        contract: true,
-                        dispute: true,
-                        jobDay: true,
-                        totalEnquires: true,
-                        hasUnrepliedEnquiry: true,
-                        myQuotation: contractorId
-                    })];
-            case 2:
+                if (!(job.bookingViewedByContractor == false && contractor)) return [3 /*break*/, 5];
+                job.bookingViewedByContractor = true;
+                return [4 /*yield*/, job.save()];
+            case 3:
+                _b.sent();
+                return [4 /*yield*/, notification_util_1.NotificationUtil.redAlerts(contractorId)];
+            case 4:
+                alerts = _b.sent();
+                socket_1.SocketService.sendNotification(contractor.email, 'RED_DOT_ALERT', {
+                    type: 'RED_DOT_ALERT',
+                    message: 'New alert update',
+                    data: alerts
+                });
+                _b.label = 5;
+            case 5: return [4 /*yield*/, job_util_1.JobUtil.populate(job, {
+                    contract: true,
+                    dispute: true,
+                    jobDay: true,
+                    totalEnquires: true,
+                    hasUnrepliedEnquiry: true,
+                    myQuotation: contractorId
+                })];
+            case 6:
                 _a = _b.sent(), contract = _a.contract, totalEnquires = _a.totalEnquires, hasUnrepliedEnquiry = _a.hasUnrepliedEnquiry, jobDay = _a.jobDay, dispute = _a.dispute, myQuotation = _a.myQuotation;
                 job.myQuotation = myQuotation;
                 job.contract = contract;
@@ -378,11 +397,11 @@ var getSingleBooking = function (req, res, next) { return __awaiter(void 0, void
                 job.hasUnrepliedEnquiry = hasUnrepliedEnquiry;
                 // If the job exists, return it as a response
                 res.json({ success: true, message: 'Booking retrieved', data: job });
-                return [3 /*break*/, 4];
-            case 3:
+                return [3 /*break*/, 8];
+            case 7:
                 error_4 = _b.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_4))];
-            case 4: return [2 /*return*/];
+            case 8: return [2 /*return*/];
         }
     });
 }); };

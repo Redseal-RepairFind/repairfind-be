@@ -658,7 +658,7 @@ JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', async function (payload: { job: IJob, 
             const conversation = await ConversationUtil.updateOrCreateConversation(customer.id, 'customers', contractor.id, 'contractors')
             const message = new MessageModel({
                 conversation: conversation.id,
-                message: "Job reschedule request",
+                message: job.revisitEnabled ? "Job Revisit reschedule request" : "Job reschedule request",
                 messageType: MessageType.ALERT,
                 entity: job.id,
                 entityType: 'jobs'
@@ -680,7 +680,7 @@ JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', async function (payload: { job: IJob, 
                 NotificationService.sendNotification({
                     user: customer.id,
                     userType: 'customers',
-                    title: 'Job Reschedule Request',
+                    title: job.revisitEnabled ? "Job Revisit reschedule request" : "Job reschedule request",
                     type: 'NEW_JOB_RESCHEDULE_REQUEST', // Conversation, Conversation_Notification
                     message: `Contractor has requested  to reschedule a job on RepairFind`,
                     heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
@@ -711,7 +711,7 @@ JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', async function (payload: { job: IJob, 
                 NotificationService.sendNotification({
                     user: contractor.id,
                     userType: 'contractors',
-                    title: 'Job Reschedule Request',
+                    title: job.revisitEnabled ? "Job Revisit reschedule request" : "Job reschedule request",
                     type: 'NEW_JOB_RESCHEDULE_REQUEST', //
                     message: `Customer has requested to reschedule your job on RepairFind`,
                     heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },

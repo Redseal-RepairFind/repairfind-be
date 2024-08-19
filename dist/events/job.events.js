@@ -781,7 +781,7 @@ exports.JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', function (payload) {
                     conversation = _e.sent();
                     message = new messages_schema_1.MessageModel({
                         conversation: conversation.id,
-                        message: "Job reschedule request",
+                        message: job.revisitEnabled ? "Job Revisit reschedule request" : "Job reschedule request",
                         messageType: messages_schema_1.MessageType.ALERT,
                         entity: job.id,
                         entityType: 'jobs'
@@ -794,7 +794,7 @@ exports.JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', function (payload) {
                         services_1.NotificationService.sendNotification({
                             user: customer.id,
                             userType: 'customers',
-                            title: 'Job Reschedule Request',
+                            title: job.revisitEnabled ? "Job Revisit reschedule request" : "Job reschedule request",
                             type: 'NEW_JOB_RESCHEDULE_REQUEST', // Conversation, Conversation_Notification
                             message: "Contractor has requested  to reschedule a job on RepairFind",
                             heading: { name: "".concat(contractor.name), image: (_b = contractor.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
@@ -818,7 +818,7 @@ exports.JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', function (payload) {
                         services_1.NotificationService.sendNotification({
                             user: contractor.id,
                             userType: 'contractors',
-                            title: 'Job Reschedule Request',
+                            title: job.revisitEnabled ? "Job Revisit reschedule request" : "Job reschedule request",
                             type: 'NEW_JOB_RESCHEDULE_REQUEST', //
                             message: "Customer has requested to reschedule your job on RepairFind",
                             heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_d = customer.profilePhoto) === null || _d === void 0 ? void 0 : _d.url },

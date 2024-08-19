@@ -39,8 +39,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.NotificationUtil = void 0;
 var conversations_schema_1 = require("../database/common/conversations.schema");
 var messages_schema_1 = require("../database/common/messages.schema");
+var job_model_1 = require("../database/common/job.model");
 var redAlerts = function (userId) { return __awaiter(void 0, void 0, void 0, function () {
-    var ticketConversations, unreadTickets, disputeAlerts;
+    var ticketConversations, unreadTickets, disputeAlerts, unseenJobIds, jobIds;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0: return [4 /*yield*/, conversations_schema_1.ConversationModel.find({
@@ -66,7 +67,14 @@ var redAlerts = function (userId) { return __awaiter(void 0, void 0, void 0, fun
             case 2:
                 unreadTickets = _a.sent();
                 disputeAlerts = unreadTickets.filter(function (conversation) { return conversation !== null; }).map(function (conversation) { return conversation === null || conversation === void 0 ? void 0 : conversation.entity; });
-                return [2 /*return*/, { disputeAlerts: disputeAlerts }];
+                return [4 /*yield*/, job_model_1.JobModel.find({
+                        contractor: userId, // Assuming there's a reference to the contractor in the job model
+                        bookingViewByContractor: false
+                    }).select('_id')];
+            case 3:
+                unseenJobIds = _a.sent();
+                jobIds = unseenJobIds.map(function (job) { return job._id; });
+                return [2 /*return*/, { disputeAlerts: disputeAlerts, jobIds: jobIds }];
         }
     });
 }); };

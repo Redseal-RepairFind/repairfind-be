@@ -159,6 +159,7 @@ export interface IJob extends Document {
     hasUnrepliedEnquiry: boolean;
     isSaved: boolean;
     revisitEnabled: boolean;
+    bookingViewedByContractor: boolean;
     getMyQuotation: (contractorId: ObjectId) => {
     };
     getJobDay: (scheduleType?: JOB_SCHEDULE_TYPE) => {
@@ -321,6 +322,7 @@ const JobSchema = new Schema<IJob>({
     hasUnrepliedEnquiry: { type: Schema.Types.Boolean, default: false },
     isSaved: { type: Schema.Types.Boolean, default: false },
     revisitEnabled: { type: Schema.Types.Boolean, default: false },
+    bookingViewedByContractor: { type: Schema.Types.Boolean, default: true },
 }, { timestamps: true });
 
 

@@ -309,6 +309,7 @@ var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0
                 stripePayment = _b.sent();
                 //TODO: Check status of stripePayment before changing to booked here
                 job.status = job_model_1.JOB_STATUS.BOOKED;
+                job.bookingViewedByContractor = false;
                 return [4 /*yield*/, job.save()];
             case 7:
                 _b.sent();

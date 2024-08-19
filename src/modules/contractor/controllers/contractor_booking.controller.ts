@@ -20,6 +20,8 @@ import { JobDayModel } from "../../../database/common/job_day.model";
 import { PAYMENT_TYPE } from "../../../database/common/payment.schema";
 import TransactionModel, { TRANSACTION_STATUS, TRANSACTION_TYPE } from "../../../database/common/transaction.model";
 import { JobUtil } from "../../../utils/job.util";
+import { NotificationUtil } from "../../../utils/notification.util";
+import { SocketService } from "../../../services/socket";
 
 
 
@@ -331,7 +333,7 @@ export const getSingleBooking = async (req: any, res: Response, next: NextFuncti
 
         const contractorId = req.contractor.id
         const bookingId = req.params.bookingId;
-
+        const contractor = await ContractorModel.findById(contractorId)
         const job = await JobModel.findOne({
             $or: [
                 { contractor: contractorId },
@@ -355,6 +357,19 @@ export const getSingleBooking = async (req: any, res: Response, next: NextFuncti
         // responseData.dispute = await job.getJobDispute()
         // responseData.contract = contract
         // responseData.jobDay = await job.getJobDay()
+
+        if(job.bookingViewedByContractor == false && contractor){
+            job.bookingViewedByContractor = true,
+            await job.save()
+
+            const alerts = await NotificationUtil.redAlerts(contractorId)
+            SocketService.sendNotification(contractor.email, 'RED_DOT_ALERT', {
+                type: 'RED_DOT_ALERT', 
+                message: 'New alert update', 
+                data: alerts
+            });
+
+        }
 
         const { contract, totalEnquires, hasUnrepliedEnquiry, jobDay, dispute, myQuotation } = await JobUtil.populate(job, {
             contract: true,

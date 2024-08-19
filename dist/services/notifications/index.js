@@ -120,6 +120,7 @@ var NotificationService = /** @class */ (function () {
                             message: params.message,
                             data: params.payload
                         });
+                        if (!(params.type == 'NEW_DISPUTE_MESSAGE' || params.type == 'JOB_BOOKED')) return [3 /*break*/, 11];
                         return [4 /*yield*/, notification_util_1.NotificationUtil.redAlerts(params.user)];
                     case 10:
                         alerts = _a.sent();

@@ -76,13 +76,15 @@ export class NotificationService  {
                 data: params.payload
             });
 
-            // send red alert notification here also, for mobile to update red dots - lol
-            const alerts = await NotificationUtil.redAlerts(params.user as ObjectId)
-            SocketService.sendNotification(user.email, 'RED_DOT_ALERT', {
-                type: 'RED_DOT_ALERT', 
-                message: 'New alert update', 
-                data: alerts
-            });
+            if(params.type == 'NEW_DISPUTE_MESSAGE' || params.type == 'JOB_BOOKED' ){
+                // send red alert notification here also, for mobile to update red dots - lol
+                const alerts = await NotificationUtil.redAlerts(params.user as ObjectId)
+                SocketService.sendNotification(user.email, 'RED_DOT_ALERT', {
+                    type: 'RED_DOT_ALERT', 
+                    message: 'New alert update', 
+                    data: alerts
+                });
+            }
         }
 
 
