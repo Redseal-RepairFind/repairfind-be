@@ -47,10 +47,10 @@ export const getSingleEmergency = async (
     const jobEmergency = await JobEmergencyModel.findOne({ _id: emergencyId })
       .populate([ {
         path:'customer',
-        select: 'firstName lastName name profilePhoto _id'
+        select: 'firstName lastName name profilePhot email phoneNumber  _id'
       }, {
         path:'contractor',
-        select: 'firstName lastName name profilePhoto _id'
+        select: 'firstName lastName name profilePhoto email phoneNumber _id'
       }, {path:'job'}]);
 
     if (!jobEmergency) {
