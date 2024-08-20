@@ -1288,19 +1288,25 @@ var getJobHistory = function (req, res, next) { return __awaiter(void 0, void 0,
 }); };
 exports.getJobHistory = getJobHistory;
 var createJobEnquiry = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var jobId, question, contractorId, job, enquiry, error_13;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var jobId, question, contractorId, job, _a, isRestricted, errorMessage, enquiry, error_13;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
-                _a.trys.push([0, 5, , 6]);
+                _b.trys.push([0, 6, , 7]);
                 jobId = req.params.jobId;
                 question = req.body.question;
                 contractorId = req.contractor.id;
                 return [4 /*yield*/, job_model_1.JobModel.findById(jobId)];
             case 1:
-                job = _a.sent();
+                job = _b.sent();
                 if (!job) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: "Job not found" })];
+                }
+                return [4 /*yield*/, conversation_util_1.ConversationUtil.containsRestrictedMessageContent(question)];
+            case 2:
+                _a = _b.sent(), isRestricted = _a.isRestricted, errorMessage = _a.errorMessage;
+                if (isRestricted) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "You are not allowed to send restricted contents such as email, phone number or other personal information" })];
                 }
                 enquiry = new job_enquiry_model_1.JobEnquiryModel({
                     job: job.id,
@@ -1310,22 +1316,22 @@ var createJobEnquiry = function (req, res, next) { return __awaiter(void 0, void
                     createdAt: new Date()
                 });
                 return [4 /*yield*/, enquiry.save()];
-            case 2:
-                _a.sent();
+            case 3:
+                _b.sent();
                 job.enquiries.push(enquiry.id);
                 return [4 /*yield*/, job.save()];
-            case 3:
-                _a.sent();
-                return [4 /*yield*/, contractor_saved_job_model_1.default.findOneAndUpdate({ job: job.id, contractor: contractorId }, { job: job.id, contractor: contractorId }, { new: true, upsert: true })];
             case 4:
-                _a.sent();
+                _b.sent();
+                return [4 /*yield*/, contractor_saved_job_model_1.default.findOneAndUpdate({ job: job.id, contractor: contractorId }, { job: job.id, contractor: contractorId }, { new: true, upsert: true })];
+            case 5:
+                _b.sent();
                 events_1.JobEvent.emit('NEW_JOB_ENQUIRY', { jobId: jobId, enquiryId: enquiry.id });
                 return [2 /*return*/, res.status(200).json({ success: true, message: "Question added", question: question })];
-            case 5:
-                error_13 = _a.sent();
+            case 6:
+                error_13 = _b.sent();
                 next(error_13);
-                return [3 /*break*/, 6];
-            case 6: return [2 /*return*/];
+                return [3 /*break*/, 7];
+            case 7: return [2 /*return*/];
         }
     });
 }); };

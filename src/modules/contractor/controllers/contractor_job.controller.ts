@@ -1237,6 +1237,12 @@ export const createJobEnquiry = async (req: any, res: Response, next: NextFuncti
       return res.status(404).json({ success: false, message: "Job not found" });
     }
 
+
+    //check if it contains bad inputs
+    const {isRestricted, errorMessage} = await ConversationUtil.containsRestrictedMessageContent(question)
+    if(isRestricted){
+      return res.status(400).json({ success: false, message: "You are not allowed to send restricted contents such as email, phone number or other personal information" });
+    }
     const enquiry = new JobEnquiryModel({
       job: job.id,
       contractor: contractorId,

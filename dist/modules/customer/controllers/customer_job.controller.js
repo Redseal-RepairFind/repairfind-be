@@ -874,38 +874,44 @@ var declineJobQuotation = function (req, res, next) { return __awaiter(void 0, v
 }); };
 exports.declineJobQuotation = declineJobQuotation;
 var replyJobEnquiry = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, jobId, _a, replyText, enquiryId, job, question, error_13;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+    var customerId, jobId, _a, replyText, enquiryId, job, question, _b, isRestricted, errorMessage, error_13;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
             case 0:
-                _b.trys.push([0, 4, , 5]);
+                _c.trys.push([0, 5, , 6]);
                 customerId = req.customer.id;
                 jobId = req.params.jobId;
                 _a = req.body, replyText = _a.replyText, enquiryId = _a.enquiryId;
                 return [4 /*yield*/, job_model_1.JobModel.findById(jobId)];
             case 1:
-                job = _b.sent();
+                job = _c.sent();
                 if (!job) {
                     return [2 /*return*/, res.status(404).json({ message: "Job not found" })];
                 }
                 return [4 /*yield*/, job_enquiry_model_1.JobEnquiryModel.findById(enquiryId)];
             case 2:
-                question = _b.sent();
+                question = _c.sent();
                 if (!question) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: "Enquiry not found" })];
+                }
+                return [4 /*yield*/, conversation_util_1.ConversationUtil.containsRestrictedMessageContent(question)];
+            case 3:
+                _b = _c.sent(), isRestricted = _b.isRestricted, errorMessage = _b.errorMessage;
+                if (isRestricted) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "You are not allowed to send restricted contents such as email, phone number or other personal information" })];
                 }
                 // Add the reply to the question
                 question.replies.push({ userId: customerId, userType: 'customers', replyText: replyText });
                 return [4 /*yield*/, question.save()];
-            case 3:
-                _b.sent();
+            case 4:
+                _c.sent();
                 events_1.JobEvent.emit('NEW_JOB_ENQUIRY_REPLY', { jobId: jobId, enquiryId: enquiryId });
                 res.json({ success: true, message: 'Reply added', question: question });
-                return [3 /*break*/, 5];
-            case 4:
-                error_13 = _b.sent();
+                return [3 /*break*/, 6];
+            case 5:
+                error_13 = _c.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_13))];
-            case 5: return [2 /*return*/];
+            case 6: return [2 /*return*/];
         }
     });
 }); };

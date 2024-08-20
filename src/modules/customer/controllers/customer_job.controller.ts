@@ -453,7 +453,7 @@ export const getJobQuotations = async (req: any, res: Response, next: NextFuncti
         }
         const quotations = await JobQuotationModel.find({ job: jobId, status: { $ne: JOB_QUOTATION_STATUS.DECLINED } }).populate([{ path: 'contractor' }])
         await Promise.all(quotations.map(async (quotation: any) => {
-            
+
             if (quotation) {
                 if (quotation.changeOrderEstimate) quotation.changeOrderEstimate.charges = await quotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
                 if (quotation.siteVisitEstimate) quotation.siteVisitEstimate.charges = await quotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
@@ -777,6 +777,14 @@ export const replyJobEnquiry = async (req: any, res: Response, next: NextFunctio
         if (!question) {
             return res.status(404).json({ success: false, message: "Enquiry not found" });
         }
+
+
+        //check if it contains bad inputs
+        const { isRestricted, errorMessage } = await ConversationUtil.containsRestrictedMessageContent(question)
+        if (isRestricted) {
+            return res.status(400).json({ success: false, message: "You are not allowed to send restricted contents such as email, phone number or other personal information" });
+        }
+
 
         // Add the reply to the question
         question.replies.push({ userId: customerId, userType: 'customers', replyText });
