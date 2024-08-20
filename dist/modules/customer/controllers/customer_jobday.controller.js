@@ -401,7 +401,7 @@ var createJobDispute = function (req, res, next) { return __awaiter(void 0, void
                     }, { new: true, upsert: true })];
             case 4:
                 conversation = _c.sent();
-                if (evidence.length > 0) {
+                if (evidence) {
                     disputeEvidence = evidence.map(function (url) { return ({
                         url: url,
                         addedBy: 'customer',

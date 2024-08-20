@@ -303,7 +303,7 @@ export const createJobDispute = async (req: any, res: Response, next: NextFuncti
         const customerId = job.customer
        
 
-        if(evidence.length > 0){
+        if(evidence){
             const disputeEvidence = evidence.map((url: string) => ({
                 url,
                 addedBy: 'contractor',

@@ -336,7 +336,7 @@ var createJobDispute = function (req, res, next) { return __awaiter(void 0, void
             case 3:
                 dispute = _c.sent();
                 customerId = job.customer;
-                if (evidence.length > 0) {
+                if (evidence) {
                     disputeEvidence = evidence.map(function (url) { return ({
                         url: url,
                         addedBy: 'contractor',

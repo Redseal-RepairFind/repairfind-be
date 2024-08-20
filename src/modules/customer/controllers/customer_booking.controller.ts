@@ -1087,7 +1087,7 @@ export const createBookingDispute = async (req: any, res: Response, next: NextFu
 
 
 
-        if(evidence.length > 0){
+        if(evidence){
             const disputeEvidence = evidence.map((url: string) => ({
                 url,
                 addedBy: 'customer',

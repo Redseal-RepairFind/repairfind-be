@@ -371,7 +371,7 @@ export const createJobDispute = async (req: any, res: Response, next: NextFuncti
             { new: true, upsert: true }
         );
 
-        if(evidence.length > 0){
+        if(evidence){
             const disputeEvidence = evidence.map((url: string) => ({
                 url,
                 addedBy: 'customer',
