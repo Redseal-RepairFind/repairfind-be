@@ -187,22 +187,22 @@ var markAllNotificationsAsRead = function (req, res) { return __awaiter(void 0, 
 }); };
 exports.markAllNotificationsAsRead = markAllNotificationsAsRead;
 var redAlerts = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var contractorId, disputeAlerts, err_1;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var contractorId, _a, disputeAlerts, unseenBookings, err_1;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
-                _a.trys.push([0, 2, , 3]);
+                _b.trys.push([0, 2, , 3]);
                 contractorId = req.contractor.id;
                 return [4 /*yield*/, notification_util_1.NotificationUtil.redAlerts(contractorId)
                     // const recentPayment = TransactionModel.find({type: {$in: [TRANSACTION_TYPE.JOB_PAYMENT, TRANSACTION_TYPE.SITE_VISIT]} })
                 ];
             case 1:
-                disputeAlerts = (_a.sent()).disputeAlerts;
+                _a = _b.sent(), disputeAlerts = _a.disputeAlerts, unseenBookings = _a.unseenBookings;
                 // const recentPayment = TransactionModel.find({type: {$in: [TRANSACTION_TYPE.JOB_PAYMENT, TRANSACTION_TYPE.SITE_VISIT]} })
-                res.json({ success: true, message: 'Alerts retreived', data: { disputeAlerts: disputeAlerts } });
+                res.json({ success: true, message: 'Alerts retreived', data: { disputeAlerts: disputeAlerts, unseenBookings: unseenBookings } });
                 return [3 /*break*/, 3];
             case 2:
-                err_1 = _a.sent();
+                err_1 = _b.sent();
                 next(new custom_errors_1.InternalServerError("An error occurred", err_1));
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];

@@ -692,7 +692,7 @@ exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
                     conversation = _e.sent();
                     message = new messages_schema_1.MessageModel({
                         conversation: conversation.id,
-                        message: "Job reschedule request ".concat(event_1),
+                        message: "Job reschedule request ".concat(payload.action),
                         messageType: messages_schema_1.MessageType.ALERT,
                         entity: job.id,
                         entityType: 'jobs'
@@ -715,6 +715,7 @@ exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
                                 message: "Your Job reschedule request on Repairfind has been ".concat(payload.action, " by customer"),
                                 customer: customer.id,
                                 contractor: contractor.id,
+                                conversationId: conversation.id,
                                 event: event_1,
                             }
                         }, { push: true, socket: true, database: true });
@@ -739,6 +740,7 @@ exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
                                 message: "Your Job reschedule request on Repairfind has been ".concat(payload.action, " by contractor"),
                                 contractor: contractor.id,
                                 customer: customer.id,
+                                conversationId: conversation.id,
                                 event: event_1,
                             }
                         }, { push: true, socket: true, database: true });
@@ -766,7 +768,7 @@ exports.JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', function (payload) {
         return __generator(this, function (_e) {
             switch (_e.label) {
                 case 0:
-                    _e.trys.push([0, 6, , 7]);
+                    _e.trys.push([0, 7, , 8]);
                     logger_1.Logger.info('handling alert NEW_JOB_RESCHEDULE_REQUEST event', payload.action);
                     return [4 /*yield*/, customer_model_1.default.findById(payload.job.customer)];
                 case 1:
@@ -775,7 +777,7 @@ exports.JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', function (payload) {
                 case 2:
                     contractor = _e.sent();
                     job = payload.job;
-                    if (!(contractor && customer)) return [3 /*break*/, 5];
+                    if (!(contractor && customer)) return [3 /*break*/, 6];
                     return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(customer.id, 'customers', contractor.id, 'contractors')];
                 case 3:
                     conversation = _e.sent();
@@ -837,13 +839,17 @@ exports.JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', function (payload) {
                     return [4 /*yield*/, message.save()];
                 case 4:
                     _e.sent();
-                    _e.label = 5;
-                case 5: return [3 /*break*/, 7];
-                case 6:
+                    conversation.lastMessageAt = new Date();
+                    return [4 /*yield*/, conversation.save()];
+                case 5:
+                    _e.sent();
+                    _e.label = 6;
+                case 6: return [3 /*break*/, 8];
+                case 7:
                     error_12 = _e.sent();
                     logger_1.Logger.error("Error handling NEW_JOB_RESCHEDULE_REQUEST event: ".concat(error_12));
-                    return [3 /*break*/, 7];
-                case 7: return [2 /*return*/];
+                    return [3 /*break*/, 8];
+                case 8: return [2 /*return*/];
             }
         });
     });

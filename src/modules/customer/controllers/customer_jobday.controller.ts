@@ -371,13 +371,16 @@ export const createJobDispute = async (req: any, res: Response, next: NextFuncti
             { new: true, upsert: true }
         );
 
-        const disputeEvidence = evidence.map((url: string) => ({
-            url,
-            addedBy: 'customer',
-            addedAt: new Date(),
-        }));
+        if(evidence.length > 0){
+            const disputeEvidence = evidence.map((url: string) => ({
+                url,
+                addedBy: 'customer',
+                addedAt: new Date(),
+            }));
+            dispute.evidence.push(...disputeEvidence);
+        }
+       
 
-        dispute.evidence.push(...disputeEvidence);
 
         dispute.conversation = conversation.id
         await dispute.save()

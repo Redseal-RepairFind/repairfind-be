@@ -115,11 +115,11 @@ export const redAlerts = async (req: any, res: Response, next: NextFunction): Pr
     try {
         const contractorId = req.contractor.id;
 
-       const {disputeAlerts} = await NotificationUtil.redAlerts(contractorId)
+       const {disputeAlerts, unseenBookings} = await NotificationUtil.redAlerts(contractorId)
 
         // const recentPayment = TransactionModel.find({type: {$in: [TRANSACTION_TYPE.JOB_PAYMENT, TRANSACTION_TYPE.SITE_VISIT]} })
 
-        res.json({ success: true, message: 'Alerts retreived', data: {disputeAlerts} });
+        res.json({ success: true, message: 'Alerts retreived', data: {disputeAlerts, unseenBookings} });
     } catch (err: any) {
         next(new InternalServerError("An error occurred", err));
     }

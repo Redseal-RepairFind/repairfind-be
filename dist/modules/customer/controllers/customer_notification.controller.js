@@ -50,9 +50,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerNotificationController = exports.markAllNotificationsAsRead = exports.markNotificationAsRead = exports.getSingleNotification = exports.getNotifications = void 0;
+exports.CustomerNotificationController = exports.redAlerts = exports.markAllNotificationsAsRead = exports.markNotificationAsRead = exports.getSingleNotification = exports.getNotifications = void 0;
 var api_feature_1 = require("../../../utils/api.feature");
 var notification_model_1 = __importDefault(require("../../../database/common/notification.model"));
+var notification_util_1 = require("../../../utils/notification.util");
+var custom_errors_1 = require("../../../utils/custom.errors");
 var getNotifications = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, startDate, endDate, read, query, customerId, filter, _b, data, error, error_1;
     return __generator(this, function (_c) {
@@ -184,6 +186,27 @@ var markAllNotificationsAsRead = function (req, res) { return __awaiter(void 0, 
     });
 }); };
 exports.markAllNotificationsAsRead = markAllNotificationsAsRead;
+var redAlerts = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var contractorId, _a, disputeAlerts, unseenBookings, err_1;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 2, , 3]);
+                contractorId = req.contractor.id;
+                return [4 /*yield*/, notification_util_1.NotificationUtil.redAlerts(contractorId)];
+            case 1:
+                _a = _b.sent(), disputeAlerts = _a.disputeAlerts, unseenBookings = _a.unseenBookings;
+                res.json({ success: true, message: 'Alerts retreived', data: { disputeAlerts: disputeAlerts, unseenBookings: unseenBookings } });
+                return [3 /*break*/, 3];
+            case 2:
+                err_1 = _b.sent();
+                next(new custom_errors_1.InternalServerError("An error occurred", err_1));
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.redAlerts = redAlerts;
 exports.CustomerNotificationController = {
     getNotifications: exports.getNotifications,
     getSingleNotification: exports.getSingleNotification,

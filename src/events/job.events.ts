@@ -563,7 +563,7 @@ JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: 
             const conversation = await ConversationUtil.updateOrCreateConversation(customer.id, 'customers', contractor.id, 'contractors')
             const message = new MessageModel({
                 conversation: conversation.id,
-                message: `Job reschedule request ${event}`,
+                message: `Job reschedule request ${payload.action}`,
                 messageType: MessageType.ALERT,
                 entity: job.id,
                 entityType: 'jobs'
@@ -592,6 +592,7 @@ JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: 
                         message: `Your Job reschedule request on Repairfind has been ${payload.action} by customer`,
                         customer: customer.id,
                         contractor: contractor.id,
+                        conversationId: conversation.id,
                         event: event,
                     }
                 }, { push: true, socket: true, database: true })
@@ -624,6 +625,7 @@ JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: 
                         message: `Your Job reschedule request on Repairfind has been ${payload.action} by contractor`,
                         contractor: contractor.id,
                         customer: customer.id,
+                        conversationId: conversation.id,
                         event: event,
                     }
                 }, { push: true, socket: true, database: true })
@@ -730,7 +732,11 @@ JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', async function (payload: { job: IJob, 
             }
 
 
+
             await message.save();
+
+            conversation.lastMessageAt = new Date()
+            await conversation.save()
 
         }
 

@@ -1,7 +1,9 @@
 import { validationResult } from "express-validator";
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { applyAPIFeature } from "../../../utils/api.feature";
 import NotificationModel from "../../../database/common/notification.model";
+import { NotificationUtil } from "../../../utils/notification.util";
+import { InternalServerError } from "../../../utils/custom.errors";
 
 
 export const getNotifications = async (req: any, res: Response): Promise<void> => {
@@ -102,6 +104,23 @@ export const markAllNotificationsAsRead = async (req: any, res: Response): Promi
         res.status(500).json({ success: false, message: "Server error" });
     }
 };
+
+
+export const redAlerts = async (req: any, res: Response, next: NextFunction): Promise<any> => {
+
+    try {
+        const contractorId = req.contractor.id;
+
+       const {disputeAlerts, unseenBookings} = await NotificationUtil.redAlerts(contractorId)
+
+        res.json({ success: true, message: 'Alerts retreived', data: {disputeAlerts, unseenBookings} });
+    } catch (err: any) {
+        next(new InternalServerError("An error occurred", err));
+    }
+
+
+};
+
 
 export const CustomerNotificationController = {
     getNotifications,

@@ -303,14 +303,16 @@ export const createJobDispute = async (req: any, res: Response, next: NextFuncti
         const customerId = job.customer
        
 
-        const disputeEvidence = evidence.map((url: string) => ({
-            url,
-            addedBy: 'customer',
-            addedAt: new Date(),
-        }));
+        if(evidence.length > 0){
+            const disputeEvidence = evidence.map((url: string) => ({
+                url,
+                addedBy: 'contractor',
+                addedAt: new Date(),
+            }));
+            dispute.evidence.push(...disputeEvidence);
+        }
 
-        dispute.evidence.push(...disputeEvidence);
-
+       
         await dispute.save()
 
         job.status = JOB_STATUS.DISPUTED

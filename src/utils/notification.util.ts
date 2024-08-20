@@ -33,9 +33,9 @@ const redAlerts = async (userId: ObjectId) => {
     }).select('_id');
 
     // Map to get only the _id values
-    const jobIds = unseenJobIds.map((job: any) => job._id);
+    const unseenBookings = unseenJobIds.map((job: any) => job._id);
 
-    return { disputeAlerts, jobIds };
+    return { disputeAlerts, unseenBookings };
 };
 
 export const NotificationUtil = {

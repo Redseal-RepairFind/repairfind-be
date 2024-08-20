@@ -41,7 +41,7 @@ var conversations_schema_1 = require("../database/common/conversations.schema");
 var messages_schema_1 = require("../database/common/messages.schema");
 var job_model_1 = require("../database/common/job.model");
 var redAlerts = function (userId) { return __awaiter(void 0, void 0, void 0, function () {
-    var ticketConversations, unreadTickets, disputeAlerts, unseenJobIds, jobIds;
+    var ticketConversations, unreadTickets, disputeAlerts, unseenJobIds, unseenBookings;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0: return [4 /*yield*/, conversations_schema_1.ConversationModel.find({
@@ -73,8 +73,8 @@ var redAlerts = function (userId) { return __awaiter(void 0, void 0, void 0, fun
                     }).select('_id')];
             case 3:
                 unseenJobIds = _a.sent();
-                jobIds = unseenJobIds.map(function (job) { return job._id; });
-                return [2 /*return*/, { disputeAlerts: disputeAlerts, jobIds: jobIds }];
+                unseenBookings = unseenJobIds.map(function (job) { return job._id; });
+                return [2 /*return*/, { disputeAlerts: disputeAlerts, unseenBookings: unseenBookings }];
         }
     });
 }); };
