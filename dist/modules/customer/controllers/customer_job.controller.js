@@ -894,7 +894,7 @@ var replyJobEnquiry = function (req, res, next) { return __awaiter(void 0, void 
                 if (!question) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: "Enquiry not found" })];
                 }
-                return [4 /*yield*/, conversation_util_1.ConversationUtil.containsRestrictedMessageContent(question)];
+                return [4 /*yield*/, conversation_util_1.ConversationUtil.containsRestrictedMessageContent(replyText)];
             case 3:
                 _b = _c.sent(), isRestricted = _b.isRestricted, errorMessage = _b.errorMessage;
                 if (isRestricted) {

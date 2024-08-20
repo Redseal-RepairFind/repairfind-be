@@ -780,7 +780,7 @@ export const replyJobEnquiry = async (req: any, res: Response, next: NextFunctio
 
 
         //check if it contains bad inputs
-        const { isRestricted, errorMessage } = await ConversationUtil.containsRestrictedMessageContent(question)
+        const { isRestricted, errorMessage } = await ConversationUtil.containsRestrictedMessageContent(replyText)
         if (isRestricted) {
             return res.status(400).json({ success: false, message: "You are not allowed to send restricted contents such as email, phone number or other personal information" });
         }
