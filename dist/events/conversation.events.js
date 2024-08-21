@@ -89,28 +89,37 @@ exports.ConversationEvent.on('NEW_MESSAGE', function (params) {
                     if (!conversation_1 || !members || !sender_1)
                         return [2 /*return*/];
                     members.forEach(function (member) { return __awaiter(_this, void 0, void 0, function () {
-                        var user, _a, _b, toUserId, toUserType;
-                        var _c, _d, _e;
-                        return __generator(this, function (_f) {
-                            switch (_f.label) {
-                                case 0:
-                                    if (!(member.memberType === 'contractors')) return [3 /*break*/, 2];
-                                    return [4 /*yield*/, contractor_model_1.ContractorModel.findById(member.member)];
+                        var user, _a, toUserId, toUserType;
+                        var _b, _c, _d;
+                        return __generator(this, function (_e) {
+                            switch (_e.label) {
+                                case 0: return [4 /*yield*/, contractor_model_1.ContractorModel.findById(member.member)];
                                 case 1:
-                                    _a = _f.sent();
-                                    return [3 /*break*/, 4];
-                                case 2: return [4 /*yield*/, customer_model_1.default.findById(member.member)];
+                                    user = _e.sent();
+                                    if (!(member.memberType === 'contractors')) return [3 /*break*/, 3];
+                                    return [4 /*yield*/, contractor_model_1.ContractorModel.findById(member.member)];
+                                case 2:
+                                    user = _e.sent();
+                                    _e.label = 3;
                                 case 3:
-                                    _a = _f.sent();
-                                    _f.label = 4;
+                                    if (!(member.memberType === 'admins')) return [3 /*break*/, 5];
+                                    return [4 /*yield*/, admin_model_1.default.findById(member.member)];
                                 case 4:
-                                    user = _a;
+                                    user = _e.sent();
+                                    _e.label = 5;
+                                case 5:
+                                    if (!(member.memberType === 'customers')) return [3 /*break*/, 7];
+                                    return [4 /*yield*/, customer_model_1.default.findById(member.member)];
+                                case 6:
+                                    user = _e.sent();
+                                    _e.label = 7;
+                                case 7:
                                     if (!user)
                                         return [2 /*return*/];
-                                    _b = message_1;
+                                    _a = message_1;
                                     return [4 /*yield*/, message_1.getIsOwn(user.id)];
-                                case 5:
-                                    _b.isOwn = _f.sent();
+                                case 8:
+                                    _a.isOwn = _e.sent();
                                     toUserId = member.member;
                                     toUserType = member.memberType;
                                     notifications_1.NotificationService.sendNotification({
@@ -119,7 +128,7 @@ exports.ConversationEvent.on('NEW_MESSAGE', function (params) {
                                         title: 'New Conversation Message',
                                         type: 'Conversation',
                                         message: "You have a new message",
-                                        heading: { name: "".concat(user.name), image: (_c = user.profilePhoto) === null || _c === void 0 ? void 0 : _c.url },
+                                        heading: { name: "".concat(user.name), image: (_b = user.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
                                         payload: {
                                             entity: conversation_1.id,
                                             entityType: 'conversations',
@@ -137,7 +146,7 @@ exports.ConversationEvent.on('NEW_MESSAGE', function (params) {
                                                 title: 'New unread message',
                                                 type: 'NEW_UNREAD_MESSAGE',
                                                 message: "You have a new unread message from ".concat(sender_1.name),
-                                                heading: { name: "".concat(user.name), image: (_d = user.profilePhoto) === null || _d === void 0 ? void 0 : _d.url },
+                                                heading: { name: "".concat(user.name), image: (_c = user.profilePhoto) === null || _c === void 0 ? void 0 : _c.url },
                                                 payload: {
                                                     entity: conversation_1.id,
                                                     entityType: 'conversations',
@@ -153,7 +162,7 @@ exports.ConversationEvent.on('NEW_MESSAGE', function (params) {
                                                 title: 'New unread dispute message',
                                                 type: 'NEW_DISPUTE_MESSAGE',
                                                 message: "You have a new unread job dispute message from ".concat(sender_1.name),
-                                                heading: { name: "".concat(user.name), image: (_e = user.profilePhoto) === null || _e === void 0 ? void 0 : _e.url },
+                                                heading: { name: "".concat(user.name), image: (_d = user.profilePhoto) === null || _d === void 0 ? void 0 : _d.url },
                                                 payload: {
                                                     entity: conversation_1.id,
                                                     entityType: 'conversations',

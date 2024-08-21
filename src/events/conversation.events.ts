@@ -33,7 +33,17 @@ ConversationEvent.on('NEW_MESSAGE', async function (params) {
         if (!conversation || !members || !sender) return
 
         members.forEach(async member => {
-            const user = member.memberType === 'contractors' ? await ContractorModel.findById(member.member) : await CustomerModel.findById(member.member)
+            let user = await ContractorModel.findById(member.member)
+            if (member.memberType === 'contractors') {
+                user = await ContractorModel.findById(member.member)
+            }
+            if (member.memberType === 'admins') {
+                user = await AdminModel.findById(member.member)
+            }
+            if (member.memberType === 'customers') {
+                user = await CustomerModel.findById(member.member)
+            }
+
             if (!user) return
             message.isOwn = await message.getIsOwn(user.id)
 
