@@ -528,7 +528,7 @@ export const getSingleQuotation = async (req: any, res: Response, next: NextFunc
 
         // Check if the job exists
         if (!quotation) {
-            return res.status(404).json({ success: false, message: 'Qoutation not found' });
+            return res.status(404).json({ success: false, message: 'Quotation not found' });
         }
 
         if (quotation.changeOrderEstimate) quotation.changeOrderEstimate.charges = await quotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}

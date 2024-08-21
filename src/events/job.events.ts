@@ -1108,6 +1108,7 @@ JobEvent.on('JOB_CHANGE_ORDER', async function (payload: { job: IJob }) {
                 event: event,
             }
         }, { push: true, socket: true, database: true })
+        
 
 
         // if (job.isAssigned) {
@@ -1421,10 +1422,10 @@ JobEvent.on('JOB_DAY_STARTED', async function (payload: { job: IJob, jobDay: IJo
             {
                 user: contractor.id,
                 userType: 'contractors',
-                title: 'JobDay',
-                heading: {},
+                title: 'JobDay Trip Started',
+                heading: { name: contractor.name, image: contractor.profilePhoto?.url },
                 type: 'JOB_DAY_STARTED',
-                message: 'JobDay trip successfully started',
+                message: 'JobDay trip  started',
                 payload: { event: 'JOB_DAY_STARTED', jobDayId: jobDay._id, entityType: 'jobs', entity: job.id }
             },
             {
@@ -1440,10 +1441,10 @@ JobEvent.on('JOB_DAY_STARTED', async function (payload: { job: IJob, jobDay: IJo
                 {
                     user: job.assignment.contractor,
                     userType: 'contractors',
-                    title: 'JobDay',
-                    heading: {},
+                    title: 'JobDay Trip Started',
+                    heading: { name: contractor.name, image: contractor.profilePhoto?.url },
                     type: 'JOB_DAY_STARTED',
-                    message: 'JobDay trip successfully started',
+                    message: 'JobDay trip  started',
                     payload: { event: 'JOB_DAY_STARTED', jobDayId: jobDay._id, entityType: 'jobs', entity: job.id }
                 },
                 {
@@ -1460,7 +1461,7 @@ JobEvent.on('JOB_DAY_STARTED', async function (payload: { job: IJob, jobDay: IJo
                 user: customer.id,
                 userType: 'customers',
                 title: 'Job Day',
-                heading: {},
+                heading: { name: customer.name, image: customer.profilePhoto?.url },
                 type: 'JOB_DAY_STARTED',
                 message: 'Contractor is on his way',
                 payload: { event: 'JOB_DAY_STARTED', jobDayId: jobDay._id, entityType: 'jobs', entity: job.id }

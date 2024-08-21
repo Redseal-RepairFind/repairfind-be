@@ -82,7 +82,8 @@ export const ExtraEstimateSchema = new Schema<IExtraEstimate>({
     estimates: { type: [JobQuotationEstimateSchema], required: true },
     isPaid: { type: Boolean, default: false },
     payment: { type: Schema.Types.ObjectId, ref: 'payments' },
-    date: { type: Date, required: true }
+    date: { type: Date, required: true },
+    charges: { type: Schema.Types.Mixed }
 });
 
 

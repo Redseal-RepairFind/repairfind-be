@@ -611,7 +611,7 @@ var getSingleQuotation = function (req, res, next) { return __awaiter(void 0, vo
                 quotation = _f.sent();
                 // Check if the job exists
                 if (!quotation) {
-                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Qoutation not found' })];
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Quotation not found' })];
                 }
                 if (!quotation.changeOrderEstimate) return [3 /*break*/, 3];
                 _b = quotation.changeOrderEstimate;

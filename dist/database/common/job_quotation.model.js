@@ -64,7 +64,8 @@ exports.ExtraEstimateSchema = new mongoose_1.Schema({
     estimates: { type: [JobQuotationEstimateSchema], required: true },
     isPaid: { type: Boolean, default: false },
     payment: { type: mongoose_1.Schema.Types.ObjectId, ref: 'payments' },
-    date: { type: Date, required: true }
+    date: { type: Date, required: true },
+    charges: { type: mongoose_1.Schema.Types.Mixed }
 });
 var JobQuotationSchema = new mongoose_1.Schema({
     contractor: { type: mongoose_1.Schema.Types.ObjectId, ref: 'contractors', required: true },

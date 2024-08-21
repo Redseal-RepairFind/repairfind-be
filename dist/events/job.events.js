@@ -1487,38 +1487,39 @@ exports.JobEvent.on('CHANGE_ORDER_ESTIMATE_PAID', function (payload) {
 });
 // JOB DAY
 exports.JobEvent.on('JOB_DAY_STARTED', function (payload) {
+    var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function () {
         var job, jobDay, customer, contractor, error_23;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        return __generator(this, function (_d) {
+            switch (_d.label) {
                 case 0:
-                    _a.trys.push([0, 5, , 6]);
+                    _d.trys.push([0, 5, , 6]);
                     logger_1.Logger.info('handling alert JOB_DAY_STARTED event', payload.job.id);
                     return [4 /*yield*/, payload.job];
                 case 1:
-                    job = _a.sent();
+                    job = _d.sent();
                     return [4 /*yield*/, payload.jobDay];
                 case 2:
-                    jobDay = _a.sent();
+                    jobDay = _d.sent();
                     if (!job) {
                         return [2 /*return*/];
                     }
                     return [4 /*yield*/, customer_model_1.default.findById(job.customer)];
                 case 3:
-                    customer = _a.sent();
+                    customer = _d.sent();
                     return [4 /*yield*/, contractor_model_1.ContractorModel.findById(job.contractor)];
                 case 4:
-                    contractor = _a.sent();
+                    contractor = _d.sent();
                     if (!customer || !contractor)
                         return [2 /*return*/];
                     // send notification to contractor or company
                     services_1.NotificationService.sendNotification({
                         user: contractor.id,
                         userType: 'contractors',
-                        title: 'JobDay',
-                        heading: {},
+                        title: 'JobDay Trip Started',
+                        heading: { name: contractor.name, image: (_a = contractor.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
                         type: 'JOB_DAY_STARTED',
-                        message: 'JobDay trip successfully started',
+                        message: 'JobDay trip  started',
                         payload: { event: 'JOB_DAY_STARTED', jobDayId: jobDay._id, entityType: 'jobs', entity: job.id }
                     }, {
                         push: true,
@@ -1530,10 +1531,10 @@ exports.JobEvent.on('JOB_DAY_STARTED', function (payload) {
                         services_1.NotificationService.sendNotification({
                             user: job.assignment.contractor,
                             userType: 'contractors',
-                            title: 'JobDay',
-                            heading: {},
+                            title: 'JobDay Trip Started',
+                            heading: { name: contractor.name, image: (_b = contractor.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
                             type: 'JOB_DAY_STARTED',
-                            message: 'JobDay trip successfully started',
+                            message: 'JobDay trip  started',
                             payload: { event: 'JOB_DAY_STARTED', jobDayId: jobDay._id, entityType: 'jobs', entity: job.id }
                         }, {
                             push: true,
@@ -1546,7 +1547,7 @@ exports.JobEvent.on('JOB_DAY_STARTED', function (payload) {
                         user: customer.id,
                         userType: 'customers',
                         title: 'Job Day',
-                        heading: {},
+                        heading: { name: customer.name, image: (_c = customer.profilePhoto) === null || _c === void 0 ? void 0 : _c.url },
                         type: 'JOB_DAY_STARTED',
                         message: 'Contractor is on his way',
                         payload: { event: 'JOB_DAY_STARTED', jobDayId: jobDay._id, entityType: 'jobs', entity: job.id }
@@ -1557,7 +1558,7 @@ exports.JobEvent.on('JOB_DAY_STARTED', function (payload) {
                     });
                     return [3 /*break*/, 6];
                 case 5:
-                    error_23 = _a.sent();
+                    error_23 = _d.sent();
                     logger_1.Logger.error("Error handling JOB_MARKED_COMPLETE_BY_CONTRACTOR event: ".concat(error_23));
                     return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
