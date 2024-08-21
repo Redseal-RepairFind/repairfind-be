@@ -71,10 +71,10 @@ var redAlerts = function (userId) { return __awaiter(void 0, void 0, void 0, fun
                 return [4 /*yield*/, job_model_1.JobModel.find({
                         contractor: userId,
                         bookingViewByContractor: false
-                    }).select('_id')];
+                    }).select('_id contractor bookingViewByContractor')];
             case 3:
                 unseenJobIds = _a.sent();
-                logger_1.Logger.info('unseenJobIds', unseenJobIds);
+                logger_1.Logger.info('unseenJobIds', [unseenJobIds, userId]);
                 unseenBookings = unseenJobIds.map(function (job) { return job._id; });
                 return [2 /*return*/, { disputeAlerts: disputeAlerts, unseenBookings: unseenBookings }];
         }

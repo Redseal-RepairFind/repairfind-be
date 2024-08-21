@@ -31,10 +31,10 @@ const redAlerts = async (userId: ObjectId) => {
     const unseenJobIds = await JobModel.find({
         contractor: userId, 
         bookingViewByContractor: false
-    }).select('_id');
+    }).select('_id contractor bookingViewByContractor');
 
-    Logger.info('unseenJobIds', unseenJobIds)
 
+    Logger.info('unseenJobIds', [unseenJobIds, userId])
     // Map to get only the _id values
     const unseenBookings = unseenJobIds.map((job: any) => job._id);
 

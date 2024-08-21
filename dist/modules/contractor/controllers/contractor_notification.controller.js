@@ -199,7 +199,7 @@ var redAlerts = function (req, res, next) { return __awaiter(void 0, void 0, voi
             case 1:
                 _a = _b.sent(), disputeAlerts = _a.disputeAlerts, unseenBookings = _a.unseenBookings;
                 // const recentPayment = TransactionModel.find({type: {$in: [TRANSACTION_TYPE.JOB_PAYMENT, TRANSACTION_TYPE.SITE_VISIT]} })
-                res.json({ success: true, message: 'Alerts retreived', data: { disputeAlerts: disputeAlerts, unseenBookings: unseenBookings } });
+                res.json({ success: true, message: 'Alerts retrieved', data: { disputeAlerts: disputeAlerts, unseenBookings: unseenBookings } });
                 return [3 /*break*/, 3];
             case 2:
                 err_1 = _b.sent();
