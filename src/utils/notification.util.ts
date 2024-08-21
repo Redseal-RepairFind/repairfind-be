@@ -31,8 +31,8 @@ const redAlerts = async (userId: ObjectId) => {
     const unseenJobIds = await JobModel.find({
         contractor: userId, 
         // bookingViewByContractor: false
-        bookingViewByContractor: { $eq: false }
-    }).select('_id contractor bookingViewByContractor').lean();
+        bookingViewedByContractor: { $eq: false }
+    }).select('_id contractor bookingViewedByContractor').lean();
 
     Logger.info('unseenJobIds', [unseenJobIds, userId])
 

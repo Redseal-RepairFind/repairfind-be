@@ -71,8 +71,8 @@ var redAlerts = function (userId) { return __awaiter(void 0, void 0, void 0, fun
                 return [4 /*yield*/, job_model_1.JobModel.find({
                         contractor: userId,
                         // bookingViewByContractor: false
-                        bookingViewByContractor: { $eq: false }
-                    }).select('_id contractor bookingViewByContractor').lean()];
+                        bookingViewedByContractor: { $eq: false }
+                    }).select('_id contractor bookingViewedByContractor').lean()];
             case 3:
                 unseenJobIds = _a.sent();
                 logger_1.Logger.info('unseenJobIds', [unseenJobIds, userId]);
