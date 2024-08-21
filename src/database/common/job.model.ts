@@ -322,7 +322,7 @@ const JobSchema = new Schema<IJob>({
     hasUnrepliedEnquiry: { type: Schema.Types.Boolean, default: false },
     isSaved: { type: Schema.Types.Boolean, default: false },
     revisitEnabled: { type: Schema.Types.Boolean, default: false },
-    bookingViewedByContractor: { type: Schema.Types.Boolean, default: true },
+    bookingViewedByContractor: { type: Boolean, default: true },
 }, { timestamps: true });
 
 
