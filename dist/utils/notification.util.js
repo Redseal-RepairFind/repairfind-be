@@ -40,6 +40,7 @@ exports.NotificationUtil = void 0;
 var conversations_schema_1 = require("../database/common/conversations.schema");
 var messages_schema_1 = require("../database/common/messages.schema");
 var job_model_1 = require("../database/common/job.model");
+var logger_1 = require("../services/logger");
 var redAlerts = function (userId) { return __awaiter(void 0, void 0, void 0, function () {
     var ticketConversations, unreadTickets, disputeAlerts, unseenJobIds, unseenBookings;
     return __generator(this, function (_a) {
@@ -68,11 +69,12 @@ var redAlerts = function (userId) { return __awaiter(void 0, void 0, void 0, fun
                 unreadTickets = _a.sent();
                 disputeAlerts = unreadTickets.filter(function (conversation) { return conversation !== null; }).map(function (conversation) { return conversation === null || conversation === void 0 ? void 0 : conversation.entity; });
                 return [4 /*yield*/, job_model_1.JobModel.find({
-                        contractor: userId, // Assuming there's a reference to the contractor in the job model
+                        contractor: userId,
                         bookingViewByContractor: false
                     }).select('_id')];
             case 3:
                 unseenJobIds = _a.sent();
+                logger_1.Logger.info('unseenJobIds', unseenJobIds);
                 unseenBookings = unseenJobIds.map(function (job) { return job._id; });
                 return [2 /*return*/, { disputeAlerts: disputeAlerts, unseenBookings: unseenBookings }];
         }

@@ -4,6 +4,7 @@ import { IJobDispute } from "../database/common/job_dispute.model";
 import { MessageModel, MessageType } from "../database/common/messages.schema";
 import { ConversationEvent } from "../events";
 import { JobModel } from "../database/common/job.model";
+import { Logger } from "../services/logger";
 
 const redAlerts = async (userId: ObjectId) => {
     const ticketConversations = await ConversationModel.find({
@@ -28,9 +29,11 @@ const redAlerts = async (userId: ObjectId) => {
 
     // Fetch only the IDs of jobs where bookingViewByContractor is false
     const unseenJobIds = await JobModel.find({
-        contractor: userId, // Assuming there's a reference to the contractor in the job model
+        contractor: userId, 
         bookingViewByContractor: false
     }).select('_id');
+
+    Logger.info('unseenJobIds', unseenJobIds)
 
     // Map to get only the _id values
     const unseenBookings = unseenJobIds.map((job: any) => job._id);

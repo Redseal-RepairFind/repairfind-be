@@ -506,6 +506,7 @@ var enableRevisit = function (req, res, next) { return __awaiter(void 0, void 0,
                 }
                 job.revisitEnabled = true;
                 job.status = job_model_1.JOB_STATUS.BOOKED;
+                job.schedule.startDate.setDate(job.schedule.startDate.getDate() + 14);
                 job.jobHistory.push({
                     eventType: 'REVISIT_ENABLED_VIA_DISPUTE',
                     timestamp: new Date(),
