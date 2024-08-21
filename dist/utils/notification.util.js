@@ -70,7 +70,8 @@ var redAlerts = function (userId) { return __awaiter(void 0, void 0, void 0, fun
                 disputeAlerts = unreadTickets.filter(function (conversation) { return conversation !== null; }).map(function (conversation) { return conversation === null || conversation === void 0 ? void 0 : conversation.entity; });
                 return [4 /*yield*/, job_model_1.JobModel.find({
                         contractor: userId,
-                        bookingViewByContractor: false
+                        // bookingViewByContractor: false
+                        bookingViewByContractor: { $eq: false }
                     }).select('_id contractor bookingViewByContractor').lean()];
             case 3:
                 unseenJobIds = _a.sent();
