@@ -357,6 +357,7 @@ JobEvent.on('JOB_REVISIT_ENABLED', async function (payload: { job: IJob, dispute
 
         if (job && contractor && customer) {
 
+            const conversation = await ConversationUtil.updateOrCreateConversation(contractor.id, 'contractors', customer.id, 'customers')
             NotificationService.sendNotification({
                 user: contractor.id,
                 userType: 'contractors',
@@ -369,6 +370,7 @@ JobEvent.on('JOB_REVISIT_ENABLED', async function (payload: { job: IJob, dispute
                     entityType: 'jobs',
                     message: `A revisit for your disputed job has been enabled on Repairfind`,
                     contractor: contractor.id,
+                    conversationId: conversation?.id,
                     event: 'JOB_REVISIT_ENABLED',
                 }
             }, { push: true, socket: true, database: true })
@@ -386,6 +388,7 @@ JobEvent.on('JOB_REVISIT_ENABLED', async function (payload: { job: IJob, dispute
                     jobType: job.type,
                     message: `A revisit for your disputed job has been enabled on Repairfind`,
                     customer: customer.id,
+                    conversationId: conversation?.id,
                     event: 'JOB_REVISIT_ENABLED',
                 }
             }, { database: true, push: true, socket: true })

@@ -456,11 +456,11 @@ exports.JobEvent.on('JOB_DISPUTE_REFUND_CREATED', function (payload) {
 exports.JobEvent.on('JOB_REVISIT_ENABLED', function (payload) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var job, dispute, customer, contractor, error_7;
+        var job, dispute, customer, contractor, conversation, error_7;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
-                    _c.trys.push([0, 3, , 4]);
+                    _c.trys.push([0, 5, , 6]);
                     logger_1.Logger.info('handling alert JOB_REVISIT_ENABLED event');
                     job = payload.job;
                     dispute = payload.dispute;
@@ -470,45 +470,50 @@ exports.JobEvent.on('JOB_REVISIT_ENABLED', function (payload) {
                     return [4 /*yield*/, contractor_model_1.ContractorModel.findById(payload.job.contractor)];
                 case 2:
                     contractor = _c.sent();
-                    if (job && contractor && customer) {
-                        services_1.NotificationService.sendNotification({
-                            user: contractor.id,
-                            userType: 'contractors',
-                            title: 'Job Revisit  Enabled',
-                            type: 'JOB_REVISIT_ENABLED', //
-                            message: "A revisit for your disputed job has been enabled on Repairfind",
-                            heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_a = customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
-                            payload: {
-                                entity: job.id,
-                                entityType: 'jobs',
-                                message: "A revisit for your disputed job has been enabled on Repairfind",
-                                contractor: contractor.id,
-                                event: 'JOB_REVISIT_ENABLED',
-                            }
-                        }, { push: true, socket: true, database: true });
-                        services_1.NotificationService.sendNotification({
-                            user: customer.id,
-                            userType: 'customers',
-                            title: 'Job Revisit  Enabled',
-                            type: 'JOB_REVISIT_ENABLED',
-                            message: "A revisit for your disputed job has been enabled on Repairfind",
-                            heading: { name: "".concat(contractor.name), image: (_b = contractor.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
-                            payload: {
-                                entity: job.id,
-                                entityType: 'jobs',
-                                jobType: job.type,
-                                message: "A revisit for your disputed job has been enabled on Repairfind",
-                                customer: customer.id,
-                                event: 'JOB_REVISIT_ENABLED',
-                            }
-                        }, { database: true, push: true, socket: true });
-                    }
-                    return [3 /*break*/, 4];
+                    if (!(job && contractor && customer)) return [3 /*break*/, 4];
+                    return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(contractor.id, 'contractors', customer.id, 'customers')];
                 case 3:
+                    conversation = _c.sent();
+                    services_1.NotificationService.sendNotification({
+                        user: contractor.id,
+                        userType: 'contractors',
+                        title: 'Job Revisit  Enabled',
+                        type: 'JOB_REVISIT_ENABLED', //
+                        message: "A revisit for your disputed job has been enabled on Repairfind",
+                        heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_a = customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
+                        payload: {
+                            entity: job.id,
+                            entityType: 'jobs',
+                            message: "A revisit for your disputed job has been enabled on Repairfind",
+                            contractor: contractor.id,
+                            conversationId: conversation === null || conversation === void 0 ? void 0 : conversation.id,
+                            event: 'JOB_REVISIT_ENABLED',
+                        }
+                    }, { push: true, socket: true, database: true });
+                    services_1.NotificationService.sendNotification({
+                        user: customer.id,
+                        userType: 'customers',
+                        title: 'Job Revisit  Enabled',
+                        type: 'JOB_REVISIT_ENABLED',
+                        message: "A revisit for your disputed job has been enabled on Repairfind",
+                        heading: { name: "".concat(contractor.name), image: (_b = contractor.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
+                        payload: {
+                            entity: job.id,
+                            entityType: 'jobs',
+                            jobType: job.type,
+                            message: "A revisit for your disputed job has been enabled on Repairfind",
+                            customer: customer.id,
+                            conversationId: conversation === null || conversation === void 0 ? void 0 : conversation.id,
+                            event: 'JOB_REVISIT_ENABLED',
+                        }
+                    }, { database: true, push: true, socket: true });
+                    _c.label = 4;
+                case 4: return [3 /*break*/, 6];
+                case 5:
                     error_7 = _c.sent();
                     logger_1.Logger.error("Error handling JOB_REVISIT_ENABLED event: ".concat(error_7));
-                    return [3 /*break*/, 4];
-                case 4: return [2 /*return*/];
+                    return [3 /*break*/, 6];
+                case 6: return [2 /*return*/];
             }
         });
     });
