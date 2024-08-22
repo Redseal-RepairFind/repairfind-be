@@ -12,6 +12,7 @@ import { ContractorModel } from "../../../database/contractor/models/contractor.
 import CustomerModel from "../../../database/customer/models/customer.model";
 import { JOB_DISPUTE_STATUS, JobDisputeModel } from "../../../database/common/job_dispute.model";
 import { JOB_QUOTATION_TYPE, JobQuotationModel } from "../../../database/common/job_quotation.model";
+import { ConversationUtil } from "../../../utils/conversation.util";
 
 
 export const initiateJobDay = async (
@@ -347,29 +348,7 @@ export const createJobDispute = async (req: any, res: Response, next: NextFuncti
         }, { new: true, upsert: true });
 
 
-        const contractorId = job.contractor
-        const conversationMembers = [
-            { memberType: 'customers', member: customerId },
-            { memberType: 'contractors', member: contractorId }
-        ];
-
-        const conversation = await ConversationModel.findOneAndUpdate(
-            {
-                type: CONVERSATION_TYPE.GROUP_CHAT,
-                entity: dispute.id,
-                entityType: 'job_disputes',
-                $and: [
-                    { members: { $elemMatch: { member: customerId } } }, // memberType: 'customers'
-                    { members: { $elemMatch: { member: contractorId } } } // memberType: 'contractors'
-                ]
-            },
-            {
-                members: conversationMembers,
-                lastMessage: `New Dispute Created: ${description}`, // Set the last message to the job description
-                lastMessageAt: new Date() // Set the last message timestamp to now
-            },
-            { new: true, upsert: true }
-        );
+      
 
         if(evidence){
             const disputeEvidence = evidence.map((url: string) => ({
@@ -379,10 +358,18 @@ export const createJobDispute = async (req: any, res: Response, next: NextFuncti
             }));
             dispute.evidence.push(...disputeEvidence);
         }
-       
 
 
-        dispute.conversation = conversation.id
+        //if job was previously disputed, assign dispute to previous arbitrator
+        const previousDispute = await JobDisputeModel.findOne({job: job.id, status: JOB_DISPUTE_STATUS.REVISIT})
+        if(job.revisitEnabled && previousDispute){
+            dispute.status = JOB_DISPUTE_STATUS.ONGOING
+            dispute.arbitrator = previousDispute.arbitrator
+            dispute.status = JOB_DISPUTE_STATUS.ONGOING
+            const { customerContractor, arbitratorContractor, arbitratorCustomer } = await ConversationUtil.updateOrCreateDisputeConversations(dispute)
+            dispute.conversations = { customerContractor, arbitratorContractor, arbitratorCustomer }
+        }
+
         await dispute.save()
 
         job.status = JOB_STATUS.DISPUTED

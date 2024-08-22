@@ -491,6 +491,10 @@ var acceptOrDeclineReschedule = function (req, res, next) { return __awaiter(voi
                         job.reschedule.awaitingConfirmation = false;
                     }
                     job.schedule = __assign(__assign({}, job.schedule), { startDate: job.reschedule.date });
+                    // Change status to booked, just in case it was
+                    if (job.revisitEnabled) {
+                        job.status = job_model_1.JOB_STATUS.BOOKED;
+                    }
                     // Save rescheduling history in job history
                     job.jobHistory.push({
                         eventType: 'JOB_RESCHEDULED', // Custom event type identifier

@@ -63,6 +63,7 @@ var contractor_model_1 = require("../../../database/contractor/models/contractor
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var job_dispute_model_1 = require("../../../database/common/job_dispute.model");
 var job_quotation_model_1 = require("../../../database/common/job_quotation.model");
+var conversation_util_1 = require("../../../utils/conversation.util");
 var initiateJobDay = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var jobId, errors, customerId, job, jobDay, contractorId, findContractor, contractor, customer, contractorProfile, conversationMembers, conversation, contractorLocation, data, err_1;
     return __generator(this, function (_a) {
@@ -339,12 +340,12 @@ var createJobEmergency = function (req, res, next) { return __awaiter(void 0, vo
 }); };
 exports.createJobEmergency = createJobEmergency;
 var createJobDispute = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, description, evidence, jobDayId, customerId, errors, jobDay, job, dispute, contractorId, conversationMembers, conversation, disputeEvidence, error_2;
-    var _b;
-    return __generator(this, function (_c) {
-        switch (_c.label) {
+    var _a, description, evidence, jobDayId, customerId, errors, jobDay, job, dispute, disputeEvidence, previousDispute, _b, customerContractor, arbitratorContractor, arbitratorCustomer, error_2;
+    var _c;
+    return __generator(this, function (_d) {
+        switch (_d.label) {
             case 0:
-                _c.trys.push([0, 7, , 8]);
+                _d.trys.push([0, 9, , 10]);
                 _a = req.body, description = _a.description, evidence = _a.evidence;
                 jobDayId = req.params.jobDayId;
                 customerId = req.customer.id;
@@ -354,13 +355,13 @@ var createJobDispute = function (req, res, next) { return __awaiter(void 0, void
                 }
                 return [4 /*yield*/, job_day_model_1.JobDayModel.findById(jobDayId)];
             case 1:
-                jobDay = _c.sent();
+                jobDay = _d.sent();
                 if (!jobDay) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found' })];
                 }
                 return [4 /*yield*/, job_model_1.JobModel.findById(jobDay.job)];
             case 2:
-                job = _c.sent();
+                job = _d.sent();
                 if (!job) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found' })];
                 }
@@ -380,39 +381,30 @@ var createJobDispute = function (req, res, next) { return __awaiter(void 0, void
                         status: job_dispute_model_1.JOB_DISPUTE_STATUS.OPEN,
                     }, { new: true, upsert: true })];
             case 3:
-                dispute = _c.sent();
-                contractorId = job.contractor;
-                conversationMembers = [
-                    { memberType: 'customers', member: customerId },
-                    { memberType: 'contractors', member: contractorId }
-                ];
-                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
-                        type: conversations_schema_1.CONVERSATION_TYPE.GROUP_CHAT,
-                        entity: dispute.id,
-                        entityType: 'job_disputes',
-                        $and: [
-                            { members: { $elemMatch: { member: customerId } } }, // memberType: 'customers'
-                            { members: { $elemMatch: { member: contractorId } } } // memberType: 'contractors'
-                        ]
-                    }, {
-                        members: conversationMembers,
-                        lastMessage: "New Dispute Created: ".concat(description), // Set the last message to the job description
-                        lastMessageAt: new Date() // Set the last message timestamp to now
-                    }, { new: true, upsert: true })];
-            case 4:
-                conversation = _c.sent();
+                dispute = _d.sent();
                 if (evidence) {
                     disputeEvidence = evidence.map(function (url) { return ({
                         url: url,
                         addedBy: 'customer',
                         addedAt: new Date(),
                     }); });
-                    (_b = dispute.evidence).push.apply(_b, disputeEvidence);
+                    (_c = dispute.evidence).push.apply(_c, disputeEvidence);
                 }
-                dispute.conversation = conversation.id;
-                return [4 /*yield*/, dispute.save()];
+                return [4 /*yield*/, job_dispute_model_1.JobDisputeModel.findOne({ job: job.id, status: job_dispute_model_1.JOB_DISPUTE_STATUS.REVISIT })];
+            case 4:
+                previousDispute = _d.sent();
+                if (!(job.revisitEnabled && previousDispute)) return [3 /*break*/, 6];
+                dispute.status = job_dispute_model_1.JOB_DISPUTE_STATUS.ONGOING;
+                dispute.arbitrator = previousDispute.arbitrator;
+                dispute.status = job_dispute_model_1.JOB_DISPUTE_STATUS.ONGOING;
+                return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateDisputeConversations(dispute)];
             case 5:
-                _c.sent();
+                _b = _d.sent(), customerContractor = _b.customerContractor, arbitratorContractor = _b.arbitratorContractor, arbitratorCustomer = _b.arbitratorCustomer;
+                dispute.conversations = { customerContractor: customerContractor, arbitratorContractor: arbitratorContractor, arbitratorCustomer: arbitratorCustomer };
+                _d.label = 6;
+            case 6: return [4 /*yield*/, dispute.save()];
+            case 7:
+                _d.sent();
                 job.status = job_model_1.JOB_STATUS.DISPUTED;
                 job.statusUpdate = {
                     isContractorAccept: true,
@@ -421,15 +413,15 @@ var createJobDispute = function (req, res, next) { return __awaiter(void 0, void
                     status: 'REJECTED',
                 };
                 return [4 /*yield*/, job.save()];
-            case 6:
-                _c.sent();
+            case 8:
+                _d.sent();
                 events_1.JobEvent.emit('JOB_DISPUTE_CREATED', { dispute: dispute });
                 return [2 /*return*/, res.status(201).json({ success: true, message: 'Job dispute created successfully', data: dispute })];
-            case 7:
-                error_2 = _c.sent();
+            case 9:
+                error_2 = _d.sent();
                 next(new custom_errors_1.InternalServerError('Error creating job dispute:', error_2));
-                return [3 /*break*/, 8];
-            case 8: return [2 /*return*/];
+                return [3 /*break*/, 10];
+            case 10: return [2 /*return*/];
         }
     });
 }); };

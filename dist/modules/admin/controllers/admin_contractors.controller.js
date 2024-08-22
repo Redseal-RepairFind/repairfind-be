@@ -472,7 +472,7 @@ var updateGstDetails = function (req, res) { return __awaiter(void 0, void 0, vo
                 contractor = _c.sent();
                 if (!contractor) {
                     return [2 /*return*/, res
-                            .status(401)
+                            .status(404)
                             .json({ message: "Contractor not found" })];
                 }
                 if (reason === '' && gstStatus === contractor_interface_1.GST_STATUS.DECLINED) {

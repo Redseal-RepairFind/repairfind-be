@@ -492,6 +492,11 @@ export const acceptOrDeclineReschedule = async (req: any, res: Response, next: N
                 startDate: job.reschedule.date, // Add or overwrite the startDate property
             };
 
+            // Change status to booked, just in case it was
+            if(job.revisitEnabled){
+                job.status = JOB_STATUS.BOOKED
+            }
+
             // Save rescheduling history in job history
             job.jobHistory.push({
                 eventType: 'JOB_RESCHEDULED', // Custom event type identifier

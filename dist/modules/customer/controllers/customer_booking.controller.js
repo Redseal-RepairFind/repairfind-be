@@ -460,6 +460,10 @@ var acceptOrDeclineReschedule = function (req, res, next) { return __awaiter(voi
                         job.reschedule.awaitingConfirmation = false;
                     }
                     job.schedule = __assign(__assign({}, job.schedule), { startDate: job.reschedule.date });
+                    // Change status to booked, just in case it was
+                    if (job.revisitEnabled) {
+                        job.status = job_model_1.JOB_STATUS.BOOKED;
+                    }
                     // Save rescheduling history in job history
                     job.jobHistory.push({
                         eventType: 'JOB_RESCHEDULED', // Custom event type identifier
@@ -952,6 +956,8 @@ var acceptBookingComplete = function (req, res, next) { return __awaiter(void 0,
                 jobStatus = (job.schedule.type == job_model_1.JOB_SCHEDULE_TYPE.SITE_VISIT) ? job_model_1.JOB_STATUS.COMPLETED_SITE_VISIT : job_model_1.JOB_STATUS.COMPLETED;
                 job.statusUpdate = __assign(__assign({}, job.statusUpdate), { status: jobStatus, isCustomerAccept: true, awaitingConfirmation: false });
                 job.status = jobStatus; // since its customer accepting job completion
+                // add job end date here
+                job.schedule.endDate = new Date();
                 job.jobHistory.push({
                     eventType: 'JOB_MARKED_COMPLETE_BY_CUSTOMER',
                     timestamp: new Date(),
@@ -1058,12 +1064,12 @@ var reviewBookingOnCompletion = function (req, res, next) { return __awaiter(voi
 }); };
 exports.reviewBookingOnCompletion = reviewBookingOnCompletion;
 var createBookingDispute = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, description, evidence, bookingId, customerId, errors, job, disputerType, disputer, dispute, disputeEvidence, error_13;
-    var _b;
-    return __generator(this, function (_c) {
-        switch (_c.label) {
+    var _a, description, evidence, bookingId, customerId, errors, job, disputerType, disputer, dispute, disputeEvidence, previousDispute, _b, customerContractor, arbitratorContractor, arbitratorCustomer, error_13;
+    var _c;
+    return __generator(this, function (_d) {
+        switch (_d.label) {
             case 0:
-                _c.trys.push([0, 5, , 6]);
+                _d.trys.push([0, 8, , 9]);
                 _a = req.body, description = _a.description, evidence = _a.evidence;
                 bookingId = req.params.bookingId;
                 customerId = req.customer.id;
@@ -1073,7 +1079,7 @@ var createBookingDispute = function (req, res, next) { return __awaiter(void 0, 
                 }
                 return [4 /*yield*/, job_model_1.JobModel.findById(bookingId)];
             case 1:
-                job = _c.sent();
+                job = _d.sent();
                 if (!job) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Job not found' })];
                 }
@@ -1095,37 +1101,47 @@ var createBookingDispute = function (req, res, next) { return __awaiter(void 0, 
                         status: job_dispute_model_1.JOB_DISPUTE_STATUS.OPEN,
                     }, { new: true, upsert: true })];
             case 2:
-                dispute = _c.sent();
+                dispute = _d.sent();
                 if (evidence) {
                     disputeEvidence = evidence.map(function (url) { return ({
                         url: url,
                         addedBy: 'customer',
                         addedAt: new Date(),
                     }); });
-                    (_b = dispute.evidence).push.apply(_b, disputeEvidence);
+                    (_c = dispute.evidence).push.apply(_c, disputeEvidence);
                 }
-                // dispute.conversation = conversation.id
-                return [4 /*yield*/, dispute.save()];
+                return [4 /*yield*/, job_dispute_model_1.JobDisputeModel.findOne({ job: job.id, status: job_dispute_model_1.JOB_DISPUTE_STATUS.REVISIT })];
             case 3:
-                // dispute.conversation = conversation.id
-                _c.sent();
+                previousDispute = _d.sent();
+                if (!(job.revisitEnabled && previousDispute)) return [3 /*break*/, 5];
+                dispute.status = job_dispute_model_1.JOB_DISPUTE_STATUS.ONGOING;
+                dispute.arbitrator = previousDispute.arbitrator;
+                dispute.status = job_dispute_model_1.JOB_DISPUTE_STATUS.ONGOING;
+                return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateDisputeConversations(dispute)];
+            case 4:
+                _b = _d.sent(), customerContractor = _b.customerContractor, arbitratorContractor = _b.arbitratorContractor, arbitratorCustomer = _b.arbitratorCustomer;
+                dispute.conversations = { customerContractor: customerContractor, arbitratorContractor: arbitratorContractor, arbitratorCustomer: arbitratorCustomer };
+                _d.label = 5;
+            case 5: return [4 /*yield*/, dispute.save()];
+            case 6:
+                _d.sent();
                 job.status = job_model_1.JOB_STATUS.DISPUTED;
                 job.statusUpdate = {
                     isContractorAccept: true,
-                    isCustomerAccept: false,
+                    isCustomerAccept: true,
                     awaitingConfirmation: false,
                     status: 'REJECTED',
                 };
                 return [4 /*yield*/, job.save()];
-            case 4:
-                _c.sent();
+            case 7:
+                _d.sent();
                 events_1.JobEvent.emit('JOB_DISPUTE_CREATED', { dispute: dispute });
                 return [2 /*return*/, res.status(201).json({ success: true, message: 'Job dispute created successfully', data: dispute })];
-            case 5:
-                error_13 = _c.sent();
+            case 8:
+                error_13 = _d.sent();
                 next(new custom_errors_1.InternalServerError('Error creating job dispute:', error_13));
-                return [3 /*break*/, 6];
-            case 6: return [2 /*return*/];
+                return [3 /*break*/, 9];
+            case 9: return [2 /*return*/];
         }
     });
 }); };

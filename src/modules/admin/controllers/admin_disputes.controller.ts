@@ -474,8 +474,8 @@ export const enableRevisit = async (req: any, res: Response, next: NextFunction)
     }
 
     job.revisitEnabled = true
-    job.status = JOB_STATUS.BOOKED 
-    job.schedule.startDate.setDate(job.schedule.startDate.getDate() + 14);
+    // job.status = JOB_STATUS.BOOKED 
+    // job.schedule.startDate.setDate(job.schedule.startDate.getDate() + 14);
     job.jobHistory.push({
       eventType: 'REVISIT_ENABLED_VIA_DISPUTE',
       timestamp: new Date(),

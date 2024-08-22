@@ -484,7 +484,7 @@ export const updateGstDetails = async (
 
     if (!contractor) {
       return res
-        .status(401)
+        .status(404)
         .json({ message: "Contractor not found" });
     }
 

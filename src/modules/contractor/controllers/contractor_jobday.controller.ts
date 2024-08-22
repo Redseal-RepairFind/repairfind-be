@@ -13,6 +13,7 @@ import { ContractorProfileModel } from "../../../database/contractor/models/cont
 import CustomerModel from "../../../database/customer/models/customer.model";
 import { JOB_DISPUTE_STATUS, JobDisputeModel } from "../../../database/common/job_dispute.model";
 import { JOB_QUOTATION_TYPE, JobQuotationModel } from "../../../database/common/job_quotation.model";
+import { ConversationUtil } from "../../../utils/conversation.util";
 
 
 export const startTrip = async (
@@ -312,6 +313,15 @@ export const createJobDispute = async (req: any, res: Response, next: NextFuncti
             dispute.evidence.push(...disputeEvidence);
         }
 
+       //if job was previously disputed, assign dispute to previous arbitrator
+       const previousDispute = await JobDisputeModel.findOne({job: job.id, status: JOB_DISPUTE_STATUS.REVISIT})
+       if(job.revisitEnabled && previousDispute){
+           dispute.status = JOB_DISPUTE_STATUS.ONGOING
+           dispute.arbitrator = previousDispute.arbitrator
+           dispute.status = JOB_DISPUTE_STATUS.ONGOING
+           const { customerContractor, arbitratorContractor, arbitratorCustomer } = await ConversationUtil.updateOrCreateDisputeConversations(dispute)
+           dispute.conversations = { customerContractor, arbitratorContractor, arbitratorCustomer }
+       }
        
         await dispute.save()
 

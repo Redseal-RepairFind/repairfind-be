@@ -450,6 +450,11 @@ export const acceptOrDeclineReschedule = async (req: any, res: Response, next: N
                 startDate: job.reschedule.date, // Add or overwrite the startDate property
             };
 
+            // Change status to booked, just in case it was
+            if(job.revisitEnabled){
+                job.status = JOB_STATUS.BOOKED
+            }
+
             // Save rescheduling history in job history
             job.jobHistory.push({
                 eventType: 'JOB_RESCHEDULED', // Custom event type identifier
@@ -950,6 +955,9 @@ export const acceptBookingComplete = async (req: any, res: Response, next: NextF
         }
 
         job.status = jobStatus  // since its customer accepting job completion
+
+        // add job end date here
+        job.schedule.endDate = new Date()
         job.jobHistory.push({
             eventType: 'JOB_MARKED_COMPLETE_BY_CUSTOMER',
             timestamp: new Date(),
@@ -1098,15 +1106,25 @@ export const createBookingDispute = async (req: any, res: Response, next: NextFu
         }
        
 
-        // dispute.conversation = conversation.id
+        //if job was previously disputed, assign dispute to previous arbitrator
+        const previousDispute = await JobDisputeModel.findOne({job: job.id, status: JOB_DISPUTE_STATUS.REVISIT})
+        if(job.revisitEnabled && previousDispute){
+            dispute.status = JOB_DISPUTE_STATUS.ONGOING
+            dispute.arbitrator = previousDispute.arbitrator
+            dispute.status = JOB_DISPUTE_STATUS.ONGOING
+            const { customerContractor, arbitratorContractor, arbitratorCustomer } = await ConversationUtil.updateOrCreateDisputeConversations(dispute)
+            dispute.conversations = { customerContractor, arbitratorContractor, arbitratorCustomer }
+        }
+
         await dispute.save()
 
         job.status = JOB_STATUS.DISPUTED
 
 
+
         job.statusUpdate = {
             isContractorAccept: true,
-            isCustomerAccept: false,
+            isCustomerAccept: true,
             awaitingConfirmation: false,
             status: 'REJECTED',
         }
