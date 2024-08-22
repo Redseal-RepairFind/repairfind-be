@@ -110,11 +110,11 @@ export class NotificationService  {
                     _contentAvailable: true,
                     'content-available': 1,
                     priority: 'high', 
-                    data: { 
-                        _contentAvailable: true,
-                        'content-available': 1,
-                        ...params.payload
-                    },
+                    // data: { 
+                    //     _contentAvailable: true,
+                    //     'content-available': 1,
+                    //     ...params.payload
+                    // },
                 }
             }
             sendPushNotifications( deviceTokens , pushLoad)

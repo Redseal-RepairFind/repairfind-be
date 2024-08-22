@@ -148,7 +148,11 @@ var NotificationService = /** @class */ (function () {
                                     _contentAvailable: true,
                                     'content-available': 1,
                                     priority: 'high',
-                                    data: __assign({ _contentAvailable: true, 'content-available': 1 }, params.payload),
+                                    // data: { 
+                                    //     _contentAvailable: true,
+                                    //     'content-available': 1,
+                                    //     ...params.payload
+                                    // },
                                 };
                             }
                             (0, expo_1.sendPushNotifications)(deviceTokens, pushLoad);
