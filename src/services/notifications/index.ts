@@ -100,9 +100,7 @@ export class NotificationService  {
                 categoryId: params.type,
                 channelId: params.type,
                 categoryIdentifier: params.type,
-                _contentAvailable: true,
                 data: { 
-                    _contentAvailable: true,
                     ...params.payload
                 },
             }

@@ -141,8 +141,7 @@ var NotificationService = /** @class */ (function () {
                                 categoryId: params.type,
                                 channelId: params.type,
                                 categoryIdentifier: params.type,
-                                _contentAvailable: true,
-                                data: __assign({ _contentAvailable: true }, params.payload),
+                                data: __assign({}, params.payload),
                             };
                             if (params.type == 'NEW_INCOMING_CALL') {
                                 pushLoad = {
