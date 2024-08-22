@@ -109,6 +109,7 @@ export class NotificationService  {
 
             if(params.type == 'NEW_INCOMING_CALL'){
                 pushLoad = {
+                    _contentAvailable: true,
                     data: { 
                         _contentAvailable: true,
                         ...params.payload

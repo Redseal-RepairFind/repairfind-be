@@ -146,6 +146,7 @@ var NotificationService = /** @class */ (function () {
                             };
                             if (params.type == 'NEW_INCOMING_CALL') {
                                 pushLoad = {
+                                    _contentAvailable: true,
                                     data: __assign({ _contentAvailable: true }, params.payload),
                                 };
                             }
