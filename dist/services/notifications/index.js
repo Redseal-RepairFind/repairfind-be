@@ -146,7 +146,8 @@ var NotificationService = /** @class */ (function () {
                             if (params.type == 'NEW_INCOMING_CALL') {
                                 pushLoad = {
                                     _contentAvailable: true,
-                                    data: __assign({ _contentAvailable: true }, params.payload),
+                                    'content-available': 1,
+                                    data: __assign({ _contentAvailable: true, 'content-available': 1 }, params.payload),
                                 };
                             }
                             (0, expo_1.sendPushNotifications)(deviceTokens, pushLoad);

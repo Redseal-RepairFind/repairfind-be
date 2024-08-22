@@ -12,7 +12,7 @@ export async function sendPushNotifications(pushTokens: string[], message: any):
     .filter(token => Expo.isExpoPushToken(token)) // Filter out invalid tokens
     .map(token => ({
       to: token,
-      ttl: 60,  //2419200 secs (4 weeks)
+      // ttl: 60,  //2419200 secs (4 weeks)
       ...message,
     }));
 
