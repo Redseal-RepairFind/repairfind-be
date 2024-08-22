@@ -1,0 +1,96 @@
+# Exported from Render on 2024-08-22T08:32:14Z
+services:
+- type: web
+  name: repairfindbe-staging
+  runtime: docker
+  repo: https://github.com/Redseal-RepairFind/repairfind-be
+  plan: free
+  envVars:
+  - key: AWS_S3_ENDPOINT
+    sync: false
+  - key: AWS_SECRET_KEY
+    sync: false
+  - key: AWS_S3_BUCKET
+    sync: false
+  - key: AWS_REGION
+    sync: false
+  - key: AWS_ACCESS_KEY_ID
+    sync: false
+  - key: VERIFICATION_ENCRYPTION_KEY
+    sync: false
+  - key: TWILIO_VERIFICATION_SERVICE_SID
+    sync: false
+  - key: TWILIO_PHONE_NUMBER
+    sync: false
+  - key: TWILIO_AUTH_TOKEN
+    sync: false
+  - key: TWILIO_ACCOUNT_SID
+    sync: false
+  - key: STRIPE_WEBHOOK_SECRET
+    sync: false
+  - key: STRIPE_SECRET_KEY
+    sync: false
+  - key: STRIPE_PUBLIC_KEY
+    sync: false
+  - key: STRIPE_IDENTITY_API_RK
+    sync: false
+  - key: REFRESH_JWT_SECRET_KEY
+    sync: false
+  - key: REDIS_USERNAME
+    sync: false
+  - key: REDIS_URI
+    sync: false
+  - key: REDIS_QUEUE_NAME
+    sync: false
+  - key: REDIS_PORT
+    sync: false
+  - key: REDIS_PASSWORD
+    sync: false
+  - key: REDIS_HOST
+    sync: false
+  - key: PORT
+    sync: false
+  - key: NODE_OPTIONS
+    sync: false
+  - key: MONGODB_URI
+    sync: false
+  - key: LOGTAIL_TOKEN
+    sync: false
+  - key: JWT_SECRET_KEY
+    sync: false
+  - key: JWT_CONTRACTOR_SECRET_KEY
+    sync: false
+  - key: JWT_ADMIN_SECRET_KEY
+    sync: false
+  - key: GENERATE_SOURCEMAP
+    sync: false
+  - key: EMAIL_SMTP_USERNAME
+    sync: false
+  - key: EMAIL_SMTP_PASSWORD
+    sync: false
+  - key: EMAIL_SERVICE
+    sync: false
+  - key: EMAIL_SECURE
+    sync: false
+  - key: EMAIL_PORT
+    sync: false
+  - key: EMAIL_NAME
+    sync: false
+  - key: EMAIL_HOST
+    sync: false
+  - key: EMAIL_FROM
+    sync: false
+  - key: CERTN_KEY
+    sync: false
+  - key: AUTHTOKEN
+    sync: false
+  - key: AGORA_APP_ID
+    sync: false
+  - key: AGORA_APP_CERTIFICATE
+    sync: false
+  - key: ACCOUNTSID
+    sync: false
+  region: oregon
+  dockerContext: .
+  dockerfilePath: ./Dockerfile
+version: "1"
