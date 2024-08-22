@@ -9,6 +9,7 @@ export const getNotifications = async (req: any, res: Response, next: NextFuncti
     try {
         const { startDate, endDate, read, ...query } = req.query;
         const adminId = req.admin.id
+        // const filter: any = { $or: [ { user: null }, { user: adminId } ], userType: 'admins' };
         const filter: any = { $or: [ { user: null }, { user: adminId } ], userType: 'admins' };
 
         if (startDate && endDate) {

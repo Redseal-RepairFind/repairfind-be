@@ -59,6 +59,7 @@ var customer_devices_model_1 = __importDefault(require("../../database/customer/
 var expo_1 = require("../expo");
 var socket_1 = require("../socket");
 var notification_util_1 = require("../../utils/notification.util");
+var admin_model_1 = __importDefault(require("../../database/admin/models/admin.model"));
 var NotificationService = /** @class */ (function () {
     function NotificationService() {
     }
@@ -101,7 +102,7 @@ var NotificationService = /** @class */ (function () {
                         _a.label = 6;
                     case 6:
                         if (!(params.userType == 'admins')) return [3 /*break*/, 9];
-                        return [4 /*yield*/, customer_model_1.default.findById(params.user)];
+                        return [4 /*yield*/, admin_model_1.default.findById(params.user)];
                     case 7:
                         user = _a.sent();
                         return [4 /*yield*/, customer_devices_model_1.default.find({ customer: user === null || user === void 0 ? void 0 : user.id }).select('deviceToken')];

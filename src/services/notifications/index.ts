@@ -9,6 +9,7 @@ import { SocketService } from '../socket';
 import { ObjectId } from 'mongoose';
 import { url } from 'inspector';
 import { NotificationUtil } from '../../utils/notification.util';
+import AdminModel from '../../database/admin/models/admin.model';
 
 
 
@@ -58,7 +59,7 @@ export class NotificationService  {
         }
         
         if(params.userType == 'admins'){
-            user  = await CustomerModel.findById(params.user)
+            user  = await AdminModel.findById(params.user)
             devices = await CustomerDeviceModel.find({customer: user?.id}).select('deviceToken')
             deviceTokens = devices.map(device => device.deviceToken);
         }
