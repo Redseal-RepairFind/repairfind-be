@@ -85,7 +85,6 @@ JobEvent.on('NEW_JOB_REQUEST', async function (payload) {
 });
 
 
-
 JobEvent.on('JOB_REQUEST_ACCEPTED', async function (payload) {
     try {
         Logger.info('handling JOB_REQUEST_ACCEPTED event')
@@ -458,7 +457,6 @@ JobEvent.on('JOB_QUOTATION_DECLINED', async function (payload: { jobId: ObjectId
 });
 
 
-
 JobEvent.on('JOB_QUOTATION_ACCEPTED', async function (payload: { jobId: ObjectId, contractorId: ObjectId, customerId: ObjectId, reason: string }) {
     try {
 
@@ -509,7 +507,6 @@ JobEvent.on('JOB_QUOTATION_ACCEPTED', async function (payload: { jobId: ObjectId
         Logger.error(`Error handling JOB_QUOTATION_ACCEPTED event: ${error}`);
     }
 });
-
 
 
 JobEvent.on('JOB_DAY_EMERGENCY', async function (payload: { jobEmergency: IJobEmergency }) {
