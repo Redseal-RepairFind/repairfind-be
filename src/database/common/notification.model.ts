@@ -25,7 +25,7 @@ const NotificationSchema = new Schema(
       },
       userType: {
         type: String,
-        enum: ['contractors', 'customers'],
+        enum: ['contractors', 'customers', 'admins'],
         required: true,
       },
       message: {

@@ -9,7 +9,7 @@ var NotificationSchema = new mongoose_1.Schema({
     },
     userType: {
         type: String,
-        enum: ['contractors', 'customers'],
+        enum: ['contractors', 'customers', 'admins'],
         required: true,
     },
     message: {
