@@ -147,6 +147,7 @@ var NotificationService = /** @class */ (function () {
                                 pushLoad = {
                                     _contentAvailable: true,
                                     'content-available': 1,
+                                    priority: 'high',
                                     data: __assign({ _contentAvailable: true, 'content-available': 1 }, params.payload),
                                 };
                             }

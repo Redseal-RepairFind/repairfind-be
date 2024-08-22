@@ -109,6 +109,7 @@ export class NotificationService  {
                 pushLoad = {
                     _contentAvailable: true,
                     'content-available': 1,
+                    priority: 'high', 
                     data: { 
                         _contentAvailable: true,
                         'content-available': 1,
