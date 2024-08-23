@@ -181,11 +181,11 @@ var sendAPN2Notification = function (deviceToken) { return __awaiter(void 0, voi
             case 2:
                 result = _a.sent();
                 if (result.failed.length > 0) {
-                    console.error('Failed to send notification:', result.failed[0].response);
+                    logger_1.Logger.error('Failed to send notification:', result.failed[0].response);
                 }
                 else {
-                    console.log(result);
-                    console.log('Notification sent successfully');
+                    logger_1.Logger.info(result);
+                    logger_1.Logger.info('Notification sent successfully');
                 }
                 return [3 /*break*/, 5];
             case 3:

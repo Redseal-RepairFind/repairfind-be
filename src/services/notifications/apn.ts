@@ -134,10 +134,10 @@ export const sendAPN2Notification = async (deviceToken: string): Promise<void> =
   try {
     const result = await apnProvider.send(note, deviceToken);
     if (result.failed.length > 0) {
-      console.error('Failed to send notification:', result.failed[0].response);
+      Logger.error('Failed to send notification:', result.failed[0].response);
     } else {
-      console.log(result)
-      console.log('Notification sent successfully');
+      Logger.info(result)
+      Logger.info('Notification sent successfully');
     }
   } catch (error) {
     console.error('Error sending APN notification:', error);
