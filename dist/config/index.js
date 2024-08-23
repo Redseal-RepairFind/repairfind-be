@@ -54,6 +54,12 @@ exports.config = {
         clientID: process.env.GOOGLE_CLIENT_ID,
         serviceJson: process.env.GOOGLE_SERVICE_JSON || "https://repairfindbucket.s3.eu-west-3.amazonaws.com/googleService.json"
     },
+    apple: {
+        apnAuthKey: process.env.APN_AUTH_KEY,
+        teamId: process.env.APPLE_TEAM_ID,
+        keyId: process.env.APPLE_KEY_ID,
+        env: process.env.APPLE_ENV,
+    },
     redis: {
         uri: process.env.REDIS_URI,
         host: process.env.REDIS_HOST,

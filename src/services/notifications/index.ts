@@ -10,6 +10,8 @@ import { ObjectId } from 'mongoose';
 import { url } from 'inspector';
 import { NotificationUtil } from '../../utils/notification.util';
 import AdminModel from '../../database/admin/models/admin.model';
+import { APNNotification } from './apn';
+import { FCMNotification } from './fcm';
 
 
 
@@ -49,19 +51,19 @@ export class NotificationService  {
         if(params.userType == 'contractors'){
             user  = await ContractorModel.findById(params.user)
             devices = await ContractorDeviceModel.find({contractor: user?.id}).select('deviceToken')
-            deviceTokens = devices.map(device => device.deviceToken);
+            deviceTokens = devices.map(device => device.expoToken);
         }
         
         if(params.userType == 'customers'){
             user  = await CustomerModel.findById(params.user)
             devices = await CustomerDeviceModel.find({customer: user?.id}).select('deviceToken')
-            deviceTokens = devices.map(device => device.deviceToken);
+            deviceTokens = devices.map(device => device.expoToken);
         }
         
         if(params.userType == 'admins'){
             user  = await AdminModel.findById(params.user)
             devices = await CustomerDeviceModel.find({customer: user?.id}).select('deviceToken')
-            deviceTokens = devices.map(device => device.deviceToken);
+            deviceTokens = devices.map(device => device.expoToken);
         }
         
     
@@ -118,6 +120,37 @@ export class NotificationService  {
                 }
             }
             sendPushNotifications( deviceTokens , pushLoad)
+
+
+            devices.map((device) => {
+                if(device.type == 'ANDROID'){
+                    const notification = {title: params.title,  subtitle: params.title, body: params.message}
+                    const options = {
+                        badge: 42
+                    }
+                    const data = {
+                        categoryId: params.type,
+                        channelId: params.type,
+                        categoryIdentifier: params.type,
+                        ...params.payload
+                    }
+                    FCMNotification.sendNotification(device.token, notification, options, data)
+                }
+                if(device.type == 'IOS'){
+                    const alert = {title: params.title,  subtitle: params.title, body: params.message,}
+                    const data = {
+                        categoryId: params.type,
+                        channelId: params.type,
+                        categoryIdentifier: params.type,
+                        ...params.payload
+                    }
+                    const options = {
+                        sound: 'ringtone.wave',
+                        badge: 3
+                    }
+                    APNNotification.sendNotification([device.token],alert, data, options)
+                }
+            });
 
         }
        

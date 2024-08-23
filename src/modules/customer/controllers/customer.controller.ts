@@ -218,7 +218,7 @@ export const updateOrCreateDevice = async (
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-    const { deviceId, deviceType, deviceToken } = req.body;
+    const { deviceId, deviceType, deviceToken, expoToken } = req.body;
 
     const customerId = req.customer.id;
 
@@ -230,7 +230,7 @@ export const updateOrCreateDevice = async (
       return res.status(404).json({ success: false, message: 'Customer not found' });
     }
 
-    const device = await CustomerDeviceModel.find({ deviceId, deviceToken });
+    const device = await CustomerDeviceModel.find({ deviceId, deviceToken, expoToken });
     if (device) {
       //return res.status(404).json({ success: false, message: 'Device already exits' });
     }
@@ -238,8 +238,8 @@ export const updateOrCreateDevice = async (
  
     // Find the customer device with the provided device ID and type
     let customerDevice = await CustomerDeviceModel.findOneAndUpdate(
-      { customer: customerId, deviceToken: deviceToken },
-      { $set: { deviceToken, deviceType, customer: customerId } },
+      { customer: customerId, deviceToken },
+      { $set: { deviceToken, deviceType, expoToken, customer: customerId } },
       { new: true, upsert: true }
     );
 

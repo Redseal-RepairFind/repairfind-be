@@ -44,8 +44,8 @@ var skill_model_1 = __importDefault(require("../../../database/admin/models/skil
 var custom_errors_1 = require("../../../utils/custom.errors");
 var country_schema_1 = require("../../../database/common/country.schema");
 var bank_schema_1 = require("../../../database/common/bank.schema");
-var fcm_1 = __importDefault(require("../../../services/fcm"));
 var payment_util_1 = require("../../../utils/payment.util");
+var apn_1 = require("../../../services/notifications/apn");
 var getBankList = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var data, err_1;
     return __generator(this, function (_a) {
@@ -161,11 +161,18 @@ var calculateCharges = function (req, res, next) { return __awaiter(void 0, void
 }); };
 exports.calculateCharges = calculateCharges;
 var sendTestNotification = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var response;
     return __generator(this, function (_a) {
         try {
-            response = (0, fcm_1.default)('ExponentPushToken[E9UaBJN6Gm2Hf1m0fJdKxf]');
-            return [2 /*return*/, res.json({ success: true, message: "Options retrieved" })];
+            // sendFCMNotification('dEdej-ewShOgyAYGkT9TfY:APA91bEuSQEpsdhlIxPAVcH0xPIewHm5QofWhAPswQTF_PGSdhFSpvLxFNwzow2JCaCIIj9YX8cfbvD-wrL0NwkHzpU7rjwv06QcqFg_znvyoEAy1NCPRlS9wqhBGlSachsRTKVp-rF4')
+            // sendFCMNotification('chsAINgk7k4mqtfzRUWFdd:APA91bF9G6U4R0zu7yMoDe3y4KIsf8Z_ECE3sTTuBNu21k86jrL4MUOc0RmPHphaNaIjxtLeAR6tXtq7-s_CHLXRoI4bG9tTfR4192gAqOX82P8Wr5FNWXXZj-spbyb5Bmj-qOVesmlw')
+            // sendAPN2Notification('5c331b83caea396d9cf1e43545276d70791200840ecf126124853b6387630fe2')
+            // sendSilentNotification(['5c331b83caea396d9cf1e43545276d70791200840ecf126124853b6387630fe2'])
+            // sendAPNNotification('5c331b83caea396d9cf1e43545276d70791200840ecf126124853b6387630fe2')
+            (0, apn_1.sendNotification)(['5c331b83caea396d9cf1e43545276d70791200840ecf126124853b6387630fe2'], { title: "Title here", body: "Body here", subtitle: "Subtitle here" }, { sound: "ringtone.wav", badge: 3 });
+            // sam Prod iphone
+            // 6aeb2d87992687389efde1c99c7a2a76e49b1b69e48dc78d81eb62a9b17486e0
+            //5c331b83caea396d9cf1e43545276d70791200840ecf126124853b6387630fe2
+            return [2 /*return*/, res.json({ success: true, message: "Notification sent" })];
         }
         catch (err) {
             return [2 /*return*/, next(new custom_errors_1.InternalServerError('Error fetching skills', err))];

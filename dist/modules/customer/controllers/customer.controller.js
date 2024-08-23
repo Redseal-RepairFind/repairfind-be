@@ -193,7 +193,7 @@ var myDevices = function (req, res) { return __awaiter(void 0, void 0, void 0, f
 }); };
 exports.myDevices = myDevices;
 var updateOrCreateDevice = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, deviceId, deviceType, deviceToken, customerId, customer, device, customerDevice, error_3;
+    var errors, _a, deviceId, deviceType, deviceToken, expoToken, customerId, customer, device, customerDevice, error_3;
     var _b, _c;
     return __generator(this, function (_d) {
         switch (_d.label) {
@@ -203,7 +203,7 @@ var updateOrCreateDevice = function (req, res) { return __awaiter(void 0, void 0
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
-                _a = req.body, deviceId = _a.deviceId, deviceType = _a.deviceType, deviceToken = _a.deviceToken;
+                _a = req.body, deviceId = _a.deviceId, deviceType = _a.deviceType, deviceToken = _a.deviceToken, expoToken = _a.expoToken;
                 customerId = req.customer.id;
                 return [4 /*yield*/, customer_model_1.default.findById(customerId)];
             case 1:
@@ -212,13 +212,13 @@ var updateOrCreateDevice = function (req, res) { return __awaiter(void 0, void 0
                 if (!customer) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Customer not found' })];
                 }
-                return [4 /*yield*/, customer_devices_model_1.default.find({ deviceId: deviceId, deviceToken: deviceToken })];
+                return [4 /*yield*/, customer_devices_model_1.default.find({ deviceId: deviceId, deviceToken: deviceToken, expoToken: expoToken })];
             case 2:
                 device = _d.sent();
                 if (device) {
                     //return res.status(404).json({ success: false, message: 'Device already exits' });
                 }
-                return [4 /*yield*/, customer_devices_model_1.default.findOneAndUpdate({ customer: customerId, deviceToken: deviceToken }, { $set: { deviceToken: deviceToken, deviceType: deviceType, customer: customerId } }, { new: true, upsert: true })];
+                return [4 /*yield*/, customer_devices_model_1.default.findOneAndUpdate({ customer: customerId, deviceToken: deviceToken }, { $set: { deviceToken: deviceToken, deviceType: deviceType, expoToken: expoToken, customer: customerId } }, { new: true, upsert: true })];
             case 3:
                 customerDevice = _d.sent();
                 return [2 /*return*/, res.json({ success: true, message: 'Customer device updated', data: customerDevice })];

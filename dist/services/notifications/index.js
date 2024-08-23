@@ -60,6 +60,8 @@ var expo_1 = require("../expo");
 var socket_1 = require("../socket");
 var notification_util_1 = require("../../utils/notification.util");
 var admin_model_1 = __importDefault(require("../../database/admin/models/admin.model"));
+var apn_1 = require("./apn");
+var fcm_1 = require("./fcm");
 var NotificationService = /** @class */ (function () {
     function NotificationService() {
     }
@@ -88,7 +90,7 @@ var NotificationService = /** @class */ (function () {
                         return [4 /*yield*/, contractor_devices_model_1.default.find({ contractor: user === null || user === void 0 ? void 0 : user.id }).select('deviceToken')];
                     case 2:
                         devices = _a.sent();
-                        deviceTokens = devices.map(function (device) { return device.deviceToken; });
+                        deviceTokens = devices.map(function (device) { return device.expoToken; });
                         _a.label = 3;
                     case 3:
                         if (!(params.userType == 'customers')) return [3 /*break*/, 6];
@@ -98,7 +100,7 @@ var NotificationService = /** @class */ (function () {
                         return [4 /*yield*/, customer_devices_model_1.default.find({ customer: user === null || user === void 0 ? void 0 : user.id }).select('deviceToken')];
                     case 5:
                         devices = _a.sent();
-                        deviceTokens = devices.map(function (device) { return device.deviceToken; });
+                        deviceTokens = devices.map(function (device) { return device.expoToken; });
                         _a.label = 6;
                     case 6:
                         if (!(params.userType == 'admins')) return [3 /*break*/, 9];
@@ -108,7 +110,7 @@ var NotificationService = /** @class */ (function () {
                         return [4 /*yield*/, customer_devices_model_1.default.find({ customer: user === null || user === void 0 ? void 0 : user.id }).select('deviceToken')];
                     case 8:
                         devices = _a.sent();
-                        deviceTokens = devices.map(function (device) { return device.deviceToken; });
+                        deviceTokens = devices.map(function (device) { return device.expoToken; });
                         _a.label = 9;
                     case 9:
                         if (!user)
@@ -156,6 +158,25 @@ var NotificationService = /** @class */ (function () {
                                 };
                             }
                             (0, expo_1.sendPushNotifications)(deviceTokens, pushLoad);
+                            devices.map(function (device) {
+                                if (device.type == 'ANDROID') {
+                                    var notification = { title: params.title, subtitle: params.title, body: params.message };
+                                    var options_1 = {
+                                        badge: 42
+                                    };
+                                    var data = __assign({ categoryId: params.type, channelId: params.type, categoryIdentifier: params.type }, params.payload);
+                                    fcm_1.FCMNotification.sendNotification(device.token, notification, options_1, data);
+                                }
+                                if (device.type == 'IOS') {
+                                    var alert_1 = { title: params.title, subtitle: params.title, body: params.message, };
+                                    var data = __assign({ categoryId: params.type, channelId: params.type, categoryIdentifier: params.type }, params.payload);
+                                    var options_2 = {
+                                        sound: 'ringtone.wave',
+                                        badge: 3
+                                    };
+                                    apn_1.APNNotification.sendNotification([device.token], alert_1, data, options_2);
+                                }
+                            });
                         }
                         if (!options.hasOwnProperty('database')) return [3 /*break*/, 13];
                         params.payload.message = params.message;

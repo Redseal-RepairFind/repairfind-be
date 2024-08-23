@@ -17,6 +17,11 @@ var CustomerDeviceSchema = new mongoose_1.Schema({
         required: false,
         unique: false
     },
+    expoToken: {
+        type: String,
+        required: false,
+        unique: false
+    },
     deviceId: {
         type: String,
         required: false,

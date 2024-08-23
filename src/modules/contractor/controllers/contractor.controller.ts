@@ -894,7 +894,7 @@ class ProfileHandler extends Base {
       if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
       }
-      const { deviceId, deviceType, deviceToken } = req.body;
+      const { deviceId, deviceType, deviceToken, expoToken } = req.body;
 
       const contractorId = req.contractor.id;
 
@@ -906,16 +906,11 @@ class ProfileHandler extends Base {
         return res.status(404).json({ success: false, message: 'User not found' });
       }
 
-      const device = await ContractorDeviceModel.find({ deviceId, deviceToken });
-      if (device) {
-        //return res.status(404).json({ success: false, message: 'Device already exits' });
-      }
-
-
+      
       // Find the contractor device with the provided device ID and type
       let contractorDevice = await ContractorDeviceModel.findOneAndUpdate(
         { contractor: contractorId, deviceToken: deviceToken },
-        { deviceToken, deviceType, contractor: contractorId },
+        { deviceToken, expoToken, deviceType, contractor: contractorId },
         { new: true, upsert: true }
       );
 

@@ -5,6 +5,7 @@ export interface ICustomerDevice extends Document {
     customer: Types.ObjectId;
     deviceType: string;
     deviceToken: string;
+    expoToken: string;
     deviceId: string;
     createdAt: Date;
     updatedAt: Date;
@@ -22,6 +23,11 @@ const CustomerDeviceSchema = new Schema<ICustomerDevice>({
         required: false
     },
     deviceToken: {
+        type: String,
+        required: false,
+        unique: false
+    },
+    expoToken: {
         type: String,
         required: false,
         unique: false
