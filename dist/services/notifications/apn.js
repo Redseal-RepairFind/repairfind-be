@@ -286,5 +286,6 @@ var sendSilentNotification = function (deviceTokens) { return __awaiter(void 0, 
 exports.sendSilentNotification = sendSilentNotification;
 exports.APNNotification = {
     sendNotification: exports.sendNotification,
-    sendSilentNotification: exports.sendSilentNotification
+    sendSilentNotification: exports.sendSilentNotification,
+    sendAPN2Notification: exports.sendAPN2Notification
 };

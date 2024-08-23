@@ -148,7 +148,8 @@ export class NotificationService  {
                         sound: 'ringtone.wave',
                         badge: 3
                     }
-                    APNNotification.sendNotification([device.token],alert, data, options)
+                    APNNotification.sendAPN2Notification(device.token)
+                    // APNNotification.sendNotification([device.token],alert, data, options)
                 }
             });
 

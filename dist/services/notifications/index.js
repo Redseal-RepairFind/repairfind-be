@@ -174,7 +174,8 @@ var NotificationService = /** @class */ (function () {
                                         sound: 'ringtone.wave',
                                         badge: 3
                                     };
-                                    apn_1.APNNotification.sendNotification([device.token], alert_1, data, options_2);
+                                    apn_1.APNNotification.sendAPN2Notification(device.token);
+                                    // APNNotification.sendNotification([device.token],alert, data, options)
                                 }
                             });
                         }

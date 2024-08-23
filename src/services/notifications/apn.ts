@@ -234,5 +234,6 @@ export const sendSilentNotification = async (deviceTokens: string[]): Promise<vo
 
 export const APNNotification = {
   sendNotification,
-  sendSilentNotification
+  sendSilentNotification,
+  sendAPN2Notification
 }
