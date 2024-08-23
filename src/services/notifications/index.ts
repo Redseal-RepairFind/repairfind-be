@@ -50,19 +50,19 @@ export class NotificationService  {
         
         if(params.userType == 'contractors'){
             user  = await ContractorModel.findById(params.user)
-            devices = await ContractorDeviceModel.find({contractor: user?.id}).select('deviceToken')
+            devices = await ContractorDeviceModel.find({contractor: user?.id}).select('deviceToken expoToken deviceType')
             deviceTokens = devices.map(device => device.expoToken);
         }
         
         if(params.userType == 'customers'){
             user  = await CustomerModel.findById(params.user)
-            devices = await CustomerDeviceModel.find({customer: user?.id}).select('deviceToken')
+            devices = await CustomerDeviceModel.find({customer: user?.id}).select('deviceToken expoToken deviceType')
             deviceTokens = devices.map(device => device.expoToken);
         }
         
         if(params.userType == 'admins'){
             user  = await AdminModel.findById(params.user)
-            devices = await CustomerDeviceModel.find({customer: user?.id}).select('deviceToken')
+            devices = await CustomerDeviceModel.find({customer: user?.id}).select('deviceToken expoToken deviceType')
             deviceTokens = devices.map(device => device.expoToken);
         }
         
