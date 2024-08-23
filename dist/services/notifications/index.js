@@ -146,44 +146,42 @@ var NotificationService = /** @class */ (function () {
                                 data: __assign({}, params.payload),
                             };
                             if (params.type == 'NEW_INCOMING_CALL') {
-                                pushLoad = {
-                                    _contentAvailable: true,
-                                    priority: 'high',
-                                };
+                                devices.map(function (device) {
+                                    if (device.deviceType == 'ANDROID') {
+                                        var notification = { title: params.title, subtitle: params.title, body: params.message };
+                                        var options_1 = {
+                                            badge: 42
+                                        };
+                                        var data = __assign({ categoryId: params.type, channelId: params.type, categoryIdentifier: params.type }, params.payload);
+                                        fcm_1.FCMNotification.sendNotification(device.deviceToken, notification, options_1, data);
+                                    }
+                                    if (device.deviceType == 'IOS') {
+                                        var alert_1 = { title: params.title, subtitle: params.title, body: params.message, };
+                                        var data = __assign({ categoryId: params.type, channelId: params.type, categoryIdentifier: params.type }, params.payload);
+                                        var payload = {
+                                            expiry: Math.floor(Date.now() / 1000) + 3600, // Expires 1 hour from now
+                                            badge: 3,
+                                            priority: 10,
+                                            mutableContent: true,
+                                            aps: {
+                                                'content-available': 1,
+                                                'mutable-content': 1,
+                                            },
+                                            sound: 'ringtone.wav',
+                                            alert: alert_1,
+                                            contentAvailable: true,
+                                            payload: data,
+                                            topic: (params.userType === 'contractors') ? 'com.krendus.repairfindcontractor' : '@repairfindinc/repairfind-customer',
+                                        };
+                                        apn_1.APNNotification.sendAPN2Notification(device.deviceToken, payload);
+                                        // APNNotification.sendAPNNotification(device.deviceToken)
+                                        // APNNotification.sendNotification([device.token],alert, data, options)
+                                    }
+                                });
                             }
-                            (0, expo_1.sendPushNotifications)(deviceTokens, pushLoad);
-                            devices.map(function (device) {
-                                if (device.deviceType == 'ANDROID') {
-                                    var notification = { title: params.title, subtitle: params.title, body: params.message };
-                                    var options_1 = {
-                                        badge: 42
-                                    };
-                                    var data = __assign({ categoryId: params.type, channelId: params.type, categoryIdentifier: params.type }, params.payload);
-                                    fcm_1.FCMNotification.sendNotification(device.deviceToken, notification, options_1, data);
-                                }
-                                if (device.deviceType == 'IOS') {
-                                    var alert_1 = { title: params.title, subtitle: params.title, body: params.message, };
-                                    var data = __assign({ categoryId: params.type, channelId: params.type, categoryIdentifier: params.type }, params.payload);
-                                    var payload = {
-                                        expiry: Math.floor(Date.now() / 1000) + 3600, // Expires 1 hour from now
-                                        badge: 3,
-                                        priority: 10,
-                                        mutableContent: true,
-                                        aps: {
-                                            'content-available': 1,
-                                            'mutable-content': 1,
-                                        },
-                                        sound: 'ringtone.wav',
-                                        alert: alert_1,
-                                        contentAvailable: true,
-                                        payload: data,
-                                        topic: 'com.krendus.repairfindcontractor',
-                                    };
-                                    apn_1.APNNotification.sendAPN2Notification(device.deviceToken, payload);
-                                    // APNNotification.sendAPNNotification(device.deviceToken)
-                                    // APNNotification.sendNotification([device.token],alert, data, options)
-                                }
-                            });
+                            else {
+                                (0, expo_1.sendPushNotifications)(deviceTokens, pushLoad);
+                            }
                         }
                         if (!options.hasOwnProperty('database')) return [3 /*break*/, 13];
                         params.payload.message = params.message;

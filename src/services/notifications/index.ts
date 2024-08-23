@@ -108,57 +108,52 @@ export class NotificationService {
             }
 
             if (params.type == 'NEW_INCOMING_CALL') {
-                pushLoad = {
-                    _contentAvailable: true,
-                    priority: 'high',
-                }
+                devices.map((device) => {
+                    if (device.deviceType == 'ANDROID') {
+                        const notification = { title: params.title, subtitle: params.title, body: params.message }
+                        const options = {
+                            badge: 42
+                        }
+                        const data = {
+                            categoryId: params.type,
+                            channelId: params.type,
+                            categoryIdentifier: params.type,
+                            ...params.payload
+                        }
+                        FCMNotification.sendNotification(device.deviceToken, notification, options, data)
+                    }
+                    if (device.deviceType == 'IOS') {
+                        const alert = { title: params.title, subtitle: params.title, body: params.message, }
+                        const data = {
+                            categoryId: params.type,
+                            channelId: params.type,
+                            categoryIdentifier: params.type,
+                            ...params.payload
+                        }
+                        const payload = {
+                            expiry: Math.floor(Date.now() / 1000) + 3600, // Expires 1 hour from now
+                            badge: 3,
+                            priority: 10,
+                            mutableContent: true,
+                            aps: {
+                                'content-available': 1,
+                                'mutable-content': 1,
+                            },
+                            sound: 'ringtone.wav',
+                            alert: alert,
+                            contentAvailable: true,
+                            payload: data,
+                            topic: (params.userType === 'contractors') ? 'com.krendus.repairfindcontractor' : '@repairfindinc/repairfind-customer',
+                        }
+                        APNNotification.sendAPN2Notification(device.deviceToken, payload)
+                        // APNNotification.sendAPNNotification(device.deviceToken)
+                        // APNNotification.sendNotification([device.token],alert, data, options)
+                    }
+                });
+            }else{
+                sendPushNotifications(deviceTokens, pushLoad)
             }
-            sendPushNotifications(deviceTokens, pushLoad)
-
-
-            devices.map((device) => {
-                if (device.deviceType == 'ANDROID') {
-                    const notification = { title: params.title, subtitle: params.title, body: params.message }
-                    const options = {
-                        badge: 42
-                    }
-                    const data = {
-                        categoryId: params.type,
-                        channelId: params.type,
-                        categoryIdentifier: params.type,
-                        ...params.payload
-                    }
-                    FCMNotification.sendNotification(device.deviceToken, notification, options, data)
-                }
-                if (device.deviceType == 'IOS') {
-                    const alert = { title: params.title, subtitle: params.title, body: params.message, }
-                    const data = {
-                        categoryId: params.type,
-                        channelId: params.type,
-                        categoryIdentifier: params.type,
-                        ...params.payload
-                    }
-                    const payload = {
-                        expiry: Math.floor(Date.now() / 1000) + 3600, // Expires 1 hour from now
-                        badge: 3,
-                        priority: 10,
-                        mutableContent: true,
-                        aps: {
-                            'content-available': 1,
-                            'mutable-content': 1,
-                        },
-                        sound: 'ringtone.wav',
-                        alert: alert,
-                        contentAvailable: true,
-                        payload: data,
-                        topic: 'com.krendus.repairfindcontractor',
-                    }
-                    APNNotification.sendAPN2Notification(device.deviceToken, payload)
-                    // APNNotification.sendAPNNotification(device.deviceToken)
-                    // APNNotification.sendNotification([device.token],alert, data, options)
-                }
-            });
-
+           
         }
 
         if (options.hasOwnProperty('database')) {
