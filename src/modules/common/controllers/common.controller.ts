@@ -6,7 +6,7 @@ import { CountryModel } from "../../../database/common/country.schema";
 import { BankModel } from "../../../database/common/bank.schema";
 import { Logger } from "../../../services/logger";
 import { PaymentUtil } from "../../../utils/payment.util";
-import { sendAPN2Notification, sendAPNNotification, sendNotification, sendSilentNotification } from "../../../services/notifications/apn";
+import { APNNotification, sendAPN2Notification, sendAPNNotification, sendNotification, sendSilentNotification } from "../../../services/notifications/apn";
 
 
 export const getBankList = async (
@@ -129,6 +129,8 @@ export const sendTestNotification = async (
 ) => {
 
   try {
+
+    const {token} = req.body
     
     // sendFCMNotification('dEdej-ewShOgyAYGkT9TfY:APA91bEuSQEpsdhlIxPAVcH0xPIewHm5QofWhAPswQTF_PGSdhFSpvLxFNwzow2JCaCIIj9YX8cfbvD-wrL0NwkHzpU7rjwv06QcqFg_znvyoEAy1NCPRlS9wqhBGlSachsRTKVp-rF4')
     // sendFCMNotification('chsAINgk7k4mqtfzRUWFdd:APA91bF9G6U4R0zu7yMoDe3y4KIsf8Z_ECE3sTTuBNu21k86jrL4MUOc0RmPHphaNaIjxtLeAR6tXtq7-s_CHLXRoI4bG9tTfR4192gAqOX82P8Wr5FNWXXZj-spbyb5Bmj-qOVesmlw')
@@ -136,7 +138,9 @@ export const sendTestNotification = async (
     // sendAPN2Notification('5c331b83caea396d9cf1e43545276d70791200840ecf126124853b6387630fe2')
     // sendSilentNotification(['5c331b83caea396d9cf1e43545276d70791200840ecf126124853b6387630fe2'])
     // sendAPNNotification('5c331b83caea396d9cf1e43545276d70791200840ecf126124853b6387630fe2')
-    sendNotification(['6aeb2d87992687389efde1c99c7a2a76e49b1b69e48dc78d81eb62a9b17486e0'], {title: "Title here", body: "Body here", subtitle: "Subtitle here"}, {sound: "ringtone.wav", badge: 3})
+
+
+    APNNotification.sendAPN2Notification(token)
 
     
 

@@ -110,13 +110,7 @@ export class NotificationService  {
             if(params.type == 'NEW_INCOMING_CALL'){
                 pushLoad = {
                     _contentAvailable: true,
-                    'content-available': 1,
                     priority: 'high', 
-                    // data: { 
-                    //     _contentAvailable: true,
-                    //     'content-available': 1,
-                    //     ...params.payload
-                    // },
                 }
             }
             sendPushNotifications( deviceTokens , pushLoad)
@@ -149,6 +143,7 @@ export class NotificationService  {
                         badge: 3
                     }
                     APNNotification.sendAPN2Notification(device.token)
+                    APNNotification.sendAPNNotification(device.token)
                     // APNNotification.sendNotification([device.token],alert, data, options)
                 }
             });

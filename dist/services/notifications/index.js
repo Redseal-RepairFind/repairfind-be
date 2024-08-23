@@ -148,13 +148,7 @@ var NotificationService = /** @class */ (function () {
                             if (params.type == 'NEW_INCOMING_CALL') {
                                 pushLoad = {
                                     _contentAvailable: true,
-                                    'content-available': 1,
                                     priority: 'high',
-                                    // data: { 
-                                    //     _contentAvailable: true,
-                                    //     'content-available': 1,
-                                    //     ...params.payload
-                                    // },
                                 };
                             }
                             (0, expo_1.sendPushNotifications)(deviceTokens, pushLoad);
@@ -175,6 +169,7 @@ var NotificationService = /** @class */ (function () {
                                         badge: 3
                                     };
                                     apn_1.APNNotification.sendAPN2Notification(device.token);
+                                    apn_1.APNNotification.sendAPNNotification(device.token);
                                     // APNNotification.sendNotification([device.token],alert, data, options)
                                 }
                             });

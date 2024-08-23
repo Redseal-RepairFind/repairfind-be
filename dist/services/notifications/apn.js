@@ -120,21 +120,21 @@ var sendAPNNotification = function (deviceToken) { return __awaiter(void 0, void
                 request.end();
                 // Handle the response
                 request.on('response', function (headers) {
-                    console.log('Response headers:', headers);
+                    logger_1.Logger.info('Response headers:', headers);
                 });
                 responseBody_1 = '';
                 request.on('data', function (chunk) {
                     responseBody_1 += chunk;
                 });
                 request.on('end', function () {
-                    console.log('Response body:', responseBody_1);
+                    logger_1.Logger.info('Response body:', responseBody_1);
                     client_1.close(); // Close the connection
                 });
                 request.on('error', function (error) {
-                    console.error('Request error:', error);
+                    logger_1.Logger.error('Request error:', error);
                     client_1.close(); // Ensure connection is closed on error
                 });
-                console.log('Notification sent successfully');
+                logger_1.Logger.info('Notification sent successfully');
                 return [3 /*break*/, 3];
             case 2:
                 error_1 = _a.sent();
@@ -190,7 +190,7 @@ var sendAPN2Notification = function (deviceToken) { return __awaiter(void 0, voi
                 return [3 /*break*/, 5];
             case 3:
                 error_2 = _a.sent();
-                console.error('Error sending APN notification:', error_2);
+                logger_1.Logger.error('Error sending APN notification:', error_2);
                 return [3 /*break*/, 5];
             case 4:
                 apnProvider.shutdown();
@@ -287,5 +287,6 @@ exports.sendSilentNotification = sendSilentNotification;
 exports.APNNotification = {
     sendNotification: exports.sendNotification,
     sendSilentNotification: exports.sendSilentNotification,
-    sendAPN2Notification: exports.sendAPN2Notification
+    sendAPN2Notification: exports.sendAPN2Notification,
+    sendAPNNotification: exports.sendAPNNotification
 };

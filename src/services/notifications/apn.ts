@@ -74,7 +74,7 @@ export const sendAPNNotification = async (deviceToken: any) => {
 
     // Handle the response
     request.on('response', (headers: any) => {
-      console.log('Response headers:', headers);
+      Logger.info('Response headers:', headers);
     });
 
     let responseBody = '';
@@ -83,17 +83,17 @@ export const sendAPNNotification = async (deviceToken: any) => {
     });
 
     request.on('end', () => {
-      console.log('Response body:', responseBody);
+      Logger.info('Response body:', responseBody);
       client.close(); // Close the connection
     });
 
     request.on('error', (error: any) => {
-      console.error('Request error:', error);
+      Logger.error('Request error:', error);
       client.close(); // Ensure connection is closed on error
     });
 
 
-    console.log('Notification sent successfully');
+    Logger.info('Notification sent successfully');
   } catch (error) {
     console.error('Error sending APN notification:', error);
   }
@@ -140,7 +140,7 @@ export const sendAPN2Notification = async (deviceToken: string): Promise<void> =
       Logger.info('Notification sent successfully');
     }
   } catch (error) {
-    console.error('Error sending APN notification:', error);
+    Logger.error('Error sending APN notification:', error);
   } finally {
     apnProvider.shutdown();
   }
@@ -235,5 +235,6 @@ export const sendSilentNotification = async (deviceTokens: string[]): Promise<vo
 export const APNNotification = {
   sendNotification,
   sendSilentNotification,
-  sendAPN2Notification
+  sendAPN2Notification,
+  sendAPNNotification
 }
