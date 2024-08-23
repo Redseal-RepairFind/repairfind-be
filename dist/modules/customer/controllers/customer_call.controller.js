@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerCallController = exports.endCall = exports.startCall = exports.createRtcToken = exports.createRtmToken = void 0;
+exports.CustomerCallController = exports.endCall = exports.startCall = exports.getSingleCall = exports.createRtcToken = exports.createRtmToken = void 0;
 var agora_1 = __importDefault(require("../../../services/agora"));
 var custom_errors_1 = require("../../../utils/custom.errors");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
@@ -89,8 +89,32 @@ var createRtcToken = function (req, res, next) { return __awaiter(void 0, void 0
     });
 }); };
 exports.createRtcToken = createRtcToken;
+var getSingleCall = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var callId, call, err_3;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                callId = req.params.callId;
+                return [4 /*yield*/, call_schema_1.CallModel.findById(callId)];
+            case 1:
+                call = _a.sent();
+                if (!call) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Call not found' })];
+                }
+                res.status(200).json({ message: 'Token generated', data: call });
+                return [3 /*break*/, 3];
+            case 2:
+                err_3 = _a.sent();
+                res.status(500).json({ message: err_3.message });
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getSingleCall = getSingleCall;
 var startCall = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, toUser, toUserType, fromUserId, fromUser, channelName, user, _b, toUserUid, fromUserUid, toUserToken, fromUserToken, callData, call, err_3;
+    var _a, toUser, toUserType, fromUserId, fromUser, channelName, user, _b, toUserUid, fromUserUid, toUserToken, fromUserToken, callData, call, err_4;
     var _c, _d;
     return __generator(this, function (_e) {
         switch (_e.label) {
@@ -160,8 +184,8 @@ var startCall = function (req, res, next) { return __awaiter(void 0, void 0, voi
                 res.status(200).json({ message: 'Token generated', data: { token: fromUserToken, uid: fromUserUid, channelName: channelName, call: call } });
                 return [3 /*break*/, 10];
             case 9:
-                err_3 = _e.sent();
-                res.status(500).json({ message: err_3.message });
+                err_4 = _e.sent();
+                res.status(500).json({ message: err_4.message });
                 return [3 /*break*/, 10];
             case 10: return [2 /*return*/];
         }
@@ -169,7 +193,7 @@ var startCall = function (req, res, next) { return __awaiter(void 0, void 0, voi
 }); };
 exports.startCall = startCall;
 var endCall = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var callId, event_1, call, fromUser, _a, toUser, _b, conversation, message, err_4;
+    var callId, event_1, call, fromUser, _a, toUser, _b, conversation, message, title, type, err_5;
     var _c, _d, _e, _f;
     return __generator(this, function (_g) {
         switch (_g.label) {
@@ -216,17 +240,19 @@ var endCall = function (req, res, next) { return __awaiter(void 0, void 0, void 
             case 11:
                 conversation = _g.sent();
                 message = "";
+                title = 'Call Ended';
+                type = 'CALL_ENDED';
                 if (fromUser) {
                     message = "Your call with ".concat(toUser.name, " has ended");
                     if (event_1 == 'missed')
-                        message = "Your call to  ".concat(toUser.name, " was not answered");
-                    if (event_1 == 'rejected')
-                        message = "Your call to  ".concat(toUser.name, " was declined");
+                        title = 'Call Missed', type = 'CALL_MISSED', message = "Your call to  ".concat(toUser.name, " was not answered");
+                    if (event_1 == 'declined')
+                        title = 'Call Declined', type = 'CALL_DECLINED', message = "Your call to  ".concat(toUser.name, " was declined");
                     services_1.NotificationService.sendNotification({
                         user: call.fromUser,
                         userType: call.fromUserType,
-                        title: 'Call Ended',
-                        type: 'CALL_ENDED',
+                        title: title,
+                        type: type,
                         message: message,
                         heading: { name: "".concat(toUser.name), image: (_c = toUser.profilePhoto) === null || _c === void 0 ? void 0 : _c.url },
                         payload: {
@@ -236,21 +262,21 @@ var endCall = function (req, res, next) { return __awaiter(void 0, void 0, void 
                             message: message,
                             name: "".concat(toUser.name),
                             image: (_d = toUser.profilePhoto) === null || _d === void 0 ? void 0 : _d.url,
-                            event: 'CALL_ENDED',
+                            event: type,
                         },
                     }, { database: true, push: true, socket: true });
                 }
                 if (toUser) {
                     message = "Your call with ".concat(toUser.name, " has ended");
                     if (event_1 == 'missed')
-                        message = "You have a missed call from  ".concat(fromUser.name);
-                    if (event_1 == 'rejected')
-                        message = "You declined a call from  ".concat(fromUser.name);
+                        title = 'Call Missed', type = 'CALL_MISSED', message = "You have a missed call from  ".concat(fromUser.name);
+                    if (event_1 == 'declined')
+                        title = 'Call Declined', type = 'CALL_DECLINED', message = "You declined a call from  ".concat(fromUser.name);
                     services_1.NotificationService.sendNotification({
                         user: call.toUser,
                         userType: call.toUserType,
-                        title: 'Call Ended',
-                        type: 'CALL_ENDED',
+                        title: title,
+                        type: type,
                         message: message,
                         heading: { name: "".concat(fromUser.name), image: (_e = fromUser.profilePhoto) === null || _e === void 0 ? void 0 : _e.url },
                         payload: {
@@ -260,15 +286,15 @@ var endCall = function (req, res, next) { return __awaiter(void 0, void 0, void 
                             message: message,
                             name: "".concat(fromUser.name),
                             image: (_f = fromUser.profilePhoto) === null || _f === void 0 ? void 0 : _f.url,
-                            event: 'CALL_ENDED',
+                            event: type,
                         },
                     }, { database: true, push: true, socket: true });
                 }
                 res.status(200).json({ success: true, message: 'Call ended successfully' });
                 return [3 /*break*/, 13];
             case 12:
-                err_4 = _g.sent();
-                res.status(500).json({ message: err_4.message });
+                err_5 = _g.sent();
+                res.status(500).json({ message: err_5.message });
                 return [3 /*break*/, 13];
             case 13: return [2 /*return*/];
         }
@@ -279,5 +305,6 @@ exports.CustomerCallController = {
     createRtmToken: exports.createRtmToken,
     createRtcToken: exports.createRtcToken,
     startCall: exports.startCall,
-    endCall: exports.endCall
+    endCall: exports.endCall,
+    getSingleCall: exports.getSingleCall
 };

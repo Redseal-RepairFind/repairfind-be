@@ -134,7 +134,8 @@ router.post('/jobdays/initiate', checkCustomerRole, CustomerJobDayController.ini
 // Call
 router.post("/voicecall/agora-rtc", checkCustomerRole,  CustomerCallController.createRtcToken );
 router.post("/voicecall", checkCustomerRole,  CustomerCallController.startCall );
-router.post("/voicecall/:callId/end", checkCustomerRole,  CustomerCallController.endCall );
+router.get("/voicecall/:callId", checkCustomerRole,  CustomerCallController.getSingleCall );
+router.get("/voicecall/:callId/end", checkCustomerRole,  CustomerCallController.endCall );
 
 
 export default router;

@@ -46,6 +46,25 @@ export const createRtcToken = async (
 }
 
 
+
+export const getSingleCall = async (
+    req: any,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const { callId } = req.params;
+        const call = await CallModel.findById(callId)
+        if(!call){
+            return res.status(404).json({success: false, message:'Call not found' });
+        }
+        res.status(200).json({message:'Token generated', data: call });
+    } catch (err: any) {
+        res.status(500).json({ message: err.message });
+    }
+}
+
+
 export const startCall = async (
     req: any,
     res: Response,
@@ -131,17 +150,20 @@ export const endCall = async (
         const toUser = call.toUserType === 'contractors' ? await ContractorModel.findById(call.toUser) : await CustomerModel.findById(call.toUser);
         if (!fromUser || !toUser) return res.status(404).json({ success: false, message: 'Call parties not found' });
         const conversation = await ConversationUtil.updateOrCreateConversation(fromUser.id, call.fromUserType, toUser.id, call.toUserType )
+        
         let message = ``
+        let title = 'Call Ended'
+        let type = 'CALL_ENDED'
         if(fromUser){
             message = `Your call with ${toUser.name} has ended`
-            if(event == 'missed')   message = `Your call to  ${toUser.name} was not answered`
-            if(event == 'rejected')   message = `Your call to  ${toUser.name} was declined`
+            if(event == 'missed') title = 'Call Missed', type = 'CALL_MISSED',   message = `Your call to  ${toUser.name} was not answered`
+            if(event == 'declined')  title = 'Call Declined', type = 'CALL_DECLINED',  message = `Your call to  ${toUser.name} was declined`
 
             NotificationService.sendNotification({
                 user: call.fromUser,
                 userType: call.fromUserType, 
-                title: 'Call Ended',
-                type: 'CALL_ENDED',
+                title: title,
+                type: type,
                 message,
                 heading: { name: `${toUser.name}`, image: toUser.profilePhoto?.url },
                 payload: {
@@ -151,21 +173,21 @@ export const endCall = async (
                     message,
                     name: `${toUser.name}`,
                     image: toUser.profilePhoto?.url,
-                    event: 'CALL_ENDED',
+                    event: type,
                 },
             }, { database: true, push: true, socket: true });
         }
        
         if(toUser){
             message = `Your call with ${toUser.name} has ended`
-            if(event == 'missed')   message = `You have a missed call from  ${fromUser.name}`
-            if(event == 'rejected')   message = `You declined a call from  ${fromUser.name}`
+            if(event == 'missed')  title = 'Call Missed', type = 'CALL_MISSED',    message = `You have a missed call from  ${fromUser.name}`
+            if(event == 'declined') title = 'Call Declined', type = 'CALL_DECLINED',   message = `You declined a call from  ${fromUser.name}`
 
             NotificationService.sendNotification({
                 user: call.toUser,
                 userType: call.toUserType,
-                title: 'Call Ended',
-                type: 'CALL_ENDED',
+                title: title,
+                type: type,
                 message,
                 heading: { name: `${fromUser.name}`, image: fromUser.profilePhoto?.url },
                 payload: {
@@ -175,7 +197,7 @@ export const endCall = async (
                     message,
                     name: `${fromUser.name}`,
                     image: fromUser.profilePhoto?.url,
-                    event: 'CALL_ENDED',
+                    event: type,
                 },
             }, { database: true, push: true, socket: true });
         }
@@ -193,5 +215,6 @@ export const ContractorCallController = {
     createRtmToken,
     createRtcToken,
     startCall,
-    endCall
+    endCall,
+    getSingleCall
 };

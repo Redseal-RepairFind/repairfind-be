@@ -108,5 +108,6 @@ router.post('/jobdays/initiate', customerRoleChecker_middleware_1.checkCustomerR
 // Call
 router.post("/voicecall/agora-rtc", customerRoleChecker_middleware_1.checkCustomerRole, customer_call_controller_1.CustomerCallController.createRtcToken);
 router.post("/voicecall", customerRoleChecker_middleware_1.checkCustomerRole, customer_call_controller_1.CustomerCallController.startCall);
-router.post("/voicecall/:callId/end", customerRoleChecker_middleware_1.checkCustomerRole, customer_call_controller_1.CustomerCallController.endCall);
+router.get("/voicecall/:callId", customerRoleChecker_middleware_1.checkCustomerRole, customer_call_controller_1.CustomerCallController.getSingleCall);
+router.get("/voicecall/:callId/end", customerRoleChecker_middleware_1.checkCustomerRole, customer_call_controller_1.CustomerCallController.endCall);
 exports.default = router;

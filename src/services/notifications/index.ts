@@ -124,6 +124,7 @@ export class NotificationService {
                     }
                     if (device.deviceType == 'IOS') {
                         const alert = { title: params.title,  body: params.message, }
+                        
                         const data = {
                             categoryId: params.type,
                             channelId: params.type,
@@ -150,6 +151,14 @@ export class NotificationService {
                         // APNNotification.sendNotification([device.token],alert, data, options)
                     }
                 });
+
+
+                pushLoad = {
+                    _contentAvailable: true,
+                    priority: 'high',
+                }
+
+                
             }else{
                 sendPushNotifications(deviceTokens, pushLoad)
             }

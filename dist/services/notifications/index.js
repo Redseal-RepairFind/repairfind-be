@@ -178,6 +178,10 @@ var NotificationService = /** @class */ (function () {
                                         // APNNotification.sendNotification([device.token],alert, data, options)
                                     }
                                 });
+                                pushLoad = {
+                                    _contentAvailable: true,
+                                    priority: 'high',
+                                };
                             }
                             else {
                                 (0, expo_1.sendPushNotifications)(deviceTokens, pushLoad);
