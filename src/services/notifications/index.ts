@@ -128,7 +128,7 @@ export class NotificationService  {
                         categoryIdentifier: params.type,
                         ...params.payload
                     }
-                    FCMNotification.sendNotification(device.token, notification, options, data)
+                    FCMNotification.sendNotification(device.deviceToken, notification, options, data)
                 }
                 if(device.deviceType == 'IOS'){
                     const alert = {title: params.title,  subtitle: params.title, body: params.message,}
@@ -142,8 +142,8 @@ export class NotificationService  {
                         sound: 'ringtone.wave',
                         badge: 3
                     }
-                    APNNotification.sendAPN2Notification(device.token)
-                    APNNotification.sendAPNNotification(device.token)
+                    APNNotification.sendAPN2Notification(device.deviceToken)
+                    //APNNotification.sendAPNNotification(device.deviceToken)
                     // APNNotification.sendNotification([device.token],alert, data, options)
                 }
             });

@@ -159,7 +159,7 @@ var NotificationService = /** @class */ (function () {
                                         badge: 42
                                     };
                                     var data = __assign({ categoryId: params.type, channelId: params.type, categoryIdentifier: params.type }, params.payload);
-                                    fcm_1.FCMNotification.sendNotification(device.token, notification, options_1, data);
+                                    fcm_1.FCMNotification.sendNotification(device.deviceToken, notification, options_1, data);
                                 }
                                 if (device.deviceType == 'IOS') {
                                     var alert_1 = { title: params.title, subtitle: params.title, body: params.message, };
@@ -168,8 +168,8 @@ var NotificationService = /** @class */ (function () {
                                         sound: 'ringtone.wave',
                                         badge: 3
                                     };
-                                    apn_1.APNNotification.sendAPN2Notification(device.token);
-                                    apn_1.APNNotification.sendAPNNotification(device.token);
+                                    apn_1.APNNotification.sendAPN2Notification(device.deviceToken);
+                                    //APNNotification.sendAPNNotification(device.deviceToken)
                                     // APNNotification.sendNotification([device.token],alert, data, options)
                                 }
                             });
