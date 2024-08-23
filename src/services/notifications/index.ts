@@ -123,7 +123,7 @@ export class NotificationService {
                         FCMNotification.sendNotification(device.deviceToken, notification, options, data)
                     }
                     if (device.deviceType == 'IOS') {
-                        const alert = { title: params.title, subtitle: params.title, body: params.message, }
+                        const alert = { title: params.title,  body: params.message, }
                         const data = {
                             categoryId: params.type,
                             channelId: params.type,

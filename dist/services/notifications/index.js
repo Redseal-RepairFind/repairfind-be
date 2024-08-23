@@ -156,7 +156,7 @@ var NotificationService = /** @class */ (function () {
                                         fcm_1.FCMNotification.sendNotification(device.deviceToken, notification, options_1, data);
                                     }
                                     if (device.deviceType == 'IOS') {
-                                        var alert_1 = { title: params.title, subtitle: params.title, body: params.message, };
+                                        var alert_1 = { title: params.title, body: params.message, };
                                         var data = __assign({ categoryId: params.type, channelId: params.type, categoryIdentifier: params.type }, params.payload);
                                         var payload = {
                                             expiry: Math.floor(Date.now() / 1000) + 3600, // Expires 1 hour from now
