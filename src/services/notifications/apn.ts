@@ -163,7 +163,7 @@ export const sendNotification = async (
     defaultTopic: 'com.krendus.repairfindcontractor',
     requestTimeout: 0, // optional, Default: 0 (without timeout)
     keepAlive: true, // optional, Default: 5000
-    host: 'api.push.apple.com'
+    host: 'api.sandbox.push.apple.com'
   });
 
   // Error handling

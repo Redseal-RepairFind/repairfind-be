@@ -168,7 +168,7 @@ var sendTestNotification = function (req, res, next) { return __awaiter(void 0, 
             // sendAPN2Notification('5c331b83caea396d9cf1e43545276d70791200840ecf126124853b6387630fe2')
             // sendSilentNotification(['5c331b83caea396d9cf1e43545276d70791200840ecf126124853b6387630fe2'])
             // sendAPNNotification('5c331b83caea396d9cf1e43545276d70791200840ecf126124853b6387630fe2')
-            (0, apn_1.sendNotification)(['5c331b83caea396d9cf1e43545276d70791200840ecf126124853b6387630fe2'], { title: "Title here", body: "Body here", subtitle: "Subtitle here" }, { sound: "ringtone.wav", badge: 3 });
+            (0, apn_1.sendNotification)(['6aeb2d87992687389efde1c99c7a2a76e49b1b69e48dc78d81eb62a9b17486e0'], { title: "Title here", body: "Body here", subtitle: "Subtitle here" }, { sound: "ringtone.wav", badge: 3 });
             // sam Prod iphone
             // 6aeb2d87992687389efde1c99c7a2a76e49b1b69e48dc78d81eb62a9b17486e0
             //5c331b83caea396d9cf1e43545276d70791200840ecf126124853b6387630fe2
