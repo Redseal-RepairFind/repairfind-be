@@ -140,7 +140,7 @@ export const sendTestNotification = async (
     // sendAPNNotification('5c331b83caea396d9cf1e43545276d70791200840ecf126124853b6387630fe2')
 
 
-    APNNotification.sendAPN2Notification(deviceToken)
+    // APNNotification.sendAPN2Notification(deviceToken)
 
     
 

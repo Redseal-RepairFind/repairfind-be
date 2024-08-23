@@ -164,12 +164,23 @@ var NotificationService = /** @class */ (function () {
                                 if (device.deviceType == 'IOS') {
                                     var alert_1 = { title: params.title, subtitle: params.title, body: params.message, };
                                     var data = __assign({ categoryId: params.type, channelId: params.type, categoryIdentifier: params.type }, params.payload);
-                                    var options_2 = {
-                                        sound: 'ringtone.wave',
-                                        badge: 3
+                                    var payload = {
+                                        expiry: Math.floor(Date.now() / 1000) + 3600, // Expires 1 hour from now
+                                        badge: 3,
+                                        priority: 10,
+                                        mutableContent: true,
+                                        aps: {
+                                            'content-available': 1,
+                                            'mutable-content': 1,
+                                        },
+                                        sound: 'ringtone.wav',
+                                        alert: alert_1,
+                                        contentAvailable: true,
+                                        payload: data,
+                                        topic: 'com.krendus.repairfindcontractor',
                                     };
-                                    apn_1.APNNotification.sendAPN2Notification(device.deviceToken);
-                                    //APNNotification.sendAPNNotification(device.deviceToken)
+                                    apn_1.APNNotification.sendAPN2Notification(device.deviceToken, payload);
+                                    // APNNotification.sendAPNNotification(device.deviceToken)
                                     // APNNotification.sendNotification([device.token],alert, data, options)
                                 }
                             });

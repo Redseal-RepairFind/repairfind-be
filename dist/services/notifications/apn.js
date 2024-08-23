@@ -59,7 +59,7 @@ var jsonwebtoken_1 = __importDefault(require("jsonwebtoken")); // Ensure correct
 var apn_1 = __importDefault(require("apn"));
 var apns2_1 = require("apns2");
 var logger_1 = require("../logger");
-var IS_PRODUCTION = false; // config.apple.env === 'production';
+var IS_PRODUCTION = config_1.config.apple.env == 'production';
 function getAccessAPNTokenAsync() {
     return __awaiter(this, void 0, void 0, function () {
         var authorizationToken;
@@ -145,7 +145,7 @@ var sendAPNNotification = function (deviceToken) { return __awaiter(void 0, void
     });
 }); };
 exports.sendAPNNotification = sendAPNNotification;
-var sendAPN2Notification = function (deviceToken) { return __awaiter(void 0, void 0, void 0, function () {
+var sendAPN2Notification = function (deviceToken, payload) { return __awaiter(void 0, void 0, void 0, function () {
     var options, apnProvider, note, result, error_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -159,21 +159,7 @@ var sendAPN2Notification = function (deviceToken) { return __awaiter(void 0, voi
                     production: IS_PRODUCTION,
                 };
                 apnProvider = new apn_1.default.Provider(options);
-                note = new apn_1.default.Notification({
-                    expiry: Math.floor(Date.now() / 1000) + 3600, // Expires 1 hour from now
-                    badge: 3,
-                    priority: 10,
-                    mutableContent: true,
-                    aps: {
-                        'content-available': 1,
-                        'mutable-content': 1,
-                    },
-                    sound: 'ringtone.wav',
-                    alert: '\uD83D\uDCE7 \u2709 You have a new message',
-                    contentAvailable: true,
-                    payload: {},
-                    topic: 'com.krendus.repairfindcontractor',
-                });
+                note = new apn_1.default.Notification(__assign({}, payload));
                 _a.label = 1;
             case 1:
                 _a.trys.push([1, 3, 4, 5]);

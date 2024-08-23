@@ -45,7 +45,6 @@ var custom_errors_1 = require("../../../utils/custom.errors");
 var country_schema_1 = require("../../../database/common/country.schema");
 var bank_schema_1 = require("../../../database/common/bank.schema");
 var payment_util_1 = require("../../../utils/payment.util");
-var apn_1 = require("../../../services/notifications/apn");
 var getBankList = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var data, err_1;
     return __generator(this, function (_a) {
@@ -170,7 +169,7 @@ var sendTestNotification = function (req, res, next) { return __awaiter(void 0, 
             // sendAPN2Notification('5c331b83caea396d9cf1e43545276d70791200840ecf126124853b6387630fe2')
             // sendSilentNotification(['5c331b83caea396d9cf1e43545276d70791200840ecf126124853b6387630fe2'])
             // sendAPNNotification('5c331b83caea396d9cf1e43545276d70791200840ecf126124853b6387630fe2')
-            apn_1.APNNotification.sendAPN2Notification(deviceToken);
+            // APNNotification.sendAPN2Notification(deviceToken)
             // sam Prod iphone
             // 6aeb2d87992687389efde1c99c7a2a76e49b1b69e48dc78d81eb62a9b17486e0
             //5c331b83caea396d9cf1e43545276d70791200840ecf126124853b6387630fe2

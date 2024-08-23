@@ -8,7 +8,7 @@ import { ApnsClient, Notification, SilentNotification, Errors } from 'apns2';
 import { Logger } from '../logger';
 
 
-const IS_PRODUCTION = false // config.apple.env === 'production';
+const IS_PRODUCTION = config.apple.env == 'production';
 
 async function getAccessAPNTokenAsync() {
   try {
@@ -101,7 +101,7 @@ export const sendAPNNotification = async (deviceToken: any) => {
 
 
 
-export const sendAPN2Notification = async (deviceToken: string): Promise<void> => {
+export const sendAPN2Notification = async (deviceToken: string,  payload: object): Promise<void> => {
   const options = {
     token: {
       key: './apn.p8',
@@ -114,20 +114,7 @@ export const sendAPN2Notification = async (deviceToken: string): Promise<void> =
   const apnProvider = new apn.Provider(options);
 
   const note = new apn.Notification({
-    expiry: Math.floor(Date.now() / 1000) + 3600, // Expires 1 hour from now
-    badge: 3,
-    priority: 10,
-    mutableContent: true,
-    aps: {
-      'content-available': 1,
-      'mutable-content': 1,
-    },
-  
-    sound: 'ringtone.wav',
-    alert: '\uD83D\uDCE7 \u2709 You have a new message',
-    contentAvailable: true,
-    payload: {},
-    topic: 'com.krendus.repairfindcontractor',
+      ...payload
   });
 
   
