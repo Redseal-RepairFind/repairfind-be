@@ -58,6 +58,7 @@ var fs_1 = __importDefault(require("fs"));
 var jsonwebtoken_1 = __importDefault(require("jsonwebtoken")); // Ensure correct import of 'jsonwebtoken'
 var apn_1 = __importDefault(require("apn"));
 var apns2_1 = require("apns2");
+var logger_1 = require("../logger");
 var IS_PRODUCTION = config_1.config.apple.env === 'production';
 function getAccessAPNTokenAsync() {
     return __awaiter(this, void 0, void 0, function () {
@@ -216,11 +217,11 @@ var sendNotification = function (deviceTokens, alert, options, data) { return __
                 });
                 // Error handling
                 client.on(apns2_1.Errors.badDeviceToken, function (err) {
-                    console.error('Bad device token:', err.reason, err.statusCode, err.notification.deviceToken);
+                    logger_1.Logger.error('Bad device token:', err);
                     // Handle bad device token accordingly (e.g., remove from database)
                 });
                 client.on(apns2_1.Errors.error, function (err) {
-                    console.error('APNs error:', err);
+                    logger_1.Logger.error('APNs error:', err);
                     // Handle other errors
                 });
                 notifications = deviceTokens.map(function (token) { return new apns2_1.Notification(token, __assign({ alert: alert, data: data }, options)); });
@@ -230,11 +231,11 @@ var sendNotification = function (deviceTokens, alert, options, data) { return __
                 return [4 /*yield*/, client.sendMany(notifications)];
             case 2:
                 _a.sent();
-                console.log('Notifications sent successfully');
+                logger_1.Logger.info('Notifications sent successfully');
                 return [3 /*break*/, 4];
             case 3:
                 err_1 = _a.sent();
-                console.error('Error sending notifications:', err_1.reason);
+                logger_1.Logger.info('Error sending notifications:', err_1.reason);
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
         }
@@ -258,11 +259,11 @@ var sendSilentNotification = function (deviceTokens) { return __awaiter(void 0, 
                 });
                 // Error handling
                 client.on(apns2_1.Errors.badDeviceToken, function (err) {
-                    console.error('Bad device token:', err.reason, err.statusCode, err.notification.deviceToken);
+                    logger_1.Logger.error('Bad device token:', err);
                     // Handle bad device token accordingly (e.g., remove from database)
                 });
                 client.on(apns2_1.Errors.error, function (err) {
-                    console.error('APNs error:', err);
+                    logger_1.Logger.error('APNs error:', err);
                     // Handle other errors
                 });
                 notifications = deviceTokens.map(function (token) { return new apns2_1.SilentNotification(token); });
@@ -272,11 +273,11 @@ var sendSilentNotification = function (deviceTokens) { return __awaiter(void 0, 
                 return [4 /*yield*/, client.sendMany(notifications)];
             case 2:
                 _a.sent();
-                console.log('Silent notifications sent successfully');
+                logger_1.Logger.info('Silent notifications sent successfully');
                 return [3 /*break*/, 4];
             case 3:
                 err_2 = _a.sent();
-                console.error('Error sending silent notifications:', err_2.reason);
+                logger_1.Logger.error('Error sending silent notifications:', err_2.reason);
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
         }

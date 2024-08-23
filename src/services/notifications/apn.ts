@@ -5,6 +5,7 @@ import fs from 'fs';
 import jwt from 'jsonwebtoken'; // Ensure correct import of 'jsonwebtoken'
 import apn from 'apn'
 import { ApnsClient, Notification, SilentNotification, Errors } from 'apns2';
+import { Logger } from '../logger';
 
 
 const IS_PRODUCTION = config.apple.env === 'production';
@@ -167,12 +168,12 @@ export const sendNotification = async (
 
   // Error handling
   client.on(Errors.badDeviceToken, (err) => {
-    console.error('Bad device token:', err.reason, err.statusCode, err.notification.deviceToken);
+    Logger.error('Bad device token:', err);
     // Handle bad device token accordingly (e.g., remove from database)
   });
 
   client.on(Errors.error, (err) => {
-    console.error('APNs error:', err);
+    Logger.error('APNs error:', err);
     // Handle other errors
   });
 
@@ -185,9 +186,9 @@ export const sendNotification = async (
 
   try {
     await client.sendMany(notifications);
-    console.log('Notifications sent successfully');
+    Logger.info('Notifications sent successfully');
   } catch (err: any) {
-    console.error('Error sending notifications:', err.reason);
+    Logger.info('Error sending notifications:', err.reason);
   }
 };
 
@@ -208,12 +209,12 @@ export const sendSilentNotification = async (deviceTokens: string[]): Promise<vo
 
   // Error handling
   client.on(Errors.badDeviceToken, (err) => {
-    console.error('Bad device token:', err.reason, err.statusCode, err.notification.deviceToken);
+    Logger.error('Bad device token:', err);
     // Handle bad device token accordingly (e.g., remove from database)
   });
 
   client.on(Errors.error, (err) => {
-    console.error('APNs error:', err);
+    Logger.error('APNs error:', err);
     // Handle other errors
   });
 
@@ -222,9 +223,9 @@ export const sendSilentNotification = async (deviceTokens: string[]): Promise<vo
 
   try {
     await client.sendMany(notifications);
-    console.log('Silent notifications sent successfully');
+    Logger.info('Silent notifications sent successfully');
   } catch (err: any) {
-    console.error('Error sending silent notifications:', err.reason);
+    Logger.error('Error sending silent notifications:', err.reason);
   }
 };
 
