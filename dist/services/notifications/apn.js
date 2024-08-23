@@ -59,7 +59,7 @@ var jsonwebtoken_1 = __importDefault(require("jsonwebtoken")); // Ensure correct
 var apn_1 = __importDefault(require("apn"));
 var apns2_1 = require("apns2");
 var logger_1 = require("../logger");
-var IS_PRODUCTION = config_1.config.apple.env === 'production';
+var IS_PRODUCTION = false; // config.apple.env === 'production';
 function getAccessAPNTokenAsync() {
     return __awaiter(this, void 0, void 0, function () {
         var authorizationToken;

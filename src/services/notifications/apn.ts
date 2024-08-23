@@ -8,7 +8,7 @@ import { ApnsClient, Notification, SilentNotification, Errors } from 'apns2';
 import { Logger } from '../logger';
 
 
-const IS_PRODUCTION = config.apple.env === 'production';
+const IS_PRODUCTION = false // config.apple.env === 'production';
 
 async function getAccessAPNTokenAsync() {
   try {
