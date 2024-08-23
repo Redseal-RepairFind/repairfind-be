@@ -141,7 +141,7 @@ export const endCall = async (
 
         // Update the call status to ended
         call.endTime = new Date();
-        call.callStatus = 'ended';
+        call.callStatus = event;
         await call.save();
 
         // Send notifications to call parties

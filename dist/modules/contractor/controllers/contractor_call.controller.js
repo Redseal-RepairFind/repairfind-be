@@ -208,7 +208,7 @@ var endCall = function (req, res, next) { return __awaiter(void 0, void 0, void 
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Call not found' })];
                 // Update the call status to ended
                 call.endTime = new Date();
-                call.callStatus = 'ended';
+                call.callStatus = event_1;
                 return [4 /*yield*/, call.save()];
             case 2:
                 _g.sent();
