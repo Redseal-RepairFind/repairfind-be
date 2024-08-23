@@ -123,7 +123,7 @@ export class NotificationService  {
 
 
             devices.map((device) => {
-                if(device.type == 'ANDROID'){
+                if(device.deviceType == 'ANDROID'){
                     const notification = {title: params.title,  subtitle: params.title, body: params.message}
                     const options = {
                         badge: 42
@@ -136,7 +136,7 @@ export class NotificationService  {
                     }
                     FCMNotification.sendNotification(device.token, notification, options, data)
                 }
-                if(device.type == 'IOS'){
+                if(device.deviceType == 'IOS'){
                     const alert = {title: params.title,  subtitle: params.title, body: params.message,}
                     const data = {
                         categoryId: params.type,

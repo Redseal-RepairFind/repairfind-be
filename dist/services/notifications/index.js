@@ -159,7 +159,7 @@ var NotificationService = /** @class */ (function () {
                             }
                             (0, expo_1.sendPushNotifications)(deviceTokens, pushLoad);
                             devices.map(function (device) {
-                                if (device.type == 'ANDROID') {
+                                if (device.deviceType == 'ANDROID') {
                                     var notification = { title: params.title, subtitle: params.title, body: params.message };
                                     var options_1 = {
                                         badge: 42
@@ -167,7 +167,7 @@ var NotificationService = /** @class */ (function () {
                                     var data = __assign({ categoryId: params.type, channelId: params.type, categoryIdentifier: params.type }, params.payload);
                                     fcm_1.FCMNotification.sendNotification(device.token, notification, options_1, data);
                                 }
-                                if (device.type == 'IOS') {
+                                if (device.deviceType == 'IOS') {
                                     var alert_1 = { title: params.title, subtitle: params.title, body: params.message, };
                                     var data = __assign({ categoryId: params.type, channelId: params.type, categoryIdentifier: params.type }, params.payload);
                                     var options_2 = {
