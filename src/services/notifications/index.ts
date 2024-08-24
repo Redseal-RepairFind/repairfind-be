@@ -125,7 +125,7 @@ export class NotificationService {
                                 name: params.payload.name,
                                 event: params.payload.event,
                                 token: params.payload.token,
-                                uid: params.payload.uid,
+                                uid: `"${params.payload.uid}"`,
                                 user: params.payload.user,
                                 userType: params.payload.userType,
                             }

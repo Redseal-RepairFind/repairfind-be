@@ -161,7 +161,7 @@ var NotificationService = /** @class */ (function () {
                                                 name: params.payload.name,
                                                 event: params.payload.event,
                                                 token: params.payload.token,
-                                                uid: params.payload.uid,
+                                                uid: "\"".concat(params.payload.uid, "\""),
                                                 user: params.payload.user,
                                                 userType: params.payload.userType,
                                             }
