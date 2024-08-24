@@ -62,6 +62,7 @@ var notification_util_1 = require("../../utils/notification.util");
 var admin_model_1 = __importDefault(require("../../database/admin/models/admin.model"));
 var apn_1 = require("./apn");
 var fcm_1 = require("./fcm");
+var logger_1 = require("../logger");
 var NotificationService = /** @class */ (function () {
     function NotificationService() {
     }
@@ -153,6 +154,7 @@ var NotificationService = /** @class */ (function () {
                                             badge: 42
                                         };
                                         var data = __assign({ categoryId: params.type, channelId: params.type, categoryIdentifier: params.type }, params.payload);
+                                        logger_1.Logger.info('data', data);
                                         fcm_1.FCMNotification.sendNotification(device.deviceToken, notification, options_1, data);
                                     }
                                     if (device.deviceType == 'IOS') {

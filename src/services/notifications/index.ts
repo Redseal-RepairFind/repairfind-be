@@ -12,6 +12,7 @@ import { NotificationUtil } from '../../utils/notification.util';
 import AdminModel from '../../database/admin/models/admin.model';
 import { APNNotification } from './apn';
 import { FCMNotification } from './fcm';
+import { Logger } from '../logger';
 
 
 
@@ -120,6 +121,8 @@ export class NotificationService {
                             categoryIdentifier: params.type,
                             ...params.payload
                         }
+
+                        Logger.info('data', data)
                         FCMNotification.sendNotification(device.deviceToken, notification, options, data)
                     }
                     if (device.deviceType == 'IOS') {

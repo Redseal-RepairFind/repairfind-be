@@ -21,13 +21,13 @@ const initializeFirebase = async () => {
 
 
 
-export const sendFCMNotification = async (FcmToken: any, notification: object, options: any, payload: any) => {
+export const sendFCMNotification = async (FcmToken: any, notification: object, options: any, payload: { [key: string]: string }) => {
     try {
         const message = {
             tokens: [FcmToken], // Ensure FcmToken is a valid array of tokens
             android: {
                 notification,
-                data:payload,
+                data: payload, // Ensure payload is an object with string values only
             },
 
             apns: {
@@ -38,15 +38,13 @@ export const sendFCMNotification = async (FcmToken: any, notification: object, o
                     },
                 }
             }
-
-        
         };
 
         const response = await admin.messaging().sendMulticast(message);
         response.responses.forEach((resp, index) => {
             if (!resp.success) {
                 Logger.error(`Error sending message to token ${message.tokens[index]}: ${resp?.error?.message}`);
-            }else{
+            } else {
                 Logger.info('Notification sent successfully:', response);
             }
         });
@@ -55,6 +53,7 @@ export const sendFCMNotification = async (FcmToken: any, notification: object, o
         Logger.error('Error sending notification', error);
     }
 };
+
 
 initializeFirebase();
 

@@ -76,7 +76,7 @@ var sendFCMNotification = function (FcmToken, notification, options, payload) { 
                     tokens: [FcmToken], // Ensure FcmToken is a valid array of tokens
                     android: {
                         notification: notification,
-                        data: payload,
+                        data: payload, // Ensure payload is an object with string values only
                     },
                     apns: {
                         payload: {
