@@ -36,9 +36,9 @@ async function getAccessAPNTokenAsync() {
 
 export const sendAPNNotification = async (deviceToken: any) => {
   try {
-    // const url = IS_PRODUCTION
-    //   ? 'https://api.push.apple.com/3/device/' + deviceToken
-    //   : 'https://api.sandbox.push.apple.com/3/device/' + deviceToken;
+   
+
+    const IS_PRODUCTION = config.apple.env == 'production';
 
     const AUTHORIZATION_TOKEN = await getAccessAPNTokenAsync()
     const http2 = require('http2');
@@ -101,7 +101,10 @@ export const sendAPNNotification = async (deviceToken: any) => {
 
 
 
-export const sendAPN2Notification = async (deviceToken: string,  payload: object): Promise<void> => {
+export const sendAPN2Notification = async (deviceToken: string, payload: object): Promise<void> => {
+
+  const IS_PRODUCTION = config.apple.env == 'production';
+
   const options = {
     token: {
       key: './apn.p8',
@@ -114,10 +117,10 @@ export const sendAPN2Notification = async (deviceToken: string,  payload: object
   const apnProvider = new apn.Provider(options);
 
   const note = new apn.Notification({
-      ...payload
+    ...payload
   });
 
-  
+
   try {
     const result = await apnProvider.send(note, deviceToken);
     if (result.failed.length > 0) {
@@ -141,6 +144,9 @@ export const sendNotification = async (
   options: object,
   data?: Record<string, unknown>, // Explicitly typed as Record<string, unknown>
 ): Promise<void> => {
+
+  const IS_PRODUCTION = config.apple.env == 'production';
+
 
   // Initialize the APNs client
   const client = new ApnsClient({
