@@ -121,6 +121,10 @@ export const startCall = async (
             toUser,
             toUserType,
             startTime: new Date(),
+            toUserToken: toUserToken,
+            fromUserToken: fromUserToken,
+            uid: fromUserUid,
+            channel: channelName
         };
         const call = await CallModel.create(callData);
         

@@ -157,6 +157,10 @@ var startCall = function (req, res, next) { return __awaiter(void 0, void 0, voi
                     toUser: toUser,
                     toUserType: toUserType,
                     startTime: new Date(),
+                    toUserToken: toUserToken,
+                    fromUserToken: fromUserToken,
+                    uid: fromUserUid,
+                    channel: channelName
                 };
                 return [4 /*yield*/, call_schema_1.CallModel.create(callData)];
             case 8:

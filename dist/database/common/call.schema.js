@@ -39,6 +39,9 @@ exports.CallSchema = new mongoose_1.Schema({
         required: false,
     },
     recordingUrl: { type: String },
-    // Add any other relevant fields here
+    toUserToken: { type: String },
+    fromUserToken: { type: String },
+    uid: { type: String },
+    channel: { type: String },
 }, { timestamps: true });
 exports.CallModel = mongoose_1.default.model('calls', exports.CallSchema);

@@ -10,9 +10,12 @@ export interface ICall {
     durationSeconds?: number;
     callStatus?: 'answered' | 'missed' | 'declined' | 'ended';
     recordingUrl?: string;
-    // Add any other relevant fields here
+    toUserToken: string;
+    fromUserToken: string;
+    uid: string;
+    channel: string;
   }
-  
+
 
   export const CallSchema: Schema = new Schema<ICall>({
     fromUser: { type: String, required: true },
@@ -28,7 +31,10 @@ export interface ICall {
       required: false,
     },
     recordingUrl: { type: String },
-    // Add any other relevant fields here
+    toUserToken: { type: String },
+    fromUserToken: { type: String },
+    uid: { type: String },
+    channel: { type: String },
   }, { timestamps: true });
 
   export const CallModel = mongoose.model<ICall>('calls', CallSchema);
