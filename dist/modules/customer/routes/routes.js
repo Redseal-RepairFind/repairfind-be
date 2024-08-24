@@ -88,6 +88,7 @@ router.get("/transactions/summary", customerRoleChecker_middleware_1.checkCustom
 router.get("/transactions/:transactionId", customerRoleChecker_middleware_1.checkCustomerRole, customer_transaction_controller_1.CustomerTransactionController.getSingleTransaction);
 // Notifications
 router.get('/notifications', customerRoleChecker_middleware_1.checkCustomerRole, customer_notification_controller_1.CustomerNotificationController.getNotifications);
+router.get('/notifications/alerts', customerRoleChecker_middleware_1.checkCustomerRole, customer_notification_controller_1.CustomerNotificationController.redAlerts);
 router.get('/notifications/:notificationId', customerRoleChecker_middleware_1.checkCustomerRole, customer_notification_controller_1.CustomerNotificationController.getSingleNotification);
 router.post('/notifications/mark-all-read', customerRoleChecker_middleware_1.checkCustomerRole, customer_notification_controller_1.CustomerNotificationController.markAllNotificationsAsRead);
 router.post('/notifications/:notificationId', customerRoleChecker_middleware_1.checkCustomerRole, customer_notification_controller_1.CustomerNotificationController.markNotificationAsRead);

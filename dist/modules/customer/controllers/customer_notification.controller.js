@@ -187,13 +187,13 @@ var markAllNotificationsAsRead = function (req, res) { return __awaiter(void 0, 
 }); };
 exports.markAllNotificationsAsRead = markAllNotificationsAsRead;
 var redAlerts = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var contractorId, _a, disputeAlerts, unseenBookings, err_1;
+    var customerId, _a, disputeAlerts, unseenBookings, err_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
                 _b.trys.push([0, 2, , 3]);
-                contractorId = req.contractor.id;
-                return [4 /*yield*/, notification_util_1.NotificationUtil.redAlerts(contractorId)];
+                customerId = req.customer.id;
+                return [4 /*yield*/, notification_util_1.NotificationUtil.redAlerts(customerId)];
             case 1:
                 _a = _b.sent(), disputeAlerts = _a.disputeAlerts, unseenBookings = _a.unseenBookings;
                 res.json({ success: true, message: 'Alerts retreived', data: { disputeAlerts: disputeAlerts, unseenBookings: unseenBookings } });
@@ -211,5 +211,6 @@ exports.CustomerNotificationController = {
     getNotifications: exports.getNotifications,
     getSingleNotification: exports.getSingleNotification,
     markNotificationAsRead: exports.markNotificationAsRead,
-    markAllNotificationsAsRead: exports.markAllNotificationsAsRead
+    markAllNotificationsAsRead: exports.markAllNotificationsAsRead,
+    redAlerts: exports.redAlerts
 };

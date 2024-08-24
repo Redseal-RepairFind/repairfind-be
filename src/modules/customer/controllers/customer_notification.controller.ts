@@ -109,9 +109,9 @@ export const markAllNotificationsAsRead = async (req: any, res: Response): Promi
 export const redAlerts = async (req: any, res: Response, next: NextFunction): Promise<any> => {
 
     try {
-        const contractorId = req.contractor.id;
+        const customerId = req.customer.id;
 
-       const {disputeAlerts, unseenBookings} = await NotificationUtil.redAlerts(contractorId)
+       const {disputeAlerts, unseenBookings} = await NotificationUtil.redAlerts(customerId)
 
         res.json({ success: true, message: 'Alerts retreived', data: {disputeAlerts, unseenBookings} });
     } catch (err: any) {
@@ -126,5 +126,6 @@ export const CustomerNotificationController = {
     getNotifications,
     getSingleNotification,
     markNotificationAsRead,
-    markAllNotificationsAsRead
+    markAllNotificationsAsRead,
+    redAlerts
 }
