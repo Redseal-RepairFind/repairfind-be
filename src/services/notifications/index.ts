@@ -115,12 +115,12 @@ export class NotificationService {
                         const options = {
                             badge: 42
                         }
-                        const data = {
+                        const data = JSON.stringify({
                             categoryId: params.type,
                             channelId: params.type,
                             categoryIdentifier: params.type,
                             ...params.payload
-                        }
+                        });
 
                         Logger.info('data', data)
                         FCMNotification.sendNotification(device.deviceToken, notification, options, data)

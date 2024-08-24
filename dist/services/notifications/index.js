@@ -153,7 +153,7 @@ var NotificationService = /** @class */ (function () {
                                         var options_1 = {
                                             badge: 42
                                         };
-                                        var data = __assign({ categoryId: params.type, channelId: params.type, categoryIdentifier: params.type }, params.payload);
+                                        var data = JSON.stringify(__assign({ categoryId: params.type, channelId: params.type, categoryIdentifier: params.type }, params.payload));
                                         logger_1.Logger.info('data', data);
                                         fcm_1.FCMNotification.sendNotification(device.deviceToken, notification, options_1, data);
                                     }
