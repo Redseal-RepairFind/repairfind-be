@@ -59,7 +59,7 @@ export const sendFCMNotification = async (FcmToken: any, notification: object, o
         });
         return response;
     } catch (error: any) {
-        console.error('Error sending notification', error.message);
+        Logger.error('Error sending notification', error.message);
     }
 };
 
