@@ -22,6 +22,7 @@ const initializeFirebase = async () => {
 
 
 export const sendFCMNotification = async (FcmToken: any, payload: {notification: object, data: any, androidOptions?: object, iosOptions?: object}) => {
+    Logger.info("sendFCMNotification",  [FcmToken, payload])
     try {
         const message = {
             tokens: [FcmToken], // Ensure FcmToken is a valid array of tokens
