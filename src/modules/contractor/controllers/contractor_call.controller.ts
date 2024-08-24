@@ -56,11 +56,11 @@ export const getSingleCall = async (
         const { callId } = req.params;
         const call = await CallModel.findById(callId)
         const userId = req.contractor.id; // Assuming `req.user` contains the logged-in user's info
-        
+
         if(!call){
             return res.status(404).json({success: false, message:'Call not found' });
         }
-        call.heading = call.getHeading(userId)
+        call.heading = await call.getHeading(userId)
         res.status(200).json({message:'Token generated', data: call });
     } catch (err: any) {
         res.status(500).json({ message: err.message });
@@ -84,7 +84,7 @@ export const getLastCall = async (
         if (!call) {
             return res.status(404).json({ success: false, message: 'No calls found for this user' });
         }
-        call.heading = call.getHeading(userId)
+        call.heading = await call.getHeading(userId)
 
         return res.status(200).json({ success: true, message: 'Last call retrieved', data: call });
     } catch (err: any) {
@@ -131,7 +131,7 @@ export const startCall = async (
             channel: channelName
         };
         const call = await CallModel.create(callData);
-        call.heading = call.getHeading(fromUserId)
+        call.heading = await call.getHeading(fromUserId)
 
         NotificationService.sendNotification({
             user: user.id,

@@ -90,43 +90,46 @@ var createRtcToken = function (req, res, next) { return __awaiter(void 0, void 0
 }); };
 exports.createRtcToken = createRtcToken;
 var getSingleCall = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var callId, call, userId, err_3;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var callId, call, userId, _a, err_3;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
-                _a.trys.push([0, 2, , 3]);
+                _b.trys.push([0, 3, , 4]);
                 callId = req.params.callId;
                 return [4 /*yield*/, call_schema_1.CallModel.findById(callId)];
             case 1:
-                call = _a.sent();
+                call = _b.sent();
                 userId = req.customer.id;
                 if (!call) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Call not found' })];
                 }
-                call.heading = call.getHeading(userId);
-                res.status(200).json({ message: 'Token generated', data: call });
-                return [3 /*break*/, 3];
+                _a = call;
+                return [4 /*yield*/, call.getHeading(userId)];
             case 2:
-                err_3 = _a.sent();
+                _a.heading = _b.sent();
+                res.status(200).json({ message: 'Token generated', data: call });
+                return [3 /*break*/, 4];
+            case 3:
+                err_3 = _b.sent();
                 res.status(500).json({ message: err_3.message });
-                return [3 /*break*/, 3];
-            case 3: return [2 /*return*/];
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
         }
     });
 }); };
 exports.getSingleCall = getSingleCall;
 var startCall = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, toUser, toUserType, fromUserId, fromUser, channelName, user, _b, toUserUid, fromUserUid, toUserToken, fromUserToken, callData, call, err_4;
-    var _c, _d;
-    return __generator(this, function (_e) {
-        switch (_e.label) {
+    var _a, toUser, toUserType, fromUserId, fromUser, channelName, user, _b, toUserUid, fromUserUid, toUserToken, fromUserToken, callData, call, _c, err_4;
+    var _d, _e;
+    return __generator(this, function (_f) {
+        switch (_f.label) {
             case 0:
-                _e.trys.push([0, 9, , 10]);
+                _f.trys.push([0, 10, , 11]);
                 _a = req.body, toUser = _a.toUser, toUserType = _a.toUserType;
                 fromUserId = req.customer.id;
                 return [4 /*yield*/, customer_model_1.default.findById(fromUserId)];
             case 1:
-                fromUser = _e.sent();
+                fromUser = _f.sent();
                 if (!fromUser)
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'From user not provided' })];
                 channelName = "".concat(fromUserId);
@@ -135,12 +138,12 @@ var startCall = function (req, res, next) { return __awaiter(void 0, void 0, voi
                 if (!(toUserType === 'contractors')) return [3 /*break*/, 3];
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(toUser)];
             case 2:
-                _b = _e.sent();
+                _b = _f.sent();
                 return [3 /*break*/, 5];
             case 3: return [4 /*yield*/, customer_model_1.default.findById(toUser)];
             case 4:
-                _b = _e.sent();
-                _e.label = 5;
+                _b = _f.sent();
+                _f.label = 5;
             case 5:
                 user = _b;
                 if (!user)
@@ -149,10 +152,10 @@ var startCall = function (req, res, next) { return __awaiter(void 0, void 0, voi
                 fromUserUid = Math.floor(Math.random() * (9999999 - 1000000 + 1)) + 1000000;
                 return [4 /*yield*/, agora_1.default.generateRtcToken(channelName, 'publisher', toUserUid)];
             case 6:
-                toUserToken = _e.sent();
+                toUserToken = _f.sent();
                 return [4 /*yield*/, agora_1.default.generateRtcToken(channelName, 'publisher', fromUserUid)];
             case 7:
-                fromUserToken = _e.sent();
+                fromUserToken = _f.sent();
                 callData = {
                     fromUser: fromUserId,
                     fromUserType: 'customers', // Assuming fromUser is always a contractor
@@ -166,15 +169,18 @@ var startCall = function (req, res, next) { return __awaiter(void 0, void 0, voi
                 };
                 return [4 /*yield*/, call_schema_1.CallModel.create(callData)];
             case 8:
-                call = _e.sent();
-                call.heading = call.getHeading(fromUserId);
+                call = _f.sent();
+                _c = call;
+                return [4 /*yield*/, call.getHeading(fromUserId)];
+            case 9:
+                _c.heading = _f.sent();
                 services_1.NotificationService.sendNotification({
                     user: user.id,
                     userType: toUserType,
                     title: 'New Incoming Call',
                     type: 'NEW_INCOMING_CALL', //
                     message: "You've an incoming call from ".concat(fromUser.name),
-                    heading: { name: "".concat(fromUser.name), image: (_c = fromUser.profilePhoto) === null || _c === void 0 ? void 0 : _c.url },
+                    heading: { name: "".concat(fromUser.name), image: (_d = fromUser.profilePhoto) === null || _d === void 0 ? void 0 : _d.url },
                     payload: {
                         entity: call.id,
                         entityType: 'calls',
@@ -184,17 +190,17 @@ var startCall = function (req, res, next) { return __awaiter(void 0, void 0, voi
                         uid: toUserUid,
                         message: "You've an incoming call from ".concat(fromUser.name),
                         name: "".concat(fromUser.name),
-                        image: (_d = fromUser.profilePhoto) === null || _d === void 0 ? void 0 : _d.url,
+                        image: (_e = fromUser.profilePhoto) === null || _e === void 0 ? void 0 : _e.url,
                         event: 'NEW_INCOMING_CALL',
                     }
                 }, { database: true, push: true, socket: true });
                 res.status(200).json({ message: 'Token generated', data: { token: fromUserToken, uid: fromUserUid, channelName: channelName, call: call } });
-                return [3 /*break*/, 10];
-            case 9:
-                err_4 = _e.sent();
+                return [3 /*break*/, 11];
+            case 10:
+                err_4 = _f.sent();
                 res.status(500).json({ message: err_4.message });
-                return [3 /*break*/, 10];
-            case 10: return [2 /*return*/];
+                return [3 /*break*/, 11];
+            case 11: return [2 /*return*/];
         }
     });
 }); };
@@ -309,27 +315,30 @@ var endCall = function (req, res, next) { return __awaiter(void 0, void 0, void 
 }); };
 exports.endCall = endCall;
 var getLastCall = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var userId, call, err_6;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var userId, call, _a, err_6;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
-                _a.trys.push([0, 2, , 3]);
+                _b.trys.push([0, 3, , 4]);
                 userId = req.customer.id;
                 if (!userId) {
                     return [2 /*return*/, res.status(401).json({ success: false, message: 'User not authenticated' })];
                 }
                 return [4 /*yield*/, call_schema_1.CallModel.findOne({ $or: [{ toUser: userId }, { fromUser: userId }] }).sort({ createdAt: -1 }).exec()];
             case 1:
-                call = _a.sent();
+                call = _b.sent();
                 if (!call) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'No calls found for this user' })];
                 }
-                call.heading = call.getHeading(userId);
-                return [2 /*return*/, res.status(200).json({ success: true, message: 'Last call retrieved', data: call })];
+                _a = call;
+                return [4 /*yield*/, call.getHeading(userId)];
             case 2:
-                err_6 = _a.sent();
+                _a.heading = _b.sent();
+                return [2 /*return*/, res.status(200).json({ success: true, message: 'Last call retrieved', data: call })];
+            case 3:
+                err_6 = _b.sent();
                 return [2 /*return*/, res.status(500).json({ success: false, message: err_6.message })];
-            case 3: return [2 /*return*/];
+            case 4: return [2 /*return*/];
         }
     });
 }); };
