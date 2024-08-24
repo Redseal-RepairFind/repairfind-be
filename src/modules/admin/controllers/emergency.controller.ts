@@ -126,10 +126,10 @@ export const resolveEmergency = async (
         .json({success: false, message: "Invalid emergencyId" });
     }
 
-    if (jobEmergency.status != EMERGENCY_STATUS.IN_PROGRESS) {
+    if (jobEmergency.status !== EMERGENCY_STATUS.IN_PROGRESS) {
       return res
         .status(401)
-        .json({success: false, message: "Emergency is not pending" });
+        .json({success: false, message: "Emergency is not in progress" });
     }
 
 

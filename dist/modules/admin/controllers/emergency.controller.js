@@ -150,10 +150,10 @@ var resolveEmergency = function (req, res, next) { return __awaiter(void 0, void
                             .status(401)
                             .json({ success: false, message: "Invalid emergencyId" })];
                 }
-                if (jobEmergency.status != job_emergency_model_1.EMERGENCY_STATUS.IN_PROGRESS) {
+                if (jobEmergency.status !== job_emergency_model_1.EMERGENCY_STATUS.IN_PROGRESS) {
                     return [2 /*return*/, res
                             .status(401)
-                            .json({ success: false, message: "Emergency is not pending" })];
+                            .json({ success: false, message: "Emergency is not in progress" })];
                 }
                 jobEmergency.status = job_emergency_model_1.EMERGENCY_STATUS.RESOLVED;
                 jobEmergency.resolvedWay = resolvedWay;
