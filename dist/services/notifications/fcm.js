@@ -1,4 +1,15 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -66,7 +77,7 @@ var initializeFirebase = function () { return __awaiter(void 0, void 0, void 0, 
         }
     });
 }); };
-var sendFCMNotification = function (FcmToken, notification, options, payload) { return __awaiter(void 0, void 0, void 0, function () {
+var sendFCMNotification = function (FcmToken, payload) { return __awaiter(void 0, void 0, void 0, function () {
     var message_1, response_1, error_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -75,16 +86,11 @@ var sendFCMNotification = function (FcmToken, notification, options, payload) { 
                 message_1 = {
                     tokens: [FcmToken], // Ensure FcmToken is a valid array of tokens
                     android: {
-                        notification: notification,
-                        data: payload, // Ensure payload is an object with string values only
+                        notification: payload.notification,
+                        data: payload.data, // Ensure payload is an object with string values only
                     },
                     apns: {
-                        payload: {
-                            aps: {
-                                alert: notification,
-                                badge: options.badge,
-                            },
-                        }
+                        payload: __assign({ aps: __assign({ alert: payload.notification }, payload.iosOptions) }, payload.data)
                     }
                 };
                 return [4 /*yield*/, firebase_admin_1.default.messaging().sendMulticast(message_1)];

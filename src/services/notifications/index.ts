@@ -111,19 +111,27 @@ export class NotificationService {
             if (params.type == 'NEW_INCOMING_CALL') {
                 devices.map((device) => {
                     if (device.deviceType == 'ANDROID') {
-                        const notification = { title: params.title, subtitle: params.title, body: params.message }
-                        const options = {
-                            badge: 42
+                       
+                        const payload = {
+                            notification:{ title: params.title, subtitle: params.title, body: params.message },
+                            androidOptions: { badge: 42},
+                            data: {
+                                categoryId: params.type,
+                                channelId: params.type,
+                                categoryIdentifier: params.type,
+                                callId: params.payload.callId,
+                                channel: params.payload.channnel,
+                                image: params.payload.image,
+                                name: params.payload.name,
+                                event: params.payload.event,
+                                token: params.payload.token,
+                                uid: params.payload.uid,
+                                user: params.payload.user,
+                                userType: params.payload.userType,
+                            }
                         }
-                        const data = JSON.stringify({
-                            categoryId: params.type,
-                            channelId: params.type,
-                            categoryIdentifier: params.type,
-                            ...params.payload
-                        });
-
-                        Logger.info('data', data)
-                        FCMNotification.sendNotification(device.deviceToken, notification, options, data)
+                        
+                        FCMNotification.sendNotification(device.deviceToken, payload)
                     }
                     if (device.deviceType == 'IOS') {
                         const alert = { title: params.title,  body: params.message, }

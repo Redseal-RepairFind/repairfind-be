@@ -62,7 +62,6 @@ var notification_util_1 = require("../../utils/notification.util");
 var admin_model_1 = __importDefault(require("../../database/admin/models/admin.model"));
 var apn_1 = require("./apn");
 var fcm_1 = require("./fcm");
-var logger_1 = require("../logger");
 var NotificationService = /** @class */ (function () {
     function NotificationService() {
     }
@@ -149,13 +148,25 @@ var NotificationService = /** @class */ (function () {
                             if (params.type == 'NEW_INCOMING_CALL') {
                                 devices.map(function (device) {
                                     if (device.deviceType == 'ANDROID') {
-                                        var notification = { title: params.title, subtitle: params.title, body: params.message };
-                                        var options_1 = {
-                                            badge: 42
+                                        var payload = {
+                                            notification: { title: params.title, subtitle: params.title, body: params.message },
+                                            androidOptions: { badge: 42 },
+                                            data: {
+                                                categoryId: params.type,
+                                                channelId: params.type,
+                                                categoryIdentifier: params.type,
+                                                callId: params.payload.callId,
+                                                channel: params.payload.channnel,
+                                                image: params.payload.image,
+                                                name: params.payload.name,
+                                                event: params.payload.event,
+                                                token: params.payload.token,
+                                                uid: params.payload.uid,
+                                                user: params.payload.user,
+                                                userType: params.payload.userType,
+                                            }
                                         };
-                                        var data = JSON.stringify(__assign({ categoryId: params.type, channelId: params.type, categoryIdentifier: params.type }, params.payload));
-                                        logger_1.Logger.info('data', data);
-                                        fcm_1.FCMNotification.sendNotification(device.deviceToken, notification, options_1, data);
+                                        fcm_1.FCMNotification.sendNotification(device.deviceToken, payload);
                                     }
                                     if (device.deviceType == 'IOS') {
                                         var alert_1 = { title: params.title, body: params.message, };

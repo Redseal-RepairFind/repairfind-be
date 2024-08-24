@@ -21,21 +21,22 @@ const initializeFirebase = async () => {
 
 
 
-export const sendFCMNotification = async (FcmToken: any, notification: object, options: any, payload: any) => {
+export const sendFCMNotification = async (FcmToken: any, payload: {notification: object, data: any, androidOptions?: object, iosOptions?: object}) => {
     try {
         const message = {
             tokens: [FcmToken], // Ensure FcmToken is a valid array of tokens
             android: {
-                notification,
-                data: payload, // Ensure payload is an object with string values only
+                notification: payload.notification,
+                data: payload.data, // Ensure payload is an object with string values only
             },
 
             apns: {
                 payload: {
                     aps: {
-                        alert: notification,
-                        badge: options.badge,
+                        alert: payload.notification,
+                        ...payload.iosOptions
                     },
+                    ...payload.data
                 }
             }
         };
