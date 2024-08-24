@@ -37,16 +37,9 @@ export const sendFCMNotification = async (FcmToken: any, notification: object, o
                         badge: options.badge,
                     },
                 }
-            },
-
-            webpush: {            // Add optional webpush settings
-                fcm_options: {
-                    link: "http://localhost:8081"
-                },
-                notification: {
-                    icon: "https://www.google.com/url?sa=i&url=https%3A%2F%2Fstock.adobe.com%2Fsearch%3Fk%3Dpromotion&psig=AOvVaw1_Rrmp4e8rVEG3eY4iCsBj&ust=1724453872296000&source=images&cd=vfe&opi=89978449&ved=0CBQQjRxqFwoTCPjjybjZiYgDFQAAAAAdAAAAABAJg"
-                }
             }
+
+        
         };
 
         const response = await admin.messaging().sendMulticast(message);
@@ -59,7 +52,7 @@ export const sendFCMNotification = async (FcmToken: any, notification: object, o
         });
         return response;
     } catch (error: any) {
-        Logger.error('Error sending notification', error.message);
+        Logger.error('Error sending notification', error);
     }
 };
 

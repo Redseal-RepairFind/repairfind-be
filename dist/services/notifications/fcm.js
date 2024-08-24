@@ -85,14 +85,6 @@ var sendFCMNotification = function (FcmToken, notification, options, payload) { 
                                 badge: options.badge,
                             },
                         }
-                    },
-                    webpush: {
-                        fcm_options: {
-                            link: "http://localhost:8081"
-                        },
-                        notification: {
-                            icon: "https://www.google.com/url?sa=i&url=https%3A%2F%2Fstock.adobe.com%2Fsearch%3Fk%3Dpromotion&psig=AOvVaw1_Rrmp4e8rVEG3eY4iCsBj&ust=1724453872296000&source=images&cd=vfe&opi=89978449&ved=0CBQQjRxqFwoTCPjjybjZiYgDFQAAAAAdAAAAABAJg"
-                        }
                     }
                 };
                 return [4 /*yield*/, firebase_admin_1.default.messaging().sendMulticast(message_1)];
@@ -110,7 +102,7 @@ var sendFCMNotification = function (FcmToken, notification, options, payload) { 
                 return [2 /*return*/, response_1];
             case 2:
                 error_2 = _a.sent();
-                console.error('Error sending notification', error_2.message);
+                logger_1.Logger.error('Error sending notification', error_2);
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
         }
