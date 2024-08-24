@@ -43,6 +43,7 @@ exports.FCMNotification = exports.sendFCMNotification = void 0;
 var firebase_admin_1 = __importDefault(require("firebase-admin"));
 var axios_1 = __importDefault(require("axios"));
 var config_1 = require("../../config");
+var logger_1 = require("../logger");
 var initializeFirebase = function () { return __awaiter(void 0, void 0, void 0, function () {
     var serviceAccount, error_1;
     return __generator(this, function (_a) {
@@ -55,11 +56,11 @@ var initializeFirebase = function () { return __awaiter(void 0, void 0, void 0, 
                 firebase_admin_1.default.initializeApp({
                     credential: firebase_admin_1.default.credential.cert(serviceAccount)
                 });
-                console.log('Firebase Admin SDK initialized');
+                logger_1.Logger.info('Firebase Admin SDK initialized');
                 return [3 /*break*/, 3];
             case 2:
                 error_1 = _a.sent();
-                console.error('Error fetching service account JSON:', error_1);
+                logger_1.Logger.error('Error fetching service account JSON:', error_1);
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
         }
@@ -100,10 +101,10 @@ var sendFCMNotification = function (FcmToken, notification, options, payload) { 
                 response_1.responses.forEach(function (resp, index) {
                     var _a;
                     if (!resp.success) {
-                        console.log("Error sending message to token ".concat(message_1.tokens[index], ": ").concat((_a = resp === null || resp === void 0 ? void 0 : resp.error) === null || _a === void 0 ? void 0 : _a.message));
+                        logger_1.Logger.error("Error sending message to token ".concat(message_1.tokens[index], ": ").concat((_a = resp === null || resp === void 0 ? void 0 : resp.error) === null || _a === void 0 ? void 0 : _a.message));
                     }
                     else {
-                        console.log('Notification sent successfully:', response_1);
+                        logger_1.Logger.info('Notification sent successfully:', response_1);
                     }
                 });
                 return [2 /*return*/, response_1];

@@ -1,6 +1,7 @@
 import admin, { ServiceAccount } from 'firebase-admin';
 import axios from 'axios';
 import { config } from '../../config';
+import { Logger } from '../logger';
 
 
 
@@ -12,9 +13,9 @@ const initializeFirebase = async () => {
             credential: admin.credential.cert(serviceAccount as ServiceAccount)
         });
 
-        console.log('Firebase Admin SDK initialized');
+        Logger.info('Firebase Admin SDK initialized');
     } catch (error) {
-        console.error('Error fetching service account JSON:', error);
+        Logger.error('Error fetching service account JSON:', error);
     }
 };
 
@@ -51,9 +52,9 @@ export const sendFCMNotification = async (FcmToken: any, notification: object, o
         const response = await admin.messaging().sendMulticast(message);
         response.responses.forEach((resp, index) => {
             if (!resp.success) {
-                console.log(`Error sending message to token ${message.tokens[index]}: ${resp?.error?.message}`);
+                Logger.error(`Error sending message to token ${message.tokens[index]}: ${resp?.error?.message}`);
             }else{
-                console.log('Notification sent successfully:', response);
+                Logger.info('Notification sent successfully:', response);
             }
         });
         return response;
