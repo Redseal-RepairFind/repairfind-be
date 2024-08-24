@@ -36,9 +36,9 @@ async function getAccessAPNTokenAsync() {
 
 export const sendAPNNotification = async (deviceToken: any) => {
   try {
-    const url = IS_PRODUCTION
-      ? 'https://api.push.apple.com/3/device/' + deviceToken
-      : 'https://api.sandbox.push.apple.com/3/device/' + deviceToken;
+    // const url = IS_PRODUCTION
+    //   ? 'https://api.push.apple.com/3/device/' + deviceToken
+    //   : 'https://api.sandbox.push.apple.com/3/device/' + deviceToken;
 
     const AUTHORIZATION_TOKEN = await getAccessAPNTokenAsync()
     const http2 = require('http2');
@@ -150,7 +150,7 @@ export const sendNotification = async (
     defaultTopic: 'com.krendus.repairfindcontractor',
     requestTimeout: 0, // optional, Default: 0 (without timeout)
     keepAlive: true, // optional, Default: 5000
-    host: 'api.sandbox.push.apple.com'
+    host: IS_PRODUCTION ? 'https://api.push.apple.com' : 'https://api.sandbox.push.apple.com'
   });
 
   // Error handling
@@ -191,7 +191,7 @@ export const sendSilentNotification = async (deviceTokens: string[]): Promise<vo
     defaultTopic: 'com.krendus.repairfindcontractor',
     requestTimeout: 0, // optional, Default: 0 (without timeout)
     keepAlive: true, // optional, Default: 5000
-    host: 'api.sandbox.push.apple.com'
+    host: IS_PRODUCTION ? 'https://api.push.apple.com' : 'https://api.sandbox.push.apple.com'
   });
 
   // Error handling

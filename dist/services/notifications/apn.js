@@ -84,14 +84,11 @@ function getAccessAPNTokenAsync() {
     });
 }
 var sendAPNNotification = function (deviceToken) { return __awaiter(void 0, void 0, void 0, function () {
-    var url, AUTHORIZATION_TOKEN, http2, client_1, request, responseBody_1, error_1;
+    var AUTHORIZATION_TOKEN, http2, client_1, request, responseBody_1, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
-                url = IS_PRODUCTION
-                    ? 'https://api.push.apple.com/3/device/' + deviceToken
-                    : 'https://api.sandbox.push.apple.com/3/device/' + deviceToken;
                 return [4 /*yield*/, getAccessAPNTokenAsync()];
             case 1:
                 AUTHORIZATION_TOKEN = _a.sent();
@@ -199,7 +196,7 @@ var sendNotification = function (deviceTokens, alert, options, data) { return __
                     defaultTopic: 'com.krendus.repairfindcontractor',
                     requestTimeout: 0, // optional, Default: 0 (without timeout)
                     keepAlive: true, // optional, Default: 5000
-                    host: 'api.sandbox.push.apple.com'
+                    host: IS_PRODUCTION ? 'https://api.push.apple.com' : 'https://api.sandbox.push.apple.com'
                 });
                 // Error handling
                 client.on(apns2_1.Errors.badDeviceToken, function (err) {
@@ -241,7 +238,7 @@ var sendSilentNotification = function (deviceTokens) { return __awaiter(void 0, 
                     defaultTopic: 'com.krendus.repairfindcontractor',
                     requestTimeout: 0, // optional, Default: 0 (without timeout)
                     keepAlive: true, // optional, Default: 5000
-                    host: 'api.sandbox.push.apple.com'
+                    host: IS_PRODUCTION ? 'https://api.push.apple.com' : 'https://api.sandbox.push.apple.com'
                 });
                 // Error handling
                 client.on(apns2_1.Errors.badDeviceToken, function (err) {

@@ -35,7 +35,7 @@ exports.CallSchema = new mongoose_1.Schema({
     durationSeconds: { type: Number, required: false },
     callStatus: {
         type: String,
-        enum: ['answered', 'missed', 'rejected', 'ended'],
+        enum: ['answered', 'missed', 'declined', 'ended'],
         required: false,
     },
     recordingUrl: { type: String },

@@ -8,7 +8,7 @@ export interface ICall {
     startTime: Date;
     endTime?: Date;
     durationSeconds?: number;
-    callStatus?: 'answered' | 'missed' | 'rejected' | 'ended';
+    callStatus?: 'answered' | 'missed' | 'declined' | 'ended';
     recordingUrl?: string;
     // Add any other relevant fields here
   }
@@ -24,7 +24,7 @@ export interface ICall {
     durationSeconds: { type: Number, required: false },
     callStatus: {
       type: String,
-      enum: ['answered', 'missed', 'rejected', 'ended'],
+      enum: ['answered', 'missed', 'declined', 'ended'],
       required: false,
     },
     recordingUrl: { type: String },
