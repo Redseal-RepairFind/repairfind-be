@@ -113,14 +113,15 @@ export class NotificationService {
                     if (device.deviceType == 'ANDROID') {
                        
                         const payload = {
-                            notification:{ title: params.title, subtitle: params.title, body: params.message },
+                            notification:{ title: params.title, body: params.message },
                             androidOptions: { badge: 42},
                             data: {
                                 categoryId: params.type,
                                 channelId: params.type,
                                 categoryIdentifier: params.type,
                                 callId: params.payload.callId,
-                                channel: params.payload.channnel,
+                                channel: params.payload.channel,
+                                heading: JSON.stringify(params.payload.heading),
                                 image: params.payload.image,
                                 name: params.payload.name,
                                 event: params.payload.event,

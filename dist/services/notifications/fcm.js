@@ -50,7 +50,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.FCMNotification = exports.sendFCMNotification = void 0;
+exports.FCMNotification = exports.sendFCMNotification = exports.initializeFirebase = void 0;
 var firebase_admin_1 = __importDefault(require("firebase-admin"));
 var axios_1 = __importDefault(require("axios"));
 var config_1 = require("../../config");
@@ -77,6 +77,7 @@ var initializeFirebase = function () { return __awaiter(void 0, void 0, void 0, 
         }
     });
 }); };
+exports.initializeFirebase = initializeFirebase;
 var sendFCMNotification = function (FcmToken, payload) { return __awaiter(void 0, void 0, void 0, function () {
     var message_1, response_1, error_2;
     return __generator(this, function (_a) {
@@ -118,5 +119,4 @@ var sendFCMNotification = function (FcmToken, payload) { return __awaiter(void 0
     });
 }); };
 exports.sendFCMNotification = sendFCMNotification;
-initializeFirebase();
-exports.FCMNotification = { sendNotification: exports.sendFCMNotification };
+exports.FCMNotification = { sendNotification: exports.sendFCMNotification, initializeFirebase: exports.initializeFirebase };

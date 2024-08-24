@@ -21,6 +21,7 @@ import corsMiddleware from "./modules/common/middlewares/cors";
 import configureParsers from "./modules/common/middlewares/parsers";
 import configureRateLimit from "./modules/common/middlewares/ratelimit";
 import TwilioService from "./services/twillio";
+import { FCMNotification } from "./services/notifications/fcm";
 
 
 dotenv.config();
@@ -104,6 +105,9 @@ app.use(errorHandler)
  SocketIOService.initialize(server)
  TwilioService.initialize();
 
+
+ //FCM
+ FCMNotification.initializeFirebase()
 
 
 const InittimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;

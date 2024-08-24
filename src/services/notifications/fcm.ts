@@ -5,7 +5,7 @@ import { Logger } from '../logger';
 
 
 
-const initializeFirebase = async () => {
+export const initializeFirebase = async () => {
     try {
         const { data: serviceAccount } = await axios.get(config.google.serviceJson);
 
@@ -22,6 +22,7 @@ const initializeFirebase = async () => {
 
 
 export const sendFCMNotification = async (FcmToken: any, payload: {notification: object, data: any, androidOptions?: object, iosOptions?: object}) => {
+
     Logger.info("sendFCMNotification",  [FcmToken, payload])
     try {
         const message = {
@@ -57,11 +58,8 @@ export const sendFCMNotification = async (FcmToken: any, payload: {notification:
 };
 
 
-initializeFirebase();
 
-
-
-export const FCMNotification = {sendNotification: sendFCMNotification};
+export const FCMNotification = {sendNotification: sendFCMNotification, initializeFirebase};
 
 
 
