@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerCallController = exports.endCall = exports.startCall = exports.getSingleCall = exports.createRtcToken = exports.createRtmToken = void 0;
+exports.CustomerCallController = exports.getLastCall = exports.endCall = exports.startCall = exports.getSingleCall = exports.createRtcToken = exports.createRtmToken = void 0;
 var agora_1 = __importDefault(require("../../../services/agora"));
 var custom_errors_1 = require("../../../utils/custom.errors");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
@@ -301,10 +301,36 @@ var endCall = function (req, res, next) { return __awaiter(void 0, void 0, void 
     });
 }); };
 exports.endCall = endCall;
+var getLastCall = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var userId, call, err_6;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                userId = req.customer.id;
+                if (!userId) {
+                    return [2 /*return*/, res.status(401).json({ success: false, message: 'User not authenticated' })];
+                }
+                return [4 /*yield*/, call_schema_1.CallModel.findOne({ $or: [{ toUser: userId }, { fromUser: userId }] }).sort({ createdAt: -1 }).exec()];
+            case 1:
+                call = _a.sent();
+                if (!call) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'No calls found for this user' })];
+                }
+                return [2 /*return*/, res.status(200).json({ success: true, message: 'Last call retrieved', data: call })];
+            case 2:
+                err_6 = _a.sent();
+                return [2 /*return*/, res.status(500).json({ success: false, message: err_6.message })];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getLastCall = getLastCall;
 exports.CustomerCallController = {
     createRtmToken: exports.createRtmToken,
     createRtcToken: exports.createRtcToken,
     startCall: exports.startCall,
     endCall: exports.endCall,
-    getSingleCall: exports.getSingleCall
+    getSingleCall: exports.getSingleCall,
+    getLastCall: exports.getLastCall
 };

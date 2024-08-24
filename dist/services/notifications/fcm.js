@@ -79,27 +79,31 @@ var initializeFirebase = function () { return __awaiter(void 0, void 0, void 0, 
 }); };
 exports.initializeFirebase = initializeFirebase;
 var sendFCMNotification = function (FcmToken, payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var message_1, response_1, error_2;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var android, message_1, response_1, error_2;
+    var _a;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
                 logger_1.Logger.info("sendFCMNotification", [FcmToken, payload]);
-                _a.label = 1;
+                _b.label = 1;
             case 1:
-                _a.trys.push([1, 3, , 4]);
+                _b.trys.push([1, 3, , 4]);
+                android = ((_a = payload.androidOptions) === null || _a === void 0 ? void 0 : _a.isBackground) ? {
+                    data: payload.data,
+                } : {
+                    notification: payload.notification,
+                    data: payload.data,
+                };
                 message_1 = {
                     tokens: [FcmToken], // Ensure FcmToken is a valid array of tokens
-                    android: {
-                        notification: payload.notification,
-                        data: payload.data, // Ensure payload is an object with string values only
-                    },
+                    android: android,
                     apns: {
                         payload: __assign({ aps: __assign({ alert: payload.notification }, payload.iosOptions) }, payload.data)
                     }
                 };
                 return [4 /*yield*/, firebase_admin_1.default.messaging().sendMulticast(message_1)];
             case 2:
-                response_1 = _a.sent();
+                response_1 = _b.sent();
                 response_1.responses.forEach(function (resp, index) {
                     var _a;
                     if (!resp.success) {
@@ -111,7 +115,7 @@ var sendFCMNotification = function (FcmToken, payload) { return __awaiter(void 0
                 });
                 return [2 /*return*/, response_1];
             case 3:
-                error_2 = _a.sent();
+                error_2 = _b.sent();
                 logger_1.Logger.error('Error sending notification', error_2);
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];

@@ -257,6 +257,7 @@ router.post('/jobdays/:jobDayId/mark-complete', checkContractorRole, ContractorH
 // Call
 router.post("/voicecall/agora-rtc", checkContractorRole,  ContractorCallController.createRtcToken );
 router.post("/voicecall", checkContractorRole,  ContractorCallController.startCall );
+router.get("/voicecall/lastcall", checkContractorRole,  ContractorCallController.getLastCall );
 router.get("/voicecall/:callId", checkContractorRole,  ContractorCallController.getSingleCall );
 router.post("/voicecall/:callId/end", checkContractorRole,  ContractorCallController.endCall );
 

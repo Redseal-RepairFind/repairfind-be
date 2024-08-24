@@ -29,6 +29,6 @@ export interface ICall {
     },
     recordingUrl: { type: String },
     // Add any other relevant fields here
-  });
+  }, { timestamps: true });
 
   export const CallModel = mongoose.model<ICall>('calls', CallSchema);

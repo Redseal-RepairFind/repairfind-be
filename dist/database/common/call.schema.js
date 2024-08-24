@@ -40,5 +40,5 @@ exports.CallSchema = new mongoose_1.Schema({
     },
     recordingUrl: { type: String },
     // Add any other relevant fields here
-});
+}, { timestamps: true });
 exports.CallModel = mongoose_1.default.model('calls', exports.CallSchema);

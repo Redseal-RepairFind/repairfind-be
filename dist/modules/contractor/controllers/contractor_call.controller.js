@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorCallController = exports.endCall = exports.startCall = exports.getSingleCall = exports.createRtcToken = exports.createRtmToken = void 0;
+exports.ContractorCallController = exports.endCall = exports.startCall = exports.getLastCall = exports.getSingleCall = exports.createRtcToken = exports.createRtmToken = void 0;
 var agora_1 = __importDefault(require("../../../services/agora"));
 var custom_errors_1 = require("../../../utils/custom.errors");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
@@ -113,8 +113,33 @@ var getSingleCall = function (req, res, next) { return __awaiter(void 0, void 0,
     });
 }); };
 exports.getSingleCall = getSingleCall;
+var getLastCall = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var userId, call, err_4;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                userId = req.contractor.id;
+                if (!userId) {
+                    return [2 /*return*/, res.status(401).json({ success: false, message: 'User not authenticated' })];
+                }
+                return [4 /*yield*/, call_schema_1.CallModel.findOne({ $or: [{ toUser: userId }, { fromUser: userId }] }).sort({ createdAt: -1 }).exec()];
+            case 1:
+                call = _a.sent();
+                if (!call) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'No calls found for this user' })];
+                }
+                return [2 /*return*/, res.status(200).json({ success: true, message: 'Last call retrieved', data: call })];
+            case 2:
+                err_4 = _a.sent();
+                return [2 /*return*/, res.status(500).json({ success: false, message: err_4.message })];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getLastCall = getLastCall;
 var startCall = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, toUser, toUserType, fromUserId, fromUser, channelName, user, _b, toUserUid, fromUserUid, toUserToken, fromUserToken, callData, call, err_4;
+    var _a, toUser, toUserType, fromUserId, fromUser, channelName, user, _b, toUserUid, fromUserUid, toUserToken, fromUserToken, callData, call, err_5;
     var _c, _d;
     return __generator(this, function (_e) {
         switch (_e.label) {
@@ -184,8 +209,8 @@ var startCall = function (req, res, next) { return __awaiter(void 0, void 0, voi
                 res.status(200).json({ message: 'Token generated', data: { token: fromUserToken, uid: fromUserUid, channelName: channelName, call: call } });
                 return [3 /*break*/, 10];
             case 9:
-                err_4 = _e.sent();
-                res.status(500).json({ message: err_4.message });
+                err_5 = _e.sent();
+                res.status(500).json({ message: err_5.message });
                 return [3 /*break*/, 10];
             case 10: return [2 /*return*/];
         }
@@ -193,7 +218,7 @@ var startCall = function (req, res, next) { return __awaiter(void 0, void 0, voi
 }); };
 exports.startCall = startCall;
 var endCall = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var callId, event_1, call, fromUser, _a, toUser, _b, conversation, message, title, type, err_5;
+    var callId, event_1, call, fromUser, _a, toUser, _b, conversation, message, title, type, err_6;
     var _c, _d, _e, _f;
     return __generator(this, function (_g) {
         switch (_g.label) {
@@ -293,8 +318,8 @@ var endCall = function (req, res, next) { return __awaiter(void 0, void 0, void 
                 res.status(200).json({ success: true, message: 'Call ended successfully' });
                 return [3 /*break*/, 13];
             case 12:
-                err_5 = _g.sent();
-                res.status(500).json({ message: err_5.message });
+                err_6 = _g.sent();
+                res.status(500).json({ message: err_6.message });
                 return [3 /*break*/, 13];
             case 13: return [2 /*return*/];
         }
@@ -306,5 +331,6 @@ exports.ContractorCallController = {
     createRtcToken: exports.createRtcToken,
     startCall: exports.startCall,
     endCall: exports.endCall,
-    getSingleCall: exports.getSingleCall
+    getSingleCall: exports.getSingleCall,
+    getLastCall: exports.getLastCall
 };

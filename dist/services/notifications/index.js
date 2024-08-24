@@ -150,7 +150,7 @@ var NotificationService = /** @class */ (function () {
                                     if (device.deviceType == 'ANDROID') {
                                         var payload = {
                                             notification: { title: params.title, body: params.message },
-                                            androidOptions: { badge: 42 },
+                                            androidOptions: { badge: 42, isBackground: true },
                                             data: {
                                                 categoryId: params.type,
                                                 channelId: params.type,

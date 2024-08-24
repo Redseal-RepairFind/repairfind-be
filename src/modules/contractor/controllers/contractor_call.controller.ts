@@ -64,6 +64,31 @@ export const getSingleCall = async (
     }
 }
 
+export const getLastCall = async (
+    req: any,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        const userId = req.contractor.id; // Assuming `req.user` contains the logged-in user's info
+        
+        if (!userId) {
+            return res.status(401).json({ success: false, message: 'User not authenticated' });
+        }
+
+        const call = await CallModel.findOne({ $or: [{toUser: userId}, {fromUser: userId}] }).sort({ createdAt: -1 }).exec(); // Retrieves the last call by the user
+
+        if (!call) {
+            return res.status(404).json({ success: false, message: 'No calls found for this user' });
+        }
+
+        return res.status(200).json({ success: true, message: 'Last call retrieved', data: call });
+    } catch (err: any) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+};
+
+
 
 export const startCall = async (
     req: any,
@@ -216,5 +241,6 @@ export const ContractorCallController = {
     createRtcToken,
     startCall,
     endCall,
-    getSingleCall
+    getSingleCall,
+    getLastCall
 };
