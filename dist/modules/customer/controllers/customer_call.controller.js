@@ -90,7 +90,7 @@ var createRtcToken = function (req, res, next) { return __awaiter(void 0, void 0
 }); };
 exports.createRtcToken = createRtcToken;
 var getSingleCall = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var callId, call, err_3;
+    var callId, call, userId, err_3;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -99,9 +99,11 @@ var getSingleCall = function (req, res, next) { return __awaiter(void 0, void 0,
                 return [4 /*yield*/, call_schema_1.CallModel.findById(callId)];
             case 1:
                 call = _a.sent();
+                userId = req.customer.id;
                 if (!call) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Call not found' })];
                 }
+                call.heading = call.getHeading(userId);
                 res.status(200).json({ message: 'Token generated', data: call });
                 return [3 /*break*/, 3];
             case 2:
@@ -165,6 +167,7 @@ var startCall = function (req, res, next) { return __awaiter(void 0, void 0, voi
                 return [4 /*yield*/, call_schema_1.CallModel.create(callData)];
             case 8:
                 call = _e.sent();
+                call.heading = call.getHeading(fromUserId);
                 services_1.NotificationService.sendNotification({
                     user: user.id,
                     userType: toUserType,
@@ -321,6 +324,7 @@ var getLastCall = function (req, res, next) { return __awaiter(void 0, void 0, v
                 if (!call) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'No calls found for this user' })];
                 }
+                call.heading = call.getHeading(userId);
                 return [2 /*return*/, res.status(200).json({ success: true, message: 'Last call retrieved', data: call })];
             case 2:
                 err_6 = _a.sent();
