@@ -18,6 +18,7 @@ var adminRoleChecker_middleware_1 = require("../middlewares/adminRoleChecker.mid
 var admin_validations_middleware_1 = require("../middlewares/admin_validations.middleware");
 var admin_auth_controller_1 = require("../controllers/admin_auth.controller");
 var admin_staff_controller_1 = require("../controllers/admin_staff.controller");
+var admin_analytics_controller_1 = require("../controllers/admin_analytics.controller");
 var express = require("express");
 var router = express.Router();
 //refactored authecation
@@ -28,6 +29,7 @@ router.post("/signin", admin_validations_middleware_1.validateAdminLoginParams, 
 router.post("/forgot/password", admin_validations_middleware_1.validateAdminForgotPasswordParams, admin_auth_controller_1.AdminAuthController.forgotPassword);
 router.post("/reset/password", admin_validations_middleware_1.validateAdminResetPasswprdParams, admin_auth_controller_1.AdminAuthController.resetPassword);
 router.post("/change-password", admin_validations_middleware_1.validateAdminChangePasswordParams, admin_auth_controller_1.AdminAuthController.changePassword);
+router.get("/analytics", adminRoleChecker_middleware_1.checkAdminRole, admin_analytics_controller_1.AdminAnalyticsController.getStats);
 //don staff
 router.post("/staffs", admin_validations_middleware_1.Validations.AddStaffParams, adminRoleChecker_middleware_1.checkAdminRole, admin_staff_controller_1.AdminStaffController.addStaff);
 router.post("/staffs/status", admin_validations_middleware_1.validateSuperAdmiCchangeStatusParams, adminRoleChecker_middleware_1.checkAdminRole, admin_staff_controller_1.AdminStaffController.changeStaffStatus);
