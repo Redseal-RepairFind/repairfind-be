@@ -15,13 +15,13 @@ const QuizShema = new Schema <IQuiz>(
         video_url: {
             type: String,
             required: true,
-            unique: true,
-            index: true
+            // unique: true,
+            // index: true
         },
         questions: [
             {
                 type: mongoose.Schema.Types.ObjectId,
-                ref: "questions"
+                ref: "question"
             }
         ],
         createdAt: {

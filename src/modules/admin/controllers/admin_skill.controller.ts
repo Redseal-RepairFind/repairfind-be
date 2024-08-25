@@ -33,6 +33,30 @@ export const AddNew = async (
     }
 }
 
+
+export const AddMultipleSkills = async (
+    req: any,
+    res: Response,
+    next: NextFunction,
+) => {
+    try {
+        let { skills } = req.body;
+
+        if(!Array.isArray(skills) && skills.length <= 0) {
+            return res.json({ success: false, message: "Array is empty" });
+        }
+
+        skills.forEach(async (skill: string) => {
+            await SkillRegrModel.findOneAndUpdate({name: skill},{name: skill}, {new: true, upsert: true})
+        });
+
+        return res.json({ success: true, message: "skill successfully added." });
+
+    } catch (err: any) {
+        return next(new InternalServerError("Error occurred adding skill", err))
+    }
+}
+
 export const GetSkills = async (
     req: any,
     res: Response,
@@ -62,4 +86,5 @@ export const GetSkills = async (
 export const AdminSkillController = {
     AddNew,
     GetSkills,
+    AddMultipleSkills
 }

@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AdminSkillController = exports.GetSkills = exports.AddNew = void 0;
+exports.AdminSkillController = exports.GetSkills = exports.AddMultipleSkills = exports.AddNew = void 0;
 var express_validator_1 = require("express-validator");
 var skill_model_1 = __importDefault(require("../../../database/admin/models/skill.model"));
 var custom_errors_1 = require("../../../utils/custom.errors");
@@ -73,6 +73,33 @@ var AddNew = function (req, res, next) { return __awaiter(void 0, void 0, void 0
     });
 }); };
 exports.AddNew = AddNew;
+var AddMultipleSkills = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var skills;
+    return __generator(this, function (_a) {
+        try {
+            skills = req.body.skills;
+            if (!Array.isArray(skills) && skills.length <= 0) {
+                return [2 /*return*/, res.json({ success: false, message: "Array is empty" })];
+            }
+            skills.forEach(function (skill) { return __awaiter(void 0, void 0, void 0, function () {
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0: return [4 /*yield*/, skill_model_1.default.findOneAndUpdate({ name: skill }, { name: skill }, { new: true, upsert: true })];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
+            return [2 /*return*/, res.json({ success: true, message: "skill successfully added." })];
+        }
+        catch (err) {
+            return [2 /*return*/, next(new custom_errors_1.InternalServerError("Error occurred adding skill", err))];
+        }
+        return [2 /*return*/];
+    });
+}); };
+exports.AddMultipleSkills = AddMultipleSkills;
 var GetSkills = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, errors, skills, err_2;
     return __generator(this, function (_b) {
@@ -100,4 +127,5 @@ exports.GetSkills = GetSkills;
 exports.AdminSkillController = {
     AddNew: exports.AddNew,
     GetSkills: exports.GetSkills,
+    AddMultipleSkills: exports.AddMultipleSkills
 };

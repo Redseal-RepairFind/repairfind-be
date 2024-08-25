@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AdminQuizController = exports.DeleteQuestion = exports.EditQuestion = exports.GetSingleQuestion = exports.GetAllQuestions = exports.getRandomQuiz = exports.getAllQuizzes = exports.CreateQuiz = void 0;
+exports.AdminQuizController = exports.DeleteQuestion = exports.EditQuestion = exports.GetSingleQuestion = exports.GetAllQuestions = exports.addSingleQuestion = exports.getSingleQuiz = exports.getRandomQuiz = exports.getAllQuizzes = exports.CreateQuiz = void 0;
 var express_validator_1 = require("express-validator");
 var question_model_1 = __importDefault(require("../../../database/admin/models/question.model"));
 var quiz_model_1 = __importDefault(require("../../../database/admin/models/quiz.model"));
@@ -109,7 +109,7 @@ var getAllQuizzes = function (_, res) { return __awaiter(void 0, void 0, void 0,
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, quiz_model_1.default.find().exec()];
+                return [4 /*yield*/, quiz_model_1.default.find().populate('questions')];
             case 1:
                 quizzes = _a.sent();
                 res.json({
@@ -171,41 +171,91 @@ var getRandomQuiz = function (_, res) { return __awaiter(void 0, void 0, void 0,
     });
 }); };
 exports.getRandomQuiz = getRandomQuiz;
-// //admin add question /////////////
-// export const AddQuestion = async (
-//     req: any,
-//     res: Response,
-//   ) => {
-//     try {
-//       let {  
-//         question,
-//         options,
-//         answer,
-//       } = req.body;
-//         // Check for validation errors
-//         const errors = validationResult(req);
-//         if (!errors.isEmpty()) {
-//             return res.status(400).json({ errors: errors.array() });
-//         }
-//         const admin =  req.admin;
-//         const adminId = admin.id
-//         const newQuestion = new QuestionModel({
-//             question,
-//             options,
-//             answer
-//         })
-//         await newQuestion.save()
-//       res.json({  
-//         message: "question successfully enterd"
-//       });
-//     } catch (err: any) {
-//       // signup error
-//       res.status(500).json({ message: err.message });
-//     }
-// }
+var getSingleQuiz = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var quizId, quiz, error_3;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                quizId = req.params.quizId;
+                return [4 /*yield*/, quiz_model_1.default.findById(quizId).populate('questions')];
+            case 1:
+                quiz = _a.sent();
+                if (!quiz) {
+                    return [2 /*return*/, res.status(404).json({
+                            success: false,
+                            message: 'No quizzes found',
+                        })];
+                }
+                res.json({
+                    success: true,
+                    message: 'Quiz retreived',
+                    data: quiz,
+                });
+                return [3 /*break*/, 3];
+            case 2:
+                error_3 = _a.sent();
+                res.status(500).json({
+                    success: false,
+                    message: error_3.message,
+                });
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getSingleQuiz = getSingleQuiz;
+//admin add question /////////////
+var addSingleQuestion = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, question, options, answer, quizId, errors, quiz, newQuestion, err_2;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 4, , 5]);
+                _a = req.body, question = _a.question, options = _a.options, answer = _a.answer;
+                quizId = req.params.quizId;
+                errors = (0, express_validator_1.validationResult)(req);
+                if (!errors.isEmpty()) {
+                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                }
+                return [4 /*yield*/, quiz_model_1.default.findById(quizId)];
+            case 1:
+                quiz = _b.sent();
+                if (!quiz) {
+                    return [2 /*return*/, res.status(404).json({
+                            success: false,
+                            message: "Quiz not found"
+                        })];
+                }
+                return [4 /*yield*/, question_model_1.default.create({
+                        quiz: quiz.id,
+                        options: options,
+                        answer: answer,
+                        question: question
+                    })];
+            case 2:
+                newQuestion = _b.sent();
+                quiz.questions.push(newQuestion.id);
+                return [4 /*yield*/, quiz.save()];
+            case 3:
+                _b.sent();
+                res.json({
+                    success: true,
+                    message: "question successfully entered"
+                });
+                return [3 /*break*/, 5];
+            case 4:
+                err_2 = _b.sent();
+                res.status(500).json({ success: false, message: err_2.message });
+                return [3 /*break*/, 5];
+            case 5: return [2 /*return*/];
+        }
+    });
+}); };
+exports.addSingleQuestion = addSingleQuestion;
 //admin get all question /////////////
 var GetAllQuestions = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, page, limit, errors, admin, adminId, skip, questions, totalQuestion, err_2;
+    var _a, page, limit, errors, admin, adminId, skip, questions, totalQuestion, err_3;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -239,9 +289,9 @@ var GetAllQuestions = function (req, res) { return __awaiter(void 0, void 0, voi
                 });
                 return [3 /*break*/, 4];
             case 3:
-                err_2 = _b.sent();
+                err_3 = _b.sent();
                 // signup error
-                res.status(500).json({ message: err_2.message });
+                res.status(500).json({ message: err_3.message });
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
         }
@@ -250,7 +300,7 @@ var GetAllQuestions = function (req, res) { return __awaiter(void 0, void 0, voi
 exports.GetAllQuestions = GetAllQuestions;
 //admin get single question /////////////
 var GetSingleQuestion = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var questionId, errors, admin, adminId, question, err_3;
+    var questionId, errors, admin, adminId, question, err_4;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -276,9 +326,9 @@ var GetSingleQuestion = function (req, res) { return __awaiter(void 0, void 0, v
                 });
                 return [3 /*break*/, 3];
             case 2:
-                err_3 = _a.sent();
+                err_4 = _a.sent();
                 // signup error
-                res.status(500).json({ message: err_3.message });
+                res.status(500).json({ message: err_4.message });
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
         }
@@ -287,7 +337,7 @@ var GetSingleQuestion = function (req, res) { return __awaiter(void 0, void 0, v
 exports.GetSingleQuestion = GetSingleQuestion;
 //admin edit question /////////////
 var EditQuestion = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, question, options, answer, questionId, errors, admin, adminId, questionDb, err_4;
+    var _a, question, options, answer, questionId, errors, admin, adminId, questionDb, err_5;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -319,10 +369,10 @@ var EditQuestion = function (req, res) { return __awaiter(void 0, void 0, void 0
                 });
                 return [3 /*break*/, 4];
             case 3:
-                err_4 = _b.sent();
+                err_5 = _b.sent();
                 // signup error
-                console.log("error", err_4);
-                res.status(500).json({ message: err_4.message });
+                console.log("error", err_5);
+                res.status(500).json({ message: err_5.message });
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
         }
@@ -331,37 +381,45 @@ var EditQuestion = function (req, res) { return __awaiter(void 0, void 0, void 0
 exports.EditQuestion = EditQuestion;
 //admin Delete question /////////////
 var DeleteQuestion = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var questionId, errors, admin, adminId, deleteQuestion, err_5;
+    var questionId, admin, adminId, question_1, quiz, err_6;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 2, , 3]);
-                questionId = req.body.questionId;
-                errors = (0, express_validator_1.validationResult)(req);
-                if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
-                }
+                _a.trys.push([0, 6, , 7]);
+                questionId = req.params.questionId;
                 admin = req.admin;
                 adminId = admin.id;
-                return [4 /*yield*/, question_model_1.default.findOneAndDelete({ _id: questionId }, { new: true })];
+                return [4 /*yield*/, question_model_1.default.findById(questionId)];
             case 1:
-                deleteQuestion = _a.sent();
-                if (!deleteQuestion) {
+                question_1 = _a.sent();
+                if (!question_1) {
                     return [2 /*return*/, res
                             .status(401)
-                            .json({ message: "invalid question ID" })];
+                            .json({ success: false, message: "Invalid question ID" })];
                 }
+                return [4 /*yield*/, question_1.deleteOne()];
+            case 2:
+                _a.sent();
+                return [4 /*yield*/, quiz_model_1.default.findById(question_1.quiz)];
+            case 3:
+                quiz = _a.sent();
+                if (!quiz) return [3 /*break*/, 5];
+                quiz.questions = quiz.questions.filter(function (questionId) { return questionId.toString() !== question_1._id.toString(); });
+                return [4 /*yield*/, quiz.save()];
+            case 4:
+                _a.sent();
+                _a.label = 5;
+            case 5:
                 res.json({
                     status: true,
                     message: "question successfully deleted"
                 });
-                return [3 /*break*/, 3];
-            case 2:
-                err_5 = _a.sent();
-                // signup error
-                res.status(500).json({ message: err_5.message });
-                return [3 /*break*/, 3];
-            case 3: return [2 /*return*/];
+                return [3 /*break*/, 7];
+            case 6:
+                err_6 = _a.sent();
+                res.status(500).json({ success: false, message: err_6.message });
+                return [3 /*break*/, 7];
+            case 7: return [2 /*return*/];
         }
     });
 }); };
@@ -371,8 +429,9 @@ exports.AdminQuizController = {
     EditQuestion: exports.EditQuestion,
     GetSingleQuestion: exports.GetSingleQuestion,
     GetAllQuestions: exports.GetAllQuestions,
-    // AddQuestion,
+    addSingleQuestion: exports.addSingleQuestion,
     CreateQuiz: exports.CreateQuiz,
     getAllQuizzes: exports.getAllQuizzes,
-    getRandomQuiz: exports.getRandomQuiz
+    getRandomQuiz: exports.getRandomQuiz,
+    getSingleQuiz: exports.getSingleQuiz
 };

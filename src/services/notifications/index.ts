@@ -113,7 +113,7 @@ export class NotificationService {
                     if (device.deviceType == 'ANDROID') {
                        
                         const payload = {
-                            notification:{ title: params.title, body: params.message },
+                            notification:{title: params.title, body: params.message, sound: 'ringtone.wav' },
                             androidOptions: { badge: 42, isBackground: true},
                             data: {
                                 categoryId: params.type,
