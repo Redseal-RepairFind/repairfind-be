@@ -78,6 +78,7 @@ exports.CallSchema = new mongoose_1.Schema({
     toUserToken: { type: String },
     fromUserToken: { type: String },
     uid: { type: String },
+    fromUserUid: { type: String },
     channel: { type: String },
     heading: { type: mongoose_1.Schema.Types.Mixed },
 }, { timestamps: true });

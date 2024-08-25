@@ -13,6 +13,7 @@ export interface ICall {
   toUserToken: string;
   fromUserToken: string;
   uid: string;
+  fromUserUid: string;
   channel: string;
   heading: object;
   getHeading: (loggedInUserId: any) => {
@@ -37,6 +38,7 @@ export const CallSchema: Schema = new Schema<ICall>({
   toUserToken: { type: String },
   fromUserToken: { type: String },
   uid: { type: String },
+  fromUserUid: { type: String },
   channel: { type: String },
   heading: { type: Schema.Types.Mixed },
 }, { timestamps: true });
