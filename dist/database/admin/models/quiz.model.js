@@ -28,13 +28,13 @@ var QuizShema = new mongoose_1.Schema({
     video_url: {
         type: String,
         required: true,
-        unique: true,
-        index: true
+        // unique: true,
+        // index: true
     },
     questions: [
         {
             type: mongoose_1.default.Schema.Types.ObjectId,
-            ref: "questions"
+            ref: "question"
         }
     ],
     createdAt: {

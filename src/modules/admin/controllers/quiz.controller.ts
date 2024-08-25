@@ -62,7 +62,7 @@ export const CreateQuiz = async (req: any, res: Response) => {
 export const getAllQuizzes = async (_: any, res: Response) => {
   try {
     // Retrieve all quizzes
-    const quizzes: IQuiz[] = await QuizModel.find().exec();
+    const quizzes: IQuiz[] = await QuizModel.find().populate('questions');
 
     res.json({
       status: true,
@@ -112,47 +112,81 @@ export const getRandomQuiz = async (_: any, res: Response) => {
 };
 
 
-// //admin add question /////////////
-// export const AddQuestion = async (
-//     req: any,
-//     res: Response,
-//   ) => {
+export const getSingleQuiz = async (req: any, res: Response) => {
+  try {
+   
+    const {quizId} = req.params
+    const quiz = await QuizModel.findById(quizId).populate('questions');
+    if (!quiz) {
+      return res.status(404).json({
+        success: false,
+        message: 'No quizzes found',
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Quiz retreived',
+      data: quiz,
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+//admin add question /////////////
+export const addSingleQuestion = async (
+    req: any,
+    res: Response,
+  ) => {
   
-//     try {
-//       let {  
-//         question,
-//         options,
-//         answer,
-//       } = req.body;
+    try {
+      let {  
+        question,
+        options,
+        answer,
+      } = req.body;
   
-//         // Check for validation errors
-//         const errors = validationResult(req);
+      const {quizId} = req.params
+
+        // Check for validation errors
+        const errors = validationResult(req);
     
-//         if (!errors.isEmpty()) {
-//             return res.status(400).json({ errors: errors.array() });
-//         }
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
     
-//         const admin =  req.admin;
-//         const adminId = admin.id
+        const quiz = await QuizModel.findById(quizId)
+        if(!quiz){
+          return res.status(404).json({  
+            success: false,
+            message: "Quiz not found"
+          });
+        }
+        const newQuestion =  await QuestionModel.create({
+            quiz : quiz.id,
+            options,
+            answer,
+            question
+        })
 
-//         const newQuestion = new QuestionModel({
-//             question,
-//             options,
-//             answer
-//         })
+        quiz.questions.push(newQuestion.id)
+        await quiz.save()
 
-//         await newQuestion.save()
-
-//       res.json({  
-//         message: "question successfully enterd"
-//       });
+      res.json({  
+        success: true,
+        message: "question successfully entered"
+      });
       
-//     } catch (err: any) {
-//       // signup error
-//       res.status(500).json({ message: err.message });
-//     }
+    } catch (err: any) {
+      res.status(500).json({success: false,  message: err.message });
+    }
   
-// }
+}
 
 
 //admin get all question /////////////
@@ -309,24 +343,26 @@ export const DeleteQuestion = async (
     try {
       let {  
         questionId
-      } = req.body;
+      } = req.params;
   
-        // Check for validation errors
-        const errors = validationResult(req);
-    
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        }
-    
+      
         const admin =  req.admin;
         const adminId = admin.id
         
-        const deleteQuestion = await QuestionModel.findOneAndDelete({_id: questionId}, {new: true})
+        const question = await QuestionModel.findById(questionId)
 
-        if (!deleteQuestion) {
+        if (!question) {
             return res
             .status(401)
-            .json({ message: "invalid question ID" });
+            .json({success: false,  message: "Invalid question ID" });
+        }
+
+        await question.deleteOne()
+
+        const quiz = await  QuizModel.findById(question.quiz)
+        if (quiz) {
+          quiz.questions = quiz.questions.filter((questionId) => questionId.toString() !== question._id.toString());
+          await quiz.save();
         }
 
       res.json({  
@@ -335,8 +371,7 @@ export const DeleteQuestion = async (
       });
       
     } catch (err: any) {
-      // signup error
-      res.status(500).json({ message: err.message });
+      res.status(500).json({success: false, message: err.message });
     }
   
 }
@@ -347,9 +382,10 @@ export const AdminQuizController = {
     EditQuestion,
     GetSingleQuestion,
     GetAllQuestions,
-    // AddQuestion,
+    addSingleQuestion,
     CreateQuiz,
     getAllQuizzes,
-    getRandomQuiz
+    getRandomQuiz,
+    getSingleQuiz
 }
 

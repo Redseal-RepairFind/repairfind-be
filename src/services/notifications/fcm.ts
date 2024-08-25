@@ -28,6 +28,7 @@ export const sendFCMNotification = async (FcmToken: any, payload: {notification:
 
         const android = (payload.androidOptions?.isBackground) ? {
             data: payload.data, 
+            // notification: payload.notification
         } : {
             notification: payload.notification,
             data: payload.data, 

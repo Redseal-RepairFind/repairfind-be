@@ -90,6 +90,7 @@ var sendFCMNotification = function (FcmToken, payload) { return __awaiter(void 0
                 _b.trys.push([1, 3, , 4]);
                 android = ((_a = payload.androidOptions) === null || _a === void 0 ? void 0 : _a.isBackground) ? {
                     data: payload.data,
+                    // notification: payload.notification
                 } : {
                     notification: payload.notification,
                     data: payload.data,

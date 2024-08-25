@@ -149,7 +149,7 @@ var NotificationService = /** @class */ (function () {
                                 devices.map(function (device) {
                                     if (device.deviceType == 'ANDROID') {
                                         var payload = {
-                                            notification: { title: params.title, body: params.message },
+                                            notification: { title: params.title, body: params.message, sound: 'ringtone.wav' },
                                             androidOptions: { badge: 42, isBackground: true },
                                             data: {
                                                 categoryId: params.type,

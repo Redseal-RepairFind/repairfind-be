@@ -54,7 +54,7 @@ router.get("/customer/job/detail/:customerId", adminRoleChecker_middleware_1.che
 router.post("/customer/account/status", admin_validations_middleware_1.Validations.CustomerChangeStatusParams, adminRoleChecker_middleware_1.checkAdminRole, adminGetCustomerDetail_contractor_1.AdminCustomerController.AdminChangeCustomerAccountStatusController); // admin change customer account status
 //done skill
 router.post("/skills", admin_validations_middleware_1.validateAddSkillParams, adminRoleChecker_middleware_1.checkAdminRole, admin_skill_controller_1.AdminSkillController.AddNew); // admin add skill
-// router.post("/skill/bulk", validateAddSkillParams, checkAdminRole, AdminSkillController ); // admin add skilll
+router.post("/skills/bulk", adminRoleChecker_middleware_1.checkAdminRole, admin_skill_controller_1.AdminSkillController.AddMultipleSkills); // admin add skilll
 router.get("/skills", adminRoleChecker_middleware_1.checkAdminRole, admin_skill_controller_1.AdminSkillController.GetSkills); // admin get all skill
 // refactored aaron
 router.get("/jobs", adminRoleChecker_middleware_1.checkAdminRole, admin_job_controller_1.AdminJobController.getJobs);
@@ -98,11 +98,13 @@ router.post("/pay_contractor", admin_validations_middleware_1.validatePayoutIDPa
 // QUIZ
 router.post("/quizzes", admin_validations_middleware_1.createQuizParams, adminRoleChecker_middleware_1.checkAdminRole, quiz_controller_1.AdminQuizController.CreateQuiz); // admin create quiz
 router.get("/quizzes", adminRoleChecker_middleware_1.checkAdminRole, quiz_controller_1.AdminQuizController.getAllQuizzes); // admin get quizes
+router.post("/quizzes/:quizId/add-question", adminRoleChecker_middleware_1.checkAdminRole, quiz_controller_1.AdminQuizController.addSingleQuestion); // admin get all question
+router.get("/quizzes/:quizId", adminRoleChecker_middleware_1.checkAdminRole, quiz_controller_1.AdminQuizController.getSingleQuiz); // admin get all question
 router.get("/random-quiz", adminRoleChecker_middleware_1.checkAdminRole, quiz_controller_1.AdminQuizController.getRandomQuiz); // admin add question
-router.get("/question", adminRoleChecker_middleware_1.checkAdminRole, quiz_controller_1.AdminQuizController.GetAllQuestions); // admin get all question
-router.get("/question/:questionId", adminRoleChecker_middleware_1.checkAdminRole, quiz_controller_1.AdminQuizController.GetSingleQuestion); // admin get single question
-router.post("/question/edit", admin_validations_middleware_1.validateEditQuestionParams, adminRoleChecker_middleware_1.checkAdminRole, quiz_controller_1.AdminQuizController.EditQuestion); // admin edit question
-router.post("/question/delete", admin_validations_middleware_1.validateDeleteQuestionValidationParams, adminRoleChecker_middleware_1.checkAdminRole, quiz_controller_1.AdminQuizController.DeleteQuestion); // admin delete question
+router.get("/questions", adminRoleChecker_middleware_1.checkAdminRole, quiz_controller_1.AdminQuizController.GetAllQuestions); // admin get all question
+router.get("/questions/:questionId", adminRoleChecker_middleware_1.checkAdminRole, quiz_controller_1.AdminQuizController.GetSingleQuestion); // admin get single question
+router.patch("/questions/:questionId", admin_validations_middleware_1.validateEditQuestionParams, adminRoleChecker_middleware_1.checkAdminRole, quiz_controller_1.AdminQuizController.EditQuestion); // admin edit question
+router.delete("/questions/:questionId", adminRoleChecker_middleware_1.checkAdminRole, quiz_controller_1.AdminQuizController.DeleteQuestion); // admin delete question
 // CONTRACTOR
 router.post("/contractors/:contractorId/attach-stripe-account", admin_contractors_controller_1.AdminContractorController.attachStripeAccount); //
 router.post("/contractors/:contractorId/remove-stripe-account", admin_contractors_controller_1.AdminContractorController.removeStripeAccount); //
