@@ -17,6 +17,7 @@ import { checkAdminRole } from "../middlewares/adminRoleChecker.middleware";
 import { Validations, createQuizParams, validatAdminEmailverificationParams, validateAddQuestionParams, validateAddSkillParams, validateAdminChangePasswordParams, validateAdminForgotPasswordParams, validateAdminLoginParams, validateAdminResetPasswprdParams, validateContractoDocumentIdValidationParams, validateContractorIdValidationParams, validateCustomerIdValidationParams, validateDeleteQuestionValidationParams, validateEditQuestionParams, validateEmergecyIdParams, validateJobIdValidationParams, validatePayoutIDParams, validatePayoutIDPayContractorParams, validateQuestionIdValidationParams, validateResolvedEmergecyIdParams, validateRevenueDateParams, validateSignupParams, validateSuperAdmiCchangeStatusParams, validateTRansactionIdValidationParams } from "../middlewares/admin_validations.middleware";
 import { AdminAuthController } from "../controllers/admin_auth.controller";
 import { AdminStaffController } from "../controllers/admin_staff.controller";
+import { AdminAnalyticsController } from "../controllers/admin_analytics.controller";
 
 const express = require("express");
 const router = express.Router();
@@ -30,6 +31,9 @@ router.post("/signin", validateAdminLoginParams, AdminAuthController.signIn );
 router.post("/forgot/password", validateAdminForgotPasswordParams, AdminAuthController.forgotPassword ); 
 router.post("/reset/password", validateAdminResetPasswprdParams, AdminAuthController.resetPassword ); 
 router.post("/change-password", validateAdminChangePasswordParams, AdminAuthController.changePassword ); 
+
+
+router.get("/analytics", checkAdminRole, AdminAnalyticsController.getStats ); 
 
 
 //don staff

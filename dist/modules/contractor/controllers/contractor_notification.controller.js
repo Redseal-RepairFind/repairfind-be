@@ -193,12 +193,9 @@ var redAlerts = function (req, res, next) { return __awaiter(void 0, void 0, voi
             case 0:
                 _b.trys.push([0, 2, , 3]);
                 contractorId = req.contractor.id;
-                return [4 /*yield*/, notification_util_1.NotificationUtil.redAlerts(contractorId)
-                    // const recentPayment = TransactionModel.find({type: {$in: [TRANSACTION_TYPE.JOB_PAYMENT, TRANSACTION_TYPE.SITE_VISIT]} })
-                ];
+                return [4 /*yield*/, notification_util_1.NotificationUtil.redAlerts(contractorId)];
             case 1:
                 _a = _b.sent(), disputeAlerts = _a.disputeAlerts, unseenBookings = _a.unseenBookings;
-                // const recentPayment = TransactionModel.find({type: {$in: [TRANSACTION_TYPE.JOB_PAYMENT, TRANSACTION_TYPE.SITE_VISIT]} })
                 res.json({ success: true, message: 'Alerts retrieved', data: { disputeAlerts: disputeAlerts, unseenBookings: unseenBookings } });
                 return [3 /*break*/, 3];
             case 2:

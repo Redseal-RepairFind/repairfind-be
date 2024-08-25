@@ -119,7 +119,6 @@ export const redAlerts = async (req: any, res: Response, next: NextFunction): Pr
 
        const {disputeAlerts, unseenBookings} = await NotificationUtil.redAlerts(contractorId)
 
-        // const recentPayment = TransactionModel.find({type: {$in: [TRANSACTION_TYPE.JOB_PAYMENT, TRANSACTION_TYPE.SITE_VISIT]} })
 
         res.json({ success: true, message: 'Alerts retrieved', data: {disputeAlerts, unseenBookings} });
     } catch (err: any) {
