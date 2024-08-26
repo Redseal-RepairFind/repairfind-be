@@ -205,7 +205,7 @@ JobEvent.on('NEW_JOB_LISTING', async function (payload) {
             const contractorIds = contractorProfiles.map(profile => profile.contractor);
 
             const devices = await ContractorDeviceModel.find({ contractor: { $in: contractorIds } })
-            const deviceTokens = devices.map(device => device.deviceToken);
+            const deviceTokens = devices.map(device => device.expoToken);
 
             sendPushNotifications(deviceTokens, {
                 title: 'New job listing',
@@ -1772,7 +1772,7 @@ JobEvent.on('NEW_JOB_ENQUIRY_REPLY', async function (payload: { jobId: any, enqu
 
         // send push to all contractors that match the job ?
         const devices = await ContractorDeviceModel.find({ contractor: { $in: contractorIds } })
-        const deviceTokens = devices.map(device => device.deviceToken);
+        const deviceTokens = devices.map(device => device.expoToken);
 
 
         devices.map(device => {

@@ -301,7 +301,7 @@ exports.JobEvent.on('NEW_JOB_LISTING', function (payload) {
                     return [4 /*yield*/, contractor_devices_model_1.default.find({ contractor: { $in: contractorIds } })];
                 case 3:
                     devices = _a.sent();
-                    deviceTokens = devices.map(function (device) { return device.deviceToken; });
+                    deviceTokens = devices.map(function (device) { return device.expoToken; });
                     (0, expo_1.sendPushNotifications)(deviceTokens, {
                         title: 'New job listing',
                         type: 'NEW_JOB_LISTING',
@@ -1870,7 +1870,7 @@ exports.JobEvent.on('NEW_JOB_ENQUIRY_REPLY', function (payload) {
                     return [4 /*yield*/, contractor_devices_model_1.default.find({ contractor: { $in: contractorIds } })];
                 case 6:
                     devices = _a.sent();
-                    deviceTokens = devices.map(function (device) { return device.deviceToken; });
+                    deviceTokens = devices.map(function (device) { return device.expoToken; });
                     devices.map(function (device) {
                         var _a;
                         services_1.NotificationService.sendNotification({
