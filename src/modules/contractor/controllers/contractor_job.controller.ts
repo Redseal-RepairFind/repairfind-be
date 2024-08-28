@@ -480,7 +480,7 @@ export const sendJobQuotation = async (
 
     // Check if contractor has a verified connected account
     contractor.onboarding = await contractor.getOnboarding()
-    if (!(contractor.onboarding.hasStripeIdentity)  || !(contractor.onboarding.stripeIdentityStatus == 'verified') ) {
+    if (!(contractor.onboarding.hasStripeIdentity)  ) {
       return res.status(400).json({ success: false, message: "Kindly complete your identity process" });
     }
 
@@ -1249,7 +1249,7 @@ export const createJobEnquiry = async (req: any, res: Response, next: NextFuncti
 
      // Check if contractor has a verified connected account
      contractor.onboarding = await contractor.getOnboarding()
-     if (!(contractor.onboarding.hasStripeIdentity)  || !(contractor.onboarding.stripeIdentityStatus == 'verified') ) {
+     if (!(contractor.onboarding.hasStripeIdentity) ) {
        return res.status(400).json({ success: false, message: "Kindly complete your identity process" });
      }
  
