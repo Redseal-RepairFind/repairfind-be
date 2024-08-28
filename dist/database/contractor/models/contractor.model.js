@@ -342,7 +342,7 @@ ContractorSchema.methods.getOnboarding = function () {
                     hasStripeAccount = !!this.stripeAccount;
                     hasStripeCustomer = !!this.stripeCustomer;
                     hasStripePaymentMethods = Array.isArray(this.stripePaymentMethods) && this.stripePaymentMethods.length > 0;
-                    hasStripeIdentity = !!this.stripeIdentity;
+                    hasStripeIdentity = !!this.stripeIdentity && this.stripeIdentity.status == 'verified';
                     stripeIdentityStatus = 'requires_input';
                     if (hasStripeIdentity && this.stripeIdentity.last_verification_report) {
                         stripeIdentityStatus = (_c = (_b = (_a = this.stripeIdentity) === null || _a === void 0 ? void 0 : _a.last_verification_report) === null || _b === void 0 ? void 0 : _b.document) === null || _c === void 0 ? void 0 : _c.status;
