@@ -27,6 +27,7 @@ import { AdminEvent } from "../../../events/admin.events";
 import { CONVERSATION_TYPE, ConversationModel } from "../../../database/common/conversations.schema";
 import { MessageModel } from "../../../database/common/messages.schema";
 import TransactionModel, { TRANSACTION_TYPE } from "../../../database/common/transaction.model";
+import jwt, { JwtPayload } from "jsonwebtoken";
 
 
 class ProfileHandler extends Base {
@@ -1015,11 +1016,11 @@ class ProfileHandler extends Base {
     let req = <any>this.req;
     let res = this.res;
     try {
-      const contractorId = req.contractor.id;
-      const contractor = await ContractorModel.findOne({ _id: contractorId });
-      if (!contractor) {
-        return res.status(404).json({ success: false, message: 'Contractor account not found' });
-      }
+      // const contractorId = req.contractor.id;
+      // const contractor = await ContractorModel.findOne({ _id: contractorId });
+      // if (!contractor) {
+      //   return res.status(404).json({ success: false, message: 'Contractor account not found' });
+      // }
 
 
       // Assume the token is in the Authorization header (Bearer token)
@@ -1028,6 +1029,14 @@ class ProfileHandler extends Base {
       if (!token) {
         return res.status(400).json({ success: false, message: 'Token not provided' });
       }
+
+      // let secret = process.env.JWT_SECRET_KEY;
+      // const decoded = jwt.decode(token, { complete: true });
+      // const payload = jwt.verify(token, secret!) as unknown as JwtPayload;
+      // const contractor = await ContractorModel.findOne({
+      //   email: payload.email
+      // });
+
 
       // Add the token to the blacklist
       await BlacklistedToken.create({ token });

@@ -119,13 +119,12 @@ export class NotificationService {
                                 body: params.message,
                                 channelId: 'call',
                                 clickAction: 'default',
+
                                 
                             },
                             androidOptions: { 
-                                badge: 42, 
                                 isBackground: false, 
-                                topic: "call",
-                                category: 'call',
+                                topic: "call"
                             },
                             data: {
                                 categoryId: params.type,
@@ -136,15 +135,15 @@ export class NotificationService {
                                 heading: JSON.stringify(params.payload.heading),
                                 event: params.payload.event,
                                 token: params.payload.token ?? '',
-                                uid: `"${params.payload.uid}"`,
+                                uid: `"${params.payload.uid}"` ?? '',
                                 user: params.payload.user,
-                                userType: params.payload.userType,
-                                screen: 'chat'
+                                userType: params.payload.userType
                             }
                         }
 
                         
                         FCMNotification.sendNotification(device.deviceToken, payload)
+                        // FCMNotification.sendBackgroundNotification(device.deviceToken)
                     }
                     if (device.deviceType == 'IOS') {
                         const alert = { title: params.title, body: params.message, }
