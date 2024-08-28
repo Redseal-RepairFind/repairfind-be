@@ -28,6 +28,7 @@ export const sendFCMNotification = async (FcmToken: any, payload: {notification:
 
         const android = (payload.androidOptions?.isBackground) ? {
             data: payload.data, 
+            priority: 'high' as const,
         } : {
             notification: payload.notification,
             data: payload.data, 
@@ -49,8 +50,8 @@ export const sendFCMNotification = async (FcmToken: any, payload: {notification:
             // }
         };
 
-        // const subRes = await admin.messaging().subscribeToTopic(FcmToken, 'call')
-        // Logger.info('subscribeToTopic', subRes);
+        const subRes = await admin.messaging().subscribeToTopic(FcmToken, 'call')
+        Logger.info('subscribeToTopic', subRes);
 
 
         const response = await admin.messaging().sendMulticast(message);
@@ -62,8 +63,8 @@ export const sendFCMNotification = async (FcmToken: any, payload: {notification:
             }
         });
 
-        // const unSubRes = await admin.messaging().unsubscribeFromTopic(FcmToken, 'call')
-        // Logger.info('unsubscribeFromTopic', unSubRes);
+        const unSubRes = await admin.messaging().unsubscribeFromTopic(FcmToken, 'call')
+        Logger.info('unsubscribeFromTopic', unSubRes);
 
         return response;
     } catch (error: any) {
@@ -73,7 +74,47 @@ export const sendFCMNotification = async (FcmToken: any, payload: {notification:
 
 
 
-export const FCMNotification = {sendNotification: sendFCMNotification, initializeFirebase};
+export const sendBackgroundNotification = (registrationToken: string) => {
+    // Define the message payload
+    const message = {
+      token: registrationToken, // Target device token
+      notification: {
+        title: 'title',
+        body: 'body'
+      },
+      data: {}, // Ensure data is defined (can be empty object if not used)
+      android: {
+        priority: 'high' as const, // Use 'as const' to strictly type the value
+      },
+      apns: {
+        headers: {
+          'apns-priority': '10', // iOS equivalent of high priority
+        },
+        payload: {
+          aps: {
+            'content-available': 1, // Required for background notifications in iOS
+          }
+        }
+      }
+    };
+  
+    // Send the message using Firebase Admin SDK
+    admin.messaging().send(message)
+      .then(response => {
+        console.log('Successfully sent message:', response);
+      })
+      .catch(error => {
+        console.error('Error sending message:', error);
+      });
+  };
+  
+  
+
+
+  
+
+
+export const FCMNotification = {sendNotification: sendFCMNotification, initializeFirebase, sendBackgroundNotification};
 
 
 

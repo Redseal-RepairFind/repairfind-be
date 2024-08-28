@@ -147,7 +147,7 @@ var NotificationService = /** @class */ (function () {
                             };
                             if (params.type == 'NEW_INCOMING_CALL') {
                                 devices.map(function (device) {
-                                    var _a;
+                                    var _a, _b;
                                     if (device.deviceType == 'ANDROID') {
                                         var payload = {
                                             notification: {
@@ -157,10 +157,8 @@ var NotificationService = /** @class */ (function () {
                                                 clickAction: 'default',
                                             },
                                             androidOptions: {
-                                                badge: 42,
                                                 isBackground: false,
-                                                topic: "call",
-                                                category: 'call',
+                                                topic: "call"
                                             },
                                             data: {
                                                 categoryId: params.type,
@@ -171,13 +169,13 @@ var NotificationService = /** @class */ (function () {
                                                 heading: JSON.stringify(params.payload.heading),
                                                 event: params.payload.event,
                                                 token: (_a = params.payload.token) !== null && _a !== void 0 ? _a : '',
-                                                uid: "\"".concat(params.payload.uid, "\""),
+                                                uid: (_b = "\"".concat(params.payload.uid, "\"")) !== null && _b !== void 0 ? _b : '',
                                                 user: params.payload.user,
-                                                userType: params.payload.userType,
-                                                screen: 'chat'
+                                                userType: params.payload.userType
                                             }
                                         };
                                         fcm_1.FCMNotification.sendNotification(device.deviceToken, payload);
+                                        // FCMNotification.sendBackgroundNotification(device.deviceToken)
                                     }
                                     if (device.deviceType == 'IOS') {
                                         var alert_1 = { title: params.title, body: params.message, };

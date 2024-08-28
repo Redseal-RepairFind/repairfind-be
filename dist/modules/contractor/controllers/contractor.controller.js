@@ -1157,7 +1157,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     ProfileHandler.prototype.signOut = function () {
         var _a;
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, contractorId, contractor, token, err_13;
+            var req, res, token, err_13;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -1165,31 +1165,36 @@ var ProfileHandler = /** @class */ (function (_super) {
                         res = this.res;
                         _b.label = 1;
                     case 1:
-                        _b.trys.push([1, 4, , 5]);
-                        contractorId = req.contractor.id;
-                        return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: contractorId })];
-                    case 2:
-                        contractor = _b.sent();
-                        if (!contractor) {
-                            return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor account not found' })];
-                        }
+                        _b.trys.push([1, 3, , 4]);
                         token = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.split(' ')[1];
                         if (!token) {
                             return [2 /*return*/, res.status(400).json({ success: false, message: 'Token not provided' })];
                         }
+                        // let secret = process.env.JWT_SECRET_KEY;
+                        // const decoded = jwt.decode(token, { complete: true });
+                        // const payload = jwt.verify(token, secret!) as unknown as JwtPayload;
+                        // const contractor = await ContractorModel.findOne({
+                        //   email: payload.email
+                        // });
                         // Add the token to the blacklist
                         return [4 /*yield*/, blacklisted_tokens_schema_1.default.create({ token: token })];
-                    case 3:
+                    case 2:
+                        // let secret = process.env.JWT_SECRET_KEY;
+                        // const decoded = jwt.decode(token, { complete: true });
+                        // const payload = jwt.verify(token, secret!) as unknown as JwtPayload;
+                        // const contractor = await ContractorModel.findOne({
+                        //   email: payload.email
+                        // });
                         // Add the token to the blacklist
                         _b.sent();
                         res.json({ success: true, message: 'Sign out successful' });
-                        return [3 /*break*/, 5];
-                    case 4:
+                        return [3 /*break*/, 4];
+                    case 3:
                         err_13 = _b.sent();
                         console.log('error', err_13);
                         res.status(500).json({ success: false, message: err_13.message });
-                        return [3 /*break*/, 5];
-                    case 5: return [2 /*return*/];
+                        return [3 /*break*/, 4];
+                    case 4: return [2 /*return*/];
                 }
             });
         });
