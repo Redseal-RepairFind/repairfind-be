@@ -93,16 +93,16 @@ var job_emergency_model_1 = require("../../../database/common/job_emergency.mode
 var conversation_util_1 = require("../../../utils/conversation.util");
 var job_util_1 = require("../../../utils/job.util");
 var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, _b, limit, _c, page, _d, sort, contractorId_1, _e, status_1, startDate, endDate, date, type, customerId, filter, start, end, selectedDate, startOfDay, endOfDay, _f, data, error, error_1;
-    return __generator(this, function (_g) {
-        switch (_g.label) {
+    var errors, _a, _b, limit, _c, page, _d, sort, contractorId_1, status_1, startDate, endDate, date, type, customerId, filter, statuses, start, end, selectedDate, startOfDay, endOfDay, _e, data, error, error_1;
+    return __generator(this, function (_f) {
+        switch (_f.label) {
             case 0:
-                _g.trys.push([0, 4, , 5]);
+                _f.trys.push([0, 4, , 5]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
-                _a = req.query, _b = _a.limit, limit = _b === void 0 ? 10 : _b, _c = _a.page, page = _c === void 0 ? 1 : _c, _d = _a.sort, sort = _d === void 0 ? '-createdAt' : _d, contractorId_1 = _a.contractorId, _e = _a.status, status_1 = _e === void 0 ? 'BOOKED,ONGOING,ONGOING_SITE_VISIT' : _e, startDate = _a.startDate, endDate = _a.endDate, date = _a.date, type = _a.type;
+                _a = req.query, _b = _a.limit, limit = _b === void 0 ? 10 : _b, _c = _a.page, page = _c === void 0 ? 1 : _c, _d = _a.sort, sort = _d === void 0 ? '-createdAt' : _d, contractorId_1 = _a.contractorId, status_1 = _a.status, startDate = _a.startDate, endDate = _a.endDate, date = _a.date, type = _a.type;
                 req.query.page = page;
                 req.query.limit = limit;
                 req.query.sort = sort;
@@ -117,7 +117,8 @@ var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0,
                     delete req.query.contractorId;
                 }
                 if (status_1) {
-                    // req.query.status = status.toUpperCase();
+                    statuses = status_1.split(',');
+                    filter.status = { $in: statuses };
                     delete req.query.status;
                 }
                 if (startDate) {
@@ -141,7 +142,7 @@ var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0,
                 }
                 return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_model_1.JobModel.find(filter).populate(['contractor']), req.query)];
             case 1:
-                _f = _g.sent(), data = _f.data, error = _f.error;
+                _e = _f.sent(), data = _e.data, error = _e.error;
                 if (!data) return [3 /*break*/, 3];
                 return [4 /*yield*/, Promise.all(data.data.map(function (job) { return __awaiter(void 0, void 0, void 0, function () {
                         var _a, contract, totalEnquires, hasUnrepliedEnquiry, jobDay, dispute, myQuotation;
@@ -168,13 +169,13 @@ var getMyBookings = function (req, res, next) { return __awaiter(void 0, void 0,
                         });
                     }); }))];
             case 2:
-                _g.sent();
-                _g.label = 3;
+                _f.sent();
+                _f.label = 3;
             case 3:
                 res.json({ success: true, message: 'Bookings retrieved', data: data });
                 return [3 /*break*/, 5];
             case 4:
-                error_1 = _g.sent();
+                error_1 = _f.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_1))];
             case 5: return [2 /*return*/];
         }

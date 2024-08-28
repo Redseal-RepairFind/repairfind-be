@@ -34,7 +34,7 @@ export const getMyBookings = async (req: any, res: Response, next: NextFunction)
             page = 1,
             sort = '-createdAt',
             contractorId,
-            status = 'BOOKED,ONGOING,ONGOING_SITE_VISIT',
+            status,
             startDate,
             endDate,
             date,
@@ -61,7 +61,8 @@ export const getMyBookings = async (req: any, res: Response, next: NextFunction)
         }
 
         if (status) {
-            // req.query.status = status.toUpperCase();
+            const statuses = status.split(',')
+            filter.status = {$in: statuses}
             delete req.query.status
         }
         
@@ -94,15 +95,7 @@ export const getMyBookings = async (req: any, res: Response, next: NextFunction)
 
             await Promise.all(data.data.map(async (job: any) => {
                
-                // const contract = await JobQuotationModel.findOne({ _id: job.contract, job: job.id });
-                // if(contract){
-                //     if(contract.changeOrderEstimate)contract.changeOrderEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
-                //     if(contract.siteVisitEstimate)contract.siteVisitEstimate.charges  = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
-                //     contract.charges  = await contract.calculateCharges()
-                //     job.contract = contract
-                // }
-                // job.jobDay = await job.getJobDay()
-
+              
                 const { contract, totalEnquires, hasUnrepliedEnquiry, jobDay, dispute, myQuotation } = await JobUtil.populate(job, {
                     contract: true,
                     dispute: true,

@@ -147,10 +147,21 @@ var NotificationService = /** @class */ (function () {
                             };
                             if (params.type == 'NEW_INCOMING_CALL') {
                                 devices.map(function (device) {
+                                    var _a;
                                     if (device.deviceType == 'ANDROID') {
                                         var payload = {
-                                            notification: { title: params.title, body: params.message, sound: 'ringtone.wav' },
-                                            androidOptions: { badge: 42, isBackground: true },
+                                            notification: {
+                                                title: params.title,
+                                                body: params.message,
+                                                channelId: 'call',
+                                                clickAction: 'default',
+                                            },
+                                            androidOptions: {
+                                                badge: 42,
+                                                isBackground: false,
+                                                topic: "call",
+                                                category: 'call',
+                                            },
                                             data: {
                                                 categoryId: params.type,
                                                 channelId: params.type,
@@ -158,13 +169,12 @@ var NotificationService = /** @class */ (function () {
                                                 callId: params.payload.callId,
                                                 channel: params.payload.channel,
                                                 heading: JSON.stringify(params.payload.heading),
-                                                image: params.payload.image,
-                                                name: params.payload.name,
                                                 event: params.payload.event,
-                                                token: params.payload.token,
+                                                token: (_a = params.payload.token) !== null && _a !== void 0 ? _a : '',
                                                 uid: "\"".concat(params.payload.uid, "\""),
                                                 user: params.payload.user,
                                                 userType: params.payload.userType,
+                                                screen: 'chat'
                                             }
                                         };
                                         fcm_1.FCMNotification.sendNotification(device.deviceToken, payload);

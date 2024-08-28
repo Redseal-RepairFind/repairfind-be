@@ -30,7 +30,7 @@ class AuthHandler extends Base {
             }
 
             const userEmailExists = await ContractorModel.findOne({ email });
-            const userPhoneExists = await ContractorModel.findOne({ phoneNumber });
+            const userPhoneExists = await ContractorModel.findOne({ "phoneNumber.code": phoneNumber.code, "phoneNumber.number": phoneNumber.number });
 
             if (userEmailExists) {
                 return res.status(401).json({ success: false, message: "Email exists already" });
