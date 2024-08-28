@@ -157,7 +157,7 @@ var NotificationService = /** @class */ (function () {
                                                 clickAction: 'default',
                                             },
                                             androidOptions: {
-                                                isBackground: false,
+                                                isBackground: true,
                                                 topic: "call"
                                             },
                                             data: {

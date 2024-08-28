@@ -123,7 +123,7 @@ export class NotificationService {
                                 
                             },
                             androidOptions: { 
-                                isBackground: false, 
+                                isBackground: true, 
                                 topic: "call"
                             },
                             data: {
