@@ -227,6 +227,7 @@ const ContractorSchema = new Schema<IContractor>(
     onboarding: {
       hasStripeAccount: { default: false, type: Boolean },
       hasStripeIdentity: { default: false, type: Boolean },
+      stripeIdentityStatus: { default: 'unverified', type: String },
       hasStripePaymentMethods: { default: false, type: Boolean },
       hasStripeCustomer: { default: false, type: Boolean },
       hasProfile: { default: false, type: Boolean },
@@ -353,7 +354,7 @@ ContractorSchema.methods.getOnboarding = async function () {
   const hasStripeCustomer = !!this.stripeCustomer;
   const hasStripePaymentMethods = Array.isArray(this.stripePaymentMethods) && this.stripePaymentMethods.length > 0
 
-  const hasStripeIdentity = !!this.stripeIdentity;
+  const hasStripeIdentity = !!this.stripeIdentity && this.stripeIdentity.status == 'verified';
   let stripeIdentityStatus = 'requires_input'
   if (hasStripeIdentity && this.stripeIdentity.last_verification_report) {
     stripeIdentityStatus = this.stripeIdentity?.last_verification_report?.document?.status

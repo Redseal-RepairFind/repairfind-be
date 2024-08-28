@@ -563,7 +563,7 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
             case 6:
                 // Check if contractor has a verified connected account
                 _d.onboarding = _e.sent();
-                if (!(contractor.onboarding.hasStripeIdentity) || !(contractor.onboarding.stripeIdentityStatus == 'verified')) {
+                if (!(contractor.onboarding.hasStripeIdentity)) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "Kindly complete your identity process" })];
                 }
                 if (!contractor.onboarding.hasStripeAccount || !(contractor.stripeAccountStatus && contractor.stripeAccountStatus.card_payments_enabled && contractor.stripeAccountStatus.transfers_enabled)) {
@@ -1316,7 +1316,7 @@ var createJobEnquiry = function (req, res, next) { return __awaiter(void 0, void
             case 3:
                 // Check if contractor has a verified connected account
                 _a.onboarding = _c.sent();
-                if (!(contractor.onboarding.hasStripeIdentity) || !(contractor.onboarding.stripeIdentityStatus == 'verified')) {
+                if (!(contractor.onboarding.hasStripeIdentity)) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "Kindly complete your identity process" })];
                 }
                 if (!contractor.onboarding.hasStripeAccount || !(contractor.stripeAccountStatus && contractor.stripeAccountStatus.card_payments_enabled && contractor.stripeAccountStatus.transfers_enabled)) {
