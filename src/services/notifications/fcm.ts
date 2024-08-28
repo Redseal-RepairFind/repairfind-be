@@ -28,25 +28,30 @@ export const sendFCMNotification = async (FcmToken: any, payload: {notification:
 
         const android = (payload.androidOptions?.isBackground) ? {
             data: payload.data, 
-            // notification: payload.notification
         } : {
             notification: payload.notification,
             data: payload.data, 
         }
 
+
         const message = {
             tokens: [FcmToken], // Ensure FcmToken is a valid array of tokens
             android: android,
-            apns: {
-                payload: {
-                    aps: {
-                        alert: payload.notification,
-                        ...payload.iosOptions
-                    },
-                    ...payload.data
-                }
-            }
+            // ...payload.androidOptions
+            // apns: {
+            //     payload: {
+            //         aps: {
+            //             alert: payload.notification,
+            //             ...payload.iosOptions
+            //         },
+            //         ...payload.data
+            //     }
+            // }
         };
+
+        // const subRes = await admin.messaging().subscribeToTopic(FcmToken, 'call')
+        // Logger.info('subscribeToTopic', subRes);
+
 
         const response = await admin.messaging().sendMulticast(message);
         response.responses.forEach((resp, index) => {
@@ -56,6 +61,10 @@ export const sendFCMNotification = async (FcmToken: any, payload: {notification:
                 Logger.info('Notification sent successfully:', response);
             }
         });
+
+        // const unSubRes = await admin.messaging().unsubscribeFromTopic(FcmToken, 'call')
+        // Logger.info('unsubscribeFromTopic', unSubRes);
+
         return response;
     } catch (error: any) {
         Logger.error('Error sending notification', error);

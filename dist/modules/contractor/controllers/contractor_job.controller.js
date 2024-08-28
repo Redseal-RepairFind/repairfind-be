@@ -508,11 +508,10 @@ var hideJobListing = function (req, res, next) { return __awaiter(void 0, void 0
 exports.hideJobListing = hideJobListing;
 var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var jobId, contractorId, _a, startDate, endDate, siteVisit, estimatedDuration, _b, estimates, errors, _c, contractor, job, customer, previousQuotation, appliedQuotationsCount, quotation, _d, scheduleStartDate, scheduleEndDate, scheduleSiteVisitDate, jobQuotation_1, siteVisitEstimate, jobCreationTime, quotationTime, responseTimeJob, conversationMembers, conversation, message, err_1;
-    var _e, _f;
-    return __generator(this, function (_g) {
-        switch (_g.label) {
+    return __generator(this, function (_e) {
+        switch (_e.label) {
             case 0:
-                _g.trys.push([0, 12, , 13]);
+                _e.trys.push([0, 12, , 13]);
                 jobId = req.params.jobId;
                 contractorId = req.contractor.id;
                 _a = req.body, startDate = _a.startDate, endDate = _a.endDate, siteVisit = _a.siteVisit, estimatedDuration = _a.estimatedDuration, _b = _a.estimates, estimates = _b === void 0 ? [] : _b;
@@ -525,13 +524,13 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                         job_model_1.JobModel.findById(jobId).sort({ createdAt: -1 })
                     ])];
             case 1:
-                _c = _g.sent(), contractor = _c[0], job = _c[1];
+                _c = _e.sent(), contractor = _c[0], job = _c[1];
                 if (!contractor || !job) {
                     return [2 /*return*/, res.status(401).json({ message: "Invalid credential or job does not exist" })];
                 }
                 return [4 /*yield*/, customer_model_1.default.findOne({ _id: job.customer })];
             case 2:
-                customer = _g.sent();
+                customer = _e.sent();
                 if (!customer) {
                     return [2 /*return*/, res
                             .status(401)
@@ -539,7 +538,7 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                 }
                 return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne({ job: jobId, contractor: contractorId })];
             case 3:
-                previousQuotation = _g.sent();
+                previousQuotation = _e.sent();
                 if (previousQuotation && previousQuotation.status === job_quotation_model_1.JOB_QUOTATION_STATUS.DECLINED) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "You cannot apply again since your previous quotation was declined" })];
                 }
@@ -548,13 +547,13 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                         status: { $ne: job_quotation_model_1.JOB_QUOTATION_STATUS.DECLINED }
                     })];
             case 4:
-                appliedQuotationsCount = _g.sent();
+                appliedQuotationsCount = _e.sent();
                 if (appliedQuotationsCount >= 3) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "Maximum number of contractors already applied for this job" })];
                 }
                 return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne({ job: jobId, contractor: contractorId })];
             case 5:
-                quotation = _g.sent();
+                quotation = _e.sent();
                 if (quotation) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "You have already submitted a quotation for this job" })];
                 }
@@ -563,8 +562,11 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                 return [4 /*yield*/, contractor.getOnboarding()];
             case 6:
                 // Check if contractor has a verified connected account
-                _d.onboarding = _g.sent();
-                if (!contractor.onboarding.hasStripeAccount || !(((_e = contractor.stripeAccountStatus) === null || _e === void 0 ? void 0 : _e.card_payments_enabled) && ((_f = contractor.stripeAccountStatus) === null || _f === void 0 ? void 0 : _f.transfers_enabled))) {
+                _d.onboarding = _e.sent();
+                if (!(contractor.onboarding.hasStripeIdentity) || !(contractor.onboarding.stripeIdentityStatus == 'verified')) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "Kindly complete your identity process" })];
+                }
+                if (!contractor.onboarding.hasStripeAccount || !(contractor.stripeAccountStatus && contractor.stripeAccountStatus.card_payments_enabled && contractor.stripeAccountStatus.transfers_enabled)) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "Kindly connect your bank account to receive payment" })];
                 }
                 scheduleStartDate = startDate ? new Date(startDate) : new Date();
@@ -572,7 +574,7 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                 scheduleSiteVisitDate = siteVisit ? new Date(siteVisit) : null;
                 return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOneAndUpdate({ job: jobId, contractor: contractorId }, { startDate: scheduleStartDate, endDate: scheduleEndDate, siteVisit: scheduleSiteVisitDate, estimates: estimates, jobId: jobId, contractorId: contractorId, estimatedDuration: estimatedDuration }, { new: true, upsert: true })];
             case 7:
-                jobQuotation_1 = _g.sent();
+                jobQuotation_1 = _e.sent();
                 // Prepare estimates
                 if (siteVisit) {
                     siteVisitEstimate = {
@@ -602,13 +604,13 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                 return [4 /*yield*/, job.save()];
             case 8:
                 // Save changes to the job
-                _g.sent();
+                _e.sent();
                 return [4 /*yield*/, jobQuotation_1.save()
                     // Do other actions such as sending emails or notifications...
                     // Create or update conversation
                 ];
             case 9:
-                _g.sent();
+                _e.sent();
                 conversationMembers = [
                     { memberType: 'customers', member: job.customer },
                     { memberType: 'contractors', member: contractorId }
@@ -622,7 +624,7 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                         members: conversationMembers,
                     }, { new: true, upsert: true })];
             case 10:
-                conversation = _g.sent();
+                conversation = _e.sent();
                 message = new messages_schema_1.MessageModel({
                     conversation: conversation === null || conversation === void 0 ? void 0 : conversation._id,
                     sender: contractorId,
@@ -641,7 +643,7 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                 });
                 return [4 /*yield*/, message.save()];
             case 11:
-                _g.sent();
+                _e.sent();
                 events_1.JobEvent.emit('NEW_JOB_QUOTATION', { job: job, quotation: jobQuotation_1 });
                 events_1.ConversationEvent.emit('NEW_MESSAGE', { message: message });
                 res.json({
@@ -651,7 +653,7 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                 });
                 return [3 /*break*/, 13];
             case 12:
-                err_1 = _g.sent();
+                err_1 = _e.sent();
                 return [2 /*return*/, next(new custom_errors_1.InternalServerError('Error sending job quotation', err_1))];
             case 13: return [2 /*return*/];
         }
@@ -1288,23 +1290,41 @@ var getJobHistory = function (req, res, next) { return __awaiter(void 0, void 0,
 }); };
 exports.getJobHistory = getJobHistory;
 var createJobEnquiry = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var jobId, question, contractorId, job, _a, isRestricted, errorMessage, enquiry, error_13;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+    var jobId, question, contractorId, job, contractor, _a, _b, isRestricted, errorMessage, enquiry, error_13;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
             case 0:
-                _b.trys.push([0, 6, , 7]);
+                _c.trys.push([0, 8, , 9]);
                 jobId = req.params.jobId;
                 question = req.body.question;
                 contractorId = req.contractor.id;
                 return [4 /*yield*/, job_model_1.JobModel.findById(jobId)];
             case 1:
-                job = _b.sent();
+                job = _c.sent();
                 if (!job) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: "Job not found" })];
                 }
-                return [4 /*yield*/, conversation_util_1.ConversationUtil.containsRestrictedMessageContent(question)];
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(jobId)];
             case 2:
-                _a = _b.sent(), isRestricted = _a.isRestricted, errorMessage = _a.errorMessage;
+                contractor = _c.sent();
+                if (!contractor) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: "Contractor not found" })];
+                }
+                // Check if contractor has a verified connected account
+                _a = contractor;
+                return [4 /*yield*/, contractor.getOnboarding()];
+            case 3:
+                // Check if contractor has a verified connected account
+                _a.onboarding = _c.sent();
+                if (!(contractor.onboarding.hasStripeIdentity) || !(contractor.onboarding.stripeIdentityStatus == 'verified')) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "Kindly complete your identity process" })];
+                }
+                if (!contractor.onboarding.hasStripeAccount || !(contractor.stripeAccountStatus && contractor.stripeAccountStatus.card_payments_enabled && contractor.stripeAccountStatus.transfers_enabled)) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "Kindly connect your bank account to receive payment" })];
+                }
+                return [4 /*yield*/, conversation_util_1.ConversationUtil.containsRestrictedMessageContent(question)];
+            case 4:
+                _b = _c.sent(), isRestricted = _b.isRestricted, errorMessage = _b.errorMessage;
                 if (isRestricted) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "You are not allowed to send restricted contents such as email, phone number or other personal information" })];
                 }
@@ -1316,22 +1336,22 @@ var createJobEnquiry = function (req, res, next) { return __awaiter(void 0, void
                     createdAt: new Date()
                 });
                 return [4 /*yield*/, enquiry.save()];
-            case 3:
-                _b.sent();
+            case 5:
+                _c.sent();
                 job.enquiries.push(enquiry.id);
                 return [4 /*yield*/, job.save()];
-            case 4:
-                _b.sent();
+            case 6:
+                _c.sent();
                 return [4 /*yield*/, contractor_saved_job_model_1.default.findOneAndUpdate({ job: job.id, contractor: contractorId }, { job: job.id, contractor: contractorId }, { new: true, upsert: true })];
-            case 5:
-                _b.sent();
+            case 7:
+                _c.sent();
                 events_1.JobEvent.emit('NEW_JOB_ENQUIRY', { jobId: jobId, enquiryId: enquiry.id });
                 return [2 /*return*/, res.status(200).json({ success: true, message: "Question added", question: question })];
-            case 6:
-                error_13 = _b.sent();
+            case 8:
+                error_13 = _c.sent();
                 next(error_13);
-                return [3 /*break*/, 7];
-            case 7: return [2 /*return*/];
+                return [3 /*break*/, 9];
+            case 9: return [2 /*return*/];
         }
     });
 }); };

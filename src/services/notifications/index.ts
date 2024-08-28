@@ -109,12 +109,24 @@ export class NotificationService {
             }
 
             if (params.type == 'NEW_INCOMING_CALL') {
+                
                 devices.map((device) => {
                     if (device.deviceType == 'ANDROID') {
-                       
+
                         const payload = {
-                            notification:{title: params.title, body: params.message, sound: 'ringtone.wav' },
-                            androidOptions: { badge: 42, isBackground: true},
+                            notification: {
+                                title: params.title,
+                                body: params.message,
+                                channelId: 'call',
+                                clickAction: 'default',
+                                
+                            },
+                            androidOptions: { 
+                                badge: 42, 
+                                isBackground: false, 
+                                topic: "call",
+                                category: 'call',
+                            },
                             data: {
                                 categoryId: params.type,
                                 channelId: params.type,
@@ -122,21 +134,21 @@ export class NotificationService {
                                 callId: params.payload.callId,
                                 channel: params.payload.channel,
                                 heading: JSON.stringify(params.payload.heading),
-                                image: params.payload.image,
-                                name: params.payload.name,
                                 event: params.payload.event,
-                                token: params.payload.token,
+                                token: params.payload.token ?? '',
                                 uid: `"${params.payload.uid}"`,
                                 user: params.payload.user,
                                 userType: params.payload.userType,
+                                screen: 'chat'
                             }
                         }
+
                         
                         FCMNotification.sendNotification(device.deviceToken, payload)
                     }
                     if (device.deviceType == 'IOS') {
-                        const alert = { title: params.title,  body: params.message, }
-                        
+                        const alert = { title: params.title, body: params.message, }
+
                         const data = {
                             categoryId: params.type,
                             channelId: params.type,
@@ -170,11 +182,11 @@ export class NotificationService {
                     priority: 'high',
                 }
 
-                
-            }else{
+
+            } else {
                 sendPushNotifications(deviceTokens, pushLoad)
             }
-           
+
         }
 
         if (options.hasOwnProperty('database')) {

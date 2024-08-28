@@ -480,7 +480,11 @@ export const sendJobQuotation = async (
 
     // Check if contractor has a verified connected account
     contractor.onboarding = await contractor.getOnboarding()
-    if (!contractor.onboarding.hasStripeAccount || !(contractor.stripeAccountStatus?.card_payments_enabled && contractor.stripeAccountStatus?.transfers_enabled)) {
+    if (!(contractor.onboarding.hasStripeIdentity)  || !(contractor.onboarding.stripeIdentityStatus == 'verified') ) {
+      return res.status(400).json({ success: false, message: "Kindly complete your identity process" });
+    }
+
+    if (!contractor.onboarding.hasStripeAccount || !(contractor.stripeAccountStatus && contractor.stripeAccountStatus.card_payments_enabled && contractor.stripeAccountStatus.transfers_enabled)) {
       return res.status(400).json({ success: false, message: "Kindly connect your bank account to receive payment" });
     }
 
@@ -1236,6 +1240,23 @@ export const createJobEnquiry = async (req: any, res: Response, next: NextFuncti
     if (!job) {
       return res.status(404).json({ success: false, message: "Job not found" });
     }
+
+    const contractor = await ContractorModel.findById(jobId);
+    if (!contractor) {
+      return res.status(404).json({ success: false, message: "Contractor not found" });
+    }
+
+
+     // Check if contractor has a verified connected account
+     contractor.onboarding = await contractor.getOnboarding()
+     if (!(contractor.onboarding.hasStripeIdentity)  || !(contractor.onboarding.stripeIdentityStatus == 'verified') ) {
+       return res.status(400).json({ success: false, message: "Kindly complete your identity process" });
+     }
+ 
+     if (!contractor.onboarding.hasStripeAccount || !(contractor.stripeAccountStatus && contractor.stripeAccountStatus.card_payments_enabled && contractor.stripeAccountStatus.transfers_enabled)) {
+       return res.status(400).json({ success: false, message: "Kindly connect your bank account to receive payment" });
+     }
+
 
 
     //check if it contains bad inputs

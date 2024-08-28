@@ -175,6 +175,7 @@ export interface IContractor extends Document {
   onboarding: {
     hasStripeAccount: boolean,
     hasStripeIdentity: boolean,
+    stripeIdentityStatus: any,
     hasStripePaymentMethods: boolean,
     hasStripeCustomer: boolean,
     hasProfile: boolean,
@@ -188,6 +189,7 @@ export interface IContractor extends Document {
   getOnboarding: () => {
     hasStripeAccount: boolean,
     hasStripeIdentity: boolean,
+    stripeIdentityStatus: any,
     hasStripePaymentMethods: boolean,
     hasStripeCustomer: boolean,
     hasProfile: boolean,

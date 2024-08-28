@@ -122,7 +122,7 @@ var AuthHandler = /** @class */ (function (_super) {
                         return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ email: email })];
                     case 2:
                         userEmailExists = _b.sent();
-                        return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ phoneNumber: phoneNumber })];
+                        return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ "phoneNumber.code": phoneNumber.code, "phoneNumber.number": phoneNumber.number })];
                     case 3:
                         userPhoneExists = _b.sent();
                         if (userEmailExists) {

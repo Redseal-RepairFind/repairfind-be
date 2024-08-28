@@ -1,15 +1,4 @@
 "use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -90,7 +79,6 @@ var sendFCMNotification = function (FcmToken, payload) { return __awaiter(void 0
                 _b.trys.push([1, 3, , 4]);
                 android = ((_a = payload.androidOptions) === null || _a === void 0 ? void 0 : _a.isBackground) ? {
                     data: payload.data,
-                    // notification: payload.notification
                 } : {
                     notification: payload.notification,
                     data: payload.data,
@@ -98,9 +86,16 @@ var sendFCMNotification = function (FcmToken, payload) { return __awaiter(void 0
                 message_1 = {
                     tokens: [FcmToken], // Ensure FcmToken is a valid array of tokens
                     android: android,
-                    apns: {
-                        payload: __assign({ aps: __assign({ alert: payload.notification }, payload.iosOptions) }, payload.data)
-                    }
+                    // ...payload.androidOptions
+                    // apns: {
+                    //     payload: {
+                    //         aps: {
+                    //             alert: payload.notification,
+                    //             ...payload.iosOptions
+                    //         },
+                    //         ...payload.data
+                    //     }
+                    // }
                 };
                 return [4 /*yield*/, firebase_admin_1.default.messaging().sendMulticast(message_1)];
             case 2:
@@ -114,6 +109,8 @@ var sendFCMNotification = function (FcmToken, payload) { return __awaiter(void 0
                         logger_1.Logger.info('Notification sent successfully:', response_1);
                     }
                 });
+                // const unSubRes = await admin.messaging().unsubscribeFromTopic(FcmToken, 'call')
+                // Logger.info('unsubscribeFromTopic', unSubRes);
                 return [2 /*return*/, response_1];
             case 3:
                 error_2 = _b.sent();
