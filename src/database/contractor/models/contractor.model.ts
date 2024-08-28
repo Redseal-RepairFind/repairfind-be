@@ -227,6 +227,7 @@ const ContractorSchema = new Schema<IContractor>(
     onboarding: {
       hasStripeAccount: { default: false, type: Boolean },
       hasStripeIdentity: { default: false, type: Boolean },
+      stripeIdentityStatus: { default: 'unverified', type: String },
       hasStripePaymentMethods: { default: false, type: Boolean },
       hasStripeCustomer: { default: false, type: Boolean },
       hasProfile: { default: false, type: Boolean },
