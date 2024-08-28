@@ -1304,7 +1304,7 @@ var createJobEnquiry = function (req, res, next) { return __awaiter(void 0, void
                 if (!job) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: "Job not found" })];
                 }
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(jobId)];
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
             case 2:
                 contractor = _c.sent();
                 if (!contractor) {

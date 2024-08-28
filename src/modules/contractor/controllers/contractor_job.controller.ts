@@ -1241,7 +1241,7 @@ export const createJobEnquiry = async (req: any, res: Response, next: NextFuncti
       return res.status(404).json({ success: false, message: "Job not found" });
     }
 
-    const contractor = await ContractorModel.findById(jobId);
+    const contractor = await ContractorModel.findById(contractorId);
     if (!contractor) {
       return res.status(404).json({ success: false, message: "Contractor not found" });
     }
