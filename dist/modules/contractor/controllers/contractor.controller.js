@@ -105,6 +105,7 @@ var api_feature_1 = require("../../../utils/api.feature");
 var review_model_1 = require("../../../database/common/review.model");
 var feedback_model_1 = require("../../../database/common/feedback.model");
 var admin_events_1 = require("../../../events/admin.events");
+var events_1 = require("../../../events");
 var ProfileHandler = /** @class */ (function (_super) {
     __extends(ProfileHandler, _super);
     function ProfileHandler() {
@@ -458,17 +459,17 @@ var ProfileHandler = /** @class */ (function (_super) {
         });
     };
     ProfileHandler.prototype.getAccount = function () {
-        var _a;
+        var _a, _b, _c;
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, contractorId, includeStripeIdentity, includeStripeCustomer, includeStripePaymentMethods, includeStripeAccount, includedFields, contractor, _b, quiz, _c, contractorResponse, err_6;
-            return __generator(this, function (_d) {
-                switch (_d.label) {
+            var req, res, contractorId, includeStripeIdentity, includeStripeCustomer, includeStripePaymentMethods, includeStripeAccount, includedFields, contractor, _d, quiz, _e, contractorResponse, err_6;
+            return __generator(this, function (_f) {
+                switch (_f.label) {
                     case 0:
                         req = this.req;
                         res = this.res;
-                        _d.label = 1;
+                        _f.label = 1;
                     case 1:
-                        _d.trys.push([1, 7, , 8]);
+                        _f.trys.push([1, 7, , 8]);
                         contractorId = req.contractor.id;
                         includeStripeIdentity = false;
                         includeStripeCustomer = false;
@@ -484,21 +485,21 @@ var ProfileHandler = /** @class */ (function (_super) {
                         }
                         return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId).populate('profile')];
                     case 2:
-                        contractor = _d.sent();
+                        contractor = _f.sent();
                         if (!contractor) {
                             return [2 /*return*/, res.status(404).json({ success: false, message: 'Account not found' })];
                         }
-                        _b = contractor;
+                        _d = contractor;
                         return [4 /*yield*/, contractor.getOnboarding()];
                     case 3:
-                        _b.onboarding = _d.sent();
+                        _d.onboarding = _f.sent();
                         return [4 /*yield*/, contractor.quiz];
                     case 4:
-                        quiz = (_a = _d.sent()) !== null && _a !== void 0 ? _a : null;
-                        _c = contractor;
+                        quiz = (_a = _f.sent()) !== null && _a !== void 0 ? _a : null;
+                        _e = contractor;
                         return [4 /*yield*/, contractor.getStats()];
                     case 5:
-                        _c.stats = _d.sent();
+                        _e.stats = _f.sent();
                         contractorResponse = __assign(__assign({}, contractor.toJSON({ includeStripeIdentity: true, includeStripeCustomer: true, includeStripePaymentMethods: true, includeStripeAccount: true, includeReviews: { status: true, limit: 20 } })), { // Convert to plain JSON object
                             quiz: quiz });
                         if (!contractor) {
@@ -524,12 +525,12 @@ var ProfileHandler = /** @class */ (function (_super) {
                                 },
                                 //@ts-ignore
                                 name: "".concat(contractor.name, " "),
-                                phone: "".concat(contractor.phoneNumber.code).concat(contractor.phoneNumber.number, " "),
+                                phone: "".concat((_b = contractor === null || contractor === void 0 ? void 0 : contractor.phoneNumber) === null || _b === void 0 ? void 0 : _b.code).concat((_c = contractor === null || contractor === void 0 ? void 0 : contractor.phoneNumber) === null || _c === void 0 ? void 0 : _c.number, " "),
                             });
                         }
                         return [4 /*yield*/, contractor.save()];
                     case 6:
-                        _d.sent();
+                        _f.sent();
                         res.json({
                             success: true,
                             message: 'Account fetched successfully',
@@ -537,7 +538,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         });
                         return [3 /*break*/, 8];
                     case 7:
-                        err_6 = _d.sent();
+                        err_6 = _f.sent();
                         console.log('error', err_6);
                         res.status(500).json({ success: false, message: err_6.message });
                         return [3 /*break*/, 8];
@@ -1139,9 +1140,11 @@ var ProfileHandler = /** @class */ (function (_super) {
                         _a.sent();
                         account.email = "".concat(account.email, ":").concat(account.id);
                         account.deletedAt = new Date();
+                        account.phoneNumber = undefined;
                         return [4 /*yield*/, account.save()];
                     case 5:
                         _a.sent();
+                        events_1.AccountEvent.emit('ACCOUNT_DELETED', account);
                         res.json({ success: true, message: 'Account deleted successfully' });
                         return [3 /*break*/, 7];
                     case 6:

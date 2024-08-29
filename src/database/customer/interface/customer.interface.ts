@@ -27,7 +27,7 @@ export interface ICustomer extends Document {
   firstName: string;
   lastName: string;
   name: string;
-  phoneNumber: {
+  phoneNumber?: {
     code: string,
     number: string,
     verifiedAt: {type: Date, default: null },

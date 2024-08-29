@@ -4,4 +4,4 @@ export const eventEmitter: EventEmitter = new EventEmitter();
 export * from './auth.events'
 export * from './conversation.events'
 export * from './job.events'
-export * from './profile.events'
+export * from './account.events'

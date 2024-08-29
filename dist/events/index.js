@@ -20,4 +20,4 @@ exports.eventEmitter = new events_1.EventEmitter();
 __exportStar(require("./auth.events"), exports);
 __exportStar(require("./conversation.events"), exports);
 __exportStar(require("./job.events"), exports);
-__exportStar(require("./profile.events"), exports);
+__exportStar(require("./account.events"), exports);
