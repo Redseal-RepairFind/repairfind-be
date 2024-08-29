@@ -36,17 +36,27 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ProfileEvent = void 0;
+exports.AccountEvent = void 0;
 var events_1 = require("events");
-exports.ProfileEvent = new events_1.EventEmitter();
-exports.ProfileEvent.on('TestEvent', function (params) {
+var logger_1 = require("../services/logger");
+var generic_email_1 = require("../templates/common/generic_email");
+var services_1 = require("../services");
+exports.AccountEvent = new events_1.EventEmitter();
+exports.AccountEvent.on('ACCOUNT_DELETED', function (payload) {
     return __awaiter(this, void 0, void 0, function () {
+        var user, emailSubject, emailContent, html;
         return __generator(this, function (_a) {
             try {
-                console.log("Notifications sent to participants of challenge");
+                logger_1.Logger.info("handling ACCOUNT_DELETED event");
+                user = payload.user;
+                emailSubject = 'Account Deleted ';
+                emailContent = "\n                <p style=\"color: #333333;\">Your has been deleted successfully, </p>\n                <p style=\"color: #333333;\">All pending transactions will be processed and settled in 5 business days</p>\n                 <p style=\"color: #333333;\">If you have any enquiry kindly reach via any of our available channels</p>\n                <p style=\"color: #333333;\">Thanks for your patronage</p>\n                ";
+                html = (0, generic_email_1.GenericEmailTemplate)({ name: user.name, subject: emailSubject, content: emailContent });
+                services_1.EmailService.send(user.email, emailSubject, html);
+                // TODO: check all pending transactions and handle appropriately
             }
             catch (error) {
-                console.error("Error handling TestEvent event: ".concat(error));
+                logger_1.Logger.error("Error handling ACCOUNT_DELETED event: ".concat(error));
             }
             return [2 /*return*/];
         });

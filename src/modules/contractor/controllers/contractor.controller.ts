@@ -28,6 +28,7 @@ import { CONVERSATION_TYPE, ConversationModel } from "../../../database/common/c
 import { MessageModel } from "../../../database/common/messages.schema";
 import TransactionModel, { TRANSACTION_TYPE } from "../../../database/common/transaction.model";
 import jwt, { JwtPayload } from "jsonwebtoken";
+import { AccountEvent } from "../../../events";
 
 
 class ProfileHandler extends Base {
@@ -497,7 +498,7 @@ class ProfileHandler extends Base {
           },
           //@ts-ignore
           name: `${contractor.name} `,
-          phone: `${contractor.phoneNumber.code}${contractor.phoneNumber.number} `,
+          phone: `${contractor?.phoneNumber?.code}${contractor?.phoneNumber?.number} `,
         })
       }
 
@@ -1002,7 +1003,10 @@ class ProfileHandler extends Base {
 
       account.email = `${account.email}:${account.id}`
       account.deletedAt = new Date()
+      account.phoneNumber = undefined
       await account.save()
+  
+      AccountEvent.emit('ACCOUNT_DELETED', account)
 
       res.json({ success: true, message: 'Account deleted successfully' });
     } catch (err: any) {

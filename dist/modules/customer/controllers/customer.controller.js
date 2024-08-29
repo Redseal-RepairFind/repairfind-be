@@ -49,6 +49,7 @@ var blacklisted_tokens_schema_1 = __importDefault(require("../../../database/com
 var feedback_model_1 = require("../../../database/common/feedback.model");
 var custom_errors_1 = require("../../../utils/custom.errors");
 var admin_events_1 = require("../../../events/admin.events");
+var events_1 = require("../../../events");
 var updateAccount = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, firstName, lastName, location_1, phoneNumber, profilePhoto, errors, customerId, customer, updatedCustomer, err_1;
     return __generator(this, function (_b) {
@@ -244,20 +245,22 @@ var deleteAccount = function (req, res) { return __awaiter(void 0, void 0, void 
                 if (!account) {
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'Account not found' })];
                 }
-                return [4 /*yield*/, job_model_1.JobModel.find({ customer: customerId, status: { $in: [job_model_1.JOB_STATUS.BOOKED, job_model_1.JOB_STATUS.DISPUTED] } })];
+                return [4 /*yield*/, job_model_1.JobModel.find({ customer: customerId, status: { $in: [job_model_1.JOB_STATUS.BOOKED, job_model_1.JOB_STATUS.DISPUTED, job_model_1.JOB_STATUS.ONGOING] } })];
             case 2:
                 bookedAndDisputedJobs = _a.sent();
                 if (bookedAndDisputedJobs.length > 0) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'You have an active Job, acount cannot be deleted' })];
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'You have an active Job, account cannot be deleted' })];
                 }
                 return [4 /*yield*/, customer_model_1.default.deleteById(customerId)];
             case 3:
                 _a.sent();
                 account.email = "".concat(account.email, ":").concat(account.id);
                 account.deletedAt = new Date();
+                account.phoneNumber = undefined;
                 return [4 /*yield*/, account.save()];
             case 4:
                 _a.sent();
+                events_1.AccountEvent.emit('ACCOUNT_DELETED', account);
                 res.json({ success: true, message: 'Account deleted successfully' });
                 return [3 /*break*/, 6];
             case 5:

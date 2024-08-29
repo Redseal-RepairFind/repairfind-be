@@ -118,12 +118,10 @@ export class NotificationService {
                                 title: params.title,
                                 body: params.message,
                                 channelId: 'call',
-                                clickAction: 'default',
-
-                                
+                                clickAction: 'call',  
                             },
                             androidOptions: { 
-                                isBackground: false, 
+                                isBackground: true, 
                                 topic: "call"
                             },
                             data: {

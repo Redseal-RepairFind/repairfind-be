@@ -13,6 +13,7 @@ import BlacklistedToken from "../../../database/common/blacklisted_tokens.schema
 import { FeedbackModel } from "../../../database/common/feedback.model";
 import { InternalServerError } from "../../../utils/custom.errors";
 import { AdminEvent } from "../../../events/admin.events";
+import { AccountEvent } from "../../../events";
 
 
 export const updateAccount = async (
@@ -267,18 +268,19 @@ export const deleteAccount = async (
     }
 
     // perform checks here
-    const bookedAndDisputedJobs = await JobModel.find({customer: customerId, status: {$in: [JOB_STATUS.BOOKED, JOB_STATUS.DISPUTED ] }})
+    const bookedAndDisputedJobs = await JobModel.find({customer: customerId, status: {$in: [JOB_STATUS.BOOKED, JOB_STATUS.DISPUTED, JOB_STATUS.ONGOING ] }})
     if(bookedAndDisputedJobs.length > 0){
-      return res.status(400).json({ success: false, message: 'You have an active Job, acount cannot be deleted' });
+      return res.status(400).json({ success: false, message: 'You have an active Job, account cannot be deleted' });
     }
 
     await CustomerModel.deleteById(customerId)
 
     account.email = `${account.email}:${account.id}`
     account.deletedAt = new Date()
+    account.phoneNumber = undefined
     await account.save()
 
-    
+    AccountEvent.emit('ACCOUNT_DELETED', account)
     res.json({success: true, message: 'Account deleted successfully'});
   } catch (err: any) {
     console.log('error', err);
