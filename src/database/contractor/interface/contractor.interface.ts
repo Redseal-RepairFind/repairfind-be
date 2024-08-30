@@ -130,10 +130,10 @@ export interface IContractor extends Document {
   password: string;
   dateOfBirth?: string;
   status: string;
-  phoneNumber?: {
+  phoneNumber: {
     code: string;
     number: string;
-    verifiedAt: Date;
+    verifiedAt: Date | null;
   };
   accountType: string;
   profilePhoto: {

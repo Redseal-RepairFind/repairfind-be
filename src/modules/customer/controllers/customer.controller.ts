@@ -277,7 +277,7 @@ export const deleteAccount = async (
 
     account.email = `${account.email}:${account.id}`
     account.deletedAt = new Date()
-    account.phoneNumber = undefined
+    account.phoneNumber = {code: "+", number: account.id, verifiedAt: null}
     await account.save()
 
     AccountEvent.emit('ACCOUNT_DELETED', account)

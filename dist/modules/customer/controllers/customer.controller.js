@@ -256,7 +256,7 @@ var deleteAccount = function (req, res) { return __awaiter(void 0, void 0, void 
                 _a.sent();
                 account.email = "".concat(account.email, ":").concat(account.id);
                 account.deletedAt = new Date();
-                account.phoneNumber = undefined;
+                account.phoneNumber = { code: "+", number: account.id, verifiedAt: null };
                 return [4 /*yield*/, account.save()];
             case 4:
                 _a.sent();
