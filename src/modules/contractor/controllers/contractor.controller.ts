@@ -1007,7 +1007,7 @@ class ProfileHandler extends Base {
       const ongoingJobs = await JobModel.find({contractor: contractorId, status: {$in: [JOB_STATUS.ONGOING ] }})
       if(ongoingJobs.length > 0){
         return res.status(400).json({ success: false, message: 'You have  ongoing jobs, account cannot be deleted', data: ongoingJobs});
-      }
+      } 
 
       await ContractorModel.deleteById(contractorId)
 
