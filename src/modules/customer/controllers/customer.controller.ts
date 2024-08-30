@@ -268,10 +268,21 @@ export const deleteAccount = async (
     }
 
     // perform checks here
-    const bookedAndDisputedJobs = await JobModel.find({customer: customerId, status: {$in: [JOB_STATUS.BOOKED, JOB_STATUS.DISPUTED, JOB_STATUS.ONGOING ] }})
-    if(bookedAndDisputedJobs.length > 0){
-      return res.status(400).json({ success: false, message: 'You have an active Job, account cannot be deleted' });
+    const bookedJobs = await JobModel.find({customer: customerId, status: {$in: [JOB_STATUS.BOOKED] }})
+    if(bookedJobs.length > 0){
+      return res.status(400).json({ success: false, message: 'You have an active Job, account cannot be deleted', data: bookedJobs });
     }
+
+    const disputedJobs = await JobModel.find({customer: customerId, status: {$in: [JOB_STATUS.DISPUTED] }})
+    if(disputedJobs.length > 0){
+      return res.status(400).json({ success: false, message: 'You have an pending dispute, account cannot be deleted', data: disputedJobs });
+    }
+
+    const ongoingJobs = await JobModel.find({customer: customerId, status: {$in: [JOB_STATUS.ONGOING ] }})
+    if(ongoingJobs.length > 0){
+      return res.status(400).json({ success: false, message: 'You have  ongoing jobs, account cannot be deleted', data: ongoingJobs});
+    }
+
 
     await CustomerModel.deleteById(customerId)
 

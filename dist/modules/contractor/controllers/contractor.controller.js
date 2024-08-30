@@ -1112,7 +1112,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     };
     ProfileHandler.prototype.deleteAccount = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, contractor, contractorId, account, bookedAndDisputedJobs, err_12;
+            var req, res, contractor, contractorId, account, bookedJobs, disputedJobs, ongoingJobs, err_12;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1120,7 +1120,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         res = this.res;
                         _a.label = 1;
                     case 1:
-                        _a.trys.push([1, 6, , 7]);
+                        _a.trys.push([1, 8, , 9]);
                         contractor = req.contractor;
                         contractorId = contractor.id;
                         return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: contractorId })];
@@ -1129,30 +1129,42 @@ var ProfileHandler = /** @class */ (function (_super) {
                         if (!account) {
                             return [2 /*return*/, res.status(404).json({ success: false, message: 'Account not found' })];
                         }
-                        return [4 /*yield*/, job_model_1.JobModel.find({ contractor: contractorId, status: { $in: [job_model_1.JOB_STATUS.BOOKED, job_model_1.JOB_STATUS.DISPUTED] } })];
+                        return [4 /*yield*/, job_model_1.JobModel.find({ contractor: contractorId, status: { $in: [job_model_1.JOB_STATUS.BOOKED] } })];
                     case 3:
-                        bookedAndDisputedJobs = _a.sent();
-                        if (bookedAndDisputedJobs.length > 0) {
-                            return [2 /*return*/, res.status(400).json({ success: false, message: 'You have an active Job, account cannot be deleted' })];
+                        bookedJobs = _a.sent();
+                        if (bookedJobs.length > 0) {
+                            return [2 /*return*/, res.status(400).json({ success: false, message: 'You have an active Job, account cannot be deleted', data: bookedJobs })];
+                        }
+                        return [4 /*yield*/, job_model_1.JobModel.find({ contractor: contractorId, status: { $in: [job_model_1.JOB_STATUS.DISPUTED] } })];
+                    case 4:
+                        disputedJobs = _a.sent();
+                        if (disputedJobs.length > 0) {
+                            return [2 /*return*/, res.status(400).json({ success: false, message: 'You have an pending dispute, account cannot be deleted', data: disputedJobs })];
+                        }
+                        return [4 /*yield*/, job_model_1.JobModel.find({ contractor: contractorId, status: { $in: [job_model_1.JOB_STATUS.ONGOING] } })];
+                    case 5:
+                        ongoingJobs = _a.sent();
+                        if (ongoingJobs.length > 0) {
+                            return [2 /*return*/, res.status(400).json({ success: false, message: 'You have  ongoing jobs, account cannot be deleted', data: ongoingJobs })];
                         }
                         return [4 /*yield*/, contractor_model_1.ContractorModel.deleteById(contractorId)];
-                    case 4:
+                    case 6:
                         _a.sent();
                         account.email = "".concat(account.email, ":").concat(account.id);
                         account.deletedAt = new Date();
                         account.phoneNumber = { code: "+", number: account.id, verifiedAt: null };
                         return [4 /*yield*/, account.save()];
-                    case 5:
+                    case 7:
                         _a.sent();
                         events_1.AccountEvent.emit('ACCOUNT_DELETED', account);
                         res.json({ success: true, message: 'Account deleted successfully' });
-                        return [3 /*break*/, 7];
-                    case 6:
+                        return [3 /*break*/, 9];
+                    case 8:
                         err_12 = _a.sent();
                         console.log('error', err_12);
                         res.status(500).json({ success: false, message: err_12.message });
-                        return [3 /*break*/, 7];
-                    case 7: return [2 /*return*/];
+                        return [3 /*break*/, 9];
+                    case 9: return [2 /*return*/];
                 }
             });
         });
