@@ -201,7 +201,7 @@ class AuthHandler extends Base {
                     .json({ success: false, message: "Phone already verified" });
             }
 
-            const phoneNumber = `${contractor.phoneNumber.code}${contractor.phoneNumber.number}`
+            const phoneNumber = `${contractor?.phoneNumber?.code}${contractor?.phoneNumber?.number}`
             await TwilioService.sendVerificationCode(phoneNumber)
 
 
@@ -238,7 +238,7 @@ class AuthHandler extends Base {
             }
 
 
-            const phoneNumber = `${contractor.phoneNumber.code}${contractor.phoneNumber.number}`
+            const phoneNumber = `${contractor?.phoneNumber?.code}${contractor?.phoneNumber?.number}`
             const verified = await TwilioService.verifyCode(phoneNumber, otp)
             if(!verified){
                 return res.status(422).json({

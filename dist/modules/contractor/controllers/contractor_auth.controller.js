@@ -254,20 +254,21 @@ var AuthHandler = /** @class */ (function (_super) {
         });
     };
     AuthHandler.prototype.sendPhoneOtp = function () {
+        var _a, _b;
         return __awaiter(this, void 0, void 0, function () {
             var req, res, contractorId, contractor, phoneNumber, err_3;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
                         req = this.req;
                         res = this.res;
-                        _a.label = 1;
+                        _c.label = 1;
                     case 1:
-                        _a.trys.push([1, 4, , 5]);
+                        _c.trys.push([1, 4, , 5]);
                         contractorId = req.contractor.id;
                         return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
                     case 2:
-                        contractor = _a.sent();
+                        contractor = _c.sent();
                         // check if contractor exists
                         if (!contractor) {
                             return [2 /*return*/, res
@@ -279,13 +280,13 @@ var AuthHandler = /** @class */ (function (_super) {
                                     .status(401)
                                     .json({ success: false, message: "Phone already verified" })];
                         }
-                        phoneNumber = "".concat(contractor.phoneNumber.code).concat(contractor.phoneNumber.number);
+                        phoneNumber = "".concat((_a = contractor === null || contractor === void 0 ? void 0 : contractor.phoneNumber) === null || _a === void 0 ? void 0 : _a.code).concat((_b = contractor === null || contractor === void 0 ? void 0 : contractor.phoneNumber) === null || _b === void 0 ? void 0 : _b.number);
                         return [4 /*yield*/, twillio_1.default.sendVerificationCode(phoneNumber)];
                     case 3:
-                        _a.sent();
+                        _c.sent();
                         return [2 /*return*/, res.status(200).json({ success: true, message: "OTP sent successfully to your phone." })];
                     case 4:
-                        err_3 = _a.sent();
+                        err_3 = _c.sent();
                         return [2 /*return*/, res.status(500).json({ success: false, message: err_3.message })];
                     case 5: return [2 /*return*/];
                 }
@@ -293,16 +294,17 @@ var AuthHandler = /** @class */ (function (_super) {
         });
     };
     AuthHandler.prototype.verifyPhone = function () {
+        var _a, _b;
         return __awaiter(this, void 0, void 0, function () {
             var req, res, otp, contractorId, contractor, phoneNumber, verified, err_4;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
                         req = this.req;
                         res = this.res;
-                        _a.label = 1;
+                        _c.label = 1;
                     case 1:
-                        _a.trys.push([1, 5, , 6]);
+                        _c.trys.push([1, 5, , 6]);
                         otp = req.body.otp;
                         if (!otp) {
                             return [2 /*return*/, res.status(400).json({ success: false, message: "Otp is required", })];
@@ -310,16 +312,16 @@ var AuthHandler = /** @class */ (function (_super) {
                         contractorId = req.contractor.id;
                         return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
                     case 2:
-                        contractor = _a.sent();
+                        contractor = _c.sent();
                         if (!contractor) {
                             return [2 /*return*/, res
                                     .status(404)
                                     .json({ success: false, message: "Account not found" })];
                         }
-                        phoneNumber = "".concat(contractor.phoneNumber.code).concat(contractor.phoneNumber.number);
+                        phoneNumber = "".concat((_a = contractor === null || contractor === void 0 ? void 0 : contractor.phoneNumber) === null || _a === void 0 ? void 0 : _a.code).concat((_b = contractor === null || contractor === void 0 ? void 0 : contractor.phoneNumber) === null || _b === void 0 ? void 0 : _b.number);
                         return [4 /*yield*/, twillio_1.default.verifyCode(phoneNumber, otp)];
                     case 3:
-                        verified = _a.sent();
+                        verified = _c.sent();
                         if (!verified) {
                             return [2 /*return*/, res.status(422).json({
                                     success: false,
@@ -331,13 +333,13 @@ var AuthHandler = /** @class */ (function (_super) {
                         }
                         return [4 /*yield*/, contractor.save()];
                     case 4:
-                        _a.sent();
+                        _c.sent();
                         return [2 /*return*/, res.json({
                                 success: true,
                                 message: "Phone verified successful",
                             })];
                     case 5:
-                        err_4 = _a.sent();
+                        err_4 = _c.sent();
                         return [2 /*return*/, res.status(500).json({ success: false, message: err_4.message })];
                     case 6: return [2 /*return*/];
                 }
