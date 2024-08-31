@@ -2,7 +2,9 @@
 # FROM node:18.16.0-alpine
 
 # Use the latest Node.js image based on Alpine Linux
-FROM node:alpine
+# FROM node:alpine
+FROM node:22.6-alpine
+
 
 # Set the working directory inside the container
 WORKDIR /app
