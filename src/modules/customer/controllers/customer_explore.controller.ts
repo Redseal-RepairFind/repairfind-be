@@ -68,7 +68,6 @@ export const exploreContractors = async (
         } = req.query;
 
 
-        console.log(latitude, longitude)
 
         const availableDaysArray = availability ? availability.split(',') : [];
         const skip = (parseInt(page) - 1) * parseInt(limit);

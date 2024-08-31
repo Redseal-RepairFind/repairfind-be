@@ -884,9 +884,29 @@ exports.JobEvent.on('JOB_BOOKED', function (payload) {
                     return [4 /*yield*/, quotation.calculateCharges()];
                 case 5:
                     charges = _c.sent();
-                    if (contractor) {
+                    // if (contractor) {
+                    //     // send mail to contractor
+                    //     // Email for contractors:
+                    //     let emailSubject = 'Job Payment Receipt'
+                    //     let emailContent = `
+                    //     <p style="color: #333333;">You have received payment for a job on RepairFind</p>
+                    //     <div style="background: whitesmoke;padding: 10px; border-radius: 10px;">
+                    //     <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Job Title:</strong> ${job.description}</p>
+                    //     <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Scheduled Date:</strong> ${job.date}</p>
+                    //     <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Sub Total:</strong> ${charges.subtotal}</p>
+                    //     <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>GST: (${charges.gstRate}%):</strong> ${charges.gstAmount}</p>
+                    //     <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Service Charge: (${charges.repairfindServiceFeeRate}%):</strong> -${charges.repairfindServiceFee}</p>
+                    //     <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Processing Fee: (${charges.contractorProcessingFeeRate}%):</strong> -${charges.contractorProcessingFee}</p>
+                    //     <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Total Amount:</strong> ${charges.contractorPayable}</p>
+                    //     </div>
+                    //     <p style="color: #333333;">Kindly open the App for more information</p>
+                    //                    `
+                    //     let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
+                    //     EmailService.send(contractor.email, emailSubject, html)
+                    // }
+                    if (contractor) { // send mail to contractor
                         emailSubject = 'Job Payment Receipt';
-                        emailContent = "\n                <p style=\"color: #333333;\">You have received payment for a job on RepairFind</p>\n                <div style=\"background: whitesmoke;padding: 10px; border-radius: 10px;\">\n                <p style=\"border-bottom: 1px solid lightgray; padding-bottom: 5px;\"><strong>Job Title:</strong> ".concat(job.description, "</p>\n                <p style=\"border-bottom: 1px solid lightgray; padding-bottom: 5px;\"><strong>Scheduled Date:</strong> ").concat(job.date, "</p>\n                <p style=\"border-bottom: 1px solid lightgray; padding-bottom: 5px;\"><strong>Sub Total:</strong> ").concat(charges.subtotal, "</p>\n                <p style=\"border-bottom: 1px solid lightgray; padding-bottom: 5px;\"><strong>GST: (").concat(charges.gstRate, "%):</strong> ").concat(charges.gstAmount, "</p>\n                <p style=\"border-bottom: 1px solid lightgray; padding-bottom: 5px;\"><strong>Service Charge: (").concat(charges.repairfindServiceFeeRate, "%):</strong> -").concat(charges.repairfindServiceFee, "</p>\n                <p style=\"border-bottom: 1px solid lightgray; padding-bottom: 5px;\"><strong>Processing Fee: (").concat(charges.contractorProcessingFeeRate, "%):</strong> -").concat(charges.contractorProcessingFee, "</p>\n                <p style=\"border-bottom: 1px solid lightgray; padding-bottom: 5px;\"><strong>Total Amount:</strong> ").concat(charges.contractorPayable, "</p>\n                </div>\n                <p style=\"color: #333333;\">Kindly open the App for more information</p>\n                ");
+                        emailContent = "\n                    <p style=\"color: #333333;\">Hello ".concat(contractor.name, ",</p>\n                    <p style=\"color: #333333;\">You have received payment for a job on RepairFind.</p>\n                    <p><strong>Job Title:</strong> ").concat(job.description, "</p>\n                    <p><strong>Scheduled Date:</strong> Mon Jul 22 2024 16:59:59 GMT-0700 (Pacific Daylight Time)</p>\n                    <hr>\n                    <h3>Contractor Receipt</h3>\n                    <p><strong>RepairFind</strong><br>\n                    Phone: (604) 568-6378<br>\n                    Email: info@repairfind.ca</p>\n                    <p><strong>Receipt</strong></p>\n                    <p>Date: August 28, 2024<br>\n                    Receipt Number: RFCONT-001</p>\n                    <p><strong>Contractor:</strong><br>\n                    Sunscape Energy Inc.<br>\n                    9876 Contractor Road<br>\n                    Surrey, BC V4B 2V4</p>\n                    <p><strong>Description of Services Completed:</strong></p>\n                    <p>Labour: $800.00<br>\n                    Materials: $400.00<br>\n                    Permit: $200.00</p>\n                    <p><strong>Subtotal:</strong> $1,400.00</p>\n                    <p><strong>Deductions:</strong><br>\n                    Payment Processing Fee (3%): $42.00<br>\n                    Service Fee (10%): $140.00</p>\n                    <p><strong>Total Deducted:</strong> $182.00</p>\n                    <p><strong>Net Amount to Contractor:</strong> $1,218.00 + GST $70 = $1,288.00</p>\n                    <p><strong>Payment Method:</strong> Direct Deposit<br>\n                    <strong>Transaction ID:</strong> XYZ654321</p>\n                    <p style=\"color: #333333;\">Thank you for your service!</p>\n                    <p style=\"color: #333333;\">Kindly open the App for more information.</p>\n                ");
                         html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
                         services_1.EmailService.send(contractor.email, emailSubject, html);
                     }

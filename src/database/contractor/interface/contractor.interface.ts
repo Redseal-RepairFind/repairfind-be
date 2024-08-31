@@ -186,6 +186,7 @@ export interface IContractor extends Document {
   };
   certnId: string;
   badge: {label?: string, icon?: string };
+
   getOnboarding: () => {
     hasStripeAccount: boolean,
     hasStripeIdentity: boolean,
@@ -198,6 +199,7 @@ export interface IContractor extends Document {
     hasPassedQuiz: boolean
     stage: number
   };
+  
   stats: {formattedResponseTime?: any, responseTime?: any, jobsCompleted?: any, jobsCanceled?: any,  jobsPending?: any, jobsTotal?: any};
 
   getStats: (contractor?:any) => {

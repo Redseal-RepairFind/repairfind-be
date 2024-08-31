@@ -1120,7 +1120,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         res = this.res;
                         _a.label = 1;
                     case 1:
-                        _a.trys.push([1, 8, , 9]);
+                        _a.trys.push([1, 9, , 10]);
                         contractor = req.contractor;
                         contractorId = contractor.id;
                         return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: contractorId })];
@@ -1150,21 +1150,31 @@ var ProfileHandler = /** @class */ (function (_super) {
                         return [4 /*yield*/, contractor_model_1.ContractorModel.deleteById(contractorId)];
                     case 6:
                         _a.sent();
+                        return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOneAndUpdate({ contractor: contractorId }, {
+                                isOffDuty: true
+                            })];
+                    case 7:
+                        _a.sent();
                         account.email = "".concat(account.email, ":").concat(account.id);
                         account.deletedAt = new Date();
                         account.phoneNumber = { code: "+", number: account.id, verifiedAt: null };
+                        account.firstName = 'Deleted';
+                        account.lastName = 'Account';
+                        account.profilePhoto = { url: 'https://ipalas3bucket.s3.us-east-2.amazonaws.com/avatar.png' };
+                        // account.status = 
                         return [4 /*yield*/, account.save()];
-                    case 7:
+                    case 8:
+                        // account.status = 
                         _a.sent();
                         events_1.AccountEvent.emit('ACCOUNT_DELETED', account);
                         res.json({ success: true, message: 'Account deleted successfully' });
-                        return [3 /*break*/, 9];
-                    case 8:
+                        return [3 /*break*/, 10];
+                    case 9:
                         err_12 = _a.sent();
                         console.log('error', err_12);
                         res.status(500).json({ success: false, message: err_12.message });
-                        return [3 /*break*/, 9];
-                    case 9: return [2 /*return*/];
+                        return [3 /*break*/, 10];
+                    case 10: return [2 /*return*/];
                 }
             });
         });

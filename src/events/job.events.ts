@@ -762,28 +762,71 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
 
 
 
-            if (contractor) {
-                // send mail to contractor
-                // Email for contractors:
+            // if (contractor) {
+            //     // send mail to contractor
+            //     // Email for contractors:
 
-                let emailSubject = 'Job Payment Receipt'
+            //     let emailSubject = 'Job Payment Receipt'
+            //     let emailContent = `
+            //     <p style="color: #333333;">You have received payment for a job on RepairFind</p>
+            //     <div style="background: whitesmoke;padding: 10px; border-radius: 10px;">
+            //     <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Job Title:</strong> ${job.description}</p>
+            //     <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Scheduled Date:</strong> ${job.date}</p>
+            //     <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Sub Total:</strong> ${charges.subtotal}</p>
+            //     <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>GST: (${charges.gstRate}%):</strong> ${charges.gstAmount}</p>
+            //     <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Service Charge: (${charges.repairfindServiceFeeRate}%):</strong> -${charges.repairfindServiceFee}</p>
+            //     <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Processing Fee: (${charges.contractorProcessingFeeRate}%):</strong> -${charges.contractorProcessingFee}</p>
+            //     <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Total Amount:</strong> ${charges.contractorPayable}</p>
+            //     </div>
+            //     <p style="color: #333333;">Kindly open the App for more information</p>
+            //                    `
+            //     let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
+            //     EmailService.send(contractor.email, emailSubject, html)
+
+            // }
+
+
+            if (contractor) { // send mail to contractor
+                let emailSubject = 'Job Payment Receipt';
                 let emailContent = `
-                <p style="color: #333333;">You have received payment for a job on RepairFind</p>
-                <div style="background: whitesmoke;padding: 10px; border-radius: 10px;">
-                <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Job Title:</strong> ${job.description}</p>
-                <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Scheduled Date:</strong> ${job.date}</p>
-                <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Sub Total:</strong> ${charges.subtotal}</p>
-                <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>GST: (${charges.gstRate}%):</strong> ${charges.gstAmount}</p>
-                <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Service Charge: (${charges.repairfindServiceFeeRate}%):</strong> -${charges.repairfindServiceFee}</p>
-                <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Processing Fee: (${charges.contractorProcessingFeeRate}%):</strong> -${charges.contractorProcessingFee}</p>
-                <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Total Amount:</strong> ${charges.contractorPayable}</p>
-                </div>
-                <p style="color: #333333;">Kindly open the App for more information</p>
-                               `
-                let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
-                EmailService.send(contractor.email, emailSubject, html)
-
+                    <p style="color: #333333;">Hello ${contractor.name},</p>
+                    <p style="color: #333333;">You have received payment for a job on RepairFind.</p>
+                    <p><strong>Job Title:</strong> ${job.description}</p>
+                    <p><strong>Scheduled Date:</strong> Mon Jul 22 2024 16:59:59 GMT-0700 (Pacific Daylight Time)</p>
+                    <hr>
+                    <h3>Contractor Receipt</h3>
+                    <p><strong>RepairFind</strong><br>
+                    Phone: (604) 568-6378<br>
+                    Email: info@repairfind.ca</p>
+                    <p><strong>Receipt</strong></p>
+                    <p>Date: August 28, 2024<br>
+                    Receipt Number: RFCONT-001</p>
+                    <p><strong>Contractor:</strong><br>
+                    Sunscape Energy Inc.<br>
+                    9876 Contractor Road<br>
+                    Surrey, BC V4B 2V4</p>
+                    <p><strong>Description of Services Completed:</strong></p>
+                    <p>Labour: $800.00<br>
+                    Materials: $400.00<br>
+                    Permit: $200.00</p>
+                    <p><strong>Subtotal:</strong> $1,400.00</p>
+                    <p><strong>Deductions:</strong><br>
+                    Payment Processing Fee (3%): $42.00<br>
+                    Service Fee (10%): $140.00</p>
+                    <p><strong>Total Deducted:</strong> $182.00</p>
+                    <p><strong>Net Amount to Contractor:</strong> $1,218.00 + GST $70 = $1,288.00</p>
+                    <p><strong>Payment Method:</strong> Direct Deposit<br>
+                    <strong>Transaction ID:</strong> XYZ654321</p>
+                    <p style="color: #333333;">Thank you for your service!</p>
+                    <p style="color: #333333;">Kindly open the App for more information.</p>
+                `;
+                
+                let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent });
+                EmailService.send(contractor.email, emailSubject, html);
             }
+
+            
+            
             // if (customer) { // send mail to  customer
             //     let emailSubject = 'Job Payment Receipt'
             //     let emailContent = `

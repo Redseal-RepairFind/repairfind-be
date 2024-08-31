@@ -93,7 +93,6 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
             case 2:
                 _k.trys.push([2, 6, , 7]);
                 _a = req.query, searchName = _a.searchName, listing = _a.listing, minDistance = _a.minDistance, maxDistance = _a.maxDistance, radius = _a.radius, _b = _a.latitude, latitude = _b === void 0 ? Number((_h = customer === null || customer === void 0 ? void 0 : customer.location) === null || _h === void 0 ? void 0 : _h.latitude) : _b, _c = _a.longitude, longitude = _c === void 0 ? Number((_j = customer === null || customer === void 0 ? void 0 : customer.location) === null || _j === void 0 ? void 0 : _j.longitude) : _c, emergencyJobs = _a.emergencyJobs, category = _a.category, location_1 = _a.location, city = _a.city, country = _a.country, address = _a.address, accountType = _a.accountType, date = _a.date, isOffDuty = _a.isOffDuty, availability = _a.availability, experienceYear = _a.experienceYear, gstNumber = _a.gstNumber, _d = _a.page, page = _d === void 0 ? 1 : _d, _e = _a.limit, limit = _e === void 0 ? 10 : _e, sort = _a.sort, minResponseTime = _a.minResponseTime, maxResponseTime = _a.maxResponseTime, sortByResponseTime = _a.sortByResponseTime;
-                console.log(latitude, longitude);
                 availableDaysArray = availability ? availability.split(',') : [];
                 skip = (parseInt(page) - 1) * parseInt(limit);
                 toRadians = function (degrees) { return degrees * (Math.PI / 180); };

@@ -2,7 +2,7 @@ import { Document, Types, ObjectId } from "mongoose";
 import { IStripeCustomer } from "../../common/stripe_customer.interface";
 import { IStripePaymentMethod } from "../../common/stripe_paymentmethod.schema";
 
-export enum CustomerAuthProviders  {
+export enum CustomerAuthProviders {
   PASSWORD = "PASSWORD",
   GOOGLE = "GOOGLE",
   FACEBOOK = "FACEBOOK",
@@ -10,7 +10,7 @@ export enum CustomerAuthProviders  {
 }
 
 
-export interface ICustomerLocation extends Document  {
+export interface ICustomerLocation extends Document {
   address: string,
   city: string,
   region: string,
@@ -21,7 +21,7 @@ export interface ICustomerLocation extends Document  {
 
 export interface ICustomer extends Document {
   _id: ObjectId;
-  
+
   email: string;
   password: string;
   firstName: string;
@@ -30,19 +30,13 @@ export interface ICustomer extends Document {
   phoneNumber: {
     code: string,
     number: string,
-    verifiedAt: Date| null,
-  };    
+    verifiedAt: Date | null,
+  };
   location: ICustomerLocation
   profilePhoto: {
-    url: {
-      type: String,
-    },
-    label?: {
-      type: String,
-    },
-    descriptions?: {
-      type: Array<string>,
-    }
+    url: string,
+    label?: string,
+    descriptions?: Array<string>
   };
   passwordOtp: {
     otp: string;
@@ -70,7 +64,7 @@ export interface ICustomer extends Document {
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date;
-  
+
 }
 
 
