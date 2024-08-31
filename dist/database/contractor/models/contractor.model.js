@@ -578,6 +578,42 @@ ContractorSchema.pre('findOneAndUpdate', function (next) {
         });
     });
 });
+ContractorSchema.post(/^find/, function (docs) {
+    return __awaiter(this, void 0, void 0, function () {
+        var deletedContractor, i;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, exports.ContractorModel.findOne({ email: "deletedcontractor@repairfind.com" })];
+                case 1:
+                    deletedContractor = _a.sent();
+                    for (i = 0; i < docs.length; i++) {
+                        if (docs[i].deleted) {
+                            docs[i] = deletedContractor;
+                        }
+                    }
+                    return [2 /*return*/];
+            }
+        });
+    });
+});
+ContractorSchema.post('findOne', function (doc, next) {
+    return __awaiter(this, void 0, void 0, function () {
+        var deletedContractor;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, exports.ContractorModel.findOne({ email: "deletedcontractor@repairfind.com" })];
+                case 1:
+                    deletedContractor = _a.sent();
+                    if (doc && doc.deleted) {
+                        // Replace the deleted contractor with the special "Deleted Contractor"
+                        doc = deletedContractor;
+                    }
+                    next();
+                    return [2 /*return*/];
+            }
+        });
+    });
+});
 ContractorSchema.plugin(mongoose_delete_1.default, { deletedBy: true, overrideMethods: 'all' });
 ContractorSchema.set('toObject', { virtuals: true });
 exports.ContractorModel = (0, mongoose_1.model)("contractors", ContractorSchema);

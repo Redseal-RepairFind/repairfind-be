@@ -573,6 +573,28 @@ ContractorSchema.pre('findOneAndUpdate', async function (next) {
 });
 
 
+
+ContractorSchema.post(/^find/, async function (docs) {
+  const deletedContractor = await ContractorModel.findOne({email: "deletedcontractor@repairfind.com"})
+  for (let i = 0; i < docs.length; i++) {
+    if (docs[i].deleted) {
+      docs[i] = deletedContractor;
+    }
+  }
+});
+
+
+ContractorSchema.post('findOne', async function (doc, next) {
+  const deletedContractor = await ContractorModel.findOne({email: "deletedcontractor@repairfind.com"})
+  if (doc && doc.deleted) {
+    // Replace the deleted contractor with the special "Deleted Contractor"
+    doc = deletedContractor;
+  }
+  next();
+});
+
+
+
 ContractorSchema.plugin(MongooseDelete, { deletedBy: true, overrideMethods: 'all' });
 
 
