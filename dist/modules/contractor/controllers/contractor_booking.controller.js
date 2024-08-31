@@ -645,7 +645,7 @@ var cancelBooking = function (req, res, next) { return __awaiter(void 0, void 0,
                 // inside the event take actions such as refund etc
                 events_1.JobEvent.emit('JOB_CANCELED', { job: job_1, canceledBy: 'contractor' });
                 newReview = new review_model_1.ReviewModel({
-                    averageRating: 0,
+                    averageRating: 1,
                     // ratings,
                     job: job_1.id,
                     customer: job_1.customer,
