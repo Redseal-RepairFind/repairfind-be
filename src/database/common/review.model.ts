@@ -33,7 +33,7 @@ const ReviewSchema = new Schema<IReview>({
         type: Number,
         required: true,
         min: 1,
-        max: 5, // Adjust based on your rating scale
+        max: 5, // Adjust based on your rating scales
     },
     ratings: {
         type: [{ item: String, rating: Number }],
