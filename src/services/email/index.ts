@@ -33,6 +33,7 @@ export class EmailService {
         subject: string,
         html: string,
         cc?: string | string[] | undefined,
+        attachments?: any,
     ): Promise<void> {
         try {
             const from: string = <string>process.env.EMAIL_FROM;
@@ -45,7 +46,9 @@ export class EmailService {
                     to,
                     cc: ccAddresses,
                     subject,
-                    html
+                    html,
+                    attachments,
+
                 };
 
                 // await this.createTransport().sendMail(mailOptions);

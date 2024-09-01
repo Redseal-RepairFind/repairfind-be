@@ -35,76 +35,31 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ReviewModel = exports.REVIEW_TYPE = void 0;
-var mongoose_1 = require("mongoose");
-var customer_model_1 = __importDefault(require("../customer/models/customer.model"));
-var REVIEW_TYPE;
-(function (REVIEW_TYPE) {
-    REVIEW_TYPE["JOB_COMPLETION"] = "JOB_COMPLETION";
-    REVIEW_TYPE["JOB_CANCELATION"] = "JOB_CANCELATION";
-    REVIEW_TYPE["TRAINING_COMPLETION"] = "TRAINING_COMPLETION";
-})(REVIEW_TYPE || (exports.REVIEW_TYPE = REVIEW_TYPE = {}));
-var ReviewSchema = new mongoose_1.Schema({
-    customer: {
-        type: mongoose_1.Schema.Types.ObjectId,
-    },
-    contractor: {
-        type: mongoose_1.Schema.Types.ObjectId,
-    },
-    averageRating: {
-        type: Number,
-        required: true,
-        min: 1,
-        max: 5, // Adjust based on your rating scales
-    },
-    ratings: {
-        type: [{ item: String, rating: Number }],
-    },
-    comment: {
-        type: String,
-    },
-    job: {
-        type: mongoose_1.Schema.Types.ObjectId,
-    },
-    type: {
-        type: String,
-        enum: Object.values(REVIEW_TYPE),
-        default: REVIEW_TYPE.JOB_COMPLETION
-    },
-    heading: Object,
-    createdAt: {
-        type: Date,
-        default: Date.now,
-    },
-});
-// Define a method for the virtual field
-ReviewSchema.methods.getHeading = function () {
-    var _a;
+exports.generatePDF = void 0;
+// const puppeteer = require('puppeteer');
+// const nodemailer = require('nodemailer');
+// // Function to generate PDF from HTML
+// export async function generatePDF(htmlContent: any, outputPath: any) {
+//   const browser = await puppeteer.launch();
+//   const page = await browser.newPage();
+//   await page.setContent(htmlContent);
+//   await page.pdf({ path: outputPath, format: 'A4' });
+//   await browser.close();
+// }
+var ironpdf_1 = require("@ironsoftware/ironpdf");
+function generatePDF(htmlContent) {
     return __awaiter(this, void 0, void 0, function () {
-        var customer;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
-                case 0:
-                    if (!this.customer) return [3 /*break*/, 2];
-                    return [4 /*yield*/, customer_model_1.default.findById(this.customer)];
+        var pdf;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, ironpdf_1.PdfDocument.fromHtml("<h1>Testing</h1>")];
                 case 1:
-                    customer = _b.sent();
-                    if (customer) {
-                        return [2 /*return*/, { name: customer.name, image: (_a = customer === null || customer === void 0 ? void 0 : customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url }];
-                    }
-                    _b.label = 2;
-                case 2: return [2 /*return*/, {
-                        name: "Repairfind",
-                        image: "https://repairfindtwo.s3.us-east-2.amazonaws.com/repairfind-logo.png"
-                    }];
+                    pdf = _a.sent();
+                    console.log('pdf', pdf);
+                    return [2 /*return*/];
             }
         });
     });
-};
-ReviewSchema.set('toObject', { virtuals: true });
-ReviewSchema.set('toJSON', { virtuals: true });
-exports.ReviewModel = (0, mongoose_1.model)("reviews", ReviewSchema);
+}
+exports.generatePDF = generatePDF;

@@ -188,6 +188,59 @@ var contractors = [
         }
     },
     {
+        email: "deletedcontractor@repairfind.com",
+        firstName: "Deleted",
+        lastName: "Contractor",
+        dateOfBirth: "23/12/2024",
+        password: '$2b$10$34E1yhh/3Z/O1cBn/5seAuyHOBuy/U6uZUH10rhFfAjdJKXehpN2y',
+        phoneNumber: {
+            code: "+367",
+            number: "234425223788723"
+        },
+        profilePhoto: {
+            url: "https://dsfds"
+        },
+        acceptTerms: true,
+        accountType: contractor_interface_1.CONTRACTOR_TYPES.Individual,
+        passwordOtp: {
+            verified: true,
+        },
+        emailOtp: {
+            verified: true,
+        },
+        profileData: {
+            about: "About us here",
+            availability: [
+                "Monday",
+                "Tuesday"
+            ],
+            backgrounCheckConsent: true,
+            emergencyJobs: true,
+            experienceYear: 5,
+            gstNumber: "4442223",
+            gstType: "Type",
+            location: {
+                address: "Toronto, Ontario, Canada",
+                latitude: 43.65107,
+                longitude: -79.347015
+            },
+            phoneNumber: "3234234",
+            previousJobPhotos: [
+                {
+                    url: "string",
+                }
+            ],
+            previousJobVideos: [
+                {
+                    url: "string",
+                }
+            ],
+            skill: "Plumber",
+            website: "https://skdjfjkfdsjk.com",
+            certnId: "5d1aabc8-e9c9-4e99-8b2f-14ac6995f13f"
+        }
+    },
+    {
         email: "company@repairfind.com",
         companyName: "Company",
         dateOfBirth: "23/12/2024",

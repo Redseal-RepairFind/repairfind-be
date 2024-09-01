@@ -538,7 +538,7 @@ exports.JobEvent.on('JOB_QUOTATION_DECLINED', function (payload) {
                     job = _b.sent();
                     if (!contractor) return [3 /*break*/, 5];
                     emailSubject = 'Job Quotation Decline';
-                    emailContent = "\n                <p style=\"color: #333333;\">Your job  quotation for a job  on RepairFind was declined.</p>\n                <p>\n                    <strong>Job Title:</strong> ".concat(job.title, " </br>\n                    <strong>Customer:</strong> ").concat(customer.name, " </br>\n                    <strong>Reason:</strong> ").concat(payload.reason, "  </br>\n                </p>\n              \n                <p>Login to our app to follow up </p>\n                ");
+                    emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(contractor.name, ",</p>\n                <p style=\"color: #333333;\">Your job  quotation for a job  on RepairFind was declined.</p>\n                <p>\n                    <strong>Job Title:</strong> ").concat(job.title, " </br>\n                    <strong>Customer:</strong> ").concat(customer.name, " </br>\n                    <strong>Reason:</strong> ").concat(payload.reason, "  </br>\n                </p>\n              \n                <p>Login to our app to follow up </p>\n                ");
                     html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
                     services_1.EmailService.send(contractor.email, emailSubject, html);
                     return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(customer.id, 'customers', contractor.id, 'contractors')];
@@ -592,7 +592,7 @@ exports.JobEvent.on('JOB_QUOTATION_ACCEPTED', function (payload) {
                     job = _b.sent();
                     if (!contractor) return [3 /*break*/, 5];
                     emailSubject = 'Job Quotation Accepted';
-                    emailContent = "\n                <p style=\"color: #333333;\">Congratulations! your job quotation for a job  on RepairFind was accepted.</p>\n                <p>\n                    <strong>Job Title:</strong> ".concat(job.title, " </br>\n                    <strong>Customer:</strong> ").concat(customer.name, " </br>\n                </p>\n              \n                <p>Login to our app to follow up </p>\n                ");
+                    emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(contractor.name, ",</p>\n                <p style=\"color: #333333;\">Congratulations! your job quotation for a job  on RepairFind was accepted.</p>\n                <p>\n                    <strong>Job Title:</strong> ").concat(job.title, " </br>\n                    <strong>Customer:</strong> ").concat(customer.name, " </br>\n                </p>\n              \n                <p>Login to our app to follow up </p>\n                ");
                     html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
                     services_1.EmailService.send(contractor.email, emailSubject, html);
                     return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(customer.id, 'customers', contractor.id, 'contractors')];
@@ -704,7 +704,7 @@ exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
                     });
                     if (((_a = payload.job.reschedule) === null || _a === void 0 ? void 0 : _a.createdBy) == 'contractor') { // send mail to contractor
                         emailSubject = 'Job Reschedule Request';
-                        emailContent = "\n                <p style=\"color: #333333;\">Your Job reschedule request on Repairfind has been ".concat(payload.action, " by customer</p>\n                <p><strong>Job Title:</strong> ").concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(payload.job.reschedule.date, "</p>\n                ");
+                        emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(contractor.name, ",</p>\n                <p style=\"color: #333333;\">Your Job reschedule request on Repairfind has been ").concat(payload.action, " by customer</p>\n                <p><strong>Job Title:</strong> ").concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(payload.job.reschedule.date, "</p>\n                ");
                         html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
                         services_1.EmailService.send(contractor.email, emailSubject, html);
                         services_1.NotificationService.sendNotification({
@@ -729,7 +729,7 @@ exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
                     }
                     if (((_c = payload.job.reschedule) === null || _c === void 0 ? void 0 : _c.createdBy) == 'customer') { // send mail to  customer
                         emailSubject = 'Job Reschedule Request';
-                        emailContent = "\n                <p style=\"color: #333333;\">Your Job reschedule request on Repairfind has been ".concat(payload.action, "  by the contractor</p>\n                <p><strong>Job Title:</strong> ").concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(payload.job.reschedule.date, "</p>\n                ");
+                        emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(customer.name, ",</p>\n                <p style=\"color: #333333;\">Your Job reschedule request on Repairfind has been ").concat(payload.action, "  by the contractor</p>\n                <p><strong>Job Title:</strong> ").concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(payload.job.reschedule.date, "</p>\n                ");
                         html = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: emailSubject, content: emailContent });
                         services_1.EmailService.send(customer.email, emailSubject, html);
                         services_1.NotificationService.sendNotification({
@@ -795,7 +795,7 @@ exports.JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', function (payload) {
                     });
                     if (((_a = payload.job.reschedule) === null || _a === void 0 ? void 0 : _a.createdBy) == 'contractor') { // send mail to contractor
                         emailSubject = 'Job Schedule';
-                        emailContent = "\n                <p style=\"color: #333333;\">Contractor has requested  to reschedule a job on RepairFind</p>\n                <p><strong>Job Title:</strong> ".concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(payload.job.reschedule.date, "</p>\n                ");
+                        emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(customer.name, ",</p>\n                <p style=\"color: #333333;\">Contractor has requested  to reschedule a job on RepairFind</p>\n                <p><strong>Job Title:</strong> ").concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(payload.job.reschedule.date, "</p>\n                ");
                         html = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: emailSubject, content: emailContent });
                         services_1.EmailService.send(customer.email, emailSubject, html);
                         services_1.NotificationService.sendNotification({
@@ -819,7 +819,7 @@ exports.JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', function (payload) {
                     }
                     if (((_c = payload.job.reschedule) === null || _c === void 0 ? void 0 : _c.createdBy) == 'customer') { // send mail to  customer
                         emailSubject = 'Job Schedule';
-                        emailContent = "\n                <p style=\"color: #333333;\">Customer has requested  to reschedule a job on RepairFind</p>\n                <p><strong>Job Title:</strong> ".concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(payload.job.reschedule.date, "</p>\n                ");
+                        emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(contractor.name, ",</p>\n                <p style=\"color: #333333;\">Customer has requested  to reschedule a job on RepairFind</p>\n                <p><strong>Job Title:</strong> ").concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(payload.job.reschedule.date, "</p>\n                ");
                         html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
                         services_1.EmailService.send(contractor.email, emailSubject, html);
                         services_1.NotificationService.sendNotification({
@@ -860,41 +860,50 @@ exports.JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', function (payload) {
     });
 });
 exports.JobEvent.on('JOB_BOOKED', function (payload) {
-    var _a, _b;
+    var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function () {
-        var customer, contractor, job, quotation, charges, emailSubject, emailContent, html, emailSubject, emailContent, html, error_13;
-        return __generator(this, function (_c) {
-            switch (_c.label) {
+        var customer, contractor, job, quotation, charges, contractorProfile, emailSubject, emailContent, receipthtmlContent, html, receipthtml, emailSubject, emailContent, receiptContent, html, receipthtml, error_13;
+        return __generator(this, function (_e) {
+            switch (_e.label) {
                 case 0:
-                    _c.trys.push([0, 7, , 8]);
+                    _e.trys.push([0, 8, , 9]);
                     logger_1.Logger.info('handling alert JOB_BOOKED event');
                     return [4 /*yield*/, customer_model_1.default.findById(payload.customerId)];
                 case 1:
-                    customer = _c.sent();
+                    customer = _e.sent();
                     return [4 /*yield*/, contractor_model_1.ContractorModel.findById(payload.contractorId)];
                 case 2:
-                    contractor = _c.sent();
+                    contractor = _e.sent();
                     return [4 /*yield*/, job_model_1.JobModel.findById(payload.jobId)];
                 case 3:
-                    job = _c.sent();
+                    job = _e.sent();
                     return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findById(payload.quotationId)];
                 case 4:
-                    quotation = _c.sent();
-                    if (!(job && contractor && customer && quotation)) return [3 /*break*/, 6];
+                    quotation = _e.sent();
+                    if (!(job && contractor && customer && quotation)) return [3 /*break*/, 7];
                     return [4 /*yield*/, quotation.calculateCharges()];
                 case 5:
-                    charges = _c.sent();
-                    if (contractor) {
-                        emailSubject = 'Job Payment Receipt';
-                        emailContent = "\n                <p style=\"color: #333333;\">You have received payment for a job on RepairFind</p>\n                <div style=\"background: whitesmoke;padding: 10px; border-radius: 10px;\">\n                <p style=\"border-bottom: 1px solid lightgray; padding-bottom: 5px;\"><strong>Job Title:</strong> ".concat(job.description, "</p>\n                <p style=\"border-bottom: 1px solid lightgray; padding-bottom: 5px;\"><strong>Scheduled Date:</strong> ").concat(job.date, "</p>\n                <p style=\"border-bottom: 1px solid lightgray; padding-bottom: 5px;\"><strong>Sub Total:</strong> ").concat(charges.subtotal, "</p>\n                <p style=\"border-bottom: 1px solid lightgray; padding-bottom: 5px;\"><strong>GST: (").concat(charges.gstRate, "%):</strong> ").concat(charges.gstAmount, "</p>\n                <p style=\"border-bottom: 1px solid lightgray; padding-bottom: 5px;\"><strong>Service Charge: (").concat(charges.repairfindServiceFeeRate, "%):</strong> -").concat(charges.repairfindServiceFee, "</p>\n                <p style=\"border-bottom: 1px solid lightgray; padding-bottom: 5px;\"><strong>Processing Fee: (").concat(charges.contractorProcessingFeeRate, "%):</strong> -").concat(charges.contractorProcessingFee, "</p>\n                <p style=\"border-bottom: 1px solid lightgray; padding-bottom: 5px;\"><strong>Total Amount:</strong> ").concat(charges.contractorPayable, "</p>\n                </div>\n                <p style=\"color: #333333;\">Kindly open the App for more information</p>\n                ");
+                    charges = _e.sent();
+                    return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: contractor.id })];
+                case 6:
+                    contractorProfile = _e.sent();
+                    if (contractor && contractorProfile) {
+                        emailSubject = 'New Job Payment';
+                        emailContent = "\n                    <h2>".concat(emailSubject, "</h2>\n                    <p style=\"color: #333333;\">Hello ").concat(contractor.name, ",</p>\n                    <p style=\"color: #333333;\">You have received payment for a job on RepairFind.</p>\n                    <p><strong>Job Title:</strong> ").concat(job.description, "</p>\n                    <p><strong>Scheduled Date:</strong>").concat(job.schedule.startDate, "</p>\n                    <hr>\n                    <p style=\"color: #333333;\">Thank you for your service!</p>\n                    <p style=\"color: #333333;\">Kindly open the App for more information.</p>\n                ");
+                        receipthtmlContent = "\n                    <h3>Payment Receipt</h3>\n                    <p><strong>RepairFind</strong><br>\n                    Phone: (604) 568-6378<br>\n                    Email: info@repairfind.ca</p>\n                    <hr>\n\n                    <p>Date: ".concat(new Date(), "<br>\n                    Receipt Number: RFC-").concat(quotation.payment, "</p>\n\n                    <p><strong>Contractor:</strong><br>\n                    ").concat(contractor.name, "<br>\n                    ").concat(contractorProfile.location.address, "<br>\n                    ").concat(contractorProfile.location.city, "<br>\n                    ").concat(contractorProfile.location.country, "<br>\n                    </p>\n\n                    <hr>\n                    <strong>Description:</strong>\n                    <strong>Job Title:</strong> ").concat(job.description, "<br>\n                    <strong>Scheduled Date:</strong> ").concat(job.schedule.startDate, "\n\n                    <p><strong>Invoice Items:</strong></p>\n                    <table style=\"width: 100%; border-collapse: collapse; border: 1px solid lightgray;\">\n                    ").concat(quotation.estimates.map(function (estimate) { return "\n                        <tr>\n                          <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>".concat(estimate.description, "</strong></td>\n                          <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">").concat((estimate.rate * estimate.quantity).toFixed(2), "</td>\n                        </tr>\n                      "); }).join(''), "   \n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Subtotal</strong></td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">").concat(charges.subtotal, ".00</td>\n                        </tr>\n                    </table>\n                    <p><strong>Deduction/Charges:</strong></p>\n                    <table style=\"width: 100%; border-collapse: collapse; border: 1px solid lightgray;\">\n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\">Payment Processing Fee (").concat(charges.customerProcessingFeeRate, "%)</td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">").concat(charges.contractorProcessingFee, ".00</td>\n                        </tr>\n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\">Service Fee (").concat(charges.repairfindServiceFeeRate, "%)</td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat(charges.repairfindServiceFee, ".00</td>\n                        </tr>\n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Total Deducted</strong></td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\"><strong>$").concat(charges.repairfindServiceFee + charges.contractorProcessingFee, ".00</strong></td>\n                        </tr>\n                    </table>\n                    <p><strong>Net Amount to Contractor:</strong> $").concat(charges.subtotal, " + GST $").concat(charges.gstAmount, " - Total Deduction $").concat(charges.repairfindServiceFee + charges.contractorProcessingFee, " = $").concat(charges.contractorPayable, "</p>\n                    <p><strong>Payment Method:</strong> Card Payment<br>\n                    <strong>Transaction ID:</strong> RFT").concat(quotation.id, "</p>\n                ");
                         html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
                         services_1.EmailService.send(contractor.email, emailSubject, html);
+                        receipthtml = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: 'Payment Receipt', content: receipthtmlContent });
+                        services_1.EmailService.send(contractor.email, 'Payment Receipt', receipthtml);
                     }
-                    if (customer) { // send mail to  customer
-                        emailSubject = 'Job Payment Receipt';
-                        emailContent = "\n                <p style=\"color: #333333;\">You have made payment for a job on RepairFind</p>\n                <div style=\"background: whitesmoke;padding: 10px; border-radius: 10px;\">\n                <p style=\"border-bottom: 1px solid lightgray; padding-bottom: 5px;\"><strong>Job Title:</strong> ".concat(job.description, "</p>\n                <p style=\"border-bottom: 1px solid lightgray; padding-bottom: 5px;\"><strong>Scheduled Date:</strong> ").concat(job.date, "</p>\n                <p style=\"border-bottom: 1px solid lightgray; padding-bottom: 5px;\"><strong>Sub Total:</strong> ").concat(charges.subtotal, "</p>\n                <p style=\"border-bottom: 1px solid lightgray; padding-bottom: 5px;\"><strong>GST: (").concat(charges.gstRate, "%):</strong> ").concat(charges.gstAmount, "</p>\n                <p style=\"border-bottom: 1px solid lightgray; padding-bottom: 5px;\"><strong>Service Charge: (").concat(charges.repairfindServiceFeeRate, "%):</strong> ").concat(charges.repairfindServiceFee, "</p>\n                <p style=\"border-bottom: 1px solid lightgray; padding-bottom: 5px;\"><strong>Processing Fee: (").concat(charges.customerProcessingFeeRate, "%):</strong> ").concat(charges.customerProcessingFee, "</p>\n                <p style=\"border-bottom: 1px solid lightgray; padding-bottom: 5px;\"><strong>Total Amount:</strong> ").concat(charges.customerPayable, "</p>\n                </div>\n                <p style=\"color: #333333;\">If you did not initiate this payment, kindly reach out to us via support</p>\n                ");
+                    if (customer) {
+                        emailSubject = 'New Job Payment';
+                        emailContent = "\n                 <h2>".concat(emailSubject, "</h2>\n                  <p style=\"color: #333333;\">Hello ").concat(customer.name, ",</p>\n                  <p style=\"color: #333333;\">You have made a payment for a job on RepairFind.</p>\n                  <p><strong>Job Title:</strong> ").concat(job.description, "</p>\n                  <p><strong>Proposed Date:</strong> Mon Jul 22 2024 16:59:59 GMT-0700 (Pacific Daylight Time)</p>\n                  <p style=\"color: #333333;\">Thank you for your payment!</p>\n                  <p style=\"color: #333333;\">If you did not initiate this payment, kindly reach out to us via support.</p>\n                ");
+                        receiptContent = "\n                    <p><strong>RepairFind</strong><br>\n                    Phone: (604) 568-6378<br>\n                    Email: info@repairfind.ca</p>\n                    <hr>\n\n                    <p><strong>Receipt</strong></p>\n                    <p>Date: ".concat(new Date, "<br>\n                    Receipt Number: RFC-").concat(quotation.payment, "</p>\n                    <p><strong>Customer:</strong><br>\n                    ").concat(customer.name, "<br>\n                    ").concat((_a = customer === null || customer === void 0 ? void 0 : customer.location) === null || _a === void 0 ? void 0 : _a.address, "<br>\n                    ").concat((_b = customer === null || customer === void 0 ? void 0 : customer.location) === null || _b === void 0 ? void 0 : _b.city, "<br>\n                    ").concat(customer.location.country, "</p>\n\n                    <hr>\n                    <strong>Description:</strong>\n                    <strong>Job Title:</strong> ").concat(job.description, " <br>\n                    <strong>Scheduled Date:</strong> ").concat(job.schedule.startDate, "\n\n                    <p><strong>Services/Charges:</strong></p>\n                    <table style=\"width: 100%; border-collapse: collapse; border: 1px solid lightgray; margin-bottom: 10px;\">\n                         ").concat(quotation.estimates.map(function (estimate) { return "\n                        <tr>\n                          <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>".concat(estimate.description, "</strong></td>\n                          <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">").concat((estimate.rate * estimate.quantity).toFixed(2), "</td>\n                        </tr>\n                      "); }).join(''), "   \n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Subtotal</strong></td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\"><strong>$").concat(charges.subtotal, "</strong></td>\n                        </tr>\n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\">GST (").concat(charges.gstRate, "%)</td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat(charges.gstAmount, ".00</td>\n                        </tr>\n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\">Payment Processing Fee (").concat(charges.customerProcessingFeeRate, "%)</td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat(charges.customerProcessingFee, ".00</td>\n                        </tr>\n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\">Payment Processing Fee (").concat(charges.repairfindServiceFeeRate, "%)</td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat(charges.repairfindServiceFee, ".00</td>\n                        </tr>\n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Total Amount Due</strong></td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\"><strong>$").concat(charges.customerPayable, ".00</strong></td>\n                        </tr>\n                    </table>\n                  <p><strong>Payment Method:</strong> Credit/Debit Card<br>\n                  <strong>Transaction ID:</strong> RPT-").concat(quotation.id, "</p>\n                  <p style=\"color: #333333;\">Thank you for your payment!</p>\n                  <p style=\"color: #333333;\">If you did not initiate this payment, kindly reach out to us via support.</p>\n                ");
                         html = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: emailSubject, content: emailContent });
                         services_1.EmailService.send(customer.email, emailSubject, html);
+                        receipthtml = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: 'Payment Receipt', content: receiptContent });
+                        services_1.EmailService.send(customer.email, 'Payment Receipt', receipthtml);
                     }
                     services_1.NotificationService.sendNotification({
                         user: customer.id,
@@ -902,7 +911,7 @@ exports.JobEvent.on('JOB_BOOKED', function (payload) {
                         title: 'Job Booked',
                         type: 'JOB_BOOKED', // Conversation, Conversation_Notification
                         message: "You have booked a job on Repairfind",
-                        heading: { name: "".concat(contractor.name), image: (_a = contractor.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
+                        heading: { name: "".concat(contractor.name), image: (_c = contractor.profilePhoto) === null || _c === void 0 ? void 0 : _c.url },
                         payload: {
                             entity: job.id,
                             entityType: 'jobs',
@@ -918,7 +927,7 @@ exports.JobEvent.on('JOB_BOOKED', function (payload) {
                         title: 'Job Booked',
                         type: 'JOB_BOOKED', //
                         message: "You have a booked job on Repairfind",
-                        heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_b = customer.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
+                        heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_d = customer.profilePhoto) === null || _d === void 0 ? void 0 : _d.url },
                         payload: {
                             entity: job.id,
                             entityType: 'jobs',
@@ -928,13 +937,13 @@ exports.JobEvent.on('JOB_BOOKED', function (payload) {
                             event: 'JOB_BOOKED',
                         }
                     }, { push: true, socket: true, database: true });
-                    _c.label = 6;
-                case 6: return [3 /*break*/, 8];
-                case 7:
-                    error_13 = _c.sent();
+                    _e.label = 7;
+                case 7: return [3 /*break*/, 9];
+                case 8:
+                    error_13 = _e.sent();
                     logger_1.Logger.error("Error handling JOB_BOOKED event: ".concat(error_13));
-                    return [3 /*break*/, 8];
-                case 8: return [2 /*return*/];
+                    return [3 /*break*/, 9];
+                case 9: return [2 /*return*/];
             }
         });
     });
@@ -1748,12 +1757,12 @@ exports.JobEvent.on('JOB_REFUND_REQUESTED', function (payload) {
                     if (!customer || !contractor)
                         return [2 /*return*/];
                     emailSubject = 'Job Refund Requested';
-                    emailContent = "\n                <p style=\"color: #333333;\">A refund for your job on Repairfind has been requested </p>\n                <p style=\"color: #333333;\">The refund should be completed in 24 hours </p>\n                <p><strong>Job Title:</strong> ".concat(job.description, "</p>\n                <p><strong>Job Amount</strong> ").concat(payment.amount, "</p>\n                <p><strong>Refund Amount:</strong> ").concat(refund.refundAmount, "</p>\n                ");
+                    emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(customer.name, ",</p>\n                <p style=\"color: #333333;\">A refund for your job on Repairfind has been requested </p>\n                <p style=\"color: #333333;\">The refund should be completed in 24 hours </p>\n                <p><strong>Job Title:</strong> ").concat(job.description, "</p>\n                <p><strong>Job Amount</strong> ").concat(payment.amount, "</p>\n                <p><strong>Refund Amount:</strong> ").concat(refund.refundAmount, "</p>\n                ");
                     html = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: emailSubject, content: emailContent });
                     services_1.EmailService.send(customer.email, emailSubject, html);
                     // send notification to  contractor
                     emailSubject = 'Job Refund Requested';
-                    emailContent = "\n                <p style=\"color: #333333;\">A refund for your job on Repairfind has been requested </p>\n                <p style=\"color: #333333;\">The refund should be completed in 24 hours </p>\n                <p><strong>Job Title:</strong> ".concat(job.description, "</p>\n                <p><strong>Job Amount</strong> ").concat(payment.amount, "</p>\n                <p><strong>Refund Amount:</strong> ").concat(refund.refundAmount, "</p>\n                ");
+                    emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(contractor.name, ",</p>\n                <p style=\"color: #333333;\">A refund for your job on Repairfind has been requested </p>\n                <p style=\"color: #333333;\">The refund should be completed in 24 hours </p>\n                <p><strong>Job Title:</strong> ").concat(job.description, "</p>\n                <p><strong>Job Amount</strong> ").concat(payment.amount, "</p>\n                <p><strong>Refund Amount:</strong> ").concat(refund.refundAmount, "</p>\n                ");
                     html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
                     services_1.EmailService.send(contractor.email, emailSubject, html);
                     return [3 /*break*/, 4];
@@ -1825,7 +1834,7 @@ exports.JobEvent.on('NEW_JOB_ENQUIRY', function (payload) {
                             payload: { event: 'NEW_JOB_ENQUIRY', entityType: 'jobs', entity: job_1.id }
                         }, { push: true, socket: true, database: true });
                         emailSubject = 'New Job Enquiry ';
-                        emailContent = "\n                <p style=\"color: #333333;\">Your Job on Repairfind has a new enquiry</p>\n                <div style=\"background: whitesmoke;padding: 10px; border-radius: 10px;\">\n                <p style=\"border-bottom: 1px solid lightgray; padding-bottom: 5px;\"><strong>Job Title:</strong> ".concat(job_1.description, "</p>\n                <p style=\"border-bottom: 1px solid lightgray; padding-bottom: 5px;\"><strong>Enquiry:</strong> ").concat(enquiry.enquiry, "</p>\n                </div>\n                <p style=\"color: #333333;\">Do well to check and follow up as soon as possible </p>\n                ");
+                        emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(customer_1.name, ",</p>\n                <p style=\"color: #333333;\">Your Job on Repairfind has a new enquiry</p>\n                <div style=\"background: whitesmoke;padding: 10px; border-radius: 10px;\">\n                <p style=\"border-bottom: 1px solid lightgray; padding-bottom: 5px;\"><strong>Job Title:</strong> ").concat(job_1.description, "</p>\n                <p style=\"border-bottom: 1px solid lightgray; padding-bottom: 5px;\"><strong>Enquiry:</strong> ").concat(enquiry.enquiry, "</p>\n                </div>\n                <p style=\"color: #333333;\">Do well to check and follow up as soon as possible </p>\n                ");
                         html = (0, generic_email_1.GenericEmailTemplate)({ name: customer_1.name, subject: emailSubject, content: emailContent });
                         services_1.EmailService.send(customer_1.email, emailSubject, html);
                     }
@@ -1902,7 +1911,7 @@ exports.JobEvent.on('NEW_JOB_ENQUIRY_REPLY', function (payload) {
                     // send notification to  contractor  that asked the question
                     if (customer_2 && contractor) {
                         emailSubject = 'Job Enquiry Reply';
-                        emailContent = "\n                    <p style=\"color: #333333;\">Customer has replied to your enquiry on Repairfind</p>\n                    <p style=\"color: #333333;\">Do well to check and follow up </p>\n                    <p><strong>Job Title:</strong> ".concat(job_2.description, "</p>\n                    <p><strong>Your Enquiry</strong> ").concat(enquiry.enquiry, "</p>\n                    <p><strong>Reply</strong> ").concat(enquiry.replies ? enquiry.replies[0] : '', "</p>\n                    ");
+                        emailContent = "\n                    <h2>".concat(emailSubject, "</h2>\n                    <p>Hello ").concat(contractor.name, ",</p>\n                    <p style=\"color: #333333;\">Customer has replied to your enquiry on Repairfind</p>\n                    <p style=\"color: #333333;\">Do well to check and follow up </p>\n                    <p><strong>Job Title:</strong> ").concat(job_2.description, "</p>\n                    <p><strong>Your Enquiry</strong> ").concat(enquiry.enquiry, "</p>\n                    <p><strong>Reply</strong> ").concat(enquiry.replies ? enquiry.replies[0] : '', "</p>\n                    ");
                         html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
                         services_1.EmailService.send(contractor.email, emailSubject, html);
                     }

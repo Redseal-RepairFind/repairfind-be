@@ -1,18 +1,15 @@
 import { EventEmitter } from 'events';
 import { EmailService, NotificationService } from '../services';
-import { htmlJobRequestTemplate } from '../templates/contractor/jobRequestTemplate';
 import CustomerModel from '../database/customer/models/customer.model';
 import { ContractorModel } from '../database/contractor/models/contractor.model';
-import { IJob, JOB_SCHEDULE_TYPE, JOB_STATUS, JobModel, JobType } from '../database/common/job.model';
+import { IJob, JOB_SCHEDULE_TYPE, JobModel } from '../database/common/job.model';
 import { ConversationModel } from '../database/common/conversations.schema';
 import { SocketService } from '../services/socket';
 import { IContractor } from '../database/contractor/interface/contractor.interface';
 import { ICustomer } from '../database/customer/interface/customer.interface';
-import { NewJobAssignedEmailTemplate } from '../templates/contractor/job_assigned.template';
 import { JobCanceledEmailTemplate } from '../templates/common/job_canceled.template';
 import { IJobDay, JobDayModel } from '../database/common/job_day.model';
 import { IJobEmergency } from '../database/common/job_emergency.model';
-import { JobEmergencyEmailTemplate } from '../templates/common/job_emergency_email';
 import { GenericEmailTemplate } from '../templates/common/generic_email';
 import { IJobDispute } from '../database/common/job_dispute.model';
 import { IExtraEstimate, IJobQuotation, JobQuotationModel } from '../database/common/job_quotation.model';
@@ -20,7 +17,6 @@ import TransactionModel, { TRANSACTION_STATUS, TRANSACTION_TYPE } from '../datab
 import { ObjectId } from 'mongoose';
 import { sendPushNotifications } from '../services/expo';
 import { ContractorProfileModel } from '../database/contractor/models/contractor_profile.model';
-import { profile } from 'console';
 import ContractorDeviceModel from '../database/contractor/models/contractor_devices.model';
 import ContractorSavedJobModel from '../database/contractor/models/contractor_saved_job.model';
 import { IJobEnquiry, JobEnquiryModel } from '../database/common/job_enquiry.model';
@@ -414,6 +410,8 @@ JobEvent.on('JOB_QUOTATION_DECLINED', async function (payload: { jobId: ObjectId
         if (contractor) {
             let emailSubject = 'Job Quotation Decline'
             let emailContent = `
+                <h2>${emailSubject}</h2>
+                <p>Hello ${contractor.name},</p>
                 <p style="color: #333333;">Your job  quotation for a job  on RepairFind was declined.</p>
                 <p>
                     <strong>Job Title:</strong> ${job.title} </br>
@@ -469,6 +467,8 @@ JobEvent.on('JOB_QUOTATION_ACCEPTED', async function (payload: { jobId: ObjectId
         if (contractor) {
             let emailSubject = 'Job Quotation Accepted'
             let emailContent = `
+                <h2>${emailSubject}</h2>
+                <p>Hello ${contractor.name},</p>
                 <p style="color: #333333;">Congratulations! your job quotation for a job  on RepairFind was accepted.</p>
                 <p>
                     <strong>Job Title:</strong> ${job.title} </br>
@@ -567,11 +567,13 @@ JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: 
                 messageType: MessageType.ALERT,
                 entity: job.id,
                 entityType: 'jobs'
-              });
+            });
 
             if (payload.job.reschedule?.createdBy == 'contractor') { // send mail to contractor
                 let emailSubject = 'Job Reschedule Request'
                 let emailContent = `
+                <h2>${emailSubject}</h2>
+                <p>Hello ${contractor.name},</p>
                 <p style="color: #333333;">Your Job reschedule request on Repairfind has been ${payload.action} by customer</p>
                 <p><strong>Job Title:</strong> ${payload.job.description}</p>
                 <p><strong>Proposed Date:</strong> ${payload.job.reschedule.date}</p>
@@ -604,6 +606,8 @@ JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: 
             if (payload.job.reschedule?.createdBy == 'customer') { // send mail to  customer
                 let emailSubject = 'Job Reschedule Request'
                 let emailContent = `
+                <h2>${emailSubject}</h2>
+                <p>Hello ${customer.name},</p>
                 <p style="color: #333333;">Your Job reschedule request on Repairfind has been ${payload.action}  by the contractor</p>
                 <p><strong>Job Title:</strong> ${payload.job.description}</p>
                 <p><strong>Proposed Date:</strong> ${payload.job.reschedule.date}</p>
@@ -664,13 +668,15 @@ JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', async function (payload: { job: IJob, 
                 messageType: MessageType.ALERT,
                 entity: job.id,
                 entityType: 'jobs'
-              });
-             
+            });
 
-              
+
+
             if (payload.job.reschedule?.createdBy == 'contractor') { // send mail to contractor
                 let emailSubject = 'Job Schedule'
                 let emailContent = `
+                <h2>${emailSubject}</h2>
+                <p>Hello ${customer.name},</p>
                 <p style="color: #333333;">Contractor has requested  to reschedule a job on RepairFind</p>
                 <p><strong>Job Title:</strong> ${payload.job.description}</p>
                 <p><strong>Proposed Date:</strong> ${payload.job.reschedule.date}</p>
@@ -703,6 +709,8 @@ JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', async function (payload: { job: IJob, 
             if (payload.job.reschedule?.createdBy == 'customer') { // send mail to  customer
                 let emailSubject = 'Job Schedule'
                 let emailContent = `
+                <h2>${emailSubject}</h2>
+                <p>Hello ${contractor.name},</p>
                 <p style="color: #333333;">Customer has requested  to reschedule a job on RepairFind</p>
                 <p><strong>Job Title:</strong> ${payload.job.description}</p>
                 <p><strong>Proposed Date:</strong> ${payload.job.reschedule.date}</p>
@@ -759,49 +767,169 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
 
         if (job && contractor && customer && quotation) {
             const charges = await quotation.calculateCharges();
+            const contractorProfile = await ContractorProfileModel.findOne({contractor: contractor.id})
 
 
-
-            if (contractor) {
-                // send mail to contractor
-                // Email for contractors:
-
-                let emailSubject = 'Job Payment Receipt'
+            if (contractor && contractorProfile) { 
+                let emailSubject = 'New Job Payment';
                 let emailContent = `
-                <p style="color: #333333;">You have received payment for a job on RepairFind</p>
-                <div style="background: whitesmoke;padding: 10px; border-radius: 10px;">
-                <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Job Title:</strong> ${job.description}</p>
-                <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Scheduled Date:</strong> ${job.date}</p>
-                <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Sub Total:</strong> ${charges.subtotal}</p>
-                <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>GST: (${charges.gstRate}%):</strong> ${charges.gstAmount}</p>
-                <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Service Charge: (${charges.repairfindServiceFeeRate}%):</strong> -${charges.repairfindServiceFee}</p>
-                <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Processing Fee: (${charges.contractorProcessingFeeRate}%):</strong> -${charges.contractorProcessingFee}</p>
-                <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Total Amount:</strong> ${charges.contractorPayable}</p>
-                </div>
-                <p style="color: #333333;">Kindly open the App for more information</p>
-\                `
-                let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
-                EmailService.send(contractor.email, emailSubject, html)
+                    <h2>${emailSubject}</h2>
+                    <p style="color: #333333;">Hello ${contractor.name},</p>
+                    <p style="color: #333333;">You have received payment for a job on RepairFind.</p>
+                    <p><strong>Job Title:</strong> ${job.description}</p>
+                    <p><strong>Scheduled Date:</strong>${job.schedule.startDate}</p>
+                    <hr>
+                    <p style="color: #333333;">Thank you for your service!</p>
+                    <p style="color: #333333;">Kindly open the App for more information.</p>
+                `;
+
+                // HTML content for the receipt
+                const receipthtmlContent = `
+                    <h3>Payment Receipt</h3>
+                    <p><strong>RepairFind</strong><br>
+                    Phone: (604) 568-6378<br>
+                    Email: info@repairfind.ca</p>
+                    <hr>
+
+                    <p>Date: ${new Date()}<br>
+                    Receipt Number: RFC-${quotation.payment}</p>
+
+                    <p><strong>Contractor:</strong><br>
+                    ${contractor.name}<br>
+                    ${contractorProfile.location.address}<br>
+                    ${contractorProfile.location.city}<br>
+                    ${contractorProfile.location.country}<br>
+                    </p>
+
+                    <hr>
+                    <strong>Description:</strong>
+                    <strong>Job Title:</strong> ${job.description}<br>
+                    <strong>Scheduled Date:</strong> ${job.schedule.startDate}
+
+                    <p><strong>Invoice Items:</strong></p>
+                    <table style="width: 100%; border-collapse: collapse; border: 1px solid lightgray;">
+                    ${quotation.estimates.map(estimate => `
+                        <tr>
+                          <td style="border: 1px solid lightgray; padding: 8px;"><strong>${estimate.description}</strong></td>
+                          <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">${(estimate.rate * estimate.quantity).toFixed(2)}</td>
+                        </tr>
+                      `).join('')}   
+                        <tr>
+                            <td style="border: 1px solid lightgray; padding: 8px;"><strong>Subtotal</strong></td>
+                            <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">${charges.subtotal}.00</td>
+                        </tr>
+                    </table>
+                    <p><strong>Deduction/Charges:</strong></p>
+                    <table style="width: 100%; border-collapse: collapse; border: 1px solid lightgray;">
+                        <tr>
+                            <td style="border: 1px solid lightgray; padding: 8px;">Payment Processing Fee (${charges.customerProcessingFeeRate}%)</td>
+                            <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">${charges.contractorProcessingFee}.00</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid lightgray; padding: 8px;">Service Fee (${charges.repairfindServiceFeeRate}%)</td>
+                            <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${charges.repairfindServiceFee}.00</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid lightgray; padding: 8px;"><strong>Total Deducted</strong></td>
+                            <td style="border: 1px solid lightgray; padding: 8px; text-align: right;"><strong>$${charges.repairfindServiceFee + charges.contractorProcessingFee}.00</strong></td>
+                        </tr>
+                    </table>
+                    <p><strong>Net Amount to Contractor:</strong> $${charges.subtotal} + GST $${charges.gstAmount} - Total Deduction $${charges.repairfindServiceFee + charges.contractorProcessingFee} = $${charges.contractorPayable}</p>
+                    <p><strong>Payment Method:</strong> Card Payment<br>
+                    <strong>Transaction ID:</strong> RFT${quotation.id}</p>
+                `;
+
+
+                let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent });
+                EmailService.send(contractor.email, emailSubject, html);
+
+                let receipthtml = GenericEmailTemplate({ name: contractor.name, subject: 'Payment Receipt', content: receipthtmlContent });
+                EmailService.send(contractor.email, 'Payment Receipt', receipthtml);
 
             }
-            if (customer) { // send mail to  customer
-                let emailSubject = 'Job Payment Receipt'
+
+
+
+            if (customer) {
+                // Send mail to customer
+                let emailSubject = 'New Job Payment';
                 let emailContent = `
-                <p style="color: #333333;">You have made payment for a job on RepairFind</p>
-                <div style="background: whitesmoke;padding: 10px; border-radius: 10px;">
-                <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Job Title:</strong> ${job.description}</p>
-                <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Scheduled Date:</strong> ${job.date}</p>
-                <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Sub Total:</strong> ${charges.subtotal}</p>
-                <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>GST: (${charges.gstRate}%):</strong> ${charges.gstAmount}</p>
-                <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Service Charge: (${charges.repairfindServiceFeeRate}%):</strong> ${charges.repairfindServiceFee}</p>
-                <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Processing Fee: (${charges.customerProcessingFeeRate}%):</strong> ${charges.customerProcessingFee}</p>
-                <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Total Amount:</strong> ${charges.customerPayable}</p>
-                </div>
-                <p style="color: #333333;">If you did not initiate this payment, kindly reach out to us via support</p>
-                `
-                let html = GenericEmailTemplate({ name: customer.name, subject: emailSubject, content: emailContent })
-                EmailService.send(customer.email, emailSubject, html)
+                 <h2>${emailSubject}</h2>
+                  <p style="color: #333333;">Hello ${customer.name},</p>
+                  <p style="color: #333333;">You have made a payment for a job on RepairFind.</p>
+                  <p><strong>Job Title:</strong> ${job.description}</p>
+                  <p><strong>Proposed Date:</strong> Mon Jul 22 2024 16:59:59 GMT-0700 (Pacific Daylight Time)</p>
+                  <p style="color: #333333;">Thank you for your payment!</p>
+                  <p style="color: #333333;">If you did not initiate this payment, kindly reach out to us via support.</p>
+                `;
+
+
+                let receiptContent = `
+                    <p><strong>RepairFind</strong><br>
+                    Phone: (604) 568-6378<br>
+                    Email: info@repairfind.ca</p>
+                    <hr>
+
+                    <p><strong>Receipt</strong></p>
+                    <p>Date: ${new Date}<br>
+                    Receipt Number: RFC-${quotation.payment}</p>
+                    <p><strong>Customer:</strong><br>
+                    ${customer.name}<br>
+                    ${customer?.location?.address}<br>
+                    ${customer?.location?.city}<br>
+                    ${customer.location.country}</p>
+
+                    <hr>
+                    <strong>Description:</strong>
+                    <strong>Job Title:</strong> ${job.description} <br>
+                    <strong>Scheduled Date:</strong> ${job.schedule.startDate}
+
+                    <p><strong>Services/Charges:</strong></p>
+                    <table style="width: 100%; border-collapse: collapse; border: 1px solid lightgray; margin-bottom: 10px;">
+                         ${quotation.estimates.map(estimate => `
+                        <tr>
+                          <td style="border: 1px solid lightgray; padding: 8px;"><strong>${estimate.description}</strong></td>
+                          <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">${(estimate.rate * estimate.quantity).toFixed(2)}</td>
+                        </tr>
+                      `).join('')}   
+                        <tr>
+                            <td style="border: 1px solid lightgray; padding: 8px;"><strong>Subtotal</strong></td>
+                            <td style="border: 1px solid lightgray; padding: 8px; text-align: right;"><strong>$${charges.subtotal}</strong></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid lightgray; padding: 8px;">GST (${charges.gstRate}%)</td>
+                            <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${charges.gstAmount}.00</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid lightgray; padding: 8px;">Payment Processing Fee (${charges.customerProcessingFeeRate}%)</td>
+                            <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${charges.customerProcessingFee}.00</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid lightgray; padding: 8px;">Payment Processing Fee (${charges.repairfindServiceFeeRate}%)</td>
+                            <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${charges.repairfindServiceFee}.00</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid lightgray; padding: 8px;"><strong>Total Amount Due</strong></td>
+                            <td style="border: 1px solid lightgray; padding: 8px; text-align: right;"><strong>$${charges.customerPayable}.00</strong></td>
+                        </tr>
+                    </table>
+                  <p><strong>Payment Method:</strong> Credit/Debit Card<br>
+                  <strong>Transaction ID:</strong> RPT-${quotation.id}</p>
+                  <p style="color: #333333;">Thank you for your payment!</p>
+                  <p style="color: #333333;">If you did not initiate this payment, kindly reach out to us via support.</p>
+                `;
+
+                let html = GenericEmailTemplate({ name: customer.name, subject: emailSubject, content: emailContent });
+                EmailService.send(customer.email, emailSubject, html);
+
+
+                let receipthtml = GenericEmailTemplate({ name: customer.name, subject: 'Payment Receipt', content: receiptContent });
+                EmailService.send(customer.email, 'Payment Receipt', receipthtml);
+
+
             }
+
+
 
 
             NotificationService.sendNotification({
@@ -1108,7 +1236,7 @@ JobEvent.on('JOB_CHANGE_ORDER', async function (payload: { job: IJob }) {
                 event: event,
             }
         }, { push: true, socket: true, database: true })
-        
+
 
 
         // if (job.isAssigned) {
@@ -1650,6 +1778,8 @@ JobEvent.on('JOB_REFUND_REQUESTED', async function (payload: { job: any, payment
         // send notification to  customer
         let emailSubject = 'Job Refund Requested'
         let emailContent = `
+                <h2>${emailSubject}</h2>
+                <p>Hello ${customer.name},</p>
                 <p style="color: #333333;">A refund for your job on Repairfind has been requested </p>
                 <p style="color: #333333;">The refund should be completed in 24 hours </p>
                 <p><strong>Job Title:</strong> ${job.description}</p>
@@ -1663,6 +1793,8 @@ JobEvent.on('JOB_REFUND_REQUESTED', async function (payload: { job: any, payment
         // send notification to  contractor
         emailSubject = 'Job Refund Requested'
         emailContent = `
+                <h2>${emailSubject}</h2>
+                <p>Hello ${contractor.name},</p>
                 <p style="color: #333333;">A refund for your job on Repairfind has been requested </p>
                 <p style="color: #333333;">The refund should be completed in 24 hours </p>
                 <p><strong>Job Title:</strong> ${job.description}</p>
@@ -1734,6 +1866,8 @@ JobEvent.on('NEW_JOB_ENQUIRY', async function (payload: { jobId: any, enquiryId:
             )
             let emailSubject = 'New Job Enquiry '
             let emailContent = `
+                <h2>${emailSubject}</h2>
+                <p>Hello ${customer.name},</p>
                 <p style="color: #333333;">Your Job on Repairfind has a new enquiry</p>
                 <div style="background: whitesmoke;padding: 10px; border-radius: 10px;">
                 <p style="border-bottom: 1px solid lightgray; padding-bottom: 5px;"><strong>Job Title:</strong> ${job.description}</p>
@@ -1814,6 +1948,8 @@ JobEvent.on('NEW_JOB_ENQUIRY_REPLY', async function (payload: { jobId: any, enqu
         if (customer && contractor) {
             let emailSubject = 'Job Enquiry Reply'
             let emailContent = `
+                    <h2>${emailSubject}</h2>
+                    <p>Hello ${contractor.name},</p>
                     <p style="color: #333333;">Customer has replied to your enquiry on Repairfind</p>
                     <p style="color: #333333;">Do well to check and follow up </p>
                     <p><strong>Job Title:</strong> ${job.description}</p>

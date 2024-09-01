@@ -1,4 +1,4 @@
-import { Schema, model, ObjectId, FilterQuery } from "mongoose";
+import mongoose, { Schema, model, ObjectId, FilterQuery } from "mongoose";
 import { COMPANY_STATUS, CONTRACTOR_BADGE, CONTRACTOR_STATUS, CONTRACTOR_TYPES, GST_STATUS, IContractor, IContractorCertnDetails, IContractorCompanyDetails, IContractorGstDetails } from "../interface/contractor.interface";
 import { contractorStatus } from "../../../constants/contractorStatus";
 import ContractorQuizModel from "./contractor_quiz.model";
@@ -130,7 +130,7 @@ const ContractorSchema = new Schema<IContractor>(
       required: false,
     },
 
-    status: { 
+    status: {
       type: String,
       enum: Object.values(contractorStatus),
       default: contractorStatus.REVIEWING,
@@ -150,10 +150,10 @@ const ContractorSchema = new Schema<IContractor>(
     },
 
     phoneNumber: {
-      code: {type: String}, 
-      number: {type: String, unique: true, }, 
-      verifiedAt: {type: Date, default: null },
-      
+      code: { type: String },
+      number: { type: String, unique: true, },
+      verifiedAt: { type: Date, default: null },
+
     },
 
     passwordOtp: {
@@ -166,8 +166,8 @@ const ContractorSchema = new Schema<IContractor>(
       createdTime: Date,
       verified: Boolean,
     },
-    
-    
+
+
 
     createdAt: {
       type: Date,
@@ -209,13 +209,13 @@ const ContractorSchema = new Schema<IContractor>(
     },
 
     reviews: [{ review: { type: Schema.Types.ObjectId, ref: 'reviews' }, averageRating: Number }],
-    stats: { 
-      formattedResponseTime: { type: Schema.Types.Mixed }, 
-      responseTime: { type: Schema.Types.Mixed }, 
-      jobsCompleted: { type: Schema.Types.Mixed }, 
-      jobsCanceled: { type: Schema.Types.Mixed }, 
+    stats: {
+      formattedResponseTime: { type: Schema.Types.Mixed },
+      responseTime: { type: Schema.Types.Mixed },
+      jobsCompleted: { type: Schema.Types.Mixed },
+      jobsCanceled: { type: Schema.Types.Mixed },
       jobsPending: { type: Schema.Types.Mixed },
-      jobsTotal: { type: Schema.Types.Mixed } 
+      jobsTotal: { type: Schema.Types.Mixed }
     },
 
 
@@ -305,6 +305,7 @@ ContractorSchema.virtual('certnStatus').get(function (this: IContractor) {
   return status
 });
 
+
 ContractorSchema.virtual('certnReport').get(function (this: IContractor) {
   const certnDetails: IContractorCertnDetails = this.certnDetails;
 
@@ -330,11 +331,6 @@ ContractorSchema.virtual('certnReport').get(function (this: IContractor) {
 
 
 
-// ContractorSchema.virtual('rating').get(function () {
-//   const reviews: any = this.reviews;
-//   const totalRating = reviews.reduce((acc: any, review: any) => acc + review.averageRating, 0);
-//   return reviews.length > 0 ? totalRating / reviews.length : 0;
-// });
 
 ContractorSchema.virtual('rating').get(function () {
   // Access reviews using `this.get('reviews')`
@@ -440,7 +436,7 @@ ContractorSchema.methods.getStats = async function (contractor: any = null) {
 
   const responseTime = totalResponseTime / count;
 
-  console.log('responseTime',responseTime)
+  console.log('responseTime', responseTime)
   // Format the response time
   let formattedResponseTime = '';
 
@@ -573,7 +569,10 @@ ContractorSchema.pre('findOneAndUpdate', async function (next) {
 });
 
 
-ContractorSchema.plugin(MongooseDelete, { deletedBy: true, overrideMethods: 'all' });
+
+
+
+// ContractorSchema.plugin(MongooseDelete, { deletedBy: true, overrideMethods: 'all' });
 
 
 ContractorSchema.set('toObject', { virtuals: true });

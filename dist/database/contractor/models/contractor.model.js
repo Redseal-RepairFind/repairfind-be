@@ -48,7 +48,6 @@ var stripe_customer_schema_1 = require("../../common/stripe_customer.schema");
 var stripe_account_schema_1 = require("../../common/stripe_account.schema");
 var stripe_paymentmethod_schema_1 = require("../../common/stripe_paymentmethod.schema");
 var question_model_1 = __importDefault(require("../../admin/models/question.model"));
-var mongoose_delete_1 = __importDefault(require("mongoose-delete"));
 var job_quotation_model_1 = require("../../common/job_quotation.model");
 var job_model_1 = require("../../common/job.model");
 var GstDetailSchema = new mongoose_1.Schema({
@@ -317,11 +316,6 @@ ContractorSchema.virtual('certnReport').get(function () {
     }
     return { status: status, action: action };
 });
-// ContractorSchema.virtual('rating').get(function () {
-//   const reviews: any = this.reviews;
-//   const totalRating = reviews.reduce((acc: any, review: any) => acc + review.averageRating, 0);
-//   return reviews.length > 0 ? totalRating / reviews.length : 0;
-// });
 ContractorSchema.virtual('rating').get(function () {
     // Access reviews using `this.get('reviews')`
     var reviews = this.get('reviews') || [];
@@ -578,6 +572,6 @@ ContractorSchema.pre('findOneAndUpdate', function (next) {
         });
     });
 });
-ContractorSchema.plugin(mongoose_delete_1.default, { deletedBy: true, overrideMethods: 'all' });
+// ContractorSchema.plugin(MongooseDelete, { deletedBy: true, overrideMethods: 'all' });
 ContractorSchema.set('toObject', { virtuals: true });
 exports.ContractorModel = (0, mongoose_1.model)("contractors", ContractorSchema);

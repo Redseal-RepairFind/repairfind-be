@@ -72,10 +72,7 @@ export const GenericEmailTemplate = (payload: {name: string, subject: string, co
         </div>
 
         <div class="content">
-            <h2>${payload.subject}</h2>
-            <p>Hello ${payload.name},</p>
             ${payload.content}
-            
             <p>Thank you for being a part of the Repairfind community!</p>
         </div>
 

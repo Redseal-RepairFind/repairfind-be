@@ -289,6 +289,11 @@ export const deleteAccount = async (
     account.email = `${account.email}:${account.id}`
     account.deletedAt = new Date()
     account.phoneNumber = {code: "+", number: account.id, verifiedAt: null}
+
+    account.firstName = 'Deleted'
+    account.lastName = 'Account'
+    account.profilePhoto = {url: "https://ipalas3bucket.s3.us-east-2.amazonaws.com/avatar.png"}
+
     await account.save()
 
     AccountEvent.emit('ACCOUNT_DELETED', account)

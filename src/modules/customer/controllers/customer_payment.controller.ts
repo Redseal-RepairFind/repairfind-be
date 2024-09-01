@@ -43,6 +43,7 @@ const findContractor = async (contractorId: ObjectId) => {
     if (!contractor) {
         throw new BadRequestError('Contractor not found');
     }
+    contractor.onboarding = await contractor.getOnboarding()
     if (!contractor.onboarding.hasStripeAccount || !(contractor.stripeAccountStatus?.card_payments_enabled && contractor.stripeAccountStatus?.transfers_enabled)) {
         throw new BadRequestError('You cannot make payment to this contractor because his/her Stripe connect account is not set up');
     }

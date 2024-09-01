@@ -269,6 +269,9 @@ var deleteAccount = function (req, res) { return __awaiter(void 0, void 0, void 
                 account.email = "".concat(account.email, ":").concat(account.id);
                 account.deletedAt = new Date();
                 account.phoneNumber = { code: "+", number: account.id, verifiedAt: null };
+                account.firstName = 'Deleted';
+                account.lastName = 'Account';
+                account.profilePhoto = { url: "https://ipalas3bucket.s3.us-east-2.amazonaws.com/avatar.png" };
                 return [4 /*yield*/, account.save()];
             case 6:
                 _a.sent();

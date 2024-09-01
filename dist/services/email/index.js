@@ -68,7 +68,7 @@ var EmailService = /** @class */ (function () {
             }
         });
     };
-    EmailService.send = function (recipients, subject, html, cc) {
+    EmailService.send = function (recipients, subject, html, cc, attachments) {
         return __awaiter(this, void 0, void 0, function () {
             var from, toAddresses, ccAddresses, _i, toAddresses_1, to, mailOptions, jobId, error_1;
             return __generator(this, function (_a) {
@@ -88,7 +88,8 @@ var EmailService = /** @class */ (function () {
                             to: to,
                             cc: ccAddresses,
                             subject: subject,
-                            html: html
+                            html: html,
+                            attachments: attachments,
                         };
                         jobId = "email-".concat(to, "-").concat(subject, "-").concat(new Date());
                         return [4 /*yield*/, bullmq_1.QueueService.addJob('sendEmail', mailOptions, { jobId: jobId, removeOnComplete: true })];

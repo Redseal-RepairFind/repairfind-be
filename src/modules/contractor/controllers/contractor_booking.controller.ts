@@ -643,7 +643,7 @@ export const cancelBooking = async (req: any, res: Response, next: NextFunction)
         // reduce contractor rating
         // Create a new review object
         const newReview = new ReviewModel({
-            averageRating: 0,
+            averageRating: 1,
             // ratings,
             job: job.id,
             customer: job.customer,
