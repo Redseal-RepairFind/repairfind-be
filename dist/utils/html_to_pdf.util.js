@@ -36,46 +36,30 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PaymentUtil = void 0;
-var calculateCharges = function (totalEstimateAmount) { return __awaiter(void 0, void 0, void 0, function () {
-    var subtotal, repairfindServiceFee, gstAmount, totalAmount, customerPayable, contractorPayable, customerProcessingFee, contractorProcessingFee, siteVisitAmount, repairfindServiceFeeRate, customerProcessingFeeRate, contractorProcessingFeeRate, gstRate;
-    return __generator(this, function (_a) {
-        siteVisitAmount = 0;
-        if (totalEstimateAmount <= 5000) {
-            repairfindServiceFeeRate = 10;
-        }
-        else if (totalEstimateAmount <= 10000) {
-            repairfindServiceFeeRate = 8;
-        }
-        else {
-            repairfindServiceFeeRate = 5;
-        }
-        customerProcessingFeeRate = 3;
-        contractorProcessingFeeRate = 3;
-        gstRate = 5;
-        repairfindServiceFee = parseFloat(((repairfindServiceFeeRate / 100) * totalEstimateAmount).toFixed(2));
-        customerProcessingFee = parseFloat(((customerProcessingFeeRate / 100) * totalEstimateAmount).toFixed(2));
-        contractorProcessingFee = parseFloat(((contractorProcessingFeeRate / 100) * totalEstimateAmount).toFixed(2));
-        gstAmount = parseFloat(((gstRate / 100) * totalEstimateAmount).toFixed(2));
-        subtotal = totalEstimateAmount;
-        customerPayable = parseFloat((subtotal + customerProcessingFee + gstAmount + repairfindServiceFee).toFixed(2));
-        contractorPayable = parseFloat(((subtotal + gstAmount) - (contractorProcessingFee + repairfindServiceFee)).toFixed(2));
-        return [2 /*return*/, {
-                subtotal: subtotal,
-                gstAmount: gstAmount,
-                customerPayable: customerPayable,
-                contractorPayable: contractorPayable,
-                repairfindServiceFee: repairfindServiceFee,
-                customerProcessingFee: customerProcessingFee,
-                contractorProcessingFee: contractorProcessingFee,
-                // Return rates as well
-                gstRate: gstRate,
-                repairfindServiceFeeRate: repairfindServiceFeeRate,
-                contractorProcessingFeeRate: contractorProcessingFeeRate,
-                customerProcessingFeeRate: customerProcessingFeeRate,
-            }];
+exports.generatePDF = void 0;
+// const puppeteer = require('puppeteer');
+// const nodemailer = require('nodemailer');
+// // Function to generate PDF from HTML
+// export async function generatePDF(htmlContent: any, outputPath: any) {
+//   const browser = await puppeteer.launch();
+//   const page = await browser.newPage();
+//   await page.setContent(htmlContent);
+//   await page.pdf({ path: outputPath, format: 'A4' });
+//   await browser.close();
+// }
+var ironpdf_1 = require("@ironsoftware/ironpdf");
+function generatePDF(htmlContent) {
+    return __awaiter(this, void 0, void 0, function () {
+        var pdf;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, ironpdf_1.PdfDocument.fromHtml("<h1>Testing</h1>")];
+                case 1:
+                    pdf = _a.sent();
+                    console.log('pdf', pdf);
+                    return [2 /*return*/];
+            }
+        });
     });
-}); };
-exports.PaymentUtil = {
-    calculateCharges: calculateCharges
-};
+}
+exports.generatePDF = generatePDF;
