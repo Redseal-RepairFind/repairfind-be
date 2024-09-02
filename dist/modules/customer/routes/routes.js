@@ -14,6 +14,7 @@ var customer_payment_controller_1 = require("../controllers/customer_payment.con
 var customer_transaction_controller_1 = require("../controllers/customer_transaction.controller");
 var customer_booking_controller_1 = require("../controllers/customer_booking.controller");
 var customer_call_controller_1 = require("../controllers/customer_call.controller");
+var customerOrGuest_middleware_1 = require("../middleware/customerOrGuest.middleware");
 var express = require("express");
 var router = express.Router();
 // Auth
@@ -43,11 +44,11 @@ router.post("/stripe-payment-methods/:paymentMethodId/attach", customerRoleCheck
 router.post("/stripe-session", customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.createStripeSessionParams, customer_stripe_controller_1.CustomerStripeController.createSession);
 router.post("/stripe-setupintent", customerRoleChecker_middleware_1.checkCustomerRole, customer_stripe_controller_1.CustomerStripeController.createSetupIntent);
 // Explore Contractors
-router.get("/explore/contractors", customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.queryContractorParams, customer_explore_controller_1.CustomerExploreController.exploreContractors);
+router.get("/explore/contractors", customerOrGuest_middleware_1.checkCustomerOrGuestRole, requests_1.CustomerHttpRequest.queryContractorParams, customer_explore_controller_1.CustomerExploreController.exploreContractors);
 router.get("/explore/contractors/favorites", customerRoleChecker_middleware_1.checkCustomerRole, customer_explore_controller_1.CustomerExploreController.getFavoriteContractors);
-router.get("/explore/contractors/:contractorId", customerRoleChecker_middleware_1.checkCustomerRole, customer_explore_controller_1.CustomerExploreController.getSingleContractor);
-router.get("/explore/contractors/:contractorId/schedules", customerRoleChecker_middleware_1.checkCustomerRole, customer_explore_controller_1.CustomerExploreController.getContractorSchedules);
-router.get("/explore/contractors/:contractorId/reviews", customerRoleChecker_middleware_1.checkCustomerRole, customer_explore_controller_1.CustomerExploreController.getContractorReviews);
+router.get("/explore/contractors/:contractorId", customerOrGuest_middleware_1.checkCustomerOrGuestRole, customer_explore_controller_1.CustomerExploreController.getSingleContractor);
+router.get("/explore/contractors/:contractorId/schedules", customerOrGuest_middleware_1.checkCustomerOrGuestRole, customer_explore_controller_1.CustomerExploreController.getContractorSchedules);
+router.get("/explore/contractors/:contractorId/reviews", customerOrGuest_middleware_1.checkCustomerOrGuestRole, customer_explore_controller_1.CustomerExploreController.getContractorReviews);
 // JOB
 router.post("/jobs/requests", customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.createJobRequestParams, customer_job_controller_1.CustomerJobController.createJobRequest);
 router.post("/jobs/listings", customerRoleChecker_middleware_1.checkCustomerRole, requests_1.CustomerHttpRequest.createJoListingParams, customer_job_controller_1.CustomerJobController.createJobListing);

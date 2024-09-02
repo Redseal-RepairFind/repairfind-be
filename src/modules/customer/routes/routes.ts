@@ -14,6 +14,7 @@ import { CustomerPaymentController } from "../controllers/customer_payment.contr
 import { CustomerTransactionController } from "../controllers/customer_transaction.controller";
 import { CustomerBookingController } from "../controllers/customer_booking.controller";
 import { CustomerCallController } from "../controllers/customer_call.controller";
+import { checkCustomerOrGuestRole } from "../middleware/customerOrGuest.middleware";
 
 const express = require("express");
 const router = express.Router();
@@ -54,11 +55,11 @@ router.post("/stripe-setupintent",  checkCustomerRole, CustomerStripeController.
 
 
 // Explore Contractors
-router.get("/explore/contractors", checkCustomerRole, CustomerHttpRequest.queryContractorParams, CustomerExploreController.exploreContractors ); 
+router.get("/explore/contractors", checkCustomerOrGuestRole, CustomerHttpRequest.queryContractorParams, CustomerExploreController.exploreContractors ); 
 router.get("/explore/contractors/favorites", checkCustomerRole, CustomerExploreController.getFavoriteContractors ); 
-router.get("/explore/contractors/:contractorId", checkCustomerRole,  CustomerExploreController.getSingleContractor ); 
-router.get("/explore/contractors/:contractorId/schedules", checkCustomerRole, CustomerExploreController.getContractorSchedules ); 
-router.get("/explore/contractors/:contractorId/reviews", checkCustomerRole, CustomerExploreController.getContractorReviews ); 
+router.get("/explore/contractors/:contractorId", checkCustomerOrGuestRole,  CustomerExploreController.getSingleContractor ); 
+router.get("/explore/contractors/:contractorId/schedules", checkCustomerOrGuestRole, CustomerExploreController.getContractorSchedules ); 
+router.get("/explore/contractors/:contractorId/reviews", checkCustomerOrGuestRole, CustomerExploreController.getContractorReviews ); 
 
 
 // JOB
