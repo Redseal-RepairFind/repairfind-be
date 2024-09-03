@@ -34,8 +34,7 @@ export const exploreContractors = async (
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
     }
-    const customerId = req.customer.id
-
+    const customerId = req?.customer?.id
     const customer = await CustomerModel.findById(customerId);
 
     try {

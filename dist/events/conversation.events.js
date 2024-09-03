@@ -168,6 +168,7 @@ exports.ConversationEvent.on('NEW_MESSAGE', function (params) {
                                                     entityType: 'conversations',
                                                     message: message_1,
                                                     event: 'NEW_DISPUTE_MESSAGE',
+                                                    disputeId: conversation_1.entity,
                                                 }
                                             }, { socket: true, push: true, database: true });
                                         }
