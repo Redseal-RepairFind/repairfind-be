@@ -1,18 +1,15 @@
 import { validationResult } from "express-validator";
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Response } from "express";
 import { JobDisputeModel, JOB_DISPUTE_STATUS } from "../../../database/common/job_dispute.model";
 import { applyAPIFeature } from "../../../utils/api.feature";
 import { JOB_SCHEDULE_TYPE, JOB_STATUS, JobModel } from "../../../database/common/job.model";
 import { InternalServerError } from "../../../utils/custom.errors";
 import { JobDayModel } from "../../../database/common/job_day.model";
-import { CONVERSATION_TYPE, ConversationModel } from "../../../database/common/conversations.schema";
 import { PAYMENT_TYPE } from "../../../database/common/payment.schema";
 import TransactionModel, { TRANSACTION_STATUS, TRANSACTION_TYPE } from "../../../database/common/transaction.model";
-import { ConversationEvent, JobEvent } from "../../../events";
+import { JobEvent } from "../../../events";
 import AdminModel from "../../../database/admin/models/admin.model";
-import { MessageModel, MessageType } from "../../../database/common/messages.schema";
 import { ConversationUtil } from "../../../utils/conversation.util";
-import { previousDay } from "date-fns";
 
 
 

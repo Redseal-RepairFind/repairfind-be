@@ -100,6 +100,8 @@ ConversationEvent.on('NEW_MESSAGE', async function (params) {
                             entityType: 'conversations',
                             message: message,
                             event: 'NEW_DISPUTE_MESSAGE', 
+                            disputeId: conversation.entity,
+
                         }
                     }, { socket: true, push: true, database:true })
                 }
