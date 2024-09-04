@@ -50,8 +50,8 @@ export const sendFCMNotification = async (FcmToken: any, payload: {notification:
             // }
         };
 
-        const subRes = await admin.messaging().subscribeToTopic(FcmToken, 'call')
-        Logger.info('subscribeToTopic', subRes);
+        // const subRes = await admin.messaging().subscribeToTopic(FcmToken, 'call')
+        // Logger.info('subscribeToTopic', subRes);
 
 
         const response = await admin.messaging().sendMulticast(message);
@@ -63,8 +63,8 @@ export const sendFCMNotification = async (FcmToken: any, payload: {notification:
             }
         });
 
-        const unSubRes = await admin.messaging().unsubscribeFromTopic(FcmToken, 'call')
-        Logger.info('unsubscribeFromTopic', unSubRes);
+        // const unSubRes = await admin.messaging().unsubscribeFromTopic(FcmToken, 'call')
+        // Logger.info('unsubscribeFromTopic', unSubRes);
 
         return response;
     } catch (error: any) {
