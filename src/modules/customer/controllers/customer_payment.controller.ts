@@ -260,7 +260,7 @@ export const makeJobPayment = async (req: any, res: Response, next: NextFunction
         });
 
         ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
-        JobEvent.emit('JOB_BOOKED', { jobId, contractorId, customerId, quotationId, paymentType })
+        // JobEvent.emit('JOB_BOOKED', { jobId, contractorId, customerId, quotationId, paymentType })
 
         res.json({ success: true, message: 'Payment intent created', data: stripePayment });
     } catch (err: any) {

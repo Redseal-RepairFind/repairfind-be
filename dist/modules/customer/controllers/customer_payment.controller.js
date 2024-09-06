@@ -344,7 +344,7 @@ var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0
             case 9:
                 newMessage = _b.sent();
                 events_1.ConversationEvent.emit('NEW_MESSAGE', { message: newMessage });
-                events_1.JobEvent.emit('JOB_BOOKED', { jobId: jobId, contractorId: contractorId, customerId: customerId, quotationId: quotationId, paymentType: paymentType });
+                // JobEvent.emit('JOB_BOOKED', { jobId, contractorId, customerId, quotationId, paymentType })
                 res.json({ success: true, message: 'Payment intent created', data: stripePayment });
                 return [3 /*break*/, 11];
             case 10:
