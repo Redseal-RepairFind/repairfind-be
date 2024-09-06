@@ -16,6 +16,7 @@ import { ObjectId } from 'mongoose';
 import { NotificationService } from '../notifications';
 import TransactionModel, { ITransaction, TRANSACTION_STATUS, TRANSACTION_TYPE } from '../../database/common/transaction.model';
 import { Logger } from '../logger';
+import { JobEvent } from '../../events';
 
 
 const STRIPE_SECRET_KEY = <string>process.env.STRIPE_SECRET_KEY;
@@ -671,6 +672,7 @@ export const chargeSucceeded = async (payload: any) => {
                         };
 
                        
+                        JobEvent.emit('JOB_BOOKED', { jobId, contractorId: quotation.contractor, customerId: job.customer, quotationId, paymentType })
 
                     }
 
@@ -694,6 +696,8 @@ export const chargeSucceeded = async (payload: any) => {
                         } else {
                             Logger.info('quotation.siteVisit.date is not a valid Date object.');
                         }
+
+                        JobEvent.emit('JOB_BOOKED', { jobId, contractorId: quotation.contractor, customerId: job.customer, quotationId, paymentType })
 
                     }
 

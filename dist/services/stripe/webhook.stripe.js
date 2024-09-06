@@ -75,6 +75,7 @@ var job_quotation_model_1 = require("../../database/common/job_quotation.model")
 var notifications_1 = require("../notifications");
 var transaction_model_1 = __importStar(require("../../database/common/transaction.model"));
 var logger_1 = require("../logger");
+var events_1 = require("../../events");
 var STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 var STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
 var stripeClient = new stripe_1.default(STRIPE_SECRET_KEY);
@@ -833,6 +834,7 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                         type: job_model_1.JOB_SCHEDULE_TYPE.JOB_DAY,
                         remark: 'Initial job schedule'
                     };
+                    events_1.JobEvent.emit('JOB_BOOKED', { jobId: jobId, contractorId: quotation.contractor, customerId: job.customer, quotationId: quotationId, paymentType: paymentType });
                 }
                 if (paymentType == payment_schema_1.PAYMENT_TYPE.SITE_VISIT_PAYMENT) {
                     job.status = job_model_1.JOB_STATUS.BOOKED;
@@ -852,6 +854,7 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                     else {
                         logger_1.Logger.info('quotation.siteVisit.date is not a valid Date object.');
                     }
+                    events_1.JobEvent.emit('JOB_BOOKED', { jobId: jobId, contractorId: quotation.contractor, customerId: job.customer, quotationId: quotationId, paymentType: paymentType });
                 }
                 if (paymentType == payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) {
                     changeOrderEstimate = quotation.changeOrderEstimate;

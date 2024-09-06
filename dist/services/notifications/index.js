@@ -154,10 +154,11 @@ var NotificationService = /** @class */ (function () {
                                                 title: params.title,
                                                 body: params.message,
                                                 channelId: 'call',
+                                                // androidChannelId: 'call',
                                                 clickAction: 'call',
                                             },
                                             androidOptions: {
-                                                isBackground: true,
+                                                isBackground: false,
                                                 topic: "call"
                                             },
                                             data: {
