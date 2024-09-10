@@ -21,7 +21,7 @@ AccountEvent.on('ACCOUNT_DELETED', async function (payload: { user: ICustomer|IC
                  <p style="color: #333333;">If you have any enquiry kindly reach via any of our available channels</p>
                 <p style="color: #333333;">Thanks for your patronage</p>
                 `
-        let html = GenericEmailTemplate({ name: user.name, subject: emailSubject, content: emailContent })
+        let html = GenericEmailTemplate({ name: user.firstName, subject: emailSubject, content: emailContent })
         EmailService.send(user.email, emailSubject, html)
 
 

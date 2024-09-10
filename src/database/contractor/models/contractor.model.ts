@@ -572,7 +572,7 @@ ContractorSchema.pre('findOneAndUpdate', async function (next) {
 
 
 
-// ContractorSchema.plugin(MongooseDelete, { deletedBy: true, overrideMethods: 'all' });
+ContractorSchema.plugin(MongooseDelete, { deletedBy: true, overrideMethods: 'all' });
 
 
 ContractorSchema.set('toObject', { virtuals: true });
