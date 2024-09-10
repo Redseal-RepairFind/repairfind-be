@@ -904,10 +904,7 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
                             <td style="border: 1px solid lightgray; padding: 8px;">Payment Processing Fee (${charges.customerProcessingFeeRate}%)</td>
                             <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${charges.customerProcessingFee}.00</td>
                         </tr>
-                        <tr>
-                            <td style="border: 1px solid lightgray; padding: 8px;">Payment Processing Fee (${charges.repairfindServiceFeeRate}%)</td>
-                            <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${charges.repairfindServiceFee}.00</td>
-                        </tr>
+                       
                         <tr>
                             <td style="border: 1px solid lightgray; padding: 8px;"><strong>Total Amount Due</strong></td>
                             <td style="border: 1px solid lightgray; padding: 8px; text-align: right;"><strong>$${charges.customerPayable}.00</strong></td>
