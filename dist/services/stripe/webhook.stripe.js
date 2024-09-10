@@ -725,7 +725,7 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                 logger_1.Logger.info('Stripe Event Handler: chargeSucceeded', payload);
                 _c.label = 1;
             case 1:
-                _c.trys.push([1, 13, , 14]);
+                _c.trys.push([1, 17, , 18]);
                 if (payload.object != 'charge')
                     return [2 /*return*/];
                 userType = 'customers';
@@ -757,7 +757,7 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
             case 3:
                 payment = _c.sent();
                 transactionId = null;
-                if (!payment) return [3 /*break*/, 12];
+                if (!payment) return [3 /*break*/, 16];
                 metadata = payment.metadata;
                 transaction = new transaction_model_1.default({
                     type: metadata.paymentType,
@@ -801,11 +801,11 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                 }
                 // link transaction to payment
                 payment.transaction = transaction.id;
-                if (!metadata.jobId) return [3 /*break*/, 10];
+                if (!metadata.jobId) return [3 /*break*/, 14];
                 jobId = metadata.jobId;
                 paymentType = metadata.paymentType;
                 quotationId = metadata.quotationId;
-                if (!(jobId && paymentType && quotationId)) return [3 /*break*/, 10];
+                if (!(jobId && paymentType && quotationId)) return [3 /*break*/, 14];
                 return [4 /*yield*/, job_model_1.JobModel.findById(jobId)];
             case 4:
                 job = _c.sent();
@@ -821,41 +821,55 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                     items: quotation.estimates,
                     charges: charges
                 };
-                if (paymentType == payment_schema_1.PAYMENT_TYPE.JOB_DAY_PAYMENT) {
-                    job.status = job_model_1.JOB_STATUS.BOOKED;
-                    job.contract = quotation.id;
-                    job.contractor = quotation.contractor;
-                    quotation.isPaid = true;
-                    quotation.payment = payment.id;
-                    quotation.status = job_quotation_model_1.JOB_QUOTATION_STATUS.ACCEPTED;
+                if (!(paymentType == payment_schema_1.PAYMENT_TYPE.JOB_DAY_PAYMENT)) return [3 /*break*/, 8];
+                job.status = job_model_1.JOB_STATUS.BOOKED;
+                job.contract = quotation.id;
+                job.contractor = quotation.contractor;
+                quotation.isPaid = true;
+                quotation.payment = payment.id;
+                quotation.status = job_quotation_model_1.JOB_QUOTATION_STATUS.ACCEPTED;
+                job.schedule = {
+                    startDate: (_b = quotation.startDate) !== null && _b !== void 0 ? _b : job.date,
+                    estimatedDuration: quotation.estimatedDuration,
+                    type: job_model_1.JOB_SCHEDULE_TYPE.JOB_DAY,
+                    remark: 'Initial job schedule'
+                };
+                return [4 /*yield*/, Promise.all([
+                        quotation.save(),
+                        job.save()
+                    ])];
+            case 7:
+                _c.sent();
+                events_1.JobEvent.emit('JOB_BOOKED', { jobId: jobId, contractorId: quotation.contractor, customerId: job.customer, quotationId: quotationId, paymentType: paymentType });
+                _c.label = 8;
+            case 8:
+                if (!(paymentType == payment_schema_1.PAYMENT_TYPE.SITE_VISIT_PAYMENT)) return [3 /*break*/, 10];
+                job.status = job_model_1.JOB_STATUS.BOOKED;
+                job.contract = quotation.id;
+                job.contractor = quotation.contractor;
+                quotation.siteVisitEstimate.isPaid = true;
+                quotation.siteVisitEstimate.payment = payment.id;
+                quotation.status = job_quotation_model_1.JOB_QUOTATION_STATUS.ACCEPTED;
+                if (quotation.siteVisit instanceof Date) {
                     job.schedule = {
-                        startDate: (_b = quotation.startDate) !== null && _b !== void 0 ? _b : job.date,
+                        startDate: quotation.siteVisit,
                         estimatedDuration: quotation.estimatedDuration,
-                        type: job_model_1.JOB_SCHEDULE_TYPE.JOB_DAY,
-                        remark: 'Initial job schedule'
+                        type: job_model_1.JOB_SCHEDULE_TYPE.SITE_VISIT,
+                        remark: 'Site visit schedule'
                     };
-                    events_1.JobEvent.emit('JOB_BOOKED', { jobId: jobId, contractorId: quotation.contractor, customerId: job.customer, quotationId: quotationId, paymentType: paymentType });
                 }
-                if (paymentType == payment_schema_1.PAYMENT_TYPE.SITE_VISIT_PAYMENT) {
-                    job.status = job_model_1.JOB_STATUS.BOOKED;
-                    job.contract = quotation.id;
-                    job.contractor = quotation.contractor;
-                    quotation.siteVisitEstimate.isPaid = true;
-                    quotation.siteVisitEstimate.payment = payment.id;
-                    quotation.status = job_quotation_model_1.JOB_QUOTATION_STATUS.ACCEPTED;
-                    if (quotation.siteVisit instanceof Date) {
-                        job.schedule = {
-                            startDate: quotation.siteVisit,
-                            estimatedDuration: quotation.estimatedDuration,
-                            type: job_model_1.JOB_SCHEDULE_TYPE.SITE_VISIT,
-                            remark: 'Site visit schedule'
-                        };
-                    }
-                    else {
-                        logger_1.Logger.info('quotation.siteVisit.date is not a valid Date object.');
-                    }
-                    events_1.JobEvent.emit('JOB_BOOKED', { jobId: jobId, contractorId: quotation.contractor, customerId: job.customer, quotationId: quotationId, paymentType: paymentType });
+                else {
+                    logger_1.Logger.info('quotation.siteVisit.date is not a valid Date object.');
                 }
+                return [4 /*yield*/, Promise.all([
+                        quotation.save(),
+                        job.save()
+                    ])];
+            case 9:
+                _c.sent();
+                events_1.JobEvent.emit('JOB_BOOKED', { jobId: jobId, contractorId: quotation.contractor, customerId: job.customer, quotationId: quotationId, paymentType: paymentType });
+                _c.label = 10;
+            case 10:
                 if (paymentType == payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) {
                     changeOrderEstimate = quotation.changeOrderEstimate;
                     if (!changeOrderEstimate)
@@ -868,7 +882,7 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                 onBehalf = payment.on_behalf_of;
                 destination = payment.destination;
                 transferData = payment.transfer_data;
-                if (!(!onBehalf && !destination && !transferData)) return [3 /*break*/, 8];
+                if (!(!onBehalf && !destination && !transferData)) return [3 /*break*/, 12];
                 //create payout transaction - 
                 return [4 /*yield*/, transaction_model_1.default.create({
                         type: transaction_model_1.TRANSACTION_TYPE.ESCROW,
@@ -894,31 +908,31 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                         job: job.id,
                         payment: payment.id,
                     })];
-            case 7:
+            case 11:
                 //create payout transaction - 
                 _c.sent();
-                _c.label = 8;
-            case 8: return [4 /*yield*/, Promise.all([
+                _c.label = 12;
+            case 12: return [4 /*yield*/, Promise.all([
                     quotation.save(),
                     job.save()
                 ])];
-            case 9:
+            case 13:
                 _c.sent();
-                _c.label = 10;
-            case 10: return [4 /*yield*/, Promise.all([
+                _c.label = 14;
+            case 14: return [4 /*yield*/, Promise.all([
                     payment.save(),
                     transaction.save()
                 ])];
-            case 11:
+            case 15:
                 _c.sent();
-                _c.label = 12;
-            case 12: return [3 /*break*/, 14];
-            case 13:
+                _c.label = 16;
+            case 16: return [3 /*break*/, 18];
+            case 17:
                 error_11 = _c.sent();
                 // throw new BadRequestError(error.message || "Something went wrong");
                 logger_1.Logger.info('Error handling chargeSucceeded stripe webhook event', error_11);
-                return [3 /*break*/, 14];
-            case 14: return [2 /*return*/];
+                return [3 /*break*/, 18];
+            case 18: return [2 /*return*/];
         }
     });
 }); };
