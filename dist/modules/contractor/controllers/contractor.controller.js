@@ -1112,7 +1112,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     };
     ProfileHandler.prototype.deleteAccount = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, contractor, contractorId, account, bookedJobs, disputedJobs, ongoingJobs, err_12;
+            var req, res, contractor, contractorId, account, bookedJobs, disputedJobs, ongoingJobs, deletedAccount, err_12;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1147,14 +1147,12 @@ var ProfileHandler = /** @class */ (function (_super) {
                         if (ongoingJobs.length > 0) {
                             return [2 /*return*/, res.status(400).json({ success: false, message: 'You have  ongoing jobs, account cannot be deleted', data: ongoingJobs })];
                         }
-                        return [4 /*yield*/, contractor_model_1.ContractorModel.deleteById(contractorId)];
-                    case 6:
-                        _a.sent();
                         return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOneAndUpdate({ contractor: contractorId }, {
                                 isOffDuty: true
                             })];
-                    case 7:
+                    case 6:
                         _a.sent();
+                        deletedAccount = account;
                         account.email = "".concat(account.email, ":").concat(account.id);
                         account.deletedAt = new Date();
                         account.phoneNumber = { code: "+", number: account.id, verifiedAt: null };
@@ -1163,10 +1161,13 @@ var ProfileHandler = /** @class */ (function (_super) {
                         account.profilePhoto = { url: 'https://ipalas3bucket.s3.us-east-2.amazonaws.com/avatar.png' };
                         // account.status = 
                         return [4 /*yield*/, account.save()];
-                    case 8:
+                    case 7:
                         // account.status = 
                         _a.sent();
-                        events_1.AccountEvent.emit('ACCOUNT_DELETED', account);
+                        return [4 /*yield*/, contractor_model_1.ContractorModel.deleteById(contractorId)];
+                    case 8:
+                        _a.sent();
+                        events_1.AccountEvent.emit('ACCOUNT_DELETED', deletedAccount);
                         res.json({ success: true, message: 'Account deleted successfully' });
                         return [3 /*break*/, 10];
                     case 9:

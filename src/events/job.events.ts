@@ -792,13 +792,11 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
                     <hr>
 
                     <p>Date: ${new Date()}<br>
-                    Receipt Number: RFC-${quotation.payment}</p>
+                    Receipt Number: RFC${quotation.payment}</p>
 
                     <p><strong>Contractor:</strong><br>
                     ${contractor.name}<br>
-                    ${contractorProfile.location.address}<br>
-                    ${contractorProfile.location.city}<br>
-                    ${contractorProfile.location.country}<br>
+                    ${contractorProfile?.location?.address}<br>
                     </p>
 
                     <hr>
@@ -811,27 +809,27 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
                     ${quotation.estimates.map(estimate => `
                         <tr>
                           <td style="border: 1px solid lightgray; padding: 8px;"><strong>${estimate.description}</strong></td>
-                          <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">${(estimate.rate * estimate.quantity).toFixed(2)}</td>
+                          <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${(estimate.rate * estimate.quantity).toFixed(2)}</td>
                         </tr>
                       `).join('')}   
                         <tr>
                             <td style="border: 1px solid lightgray; padding: 8px;"><strong>Subtotal</strong></td>
-                            <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">${charges.subtotal}.00</td>
+                            <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${(charges.subtotal).toFixed(2)}</td>
                         </tr>
                     </table>
                     <p><strong>Deduction/Charges:</strong></p>
                     <table style="width: 100%; border-collapse: collapse; border: 1px solid lightgray;">
                         <tr>
-                            <td style="border: 1px solid lightgray; padding: 8px;">Payment Processing Fee (${charges.customerProcessingFeeRate}%)</td>
-                            <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">${charges.contractorProcessingFee}.00</td>
+                            <td style="border: 1px solid lightgray; padding: 8px;">Payment Processing Fee ($${charges.customerProcessingFeeRate}%)</td>
+                            <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${charges.contractorProcessingFee}</td>
                         </tr>
                         <tr>
                             <td style="border: 1px solid lightgray; padding: 8px;">Service Fee (${charges.repairfindServiceFeeRate}%)</td>
-                            <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${charges.repairfindServiceFee}.00</td>
+                            <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${charges.repairfindServiceFee}</td>
                         </tr>
                         <tr>
                             <td style="border: 1px solid lightgray; padding: 8px;"><strong>Total Deducted</strong></td>
-                            <td style="border: 1px solid lightgray; padding: 8px; text-align: right;"><strong>$${charges.repairfindServiceFee + charges.contractorProcessingFee}.00</strong></td>
+                            <td style="border: 1px solid lightgray; padding: 8px; text-align: right;"><strong>$${charges.repairfindServiceFee + charges.contractorProcessingFee}</strong></td>
                         </tr>
                     </table>
                     <p><strong>Net Amount to Contractor:</strong> $${charges.subtotal} + GST $${charges.gstAmount} - Total Deduction $${charges.repairfindServiceFee + charges.contractorProcessingFee} = $${charges.contractorPayable}</p>
@@ -872,12 +870,10 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
 
                     <p><strong>Receipt</strong></p>
                     <p>Date: ${new Date}<br>
-                    Receipt Number: RFC-${quotation.payment}</p>
+                    Receipt Number: RFC${quotation.payment}</p>
                     <p><strong>Customer:</strong><br>
                     ${customer.name}<br>
                     ${customer?.location?.address}<br>
-                    ${customer?.location?.city}<br>
-                    ${customer.location.country}</p>
 
                     <hr>
                     <strong>Description:</strong>
@@ -889,29 +885,29 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
                          ${quotation.estimates.map(estimate => `
                         <tr>
                           <td style="border: 1px solid lightgray; padding: 8px;"><strong>${estimate.description}</strong></td>
-                          <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">${(estimate.rate * estimate.quantity).toFixed(2)}</td>
+                          <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${(estimate.rate * estimate.quantity).toFixed(2)}</td>
                         </tr>
                       `).join('')}   
                         <tr>
                             <td style="border: 1px solid lightgray; padding: 8px;"><strong>Subtotal</strong></td>
-                            <td style="border: 1px solid lightgray; padding: 8px; text-align: right;"><strong>$${charges.subtotal}</strong></td>
+                            <td style="border: 1px solid lightgray; padding: 8px; text-align: right;"><strong>$${(charges.subtotal).toFixed(2)}</strong></td>
                         </tr>
                         <tr>
                             <td style="border: 1px solid lightgray; padding: 8px;">GST (${charges.gstRate}%)</td>
-                            <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${charges.gstAmount}.00</td>
+                            <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${charges.gstAmount}</td>
                         </tr>
                         <tr>
                             <td style="border: 1px solid lightgray; padding: 8px;">Payment Processing Fee (${charges.customerProcessingFeeRate}%)</td>
-                            <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${charges.customerProcessingFee}.00</td>
+                            <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${charges.customerProcessingFee}</td>
                         </tr>
                        
                         <tr>
                             <td style="border: 1px solid lightgray; padding: 8px;"><strong>Total Amount Due</strong></td>
-                            <td style="border: 1px solid lightgray; padding: 8px; text-align: right;"><strong>$${charges.customerPayable}.00</strong></td>
+                            <td style="border: 1px solid lightgray; padding: 8px; text-align: right;"><strong>$${charges.customerPayable}</strong></td>
                         </tr>
                     </table>
                   <p><strong>Payment Method:</strong> Credit/Debit Card<br>
-                  <strong>Transaction ID:</strong> RPT-${quotation.id}</p>
+                  <strong>Transaction ID:</strong> RPT${quotation.id}</p>
                   <p style="color: #333333;">Thank you for your payment!</p>
                   <p style="color: #333333;">If you did not initiate this payment, kindly reach out to us via support.</p>
                 `;

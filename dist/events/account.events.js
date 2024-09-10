@@ -51,7 +51,7 @@ exports.AccountEvent.on('ACCOUNT_DELETED', function (payload) {
                 user = payload.user;
                 emailSubject = 'Account Deleted ';
                 emailContent = "\n                <p style=\"color: #333333;\">Your has been deleted successfully, </p>\n                <p style=\"color: #333333;\">All pending transactions will be processed and settled in 5 business days</p>\n                 <p style=\"color: #333333;\">If you have any enquiry kindly reach via any of our available channels</p>\n                <p style=\"color: #333333;\">Thanks for your patronage</p>\n                ";
-                html = (0, generic_email_1.GenericEmailTemplate)({ name: user.name, subject: emailSubject, content: emailContent });
+                html = (0, generic_email_1.GenericEmailTemplate)({ name: user.firstName, subject: emailSubject, content: emailContent });
                 services_1.EmailService.send(user.email, emailSubject, html);
                 // TODO: check all pending transactions and handle appropriately
             }

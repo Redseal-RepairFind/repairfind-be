@@ -1009,11 +1009,11 @@ class ProfileHandler extends Base {
         return res.status(400).json({ success: false, message: 'You have  ongoing jobs, account cannot be deleted', data: ongoingJobs});
       } 
 
-      await ContractorModel.deleteById(contractorId)
       await ContractorProfileModel.findOneAndUpdate({contractor: contractorId}, {
         isOffDuty: true
       })
 
+      const deletedAccount = account
       account.email = `${account.email}:${account.id}`
       account.deletedAt = new Date()
       account.phoneNumber = {code: "+", number: account.id, verifiedAt: null}
@@ -1025,7 +1025,9 @@ class ProfileHandler extends Base {
 
       await account.save()
   
-      AccountEvent.emit('ACCOUNT_DELETED', account)
+      await ContractorModel.deleteById(contractorId)
+
+      AccountEvent.emit('ACCOUNT_DELETED', deletedAccount)
 
       res.json({ success: true, message: 'Account deleted successfully' });
     } catch (err: any) {
