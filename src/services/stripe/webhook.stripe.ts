@@ -672,6 +672,10 @@ export const chargeSucceeded = async (payload: any) => {
                         };
 
                        
+                        await Promise.all([
+                            quotation.save(),
+                            job.save()
+                        ])
                         JobEvent.emit('JOB_BOOKED', { jobId, contractorId: quotation.contractor, customerId: job.customer, quotationId, paymentType })
 
                     }
@@ -696,6 +700,11 @@ export const chargeSucceeded = async (payload: any) => {
                         } else {
                             Logger.info('quotation.siteVisit.date is not a valid Date object.');
                         }
+
+                        await Promise.all([
+                            quotation.save(),
+                            job.save()
+                        ])
 
                         JobEvent.emit('JOB_BOOKED', { jobId, contractorId: quotation.contractor, customerId: job.customer, quotationId, paymentType })
 
