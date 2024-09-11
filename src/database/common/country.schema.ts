@@ -1,22 +1,22 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface ICountry {
-    iso2Code: string;
-    iso3Code: string;
-    name: string;
-    callingCode?: string;
-    currencyCode?: string
-    states?: [object];
-  }
-  
+  name: string;
+  code: string;
+  flag?: string;
+  dial_code?: string;
+  currency_code?: string
+  states?: [object];
+}
 
-  export const CountrySchema: Schema = new Schema<ICountry>({
-    iso2Code: String,
-    iso3Code: String,
-    name: String,
-    callingCode: String,
-    currencyCode: String,
-    states: [Object]
-  });
 
-  export const CountryModel = mongoose.model<ICountry>('countries', CountrySchema);
+export const CountrySchema: Schema = new Schema<ICountry>({
+  name: String,
+  code: String,
+  flag: String,
+  dial_code: String,
+  currency_code: String,
+  states: [Object]
+});
+
+export const CountryModel = mongoose.model<ICountry>('countries', CountrySchema);

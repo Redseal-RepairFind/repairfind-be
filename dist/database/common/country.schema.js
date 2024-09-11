@@ -26,11 +26,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CountryModel = exports.CountrySchema = void 0;
 var mongoose_1 = __importStar(require("mongoose"));
 exports.CountrySchema = new mongoose_1.Schema({
-    iso2Code: String,
-    iso3Code: String,
     name: String,
-    callingCode: String,
-    currencyCode: String,
+    code: String,
+    flag: String,
+    dial_code: String,
+    currency_code: String,
     states: [Object]
 });
 exports.CountryModel = mongoose_1.default.model('countries', exports.CountrySchema);

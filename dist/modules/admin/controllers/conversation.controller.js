@@ -88,7 +88,7 @@ var startConversation = function (req, res, next) { return __awaiter(void 0, voi
                     return [2 /*return*/, res.status(404).json({ success: false, message: 'User not found' })]; // Ensure user exists
                 conversationMembers = [
                     { memberType: userType, member: userId },
-                    { memberType: 'admin', member: fromUserId }
+                    { memberType: 'admins', member: fromUserId }
                 ];
                 return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
                         $and: [

@@ -128,7 +128,7 @@ exports.ConversationEvent.on('NEW_MESSAGE', function (params) {
                                         title: 'New Conversation Message',
                                         type: 'Conversation',
                                         message: "You have a new message",
-                                        heading: { name: "".concat(user.name), image: (_b = user.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
+                                        heading: { name: "".concat(user.name), image: (_b = sender_1.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
                                         payload: {
                                             entity: conversation_1.id,
                                             entityType: 'conversations',
