@@ -677,7 +677,7 @@ exports.JobEvent.on('JOB_DAY_EMERGENCY', function (payload) {
 exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
     var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function () {
-        var customer, contractor, job, event_1, conversation, message, emailSubject, emailContent, html, emailSubject, emailContent, html, error_11;
+        var customer, contractor, job, event_1, conversation, message, dateTimeOptions, rescheduleDate, emailSubject, emailContent, html, dateTimeOptions, rescheduleDate, emailSubject, emailContent, html, error_11;
         return __generator(this, function (_e) {
             switch (_e.label) {
                 case 0:
@@ -703,8 +703,20 @@ exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
                         entityType: 'jobs'
                     });
                     if (((_a = payload.job.reschedule) === null || _a === void 0 ? void 0 : _a.createdBy) == 'contractor') { // send mail to contractor
+                        dateTimeOptions = {
+                            weekday: 'short',
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric',
+                            hour: 'numeric',
+                            minute: 'numeric',
+                            hour12: true,
+                            timeZone: contractor.currentTimezone,
+                            timeZoneName: 'long'
+                        };
+                        rescheduleDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(payload.job.reschedule.date));
                         emailSubject = 'Job Reschedule Request';
-                        emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(contractor.name, ",</p>\n                <p style=\"color: #333333;\">Your Job reschedule request on Repairfind has been ").concat(payload.action, " by customer</p>\n                <p><strong>Job Title:</strong> ").concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(payload.job.reschedule.date, "</p>\n                ");
+                        emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(contractor.name, ",</p>\n                <p style=\"color: #333333;\">Your Job reschedule request on Repairfind has been ").concat(payload.action, " by customer</p>\n                <p><strong>Job Title:</strong> ").concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(rescheduleDate, "</p>\n                ");
                         html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
                         services_1.EmailService.send(contractor.email, emailSubject, html);
                         services_1.NotificationService.sendNotification({
@@ -728,8 +740,20 @@ exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
                         message.senderType = 'customers';
                     }
                     if (((_c = payload.job.reschedule) === null || _c === void 0 ? void 0 : _c.createdBy) == 'customer') { // send mail to  customer
+                        dateTimeOptions = {
+                            weekday: 'short',
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric',
+                            hour: 'numeric',
+                            minute: 'numeric',
+                            hour12: true,
+                            timeZone: customer.currentTimezone,
+                            timeZoneName: 'long'
+                        };
+                        rescheduleDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(payload.job.reschedule.date));
                         emailSubject = 'Job Reschedule Request';
-                        emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(customer.name, ",</p>\n                <p style=\"color: #333333;\">Your Job reschedule request on Repairfind has been ").concat(payload.action, "  by the contractor</p>\n                <p><strong>Job Title:</strong> ").concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(payload.job.reschedule.date, "</p>\n                ");
+                        emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(customer.name, ",</p>\n                <p style=\"color: #333333;\">Your Job reschedule request on Repairfind has been ").concat(payload.action, "  by the contractor</p>\n                <p><strong>Job Title:</strong> ").concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(rescheduleDate, "</p>\n                ");
                         html = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: emailSubject, content: emailContent });
                         services_1.EmailService.send(customer.email, emailSubject, html);
                         services_1.NotificationService.sendNotification({
@@ -769,7 +793,7 @@ exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
 exports.JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', function (payload) {
     var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function () {
-        var customer, contractor, job, conversation, message, emailSubject, emailContent, html, emailSubject, emailContent, html, error_12;
+        var customer, contractor, job, conversation, message, dateTimeOptions, rescheduleDate, emailSubject, emailContent, html, dateTimeOptions, rescheduleDate, emailSubject, emailContent, html, error_12;
         return __generator(this, function (_e) {
             switch (_e.label) {
                 case 0:
@@ -794,8 +818,20 @@ exports.JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', function (payload) {
                         entityType: 'jobs'
                     });
                     if (((_a = payload.job.reschedule) === null || _a === void 0 ? void 0 : _a.createdBy) == 'contractor') { // send mail to contractor
+                        dateTimeOptions = {
+                            weekday: 'short',
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric',
+                            hour: 'numeric',
+                            minute: 'numeric',
+                            hour12: true,
+                            timeZone: contractor.currentTimezone,
+                            timeZoneName: 'long'
+                        };
+                        rescheduleDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(payload.job.reschedule.date));
                         emailSubject = 'Job Schedule';
-                        emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(customer.name, ",</p>\n                <p style=\"color: #333333;\">Contractor has requested  to reschedule a job on RepairFind</p>\n                <p><strong>Job Title:</strong> ").concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(payload.job.reschedule.date, "</p>\n                ");
+                        emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(customer.name, ",</p>\n                <p style=\"color: #333333;\">Contractor has requested  to reschedule a job on RepairFind</p>\n                <p><strong>Job Title:</strong> ").concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(rescheduleDate, "</p>\n                ");
                         html = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: emailSubject, content: emailContent });
                         services_1.EmailService.send(customer.email, emailSubject, html);
                         services_1.NotificationService.sendNotification({
@@ -818,8 +854,20 @@ exports.JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', function (payload) {
                         message.senderType = 'contractors';
                     }
                     if (((_c = payload.job.reschedule) === null || _c === void 0 ? void 0 : _c.createdBy) == 'customer') { // send mail to  customer
+                        dateTimeOptions = {
+                            weekday: 'short',
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric',
+                            hour: 'numeric',
+                            minute: 'numeric',
+                            hour12: true,
+                            timeZone: customer.currentTimezone,
+                            timeZoneName: 'long'
+                        };
+                        rescheduleDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(payload.job.reschedule.date));
                         emailSubject = 'Job Schedule';
-                        emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(contractor.name, ",</p>\n                <p style=\"color: #333333;\">Customer has requested  to reschedule a job on RepairFind</p>\n                <p><strong>Job Title:</strong> ").concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(payload.job.reschedule.date, "</p>\n                ");
+                        emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(contractor.name, ",</p>\n                <p style=\"color: #333333;\">Customer has requested  to reschedule a job on RepairFind</p>\n                <p><strong>Job Title:</strong> ").concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(rescheduleDate, "</p>\n                ");
                         html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
                         services_1.EmailService.send(contractor.email, emailSubject, html);
                         services_1.NotificationService.sendNotification({
@@ -896,7 +944,7 @@ exports.JobEvent.on('JOB_BOOKED', function (payload) {
                             hour: 'numeric',
                             minute: 'numeric',
                             hour12: true,
-                            timeZone: 'Europe/Bucharest',
+                            timeZone: contractor.currentTimezone,
                             timeZoneName: 'long'
                         };
                         jobDateContractor = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(job.schedule.startDate));
@@ -918,7 +966,7 @@ exports.JobEvent.on('JOB_BOOKED', function (payload) {
                             hour: 'numeric',
                             minute: 'numeric',
                             hour12: true,
-                            timeZone: 'Africa/Lagos',
+                            timeZone: customer.currentTimezone,
                             timeZoneName: 'long'
                         };
                         jobDateCustomer = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(job.schedule.startDate));
