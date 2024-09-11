@@ -42,7 +42,7 @@ export const startConversation = async (
         // Create a new conversation between the customer and the contractor
         const conversationMembers = [
             { memberType: userType, member: userId },
-            { memberType: 'admin', member: fromUserId }
+            { memberType: 'admins', member: fromUserId }
         ];
 
         const conversation = await ConversationModel.findOneAndUpdate(

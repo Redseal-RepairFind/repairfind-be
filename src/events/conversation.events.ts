@@ -6,6 +6,7 @@ import { ContractorModel } from '../database/contractor/models/contractor.model'
 import CustomerModel from '../database/customer/models/customer.model';
 import AdminModel from '../database/admin/models/admin.model';
 import { Logger } from '../services/logger';
+import { send } from 'process';
 
 export const ConversationEvent: EventEmitter = new EventEmitter();
 
@@ -56,7 +57,7 @@ ConversationEvent.on('NEW_MESSAGE', async function (params) {
                 title: 'New Conversation Message',
                 type: 'Conversation',
                 message: `You have a new message`,
-                heading: { name: `${user.name}`, image: user.profilePhoto?.url },
+                heading: { name: `${user.name}`, image: sender.profilePhoto?.url },
                 payload: {
                     entity: conversation.id,
                     entityType: 'conversations',
