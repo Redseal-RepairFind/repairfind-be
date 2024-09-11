@@ -990,7 +990,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     ProfileHandler.prototype.createOrUpdateDevice = function () {
         var _a;
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, errors, _b, deviceId, deviceType, deviceToken, expoToken, contractorId, contractor, contractorDevice, error_3;
+            var req, res, errors, _b, deviceId, deviceType, deviceToken, expoToken, appVersion, contractorId, contractor, contractorDevice, error_3;
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
@@ -1003,7 +1003,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         if (!errors.isEmpty()) {
                             return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                         }
-                        _b = req.body, deviceId = _b.deviceId, deviceType = _b.deviceType, deviceToken = _b.deviceToken, expoToken = _b.expoToken;
+                        _b = req.body, deviceId = _b.deviceId, deviceType = _b.deviceType, deviceToken = _b.deviceToken, expoToken = _b.expoToken, appVersion = _b.appVersion;
                         contractorId = req.contractor.id;
                         return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
                     case 2:
@@ -1012,7 +1012,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         if (!contractor) {
                             return [2 /*return*/, res.status(404).json({ success: false, message: 'User not found' })];
                         }
-                        return [4 /*yield*/, contractor_devices_model_1.default.findOneAndUpdate({ contractor: contractorId, deviceToken: deviceToken }, { deviceToken: deviceToken, expoToken: expoToken, deviceType: deviceType, contractor: contractorId }, { new: true, upsert: true })];
+                        return [4 /*yield*/, contractor_devices_model_1.default.findOneAndUpdate({ contractor: contractorId, deviceToken: deviceToken }, { deviceToken: deviceToken, expoToken: expoToken, deviceType: deviceType, appVersion: appVersion, contractor: contractorId }, { new: true, upsert: true })];
                     case 3:
                         contractorDevice = _c.sent();
                         return [2 /*return*/, res.json({ success: true, message: 'Contractor device updated', data: contractorDevice })];

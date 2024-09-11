@@ -108,6 +108,9 @@ const CustomerSchema = new Schema<ICustomer>(
     stripeIdentity: {
       type: Object,
     },
+    currentTimezone: {
+      type: String,
+    },
 
   },
   {

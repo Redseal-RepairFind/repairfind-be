@@ -219,7 +219,7 @@ export const updateOrCreateDevice = async (
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-    const { deviceId, deviceType, deviceToken, expoToken } = req.body;
+    const { deviceId, deviceType, deviceToken, expoToken, appVersion } = req.body;
 
     const customerId = req.customer.id;
 
@@ -240,7 +240,7 @@ export const updateOrCreateDevice = async (
     // Find the customer device with the provided device ID and type
     let customerDevice = await CustomerDeviceModel.findOneAndUpdate(
       { customer: customerId, deviceToken },
-      { $set: { deviceToken, deviceType, expoToken, customer: customerId } },
+      { $set: { deviceToken, deviceType, expoToken, appVersion, customer: customerId } },
       { new: true, upsert: true }
     );
 
@@ -312,19 +312,12 @@ export const signOut = async (
 ) => {
 
   try {
-    const customerId = req.customer.id;
-    const customer = await CustomerModel.findOne({ _id: customerId });
-    if (!customer) {
-      return res.status(404).json({ success: false, message: 'Customer account not found' });
-    }
-
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) {
       return res.status(400).json({ success: false, message: 'Token not provided' });
     }
 
     await BlacklistedToken.create({ token });
-
     res.json({ success: true, message: 'Sign out successful' });
   } catch (err: any) {
     console.log('error', err);

@@ -896,7 +896,7 @@ class ProfileHandler extends Base {
       if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
       }
-      const { deviceId, deviceType, deviceToken, expoToken } = req.body;
+      const { deviceId, deviceType, deviceToken, expoToken, appVersion } = req.body;
 
       const contractorId = req.contractor.id;
 
@@ -912,7 +912,7 @@ class ProfileHandler extends Base {
       // Find the contractor device with the provided device ID and type
       let contractorDevice = await ContractorDeviceModel.findOneAndUpdate(
         { contractor: contractorId, deviceToken: deviceToken },
-        { deviceToken, expoToken, deviceType, contractor: contractorId },
+        { deviceToken, expoToken, deviceType, appVersion, contractor: contractorId },
         { new: true, upsert: true }
       );
 
@@ -1041,13 +1041,7 @@ class ProfileHandler extends Base {
     let req = <any>this.req;
     let res = this.res;
     try {
-      // const contractorId = req.contractor.id;
-      // const contractor = await ContractorModel.findOne({ _id: contractorId });
-      // if (!contractor) {
-      //   return res.status(404).json({ success: false, message: 'Contractor account not found' });
-      // }
-
-
+      
       // Assume the token is in the Authorization header (Bearer token)
       const token = req.headers.authorization?.split(' ')[1];
 

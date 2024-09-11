@@ -161,9 +161,6 @@ export interface IContractor extends Document {
   companyDetails: IContractorCompanyDetails
   certnDetails: IContractorCertnDetails
   reviews: Array<{review: ObjectId, averageRating: number}>,
-  createdAt: Date;
-  updatedAt: Date;
-  deletedAt: Date;
   quiz: any;
   stripeAccountStatus: {
     details_submitted: boolean,
@@ -186,7 +183,11 @@ export interface IContractor extends Document {
   };
   certnId: string;
   badge: {label?: string, icon?: string };
-
+  stats: {formattedResponseTime?: any, responseTime?: any, jobsCompleted?: any, jobsCanceled?: any,  jobsPending?: any, jobsTotal?: any};
+  currentTimezone: string;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt: Date;
   getOnboarding: () => {
     hasStripeAccount: boolean,
     hasStripeIdentity: boolean,
@@ -200,8 +201,6 @@ export interface IContractor extends Document {
     stage: number
   };
   
-  stats: {formattedResponseTime?: any, responseTime?: any, jobsCompleted?: any, jobsCanceled?: any,  jobsPending?: any, jobsTotal?: any};
-
   getStats: (contractor?:any) => {
     formattedResponseTime: any,
     responseTime: any,
@@ -209,6 +208,7 @@ export interface IContractor extends Document {
     jobsCanceled: any,
     jobsTotal: any,
   };
+
 
 
 }

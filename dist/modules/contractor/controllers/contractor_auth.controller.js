@@ -185,7 +185,7 @@ var AuthHandler = /** @class */ (function (_super) {
     AuthHandler.prototype.verifyEmail = function () {
         var _a;
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _b, email, otp, errors, contractor, timeDiff, accessToken, quiz, contractorResponse, err_2;
+            var req, res, _b, email, otp, currentTimezone, errors, contractor, timeDiff, accessToken, quiz, contractorResponse, err_2;
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
@@ -194,7 +194,7 @@ var AuthHandler = /** @class */ (function (_super) {
                         _c.label = 1;
                     case 1:
                         _c.trys.push([1, 5, , 6]);
-                        _b = req.body, email = _b.email, otp = _b.otp;
+                        _b = req.body, email = _b.email, otp = _b.otp, currentTimezone = _b.currentTimezone;
                         errors = (0, express_validator_1.validationResult)(req);
                         if (!errors.isEmpty()) {
                             return [2 /*return*/, res.status(400).json({ success: false, message: "validation errors", errors: errors.array() })];
@@ -223,6 +223,7 @@ var AuthHandler = /** @class */ (function (_super) {
                             return [2 /*return*/, res.status(400).json({ success: false, message: "otp expired" })];
                         }
                         contractor.emailOtp.verified = true;
+                        contractor.currentTimezone = currentTimezone;
                         return [4 /*yield*/, contractor.save()];
                     case 3:
                         _c.sent();
@@ -349,7 +350,7 @@ var AuthHandler = /** @class */ (function (_super) {
     AuthHandler.prototype.signin = function () {
         var _a;
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _b, email, password, phoneNumber, errors, contractor, isPasswordMatch, quiz, _c, contractorResponse, accessToken, err_5;
+            var req, res, _b, email, password, currentTimezone, errors, contractor, isPasswordMatch, quiz, _c, contractorResponse, accessToken, err_5;
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
@@ -357,8 +358,8 @@ var AuthHandler = /** @class */ (function (_super) {
                         res = this.res;
                         _d.label = 1;
                     case 1:
-                        _d.trys.push([1, 6, , 7]);
-                        _b = req.body, email = _b.email, password = _b.password, phoneNumber = _b.phoneNumber;
+                        _d.trys.push([1, 7, , 8]);
+                        _b = req.body, email = _b.email, password = _b.password, currentTimezone = _b.currentTimezone;
                         errors = (0, express_validator_1.validationResult)(req);
                         if (!errors.isEmpty()) {
                             return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation errors', errors: errors.array() })];
@@ -395,6 +396,12 @@ var AuthHandler = /** @class */ (function (_super) {
                             email: contractor.email,
                             userType: 'contractors',
                         }, process.env.JWT_SECRET_KEY, { expiresIn: config_1.config.jwt.tokenLifetime });
+                        contractor.currentTimezone = currentTimezone;
+                        return [4 /*yield*/, contractor.save()
+                            // return access token
+                        ];
+                    case 6:
+                        _d.sent();
                         // return access token
                         return [2 /*return*/, res.json({
                                 success: true,
@@ -403,10 +410,10 @@ var AuthHandler = /** @class */ (function (_super) {
                                 expiresIn: config_1.config.jwt.tokenLifetime,
                                 user: contractorResponse
                             })];
-                    case 6:
+                    case 7:
                         err_5 = _d.sent();
                         return [2 /*return*/, res.status(500).json({ success: false, message: err_5.message })];
-                    case 7: return [2 /*return*/];
+                    case 8: return [2 /*return*/];
                 }
             });
         });
@@ -414,7 +421,7 @@ var AuthHandler = /** @class */ (function (_super) {
     AuthHandler.prototype.signinWithPhone = function () {
         var _a;
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _b, password, number, code, errors, contractor, isPasswordMatch, quiz, _c, contractorResponse, accessToken, err_6;
+            var req, res, _b, password, number, code, currentTimezone, errors, contractor, isPasswordMatch, quiz, _c, contractorResponse, accessToken, err_6;
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
@@ -422,8 +429,8 @@ var AuthHandler = /** @class */ (function (_super) {
                         res = this.res;
                         _d.label = 1;
                     case 1:
-                        _d.trys.push([1, 6, , 7]);
-                        _b = req.body, password = _b.password, number = _b.number, code = _b.code;
+                        _d.trys.push([1, 7, , 8]);
+                        _b = req.body, password = _b.password, number = _b.number, code = _b.code, currentTimezone = _b.currentTimezone;
                         errors = (0, express_validator_1.validationResult)(req);
                         if (!errors.isEmpty()) {
                             return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation errors', errors: errors.array() })];
@@ -460,6 +467,12 @@ var AuthHandler = /** @class */ (function (_super) {
                             email: contractor.email,
                             userType: 'contractors',
                         }, process.env.JWT_SECRET_KEY, { expiresIn: config_1.config.jwt.tokenLifetime });
+                        contractor.currentTimezone = currentTimezone;
+                        return [4 /*yield*/, contractor.save()
+                            // return access token
+                        ];
+                    case 6:
+                        _d.sent();
                         // return access token
                         return [2 /*return*/, res.json({
                                 success: true,
@@ -468,10 +481,10 @@ var AuthHandler = /** @class */ (function (_super) {
                                 expiresIn: config_1.config.jwt.tokenLifetime,
                                 user: contractorResponse
                             })];
-                    case 6:
+                    case 7:
                         err_6 = _d.sent();
                         return [2 /*return*/, res.status(500).json({ success: false, message: err_6.message })];
-                    case 7: return [2 /*return*/];
+                    case 8: return [2 /*return*/];
                 }
             });
         });

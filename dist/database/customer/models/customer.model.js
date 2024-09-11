@@ -105,6 +105,9 @@ var CustomerSchema = new mongoose_1.Schema({
     stripeIdentity: {
         type: Object,
     },
+    currentTimezone: {
+        type: String,
+    },
 }, {
     timestamps: true,
 });

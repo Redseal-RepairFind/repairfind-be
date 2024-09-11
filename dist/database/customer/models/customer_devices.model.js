@@ -26,6 +26,10 @@ var CustomerDeviceSchema = new mongoose_1.Schema({
         type: String,
         required: false,
         unique: false
+    },
+    appVersion: {
+        type: String,
+        required: false,
     }
 }, {
     timestamps: true // Automatically add createdAt and updatedAt fields

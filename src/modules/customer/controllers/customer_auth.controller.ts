@@ -119,7 +119,8 @@ export const verifyEmail = async (
   try {
     const {
       email,
-      otp
+      otp,
+      currentTimezone
     } = req.body;
     // Check for Validation error occurred
     const errors = validationResult(req);
@@ -156,7 +157,7 @@ export const verifyEmail = async (
     }
 
     customer.emailOtp.verified = true;
-
+    customer.currentTimezone = currentTimezone
     await customer.save();
 
     // generate access token
@@ -195,6 +196,7 @@ export const signIn = async (
     const {
       email,
       password,
+      currentTimezone
     } = req.body;
     // Check for Validation error occurred
     const errors = validationResult(req);
@@ -248,6 +250,9 @@ export const signIn = async (
       { expiresIn: config.jwt.tokenLifetime  }
     );
 
+    customer.currentTimezone = currentTimezone
+    await customer.save()
+
     // return access token
     res.json({
       success: true,
@@ -274,6 +279,7 @@ export const signInWithPhone = async (
       number,
       code,
       password,
+      currentTimezone
     } = req.body;
     const errors = validationResult(req);
 
@@ -322,6 +328,9 @@ export const signInWithPhone = async (
       process.env.JWT_SECRET_KEY!,
       { expiresIn: config.jwt.tokenLifetime  }
     );
+
+    customer.currentTimezone = currentTimezone
+    await customer.save()
 
     // return access token
     res.json({

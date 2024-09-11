@@ -343,22 +343,12 @@ export const exploreContractors = async (
 
         switch (listing) {
             case 'recommended':
-                // Logic to fetch recommended contractors
-                // pipeline.push(
-                //     { $match: { rating: { $gte: 4.5 } } }, // Fetch contractors with rating >= 4.5
-                //     { $sort: { rating: -1 } } // Sort by rating in descending order
-                // );
                 pipeline.push(
                     { $sample: { size: 10 } } // Randomly sample 10 contractors
                 );
                 break;
             case 'top-rated':
                 // Logic to fetch top-rated contractors
-                // pipeline.push(
-                //     { $match: { rating: { $exists: true } } }, // Filter out contractors with no ratings
-                //     { $sort: { rating: -1 } } // Sort by rating in descending order
-                // );
-
                 pipeline.push({ $match: { averageRating: { $exists: true } } });
 
                 break;

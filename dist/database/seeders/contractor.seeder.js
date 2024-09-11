@@ -157,10 +157,11 @@ var contractors = [
         },
         profileData: {
             about: "About us here",
-            availability: [
-                "Monday",
-                "Tuesday"
-            ],
+            availability: [{
+                    day: "Monday",
+                    startTime: "0500",
+                    endTime: "0900"
+                }],
             backgrounCheckConsent: true,
             emergencyJobs: true,
             experienceYear: 5,
