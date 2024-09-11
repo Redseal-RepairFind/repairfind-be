@@ -54,7 +54,7 @@ export interface ICustomer extends Document {
     verified: boolean;
   };
   status: string;
-
+  currentTimezone: string;
   stripeCustomer: IStripeCustomer
   stripePaymentMethods: Array<IStripePaymentMethod>
   stripeAccount: object,

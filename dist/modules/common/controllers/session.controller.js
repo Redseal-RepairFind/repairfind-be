@@ -45,33 +45,43 @@ var contractor_devices_model_1 = __importDefault(require("../../../database/cont
 var blacklisted_tokens_schema_1 = __importDefault(require("../../../database/common/blacklisted_tokens.schema"));
 var express_validator_1 = require("express-validator");
 var clearAuthSession = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, deviceToken, accessToken, userId, userType;
+    var errors, _a, deviceToken, accessToken, userId, userType, error_1;
     return __generator(this, function (_b) {
-        try {
-            errors = (0, express_validator_1.validationResult)(req);
-            if (!errors.isEmpty()) {
-                return [2 /*return*/, res.status(400).json({ success: false, errors: errors.array() })];
-            }
-            _a = req.body, deviceToken = _a.deviceToken, accessToken = _a.accessToken, userId = _a.userId, userType = _a.userType;
-            if (userType == 'customers') {
-                customer_devices_model_1.default.deleteMany({ deviceToken: deviceToken });
-            }
-            if (userType == 'contractors') {
-                contractor_devices_model_1.default.deleteMany({ deviceToken: deviceToken });
-            }
-            blacklisted_tokens_schema_1.default.create({ token: accessToken });
-            res.json({
-                status: true,
-                message: 'Session cleared',
-            });
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 5, , 6]);
+                errors = (0, express_validator_1.validationResult)(req);
+                if (!errors.isEmpty()) {
+                    return [2 /*return*/, res.status(400).json({ success: false, errors: errors.array() })];
+                }
+                _a = req.body, deviceToken = _a.deviceToken, accessToken = _a.accessToken, userId = _a.userId, userType = _a.userType;
+                if (!(userType == 'customers')) return [3 /*break*/, 2];
+                return [4 /*yield*/, customer_devices_model_1.default.deleteMany({ deviceToken: deviceToken })];
+            case 1:
+                _b.sent();
+                _b.label = 2;
+            case 2:
+                if (!(userType == 'contractors')) return [3 /*break*/, 4];
+                return [4 /*yield*/, contractor_devices_model_1.default.deleteMany({ deviceToken: deviceToken })];
+            case 3:
+                _b.sent();
+                _b.label = 4;
+            case 4:
+                blacklisted_tokens_schema_1.default.create({ token: accessToken });
+                res.json({
+                    status: true,
+                    message: 'Session cleared',
+                });
+                return [3 /*break*/, 6];
+            case 5:
+                error_1 = _b.sent();
+                res.status(500).json({
+                    status: false,
+                    message: error_1.message,
+                });
+                return [3 /*break*/, 6];
+            case 6: return [2 /*return*/];
         }
-        catch (error) {
-            res.status(500).json({
-                status: false,
-                message: error.message,
-            });
-        }
-        return [2 /*return*/];
     });
 }); };
 exports.clearAuthSession = clearAuthSession;

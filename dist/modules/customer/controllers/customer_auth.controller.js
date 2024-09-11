@@ -132,12 +132,12 @@ var signUp = function (req, res) { return __awaiter(void 0, void 0, void 0, func
 exports.signUp = signUp;
 //customer verified email /////////////
 var verifyEmail = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, email, otp, errors, customer, timeDiff, accessToken, err_2;
+    var _a, email, otp, currentTimezone, errors, customer, timeDiff, accessToken, err_2;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
                 _b.trys.push([0, 3, , 4]);
-                _a = req.body, email = _a.email, otp = _a.otp;
+                _a = req.body, email = _a.email, otp = _a.otp, currentTimezone = _a.currentTimezone;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "Validation error occurred", errors: errors.array() })];
@@ -166,6 +166,7 @@ var verifyEmail = function (req, res) { return __awaiter(void 0, void 0, void 0,
                     return [2 /*return*/, res.status(400).json({ success: false, message: "OTP has expired" })];
                 }
                 customer.emailOtp.verified = true;
+                customer.currentTimezone = currentTimezone;
                 return [4 /*yield*/, customer.save()];
             case 2:
                 _b.sent();
@@ -192,12 +193,12 @@ var verifyEmail = function (req, res) { return __awaiter(void 0, void 0, void 0,
 }); };
 exports.verifyEmail = verifyEmail;
 var signIn = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, email, password, errors, customer, isPasswordMatch, profile, accessToken, err_3;
+    var _a, email, password, currentTimezone, errors, customer, isPasswordMatch, profile, accessToken, err_3;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 4, , 5]);
-                _a = req.body, email = _a.email, password = _a.password;
+                _b.trys.push([0, 5, , 6]);
+                _a = req.body, email = _a.email, password = _a.password, currentTimezone = _a.currentTimezone;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "Validation error occurred", errors: errors.array() })];
@@ -236,6 +237,12 @@ var signIn = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                     email: customer.email,
                     userType: 'customers',
                 }, process.env.JWT_SECRET_KEY, { expiresIn: config_1.config.jwt.tokenLifetime });
+                customer.currentTimezone = currentTimezone;
+                return [4 /*yield*/, customer.save()
+                    // return access token
+                ];
+            case 4:
+                _b.sent();
                 // return access token
                 res.json({
                     success: true,
@@ -244,23 +251,23 @@ var signIn = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                     expiresIn: config_1.config.jwt.tokenLifetime,
                     data: profile
                 });
-                return [3 /*break*/, 5];
-            case 4:
+                return [3 /*break*/, 6];
+            case 5:
                 err_3 = _b.sent();
                 res.status(500).json({ success: false, message: err_3.message });
-                return [3 /*break*/, 5];
-            case 5: return [2 /*return*/];
+                return [3 /*break*/, 6];
+            case 6: return [2 /*return*/];
         }
     });
 }); };
 exports.signIn = signIn;
 var signInWithPhone = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, number, code, password, errors, customer, isPasswordMatch, profile, accessToken, err_4;
+    var _a, number, code, password, currentTimezone, errors, customer, isPasswordMatch, profile, accessToken, err_4;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 4, , 5]);
-                _a = req.body, number = _a.number, code = _a.code, password = _a.password;
+                _b.trys.push([0, 5, , 6]);
+                _a = req.body, number = _a.number, code = _a.code, password = _a.password, currentTimezone = _a.currentTimezone;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "Validation error occurred", errors: errors.array() })];
@@ -296,6 +303,12 @@ var signInWithPhone = function (req, res) { return __awaiter(void 0, void 0, voi
                     email: customer.email,
                     userType: 'customers',
                 }, process.env.JWT_SECRET_KEY, { expiresIn: config_1.config.jwt.tokenLifetime });
+                customer.currentTimezone = currentTimezone;
+                return [4 /*yield*/, customer.save()
+                    // return access token
+                ];
+            case 4:
+                _b.sent();
                 // return access token
                 res.json({
                     success: true,
@@ -304,12 +317,12 @@ var signInWithPhone = function (req, res) { return __awaiter(void 0, void 0, voi
                     expiresIn: config_1.config.jwt.tokenLifetime,
                     data: profile
                 });
-                return [3 /*break*/, 5];
-            case 4:
+                return [3 /*break*/, 6];
+            case 5:
                 err_4 = _b.sent();
                 res.status(500).json({ success: false, message: err_4.message });
-                return [3 /*break*/, 5];
-            case 5: return [2 /*return*/];
+                return [3 /*break*/, 6];
+            case 6: return [2 /*return*/];
         }
     });
 }); };

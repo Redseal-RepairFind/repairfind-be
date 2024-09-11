@@ -102,7 +102,8 @@ class AuthHandler extends Base {
         try {
             const {
                 email,
-                otp
+                otp,
+                currentTimezone
             } = req.body;
             // Check for validation errors
             const errors = validationResult(req);
@@ -139,7 +140,7 @@ class AuthHandler extends Base {
             }
 
             contractor.emailOtp.verified = true;
-
+            contractor.currentTimezone = currentTimezone
             await contractor.save();
 
             const accessToken = jwt.sign(
@@ -272,7 +273,7 @@ class AuthHandler extends Base {
             const {
                 email,
                 password,
-                phoneNumber,
+                currentTimezone,
             } = req.body;
             // Check for validation errors
             const errors = validationResult(req);
@@ -291,10 +292,6 @@ class AuthHandler extends Base {
                     .json({ success: false, message: "invalid credential" });
             }
 
-            // // Check if password is alphanumeric with symbols
-            // if (!/^[a-zA-Z0-9!@#$%^&*]+$/.test(password)) {
-            //     return res.status(400).json({ success: false, message: "Password must be alphanumeric with symbols." });
-            // }
 
             // compare password with hashed password in database
             const isPasswordMatch = await bcrypt.compare(password, contractor.password);
@@ -327,6 +324,10 @@ class AuthHandler extends Base {
                 { expiresIn: config.jwt.tokenLifetime }
             );
 
+
+            contractor.currentTimezone = currentTimezone
+            await contractor.save()
+
             // return access token
             return res.json({
                 success: true,
@@ -351,6 +352,7 @@ class AuthHandler extends Base {
                 password,
                 number,
                 code,
+                currentTimezone
             } = req.body;
             // Check for validation errors
             const errors = validationResult(req);
@@ -405,6 +407,9 @@ class AuthHandler extends Base {
                 process.env.JWT_SECRET_KEY!,
                 { expiresIn: config.jwt.tokenLifetime }
             );
+
+            contractor.currentTimezone = currentTimezone
+            await contractor.save()
 
             // return access token
             return res.json({

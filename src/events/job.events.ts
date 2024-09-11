@@ -767,17 +767,32 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
 
         if (job && contractor && customer && quotation) {
             const charges = await quotation.calculateCharges();
-            const contractorProfile = await ContractorProfileModel.findOne({contractor: contractor.id})
+            const contractorProfile = await ContractorProfileModel.findOne({ contractor: contractor.id })
 
 
-            if (contractor && contractorProfile) { 
+            if (contractor && contractorProfile) {
+                const dateTimeOptions: any = {
+                    weekday: 'short',
+                    day: 'numeric',
+                    month: 'long', 
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    hour12: true,
+                    timeZone: 'Europe/Bucharest',
+                    timeZoneName: 'long'
+                }
+                const jobDateContractor = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(job.schedule.startDate));
+                const currentDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(new Date));
+
+
                 let emailSubject = 'New Job Payment';
                 let emailContent = `
                     <h2>${emailSubject}</h2>
                     <p style="color: #333333;">Hello ${contractor.name},</p>
                     <p style="color: #333333;">You have received payment for a job on RepairFind.</p>
                     <p><strong>Job Title:</strong> ${job.description}</p>
-                    <p><strong>Scheduled Date:</strong>${job.schedule.startDate}</p>
+                    <p><strong>Scheduled Date:</strong>${jobDateContractor}</p>
                     <hr>
                     <p style="color: #333333;">Thank you for your service!</p>
                     <p style="color: #333333;">Kindly open the App for more information.</p>
@@ -791,7 +806,7 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
                     Email: info@repairfind.ca</p>
                     <hr>
 
-                    <p>Date: ${new Date()}<br>
+                    <p>Date: ${currentDate}<br>
                     Receipt Number: RFC${quotation.payment}</p>
 
                     <p><strong>Contractor:</strong><br>
@@ -802,7 +817,7 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
                     <hr>
                     <strong>Description:</strong>
                     <strong>Job Title:</strong> ${job.description}<br>
-                    <strong>Scheduled Date:</strong> ${job.schedule.startDate}
+                    <strong>Scheduled Date:</strong> ${jobDateContractor}
 
                     <p><strong>Invoice Items:</strong></p>
                     <table style="width: 100%; border-collapse: collapse; border: 1px solid lightgray;">
@@ -849,14 +864,29 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
 
 
             if (customer) {
-                // Send mail to customer
+
+                const dateTimeOptions: any = {
+                    weekday: 'short',
+                    day: 'numeric',
+                    month: 'long', 
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    hour12: true,
+                    timeZone: 'Africa/Lagos',
+                    timeZoneName: 'long'
+                }
+                const jobDateCustomer = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(job.schedule.startDate));
+                const currentDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(new Date));
+
+
                 let emailSubject = 'New Job Payment';
                 let emailContent = `
                  <h2>${emailSubject}</h2>
                   <p style="color: #333333;">Hello ${customer.name},</p>
                   <p style="color: #333333;">You have made a payment for a job on RepairFind.</p>
                   <p><strong>Job Title:</strong> ${job.description}</p>
-                  <p><strong>Proposed Date:</strong> Mon Jul 22 2024 16:59:59 GMT-0700 (Pacific Daylight Time)</p>
+                  <p><strong>Proposed Date:</strong>${jobDateCustomer}</p>
                   <p style="color: #333333;">Thank you for your payment!</p>
                   <p style="color: #333333;">If you did not initiate this payment, kindly reach out to us via support.</p>
                 `;
@@ -869,7 +899,7 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
                     <hr>
 
                     <p><strong>Receipt</strong></p>
-                    <p>Date: ${new Date}<br>
+                    <p>Date: ${currentDate}<br>
                     Receipt Number: RFC${quotation.payment}</p>
                     <p><strong>Customer:</strong><br>
                     ${customer.name}<br>
@@ -878,7 +908,7 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
                     <hr>
                     <strong>Description:</strong>
                     <strong>Job Title:</strong> ${job.description} <br>
-                    <strong>Scheduled Date:</strong> ${job.schedule.startDate}
+                    <strong>Scheduled Date:</strong> ${jobDateCustomer}
 
                     <p><strong>Services/Charges:</strong></p>
                     <table style="width: 100%; border-collapse: collapse; border: 1px solid lightgray; margin-bottom: 10px;">

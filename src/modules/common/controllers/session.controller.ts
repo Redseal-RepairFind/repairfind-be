@@ -20,11 +20,11 @@ export const clearAuthSession = async (
         const { deviceToken, accessToken, userId, userType } = req.body
 
         if(userType == 'customers'){
-            CustomerDeviceModel.deleteMany({deviceToken})
+            await CustomerDeviceModel.deleteMany({deviceToken})
         }
 
         if(userType == 'contractors'){
-            ContractorDeviceModel.deleteMany({deviceToken})
+            await ContractorDeviceModel.deleteMany({deviceToken})
         }
 
         BlacklistedToken.create({token: accessToken})

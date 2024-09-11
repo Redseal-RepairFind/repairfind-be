@@ -167,8 +167,6 @@ const ContractorSchema = new Schema<IContractor>(
       verified: Boolean,
     },
 
-
-
     createdAt: {
       type: Date,
       default: Date.now,
@@ -235,7 +233,8 @@ const ContractorSchema = new Schema<IContractor>(
       hasCompanyDetails: { default: false, type: Boolean },
       hasPassedQuiz: { default: false, type: Boolean },
       stage: { default: { status: 1, label: 'stripeIdentity' }, type: Object },
-    }
+    },
+    currentTimezone: {type: String, default: "America/Los_Angeles" }
 
   },
   {

@@ -7,6 +7,7 @@ export interface ICustomerDevice extends Document {
     deviceToken: string;
     expoToken: string;
     deviceId: string;
+    appVersion: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -36,6 +37,10 @@ const CustomerDeviceSchema = new Schema<ICustomerDevice>({
         type: String,
         required: false,
         unique: false
+    },
+    appVersion: {
+        type: String,
+        required: false,
     }
 }, {
     timestamps: true // Automatically add createdAt and updatedAt fields

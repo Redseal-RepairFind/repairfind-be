@@ -240,7 +240,8 @@ var ContractorSchema = new mongoose_1.Schema({
         hasCompanyDetails: { default: false, type: Boolean },
         hasPassedQuiz: { default: false, type: Boolean },
         stage: { default: { status: 1, label: 'stripeIdentity' }, type: Object },
-    }
+    },
+    currentTimezone: { type: String, default: "America/Los_Angeles" }
 }, {
     timestamps: true,
 });

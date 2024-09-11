@@ -194,7 +194,7 @@ var myDevices = function (req, res) { return __awaiter(void 0, void 0, void 0, f
 }); };
 exports.myDevices = myDevices;
 var updateOrCreateDevice = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, deviceId, deviceType, deviceToken, expoToken, customerId, customer, device, customerDevice, error_3;
+    var errors, _a, deviceId, deviceType, deviceToken, expoToken, appVersion, customerId, customer, device, customerDevice, error_3;
     var _b, _c;
     return __generator(this, function (_d) {
         switch (_d.label) {
@@ -204,7 +204,7 @@ var updateOrCreateDevice = function (req, res) { return __awaiter(void 0, void 0
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
-                _a = req.body, deviceId = _a.deviceId, deviceType = _a.deviceType, deviceToken = _a.deviceToken, expoToken = _a.expoToken;
+                _a = req.body, deviceId = _a.deviceId, deviceType = _a.deviceType, deviceToken = _a.deviceToken, expoToken = _a.expoToken, appVersion = _a.appVersion;
                 customerId = req.customer.id;
                 return [4 /*yield*/, customer_model_1.default.findById(customerId)];
             case 1:
@@ -219,7 +219,7 @@ var updateOrCreateDevice = function (req, res) { return __awaiter(void 0, void 0
                 if (device) {
                     //return res.status(404).json({ success: false, message: 'Device already exits' });
                 }
-                return [4 /*yield*/, customer_devices_model_1.default.findOneAndUpdate({ customer: customerId, deviceToken: deviceToken }, { $set: { deviceToken: deviceToken, deviceType: deviceType, expoToken: expoToken, customer: customerId } }, { new: true, upsert: true })];
+                return [4 /*yield*/, customer_devices_model_1.default.findOneAndUpdate({ customer: customerId, deviceToken: deviceToken }, { $set: { deviceToken: deviceToken, deviceType: deviceType, expoToken: expoToken, appVersion: appVersion, customer: customerId } }, { new: true, upsert: true })];
             case 3:
                 customerDevice = _d.sent();
                 return [2 /*return*/, res.json({ success: true, message: 'Customer device updated', data: customerDevice })];
@@ -289,34 +289,27 @@ var deleteAccount = function (req, res) { return __awaiter(void 0, void 0, void 
 }); };
 exports.deleteAccount = deleteAccount;
 var signOut = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, customer, token, err_4;
+    var token, err_4;
     var _a;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 3, , 4]);
-                customerId = req.customer.id;
-                return [4 /*yield*/, customer_model_1.default.findOne({ _id: customerId })];
-            case 1:
-                customer = _b.sent();
-                if (!customer) {
-                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Customer account not found' })];
-                }
+                _b.trys.push([0, 2, , 3]);
                 token = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.split(' ')[1];
                 if (!token) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Token not provided' })];
                 }
                 return [4 /*yield*/, blacklisted_tokens_schema_1.default.create({ token: token })];
-            case 2:
+            case 1:
                 _b.sent();
                 res.json({ success: true, message: 'Sign out successful' });
-                return [3 /*break*/, 4];
-            case 3:
+                return [3 /*break*/, 3];
+            case 2:
                 err_4 = _b.sent();
                 console.log('error', err_4);
                 res.status(500).json({ success: false, message: err_4.message });
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/];
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
         }
     });
 }); };
