@@ -477,7 +477,6 @@ JobEvent.on('JOB_QUOTATION_ACCEPTED', async function (payload: { jobId: ObjectId
               
                 <p>Login to our app to follow up </p>
                 `
-            // <strong>Job date:</strong> ${new Date(job.date).toDateString()}  </br>
 
             let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
             EmailService.send(contractor.email, emailSubject, html)
@@ -570,13 +569,28 @@ JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: 
             });
 
             if (payload.job.reschedule?.createdBy == 'contractor') { // send mail to contractor
+
+                const dateTimeOptions: any = {
+                    weekday: 'short',
+                    day: 'numeric',
+                    month: 'long', 
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    hour12: true,
+                    timeZone: contractor.currentTimezone,
+                    timeZoneName: 'long'
+                }
+                const rescheduleDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(payload.job.reschedule.date));
+
+
                 let emailSubject = 'Job Reschedule Request'
                 let emailContent = `
                 <h2>${emailSubject}</h2>
                 <p>Hello ${contractor.name},</p>
                 <p style="color: #333333;">Your Job reschedule request on Repairfind has been ${payload.action} by customer</p>
                 <p><strong>Job Title:</strong> ${payload.job.description}</p>
-                <p><strong>Proposed Date:</strong> ${payload.job.reschedule.date}</p>
+                <p><strong>Proposed Date:</strong> ${rescheduleDate}</p>
                 `
                 let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
                 EmailService.send(contractor.email, emailSubject, html)
@@ -604,13 +618,28 @@ JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: 
 
             }
             if (payload.job.reschedule?.createdBy == 'customer') { // send mail to  customer
+
+                const dateTimeOptions: any = {
+                    weekday: 'short',
+                    day: 'numeric',
+                    month: 'long', 
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    hour12: true,
+                    timeZone: customer.currentTimezone,
+                    timeZoneName: 'long'
+                }
+                const rescheduleDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(payload.job.reschedule.date));
+
+
                 let emailSubject = 'Job Reschedule Request'
                 let emailContent = `
                 <h2>${emailSubject}</h2>
                 <p>Hello ${customer.name},</p>
                 <p style="color: #333333;">Your Job reschedule request on Repairfind has been ${payload.action}  by the contractor</p>
                 <p><strong>Job Title:</strong> ${payload.job.description}</p>
-                <p><strong>Proposed Date:</strong> ${payload.job.reschedule.date}</p>
+                <p><strong>Proposed Date:</strong> ${rescheduleDate}</p>
                 `
                 let html = GenericEmailTemplate({ name: customer.name, subject: emailSubject, content: emailContent })
                 EmailService.send(customer.email, emailSubject, html)
@@ -671,15 +700,31 @@ JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', async function (payload: { job: IJob, 
             });
 
 
+        
 
             if (payload.job.reschedule?.createdBy == 'contractor') { // send mail to contractor
+
+                const dateTimeOptions: any = {
+                    weekday: 'short',
+                    day: 'numeric',
+                    month: 'long', 
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    hour12: true,
+                    timeZone: contractor.currentTimezone,
+                    timeZoneName: 'long'
+                }
+                const rescheduleDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(payload.job.reschedule.date));
+
+
                 let emailSubject = 'Job Schedule'
                 let emailContent = `
                 <h2>${emailSubject}</h2>
                 <p>Hello ${customer.name},</p>
                 <p style="color: #333333;">Contractor has requested  to reschedule a job on RepairFind</p>
                 <p><strong>Job Title:</strong> ${payload.job.description}</p>
-                <p><strong>Proposed Date:</strong> ${payload.job.reschedule.date}</p>
+                <p><strong>Proposed Date:</strong> ${rescheduleDate}</p>
                 `
                 let html = GenericEmailTemplate({ name: customer.name, subject: emailSubject, content: emailContent })
                 EmailService.send(customer.email, emailSubject, html)
@@ -707,13 +752,27 @@ JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', async function (payload: { job: IJob, 
 
             }
             if (payload.job.reschedule?.createdBy == 'customer') { // send mail to  customer
+
+                const dateTimeOptions: any = {
+                    weekday: 'short',
+                    day: 'numeric',
+                    month: 'long', 
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    hour12: true,
+                    timeZone: customer.currentTimezone,
+                    timeZoneName: 'long'
+                }
+                const rescheduleDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(payload.job.reschedule.date));
+
                 let emailSubject = 'Job Schedule'
                 let emailContent = `
                 <h2>${emailSubject}</h2>
                 <p>Hello ${contractor.name},</p>
                 <p style="color: #333333;">Customer has requested  to reschedule a job on RepairFind</p>
                 <p><strong>Job Title:</strong> ${payload.job.description}</p>
-                <p><strong>Proposed Date:</strong> ${payload.job.reschedule.date}</p>
+                <p><strong>Proposed Date:</strong> ${rescheduleDate}</p>
                 `
                 let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
                 EmailService.send(contractor.email, emailSubject, html)
@@ -779,7 +838,7 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
                     hour: 'numeric',
                     minute: 'numeric',
                     hour12: true,
-                    timeZone: 'Europe/Bucharest',
+                    timeZone: contractor.currentTimezone,
                     timeZoneName: 'long'
                 }
                 const jobDateContractor = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(job.schedule.startDate));
@@ -873,7 +932,7 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
                     hour: 'numeric',
                     minute: 'numeric',
                     hour12: true,
-                    timeZone: 'Africa/Lagos',
+                    timeZone: customer.currentTimezone,
                     timeZoneName: 'long'
                 }
                 const jobDateCustomer = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(job.schedule.startDate));
