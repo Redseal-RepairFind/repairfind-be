@@ -1,4 +1,4 @@
-import { body, query } from "express-validator";
+import { body, param, query } from "express-validator";
 import { AdminStatus } from "../../../database/admin/interface/admin.interface";
 import { JOB_DISPUTE_STATUS } from "../../../database/common/job_dispute.model";
 import { contractorStatus, customerStatus } from "../../../constants/contractorStatus";
@@ -211,6 +211,40 @@ export const sendMessageParams = [
       }),
   ];
 
+
+  export const validateAppVersionCreation = [
+    body("version").notEmpty().withMessage("Version is required"),
+    body("type")
+        .notEmpty()
+        .isIn(["IOS", "ANDROID"])
+        .withMessage("Type must be either 'IOS' or 'ANDROID'"),
+    body("status")
+        .notEmpty()
+        .isIn(["beta", "stable", "alpha", "release-candidate"])
+        .withMessage("Status must be one of 'beta', 'stable', 'alpha', 'release-candidate'"),
+    body("changelogs").optional().isArray().withMessage("Changelogs must be an array"),
+    body("changelogs.*.title").optional().notEmpty().withMessage("Each changelog must have a title"),
+    body("changelogs.*.description").optional().notEmpty().withMessage("Each changelog must have a description"),
+    body("isCurrent").optional().isBoolean().withMessage("isCurrent must be a boolean"),
+];
+
+export const validateAppVersionUpdate = [
+    param("id").notEmpty().withMessage("App version ID is required"),
+    body("version").optional().notEmpty().withMessage("Version is required"),
+    body("type")
+        .optional()
+        .isIn(["IOS", "ANDROID"])
+        .withMessage("Type must be either 'IOS' or 'ANDROID'"),
+    body("status")
+        .optional()
+        .isIn(["beta", "stable", "alpha", "release-candidate"])
+        .withMessage("Status must be one of 'beta', 'stable', 'alpha', 'release-candidate'"),
+    body("changelogs").optional().isArray().withMessage("Changelogs must be an array"),
+    body("changelogs.*.title").optional().notEmpty().withMessage("Each changelog must have a title"),
+    body("changelogs.*.description").optional().notEmpty().withMessage("Each changelog must have a description"),
+    body("isCurrent").optional().isBoolean().withMessage("isCurrent must be a boolean"),
+];
+
 export const Validations = {
     PermissionCreationParam,
     EditPermissionParams,
@@ -224,5 +258,7 @@ export const Validations = {
     sendMessageParams,
     updateGstDetails,
     updateAccount,
-    sendCustomEmail
+    sendCustomEmail,
+    validateAppVersionUpdate,
+    validateAppVersionCreation
 }

@@ -18,6 +18,7 @@ import { Validations, createQuizParams, validatAdminEmailverificationParams, val
 import { AdminAuthController } from "../controllers/admin_auth.controller";
 import { AdminStaffController } from "../controllers/admin_staff.controller";
 import { AdminAnalyticsController } from "../controllers/admin_analytics.controller";
+import { AppVersionController } from "../controllers/app_version.controller";
 
 const express = require("express");
 const router = express.Router();
@@ -50,6 +51,12 @@ router.post("/permissions", Validations.PermissionCreationParam, checkAdminRole,
 router.post("/permissions/add-bulk", checkAdminRole, AdminPermissionController.addBulkPermission ); // super admin create permission
 router.get("/permissions", checkAdminRole, AdminPermissionController.getPermissions ); // super admin get all permission
 router.patch("/permissions/:permissionId", Validations.EditPermissionParams, checkAdminRole, AdminPermissionController.updatePermission ); // super admin edit permission
+
+router.post("/app-versions", Validations.validateAppVersionCreation, checkAdminRole, AppVersionController.addAppVersion ); 
+router.get("/app-versions", checkAdminRole, AppVersionController.getAppVersions ); 
+router.get("/app-versions/:id",  checkAdminRole, AppVersionController.getAppVersionById ); 
+router.patch("/app-versions/:id", Validations.validateAppVersionUpdate, checkAdminRole, AppVersionController.updateAppVersion ); 
+router.delete("/app-versions/:id",  checkAdminRole, AppVersionController.deleteAppVersion ); 
 
 
 //refactored contractor

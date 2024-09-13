@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Validations = exports.sendMessageParams = exports.StartCoversaionParams = exports.CustomerChangeStatusParams = exports.ContractorChangeStatusParams = exports.SettleDisputeParams = exports.DisputeStatusParams = exports.AddPermissionParams = exports.AddStaffParams = exports.EditPermissionParams = exports.PermissionCreationParam = exports.validateResolvedEmergecyIdParams = exports.validateEmergecyIdParams = exports.validatePayoutIDPayContractorParams = exports.validatePayoutIDParams = exports.validateRevenueDateParams = exports.validateDeleteQuestionValidationParams = exports.validateEditQuestionParams = exports.validateQuestionIdValidationParams = exports.createQuizParams = exports.validateAddQuestionParams = exports.validateTRansactionIdValidationParams = exports.validateJobIdValidationParams = exports.validateAddSkillParams = exports.validateContractoDocumentIdValidationParams = exports.sendCustomEmail = exports.updateAccount = exports.updateGstDetails = exports.validateCustomerIdValidationParams = exports.validateContractorIdValidationParams = exports.validateSuperAdmiCchangeStatusParams = exports.validateAdminResetPasswprdParams = exports.validateAdminChangePasswordParams = exports.validateAdminForgotPasswordParams = exports.validateAdminLoginParams = exports.validatAdminEmailverificationParams = exports.validateSignupParams = void 0;
+exports.Validations = exports.validateAppVersionUpdate = exports.validateAppVersionCreation = exports.sendMessageParams = exports.StartCoversaionParams = exports.CustomerChangeStatusParams = exports.ContractorChangeStatusParams = exports.SettleDisputeParams = exports.DisputeStatusParams = exports.AddPermissionParams = exports.AddStaffParams = exports.EditPermissionParams = exports.PermissionCreationParam = exports.validateResolvedEmergecyIdParams = exports.validateEmergecyIdParams = exports.validatePayoutIDPayContractorParams = exports.validatePayoutIDParams = exports.validateRevenueDateParams = exports.validateDeleteQuestionValidationParams = exports.validateEditQuestionParams = exports.validateQuestionIdValidationParams = exports.createQuizParams = exports.validateAddQuestionParams = exports.validateTRansactionIdValidationParams = exports.validateJobIdValidationParams = exports.validateAddSkillParams = exports.validateContractoDocumentIdValidationParams = exports.sendCustomEmail = exports.updateAccount = exports.updateGstDetails = exports.validateCustomerIdValidationParams = exports.validateContractorIdValidationParams = exports.validateSuperAdmiCchangeStatusParams = exports.validateAdminResetPasswprdParams = exports.validateAdminChangePasswordParams = exports.validateAdminForgotPasswordParams = exports.validateAdminLoginParams = exports.validatAdminEmailverificationParams = exports.validateSignupParams = void 0;
 var express_validator_1 = require("express-validator");
 var admin_interface_1 = require("../../../database/admin/interface/admin.interface");
 var job_dispute_model_1 = require("../../../database/common/job_dispute.model");
@@ -172,6 +172,37 @@ exports.sendMessageParams = [
         return true;
     }),
 ];
+exports.validateAppVersionCreation = [
+    (0, express_validator_1.body)("version").notEmpty().withMessage("Version is required"),
+    (0, express_validator_1.body)("type")
+        .notEmpty()
+        .isIn(["IOS", "ANDROID"])
+        .withMessage("Type must be either 'IOS' or 'ANDROID'"),
+    (0, express_validator_1.body)("status")
+        .notEmpty()
+        .isIn(["beta", "stable", "alpha", "release-candidate"])
+        .withMessage("Status must be one of 'beta', 'stable', 'alpha', 'release-candidate'"),
+    (0, express_validator_1.body)("changelogs").optional().isArray().withMessage("Changelogs must be an array"),
+    (0, express_validator_1.body)("changelogs.*.title").optional().notEmpty().withMessage("Each changelog must have a title"),
+    (0, express_validator_1.body)("changelogs.*.description").optional().notEmpty().withMessage("Each changelog must have a description"),
+    (0, express_validator_1.body)("isCurrent").optional().isBoolean().withMessage("isCurrent must be a boolean"),
+];
+exports.validateAppVersionUpdate = [
+    (0, express_validator_1.param)("id").notEmpty().withMessage("App version ID is required"),
+    (0, express_validator_1.body)("version").optional().notEmpty().withMessage("Version is required"),
+    (0, express_validator_1.body)("type")
+        .optional()
+        .isIn(["IOS", "ANDROID"])
+        .withMessage("Type must be either 'IOS' or 'ANDROID'"),
+    (0, express_validator_1.body)("status")
+        .optional()
+        .isIn(["beta", "stable", "alpha", "release-candidate"])
+        .withMessage("Status must be one of 'beta', 'stable', 'alpha', 'release-candidate'"),
+    (0, express_validator_1.body)("changelogs").optional().isArray().withMessage("Changelogs must be an array"),
+    (0, express_validator_1.body)("changelogs.*.title").optional().notEmpty().withMessage("Each changelog must have a title"),
+    (0, express_validator_1.body)("changelogs.*.description").optional().notEmpty().withMessage("Each changelog must have a description"),
+    (0, express_validator_1.body)("isCurrent").optional().isBoolean().withMessage("isCurrent must be a boolean"),
+];
 exports.Validations = {
     PermissionCreationParam: exports.PermissionCreationParam,
     EditPermissionParams: exports.EditPermissionParams,
@@ -185,5 +216,7 @@ exports.Validations = {
     sendMessageParams: exports.sendMessageParams,
     updateGstDetails: exports.updateGstDetails,
     updateAccount: exports.updateAccount,
-    sendCustomEmail: exports.sendCustomEmail
+    sendCustomEmail: exports.sendCustomEmail,
+    validateAppVersionUpdate: exports.validateAppVersionUpdate,
+    validateAppVersionCreation: exports.validateAppVersionCreation
 };
