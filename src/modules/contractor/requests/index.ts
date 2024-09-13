@@ -261,6 +261,11 @@ export const CreateJobDisputeRequest = [
 
 
 
+export const CreateAbuseReportRequest = [
+  body("reported").notEmpty(),
+  body("type").notEmpty(),
+  body("comment").notEmpty(),
+];
 
 
 export const ContractorHttpRequest = {
@@ -285,5 +290,6 @@ export const ContractorHttpRequest = {
   CreateCompanyDetailsRequest,
   UpgradeEmployeeProfileRequest,
   CreateJobDisputeRequest,
-  CreateJobEnquiryRequest
+  CreateJobEnquiryRequest,
+  CreateAbuseReportRequest
 }

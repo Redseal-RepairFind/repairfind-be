@@ -131,6 +131,10 @@ router.post("/feedback", checkContractorRole, (req: Request, res: Response, next
     ContractorController(req, res, next).submitFeedback();
 });
 
+router.post("/abuse-reports", checkContractorRole, ContractorHttpRequest.CreateAbuseReportRequest, (req: Request, res: Response, next: NextFunction) => {
+    ContractorController(req, res, next).submitReport();
+});
+
 
 //  QUiz
 router.get("/quiz-start", checkContractorRole, QuizController.StartQuiz );

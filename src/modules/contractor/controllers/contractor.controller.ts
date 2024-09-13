@@ -29,6 +29,7 @@ import { MessageModel } from "../../../database/common/messages.schema";
 import TransactionModel, { TRANSACTION_TYPE } from "../../../database/common/transaction.model";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { AccountEvent } from "../../../events";
+import { ABUSE_REPORT_TYPE, AbuseReportModel } from "../../../database/common/abuse_reports.model";
 
 
 class ProfileHandler extends Base {
@@ -1091,6 +1092,43 @@ class ProfileHandler extends Base {
       next(new InternalServerError("An error occurred", err))
     }
   }
+
+
+  @handleAsyncError()
+  public async submitReport(): Promise<Response | void> {
+    let req = <any>this.req;
+    let res = this.res;
+    let next = this.next
+    try {
+      const { reported, type = ABUSE_REPORT_TYPE.ABUSE, comment } = req.body;
+      const contractorId = req.contractor.id
+      const {reporter, reporterType, reportedType} =  {reporter: contractorId, reporterType: 'contractors', reportedType: 'customers' }
+
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+          return res.status(400).json({ success: false, message: 'Validation error occurred', errors: errors.array() });
+      }
+
+      // Create a new report
+      const newReport = new AbuseReportModel({
+          reporter,
+          reporterType,
+          reported,
+          reportedType,
+          type,
+          comment,
+      });
+
+      // Save the report to the database
+      const savedReport = await newReport.save();
+      return res.status(201).json({ success: true, message: 'Report successfully created', data: savedReport });
+  } catch (err: any) {
+      return next(new InternalServerError('Error occurred creating report', err));
+  }
+  }
+
+
+  
 
 
 }
