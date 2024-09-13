@@ -14,6 +14,7 @@ import { FeedbackModel } from "../../../database/common/feedback.model";
 import { InternalServerError } from "../../../utils/custom.errors";
 import { AdminEvent } from "../../../events/admin.events";
 import { AccountEvent } from "../../../events";
+import { ABUSE_REPORT_TYPE, AbuseReportModel } from "../../../database/common/abuse_reports.model";
 
 
 export const updateAccount = async (
@@ -350,6 +351,41 @@ export const submitFeedback = async (
 
 
 
+export const submitReport = async (
+  req: any,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { reported, type = ABUSE_REPORT_TYPE.ABUSE, comment } = req.body;
+    const customerId = req.customer.id
+    const {reporter, reporterType, reportedType} =  {reporter: customerId, reporterType: 'customers', reportedType: 'contractors' }
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, message: 'Validation error occurred', errors: errors.array() });
+    }
+
+    // Create a new report
+    const newReport = new AbuseReportModel({
+        reporter,
+        reporterType,
+        reported,
+        reportedType,
+        type,
+        comment,
+    });
+
+    // Save the report to the database
+    const savedReport = await newReport.save();
+    return res.status(201).json({ success: true, message: 'Report successfully created', data: savedReport });
+} catch (err: any) {
+    return next(new InternalServerError('Error occurred creating report', err));
+}
+}
+
+
+
 export const CustomerController = {
   changePassword,
   updateAccount,
@@ -358,5 +394,6 @@ export const CustomerController = {
   myDevices,
   deleteAccount,
   signOut,
-  submitFeedback
+  submitFeedback,
+  submitReport
 }

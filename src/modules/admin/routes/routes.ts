@@ -19,6 +19,7 @@ import { AdminAuthController } from "../controllers/admin_auth.controller";
 import { AdminStaffController } from "../controllers/admin_staff.controller";
 import { AdminAnalyticsController } from "../controllers/admin_analytics.controller";
 import { AppVersionController } from "../controllers/app_version.controller";
+import { AdminReportController } from "../controllers/admin_report.controller";
 
 const express = require("express");
 const router = express.Router();
@@ -52,11 +53,21 @@ router.post("/permissions/add-bulk", checkAdminRole, AdminPermissionController.a
 router.get("/permissions", checkAdminRole, AdminPermissionController.getPermissions ); // super admin get all permission
 router.patch("/permissions/:permissionId", Validations.EditPermissionParams, checkAdminRole, AdminPermissionController.updatePermission ); // super admin edit permission
 
+// App Versions
 router.post("/app-versions", Validations.validateAppVersionCreation, checkAdminRole, AppVersionController.addAppVersion ); 
 router.get("/app-versions", checkAdminRole, AppVersionController.getAppVersions ); 
 router.get("/app-versions/:id",  checkAdminRole, AppVersionController.getAppVersionById ); 
 router.patch("/app-versions/:id", Validations.validateAppVersionUpdate, checkAdminRole, AppVersionController.updateAppVersion ); 
 router.delete("/app-versions/:id",  checkAdminRole, AppVersionController.deleteAppVersion ); 
+
+
+
+// User Reports
+router.get("/abuse-reports", checkAdminRole, AdminReportController.getAllReports ); 
+router.get("/abuse-reports/:id",  checkAdminRole, AdminReportController.getReportById ); 
+router.patch("/abuse-reports/:id", Validations.validateAppVersionUpdate, checkAdminRole, AdminReportController.updateReport ); 
+
+
 
 
 //refactored contractor

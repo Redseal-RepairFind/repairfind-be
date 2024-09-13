@@ -273,6 +273,13 @@ export const validateFormData = (req: Request, res: Response, next: NextFunction
 };
 
 
+export const CreateAbuseReportRequest = [
+  body("reported").notEmpty(),
+  body("type").notEmpty(),
+  body("comment").notEmpty(),
+];
+
+
 
 
 export const CustomerHttpRequest = {
@@ -306,5 +313,6 @@ export const CustomerHttpRequest = {
   createJoListingParams,
   tripArrivalComfirmParams,
   sendMessageParams,
-  createJobDisputeParams
+  createJobDisputeParams,
+  CreateAbuseReportRequest
 }
