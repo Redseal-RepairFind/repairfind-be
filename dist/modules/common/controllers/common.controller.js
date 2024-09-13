@@ -39,12 +39,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CommonController = exports.sendTestNotification = exports.calculateCharges = exports.getOptions = exports.getSkills = exports.getCurrencies = exports.getCountries = exports.getBankList = void 0;
+exports.CommonController = exports.sendTestNotification = exports.calculateCharges = exports.getCurrentOrLatestAppVersions = exports.getOptions = exports.getSkills = exports.getCurrencies = exports.getCountries = exports.getBankList = void 0;
 var skill_model_1 = __importDefault(require("../../../database/admin/models/skill.model"));
 var custom_errors_1 = require("../../../utils/custom.errors");
 var country_schema_1 = require("../../../database/common/country.schema");
 var bank_schema_1 = require("../../../database/common/bank.schema");
 var payment_util_1 = require("../../../utils/payment.util");
+var app_versions_model_1 = require("../../../database/common/app_versions.model");
 var getBankList = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var data, err_1;
     return __generator(this, function (_a) {
@@ -140,8 +141,52 @@ var getOptions = function (req, res, next) { return __awaiter(void 0, void 0, vo
     });
 }); };
 exports.getOptions = getOptions;
+var getCurrentOrLatestAppVersions = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var currentIosVersion, currentAndroidVersion, latestIosVersion, latestAndroidVersion, err_4;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 7, , 8]);
+                return [4 /*yield*/, app_versions_model_1.AppVersionModel.findOne({ type: 'IOS', isCurrent: true }).exec()];
+            case 1:
+                currentIosVersion = _a.sent();
+                return [4 /*yield*/, app_versions_model_1.AppVersionModel.findOne({ type: 'ANDROID', isCurrent: true }).exec()];
+            case 2:
+                currentAndroidVersion = _a.sent();
+                if (!!currentIosVersion) return [3 /*break*/, 4];
+                return [4 /*yield*/, app_versions_model_1.AppVersionModel.findOne({ type: 'IOS' }).sort({ createdAt: -1 }).exec()];
+            case 3:
+                latestIosVersion = _a.sent();
+                currentIosVersion = latestIosVersion;
+                _a.label = 4;
+            case 4:
+                if (!!currentAndroidVersion) return [3 /*break*/, 6];
+                return [4 /*yield*/, app_versions_model_1.AppVersionModel.findOne({ type: 'ANDROID' }).sort({ createdAt: -1 }).exec()];
+            case 5:
+                latestAndroidVersion = _a.sent();
+                currentAndroidVersion = latestAndroidVersion;
+                _a.label = 6;
+            case 6:
+                // Return the current or latest versions
+                res.json({
+                    success: true,
+                    message: "App versions retrieved successfully",
+                    data: {
+                        IOS: currentIosVersion,
+                        ANDROID: currentAndroidVersion
+                    }
+                });
+                return [3 /*break*/, 8];
+            case 7:
+                err_4 = _a.sent();
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError("Error occurred while retrieving app versions", err_4))];
+            case 8: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getCurrentOrLatestAppVersions = getCurrentOrLatestAppVersions;
 var calculateCharges = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, amount, charges, err_4;
+    var _a, amount, charges, err_5;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -152,8 +197,8 @@ var calculateCharges = function (req, res, next) { return __awaiter(void 0, void
                 charges = _b.sent();
                 return [2 /*return*/, res.json({ success: true, message: "Payment charges calculated", data: charges })];
             case 2:
-                err_4 = _b.sent();
-                return [2 /*return*/, next(new custom_errors_1.InternalServerError('Error calculating payment charges', err_4))];
+                err_5 = _b.sent();
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError('Error calculating payment charges', err_5))];
             case 3: return [2 /*return*/];
         }
     });
@@ -188,5 +233,6 @@ exports.CommonController = {
     getCountries: exports.getCountries,
     getOptions: exports.getOptions,
     sendTestNotification: exports.sendTestNotification,
-    calculateCharges: exports.calculateCharges
+    calculateCharges: exports.calculateCharges,
+    getCurrentOrLatestAppVersions: exports.getCurrentOrLatestAppVersions
 };

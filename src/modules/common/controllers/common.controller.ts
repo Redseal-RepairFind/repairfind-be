@@ -7,6 +7,7 @@ import { BankModel } from "../../../database/common/bank.schema";
 import { Logger } from "../../../services/logger";
 import { PaymentUtil } from "../../../utils/payment.util";
 import { APNNotification, sendAPN2Notification, sendAPNNotification, sendNotification, sendSilentNotification } from "../../../services/notifications/apn";
+import { AppVersionModel } from "../../../database/common/app_versions.model";
 
 
 export const getBankList = async (
@@ -102,6 +103,39 @@ export const getOptions = async (
 }
 
 
+export const getCurrentOrLatestAppVersions = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+      // Fetch current versions for both IOS and ANDROID
+      let currentIosVersion = await AppVersionModel.findOne({ type: 'IOS', isCurrent: true }).exec();
+      let currentAndroidVersion = await AppVersionModel.findOne({ type: 'ANDROID', isCurrent: true }).exec();
+
+      // Fetch latest versions for both IOS and ANDROID if current versions are not found
+      if (!currentIosVersion) {
+          const latestIosVersion = await AppVersionModel.findOne({ type: 'IOS' }).sort({ createdAt: -1 }).exec();
+          currentIosVersion = latestIosVersion;
+      }
+
+      if (!currentAndroidVersion) {
+          const latestAndroidVersion = await AppVersionModel.findOne({ type: 'ANDROID' }).sort({ createdAt: -1 }).exec();
+          currentAndroidVersion = latestAndroidVersion;
+      }
+
+      // Return the current or latest versions
+      res.json({
+          success: true,
+          message: "App versions retrieved successfully",
+          data: {
+              IOS: currentIosVersion,
+              ANDROID: currentAndroidVersion
+          }
+      });
+
+  } catch (err: any) {
+      return next(new InternalServerError("Error occurred while retrieving app versions", err));
+  }
+};
+
+
 export const calculateCharges = async (
   req: Request,
   res: Response,
@@ -163,6 +197,7 @@ export const CommonController = {
   getCountries,
   getOptions,
   sendTestNotification,
-  calculateCharges
+  calculateCharges,
+  getCurrentOrLatestAppVersions
 }
 

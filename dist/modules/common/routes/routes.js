@@ -16,6 +16,7 @@ router.get("/trainings/get-quiz", training_controller_1.TrainingController.getQu
 router.post("/trainings/submit-quiz", training_controller_1.TrainingController.submitQuiz);
 router.post("/sessions/clear", requests_1.CommonHttpRequest.clearSessionParams, session_controller_1.SessionController.clearAuthSession);
 router.post("/payments/charges", requests_1.CommonHttpRequest.clearSessionParams, common_controller_1.CommonController.calculateCharges);
+router.get("/app-versions", common_controller_1.CommonController.getCurrentOrLatestAppVersions);
 router.post("/webhooks/stripe", webhook_controller_1.WebhookController.stripeWebook); // stripe webhook
 router.post("/webhooks/certn", webhook_controller_1.WebhookController.certnWebook); //  certn webhook
 router.post("/clear-queue", cli_controller_1.CliController.clearQueue); //

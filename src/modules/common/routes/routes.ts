@@ -22,6 +22,8 @@ router.post("/sessions/clear", CommonHttpRequest.clearSessionParams,  SessionCon
 router.post("/payments/charges", CommonHttpRequest.clearSessionParams,  CommonController.calculateCharges ); 
 
 
+router.get("/app-versions",  CommonController.getCurrentOrLatestAppVersions ); 
+
 
 router.post("/webhooks/stripe",  WebhookController.stripeWebook ); // stripe webhook
 router.post("/webhooks/certn",  WebhookController.certnWebook ); //  certn webhook
