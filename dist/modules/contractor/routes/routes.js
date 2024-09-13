@@ -108,6 +108,9 @@ router.post("/feedback", contractorRoleCheck_middleware_1.checkContractorRole, f
 router.post("/feedback", contractorRoleCheck_middleware_1.checkContractorRole, function (req, res, next) {
     (0, contractor_controller_1.ContractorController)(req, res, next).submitFeedback();
 });
+router.post("/abuse-reports", contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateAbuseReportRequest, function (req, res, next) {
+    (0, contractor_controller_1.ContractorController)(req, res, next).submitReport();
+});
 //  QUiz
 router.get("/quiz-start", contractorRoleCheck_middleware_1.checkContractorRole, contractor_training_controller_1.QuizController.StartQuiz);
 router.post("/quiz-submit", contractorRoleCheck_middleware_1.checkContractorRole, contractor_training_controller_1.QuizController.SubmitQuiz);

@@ -20,6 +20,7 @@ var admin_auth_controller_1 = require("../controllers/admin_auth.controller");
 var admin_staff_controller_1 = require("../controllers/admin_staff.controller");
 var admin_analytics_controller_1 = require("../controllers/admin_analytics.controller");
 var app_version_controller_1 = require("../controllers/app_version.controller");
+var admin_report_controller_1 = require("../controllers/admin_report.controller");
 var express = require("express");
 var router = express.Router();
 //refactored authecation
@@ -42,11 +43,16 @@ router.post("/permissions", admin_validations_middleware_1.Validations.Permissio
 router.post("/permissions/add-bulk", adminRoleChecker_middleware_1.checkAdminRole, permission_controller_1.AdminPermissionController.addBulkPermission); // super admin create permission
 router.get("/permissions", adminRoleChecker_middleware_1.checkAdminRole, permission_controller_1.AdminPermissionController.getPermissions); // super admin get all permission
 router.patch("/permissions/:permissionId", admin_validations_middleware_1.Validations.EditPermissionParams, adminRoleChecker_middleware_1.checkAdminRole, permission_controller_1.AdminPermissionController.updatePermission); // super admin edit permission
+// App Versions
 router.post("/app-versions", admin_validations_middleware_1.Validations.validateAppVersionCreation, adminRoleChecker_middleware_1.checkAdminRole, app_version_controller_1.AppVersionController.addAppVersion);
 router.get("/app-versions", adminRoleChecker_middleware_1.checkAdminRole, app_version_controller_1.AppVersionController.getAppVersions);
 router.get("/app-versions/:id", adminRoleChecker_middleware_1.checkAdminRole, app_version_controller_1.AppVersionController.getAppVersionById);
 router.patch("/app-versions/:id", admin_validations_middleware_1.Validations.validateAppVersionUpdate, adminRoleChecker_middleware_1.checkAdminRole, app_version_controller_1.AppVersionController.updateAppVersion);
 router.delete("/app-versions/:id", adminRoleChecker_middleware_1.checkAdminRole, app_version_controller_1.AppVersionController.deleteAppVersion);
+// User Reports
+router.get("/abuse-reports", adminRoleChecker_middleware_1.checkAdminRole, admin_report_controller_1.AdminReportController.getAllReports);
+router.get("/abuse-reports/:id", adminRoleChecker_middleware_1.checkAdminRole, admin_report_controller_1.AdminReportController.getReportById);
+router.patch("/abuse-reports/:id", admin_validations_middleware_1.Validations.validateAppVersionUpdate, adminRoleChecker_middleware_1.checkAdminRole, admin_report_controller_1.AdminReportController.updateReport);
 //refactored contractor
 router.get("/contractors", adminRoleChecker_middleware_1.checkAdminRole, admin_contractors_controller_1.AdminContractorController.exploreContractors); // admin get contractor detail
 router.get("/contractors/:contractorId", adminRoleChecker_middleware_1.checkAdminRole, admin_contractors_controller_1.AdminContractorController.getSingleContractor); // admin get single contractor detail

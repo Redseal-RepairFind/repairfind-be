@@ -106,6 +106,7 @@ var review_model_1 = require("../../../database/common/review.model");
 var feedback_model_1 = require("../../../database/common/feedback.model");
 var admin_events_1 = require("../../../events/admin.events");
 var events_1 = require("../../../events");
+var abuse_reports_model_1 = require("../../../database/common/abuse_reports.model");
 var ProfileHandler = /** @class */ (function (_super) {
     __extends(ProfileHandler, _super);
     function ProfileHandler() {
@@ -1257,6 +1258,45 @@ var ProfileHandler = /** @class */ (function (_super) {
             });
         });
     };
+    ProfileHandler.prototype.submitReport = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var req, res, next, _a, reported, _b, type, comment, contractorId, _c, reporter, reporterType, reportedType, errors, newReport, savedReport, err_15;
+            return __generator(this, function (_d) {
+                switch (_d.label) {
+                    case 0:
+                        req = this.req;
+                        res = this.res;
+                        next = this.next;
+                        _d.label = 1;
+                    case 1:
+                        _d.trys.push([1, 3, , 4]);
+                        _a = req.body, reported = _a.reported, _b = _a.type, type = _b === void 0 ? abuse_reports_model_1.ABUSE_REPORT_TYPE.ABUSE : _b, comment = _a.comment;
+                        contractorId = req.contractor.id;
+                        _c = { reporter: contractorId, reporterType: 'contractors', reportedType: 'customers' }, reporter = _c.reporter, reporterType = _c.reporterType, reportedType = _c.reportedType;
+                        errors = (0, express_validator_1.validationResult)(req);
+                        if (!errors.isEmpty()) {
+                            return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation error occurred', errors: errors.array() })];
+                        }
+                        newReport = new abuse_reports_model_1.AbuseReportModel({
+                            reporter: reporter,
+                            reporterType: reporterType,
+                            reported: reported,
+                            reportedType: reportedType,
+                            type: type,
+                            comment: comment,
+                        });
+                        return [4 /*yield*/, newReport.save()];
+                    case 2:
+                        savedReport = _d.sent();
+                        return [2 /*return*/, res.status(201).json({ success: true, message: 'Report successfully created', data: savedReport })];
+                    case 3:
+                        err_15 = _d.sent();
+                        return [2 /*return*/, next(new custom_errors_1.InternalServerError('Error occurred creating report', err_15))];
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
     __decorate([
         (0, decorators_abstract_1.handleAsyncError)(),
         __metadata("design:type", Function),
@@ -1371,6 +1411,12 @@ var ProfileHandler = /** @class */ (function (_super) {
         __metadata("design:paramtypes", []),
         __metadata("design:returntype", Promise)
     ], ProfileHandler.prototype, "submitFeedback", null);
+    __decorate([
+        (0, decorators_abstract_1.handleAsyncError)(),
+        __metadata("design:type", Function),
+        __metadata("design:paramtypes", []),
+        __metadata("design:returntype", Promise)
+    ], ProfileHandler.prototype, "submitReport", null);
     return ProfileHandler;
 }(base_abstract_1.Base));
 var ContractorController = function () {

@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerController = exports.submitFeedback = exports.signOut = exports.deleteAccount = exports.updateOrCreateDevice = exports.myDevices = exports.changePassword = exports.getAccount = exports.updateAccount = void 0;
+exports.CustomerController = exports.submitReport = exports.submitFeedback = exports.signOut = exports.deleteAccount = exports.updateOrCreateDevice = exports.myDevices = exports.changePassword = exports.getAccount = exports.updateAccount = void 0;
 var express_validator_1 = require("express-validator");
 var bcrypt_1 = __importDefault(require("bcrypt"));
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
@@ -50,6 +50,7 @@ var feedback_model_1 = require("../../../database/common/feedback.model");
 var custom_errors_1 = require("../../../utils/custom.errors");
 var admin_events_1 = require("../../../events/admin.events");
 var events_1 = require("../../../events");
+var abuse_reports_model_1 = require("../../../database/common/abuse_reports.model");
 var updateAccount = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, firstName, lastName, location_1, phoneNumber, profilePhoto, errors, customerId, customer, updatedCustomer, err_1;
     return __generator(this, function (_b) {
@@ -340,6 +341,39 @@ var submitFeedback = function (req, res, next) { return __awaiter(void 0, void 0
     });
 }); };
 exports.submitFeedback = submitFeedback;
+var submitReport = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, reported, _b, type, comment, customerId, _c, reporter, reporterType, reportedType, errors, newReport, savedReport, err_6;
+    return __generator(this, function (_d) {
+        switch (_d.label) {
+            case 0:
+                _d.trys.push([0, 2, , 3]);
+                _a = req.body, reported = _a.reported, _b = _a.type, type = _b === void 0 ? abuse_reports_model_1.ABUSE_REPORT_TYPE.ABUSE : _b, comment = _a.comment;
+                customerId = req.customer.id;
+                _c = { reporter: customerId, reporterType: 'customers', reportedType: 'contractors' }, reporter = _c.reporter, reporterType = _c.reporterType, reportedType = _c.reportedType;
+                errors = (0, express_validator_1.validationResult)(req);
+                if (!errors.isEmpty()) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation error occurred', errors: errors.array() })];
+                }
+                newReport = new abuse_reports_model_1.AbuseReportModel({
+                    reporter: reporter,
+                    reporterType: reporterType,
+                    reported: reported,
+                    reportedType: reportedType,
+                    type: type,
+                    comment: comment,
+                });
+                return [4 /*yield*/, newReport.save()];
+            case 1:
+                savedReport = _d.sent();
+                return [2 /*return*/, res.status(201).json({ success: true, message: 'Report successfully created', data: savedReport })];
+            case 2:
+                err_6 = _d.sent();
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError('Error occurred creating report', err_6))];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.submitReport = submitReport;
 exports.CustomerController = {
     changePassword: exports.changePassword,
     updateAccount: exports.updateAccount,
@@ -348,5 +382,6 @@ exports.CustomerController = {
     myDevices: exports.myDevices,
     deleteAccount: exports.deleteAccount,
     signOut: exports.signOut,
-    submitFeedback: exports.submitFeedback
+    submitFeedback: exports.submitFeedback,
+    submitReport: exports.submitReport
 };

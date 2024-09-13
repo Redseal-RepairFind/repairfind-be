@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerHttpRequest = exports.validateFormData = exports.sendMessageParams = exports.createJobDisputeParams = exports.tripArrivalComfirmParams = exports.createJoListingParams = exports.createJobRequestParams = exports.sendJobRequestParams = exports.queryContractorParams = exports.filterContractorParams = exports.searchCategoryDateParams = exports.searchContractorByCategoryDateParams = exports.searchContractorByLocationParams = exports.UpdateOrDeviceParams = exports.jobListingParams = exports.createStripeSessionParams = exports.rateContractorParams = exports.confirmInspectionPaymentParams = exports.confirmPaymentParams = exports.acceptAndPayParams = exports.updateProfileParams = exports.getContractorParams = exports.searchParams = exports.verifyPasswordOtpParams = exports.changePasswordParams = exports.resetPasswordParams = exports.forgotPasswordParams = exports.loginWithPhoneParams = exports.loginParams = exports.verifySocialSignon = exports.emailVerificationParams = exports.signupParams = void 0;
+exports.CustomerHttpRequest = exports.CreateAbuseReportRequest = exports.validateFormData = exports.sendMessageParams = exports.createJobDisputeParams = exports.tripArrivalComfirmParams = exports.createJoListingParams = exports.createJobRequestParams = exports.sendJobRequestParams = exports.queryContractorParams = exports.filterContractorParams = exports.searchCategoryDateParams = exports.searchContractorByCategoryDateParams = exports.searchContractorByLocationParams = exports.UpdateOrDeviceParams = exports.jobListingParams = exports.createStripeSessionParams = exports.rateContractorParams = exports.confirmInspectionPaymentParams = exports.confirmPaymentParams = exports.acceptAndPayParams = exports.updateProfileParams = exports.getContractorParams = exports.searchParams = exports.verifyPasswordOtpParams = exports.changePasswordParams = exports.resetPasswordParams = exports.forgotPasswordParams = exports.loginWithPhoneParams = exports.loginParams = exports.verifySocialSignon = exports.emailVerificationParams = exports.signupParams = void 0;
 var express_validator_1 = require("express-validator");
 var contractor_interface_1 = require("../../../database/contractor/interface/contractor.interface");
 exports.signupParams = [
@@ -247,6 +247,11 @@ var validateFormData = function (req, res, next) {
     next();
 };
 exports.validateFormData = validateFormData;
+exports.CreateAbuseReportRequest = [
+    (0, express_validator_1.body)("reported").notEmpty(),
+    (0, express_validator_1.body)("type").notEmpty(),
+    (0, express_validator_1.body)("comment").notEmpty(),
+];
 exports.CustomerHttpRequest = {
     signupParams: exports.signupParams,
     emailVerificationParams: exports.emailVerificationParams,
@@ -278,5 +283,6 @@ exports.CustomerHttpRequest = {
     createJoListingParams: exports.createJoListingParams,
     tripArrivalComfirmParams: exports.tripArrivalComfirmParams,
     sendMessageParams: exports.sendMessageParams,
-    createJobDisputeParams: exports.createJobDisputeParams
+    createJobDisputeParams: exports.createJobDisputeParams,
+    CreateAbuseReportRequest: exports.CreateAbuseReportRequest
 };
