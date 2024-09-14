@@ -135,6 +135,13 @@ router.post("/abuse-reports", checkContractorRole, ContractorHttpRequest.CreateA
     ContractorController(req, res, next).submitReport();
 });
 
+router.post("/block-customer", checkContractorRole, ContractorHttpRequest.BlocUserkRequest, (req: Request, res: Response, next: NextFunction) => {
+    ContractorController(req, res, next).blockUser();
+});
+router.post("/unblock-customer", checkContractorRole, ContractorHttpRequest.BlocUserkRequest, (req: Request, res: Response, next: NextFunction) => {
+    ContractorController(req, res, next).unBlockUser();
+});
+
 
 //  QUiz
 router.get("/quiz-start", checkContractorRole, QuizController.StartQuiz );

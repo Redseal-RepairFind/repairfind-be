@@ -30,6 +30,7 @@ import TransactionModel, { TRANSACTION_TYPE } from "../../../database/common/tra
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { AccountEvent } from "../../../events";
 import { ABUSE_REPORT_TYPE, AbuseReportModel } from "../../../database/common/abuse_reports.model";
+import { BLOCK_USER_REASON, BlockedUserModel } from "../../../database/common/user_blocks.model";
 
 
 class ProfileHandler extends Base {
@@ -909,7 +910,7 @@ class ProfileHandler extends Base {
         return res.status(404).json({ success: false, message: 'User not found' });
       }
 
-      
+
       // Find the contractor device with the provided device ID and type
       let contractorDevice = await ContractorDeviceModel.findOneAndUpdate(
         { contractor: contractorId, deviceToken: deviceToken },
@@ -995,37 +996,37 @@ class ProfileHandler extends Base {
       }
 
       // perform checks here
-      const bookedJobs = await JobModel.find({contractor: contractorId, status: {$in: [JOB_STATUS.BOOKED] }})
-      if(bookedJobs.length > 0){
+      const bookedJobs = await JobModel.find({ contractor: contractorId, status: { $in: [JOB_STATUS.BOOKED] } })
+      if (bookedJobs.length > 0) {
         return res.status(400).json({ success: false, message: 'You have an active Job, account cannot be deleted', data: bookedJobs });
       }
-  
-      const disputedJobs = await JobModel.find({contractor: contractorId, status: {$in: [JOB_STATUS.DISPUTED] }})
-      if(disputedJobs.length > 0){
+
+      const disputedJobs = await JobModel.find({ contractor: contractorId, status: { $in: [JOB_STATUS.DISPUTED] } })
+      if (disputedJobs.length > 0) {
         return res.status(400).json({ success: false, message: 'You have an pending dispute, account cannot be deleted', data: disputedJobs });
       }
-  
-      const ongoingJobs = await JobModel.find({contractor: contractorId, status: {$in: [JOB_STATUS.ONGOING ] }})
-      if(ongoingJobs.length > 0){
-        return res.status(400).json({ success: false, message: 'You have  ongoing jobs, account cannot be deleted', data: ongoingJobs});
-      } 
 
-      await ContractorProfileModel.findOneAndUpdate({contractor: contractorId}, {
+      const ongoingJobs = await JobModel.find({ contractor: contractorId, status: { $in: [JOB_STATUS.ONGOING] } })
+      if (ongoingJobs.length > 0) {
+        return res.status(400).json({ success: false, message: 'You have  ongoing jobs, account cannot be deleted', data: ongoingJobs });
+      }
+
+      await ContractorProfileModel.findOneAndUpdate({ contractor: contractorId }, {
         isOffDuty: true
       })
 
       const deletedAccount = account
       account.email = `${account.email}:${account.id}`
       account.deletedAt = new Date()
-      account.phoneNumber = {code: "+", number: account.id, verifiedAt: null}
+      account.phoneNumber = { code: "+", number: account.id, verifiedAt: null }
       account.firstName = 'Deleted'
       account.lastName = 'Account'
-      account.profilePhoto = {url: 'https://ipalas3bucket.s3.us-east-2.amazonaws.com/avatar.png'}
+      account.profilePhoto = { url: 'https://ipalas3bucket.s3.us-east-2.amazonaws.com/avatar.png' }
       // account.status = 
-      
+
 
       await account.save()
-  
+
       await ContractorModel.deleteById(contractorId)
 
       AccountEvent.emit('ACCOUNT_DELETED', deletedAccount)
@@ -1042,7 +1043,7 @@ class ProfileHandler extends Base {
     let req = <any>this.req;
     let res = this.res;
     try {
-      
+
       // Assume the token is in the Authorization header (Bearer token)
       const token = req.headers.authorization?.split(' ')[1];
 
@@ -1085,7 +1086,7 @@ class ProfileHandler extends Base {
       const feedback = await FeedbackModel.create({ user: contractorId, userType: 'contractors', media, remark });
 
       const user = await ContractorModel.findById(contractorId);
-      AdminEvent.emit('NEW_FEEDBACK', {feedback, user})
+      AdminEvent.emit('NEW_FEEDBACK', { feedback, user })
 
       res.json({ success: true, message: 'Feedback submitted' });
     } catch (err: any) {
@@ -1102,33 +1103,86 @@ class ProfileHandler extends Base {
     try {
       const { reported, type = ABUSE_REPORT_TYPE.ABUSE, comment } = req.body;
       const contractorId = req.contractor.id
-      const {reporter, reporterType, reportedType} =  {reporter: contractorId, reporterType: 'contractors', reportedType: 'customers' }
+      const { reporter, reporterType, reportedType } = { reporter: contractorId, reporterType: 'contractors', reportedType: 'customers' }
 
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-          return res.status(400).json({ success: false, message: 'Validation error occurred', errors: errors.array() });
+        return res.status(400).json({ success: false, message: 'Validation error occurred', errors: errors.array() });
       }
 
       // Create a new report
       const newReport = new AbuseReportModel({
-          reporter,
-          reporterType,
-          reported,
-          reportedType,
-          type,
-          comment,
+        reporter,
+        reporterType,
+        reported,
+        reportedType,
+        type,
+        comment,
       });
 
       // Save the report to the database
       const savedReport = await newReport.save();
       return res.status(201).json({ success: true, message: 'Report successfully created', data: savedReport });
-  } catch (err: any) {
+    } catch (err: any) {
       return next(new InternalServerError('Error occurred creating report', err));
-  }
+    }
   }
 
 
-  
+  @handleAsyncError()
+  public async blockUser(): Promise<Response | void> {
+    let req = <any>this.req;
+    let res = this.res;
+    let next = this.next
+    try {
+      const { customerId, reason = BLOCK_USER_REASON.ABUSE } = req.body;
+      const contractorId = req.contractor.id
+
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, message: 'Validation error occurred', errors: errors.array() });
+      }
+
+      await BlockedUserModel.findOneAndUpdate({ blockedUser: contractorId, blockedUserType: 'contractors', user: customerId, userType: 'customers' }, {
+        blockedUser: customerId,
+        blockedUserType: 'customers',
+        user: contractorId,
+        userType: 'contractors',
+        reason: reason
+      }, { upsert: true, new: true })
+
+
+      return res.status(201).json({ success: true, message: 'Customer successfully blocked' });
+    } catch (err: any) {
+      return next(new InternalServerError('Error occurred while blocking customer', err));
+    }
+  }
+
+
+  @handleAsyncError()
+  public async unBlockUser(): Promise<Response | void> {
+    let req = <any>this.req;
+    let res = this.res;
+    let next = this.next
+    try {
+      const { customerId, reason = BLOCK_USER_REASON.ABUSE } = req.body;
+      const contractorId = req.contractor.id
+
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, message: 'Validation error occurred', errors: errors.array() });
+      }
+
+      await BlockedUserModel.findOneAndDelete({ blockedUser: contractorId, blockedUserType: 'contractors', user: customerId, userType: 'customers' })
+
+      return res.status(201).json({ success: true, message: 'Customer successfully unblocked' });
+    } catch (err: any) {
+      return next(new InternalServerError('Error occurred while unblocking customer', err));
+    }
+  }
+
+
+
 
 
 }

@@ -107,6 +107,7 @@ var feedback_model_1 = require("../../../database/common/feedback.model");
 var admin_events_1 = require("../../../events/admin.events");
 var events_1 = require("../../../events");
 var abuse_reports_model_1 = require("../../../database/common/abuse_reports.model");
+var user_blocks_model_1 = require("../../../database/common/user_blocks.model");
 var ProfileHandler = /** @class */ (function (_super) {
     __extends(ProfileHandler, _super);
     function ProfileHandler() {
@@ -1297,6 +1298,72 @@ var ProfileHandler = /** @class */ (function (_super) {
             });
         });
     };
+    ProfileHandler.prototype.blockUser = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var req, res, next, _a, customerId, _b, reason, contractorId, errors, err_16;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
+                    case 0:
+                        req = this.req;
+                        res = this.res;
+                        next = this.next;
+                        _c.label = 1;
+                    case 1:
+                        _c.trys.push([1, 3, , 4]);
+                        _a = req.body, customerId = _a.customerId, _b = _a.reason, reason = _b === void 0 ? user_blocks_model_1.BLOCK_USER_REASON.ABUSE : _b;
+                        contractorId = req.contractor.id;
+                        errors = (0, express_validator_1.validationResult)(req);
+                        if (!errors.isEmpty()) {
+                            return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation error occurred', errors: errors.array() })];
+                        }
+                        return [4 /*yield*/, user_blocks_model_1.BlockedUserModel.findOneAndUpdate({ blockedUser: contractorId, blockedUserType: 'contractors', user: customerId, userType: 'customers' }, {
+                                blockedUser: customerId,
+                                blockedUserType: 'customers',
+                                user: contractorId,
+                                userType: 'contractors',
+                                reason: reason
+                            }, { upsert: true, new: true })];
+                    case 2:
+                        _c.sent();
+                        return [2 /*return*/, res.status(201).json({ success: true, message: 'Customer successfully blocked' })];
+                    case 3:
+                        err_16 = _c.sent();
+                        return [2 /*return*/, next(new custom_errors_1.InternalServerError('Error occurred while blocking customer', err_16))];
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    ProfileHandler.prototype.unBlockUser = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var req, res, next, _a, customerId, _b, reason, contractorId, errors, err_17;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
+                    case 0:
+                        req = this.req;
+                        res = this.res;
+                        next = this.next;
+                        _c.label = 1;
+                    case 1:
+                        _c.trys.push([1, 3, , 4]);
+                        _a = req.body, customerId = _a.customerId, _b = _a.reason, reason = _b === void 0 ? user_blocks_model_1.BLOCK_USER_REASON.ABUSE : _b;
+                        contractorId = req.contractor.id;
+                        errors = (0, express_validator_1.validationResult)(req);
+                        if (!errors.isEmpty()) {
+                            return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation error occurred', errors: errors.array() })];
+                        }
+                        return [4 /*yield*/, user_blocks_model_1.BlockedUserModel.findOneAndDelete({ blockedUser: contractorId, blockedUserType: 'contractors', user: customerId, userType: 'customers' })];
+                    case 2:
+                        _c.sent();
+                        return [2 /*return*/, res.status(201).json({ success: true, message: 'Customer successfully unblocked' })];
+                    case 3:
+                        err_17 = _c.sent();
+                        return [2 /*return*/, next(new custom_errors_1.InternalServerError('Error occurred while unblocking customer', err_17))];
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
     __decorate([
         (0, decorators_abstract_1.handleAsyncError)(),
         __metadata("design:type", Function),
@@ -1417,6 +1484,18 @@ var ProfileHandler = /** @class */ (function (_super) {
         __metadata("design:paramtypes", []),
         __metadata("design:returntype", Promise)
     ], ProfileHandler.prototype, "submitReport", null);
+    __decorate([
+        (0, decorators_abstract_1.handleAsyncError)(),
+        __metadata("design:type", Function),
+        __metadata("design:paramtypes", []),
+        __metadata("design:returntype", Promise)
+    ], ProfileHandler.prototype, "blockUser", null);
+    __decorate([
+        (0, decorators_abstract_1.handleAsyncError)(),
+        __metadata("design:type", Function),
+        __metadata("design:paramtypes", []),
+        __metadata("design:returntype", Promise)
+    ], ProfileHandler.prototype, "unBlockUser", null);
     return ProfileHandler;
 }(base_abstract_1.Base));
 var ContractorController = function () {

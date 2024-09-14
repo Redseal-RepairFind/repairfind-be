@@ -45,6 +45,8 @@ router.post("/signout", checkCustomerRole,  CustomerController.signOut );
 
 router.post("/feedback", checkCustomerRole,  CustomerController.submitFeedback ); 
 router.post("/abuse-reports", checkCustomerRole, CustomerHttpRequest.CreateAbuseReportRequest,  CustomerController.submitReport ); 
+router.post("/block-contractor", checkCustomerRole, CustomerHttpRequest.BlocUserkRequest,  CustomerController.blockUser ); 
+router.post("/unblock-contractor", checkCustomerRole, CustomerHttpRequest.BlocUserkRequest,  CustomerController.unBlockUser ); 
 
 
 

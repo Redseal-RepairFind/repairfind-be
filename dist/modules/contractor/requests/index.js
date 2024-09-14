@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContractorHttpRequest = exports.CreateAbuseReportRequest = exports.CreateJobDisputeRequest = exports.sendMessageParams = exports.CreateExtraJobQuotationRequest = exports.CreateJobEnquiryRequest = exports.CreateJobQuotationRequest = exports.CreateScheduleRequest = exports.UpdateOrDevice = exports.CreateStripeSessionRequest = exports.InviteToTeam = exports.CreateCompanyDetailsRequest = exports.CreateGstDetailsRequest = exports.UpdateBankDetailRequest = exports.PasswordChangeRequest = exports.PasswordResetRequest = exports.ResendEmailRequest = exports.LoginWithPhoneRequest = exports.LoginRequest = exports.EmailVerificationRequest = exports.UpgradeEmployeeProfileRequest = exports.UpdateProfileRequest = exports.CreateProfileRequest = exports.CreateContractorRequest = void 0;
+exports.ContractorHttpRequest = exports.BlocUserkRequest = exports.CreateAbuseReportRequest = exports.CreateJobDisputeRequest = exports.sendMessageParams = exports.CreateExtraJobQuotationRequest = exports.CreateJobEnquiryRequest = exports.CreateJobQuotationRequest = exports.CreateScheduleRequest = exports.UpdateOrDevice = exports.CreateStripeSessionRequest = exports.InviteToTeam = exports.CreateCompanyDetailsRequest = exports.CreateGstDetailsRequest = exports.UpdateBankDetailRequest = exports.PasswordChangeRequest = exports.PasswordResetRequest = exports.ResendEmailRequest = exports.LoginWithPhoneRequest = exports.LoginRequest = exports.EmailVerificationRequest = exports.UpgradeEmployeeProfileRequest = exports.UpdateProfileRequest = exports.CreateProfileRequest = exports.CreateContractorRequest = void 0;
 var express_validator_1 = require("express-validator");
 exports.CreateContractorRequest = [
     (0, express_validator_1.body)('email').isEmail(),
@@ -298,6 +298,9 @@ exports.CreateAbuseReportRequest = [
     (0, express_validator_1.body)("type").notEmpty(),
     (0, express_validator_1.body)("comment").notEmpty(),
 ];
+exports.BlocUserkRequest = [
+    (0, express_validator_1.body)("customerId").notEmpty(),
+];
 exports.ContractorHttpRequest = {
     CreateProfileRequest: exports.CreateProfileRequest,
     CreateContractorRequest: exports.CreateContractorRequest,
@@ -321,5 +324,6 @@ exports.ContractorHttpRequest = {
     UpgradeEmployeeProfileRequest: exports.UpgradeEmployeeProfileRequest,
     CreateJobDisputeRequest: exports.CreateJobDisputeRequest,
     CreateJobEnquiryRequest: exports.CreateJobEnquiryRequest,
-    CreateAbuseReportRequest: exports.CreateAbuseReportRequest
+    CreateAbuseReportRequest: exports.CreateAbuseReportRequest,
+    BlocUserkRequest: exports.BlocUserkRequest
 };
