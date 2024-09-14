@@ -281,6 +281,12 @@ export const CreateAbuseReportRequest = [
 
 
 
+export const BlocUserkRequest = [
+  body("contractorId").notEmpty(),
+];
+
+
+
 
 export const CustomerHttpRequest = {
   signupParams,
@@ -314,5 +320,6 @@ export const CustomerHttpRequest = {
   tripArrivalComfirmParams,
   sendMessageParams,
   createJobDisputeParams,
-  CreateAbuseReportRequest
+  CreateAbuseReportRequest,
+  BlocUserkRequest
 }

@@ -15,6 +15,7 @@ import { InternalServerError } from "../../../utils/custom.errors";
 import { AdminEvent } from "../../../events/admin.events";
 import { AccountEvent } from "../../../events";
 import { ABUSE_REPORT_TYPE, AbuseReportModel } from "../../../database/common/abuse_reports.model";
+import { BLOCK_USER_REASON, BlockedUserModel } from "../../../database/common/user_blocks.model";
 
 
 export const updateAccount = async (
@@ -91,7 +92,7 @@ export const getAccount = async (req: any, res: Response) => {
 
 
     //TODO: for now always update the meta data of stripe customer with this email address
-    
+
     // const stripeCustomer = await StripeService.customer.getCustomer({email: customer.email});
     // if (customer.stripeCustomer && stripeCustomer) {
     //   StripeService.customer.updateCustomer(customer.stripeCustomer.id, {
@@ -101,9 +102,9 @@ export const getAccount = async (req: any, res: Response) => {
     //   const stripe_customer =  castPayloadToDTO(stripeCustomer, stripeCustomer as IStripeCustomer)
     //   console.log(stripe_customer)
     //   // customer.save()
-      
+
     // } else {
-     
+
     //   await StripeService.customer.createCustomer({
     //     email: customer.email,
     //     metadata: {
@@ -237,7 +238,7 @@ export const updateOrCreateDevice = async (
       //return res.status(404).json({ success: false, message: 'Device already exits' });
     }
 
- 
+
     // Find the customer device with the provided device ID and type
     let customerDevice = await CustomerDeviceModel.findOneAndUpdate(
       { customer: customerId, deviceToken },
@@ -263,25 +264,25 @@ export const deleteAccount = async (
   try {
     const customerId = req.customer.id;
 
-    const account = await CustomerModel.findOne({_id:customerId});
+    const account = await CustomerModel.findOne({ _id: customerId });
     if (!account) {
       return res.status(404).json({ success: false, message: 'Account not found' });
     }
 
     // perform checks here
-    const bookedJobs = await JobModel.find({customer: customerId, status: {$in: [JOB_STATUS.BOOKED] }})
-    if(bookedJobs.length > 0){
+    const bookedJobs = await JobModel.find({ customer: customerId, status: { $in: [JOB_STATUS.BOOKED] } })
+    if (bookedJobs.length > 0) {
       return res.status(400).json({ success: false, message: 'You have an active Job, account cannot be deleted', data: bookedJobs });
     }
 
-    const disputedJobs = await JobModel.find({customer: customerId, status: {$in: [JOB_STATUS.DISPUTED] }})
-    if(disputedJobs.length > 0){
+    const disputedJobs = await JobModel.find({ customer: customerId, status: { $in: [JOB_STATUS.DISPUTED] } })
+    if (disputedJobs.length > 0) {
       return res.status(400).json({ success: false, message: 'You have an pending dispute, account cannot be deleted', data: disputedJobs });
     }
 
-    const ongoingJobs = await JobModel.find({customer: customerId, status: {$in: [JOB_STATUS.ONGOING ] }})
-    if(ongoingJobs.length > 0){
-      return res.status(400).json({ success: false, message: 'You have  ongoing jobs, account cannot be deleted', data: ongoingJobs});
+    const ongoingJobs = await JobModel.find({ customer: customerId, status: { $in: [JOB_STATUS.ONGOING] } })
+    if (ongoingJobs.length > 0) {
+      return res.status(400).json({ success: false, message: 'You have  ongoing jobs, account cannot be deleted', data: ongoingJobs });
     }
 
 
@@ -289,16 +290,16 @@ export const deleteAccount = async (
 
     account.email = `${account.email}:${account.id}`
     account.deletedAt = new Date()
-    account.phoneNumber = {code: "+", number: account.id, verifiedAt: null}
+    account.phoneNumber = { code: "+", number: account.id, verifiedAt: null }
 
     account.firstName = 'Deleted'
     account.lastName = 'Account'
-    account.profilePhoto = {url: "https://ipalas3bucket.s3.us-east-2.amazonaws.com/avatar.png"}
+    account.profilePhoto = { url: "https://ipalas3bucket.s3.us-east-2.amazonaws.com/avatar.png" }
 
     await account.save()
 
     AccountEvent.emit('ACCOUNT_DELETED', account)
-    res.json({success: true, message: 'Account deleted successfully'});
+    res.json({ success: true, message: 'Account deleted successfully' });
   } catch (err: any) {
     console.log('error', err);
     res.status(500).json({ success: false, message: err.message });
@@ -339,10 +340,10 @@ export const submitFeedback = async (
       media,
       remark,
     } = req.body
-   
+
     const feedback = await FeedbackModel.create({ user: customerId, userType: 'customers', media, remark });
     const user = await CustomerModel.findById(customerId);
-    AdminEvent.emit('NEW_FEEDBACK', {feedback, user})
+    AdminEvent.emit('NEW_FEEDBACK', { feedback, user })
     res.json({ success: true, message: 'Feedback submitted' });
   } catch (err: any) {
     next(new InternalServerError("An error occurred", err))
@@ -359,29 +360,85 @@ export const submitReport = async (
   try {
     const { reported, type = ABUSE_REPORT_TYPE.ABUSE, comment } = req.body;
     const customerId = req.customer.id
-    const {reporter, reporterType, reportedType} =  {reporter: customerId, reporterType: 'customers', reportedType: 'contractors' }
+    const { reporter, reporterType, reportedType } = { reporter: customerId, reporterType: 'customers', reportedType: 'contractors' }
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(400).json({ success: false, message: 'Validation error occurred', errors: errors.array() });
+      return res.status(400).json({ success: false, message: 'Validation error occurred', errors: errors.array() });
     }
 
     // Create a new report
     const newReport = new AbuseReportModel({
-        reporter,
-        reporterType,
-        reported,
-        reportedType,
-        type,
-        comment,
+      reporter,
+      reporterType,
+      reported,
+      reportedType,
+      type,
+      comment,
     });
 
     // Save the report to the database
     const savedReport = await newReport.save();
     return res.status(201).json({ success: true, message: 'Report successfully created', data: savedReport });
-} catch (err: any) {
+  } catch (err: any) {
     return next(new InternalServerError('Error occurred creating report', err));
+  }
 }
+
+
+export const blockUser = async (
+  req: any,
+  res: Response,
+  next: NextFunction,
+) => {
+ 
+  try {
+    const { contractorId, reason = BLOCK_USER_REASON.ABUSE, comment } = req.body;
+    const customerId = req.customer.id
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, message: 'Validation error occurred', errors: errors.array() });
+    }
+
+    await BlockedUserModel.findOneAndUpdate({blockedUser: contractorId, blockedUserType: 'contractors', user: customerId, userType: 'customers'},{
+      blockedUser: contractorId, 
+      blockedUserType: 'contractors',
+      user: customerId, 
+      userType: 'customers',
+      reason: reason
+    }, {upsert: true, new: true})
+
+   
+    return res.status(201).json({ success: true, message: 'Contractor successfully blocked' });
+  } catch (err: any) {
+    return next(new InternalServerError('Error occurred while blocking contractor', err));
+  }
+}
+
+
+
+export const unBlockUser = async (
+  req: any,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { contractorId, reason = BLOCK_USER_REASON.ABUSE, comment } = req.body;
+    const customerId = req.customer.id
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, message: 'Validation error occurred', errors: errors.array() });
+    }
+
+    await BlockedUserModel.findOneAndDelete({blockedUser: contractorId, blockedUserType: 'contractors', user: customerId, userType: 'customers'})
+
+   
+    return res.status(200).json({ success: true, message: 'Contractor successfully unblocked' });
+  } catch (err: any) {
+    return next(new InternalServerError('Error occurred while  unblocking contractor', err));
+  }
 }
 
 
@@ -395,5 +452,7 @@ export const CustomerController = {
   deleteAccount,
   signOut,
   submitFeedback,
-  submitReport
+  submitReport,
+  blockUser,
+  unBlockUser
 }

@@ -267,6 +267,10 @@ export const CreateAbuseReportRequest = [
   body("comment").notEmpty(),
 ];
 
+export const BlocUserkRequest = [
+  body("customerId").notEmpty(),
+];
+
 
 export const ContractorHttpRequest = {
   CreateProfileRequest,
@@ -291,5 +295,6 @@ export const ContractorHttpRequest = {
   UpgradeEmployeeProfileRequest,
   CreateJobDisputeRequest,
   CreateJobEnquiryRequest,
-  CreateAbuseReportRequest
+  CreateAbuseReportRequest,
+  BlocUserkRequest
 }
