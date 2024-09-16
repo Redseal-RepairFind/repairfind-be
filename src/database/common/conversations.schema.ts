@@ -22,6 +22,7 @@ export interface IConversation extends Document {
     lastMessageAt: Date;
     type: string;
     lastMessage: string;
+    isBlocked: boolean;
     entity: ObjectId
     entityType: ConversationEntityType
     heading: Object;
@@ -62,6 +63,10 @@ const ConversationSchema = new mongoose.Schema<IConversation>({
     },
     lastMessageAt: {
         type: Date
+    },
+    isBlocked: {
+        type: Boolean,
+        default: false,
     }
 },
     {

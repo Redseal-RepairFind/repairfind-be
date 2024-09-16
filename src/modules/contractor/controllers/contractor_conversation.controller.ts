@@ -3,12 +3,13 @@ import { applyAPIFeature } from "../../../utils/api.feature";
 import { CONVERSATION_TYPE, ConversationModel } from "../../../database/common/conversations.schema";
 import { IMessage, MessageModel, MessageType } from "../../../database/common/messages.schema";
 import { ConversationEvent } from "../../../events";
-import { BadRequestError, InternalServerError } from "../../../utils/custom.errors";
+import { BadRequestError, InternalServerError, NotFoundError } from "../../../utils/custom.errors";
 import { validationResult } from "express-validator";
 import { ContractorModel } from "../../../database/contractor/models/contractor.model";
 import CustomerModel from "../../../database/customer/models/customer.model";
 import mongoose, { Schema } from "mongoose";
 import { ConversationUtil } from "../../../utils/conversation.util";
+import { BlockedUserUtil } from "../../../utils/blockeduser.util";
 
 export const getConversations = async (req: any, res: Response, next: NextFunction) => {
     try {
@@ -47,15 +48,21 @@ export const getSingleConversation = async (req: any, res: Response, next: NextF
         const contractorId = req.contractor.id;
         const query: any = { 'members.member': contractorId, _id: conversationId };
 
+       
         const conversation = await ConversationModel.findOne(query).populate(['entity', 'members']).exec();
-        if(conversation){
-            conversation.heading = await conversation.getHeading(contractorId);
-            
-            if(conversation.entityType == 'jobs'){
-                //@ts-ignore
-                conversation.entity.myQuotation = await conversation.entity.getMyQuotation(conversation.entity.id, contractorId);
-            }
+        if(!conversation){
+            return next(new NotFoundError('An error occurred '))
         }
+        conversation.heading = await conversation.getHeading(contractorId);
+        const conversationMembers = conversation.members
+        //@ts-ignore
+        const isBlocked = await BlockedUserUtil.isUserBlocked(conversationMembers[0].member, conversationMembers[0].memberType, conversationMembers[1].member, conversationMembers[1].memberType)
+        conversation.isBlocked = isBlocked
+        if(conversation.entityType == 'jobs'){
+            //@ts-ignore
+            conversation.entity.myQuotation = await conversation.entity.getMyQuotation(conversation.entity.id, contractorId);
+        }
+
         res.status(200).json({ success: true, message: "Conversation retrieved", data: conversation });
     } catch (error: any) {
         return next(new InternalServerError('An error occurred ', error))

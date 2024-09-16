@@ -39,21 +39,29 @@ export const getConversations = async (req: any, res: Response): Promise<void> =
     }
 };
 
-export const getSingleConversation = async (req: any, res: Response): Promise<void> => {
+export const getSingleConversation = async (req: any, res: Response) => {
     try {
         const { conversationId } = req.params;
         const customerId = req.customer.id
         // const query: any = { 'members.member': customerId, _id: conversationId };
         const conversation = await ConversationModel.findById(conversationId).populate(['entity', 'members']);
-        if(conversation){
-            conversation.heading = await conversation.getHeading(customerId);
-            if(conversation.entityType == 'jobs'){
-                // try to get contractor
-                const contractor = conversation.members.find((member: any) => member.memberType == 'contractors');
-                const contractorId = contractor?.member
-                // @ts-ignore
-                conversation.entity.myQuotation = await conversation.entity.getMyQuotation(conversation.entity.id, contractorId);
-            }
+        
+        if(!conversation){
+            return res.status(500).json({ success: false, message: "Conversation not found" });
+        }
+        const conversationMembers = conversation.members
+        
+        //@ts-ignore
+        const isBlocked = await BlockedUserUtil.isUserBlocked(conversationMembers[0].member, conversationMembers[0].memberType, conversationMembers[1].member, conversationMembers[1].memberType)
+        conversation.isBlocked = isBlocked
+
+        conversation.heading = await conversation.getHeading(customerId);
+        if(conversation.entityType == 'jobs'){
+            // try to get contractor
+            const contractor = conversation.members.find((member: any) => member.memberType == 'contractors');
+            const contractorId = contractor?.member
+            // @ts-ignore
+            conversation.entity.myQuotation = await conversation.entity.getMyQuotation(conversation.entity.id, contractorId);
         }
 
         

@@ -50,6 +50,7 @@ var contractor_model_1 = require("../../../database/contractor/models/contractor
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var mongoose_1 = __importDefault(require("mongoose"));
 var conversation_util_1 = require("../../../utils/conversation.util");
+var blockeduser_util_1 = require("../../../utils/blockeduser.util");
 var getConversations = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, startDate, endDate, read, unread, contractorId_1, filter, _b, data, error, error_1;
     return __generator(this, function (_c) {
@@ -106,37 +107,44 @@ var getConversations = function (req, res, next) { return __awaiter(void 0, void
 }); };
 exports.getConversations = getConversations;
 var getSingleConversation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var conversationId, contractorId, query, conversation, _a, _b, error_2;
+    var conversationId, contractorId, query, conversation, _a, conversationMembers, isBlocked, _b, error_2;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
-                _c.trys.push([0, 5, , 6]);
+                _c.trys.push([0, 6, , 7]);
                 conversationId = req.params.conversationId;
                 contractorId = req.contractor.id;
                 query = { 'members.member': contractorId, _id: conversationId };
                 return [4 /*yield*/, conversations_schema_1.ConversationModel.findOne(query).populate(['entity', 'members']).exec()];
             case 1:
                 conversation = _c.sent();
-                if (!conversation) return [3 /*break*/, 4];
+                if (!conversation) {
+                    return [2 /*return*/, next(new custom_errors_1.NotFoundError('An error occurred '))];
+                }
                 _a = conversation;
                 return [4 /*yield*/, conversation.getHeading(contractorId)];
             case 2:
                 _a.heading = _c.sent();
-                if (!(conversation.entityType == 'jobs')) return [3 /*break*/, 4];
+                conversationMembers = conversation.members;
+                return [4 /*yield*/, blockeduser_util_1.BlockedUserUtil.isUserBlocked(conversationMembers[0].member, conversationMembers[0].memberType, conversationMembers[1].member, conversationMembers[1].memberType)];
+            case 3:
+                isBlocked = _c.sent();
+                conversation.isBlocked = isBlocked;
+                if (!(conversation.entityType == 'jobs')) return [3 /*break*/, 5];
                 //@ts-ignore
                 _b = conversation.entity;
                 return [4 /*yield*/, conversation.entity.getMyQuotation(conversation.entity.id, contractorId)];
-            case 3:
+            case 4:
                 //@ts-ignore
                 _b.myQuotation = _c.sent();
-                _c.label = 4;
-            case 4:
-                res.status(200).json({ success: true, message: "Conversation retrieved", data: conversation });
-                return [3 /*break*/, 6];
+                _c.label = 5;
             case 5:
+                res.status(200).json({ success: true, message: "Conversation retrieved", data: conversation });
+                return [3 /*break*/, 7];
+            case 6:
                 error_2 = _c.sent();
                 return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred ', error_2))];
-            case 6: return [2 /*return*/];
+            case 7: return [2 /*return*/];
         }
     });
 }); };

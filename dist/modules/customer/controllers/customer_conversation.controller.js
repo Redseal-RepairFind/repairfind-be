@@ -96,40 +96,47 @@ var getConversations = function (req, res) { return __awaiter(void 0, void 0, vo
 }); };
 exports.getConversations = getConversations;
 var getSingleConversation = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var conversationId, customerId, conversation, _a, contractor, contractorId, _b, error_2;
+    var conversationId, customerId, conversation, conversationMembers, isBlocked, _a, contractor, contractorId, _b, error_2;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
-                _c.trys.push([0, 5, , 6]);
+                _c.trys.push([0, 6, , 7]);
                 conversationId = req.params.conversationId;
                 customerId = req.customer.id;
                 return [4 /*yield*/, conversations_schema_1.ConversationModel.findById(conversationId).populate(['entity', 'members'])];
             case 1:
                 conversation = _c.sent();
-                if (!conversation) return [3 /*break*/, 4];
+                if (!conversation) {
+                    return [2 /*return*/, res.status(500).json({ success: false, message: "Conversation not found" })];
+                }
+                conversationMembers = conversation.members;
+                return [4 /*yield*/, BlockedUserUtil.isUserBlocked(conversationMembers[0].member, conversationMembers[0].memberType, conversationMembers[1].member, conversationMembers[1].memberType)];
+            case 2:
+                isBlocked = _c.sent();
+                conversation.isBlocked = isBlocked;
                 _a = conversation;
                 return [4 /*yield*/, conversation.getHeading(customerId)];
-            case 2:
+            case 3:
                 _a.heading = _c.sent();
-                if (!(conversation.entityType == 'jobs')) return [3 /*break*/, 4];
+                if (!(conversation.entityType == 'jobs')) return [3 /*break*/, 5];
                 contractor = conversation.members.find(function (member) { return member.memberType == 'contractors'; });
                 contractorId = contractor === null || contractor === void 0 ? void 0 : contractor.member;
                 // @ts-ignore
                 _b = conversation.entity;
                 return [4 /*yield*/, conversation.entity.getMyQuotation(conversation.entity.id, contractorId)];
-            case 3:
+            case 4:
                 // @ts-ignore
                 _b.myQuotation = _c.sent();
-                _c.label = 4;
-            case 4:
-                res.status(200).json({ success: true, message: "Conversation retrieved", data: conversation });
-                return [3 /*break*/, 6];
+                _c.label = 5;
             case 5:
+                res.status(200).json({ success: true, message: "Conversation retrieved", data: conversation });
+                return [3 /*break*/, 7];
+            case 6:
                 error_2 = _c.sent();
                 console.error("Error fetching conversation:", error_2);
                 res.status(500).json({ success: false, message: "Server error" });
-                return [3 /*break*/, 6];
-            case 6: return [2 /*return*/];
+                return [3 /*break*/, 7];
+            case 7: return [2 /*return*/];
         }
     });
 }); };

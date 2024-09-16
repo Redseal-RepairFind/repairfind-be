@@ -98,6 +98,10 @@ var ConversationSchema = new mongoose_1.default.Schema({
     },
     lastMessageAt: {
         type: Date
+    },
+    isBlocked: {
+        type: Boolean,
+        default: false,
     }
 }, {
     toObject: {
