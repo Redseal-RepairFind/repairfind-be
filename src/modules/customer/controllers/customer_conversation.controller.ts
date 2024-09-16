@@ -6,6 +6,7 @@ import { MessageModel, MessageType } from "../../../database/common/messages.sch
 import { ConversationEvent } from "../../../events";
 import { BadRequestError, InternalServerError } from "../../../utils/custom.errors";
 import { ConversationUtil } from "../../../utils/conversation.util";
+import { BlockedUserUtil } from "../../../utils/blockeduser.util";
 
  
 export const getConversations = async (req: any, res: Response): Promise<void> => {

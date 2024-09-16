@@ -44,6 +44,7 @@ var messages_schema_1 = require("../../../database/common/messages.schema");
 var events_1 = require("../../../events");
 var custom_errors_1 = require("../../../utils/custom.errors");
 var conversation_util_1 = require("../../../utils/conversation.util");
+var blockeduser_util_1 = require("../../../utils/blockeduser.util");
 var getConversations = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, startDate, endDate, read, unread, customerId_1, filter, _b, data, error, error_1;
     return __generator(this, function (_c) {
@@ -110,7 +111,7 @@ var getSingleConversation = function (req, res) { return __awaiter(void 0, void 
                     return [2 /*return*/, res.status(500).json({ success: false, message: "Conversation not found" })];
                 }
                 conversationMembers = conversation.members;
-                return [4 /*yield*/, BlockedUserUtil.isUserBlocked(conversationMembers[0].member, conversationMembers[0].memberType, conversationMembers[1].member, conversationMembers[1].memberType)];
+                return [4 /*yield*/, blockeduser_util_1.BlockedUserUtil.isUserBlocked(conversationMembers[0].member, conversationMembers[0].memberType, conversationMembers[1].member, conversationMembers[1].memberType)];
             case 2:
                 isBlocked = _c.sent();
                 conversation.isBlocked = isBlocked;
