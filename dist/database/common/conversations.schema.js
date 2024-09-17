@@ -168,7 +168,7 @@ ConversationSchema.methods.getHeading = function (loggedInUserId) {
         });
     });
 };
-ConversationSchema.methods.getIsBlocked = function (loggedInUserId) {
+ConversationSchema.methods.getIsBlocked = function () {
     return __awaiter(this, void 0, void 0, function () {
         var conversationMembers, isBlocked;
         return __generator(this, function (_a) {

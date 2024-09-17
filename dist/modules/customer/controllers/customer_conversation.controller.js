@@ -96,7 +96,7 @@ var getConversations = function (req, res) { return __awaiter(void 0, void 0, vo
 }); };
 exports.getConversations = getConversations;
 var getSingleConversation = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var conversationId, customerId, conversation, conversationMembers, _a, _b, contractor, contractorId, _c, error_2;
+    var conversationId, customerId, conversation, _a, _b, contractor, contractorId, _c, error_2;
     return __generator(this, function (_d) {
         switch (_d.label) {
             case 0:
@@ -109,7 +109,6 @@ var getSingleConversation = function (req, res) { return __awaiter(void 0, void 
                 if (!conversation) {
                     return [2 /*return*/, res.status(500).json({ success: false, message: "Conversation not found" })];
                 }
-                conversationMembers = conversation.members;
                 _a = conversation;
                 return [4 /*yield*/, conversation.getIsBlocked()];
             case 2:

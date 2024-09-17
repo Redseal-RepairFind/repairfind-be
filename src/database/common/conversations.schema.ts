@@ -35,7 +35,7 @@ export interface IConversation extends Document {
         totalAmount: number;
         contractorAmount: number;
     };
-    getIsBlocked: () => {}
+    getIsBlocked:  () => {}
 }
 
 const ConversationSchema = new mongoose.Schema<IConversation>({
@@ -129,10 +129,10 @@ ConversationSchema.methods.getHeading = async function (loggedInUserId: string) 
 };
 
 
-ConversationSchema.methods.getIsBlocked = async function (loggedInUserId: string) {
+ConversationSchema.methods.getIsBlocked = async function () {
     const conversationMembers = this.members
     const isBlocked = await BlockedUserUtil.isUserBlocked(conversationMembers[0].member, conversationMembers[0].memberType, conversationMembers[1].member, conversationMembers[1].memberType)
-    return isBlocked 
+    return isBlocked as boolean
 
 };
 

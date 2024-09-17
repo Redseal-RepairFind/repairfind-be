@@ -50,7 +50,6 @@ var contractor_model_1 = require("../../../database/contractor/models/contractor
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var mongoose_1 = __importDefault(require("mongoose"));
 var conversation_util_1 = require("../../../utils/conversation.util");
-var blockeduser_util_1 = require("../../../utils/blockeduser.util");
 var getConversations = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, startDate, endDate, read, unread, contractorId_1, filter, _b, data, error, error_1;
     return __generator(this, function (_c) {
@@ -107,42 +106,41 @@ var getConversations = function (req, res, next) { return __awaiter(void 0, void
 }); };
 exports.getConversations = getConversations;
 var getSingleConversation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var conversationId, contractorId, query, conversation, _a, conversationMembers, isBlocked, _b, error_2;
-    return __generator(this, function (_c) {
-        switch (_c.label) {
+    var conversationId, contractorId, query, conversation, _a, _b, _c, error_2;
+    return __generator(this, function (_d) {
+        switch (_d.label) {
             case 0:
-                _c.trys.push([0, 6, , 7]);
+                _d.trys.push([0, 6, , 7]);
                 conversationId = req.params.conversationId;
                 contractorId = req.contractor.id;
                 query = { 'members.member': contractorId, _id: conversationId };
                 return [4 /*yield*/, conversations_schema_1.ConversationModel.findOne(query).populate(['entity', 'members']).exec()];
             case 1:
-                conversation = _c.sent();
+                conversation = _d.sent();
                 if (!conversation) {
                     return [2 /*return*/, next(new custom_errors_1.NotFoundError('An error occurred '))];
                 }
                 _a = conversation;
                 return [4 /*yield*/, conversation.getHeading(contractorId)];
             case 2:
-                _a.heading = _c.sent();
-                conversationMembers = conversation.members;
-                return [4 /*yield*/, blockeduser_util_1.BlockedUserUtil.isUserBlocked(conversationMembers[0].member, conversationMembers[0].memberType, conversationMembers[1].member, conversationMembers[1].memberType)];
+                _a.heading = _d.sent();
+                _b = conversation;
+                return [4 /*yield*/, conversation.getIsBlocked()];
             case 3:
-                isBlocked = _c.sent();
-                conversation.isBlocked = isBlocked;
+                _b.isBlocked = (_d.sent());
                 if (!(conversation.entityType == 'jobs')) return [3 /*break*/, 5];
                 //@ts-ignore
-                _b = conversation.entity;
+                _c = conversation.entity;
                 return [4 /*yield*/, conversation.entity.getMyQuotation(conversation.entity.id, contractorId)];
             case 4:
                 //@ts-ignore
-                _b.myQuotation = _c.sent();
-                _c.label = 5;
+                _c.myQuotation = _d.sent();
+                _d.label = 5;
             case 5:
                 res.status(200).json({ success: true, message: "Conversation retrieved", data: conversation });
                 return [3 /*break*/, 7];
             case 6:
-                error_2 = _c.sent();
+                error_2 = _d.sent();
                 return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred ', error_2))];
             case 7: return [2 /*return*/];
         }
@@ -205,11 +203,11 @@ var getConversationMessages = function (req, res, next) { return __awaiter(void 
 }); };
 exports.getConversationMessages = getConversationMessages;
 var sendMessage = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, conversationId, _a, message, media, type, contractorId_3, conversation, customerIsMember, newMessage, restrictedContentCheck, error_4;
+    var errors, conversationId, _a, message, media, type, contractorId_3, conversation, customerIsMember, isBlocked, newMessage, restrictedContentCheck, error_4;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 6, , 7]);
+                _b.trys.push([0, 7, , 8]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -228,6 +226,12 @@ var sendMessage = function (req, res, next) { return __awaiter(void 0, void 0, v
                 if (!customerIsMember) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'Unauthorized: You do not have access to this conversation' })];
                 }
+                return [4 /*yield*/, conversation.getIsBlocked()];
+            case 2:
+                isBlocked = _b.sent();
+                if (!isBlocked) {
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'You can not send message to this contractor' })];
+                }
                 newMessage = new messages_schema_1.MessageModel({
                     conversation: conversationId,
                     sender: contractorId_3, // Assuming the customer sends the message
@@ -245,9 +249,9 @@ var sendMessage = function (req, res, next) { return __awaiter(void 0, void 0, v
                     }
                 }
                 return [4 /*yield*/, newMessage.save()];
-            case 2:
+            case 3:
                 _b.sent();
-                if (!newMessage) return [3 /*break*/, 5];
+                if (!newMessage) return [3 /*break*/, 6];
                 return [4 /*yield*/, conversations_schema_1.ConversationModel.updateOne({ _id: conversationId }, // Filter criteria to find the conversation document
                     {
                         $set: {
@@ -255,22 +259,22 @@ var sendMessage = function (req, res, next) { return __awaiter(void 0, void 0, v
                             lastMessageAt: newMessage.createdAt,
                         }
                     })];
-            case 3:
+            case 4:
                 _b.sent();
                 // push sender to readBy array
                 newMessage.readBy.push(contractorId_3);
                 return [4 /*yield*/, newMessage.save()];
-            case 4:
-                _b.sent();
-                _b.label = 5;
             case 5:
+                _b.sent();
+                _b.label = 6;
+            case 6:
                 events_1.ConversationEvent.emit('NEW_MESSAGE', { message: newMessage });
                 res.status(201).json({ success: true, message: 'Message sent successfully', data: newMessage });
-                return [3 /*break*/, 7];
-            case 6:
+                return [3 /*break*/, 8];
+            case 7:
                 error_4 = _b.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('Error sending message', error_4))];
-            case 7: return [2 /*return*/];
+            case 8: return [2 /*return*/];
         }
     });
 }); };

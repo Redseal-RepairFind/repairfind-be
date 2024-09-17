@@ -9,7 +9,6 @@ import { ContractorModel } from "../../../database/contractor/models/contractor.
 import CustomerModel from "../../../database/customer/models/customer.model";
 import mongoose, { Schema } from "mongoose";
 import { ConversationUtil } from "../../../utils/conversation.util";
-import { BlockedUserUtil } from "../../../utils/blockeduser.util";
 
 export const getConversations = async (req: any, res: Response, next: NextFunction) => {
     try {
@@ -54,10 +53,9 @@ export const getSingleConversation = async (req: any, res: Response, next: NextF
             return next(new NotFoundError('An error occurred '))
         }
         conversation.heading = await conversation.getHeading(contractorId);
-        const conversationMembers = conversation.members
-        //@ts-ignore
-        const isBlocked = await BlockedUserUtil.isUserBlocked(conversationMembers[0].member, conversationMembers[0].memberType, conversationMembers[1].member, conversationMembers[1].memberType)
-        conversation.isBlocked = isBlocked
+        
+        conversation.isBlocked = await conversation.getIsBlocked() as boolean
+
         if(conversation.entityType == 'jobs'){
             //@ts-ignore
             conversation.entity.myQuotation = await conversation.entity.getMyQuotation(conversation.entity.id, contractorId);
@@ -136,6 +134,11 @@ export const sendMessage = async (req: any, res: Response, next: NextFunction) =
         const customerIsMember = conversation.members.some((member: any) => member.member.toString() === contractorId);
         if (!customerIsMember) {
             return res.status(403).json({ success: false, message: 'Unauthorized: You do not have access to this conversation' });
+        }
+
+        const isBlocked = await conversation.getIsBlocked()
+        if (!isBlocked) {
+            return res.status(403).json({ success: false, message: 'You can not send message to this contractor' });
         }
 
         // Create a new message in the conversation
