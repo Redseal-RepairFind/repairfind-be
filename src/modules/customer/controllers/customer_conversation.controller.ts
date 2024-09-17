@@ -7,6 +7,7 @@ import { ConversationEvent } from "../../../events";
 import { BadRequestError, InternalServerError } from "../../../utils/custom.errors";
 import { ConversationUtil } from "../../../utils/conversation.util";
 import { BlockedUserUtil } from "../../../utils/blockeduser.util";
+import { bool } from "aws-sdk/clients/signer";
 
  
 export const getConversations = async (req: any, res: Response): Promise<void> => {
@@ -52,10 +53,7 @@ export const getSingleConversation = async (req: any, res: Response) => {
         }
         const conversationMembers = conversation.members
         
-        //@ts-ignore
-        const isBlocked = await BlockedUserUtil.isUserBlocked(conversationMembers[0].member, conversationMembers[0].memberType, conversationMembers[1].member, conversationMembers[1].memberType)
-        conversation.isBlocked = isBlocked
-
+        conversation.isBlocked = await conversation.getIsBlocked() as bool
         conversation.heading = await conversation.getHeading(customerId);
         if(conversation.entityType == 'jobs'){
             // try to get contractor
@@ -147,7 +145,12 @@ export const sendMessage = async (req: any, res: Response, next: NextFunction) =
         }
 
 
-        
+        const isBlocked = await conversation.getIsBlocked()
+        if (!isBlocked) {
+            return res.status(403).json({ success: false, message: 'You can not send message to this contractor' });
+        }
+
+
 
         // Create a new message in the conversation
         const newMessage = new MessageModel({

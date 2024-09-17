@@ -1,6 +1,7 @@
 import mongoose, { Document, ObjectId, Schema, model } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
 import { MessageModel, MessageType } from './messages.schema';
+import { BlockedUserUtil } from '../../utils/blockeduser.util';
 
 export enum ConversationEntityType {
     BOOKING = 'bookings',
@@ -34,6 +35,7 @@ export interface IConversation extends Document {
         totalAmount: number;
         contractorAmount: number;
     };
+    getIsBlocked: () => {}
 }
 
 const ConversationSchema = new mongoose.Schema<IConversation>({
@@ -124,6 +126,14 @@ ConversationSchema.methods.getHeading = async function (loggedInUserId: string) 
             };
         }
     }
+};
+
+
+ConversationSchema.methods.getIsBlocked = async function (loggedInUserId: string) {
+    const conversationMembers = this.members
+    const isBlocked = await BlockedUserUtil.isUserBlocked(conversationMembers[0].member, conversationMembers[0].memberType, conversationMembers[1].member, conversationMembers[1].memberType)
+    return isBlocked 
+
 };
 
 
