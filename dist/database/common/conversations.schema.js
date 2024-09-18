@@ -62,6 +62,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ConversationModel = exports.CONVERSATION_TYPE = exports.ConversationEntityType = void 0;
 var mongoose_1 = __importStar(require("mongoose"));
 var messages_schema_1 = require("./messages.schema");
+var blockeduser_util_1 = require("../../utils/blockeduser.util");
 var ConversationEntityType;
 (function (ConversationEntityType) {
     ConversationEntityType["BOOKING"] = "bookings";
@@ -98,6 +99,10 @@ var ConversationSchema = new mongoose_1.default.Schema({
     },
     lastMessageAt: {
         type: Date
+    },
+    isBlocked: {
+        type: Boolean,
+        default: false,
     }
 }, {
     toObject: {
@@ -159,6 +164,21 @@ ConversationSchema.methods.getHeading = function (loggedInUserId) {
                     }
                     _c.label = 4;
                 case 4: return [2 /*return*/];
+            }
+        });
+    });
+};
+ConversationSchema.methods.getIsBlocked = function () {
+    return __awaiter(this, void 0, void 0, function () {
+        var conversationMembers, isBlocked;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    conversationMembers = this.members;
+                    return [4 /*yield*/, blockeduser_util_1.BlockedUserUtil.isUserBlocked(conversationMembers[0].member, conversationMembers[0].memberType, conversationMembers[1].member, conversationMembers[1].memberType)];
+                case 1:
+                    isBlocked = _a.sent();
+                    return [2 /*return*/, isBlocked];
             }
         });
     });

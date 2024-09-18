@@ -3,7 +3,7 @@ import { applyAPIFeature } from "../../../utils/api.feature";
 import { CONVERSATION_TYPE, ConversationModel } from "../../../database/common/conversations.schema";
 import { IMessage, MessageModel, MessageType } from "../../../database/common/messages.schema";
 import { ConversationEvent } from "../../../events";
-import { BadRequestError, InternalServerError } from "../../../utils/custom.errors";
+import { BadRequestError, InternalServerError, NotFoundError } from "../../../utils/custom.errors";
 import { validationResult } from "express-validator";
 import { ContractorModel } from "../../../database/contractor/models/contractor.model";
 import CustomerModel from "../../../database/customer/models/customer.model";
@@ -47,15 +47,20 @@ export const getSingleConversation = async (req: any, res: Response, next: NextF
         const contractorId = req.contractor.id;
         const query: any = { 'members.member': contractorId, _id: conversationId };
 
+       
         const conversation = await ConversationModel.findOne(query).populate(['entity', 'members']).exec();
-        if(conversation){
-            conversation.heading = await conversation.getHeading(contractorId);
-            
-            if(conversation.entityType == 'jobs'){
-                //@ts-ignore
-                conversation.entity.myQuotation = await conversation.entity.getMyQuotation(conversation.entity.id, contractorId);
-            }
+        if(!conversation){
+            return next(new NotFoundError('An error occurred '))
         }
+        conversation.heading = await conversation.getHeading(contractorId);
+        
+        conversation.isBlocked = await conversation.getIsBlocked() as boolean
+
+        if(conversation.entityType == 'jobs'){
+            //@ts-ignore
+            conversation.entity.myQuotation = await conversation.entity.getMyQuotation(conversation.entity.id, contractorId);
+        }
+
         res.status(200).json({ success: true, message: "Conversation retrieved", data: conversation });
     } catch (error: any) {
         return next(new InternalServerError('An error occurred ', error))
@@ -129,6 +134,11 @@ export const sendMessage = async (req: any, res: Response, next: NextFunction) =
         const customerIsMember = conversation.members.some((member: any) => member.member.toString() === contractorId);
         if (!customerIsMember) {
             return res.status(403).json({ success: false, message: 'Unauthorized: You do not have access to this conversation' });
+        }
+
+        const isBlocked = await conversation.getIsBlocked()
+        if (!isBlocked) {
+            return res.status(403).json({ success: false, message: 'You can not send message to this contractor' });
         }
 
         // Create a new message in the conversation

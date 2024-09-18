@@ -1022,8 +1022,6 @@ class ProfileHandler extends Base {
       account.firstName = 'Deleted'
       account.lastName = 'Account'
       account.profilePhoto = { url: 'https://ipalas3bucket.s3.us-east-2.amazonaws.com/avatar.png' }
-      // account.status = 
-
 
       await account.save()
 
@@ -1143,6 +1141,24 @@ class ProfileHandler extends Base {
         return res.status(400).json({ success: false, message: 'Validation error occurred', errors: errors.array() });
       }
 
+       // perform checks here
+       const bookedJobs = await JobModel.find({ contractor: contractorId, status: { $in: [JOB_STATUS.BOOKED] } })
+       if (bookedJobs.length > 0) {
+         return res.status(400).json({ success: false, message: 'You have an active Job, account cannot be deleted', data: bookedJobs });
+       }
+ 
+       const disputedJobs = await JobModel.find({ contractor: contractorId, status: { $in: [JOB_STATUS.DISPUTED] } })
+       if (disputedJobs.length > 0) {
+         return res.status(400).json({ success: false, message: 'You have an pending dispute, account cannot be deleted', data: disputedJobs });
+       }
+ 
+       const ongoingJobs = await JobModel.find({ contractor: contractorId, status: { $in: [JOB_STATUS.ONGOING] } })
+       if (ongoingJobs.length > 0) {
+         return res.status(400).json({ success: false, message: 'You have  ongoing jobs, account cannot be deleted', data: ongoingJobs });
+       }
+
+       
+
       await BlockedUserModel.findOneAndUpdate({ blockedUser: contractorId, blockedUserType: 'contractors', user: customerId, userType: 'customers' }, {
         blockedUser: customerId,
         blockedUserType: 'customers',
@@ -1173,7 +1189,7 @@ class ProfileHandler extends Base {
         return res.status(400).json({ success: false, message: 'Validation error occurred', errors: errors.array() });
       }
 
-      await BlockedUserModel.findOneAndDelete({ blockedUser: contractorId, blockedUserType: 'contractors', user: customerId, userType: 'customers' })
+      await BlockedUserModel.findOneAndDelete({ blockedUser: customerId, blockedUserType: 'customers', user: contractorId, userType: 'contractors' })
 
       return res.status(201).json({ success: true, message: 'Customer successfully unblocked' });
     } catch (err: any) {
