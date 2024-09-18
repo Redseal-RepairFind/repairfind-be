@@ -203,11 +203,11 @@ var getConversationMessages = function (req, res, next) { return __awaiter(void 
 }); };
 exports.getConversationMessages = getConversationMessages;
 var sendMessage = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, conversationId, _a, message, media, type, contractorId_3, conversation, customerIsMember, newMessage, restrictedContentCheck, error_4;
+    var errors, conversationId, _a, message, media, type, contractorId_3, conversation, customerIsMember, isBlocked, newMessage, restrictedContentCheck, error_4;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 6, , 7]);
+                _b.trys.push([0, 7, , 8]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -226,6 +226,12 @@ var sendMessage = function (req, res, next) { return __awaiter(void 0, void 0, v
                 if (!customerIsMember) {
                     return [2 /*return*/, res.status(403).json({ success: false, message: 'Unauthorized: You do not have access to this conversation' })];
                 }
+                return [4 /*yield*/, conversation.getIsBlocked()];
+            case 2:
+                isBlocked = _b.sent();
+                if (isBlocked) {
+                    return [2 /*return*/, res.status(403).json({ success: false, message: 'You can not send message to this user' })];
+                }
                 newMessage = new messages_schema_1.MessageModel({
                     conversation: conversationId,
                     sender: contractorId_3, // Assuming the customer sends the message
@@ -243,9 +249,9 @@ var sendMessage = function (req, res, next) { return __awaiter(void 0, void 0, v
                     }
                 }
                 return [4 /*yield*/, newMessage.save()];
-            case 2:
+            case 3:
                 _b.sent();
-                if (!newMessage) return [3 /*break*/, 5];
+                if (!newMessage) return [3 /*break*/, 6];
                 return [4 /*yield*/, conversations_schema_1.ConversationModel.updateOne({ _id: conversationId }, // Filter criteria to find the conversation document
                     {
                         $set: {
@@ -253,22 +259,22 @@ var sendMessage = function (req, res, next) { return __awaiter(void 0, void 0, v
                             lastMessageAt: newMessage.createdAt,
                         }
                     })];
-            case 3:
+            case 4:
                 _b.sent();
                 // push sender to readBy array
                 newMessage.readBy.push(contractorId_3);
                 return [4 /*yield*/, newMessage.save()];
-            case 4:
-                _b.sent();
-                _b.label = 5;
             case 5:
+                _b.sent();
+                _b.label = 6;
+            case 6:
                 events_1.ConversationEvent.emit('NEW_MESSAGE', { message: newMessage });
                 res.status(201).json({ success: true, message: 'Message sent successfully', data: newMessage });
-                return [3 /*break*/, 7];
-            case 6:
+                return [3 /*break*/, 8];
+            case 7:
                 error_4 = _b.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('Error sending message', error_4))];
-            case 7: return [2 /*return*/];
+            case 8: return [2 /*return*/];
         }
     });
 }); };
