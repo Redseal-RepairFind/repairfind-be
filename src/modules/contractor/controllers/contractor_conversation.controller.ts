@@ -136,10 +136,10 @@ export const sendMessage = async (req: any, res: Response, next: NextFunction) =
             return res.status(403).json({ success: false, message: 'Unauthorized: You do not have access to this conversation' });
         }
 
-        // const isBlocked = await conversation.getIsBlocked()
-        // if (!isBlocked) {
-        //     return res.status(403).json({ success: false, message: 'You can not send message to this user' });
-        // }
+        const isBlocked = await conversation.getIsBlocked()
+        if (isBlocked) {
+            return res.status(403).json({ success: false, message: 'You can not send message to this user' });
+        }
 
         // Create a new message in the conversation
         const newMessage = new MessageModel({
