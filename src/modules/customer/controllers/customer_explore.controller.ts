@@ -36,7 +36,6 @@ export const exploreContractors = async (
     }
     const customerId = req?.customer?.id
     const customer = await CustomerModel.findById(customerId);
-
     try {
         let {
             searchName,
@@ -73,6 +72,7 @@ export const exploreContractors = async (
 
         const toRadians = (degrees: number) => degrees * (Math.PI / 180);
         const pipeline: PipelineStage[] = [
+
             {
                 $lookup: {
                     from: "contractor_profiles",
@@ -189,6 +189,7 @@ export const exploreContractors = async (
                 }
             },
 
+
             {
                 $addFields: {
                     // formattedResponseTime: {
@@ -265,6 +266,94 @@ export const exploreContractors = async (
 
 
         // Add stages conditionally based on query parameters
+        // if (customerId) {
+        //     pipeline.push(
+
+
+        //         {
+        //             $lookup: {
+        //                 from: "blocked_users",
+        //                 let: { contractorId: "$_id" },
+        //                 pipeline: [
+        //                 ],
+        //                 as: "blockStatus"
+        //             }
+        //         },
+
+
+        //         // { $match: { blockStatus: { $eq: [] } }},
+        //         {
+        //             $match: {
+        //                 blockStatus: {
+        //                     $exists: {
+        //                         $or: [
+        //                             // Contractor blocked customer
+        //                             {
+        //                                 $and: [
+        //                                     { $eq: ["$user", "$$contractorId"] }, // user is contractor
+        //                                     { $eq: ["$blockedUser", customerId] } // blockedUser is customer
+        //                                 ]
+        //                             },
+        //                             // Customer blocked contractor
+        //                             {
+        //                                 $and: [
+        //                                     { $eq: ["$user", customerId] }, // user is customer
+        //                                     { $eq: ["$blockedUser", "$$contractorId"] } // blockedUser is contractor
+        //                                 ]
+        //                             }
+        //                         ]
+        //                     }
+        //                 }
+        //             }
+        //         },
+        //     );
+        // }
+
+        if (customerId) {
+            pipeline.push(
+                {
+                    $lookup: {
+                        from: "blocked_users",
+                        let: { contractorId: "$_id" }, // Passing contractor's ID as a variable
+                        pipeline: [
+                            {
+                                $match: {
+                                    // $expr: {
+                                    //     $or: [
+                                           
+                                    //         // Case 2: Customer blocked contractor
+                                    //         {
+                                    //             $and: [
+                                    //                 // { $eq: ["$user", customerId] }, // Customer is the user (blocker)
+                                    //                 // { $eq: ["$blockedUser", "$$contractorId"] } // Contractor is blocked
+                                    //             ]
+                                    //         },
+
+                                    //          // Case 1: Contractor blocked customer
+                                    //          { 
+                                    //             $and: [
+                                    //                 // { $eq: ["$user", "$$contractorId"] }, // Contractor is the user (blocker)
+                                    //                 // { $eq: ["$blockedUser", customerId] } // Customer is blocked
+                                    //             ]
+                                    //         }
+                                    //     ]
+                                    // }
+                                }
+                            }
+                        ],
+                        as: "blockStatus" // Save the result of the lookup in the "blockStatus" field
+                    }
+                },
+                // {
+                //     // Match and exclude contractors who have block statuses in the "blockStatus" array
+                //     $match: {
+                //         blockStatus: { $eq: [] } // This ensures that only contractors who are not blocked by or have not blocked the customer are included
+                //     }
+                // }
+            );
+        }
+        
+
         if (searchName) {
             pipeline.push({ $match: { "name": { $regex: new RegExp(searchName, 'i') } } });
         }

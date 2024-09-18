@@ -30,7 +30,7 @@ import TransactionModel, { TRANSACTION_TYPE } from "../../../database/common/tra
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { AccountEvent } from "../../../events";
 import { ABUSE_REPORT_TYPE, AbuseReportModel } from "../../../database/common/abuse_reports.model";
-import { BLOCK_USER_REASON, BlockedUserModel } from "../../../database/common/user_blocks.model";
+import { BLOCK_USER_REASON, BlockedUserModel } from "../../../database/common/blocked_users.model";
 
 
 class ProfileHandler extends Base {
@@ -1142,19 +1142,19 @@ class ProfileHandler extends Base {
       }
 
        // perform checks here
-       const bookedJobs = await JobModel.find({ contractor: contractorId, status: { $in: [JOB_STATUS.BOOKED] } })
+       const bookedJobs = await JobModel.find({ customer: customerId, contractor: contractorId, status: { $in: [JOB_STATUS.BOOKED] } })
        if (bookedJobs.length > 0) {
-         return res.status(400).json({ success: false, message: 'You have an active Job, account cannot be deleted', data: bookedJobs });
+         return res.status(400).json({ success: false, message: 'You have an active Job, customer cannot be blocked', data: bookedJobs });
        }
  
-       const disputedJobs = await JobModel.find({ contractor: contractorId, status: { $in: [JOB_STATUS.DISPUTED] } })
+       const disputedJobs = await JobModel.find({ customer: customerId, contractor: contractorId, status: { $in: [JOB_STATUS.DISPUTED] } })
        if (disputedJobs.length > 0) {
-         return res.status(400).json({ success: false, message: 'You have an pending dispute, account cannot be deleted', data: disputedJobs });
+         return res.status(400).json({ success: false, message: 'You have an pending dispute, customer cannot be blocked', data: disputedJobs });
        }
  
-       const ongoingJobs = await JobModel.find({ contractor: contractorId, status: { $in: [JOB_STATUS.ONGOING] } })
+       const ongoingJobs = await JobModel.find({ customer: customerId, contractor: contractorId, status: { $in: [JOB_STATUS.ONGOING] } })
        if (ongoingJobs.length > 0) {
-         return res.status(400).json({ success: false, message: 'You have  ongoing jobs, account cannot be deleted', data: ongoingJobs });
+         return res.status(400).json({ success: false, message: 'You have  ongoing jobs, customer cannot be blocked', data: ongoingJobs });
        }
 
        

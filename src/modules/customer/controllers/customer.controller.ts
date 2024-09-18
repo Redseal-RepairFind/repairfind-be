@@ -15,7 +15,7 @@ import { InternalServerError } from "../../../utils/custom.errors";
 import { AdminEvent } from "../../../events/admin.events";
 import { AccountEvent } from "../../../events";
 import { ABUSE_REPORT_TYPE, AbuseReportModel } from "../../../database/common/abuse_reports.model";
-import { BLOCK_USER_REASON, BlockedUserModel } from "../../../database/common/user_blocks.model";
+import { BLOCK_USER_REASON, BlockedUserModel } from "../../../database/common/blocked_users.model";
 
 
 export const updateAccount = async (
@@ -400,6 +400,22 @@ export const blockUser = async (
     if (!errors.isEmpty()) {
       return res.status(400).json({ success: false, message: 'Validation error occurred', errors: errors.array() });
     }
+
+     // perform checks here
+     const bookedJobs = await JobModel.find({ customer: customerId, contractor: contractorId, status: { $in: [JOB_STATUS.BOOKED] } })
+     if (bookedJobs.length > 0) {
+       return res.status(400).json({ success: false, message: 'You have an active Job, contractor cannot be blocked', data: bookedJobs });
+     }
+ 
+     const disputedJobs = await JobModel.find({ customer: customerId, contractor: contractorId, status: { $in: [JOB_STATUS.DISPUTED] } })
+     if (disputedJobs.length > 0) {
+       return res.status(400).json({ success: false, message: 'You have an pending dispute, contractor cannot be blocked', data: disputedJobs });
+     }
+ 
+     const ongoingJobs = await JobModel.find({ customer: customerId, contractor: contractorId, status: { $in: [JOB_STATUS.ONGOING] } })
+     if (ongoingJobs.length > 0) {
+       return res.status(400).json({ success: false, message: 'You have  ongoing jobs, contractor cannot be blocked', data: ongoingJobs });
+     }
 
     await BlockedUserModel.findOneAndUpdate({blockedUser: contractorId, blockedUserType: 'contractors', user: customerId, userType: 'customers'},{
       blockedUser: contractorId, 
