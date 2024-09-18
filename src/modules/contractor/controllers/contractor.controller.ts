@@ -25,13 +25,14 @@ import { ReviewModel } from "../../../database/common/review.model";
 import { FeedbackModel } from "../../../database/common/feedback.model";
 import { AdminEvent } from "../../../events/admin.events";
 import { CONVERSATION_TYPE, ConversationModel } from "../../../database/common/conversations.schema";
-import { MessageModel } from "../../../database/common/messages.schema";
+import { MessageModel, MessageType } from "../../../database/common/messages.schema";
 import TransactionModel, { TRANSACTION_TYPE } from "../../../database/common/transaction.model";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { AccountEvent } from "../../../events";
+import { AccountEvent, ConversationEvent } from "../../../events";
 import { ABUSE_REPORT_TYPE, AbuseReportModel } from "../../../database/common/abuse_reports.model";
 import { BLOCK_USER_REASON, BlockedUserModel } from "../../../database/common/blocked_users.model";
 import { BlockedUserUtil } from "../../../utils/blockeduser.util";
+import { ConversationUtil } from "../../../utils/conversation.util";
 
 
 class ProfileHandler extends Base {
@@ -1171,6 +1172,20 @@ class ProfileHandler extends Base {
       }, { upsert: true, new: true })
 
 
+      // Send a message to the customer
+      const conversation = await ConversationUtil.updateOrCreateConversation(customerId, 'customers', contractorId, 'contractors')
+      const message = new MessageModel({
+        conversation: conversation?._id,
+        sender: contractorId,
+        senderType: 'contractors',
+        message: "Conversation locked by contractor",
+        messageType: MessageType.ALERT,
+      });
+      await message.save();
+      ConversationEvent.emit('NEW_MESSAGE', { message })
+
+
+
       return res.status(201).json({ success: true, message: 'Customer successfully blocked' });
     } catch (err: any) {
       return next(new InternalServerError('Error occurred while blocking customer', err));
@@ -1198,6 +1213,18 @@ class ProfileHandler extends Base {
       }
 
       await BlockedUserModel.findOneAndDelete({ customer: customerId,  contractor: contractorId, blockedBy: 'contractor' })
+
+      const conversation = await ConversationUtil.updateOrCreateConversation(customerId, 'customers', contractorId, 'contractors')
+      const message = new MessageModel({
+        conversation: conversation?._id,
+        sender: contractorId,
+        senderType: 'contractors',
+        message: "Conversation unlocked by contractor",
+        messageType: MessageType.ALERT,
+      });
+      await message.save();
+      ConversationEvent.emit('NEW_MESSAGE', { message })
+
 
       return res.status(201).json({ success: true, message: 'Customer successfully unblocked' });
     } catch (err: any) {

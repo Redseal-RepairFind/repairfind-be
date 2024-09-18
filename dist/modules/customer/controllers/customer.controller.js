@@ -53,6 +53,8 @@ var events_1 = require("../../../events");
 var abuse_reports_model_1 = require("../../../database/common/abuse_reports.model");
 var blocked_users_model_1 = require("../../../database/common/blocked_users.model");
 var blockeduser_util_1 = require("../../../utils/blockeduser.util");
+var conversation_util_1 = require("../../../utils/conversation.util");
+var messages_schema_1 = require("../../../database/common/messages.schema");
 var updateAccount = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, firstName, lastName, location_1, phoneNumber, profilePhoto, errors, customerId, customer, updatedCustomer, err_1;
     return __generator(this, function (_b) {
@@ -377,11 +379,11 @@ var submitReport = function (req, res, next) { return __awaiter(void 0, void 0, 
 }); };
 exports.submitReport = submitReport;
 var blockUser = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, contractorId, _b, reason, comment, customerId, errors, bookedJobs, disputedJobs, ongoingJobs, _c, isBlocked, block, err_7;
+    var _a, contractorId, _b, reason, comment, customerId, errors, bookedJobs, disputedJobs, ongoingJobs, _c, isBlocked, block, conversation, message, err_7;
     return __generator(this, function (_d) {
         switch (_d.label) {
             case 0:
-                _d.trys.push([0, 6, , 7]);
+                _d.trys.push([0, 8, , 9]);
                 _a = req.body, contractorId = _a.contractorId, _b = _a.reason, reason = _b === void 0 ? blocked_users_model_1.BLOCK_USER_REASON.ABUSE : _b, comment = _a.comment;
                 customerId = req.customer.id;
                 errors = (0, express_validator_1.validationResult)(req);
@@ -417,24 +419,40 @@ var blockUser = function (req, res, next) { return __awaiter(void 0, void 0, voi
                         customer: customerId,
                         blockedBy: 'customer',
                         reason: reason
-                    }, { upsert: true, new: true })];
+                    }, { upsert: true, new: true })
+                    // Send a message to the customer
+                ];
             case 5:
                 _d.sent();
-                return [2 /*return*/, res.status(201).json({ success: true, message: 'Contractor successfully blocked' })];
+                return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(customerId, 'customers', contractorId, 'contractors')];
             case 6:
+                conversation = _d.sent();
+                message = new messages_schema_1.MessageModel({
+                    conversation: conversation === null || conversation === void 0 ? void 0 : conversation._id,
+                    sender: contractorId,
+                    senderType: 'contractors',
+                    message: "Conversation locked by customer",
+                    messageType: messages_schema_1.MessageType.ALERT,
+                });
+                return [4 /*yield*/, message.save()];
+            case 7:
+                _d.sent();
+                events_1.ConversationEvent.emit('NEW_MESSAGE', { message: message });
+                return [2 /*return*/, res.status(201).json({ success: true, message: 'Contractor successfully blocked' })];
+            case 8:
                 err_7 = _d.sent();
                 return [2 /*return*/, next(new custom_errors_1.InternalServerError('Error occurred while blocking contractor', err_7))];
-            case 7: return [2 /*return*/];
+            case 9: return [2 /*return*/];
         }
     });
 }); };
 exports.blockUser = blockUser;
 var unBlockUser = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, contractorId, _b, reason, comment, customerId, errors, _c, isBlocked, block, err_8;
+    var _a, contractorId, _b, reason, comment, customerId, errors, _c, isBlocked, block, conversation, message, err_8;
     return __generator(this, function (_d) {
         switch (_d.label) {
             case 0:
-                _d.trys.push([0, 3, , 4]);
+                _d.trys.push([0, 5, , 6]);
                 _a = req.body, contractorId = _a.contractorId, _b = _a.reason, reason = _b === void 0 ? blocked_users_model_1.BLOCK_USER_REASON.ABUSE : _b, comment = _a.comment;
                 customerId = req.customer.id;
                 errors = (0, express_validator_1.validationResult)(req);
@@ -450,11 +468,25 @@ var unBlockUser = function (req, res, next) { return __awaiter(void 0, void 0, v
                 return [4 /*yield*/, blocked_users_model_1.BlockedUserModel.findOneAndDelete({ customer: customerId, contractor: contractorId, blockedBy: 'customer' })];
             case 2:
                 _d.sent();
-                return [2 /*return*/, res.status(200).json({ success: true, message: 'Contractor successfully unblocked' })];
+                return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(customerId, 'customers', contractorId, 'contractors')];
             case 3:
+                conversation = _d.sent();
+                message = new messages_schema_1.MessageModel({
+                    conversation: conversation === null || conversation === void 0 ? void 0 : conversation._id,
+                    sender: customerId,
+                    senderType: 'customers',
+                    message: "Conversation unlocked by customer",
+                    messageType: messages_schema_1.MessageType.ALERT,
+                });
+                return [4 /*yield*/, message.save()];
+            case 4:
+                _d.sent();
+                events_1.ConversationEvent.emit('NEW_MESSAGE', { message: message });
+                return [2 /*return*/, res.status(200).json({ success: true, message: 'Contractor successfully unblocked' })];
+            case 5:
                 err_8 = _d.sent();
                 return [2 /*return*/, next(new custom_errors_1.InternalServerError('Error occurred while  unblocking contractor', err_8))];
-            case 4: return [2 /*return*/];
+            case 6: return [2 /*return*/];
         }
     });
 }); };
