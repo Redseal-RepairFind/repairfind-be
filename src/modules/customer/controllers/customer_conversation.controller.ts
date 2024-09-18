@@ -51,7 +51,7 @@ export const getSingleConversation = async (req: any, res: Response) => {
             return res.status(500).json({ success: false, message: "Conversation not found" });
         }
         
-        conversation.isBlocked = await conversation.getIsBlocked() as boolean
+        conversation.isBlockedBy = await conversation.getIsBlocked() as string
 
         conversation.heading = await conversation.getHeading(customerId);
         if(conversation.entityType == 'jobs'){

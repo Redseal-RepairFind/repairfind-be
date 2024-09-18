@@ -62,6 +62,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CustomerExploreController = exports.getContractorSchedules = exports.getFavoriteContractors = exports.getContractorReviews = exports.getSingleContractor = exports.exploreContractors = void 0;
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
+var mongoose_1 = require("mongoose"); // Import Document type from mongoose
 var schedule_util_1 = require("../../../utils/schedule.util");
 var api_feature_1 = require("../../../utils/api.feature");
 var custom_errors_1 = require("../../../utils/custom.errors");
@@ -271,45 +272,6 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
                     { $match: { accountType: { $ne: contractor_interface_1.CONTRACTOR_TYPES.Employee } } },
                     { $match: { "profile.isOffDuty": { $eq: false } } }
                 ];
-                // Add stages conditionally based on query parameters
-                // if (customerId) {
-                //     pipeline.push(
-                //         {
-                //             $lookup: {
-                //                 from: "blocked_users",
-                //                 let: { contractorId: "$_id" },
-                //                 pipeline: [
-                //                 ],
-                //                 as: "blockStatus"
-                //             }
-                //         },
-                //         // { $match: { blockStatus: { $eq: [] } }},
-                //         {
-                //             $match: {
-                //                 blockStatus: {
-                //                     $exists: {
-                //                         $or: [
-                //                             // Contractor blocked customer
-                //                             {
-                //                                 $and: [
-                //                                     { $eq: ["$user", "$$contractorId"] }, // user is contractor
-                //                                     { $eq: ["$blockedUser", customerId] } // blockedUser is customer
-                //                                 ]
-                //                             },
-                //                             // Customer blocked contractor
-                //                             {
-                //                                 $and: [
-                //                                     { $eq: ["$user", customerId] }, // user is customer
-                //                                     { $eq: ["$blockedUser", "$$contractorId"] } // blockedUser is contractor
-                //                                 ]
-                //                             }
-                //                         ]
-                //                     }
-                //                 }
-                //             }
-                //         },
-                //     );
-                // }
                 if (customerId) {
                     pipeline.push({
                         $lookup: {
@@ -318,28 +280,21 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
                             pipeline: [
                                 {
                                     $match: {
-                                    // $expr: {
-                                    //     $or: [
-                                    //         // Case 2: Customer blocked contractor
-                                    //         {
-                                    //             $and: [
-                                    //                 // { $eq: ["$user", customerId] }, // Customer is the user (blocker)
-                                    //                 // { $eq: ["$blockedUser", "$$contractorId"] } // Contractor is blocked
-                                    //             ]
-                                    //         },
-                                    //          // Case 1: Contractor blocked customer
-                                    //          { 
-                                    //             $and: [
-                                    //                 // { $eq: ["$user", "$$contractorId"] }, // Contractor is the user (blocker)
-                                    //                 // { $eq: ["$blockedUser", customerId] } // Customer is blocked
-                                    //             ]
-                                    //         }
-                                    //     ]
-                                    // }
+                                        $expr: {
+                                            $and: [
+                                                { $eq: ["$customer", new mongoose_1.Types.ObjectId(customerId)] }, // Customer is the one checking
+                                                { $eq: ["$contractor", new mongoose_1.Types.ObjectId("$$contractorId")] } // Contractor is blocked
+                                            ]
+                                        }
                                     }
                                 }
                             ],
                             as: "blockStatus" // Save the result of the lookup in the "blockStatus" field
+                        }
+                    }, {
+                        // Exclude contractors who have block statuses in the "blockStatus" array
+                        $match: {
+                            blockStatus: { $eq: [] } // Ensure only contractors who are not blocked by the customer are included
                         }
                     });
                 }

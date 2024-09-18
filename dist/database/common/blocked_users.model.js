@@ -10,24 +10,19 @@ var BLOCK_USER_REASON;
     BLOCK_USER_REASON["OTHER"] = "OTHER";
 })(BLOCK_USER_REASON || (exports.BLOCK_USER_REASON = BLOCK_USER_REASON = {}));
 var BlockedUserSchema = new mongoose_1.Schema({
-    user: {
+    customer: {
         type: mongoose_1.Schema.Types.ObjectId,
-        refPath: 'userType',
+        ref: 'customers',
         required: true
     },
-    blockedUser: {
+    contractor: {
         type: mongoose_1.Schema.Types.ObjectId,
-        refPath: 'blockedUserType',
+        ref: 'contractors',
         required: true
     },
-    userType: {
+    blockedBy: {
         type: String,
-        enum: ['customers', 'contractors'],
-        required: true
-    },
-    blockedUserType: {
-        type: String,
-        enum: ['customers', 'contractors'],
+        enum: ['customer', 'contractor'],
         required: true
     },
     reason: {

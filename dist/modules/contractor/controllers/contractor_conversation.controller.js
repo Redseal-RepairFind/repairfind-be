@@ -127,7 +127,7 @@ var getSingleConversation = function (req, res, next) { return __awaiter(void 0,
                 _b = conversation;
                 return [4 /*yield*/, conversation.getIsBlocked()];
             case 3:
-                _b.isBlocked = (_d.sent());
+                _b.isBlockedBy = (_d.sent());
                 if (!(conversation.entityType == 'jobs')) return [3 /*break*/, 5];
                 //@ts-ignore
                 _c = conversation.entity;

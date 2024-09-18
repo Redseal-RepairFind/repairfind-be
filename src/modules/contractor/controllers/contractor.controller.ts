@@ -31,6 +31,7 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import { AccountEvent } from "../../../events";
 import { ABUSE_REPORT_TYPE, AbuseReportModel } from "../../../database/common/abuse_reports.model";
 import { BLOCK_USER_REASON, BlockedUserModel } from "../../../database/common/blocked_users.model";
+import { BlockedUserUtil } from "../../../utils/blockeduser.util";
 
 
 class ProfileHandler extends Base {
@@ -1157,13 +1158,15 @@ class ProfileHandler extends Base {
          return res.status(400).json({ success: false, message: 'You have  ongoing jobs, customer cannot be blocked', data: ongoingJobs });
        }
 
-       
+       const {isBlocked, block} = await BlockedUserUtil.isUserBlocked({customer:customerId, contractor: contractorId})
+       if(isBlocked){
+          return res.status(400).json({ success: false, message: `User is already blocked by ${block?.blockedBy}` });
+       }
 
-      await BlockedUserModel.findOneAndUpdate({ blockedUser: contractorId, blockedUserType: 'contractors', user: customerId, userType: 'customers' }, {
-        blockedUser: customerId,
-        blockedUserType: 'customers',
-        user: contractorId,
-        userType: 'contractors',
+      await BlockedUserModel.findOneAndUpdate({ contractor: contractorId,  customer: customerId }, {
+        contractor: contractorId,
+        customer: customerId,
+        blockedBy: 'contractor',
         reason: reason
       }, { upsert: true, new: true })
 
@@ -1189,7 +1192,12 @@ class ProfileHandler extends Base {
         return res.status(400).json({ success: false, message: 'Validation error occurred', errors: errors.array() });
       }
 
-      await BlockedUserModel.findOneAndDelete({ blockedUser: customerId, blockedUserType: 'customers', user: contractorId, userType: 'contractors' })
+      const {isBlocked, block} = await BlockedUserUtil.isUserBlocked({customer:customerId, contractor: contractorId})
+      if(block && block.blockedBy == 'customer'){
+        return res.status(400).json({ success: false, message: 'Unable to unblock'});
+      }
+
+      await BlockedUserModel.findOneAndDelete({ customer: customerId,  contractor: contractorId, blockedBy: 'contractor' })
 
       return res.status(201).json({ success: true, message: 'Customer successfully unblocked' });
     } catch (err: any) {

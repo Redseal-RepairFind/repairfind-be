@@ -112,7 +112,7 @@ var getSingleConversation = function (req, res) { return __awaiter(void 0, void 
                 _a = conversation;
                 return [4 /*yield*/, conversation.getIsBlocked()];
             case 2:
-                _a.isBlocked = (_d.sent());
+                _a.isBlockedBy = (_d.sent());
                 _b = conversation;
                 return [4 /*yield*/, conversation.getHeading(customerId)];
             case 3:

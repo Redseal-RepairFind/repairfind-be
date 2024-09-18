@@ -38,40 +38,31 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BlockedUserUtil = void 0;
 var blocked_users_model_1 = require("../database/common/blocked_users.model");
-var isUserBlocked = function (userOne, userOneType, userTwo, userTwoType) { return __awaiter(void 0, void 0, void 0, function () {
-    var block, error_1;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, blocked_users_model_1.BlockedUserModel.findOne({
-                        $or: [
-                            {
-                                user: userOne,
-                                blockedUser: userTwo,
-                                userType: userOneType,
-                                blockedUserType: userTwoType
-                            },
-                            {
-                                user: userTwo,
-                                blockedUser: userOne,
-                                userType: userTwoType,
-                                blockedUserType: userOneType
-                            }
-                        ]
-                    }).exec()];
-            case 1:
-                block = _a.sent();
-                // Return true if a block exists, otherwise false
-                return [2 /*return*/, !!block];
-            case 2:
-                error_1 = _a.sent();
-                console.error("Error checking if users are blocked:", error_1);
-                throw new Error("Could not check block status");
-            case 3: return [2 /*return*/];
-        }
+var isUserBlocked = function (_a) {
+    var customer = _a.customer, contractor = _a.contractor;
+    return __awaiter(void 0, void 0, void 0, function () {
+        var block, isBlocked, error_1;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    _b.trys.push([0, 2, , 3]);
+                    return [4 /*yield*/, blocked_users_model_1.BlockedUserModel.findOne({
+                            customer: customer,
+                            contractor: contractor,
+                        }).exec()];
+                case 1:
+                    block = _b.sent();
+                    isBlocked = !!block;
+                    return [2 /*return*/, { isBlocked: isBlocked, block: block }];
+                case 2:
+                    error_1 = _b.sent();
+                    console.error("Error checking if users are blocked:", error_1);
+                    throw new Error("Could not check block status");
+                case 3: return [2 /*return*/];
+            }
+        });
     });
-}); };
+};
 exports.BlockedUserUtil = {
     isUserBlocked: isUserBlocked,
 };
