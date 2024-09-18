@@ -1,5 +1,5 @@
 import mongoose, { ObjectId } from "mongoose";
-import { BlockedUserModel } from "../database/common/user_blocks.model";
+import { BlockedUserModel } from "../database/common/blocked_users.model";
 
 const isUserBlocked = async (userOne: ObjectId, userOneType: string, userTwo: ObjectId, userTwoType: string) => {
     try {

@@ -23,6 +23,7 @@ export const checkCustomerOrGuestRole = async (
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(" ")[1];
 
+    
     if (!token) {
         return next();
     } else {

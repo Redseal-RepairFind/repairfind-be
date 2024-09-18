@@ -272,6 +272,77 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
                     { $match: { "profile.isOffDuty": { $eq: false } } }
                 ];
                 // Add stages conditionally based on query parameters
+                // if (customerId) {
+                //     pipeline.push(
+                //         {
+                //             $lookup: {
+                //                 from: "blocked_users",
+                //                 let: { contractorId: "$_id" },
+                //                 pipeline: [
+                //                 ],
+                //                 as: "blockStatus"
+                //             }
+                //         },
+                //         // { $match: { blockStatus: { $eq: [] } }},
+                //         {
+                //             $match: {
+                //                 blockStatus: {
+                //                     $exists: {
+                //                         $or: [
+                //                             // Contractor blocked customer
+                //                             {
+                //                                 $and: [
+                //                                     { $eq: ["$user", "$$contractorId"] }, // user is contractor
+                //                                     { $eq: ["$blockedUser", customerId] } // blockedUser is customer
+                //                                 ]
+                //                             },
+                //                             // Customer blocked contractor
+                //                             {
+                //                                 $and: [
+                //                                     { $eq: ["$user", customerId] }, // user is customer
+                //                                     { $eq: ["$blockedUser", "$$contractorId"] } // blockedUser is contractor
+                //                                 ]
+                //                             }
+                //                         ]
+                //                     }
+                //                 }
+                //             }
+                //         },
+                //     );
+                // }
+                if (customerId) {
+                    pipeline.push({
+                        $lookup: {
+                            from: "blocked_users",
+                            let: { contractorId: "$_id" }, // Passing contractor's ID as a variable
+                            pipeline: [
+                                {
+                                    $match: {
+                                    // $expr: {
+                                    //     $or: [
+                                    //         // Case 2: Customer blocked contractor
+                                    //         {
+                                    //             $and: [
+                                    //                 // { $eq: ["$user", customerId] }, // Customer is the user (blocker)
+                                    //                 // { $eq: ["$blockedUser", "$$contractorId"] } // Contractor is blocked
+                                    //             ]
+                                    //         },
+                                    //          // Case 1: Contractor blocked customer
+                                    //          { 
+                                    //             $and: [
+                                    //                 // { $eq: ["$user", "$$contractorId"] }, // Contractor is the user (blocker)
+                                    //                 // { $eq: ["$blockedUser", customerId] } // Customer is blocked
+                                    //             ]
+                                    //         }
+                                    //     ]
+                                    // }
+                                    }
+                                }
+                            ],
+                            as: "blockStatus" // Save the result of the lookup in the "blockStatus" field
+                        }
+                    });
+                }
                 if (searchName) {
                     pipeline.push({ $match: { "name": { $regex: new RegExp(searchName, 'i') } } });
                 }

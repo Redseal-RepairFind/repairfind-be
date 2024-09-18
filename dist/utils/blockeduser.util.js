@@ -37,14 +37,14 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BlockedUserUtil = void 0;
-var user_blocks_model_1 = require("../database/common/user_blocks.model");
+var blocked_users_model_1 = require("../database/common/blocked_users.model");
 var isUserBlocked = function (userOne, userOneType, userTwo, userTwoType) { return __awaiter(void 0, void 0, void 0, function () {
     var block, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, user_blocks_model_1.BlockedUserModel.findOne({
+                return [4 /*yield*/, blocked_users_model_1.BlockedUserModel.findOne({
                         $or: [
                             {
                                 user: userOne,

@@ -107,7 +107,7 @@ var feedback_model_1 = require("../../../database/common/feedback.model");
 var admin_events_1 = require("../../../events/admin.events");
 var events_1 = require("../../../events");
 var abuse_reports_model_1 = require("../../../database/common/abuse_reports.model");
-var user_blocks_model_1 = require("../../../database/common/user_blocks.model");
+var blocked_users_model_1 = require("../../../database/common/blocked_users.model");
 var ProfileHandler = /** @class */ (function (_super) {
     __extends(ProfileHandler, _super);
     function ProfileHandler() {
@@ -1308,31 +1308,31 @@ var ProfileHandler = /** @class */ (function (_super) {
                         _c.label = 1;
                     case 1:
                         _c.trys.push([1, 6, , 7]);
-                        _a = req.body, customerId = _a.customerId, _b = _a.reason, reason = _b === void 0 ? user_blocks_model_1.BLOCK_USER_REASON.ABUSE : _b;
+                        _a = req.body, customerId = _a.customerId, _b = _a.reason, reason = _b === void 0 ? blocked_users_model_1.BLOCK_USER_REASON.ABUSE : _b;
                         contractorId = req.contractor.id;
                         errors = (0, express_validator_1.validationResult)(req);
                         if (!errors.isEmpty()) {
                             return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation error occurred', errors: errors.array() })];
                         }
-                        return [4 /*yield*/, job_model_1.JobModel.find({ contractor: contractorId, status: { $in: [job_model_1.JOB_STATUS.BOOKED] } })];
+                        return [4 /*yield*/, job_model_1.JobModel.find({ customer: customerId, contractor: contractorId, status: { $in: [job_model_1.JOB_STATUS.BOOKED] } })];
                     case 2:
                         bookedJobs = _c.sent();
                         if (bookedJobs.length > 0) {
-                            return [2 /*return*/, res.status(400).json({ success: false, message: 'You have an active Job, account cannot be deleted', data: bookedJobs })];
+                            return [2 /*return*/, res.status(400).json({ success: false, message: 'You have an active Job, customer cannot be blocked', data: bookedJobs })];
                         }
-                        return [4 /*yield*/, job_model_1.JobModel.find({ contractor: contractorId, status: { $in: [job_model_1.JOB_STATUS.DISPUTED] } })];
+                        return [4 /*yield*/, job_model_1.JobModel.find({ customer: customerId, contractor: contractorId, status: { $in: [job_model_1.JOB_STATUS.DISPUTED] } })];
                     case 3:
                         disputedJobs = _c.sent();
                         if (disputedJobs.length > 0) {
-                            return [2 /*return*/, res.status(400).json({ success: false, message: 'You have an pending dispute, account cannot be deleted', data: disputedJobs })];
+                            return [2 /*return*/, res.status(400).json({ success: false, message: 'You have an pending dispute, customer cannot be blocked', data: disputedJobs })];
                         }
-                        return [4 /*yield*/, job_model_1.JobModel.find({ contractor: contractorId, status: { $in: [job_model_1.JOB_STATUS.ONGOING] } })];
+                        return [4 /*yield*/, job_model_1.JobModel.find({ customer: customerId, contractor: contractorId, status: { $in: [job_model_1.JOB_STATUS.ONGOING] } })];
                     case 4:
                         ongoingJobs = _c.sent();
                         if (ongoingJobs.length > 0) {
-                            return [2 /*return*/, res.status(400).json({ success: false, message: 'You have  ongoing jobs, account cannot be deleted', data: ongoingJobs })];
+                            return [2 /*return*/, res.status(400).json({ success: false, message: 'You have  ongoing jobs, customer cannot be blocked', data: ongoingJobs })];
                         }
-                        return [4 /*yield*/, user_blocks_model_1.BlockedUserModel.findOneAndUpdate({ blockedUser: contractorId, blockedUserType: 'contractors', user: customerId, userType: 'customers' }, {
+                        return [4 /*yield*/, blocked_users_model_1.BlockedUserModel.findOneAndUpdate({ blockedUser: contractorId, blockedUserType: 'contractors', user: customerId, userType: 'customers' }, {
                                 blockedUser: customerId,
                                 blockedUserType: 'customers',
                                 user: contractorId,
@@ -1362,13 +1362,13 @@ var ProfileHandler = /** @class */ (function (_super) {
                         _c.label = 1;
                     case 1:
                         _c.trys.push([1, 3, , 4]);
-                        _a = req.body, customerId = _a.customerId, _b = _a.reason, reason = _b === void 0 ? user_blocks_model_1.BLOCK_USER_REASON.ABUSE : _b;
+                        _a = req.body, customerId = _a.customerId, _b = _a.reason, reason = _b === void 0 ? blocked_users_model_1.BLOCK_USER_REASON.ABUSE : _b;
                         contractorId = req.contractor.id;
                         errors = (0, express_validator_1.validationResult)(req);
                         if (!errors.isEmpty()) {
                             return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation error occurred', errors: errors.array() })];
                         }
-                        return [4 /*yield*/, user_blocks_model_1.BlockedUserModel.findOneAndDelete({ blockedUser: customerId, blockedUserType: 'customers', user: contractorId, userType: 'contractors' })];
+                        return [4 /*yield*/, blocked_users_model_1.BlockedUserModel.findOneAndDelete({ blockedUser: customerId, blockedUserType: 'customers', user: contractorId, userType: 'contractors' })];
                     case 2:
                         _c.sent();
                         return [2 /*return*/, res.status(201).json({ success: true, message: 'Customer successfully unblocked' })];
