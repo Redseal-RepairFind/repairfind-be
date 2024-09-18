@@ -23,6 +23,7 @@ import { IJobEnquiry, JobEnquiryModel } from '../database/common/job_enquiry.mod
 import { Logger } from '../services/logger';
 import { ConversationUtil } from '../utils/conversation.util';
 import { MessageModel, MessageType } from '../database/common/messages.schema';
+import { BlockedUserUtil } from '../utils/blockeduser.util';
 
 export const JobEvent: EventEmitter = new EventEmitter();
 
@@ -199,8 +200,17 @@ JobEvent.on('NEW_JOB_LISTING', async function (payload) {
             // send push to all contractors that match the job ?
             const contractorProfiles = await ContractorProfileModel.find({ skill: job.category });
             const contractorIds = contractorProfiles.map(profile => profile.contractor);
+            const customerId = job.customer
+            
+            const filteredContractorIds = [];
+            for (const contractorId of contractorIds) {
+                const isBlocked = BlockedUserUtil.isUserBlocked(customerId, 'customers', contractorId, 'contractors');
+                if (!isBlocked) {
+                    filteredContractorIds.push(contractorId);
+                }
+            }
 
-            const devices = await ContractorDeviceModel.find({ contractor: { $in: contractorIds } })
+            const devices = await ContractorDeviceModel.find({ contractor: { $in: filteredContractorIds } })
             const deviceTokens = devices.map(device => device.expoToken);
 
             sendPushNotifications(deviceTokens, {
