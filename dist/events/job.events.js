@@ -94,6 +94,7 @@ var job_enquiry_model_1 = require("../database/common/job_enquiry.model");
 var logger_1 = require("../services/logger");
 var conversation_util_1 = require("../utils/conversation.util");
 var messages_schema_1 = require("../database/common/messages.schema");
+var blockeduser_util_1 = require("../utils/blockeduser.util");
 exports.JobEvent = new events_1.EventEmitter();
 exports.JobEvent.on('NEW_JOB_REQUEST', function (payload) {
     var _a, _b;
@@ -279,7 +280,7 @@ exports.JobEvent.on('JOB_REQUEST_REJECTED', function (payload) {
 });
 exports.JobEvent.on('NEW_JOB_LISTING', function (payload) {
     return __awaiter(this, void 0, void 0, function () {
-        var job, contractorProfiles, contractorIds, devices, deviceTokens, error_4;
+        var job, contractorProfiles, contractorIds, customerId, filteredContractorIds, _i, contractorIds_1, contractorId, isBlocked, devices, deviceTokens, error_4;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -298,7 +299,16 @@ exports.JobEvent.on('NEW_JOB_LISTING', function (payload) {
                 case 2:
                     contractorProfiles = _a.sent();
                     contractorIds = contractorProfiles.map(function (profile) { return profile.contractor; });
-                    return [4 /*yield*/, contractor_devices_model_1.default.find({ contractor: { $in: contractorIds } })];
+                    customerId = job.customer;
+                    filteredContractorIds = [];
+                    for (_i = 0, contractorIds_1 = contractorIds; _i < contractorIds_1.length; _i++) {
+                        contractorId = contractorIds_1[_i];
+                        isBlocked = blockeduser_util_1.BlockedUserUtil.isUserBlocked(customerId, 'customers', contractorId, 'contractors');
+                        if (!isBlocked) {
+                            filteredContractorIds.push(contractorId);
+                        }
+                    }
+                    return [4 /*yield*/, contractor_devices_model_1.default.find({ contractor: { $in: filteredContractorIds } })];
                 case 3:
                     devices = _a.sent();
                     deviceTokens = devices.map(function (device) { return device.expoToken; });
