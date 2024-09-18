@@ -51,7 +51,7 @@ export const getSingleConversation = async (req: any, res: Response) => {
             return res.status(500).json({ success: false, message: "Conversation not found" });
         }
         
-        // conversation.isBlocked = await conversation.getIsBlocked() as boolean
+        conversation.isBlocked = await conversation.getIsBlocked() as boolean
 
         conversation.heading = await conversation.getHeading(customerId);
         if(conversation.entityType == 'jobs'){
@@ -145,8 +145,8 @@ export const sendMessage = async (req: any, res: Response, next: NextFunction) =
 
 
         const isBlocked = await conversation.getIsBlocked()
-        if (!isBlocked) {
-            return res.status(403).json({ success: false, message: 'You can not send message to this contractor' });
+        if (isBlocked) {
+            return res.status(403).json({ success: false, message: 'You can not send message to this user' });
         }
 
 
