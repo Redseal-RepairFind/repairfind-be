@@ -105,10 +105,12 @@ var api_feature_1 = require("../../../utils/api.feature");
 var review_model_1 = require("../../../database/common/review.model");
 var feedback_model_1 = require("../../../database/common/feedback.model");
 var admin_events_1 = require("../../../events/admin.events");
+var messages_schema_1 = require("../../../database/common/messages.schema");
 var events_1 = require("../../../events");
 var abuse_reports_model_1 = require("../../../database/common/abuse_reports.model");
 var blocked_users_model_1 = require("../../../database/common/blocked_users.model");
 var blockeduser_util_1 = require("../../../utils/blockeduser.util");
+var conversation_util_1 = require("../../../utils/conversation.util");
 var ProfileHandler = /** @class */ (function (_super) {
     __extends(ProfileHandler, _super);
     function ProfileHandler() {
@@ -1299,7 +1301,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     };
     ProfileHandler.prototype.blockUser = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, next, _a, customerId, _b, reason, contractorId, errors, bookedJobs, disputedJobs, ongoingJobs, _c, isBlocked, block, err_16;
+            var req, res, next, _a, customerId, _b, reason, contractorId, errors, bookedJobs, disputedJobs, ongoingJobs, _c, isBlocked, block, conversation, message, err_16;
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
@@ -1308,7 +1310,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         next = this.next;
                         _d.label = 1;
                     case 1:
-                        _d.trys.push([1, 7, , 8]);
+                        _d.trys.push([1, 9, , 10]);
                         _a = req.body, customerId = _a.customerId, _b = _a.reason, reason = _b === void 0 ? blocked_users_model_1.BLOCK_USER_REASON.ABUSE : _b;
                         contractorId = req.contractor.id;
                         errors = (0, express_validator_1.validationResult)(req);
@@ -1344,21 +1346,37 @@ var ProfileHandler = /** @class */ (function (_super) {
                                 customer: customerId,
                                 blockedBy: 'contractor',
                                 reason: reason
-                            }, { upsert: true, new: true })];
+                            }, { upsert: true, new: true })
+                            // Send a message to the customer
+                        ];
                     case 6:
                         _d.sent();
-                        return [2 /*return*/, res.status(201).json({ success: true, message: 'Customer successfully blocked' })];
+                        return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(customerId, 'customers', contractorId, 'contractors')];
                     case 7:
+                        conversation = _d.sent();
+                        message = new messages_schema_1.MessageModel({
+                            conversation: conversation === null || conversation === void 0 ? void 0 : conversation._id,
+                            sender: contractorId,
+                            senderType: 'contractors',
+                            message: "Conversation locked by contractor",
+                            messageType: messages_schema_1.MessageType.ALERT,
+                        });
+                        return [4 /*yield*/, message.save()];
+                    case 8:
+                        _d.sent();
+                        events_1.ConversationEvent.emit('NEW_MESSAGE', { message: message });
+                        return [2 /*return*/, res.status(201).json({ success: true, message: 'Customer successfully blocked' })];
+                    case 9:
                         err_16 = _d.sent();
                         return [2 /*return*/, next(new custom_errors_1.InternalServerError('Error occurred while blocking customer', err_16))];
-                    case 8: return [2 /*return*/];
+                    case 10: return [2 /*return*/];
                 }
             });
         });
     };
     ProfileHandler.prototype.unBlockUser = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, next, _a, customerId, _b, reason, contractorId, errors, _c, isBlocked, block, err_17;
+            var req, res, next, _a, customerId, _b, reason, contractorId, errors, _c, isBlocked, block, conversation, message, err_17;
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
@@ -1367,7 +1385,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         next = this.next;
                         _d.label = 1;
                     case 1:
-                        _d.trys.push([1, 4, , 5]);
+                        _d.trys.push([1, 6, , 7]);
                         _a = req.body, customerId = _a.customerId, _b = _a.reason, reason = _b === void 0 ? blocked_users_model_1.BLOCK_USER_REASON.ABUSE : _b;
                         contractorId = req.contractor.id;
                         errors = (0, express_validator_1.validationResult)(req);
@@ -1383,11 +1401,25 @@ var ProfileHandler = /** @class */ (function (_super) {
                         return [4 /*yield*/, blocked_users_model_1.BlockedUserModel.findOneAndDelete({ customer: customerId, contractor: contractorId, blockedBy: 'contractor' })];
                     case 3:
                         _d.sent();
-                        return [2 /*return*/, res.status(201).json({ success: true, message: 'Customer successfully unblocked' })];
+                        return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(customerId, 'customers', contractorId, 'contractors')];
                     case 4:
+                        conversation = _d.sent();
+                        message = new messages_schema_1.MessageModel({
+                            conversation: conversation === null || conversation === void 0 ? void 0 : conversation._id,
+                            sender: contractorId,
+                            senderType: 'contractors',
+                            message: "Conversation unlocked by contractor",
+                            messageType: messages_schema_1.MessageType.ALERT,
+                        });
+                        return [4 /*yield*/, message.save()];
+                    case 5:
+                        _d.sent();
+                        events_1.ConversationEvent.emit('NEW_MESSAGE', { message: message });
+                        return [2 /*return*/, res.status(201).json({ success: true, message: 'Customer successfully unblocked' })];
+                    case 6:
                         err_17 = _d.sent();
                         return [2 /*return*/, next(new custom_errors_1.InternalServerError('Error occurred while unblocking customer', err_17))];
-                    case 5: return [2 /*return*/];
+                    case 7: return [2 /*return*/];
                 }
             });
         });
