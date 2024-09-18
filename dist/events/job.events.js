@@ -280,16 +280,16 @@ exports.JobEvent.on('JOB_REQUEST_REJECTED', function (payload) {
 });
 exports.JobEvent.on('NEW_JOB_LISTING', function (payload) {
     return __awaiter(this, void 0, void 0, function () {
-        var job, contractorProfiles, contractorIds, customerId, filteredContractorIds, _i, contractorIds_1, contractorId, isBlocked, devices, deviceTokens, error_4;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        var job, contractorProfiles, contractorIds, customerId, filteredContractorIds, _i, contractorIds_1, contractorId, _a, isBlocked, block, devices, deviceTokens, error_4;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
                 case 0:
-                    _a.trys.push([0, 5, , 6]);
+                    _b.trys.push([0, 9, , 10]);
                     logger_1.Logger.info('handling alert NEW_JOB_LISTING event');
                     return [4 /*yield*/, job_model_1.JobModel.findById(payload.jobId)];
                 case 1:
-                    job = _a.sent();
-                    if (!job) return [3 /*break*/, 4];
+                    job = _b.sent();
+                    if (!job) return [3 /*break*/, 8];
                     socket_1.SocketService.broadcastChannel('alerts', 'NEW_JOB_LISTING', {
                         type: 'NEW_JOB_LISTING',
                         message: 'A new Job listing has been added',
@@ -297,20 +297,28 @@ exports.JobEvent.on('NEW_JOB_LISTING', function (payload) {
                     });
                     return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.find({ skill: job.category })];
                 case 2:
-                    contractorProfiles = _a.sent();
+                    contractorProfiles = _b.sent();
                     contractorIds = contractorProfiles.map(function (profile) { return profile.contractor; });
                     customerId = job.customer;
                     filteredContractorIds = [];
-                    for (_i = 0, contractorIds_1 = contractorIds; _i < contractorIds_1.length; _i++) {
-                        contractorId = contractorIds_1[_i];
-                        isBlocked = blockeduser_util_1.BlockedUserUtil.isUserBlocked(customerId, 'customers', contractorId, 'contractors');
-                        if (!isBlocked) {
-                            filteredContractorIds.push(contractorId);
-                        }
-                    }
-                    return [4 /*yield*/, contractor_devices_model_1.default.find({ contractor: { $in: filteredContractorIds } })];
+                    _i = 0, contractorIds_1 = contractorIds;
+                    _b.label = 3;
                 case 3:
-                    devices = _a.sent();
+                    if (!(_i < contractorIds_1.length)) return [3 /*break*/, 6];
+                    contractorId = contractorIds_1[_i];
+                    return [4 /*yield*/, blockeduser_util_1.BlockedUserUtil.isUserBlocked({ customer: customerId, contractor: contractorId })];
+                case 4:
+                    _a = _b.sent(), isBlocked = _a.isBlocked, block = _a.block;
+                    if (!isBlocked) {
+                        filteredContractorIds.push(contractorId);
+                    }
+                    _b.label = 5;
+                case 5:
+                    _i++;
+                    return [3 /*break*/, 3];
+                case 6: return [4 /*yield*/, contractor_devices_model_1.default.find({ contractor: { $in: filteredContractorIds } })];
+                case 7:
+                    devices = _b.sent();
                     deviceTokens = devices.map(function (device) { return device.expoToken; });
                     (0, expo_1.sendPushNotifications)(deviceTokens, {
                         title: 'New job listing',
@@ -324,13 +332,13 @@ exports.JobEvent.on('NEW_JOB_LISTING', function (payload) {
                             event: 'NEW_JOB_LISTING',
                         }
                     });
-                    _a.label = 4;
-                case 4: return [3 /*break*/, 6];
-                case 5:
-                    error_4 = _a.sent();
+                    _b.label = 8;
+                case 8: return [3 /*break*/, 10];
+                case 9:
+                    error_4 = _b.sent();
                     logger_1.Logger.error("Error handling NEW_JOB_REQUEST event: ".concat(error_4));
-                    return [3 /*break*/, 6];
-                case 6: return [2 /*return*/];
+                    return [3 /*break*/, 10];
+                case 10: return [2 /*return*/];
             }
         });
     });

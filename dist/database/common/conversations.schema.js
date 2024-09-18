@@ -100,9 +100,9 @@ var ConversationSchema = new mongoose_1.default.Schema({
     lastMessageAt: {
         type: Date
     },
-    isBlocked: {
-        type: Boolean,
-        default: false,
+    isBlockedBy: {
+        type: String,
+        default: null,
     }
 }, {
     toObject: {
@@ -170,15 +170,29 @@ ConversationSchema.methods.getHeading = function (loggedInUserId) {
 };
 ConversationSchema.methods.getIsBlocked = function () {
     return __awaiter(this, void 0, void 0, function () {
-        var conversationMembers, isBlocked;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        var conversationMembers, contractor, customer, _a, isBlocked, block;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
                 case 0:
                     conversationMembers = this.members;
-                    return [4 /*yield*/, blockeduser_util_1.BlockedUserUtil.isUserBlocked(conversationMembers[0].member, conversationMembers[0].memberType, conversationMembers[1].member, conversationMembers[1].memberType)];
+                    contractor = conversationMembers[1].member;
+                    customer = conversationMembers[0].member;
+                    if (conversationMembers[0].memberType == 'customers') {
+                        customer = conversationMembers[0].member;
+                    }
+                    else {
+                        customer = conversationMembers[1].member;
+                    }
+                    if (conversationMembers[0].memberType == 'contractors') {
+                        contractor = conversationMembers[0].member;
+                    }
+                    else {
+                        contractor = conversationMembers[1].member;
+                    }
+                    return [4 /*yield*/, blockeduser_util_1.BlockedUserUtil.isUserBlocked({ customer: customer, contractor: contractor })];
                 case 1:
-                    isBlocked = _a.sent();
-                    return [2 /*return*/, isBlocked];
+                    _a = _b.sent(), isBlocked = _a.isBlocked, block = _a.block;
+                    return [2 /*return*/, block === null || block === void 0 ? void 0 : block.blockedBy];
             }
         });
     });

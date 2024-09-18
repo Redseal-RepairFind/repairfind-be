@@ -23,7 +23,7 @@ export interface IConversation extends Document {
     lastMessageAt: Date;
     type: string;
     lastMessage: string;
-    isBlocked: boolean;
+    isBlockedBy?: string;
     entity: ObjectId
     entityType: ConversationEntityType
     heading: Object;
@@ -66,9 +66,9 @@ const ConversationSchema = new mongoose.Schema<IConversation>({
     lastMessageAt: {
         type: Date
     },
-    isBlocked: {
-        type: Boolean,
-        default: false,
+    isBlockedBy: {
+        type: String,
+        default: null,
     }
 },
     {
@@ -131,8 +131,24 @@ ConversationSchema.methods.getHeading = async function (loggedInUserId: string) 
 
 ConversationSchema.methods.getIsBlocked = async function () {
     const conversationMembers = this.members
-    const isBlocked = await BlockedUserUtil.isUserBlocked(conversationMembers[0].member, conversationMembers[0].memberType, conversationMembers[1].member, conversationMembers[1].memberType)
-    return isBlocked as boolean
+    
+    let contractor = conversationMembers[1].member
+    let customer = conversationMembers[0].member
+
+    if(conversationMembers[0].memberType == 'customers' ){
+        customer = conversationMembers[0].member
+    }else{
+        customer = conversationMembers[1].member
+    }
+
+    if(conversationMembers[0].memberType == 'contractors' ){
+        contractor = conversationMembers[0].member
+    }else{
+        contractor = conversationMembers[1].member
+    }
+
+    const {isBlocked, block} = await BlockedUserUtil.isUserBlocked({customer, contractor})
+    return block?.blockedBy
 
 };
 

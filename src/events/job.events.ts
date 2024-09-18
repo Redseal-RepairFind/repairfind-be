@@ -204,7 +204,7 @@ JobEvent.on('NEW_JOB_LISTING', async function (payload) {
             
             const filteredContractorIds = [];
             for (const contractorId of contractorIds) {
-                const isBlocked = BlockedUserUtil.isUserBlocked(customerId, 'customers', contractorId, 'contractors');
+                const {isBlocked, block} = await BlockedUserUtil.isUserBlocked({customer: customerId, contractor: contractorId});
                 if (!isBlocked) {
                     filteredContractorIds.push(contractorId);
                 }

@@ -9,34 +9,28 @@ export enum BLOCK_USER_REASON {
 
 
 export interface IBlockedUser {
-    user: ObjectId; // User who reported
-    userType: string; // 'customers' or 'contractors'
-    blockedUser: ObjectId; // User being reported
-    blockedUserType: string; // 'customers' or 'contractors'
+    customer: ObjectId; // User who reported
+    contractor: ObjectId; // User being reported
+    blockedBy: string; // 'customers' or 'contractors'
     reason: BLOCK_USER_REASON; // Type of report
     comment?: string; // Optional: Additional comments
     createdAt: Date; // Date when the report was created
 }
 
 const BlockedUserSchema = new Schema<IBlockedUser>({
-    user: {
+    customer: {
         type: Schema.Types.ObjectId,
-        refPath: 'userType',
+        ref: 'customers',
         required: true
     },
-    blockedUser: {
+    contractor: {
         type: Schema.Types.ObjectId,
-        refPath: 'blockedUserType',
+        ref: 'contractors',
         required: true
     },
-    userType: {
+    blockedBy: {
         type: String,
-        enum: ['customers', 'contractors'],
-        required: true
-    },
-    blockedUserType: {
-        type: String,
-        enum: ['customers', 'contractors'],
+        enum: ['customer', 'contractor'],
         required: true
     },
     reason: {

@@ -54,7 +54,7 @@ export const getSingleConversation = async (req: any, res: Response, next: NextF
         }
         conversation.heading = await conversation.getHeading(contractorId);
         
-        conversation.isBlocked = await conversation.getIsBlocked() as boolean
+        conversation.isBlockedBy = await conversation.getIsBlocked() as string
 
         if(conversation.entityType == 'jobs'){
             //@ts-ignore

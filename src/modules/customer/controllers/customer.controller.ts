@@ -16,6 +16,7 @@ import { AdminEvent } from "../../../events/admin.events";
 import { AccountEvent } from "../../../events";
 import { ABUSE_REPORT_TYPE, AbuseReportModel } from "../../../database/common/abuse_reports.model";
 import { BLOCK_USER_REASON, BlockedUserModel } from "../../../database/common/blocked_users.model";
+import { BlockedUserUtil } from "../../../utils/blockeduser.util";
 
 
 export const updateAccount = async (
@@ -417,14 +418,17 @@ export const blockUser = async (
        return res.status(400).json({ success: false, message: 'You have  ongoing jobs, contractor cannot be blocked', data: ongoingJobs });
      }
 
-    await BlockedUserModel.findOneAndUpdate({blockedUser: contractorId, blockedUserType: 'contractors', user: customerId, userType: 'customers'},{
-      blockedUser: contractorId, 
-      blockedUserType: 'contractors',
-      user: customerId, 
-      userType: 'customers',
-      reason: reason
-    }, {upsert: true, new: true})
+     const {isBlocked, block} = await BlockedUserUtil.isUserBlocked({customer:customerId, contractor: contractorId})
+       if(isBlocked){
+          return res.status(400).json({ success: false, message: `User is already blocked by ${block?.blockedBy}` });
+       }
 
+      await BlockedUserModel.findOneAndUpdate({ contractor: contractorId,  customer: customerId }, {
+        contractor: contractorId,
+        customer: customerId,
+        blockedBy: 'customer',
+        reason: reason
+      }, { upsert: true, new: true })
    
     return res.status(201).json({ success: true, message: 'Contractor successfully blocked' });
   } catch (err: any) {
@@ -448,9 +452,12 @@ export const unBlockUser = async (
       return res.status(400).json({ success: false, message: 'Validation error occurred', errors: errors.array() });
     }
 
-    await BlockedUserModel.findOneAndDelete({blockedUser: contractorId, blockedUserType: 'contractors', user: customerId, userType: 'customers'})
+    const {isBlocked, block} = await BlockedUserUtil.isUserBlocked({customer:customerId, contractor: contractorId})
+    if(block && block.blockedBy == 'contractor'){
+      return res.status(400).json({ success: false, message: 'Unable to unblock'});
+    }
+    await BlockedUserModel.findOneAndDelete({customer: customerId, contractor: contractorId, blockedBy: 'customer'})
 
-   
     return res.status(200).json({ success: true, message: 'Contractor successfully unblocked' });
   } catch (err: any) {
     return next(new InternalServerError('Error occurred while  unblocking contractor', err));
