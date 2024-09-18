@@ -1475,7 +1475,7 @@ exports.JobEvent.on('NEW_JOB_QUOTATION', function (payload) {
                             event: 'NEW_JOB_QUOTATION',
                             quotationId: quotation.id,
                             jobType: job.type,
-                            conversation: conversation.id,
+                            conversationId: conversation.id,
                         }
                     }, { push: true, socket: true, database: true });
                     return [3 /*break*/, 5];
