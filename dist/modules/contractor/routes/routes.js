@@ -16,6 +16,7 @@ var contractor_transaction_controller_1 = require("../controllers/contractor_tra
 var contractor_call_controller_1 = require("../controllers/contractor_call.controller");
 var contractor_booking_controller_1 = require("../controllers/contractor_booking.controller");
 var contractor_jobday_controller_1 = require("../controllers/contractor_jobday.controller");
+var contractororGuestRoleCheck_middleware_1 = require("../middleware/contractororGuestRoleCheck.middleware");
 var express = require("express");
 var router = express.Router();
 //  AUTH
@@ -150,8 +151,8 @@ router.post("/stripe-setupintent", contractorRoleCheck_middleware_1.checkContrac
 router.get('/jobs', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.getJobRequests);
 // Job Listings
 router.get('/jobs/my-jobs', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.getMyJobs);
-router.get('/jobs/listings', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.getJobListings);
-router.get('/jobs/listings/:jobId', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.getJobListingById);
+router.get('/jobs/listings', contractororGuestRoleCheck_middleware_1.checkContractorOrGuestRole, contractor_job_controller_1.ContractorJobController.getJobListings);
+router.get('/jobs/listings/:jobId', contractororGuestRoleCheck_middleware_1.checkContractorOrGuestRole, contractor_job_controller_1.ContractorJobController.getJobListingById);
 router.post('/jobs/listings/:jobId/hide-listing', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.hideJobListing);
 // Job Request
 router.get('/jobs/requests', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.getJobRequests);

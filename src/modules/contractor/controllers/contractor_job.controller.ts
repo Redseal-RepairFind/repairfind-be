@@ -343,7 +343,7 @@ export const getJobListingById = async (req: any, res: Response, next: NextFunct
       return res.status(400).json({ errors: errors.array() });
     }
     const { jobId } = req.params;
-    const contractorId = req.contractor.id;
+    const contractorId = req?.contractor?.id;
     const contractorProfile = await ContractorProfileModel.findOne({ contractor: contractorId })
 
 
@@ -381,9 +381,8 @@ export const getJobListingById = async (req: any, res: Response, next: NextFunct
 
     // Return the job request payload
     res.json({ success: true, data: job });
-  } catch (error) {
-    console.error('Error retrieving job listing:', error);
-    return next(new BadRequestError('Bad Request'));
+  } catch (error: any) {
+    return next(new InternalServerError('Internal Server Error', error));
   }
 };
 
@@ -837,7 +836,13 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
     return res.status(400).json({ success: false, errors: errors.array() });
   }
 
-  const contractorId = req.contractor.id
+  const contractorId = req?.contractor?.id
+
+  // Assume isGuest
+  if(!contractorId){
+    const {data, error} = await applyAPIFeature(JobModel.find(), req.query)
+    return res.status(200).json({ success: true, message: 'Jobs retrieved successfully', data: data });
+  }
   const profile = await ContractorProfileModel.findOne({ contractor: contractorId });
 
   if (!profile) {

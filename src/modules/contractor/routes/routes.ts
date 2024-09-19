@@ -16,6 +16,7 @@ import { ContractorTransactionController } from "../controllers/contractor_trans
 import { ContractorCallController } from "../controllers/contractor_call.controller";
 import { ContractorBookingController } from "../controllers/contractor_booking.controller";
 import { ContractorJobDayController } from "../controllers/contractor_jobday.controller";
+import { checkContractorOrGuestRole } from "../middleware/contractororGuestRoleCheck.middleware";
 
 const express = require("express");
 const router = express.Router();
@@ -190,8 +191,8 @@ router.get('/jobs', checkContractorRole, ContractorJobController.getJobRequests)
 
 // Job Listings
 router.get('/jobs/my-jobs', checkContractorRole, ContractorJobController.getMyJobs)
-router.get('/jobs/listings', checkContractorRole, ContractorJobController.getJobListings)
-router.get('/jobs/listings/:jobId', checkContractorRole, ContractorJobController.getJobListingById)
+router.get('/jobs/listings', checkContractorOrGuestRole, ContractorJobController.getJobListings)
+router.get('/jobs/listings/:jobId', checkContractorOrGuestRole, ContractorJobController.getJobListingById)
 router.post('/jobs/listings/:jobId/hide-listing', checkContractorRole, ContractorJobController.hideJobListing)
 
 // Job Request
