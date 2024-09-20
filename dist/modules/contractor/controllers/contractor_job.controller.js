@@ -950,7 +950,7 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                 }
                 contractorId = (_m = req === null || req === void 0 ? void 0 : req.contractor) === null || _m === void 0 ? void 0 : _m.id;
                 if (!!contractorId) return [3 /*break*/, 2];
-                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_model_1.JobModel.find(), req.query)];
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_model_1.JobModel.find({ status: job_model_1.JOB_STATUS.PENDING }), req.query)];
             case 1:
                 _a = _o.sent(), data = _a.data, error = _a.error;
                 return [2 /*return*/, res.status(200).json({ success: true, message: 'Jobs retrieved successfully', data: data })];
