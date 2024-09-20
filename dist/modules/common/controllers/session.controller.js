@@ -56,13 +56,23 @@ var clearAuthSession = function (req, res) { return __awaiter(void 0, void 0, vo
                 }
                 _a = req.body, deviceToken = _a.deviceToken, accessToken = _a.accessToken, userId = _a.userId, userType = _a.userType;
                 if (!(userType == 'customers')) return [3 /*break*/, 2];
-                return [4 /*yield*/, customer_devices_model_1.default.deleteMany({ deviceToken: deviceToken })];
+                return [4 /*yield*/, customer_devices_model_1.default.deleteMany({
+                        $or: [
+                            { expoToken: deviceToken },
+                            { deviceToken: deviceToken }
+                        ]
+                    })];
             case 1:
                 _b.sent();
                 _b.label = 2;
             case 2:
                 if (!(userType == 'contractors')) return [3 /*break*/, 4];
-                return [4 /*yield*/, contractor_devices_model_1.default.deleteMany({ deviceToken: deviceToken })];
+                return [4 /*yield*/, contractor_devices_model_1.default.deleteMany({
+                        $or: [
+                            { expoToken: deviceToken },
+                            { deviceToken: deviceToken }
+                        ]
+                    })];
             case 3:
                 _b.sent();
                 _b.label = 4;
