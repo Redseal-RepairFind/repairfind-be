@@ -168,7 +168,7 @@ router.get('/jobs/:jobId/quotations', contractorRoleCheck_middleware_1.checkCont
 router.patch('/jobs/:jobId/quotations', contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateJobQuotationRequest, contractor_job_controller_1.ContractorJobController.updateJobQuotation);
 router.patch('/jobs/:jobId/quotations', contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateJobQuotationRequest, contractor_job_controller_1.ContractorJobController.updateJobQuotation);
 router.get('/jobs/:jobId/enquiries/:enquiryId', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.getJobSingleEnquiry);
-router.get('/jobs/:jobId/enquiries', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.getJobEnquiries);
+router.get('/jobs/:jobId/enquiries', contractororGuestRoleCheck_middleware_1.checkContractorOrGuestRole, contractor_job_controller_1.ContractorJobController.getJobEnquiries);
 router.post('/jobs/:jobId/enquiries', contractorRoleCheck_middleware_1.checkContractorRole, requests_1.ContractorHttpRequest.CreateJobEnquiryRequest, contractor_job_controller_1.ContractorJobController.createJobEnquiry);
 router.get('/quotations/:quotationId', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.getQuotation); // 
 router.get('/quotations/:quotationId', contractorRoleCheck_middleware_1.checkContractorRole, contractor_job_controller_1.ContractorJobController.getQuotation); // 

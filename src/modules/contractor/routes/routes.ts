@@ -210,7 +210,7 @@ router.get('/jobs/:jobId/quotations', checkContractorRole, ContractorJobControll
 router.patch('/jobs/:jobId/quotations', checkContractorRole,ContractorHttpRequest.CreateJobQuotationRequest, ContractorJobController.updateJobQuotation) 
 router.patch('/jobs/:jobId/quotations', checkContractorRole,ContractorHttpRequest.CreateJobQuotationRequest, ContractorJobController.updateJobQuotation) 
 router.get('/jobs/:jobId/enquiries/:enquiryId', checkContractorRole, ContractorJobController.getJobSingleEnquiry) 
-router.get('/jobs/:jobId/enquiries', checkContractorRole, ContractorJobController.getJobEnquiries) 
+router.get('/jobs/:jobId/enquiries', checkContractorOrGuestRole, ContractorJobController.getJobEnquiries) 
 router.post('/jobs/:jobId/enquiries', checkContractorRole, ContractorHttpRequest.CreateJobEnquiryRequest, ContractorJobController.createJobEnquiry) 
 router.get('/quotations/:quotationId', checkContractorRole, ContractorJobController.getQuotation) // 
 router.get('/quotations/:quotationId', checkContractorRole, ContractorJobController.getQuotation) // 
