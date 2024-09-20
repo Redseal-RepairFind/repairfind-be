@@ -42,6 +42,7 @@ var customer_seeder_1 = require("./customer.seeder");
 var admin_seeder_1 = require("./admin.seeder");
 var country_seeder_1 = require("./country.seeder");
 var bank_seeder_1 = require("./bank.seeder");
+var permissions_seeder_1 = require("./permissions.seeder");
 var RunSeeders = function () { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
         (0, customer_seeder_1.CustomerSeeder)({ ordered: true });
@@ -49,6 +50,7 @@ var RunSeeders = function () { return __awaiter(void 0, void 0, void 0, function
         (0, admin_seeder_1.AdminSeeder)({ ordered: false });
         (0, country_seeder_1.CountrySeeder)({ ordered: false });
         (0, bank_seeder_1.BankSeeder)({ ordered: false });
+        (0, permissions_seeder_1.PermissionSeeder)({ ordered: false });
         return [2 /*return*/];
     });
 }); };
