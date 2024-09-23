@@ -133,6 +133,7 @@ var PaymentSchema = new mongoose_1.Schema({
     payment_intent: { type: String },
     refunds: [RefundSchema],
     capture: CaptureShema,
+    capture_id: { type: String },
 }, { timestamps: true });
 // Create the Payment model
 var PaymentModel = mongoose_1.default.model('payments', PaymentSchema);
