@@ -14,7 +14,6 @@ import CustomerFavoriteContractorModel from "../../../database/customer/models/c
 import CustomerModel from "../../../database/customer/models/customer.model";
 import { JobModel } from "../../../database/common/job.model";
 import { JobQuotationModel } from "../../../database/common/job_quotation.model";
-import { ObjectId } from "mongoose"; // or "mongodb" depending on your environment
 
 
 type PipelineStage =
@@ -35,7 +34,7 @@ export const exploreContractors = async (
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
     }
-    const customerId = req?.customer?.id
+    const customerId = req.customer.id
     const customer = await CustomerModel.findById(customerId);
     try {
         let {
@@ -280,7 +279,7 @@ export const exploreContractors = async (
                                     $expr: {
                                         $and: [
                                             { $eq: ["$customer", new Types.ObjectId(customerId)] }, // Customer is the one checking
-                                            { $eq: ["$contractor", new Types.ObjectId("$$contractorId")] } // Contractor is blocked
+                                            { $eq: ["$contractor", "$$contractorId"] } // Contractor is blocked
                                         ]
                                     }
                                 }

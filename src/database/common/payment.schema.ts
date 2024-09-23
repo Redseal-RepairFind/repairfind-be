@@ -115,6 +115,7 @@ export interface IPayment {
   payment_intent: string;
   refunds: [IRefund];
   capture: ICapture
+  capture_id: string
 
 
   // Add any other fields you need
@@ -233,6 +234,7 @@ const PaymentSchema = new Schema<IPayment>({
   payment_intent: { type: String },
   refunds: [RefundSchema],
   capture: CaptureShema,
+  capture_id: {type: String},
 }, { timestamps: true });
 
 
