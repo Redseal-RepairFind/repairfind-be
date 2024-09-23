@@ -78,22 +78,22 @@ var job_quotation_model_1 = require("../../../database/common/job_quotation.mode
 var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, customerId, customer, _a, searchName, listing, minDistance, maxDistance, radius, _b, latitude, _c, longitude, emergencyJobs, category, location_1, city, country, address, accountType, date, isOffDuty, availability, experienceYear, gstNumber, _d, page, _e, limit, sort, minResponseTime, maxResponseTime, sortByResponseTime, availableDaysArray, skip, toRadians, pipeline, contractorIdsWithDateInSchedule, _f, sortField, sortOrder, sortStage, result, contractors, metadata, err_1;
     var _g;
-    var _h, _j;
-    return __generator(this, function (_k) {
-        switch (_k.label) {
+    var _h, _j, _k;
+    return __generator(this, function (_l) {
+        switch (_l.label) {
             case 0:
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
-                customerId = req.customer.id;
+                customerId = (_h = req === null || req === void 0 ? void 0 : req.customer) === null || _h === void 0 ? void 0 : _h.id;
                 return [4 /*yield*/, customer_model_1.default.findById(customerId)];
             case 1:
-                customer = _k.sent();
-                _k.label = 2;
+                customer = _l.sent();
+                _l.label = 2;
             case 2:
-                _k.trys.push([2, 6, , 7]);
-                _a = req.query, searchName = _a.searchName, listing = _a.listing, minDistance = _a.minDistance, maxDistance = _a.maxDistance, radius = _a.radius, _b = _a.latitude, latitude = _b === void 0 ? Number((_h = customer === null || customer === void 0 ? void 0 : customer.location) === null || _h === void 0 ? void 0 : _h.latitude) : _b, _c = _a.longitude, longitude = _c === void 0 ? Number((_j = customer === null || customer === void 0 ? void 0 : customer.location) === null || _j === void 0 ? void 0 : _j.longitude) : _c, emergencyJobs = _a.emergencyJobs, category = _a.category, location_1 = _a.location, city = _a.city, country = _a.country, address = _a.address, accountType = _a.accountType, date = _a.date, isOffDuty = _a.isOffDuty, availability = _a.availability, experienceYear = _a.experienceYear, gstNumber = _a.gstNumber, _d = _a.page, page = _d === void 0 ? 1 : _d, _e = _a.limit, limit = _e === void 0 ? 10 : _e, sort = _a.sort, minResponseTime = _a.minResponseTime, maxResponseTime = _a.maxResponseTime, sortByResponseTime = _a.sortByResponseTime;
+                _l.trys.push([2, 6, , 7]);
+                _a = req.query, searchName = _a.searchName, listing = _a.listing, minDistance = _a.minDistance, maxDistance = _a.maxDistance, radius = _a.radius, _b = _a.latitude, latitude = _b === void 0 ? Number((_j = customer === null || customer === void 0 ? void 0 : customer.location) === null || _j === void 0 ? void 0 : _j.latitude) : _b, _c = _a.longitude, longitude = _c === void 0 ? Number((_k = customer === null || customer === void 0 ? void 0 : customer.location) === null || _k === void 0 ? void 0 : _k.longitude) : _c, emergencyJobs = _a.emergencyJobs, category = _a.category, location_1 = _a.location, city = _a.city, country = _a.country, address = _a.address, accountType = _a.accountType, date = _a.date, isOffDuty = _a.isOffDuty, availability = _a.availability, experienceYear = _a.experienceYear, gstNumber = _a.gstNumber, _d = _a.page, page = _d === void 0 ? 1 : _d, _e = _a.limit, limit = _e === void 0 ? 10 : _e, sort = _a.sort, minResponseTime = _a.minResponseTime, maxResponseTime = _a.maxResponseTime, sortByResponseTime = _a.sortByResponseTime;
                 availableDaysArray = availability ? availability.split(',') : [];
                 skip = (parseInt(page) - 1) * parseInt(limit);
                 toRadians = function (degrees) { return degrees * (Math.PI / 180); };
@@ -331,9 +331,9 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
                 if (!date) return [3 /*break*/, 4];
                 return [4 /*yield*/, (0, schedule_util_1.getContractorIdsWithDateInSchedule)(new Date(date))];
             case 3:
-                contractorIdsWithDateInSchedule = _k.sent();
+                contractorIdsWithDateInSchedule = _l.sent();
                 pipeline.push({ $match: { "profile.contractor": { $in: contractorIdsWithDateInSchedule } } });
-                _k.label = 4;
+                _l.label = 4;
             case 4:
                 if (availability) {
                     pipeline.push({ $match: { "profile.availability": { $in: availableDaysArray } } });
@@ -398,14 +398,14 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
                 });
                 return [4 /*yield*/, contractor_model_1.ContractorModel.aggregate(pipeline)];
             case 5:
-                result = _k.sent();
+                result = _l.sent();
                 contractors = result[0].data;
                 metadata = result[0].metadata[0];
                 // Send response
                 res.status(200).json({ success: true, data: __assign(__assign({}, metadata), { data: contractors }) });
                 return [3 /*break*/, 7];
             case 6:
-                err_1 = _k.sent();
+                err_1 = _l.sent();
                 console.error("Error fetching contractors:", err_1);
                 res.status(400).json({ message: 'Something went wrong' });
                 return [3 /*break*/, 7];
