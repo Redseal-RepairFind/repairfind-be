@@ -5,6 +5,7 @@ export interface IAppVersion {
     createdAt: Date;
     changelogs?: Array<{ title: string; description: string }>;
     type: string; // IOS, ANDROID
+    app: string; // customer, contractor
     status: 'beta' | 'stable' | 'alpha' | 'release-candidate';
     isCurrent?: boolean; // This will not be used in the schema
 }
@@ -30,6 +31,11 @@ const AppVersionSchema = new Schema<IAppVersion>({
     type: {
         type: String,
         enum: ['IOS', 'ANDROID'],
+        required: true,
+    },
+    app: {
+        type: String,
+        enum: ['customer', 'contractor'],
         required: true,
     },
     status: {

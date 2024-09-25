@@ -1,6 +1,7 @@
 import { callServiceController } from "../controllers/call.controller";
 import { CliController } from "../controllers/cli.controller";
 import { CommonController } from "../controllers/common.controller";
+import { PaypalSandboxController } from "../controllers/paypal_sandbox.controller";
 import { SessionController } from "../controllers/session.controller";
 import { TrainingController } from "../controllers/training.controller";
 import { WebhookController } from "../controllers/webhook.controller";
@@ -27,10 +28,20 @@ router.get("/app-versions",  CommonController.getCurrentOrLatestAppVersions );
 
 router.post("/webhooks/stripe",  WebhookController.stripeWebook ); // stripe webhook
 router.post("/webhooks/certn",  WebhookController.certnWebook ); //  certn webhook
+router.post("/webhooks/paypal",  WebhookController.paypalWebhook ); //  certn webhook
 
 
 router.post("/clear-queue",  CliController.clearQueue ); //
 router.post("/test-fcm-notification",  CommonController.sendTestNotification ); //
+
+
+router.post("/testing/paypal/create-order",  PaypalSandboxController.createOrder ); //
+router.post("/testing/paypal/capture-order",  PaypalSandboxController.captureOrder ); //
+router.post("/testing/paypal/authorize-order",  PaypalSandboxController.authorizeOrder ); //
+router.post("/testing/paypal/charge-card",  PaypalSandboxController.chargePaymentMethod ); //
+router.post("/testing/paypal/create-setup-token",  PaypalSandboxController.createSetupToken ); //
+
+// router.post("/testing/paypal/create-payment-token",  PaypalSandboxController.createPaymentToken ); //
 
 
 

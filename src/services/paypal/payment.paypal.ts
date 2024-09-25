@@ -1,50 +1,270 @@
-import paypal from '@paypal/checkout-server-sdk';
+import axios from 'axios';
 import { BadRequestError } from '../../utils/custom.errors';
-
-// Set up PayPal environment
-const environment = new paypal.core.SandboxEnvironment(<string>process.env.PAYPAL_CLIENT_ID, <string>process.env.PAYPAL_CLIENT_SECRET);
-const client = new paypal.core.PayPalHttpClient(environment);
-
+import { config } from '../../config';
+import { v4 as uuidv4 } from 'uuid';
+import { IPaypalPaymentMethod, PaypalPaymentMethodSchema } from '../../database/common/paypal_paymentmethod.schema';
 
 
-// Create a Payment Method (Order) for On-Demand Charges
-export const createPaymentOrder = async (payload: any) => {
-  const request = new paypal.orders.OrdersCreateRequest();
-  request.requestBody({
-    intent: 'CAPTURE',
-    purchase_units: [{
+// Function to generate PayPal OAuth token
+const getPayPalAccessToken = async () => {
+  const auth = Buffer.from(
+    `${config.paypal.clientId}:${config.paypal.secretKey}`
+  ).toString('base64');
+
+  const response = await axios({
+    url: config.paypal.apiUrl + '/v1/oauth2/token',
+    method: 'post',
+    headers: {
+      Authorization: `Basic ${auth}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    data: 'grant_type=client_credentials',
+  });
+
+  return response.data.access_token;
+};
+
+// Create a Payment Order (Standard Payment)
+export const createOrder = async (payload: any) => {
+  const accessToken = await getPayPalAccessToken();
+
+  const response = await axios.post(
+    config.paypal.apiUrl + '/v2/checkout/orders',
+    {
+      intent: 'CAPTURE', // CAPTURE or AUTHORIZE
+      purchase_units: [
+        {
+          custom_id: payload.metaId,
+          reference_id: payload.metaId,
+          description: payload.description,
+          amount: {
+            currency_code: 'CAD',
+            value: (payload.amount / 100).toString(), // Amount in dollars
+          },
+        },
+      ],
+      "payment_source": {
+        "card": {
+          "attributes": {
+            "vault": {
+              "store_in_vault": "ON_SUCCESS"
+            }
+          }
+        }
+      },
+      application_context: {
+        return_url: 'https://repairfind.ca/payment-success/',
+        cancel_url: 'https://cancel.com',
+      },
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  return response.data;
+};
+
+// Capture the Full Authorized Amount
+export const captureAuthorization = async (authorizationId: string) => {
+  const accessToken = await getPayPalAccessToken();
+
+  // Fetch the authorization details to get the authorized amount
+  const authorizationResponse = await axios.get(
+    config.paypal.apiUrl + `/v2/payments/authorizations/${authorizationId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  // Get the full authorized amount from the response
+  const authorizedAmount = authorizationResponse.data.amount;
+
+  const captureResponse = await axios.post(
+    config.paypal.apiUrl + `/v2/payments/authorizations/${authorizationId}/capture`,
+    {
+      amount: {
+        currency_code: authorizedAmount.currency_code,
+        value: authorizedAmount.value,
+      },
+      final_capture: true,
+      invoice_id: 'INV-' + Math.floor(Math.random() * 1000000),
+      note_to_payer: 'Thank you for your purchase!',
+      soft_descriptor: 'RepairFind',
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  return captureResponse.data;
+};
+
+
+// Capture the Full Payment for an Order using orderId
+export const captureOrder = async (orderId: string) => {
+  const accessToken = await getPayPalAccessToken();
+  let paymentMethod = null
+  try {
+    // Capture the full order payment
+    const captureResponse = await axios.post(
+      `${config.paypal.apiUrl}/v2/checkout/orders/${orderId}/capture`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    const orderData = captureResponse.data;
+
+    // Check if the payment source has a vaulted card and extract the token
+    const vault = orderData?.payment_source?.card?.attributes?.vault;
+
+    if (vault && vault.id) {
+      const vaultToken = vault.id;
+      const paypalCustomer = vault.customer?.id;
+
+      const cardDetails = {
+        lastDigits: orderData.payment_source.card.last_digits,
+        expiry: orderData.payment_source.card.expiry,
+        brand: orderData.payment_source.card.brand,
+      };
+
+      paymentMethod = {
+        vault_id: vaultToken,
+        customer: paypalCustomer,
+        status: "active",
+        card: {
+          last_digits: cardDetails.lastDigits,  // Last 4 digits of the card
+          expiry: cardDetails.expiry,           // Card expiration date
+          brand: cardDetails.brand,             // Card brand (e.g., Visa, Mastercard)
+        },
+        created_at: new Date(),  // Timestamp of when the token was saved
+      } as IPaypalPaymentMethod
+    }
+
+    return {orderData, paymentMethod};
+  } catch (error: any) {
+    console.error("Error capturing order:", error);
+    throw new Error(error.response?.data?.message || error.message);
+  }
+};
+
+
+
+
+// Create a Payment Order (Standard Payment)
+export const chargeSavedCard = async (payload: any) => {
+  const accessToken = await getPayPalAccessToken();
+  const requestId = uuidv4();  // Generate a unique request ID
+
+
+  try {
+    const response = await axios.post(
+      config.paypal.apiUrl + '/v2/checkout/orders',
+      {
+        intent: 'CAPTURE', // CAPTURE or AUTHORIZE
+        purchase_units: [
+          {
+            custom_id: "payload.metaId,",
+            reference_id: "payload.metaId",
+            description: "payload.description,",
+            amount: {
+              currency_code: 'CAD',
+              value: (payload.amount / 100).toString(), // Amount in dollars
+            },
+          },
+        ],
+        "payment_source": {
+          "card": {
+            "vault_id": payload.paymentToken
+          }
+        }
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+          'PayPal-Request-Id': requestId,  // Unique PayPal Request ID
+        },
+      }
+    );
+
+    return response.data;
+
+  } catch (error: any) {
+    // Handle error, e.g., logging or throwing a custom error
+    // console.error('Error occurred:', error);
+    throw new Error(error);
+  }
+
+
+};
+
+
+
+// Refund a Payment
+export const refundPayment = async (captureId: string, amountToRefund: number) => {
+  const accessToken = await getPayPalAccessToken();
+
+  const response = await axios.post(
+    config.paypal.apiUrl + `/v2/payments/captures/${captureId}/refund`,
+    {
       amount: {
         currency_code: 'CAD',
-        value: (payload.amount / 100).toString(), // Amount in dollars
+        value: (amountToRefund / 100).toString(),
       },
-    }],
-    application_context: {
-      return_url: 'https://repairfind.ca/payment-success/',
-      cancel_url: 'https://cancel.com',
     },
-  });
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
 
-  const response = await client.execute(request);
-  return response.result;
+  return response.data;
 };
 
+// Retrieve Payment Method from Order
+export const retrievePaymentMethod = async (orderId: string) => {
+  const accessToken = await getPayPalAccessToken();
 
+  try {
+    const response = await axios.get(
+      config.paypal.apiUrl + `/v2/checkout/orders/${orderId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
 
-// Refund Payment
-export const refundPayment = async (captureId: string, amountToRefund: number) => {
-  const request = new paypal.payments.CapturesRefundRequest(captureId);
-  request.requestBody({
-    invoice_id: '',
-    note_to_payer: "",
-    amount: {
-      currency_code: 'CAD',
-      value: (amountToRefund / 100).toString(), // Amount in dollars
-    },
-    
-  });
+    // Extract payment method information
+    const paymentSource = response.data.payment_source;
 
-  const response = await client.execute(request);
-  return response.result;
+    if (paymentSource) {
+      return {
+        paymentMethod: paymentSource, // Return the payment source information
+        orderDetails: response.data, // You may also return complete order details if needed
+      };
+    } else {
+      throw new BadRequestError('No payment source found for this order.');
+    }
+  } catch (error: any) {
+    throw new BadRequestError(`Error retrieving payment method: ${error.message}`);
+  }
 };
-
-

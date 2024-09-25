@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import { StripeService } from "../../../services/stripe";
+import { Logger } from "../../../services/logger";
+import { PayPalService } from "../../../services/paypal";
 
 
 export const stripeWebook = async (
@@ -29,8 +31,25 @@ export const certnWebook = async (
     // const sig = <string>req.headers['stripe-signature'];
     // const payload = req.body;
     
-    // StripeService.webhook.StripeWebhookHandler(req)
-    console.log(req)
+
+    Logger.info("CERTN WEBHOOK", req)
+    res.status(200).end() 
+
+  } catch (err: any) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+
+}
+
+export const paypalWebhook = async (
+  req: Request,
+  res: Response,
+) => {
+
+  try {
+   
+    PayPalService.webhook.PayPalWebhookHandler(req)
+    Logger.info("PAYPAL WEBHOOK RECEIVED")
     res.status(200).end() 
 
   } catch (err: any) {
@@ -41,5 +60,6 @@ export const certnWebook = async (
 
 export const WebhookController = {
     stripeWebook,
-    certnWebook
+    certnWebook,
+    paypalWebhook
 }

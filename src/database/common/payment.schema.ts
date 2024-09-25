@@ -35,7 +35,7 @@ export interface IRefund extends Document {
 }
 
 
-export interface ICapture extends Document {
+export interface IStripeCapture extends Document {
   payment: ObjectId;
   payment_method: string;
   payment_intent: string;
@@ -79,6 +79,54 @@ export interface ICapture extends Document {
 
 
 
+export interface IPaypalCapture extends Document {
+  id: string;  // Capture ID
+  status: string;  // Status of the capture (e.g., "COMPLETED")
+  amount: {
+    currency_code: string;  // Currency code (e.g., "USD", "CAD")
+    value: string;  // Amount captured
+  };
+  final_capture: boolean;  // Indicates if this is the final capture for the transaction
+  seller_protection: {
+    status: string;  // Seller protection status (e.g., "ELIGIBLE", "NOT_ELIGIBLE")
+  };
+  seller_receivable_breakdown: {
+    gross_amount: {
+      currency_code: string;  // Gross amount before fees
+      value: string;  // Value of the gross amount
+    };
+    paypal_fee: {
+      currency_code: string;  // Currency code for the PayPal fee
+      value: string;  // Value of the PayPal fee
+    };
+    net_amount: {
+      currency_code: string;  // Net amount after PayPal fees
+      value: string;  // Value of the net amount
+    };
+  };
+  create_time: string;  // Capture creation timestamp
+  update_time: string;  // Capture update timestamp
+  network_transaction_reference: {
+    id: string;  // Network transaction reference ID
+    date: string;  // Transaction date
+    network: string;  // Network name (e.g., "MASTERCARD", "VISA")
+  };
+  processor_response: {
+    avs_code: string;  // Address Verification System response code
+    cvv_code: string;  // CVV verification response code
+    response_code: string;  // Processor response code (e.g., "0000")
+  };
+  links: Array<{
+    href: string;  // Hypermedia link to capture details
+    rel: string;  // Relation (e.g., "self", "refund")
+    method: string;  // HTTP method (e.g., "GET", "POST")
+  }>;
+}
+
+
+
+
+
 // Define the interface for the payment
 export interface IPayment {
   id: ObjectId
@@ -114,9 +162,9 @@ export interface IPayment {
   calculated_statement_descriptor: string;
   payment_intent: string;
   refunds: [IRefund];
-  capture: ICapture
+  stripeCapture: IStripeCapture
+  paypalCapture: IPaypalCapture
   capture_id: string
-
 
   // Add any other fields you need
 }
@@ -150,7 +198,7 @@ const RefundSchema = new Schema<IRefund>({
 
 
 
-const CaptureShema = new Schema<ICapture>(
+const StripeCaptureShema = new Schema<IStripeCapture>(
   {
     payment: { type: Schema.Types.ObjectId, required: true },
     payment_method: { type: String, required: true },
@@ -198,6 +246,55 @@ const CaptureShema = new Schema<ICapture>(
 
 
 
+  // Create the PaypalCaptureSchema
+export const PaypalCaptureSchema = new Schema<IPaypalCapture>({
+  id: { type: String, required: true },
+  status: { type: String, required: true },
+  amount: {
+    currency_code: { type: String, required: true },
+    value: { type: String, required: true }
+  },
+  final_capture: { type: Boolean, required: true },
+  seller_protection: {
+    status: { type: String, required: true }
+  },
+  seller_receivable_breakdown: {
+    gross_amount: {
+      currency_code: { type: String, required: true },
+      value: { type: String, required: true }
+    },
+    paypal_fee: {
+      currency_code: { type: String, required: true },
+      value: { type: String, required: true }
+    },
+    net_amount: {
+      currency_code: { type: String, required: true },
+      value: { type: String, required: true }
+    }
+  },
+  create_time: { type: String, required: true },
+  update_time: { type: String, required: true },
+  network_transaction_reference: {
+    id: { type: String, required: true },
+    date: { type: String, required: true },
+    network: { type: String, required: true }
+  },
+  processor_response: {
+    avs_code: { type: String, required: true },
+    cvv_code: { type: String, required: true },
+    response_code: { type: String, required: true }
+  },
+  links: [
+    {
+      href: { type: String, required: true },
+      rel: { type: String, required: true },
+      method: { type: String, required: true }
+    }
+  ]
+});
+
+
+
 
 const PaymentSchema = new Schema<IPayment>({
   charge: { type: String, required: true },
@@ -233,7 +330,8 @@ const PaymentSchema = new Schema<IPayment>({
   calculated_statement_descriptor: { type: String },
   payment_intent: { type: String },
   refunds: [RefundSchema],
-  capture: CaptureShema,
+  stripeCapture: StripeCaptureShema,
+  paypalCapture: PaypalCaptureSchema,
   capture_id: {type: String},
 }, { timestamps: true });
 

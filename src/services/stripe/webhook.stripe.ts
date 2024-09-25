@@ -9,7 +9,7 @@ import CustomerModel from '../../database/customer/models/customer.model';
 import ContractorDeviceModel from '../../database/contractor/models/contractor_devices.model';
 import { castPayloadToDTO } from '../../utils/interface_dto.util';
 import { IStripeAccount } from '../../database/common/stripe_account.schema';
-import { ICapture, IPayment, IRefund, PAYMENT_TYPE, PaymentModel } from '../../database/common/payment.schema';
+import { IPayment, IRefund, IStripeCapture, PAYMENT_TYPE, PaymentModel } from '../../database/common/payment.schema';
 import { JobModel, JOB_STATUS, JOB_SCHEDULE_TYPE } from '../../database/common/job.model';
 import { IJobQuotation, JobQuotationModel, JOB_QUOTATION_STATUS } from '../../database/common/job_quotation.model';
 import { ObjectId } from 'mongoose';
@@ -602,7 +602,7 @@ export const chargeSucceeded = async (payload: any) => {
             if (!payment.captured) {
 
                 const capture = payload.payment_method_details.card
-                let captureDto: ICapture = castPayloadToDTO(capture, capture as ICapture);
+                let captureDto: IStripeCapture = castPayloadToDTO(capture, capture as IStripeCapture);
 
                 captureDto.payment_intent = payload.payment_intent
                 captureDto.payment_method = payload.payment_method
@@ -610,12 +610,12 @@ export const chargeSucceeded = async (payload: any) => {
                 captureDto.captured = false
                 captureDto.currency = payment.currency
 
-                payment.capture = captureDto
+                payment.stripeCapture = captureDto
                 transaction.status = TRANSACTION_STATUS.PENDING
 
             } else {
                 const capture = payload.payment_method_details.card
-                let captureDto: ICapture = castPayloadToDTO(capture, capture as ICapture);
+                let captureDto: IStripeCapture = castPayloadToDTO(capture, capture as IStripeCapture);
                 captureDto.payment_intent = payload.payment_intent
                 captureDto.payment_method = payload.payment_method
                 captureDto.payment = payment.id
@@ -623,7 +623,7 @@ export const chargeSucceeded = async (payload: any) => {
                 captureDto.captured_at = payment.created
                 captureDto.currency = payment.currency
 
-                payment.capture = captureDto
+                payment.stripeCapture = captureDto
                 transaction.status = TRANSACTION_STATUS.SUCCESSFUL
 
             }
