@@ -122,7 +122,6 @@ export interface IPaypalCapture extends Document {
 // Define the interface for the payment
 export interface IPayment {
   id: ObjectId
-  charge: string; // stripe payment or charge id
   amount: number;
   amount_captured: number;
   amount_refunded: number;
@@ -157,6 +156,9 @@ export interface IPayment {
   stripeCapture: IStripeCapture
   paypalCapture: IPaypalCapture
   capture_id: string
+  charge_id: string; // stripe payment or charge id
+  channel: 'stripe' | 'paypal';
+
 
   // Add any other fields you need
 }
@@ -281,7 +283,6 @@ export const PaypalCaptureSchema = new Schema<IPaypalCapture>({
 
 
 const PaymentSchema = new Schema<IPayment>({
-  charge: { type: String, required: true },
   amount: { type: Number, required: true },
   amount_captured: { type: Number, required: true },
   amount_refunded: { type: Number },
@@ -317,6 +318,12 @@ const PaymentSchema = new Schema<IPayment>({
   stripeCapture: StripeCaptureShema,
   paypalCapture: PaypalCaptureSchema,
   capture_id: {type: String},
+  charge_id: { type: String },
+  channel: {
+    type: String,
+    enum: ['stripe', 'paypal'],
+  }
+
 }, { timestamps: true });
 
 

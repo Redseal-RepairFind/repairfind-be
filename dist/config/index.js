@@ -82,6 +82,11 @@ exports.config = {
         publicKey: process.env.PAYSTACK_PUBLIC_KEY,
         uri: process.env.PAYSTACK_BASE_URL
     },
+    paypal: {
+        secretKey: process.env.PAYPAL_CLIENT_SECRET,
+        clientId: process.env.PAYPAL_CLIENT_ID,
+        apiUrl: process.env.PAYPAL_API_URL
+    },
     kyc: {
         appId: process.env.KYC_APP_ID_KEMBLY,
         apiKey: process.env.KYC_API_KEY,

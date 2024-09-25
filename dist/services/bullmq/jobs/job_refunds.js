@@ -121,7 +121,7 @@ var handleJobRefunds = function () { return __awaiter(void 0, void 0, void 0, fu
                     return [2 /*return*/];
                 }
                 amount = (transaction.amount * 100);
-                charge = payment.charge;
+                charge = payment.charge_id;
                 metadata = (_c = transaction.metadata) !== null && _c !== void 0 ? _c : {};
                 metadata.transactionId = transaction.id;
                 metadata.paymentId = payment.id;

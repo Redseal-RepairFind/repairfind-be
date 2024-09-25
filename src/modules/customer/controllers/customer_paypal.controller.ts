@@ -5,6 +5,7 @@ import CustomerModel from '../../../database/customer/models/customer.model';
 import { config } from '../../../config';
 import { PayPalService } from '../../../services/paypal';
 import { Logger } from '../../../services/logger';
+import { PaypalCheckoutTemplate } from '../../../templates/common/paypal_checkout';
 
 
 
@@ -83,12 +84,29 @@ export const authorizePaymentMethodOrder = async (
 }
 
 
+export const loadCreatePaymentMethodView = async (
+    req: any,
+    res: Response,
+) => {
+    try {
+        const authHeader = req.headers.authorization;
+        const token = authHeader && authHeader.split(" ")[1];
+        const paypalClientId = config.paypal.clientId
+        let html = PaypalCheckoutTemplate({token, paypalClientId})
+        return res.send(html);
+    } catch (error) {
+        console.error('Error retrieving the order:', error);
+        return res.status(500).send({ error: 'Failed to capture order.' });
+    }
+
+}
 
 
 
 export const CustomerPaypalController = {
     createPaymentMethodOrder,
-    authorizePaymentMethodOrder
+    authorizePaymentMethodOrder,
+    loadCreatePaymentMethodView
 }
 
 

@@ -23,7 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PaymentModel = exports.PAYMENT_TYPE = void 0;
+exports.PaymentModel = exports.PaypalCaptureSchema = exports.PAYMENT_TYPE = void 0;
 var mongoose_1 = __importStar(require("mongoose"));
 var PAYMENT_TYPE;
 (function (PAYMENT_TYPE) {
@@ -56,7 +56,7 @@ var RefundSchema = new mongoose_1.Schema({
     status: { type: String, required: true },
     transfer_reversal: { type: String, default: null }
 });
-var CaptureShema = new mongoose_1.Schema({
+var StripeCaptureShema = new mongoose_1.Schema({
     payment: { type: mongoose_1.Schema.Types.ObjectId, required: true },
     payment_method: { type: String, required: true },
     payment_intent: { type: String, required: true },
@@ -99,8 +99,45 @@ var CaptureShema = new mongoose_1.Schema({
 }, {
     timestamps: true,
 });
+// Create the PaypalCaptureSchema
+exports.PaypalCaptureSchema = new mongoose_1.Schema({
+    id: { type: String, required: true },
+    status: { type: String, required: true },
+    amount: {
+        currency_code: { type: String, required: true },
+        value: { type: String, required: true }
+    },
+    final_capture: { type: Boolean, required: true },
+    seller_protection: {
+        status: { type: String, required: true }
+    },
+    seller_receivable_breakdown: {
+        gross_amount: {
+            currency_code: { type: String, required: true },
+            value: { type: String, required: true }
+        },
+        paypal_fee: {
+            currency_code: { type: String, required: true },
+            value: { type: String, required: true }
+        },
+        net_amount: {
+            currency_code: { type: String, required: true },
+            value: { type: String, required: true }
+        }
+    },
+    create_time: { type: String, required: true },
+    update_time: { type: String, required: true },
+    network_transaction_reference: { type: mongoose_1.Schema.Types.Mixed },
+    processor_response: { type: mongoose_1.Schema.Types.Mixed },
+    links: [
+        {
+            href: { type: String, required: true },
+            rel: { type: String, required: true },
+            method: { type: String, required: true }
+        }
+    ]
+});
 var PaymentSchema = new mongoose_1.Schema({
-    charge: { type: String, required: true },
     amount: { type: Number, required: true },
     amount_captured: { type: Number, required: true },
     amount_refunded: { type: Number },
@@ -132,8 +169,14 @@ var PaymentSchema = new mongoose_1.Schema({
     calculated_statement_descriptor: { type: String },
     payment_intent: { type: String },
     refunds: [RefundSchema],
-    capture: CaptureShema,
+    stripeCapture: StripeCaptureShema,
+    paypalCapture: exports.PaypalCaptureSchema,
     capture_id: { type: String },
+    charge_id: { type: String },
+    channel: {
+        type: String,
+        enum: ['stripe', 'paypal'],
+    }
 }, { timestamps: true });
 // Create the Payment model
 var PaymentModel = mongoose_1.default.model('payments', PaymentSchema);

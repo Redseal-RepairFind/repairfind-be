@@ -25,6 +25,11 @@ var AppVersionSchema = new mongoose_1.Schema({
         enum: ['IOS', 'ANDROID'],
         required: true,
     },
+    app: {
+        type: String,
+        enum: ['customer', 'contractor'],
+        required: true,
+    },
     status: {
         type: String,
         enum: ['beta', 'stable', 'alpha', 'release-candidate'],

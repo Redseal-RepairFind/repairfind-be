@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var cli_controller_1 = require("../controllers/cli.controller");
 var common_controller_1 = require("../controllers/common.controller");
+var paypal_sandbox_controller_1 = require("../controllers/paypal_sandbox.controller");
 var session_controller_1 = require("../controllers/session.controller");
 var training_controller_1 = require("../controllers/training.controller");
 var webhook_controller_1 = require("../controllers/webhook.controller");
@@ -19,6 +20,13 @@ router.post("/payments/charges", requests_1.CommonHttpRequest.clearSessionParams
 router.get("/app-versions", common_controller_1.CommonController.getCurrentOrLatestAppVersions);
 router.post("/webhooks/stripe", webhook_controller_1.WebhookController.stripeWebook); // stripe webhook
 router.post("/webhooks/certn", webhook_controller_1.WebhookController.certnWebook); //  certn webhook
+router.post("/webhooks/paypal", webhook_controller_1.WebhookController.paypalWebhook); //  certn webhook
 router.post("/clear-queue", cli_controller_1.CliController.clearQueue); //
 router.post("/test-fcm-notification", common_controller_1.CommonController.sendTestNotification); //
+router.post("/testing/paypal/create-order", paypal_sandbox_controller_1.PaypalSandboxController.createOrder); //
+router.post("/testing/paypal/capture-order", paypal_sandbox_controller_1.PaypalSandboxController.captureOrder); //
+router.post("/testing/paypal/authorize-order", paypal_sandbox_controller_1.PaypalSandboxController.authorizeOrder); //
+router.post("/testing/paypal/charge-card", paypal_sandbox_controller_1.PaypalSandboxController.chargePaymentMethod); //
+router.post("/testing/paypal/create-setup-token", paypal_sandbox_controller_1.PaypalSandboxController.createSetupToken); //
+// router.post("/testing/paypal/create-payment-token",  PaypalSandboxController.createPaymentToken ); //
 exports.default = router;

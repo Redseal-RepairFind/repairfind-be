@@ -76,7 +76,6 @@ export const paymentCaptureCompleted = async (payload: any, resourceType: any) =
         const paymentDTO: IPayment = {
             ...castPayloadToDTO(payload, payload as IPayment),
             capture_id: captureDto.id,
-            charge: captureDto.id,
             paypalCapture: captureDto,
             type: metadata.paymentType,
             user: user._id,
@@ -84,7 +83,8 @@ export const paymentCaptureCompleted = async (payload: any, resourceType: any) =
             amount: parseFloat(value),
             amount_captured: parseFloat(value),
             currency: currency_code,
-            object: resourceType
+            object: resourceType,
+            channel: 'paypal'
         };
 
 

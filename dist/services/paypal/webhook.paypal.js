@@ -79,32 +79,37 @@ var customer_model_1 = __importDefault(require("../../database/customer/models/c
 var interface_dto_util_1 = require("../../utils/interface_dto.util");
 var transaction_model_1 = __importStar(require("../../database/common/transaction.model"));
 var logger_1 = require("../logger");
+var events_1 = require("../../events");
 var payment_schema_1 = require("../../database/common/payment.schema");
+var job_model_1 = require("../../database/common/job.model");
+var job_quotation_model_1 = require("../../database/common/job_quotation.model");
+var paypal_payment_log_model_1 = require("../../database/common/paypal_payment_log.model");
 var PAYPAL_WEBHOOK_SECRET = process.env.PAYPAL_WEBHOOK_SECRET;
 var PayPalWebhookHandler = function (req) { return __awaiter(void 0, void 0, void 0, function () {
-    var event_1, eventType, eventData;
+    var event_1, eventType, resourceType, eventData;
     return __generator(this, function (_a) {
         try {
             event_1 = req.body;
             eventType = event_1.event_type;
+            resourceType = event_1.resource_type;
             eventData = event_1.resource;
             switch (eventType) {
                 // Payment Events
                 case 'PAYMENT.CAPTURE.COMPLETED':
-                    (0, exports.paymentCaptureCompleted)(eventData);
+                    (0, exports.paymentCaptureCompleted)(eventData, resourceType);
                     break;
                 case 'PAYMENT.CAPTURE.DENIED':
-                    (0, exports.paymentCaptureDenied)(eventData);
+                    (0, exports.paymentCaptureDenied)(eventData, resourceType);
                     break;
                 case 'PAYMENT.CAPTURE.REFUNDED':
-                    (0, exports.paymentCaptureRefunded)(eventData);
+                    (0, exports.paymentCaptureRefunded)(eventData, resourceType);
                     break;
                 // Order Events
                 case 'CHECKOUT.ORDER.APPROVED':
-                    (0, exports.orderApproved)(eventData);
+                    (0, exports.orderApproved)(eventData, resourceType);
                     break;
                 default:
-                    logger_1.Logger.info("Unhandled event type: ".concat(eventType), eventData);
+                    logger_1.Logger.info("Unhandled event type: ".concat(eventType, " - ").concat(resourceType), eventData);
                     break;
             }
         }
@@ -115,105 +120,211 @@ var PayPalWebhookHandler = function (req) { return __awaiter(void 0, void 0, voi
     });
 }); };
 exports.PayPalWebhookHandler = PayPalWebhookHandler;
-var paymentCaptureCompleted = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var invoice_id, custom_id, payer_id, amount, id, value, currency_code, _a, userType, userId, user, _b, paymentDTO, payment, transaction, error_1;
+var paymentCaptureCompleted = function (payload, resourceType) { return __awaiter(void 0, void 0, void 0, function () {
+    var custom_id, amount, value, currency_code, metaId, meta, metadata, user, _a, captureDto, paymentDTO, payment, transaction, jobId, paymentType, quotationId, job, quotation, charges, changeOrderEstimate, error_1;
+    var _b;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
                 logger_1.Logger.info('PayPal Event Handler: paymentCaptureCompleted', payload);
                 _c.label = 1;
             case 1:
-                _c.trys.push([1, 9, , 10]);
+                _c.trys.push([1, 20, , 21]);
                 // Ensure the payload is of type capture
-                if (payload.object !== 'capture')
+                if (resourceType !== 'capture')
                     return [2 /*return*/];
-                invoice_id = payload.invoice_id, custom_id = payload.custom_id, payer_id = payload.payer_id, amount = payload.amount, id = payload.id;
+                custom_id = payload.custom_id, amount = payload.amount;
                 value = amount.value, currency_code = amount.currency_code;
-                _a = custom_id.split('_'), userType = _a[0], userId = _a[1];
-                if (!userType || !userId)
-                    return [2 /*return*/]; // Ensure userType and userId are valid
-                if (!(userType === 'contractors')) return [3 /*break*/, 3];
-                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(userId)];
+                metaId = custom_id;
+                return [4 /*yield*/, paypal_payment_log_model_1.PaypalPaymentLog.findById(metaId)];
             case 2:
-                _b = _c.sent();
-                return [3 /*break*/, 5];
-            case 3: return [4 /*yield*/, customer_model_1.default.findById(userId)];
-            case 4:
-                _b = _c.sent();
-                _c.label = 5;
+                meta = _c.sent();
+                if (!meta || !meta.userType || !meta.user)
+                    return [2 /*return*/]; // Ensure userType and userId are valid
+                metadata = meta.metadata;
+                console.log('meta', meta);
+                if (!(meta.userType === 'contractors')) return [3 /*break*/, 4];
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(meta.user)];
+            case 3:
+                _a = _c.sent();
+                return [3 /*break*/, 6];
+            case 4: return [4 /*yield*/, customer_model_1.default.findById(meta.user)];
             case 5:
-                user = _b;
+                _a = _c.sent();
+                _c.label = 6;
+            case 6:
+                user = _a;
                 if (!user)
                     return [2 /*return*/]; // Ensure user exists
-                paymentDTO = __assign(__assign({}, (0, interface_dto_util_1.castPayloadToDTO)(payload, payload)), { capture_id: id, type: payload.custom, user: user._id, userType: userType, amount: parseFloat(value), currency: currency_code });
+                captureDto = (0, interface_dto_util_1.castPayloadToDTO)(payload, payload);
+                paymentDTO = __assign(__assign({}, (0, interface_dto_util_1.castPayloadToDTO)(payload, payload)), { capture_id: captureDto.id, paypalCapture: captureDto, type: metadata.paymentType, user: user._id, userType: meta.userType, amount: parseFloat(value), amount_captured: parseFloat(value), currency: currency_code, object: resourceType, channel: 'paypal' });
                 return [4 /*yield*/, payment_schema_1.PaymentModel.findOneAndUpdate({ capture_id: paymentDTO.capture_id }, paymentDTO, {
                         new: true, upsert: true
                     })];
-            case 6:
+            case 7:
                 payment = _c.sent();
-                if (!payment) return [3 /*break*/, 8];
+                if (!payment) return [3 /*break*/, 19];
                 transaction = new transaction_model_1.default({
-                    type: paymentDTO.type,
+                    type: metadata.paymentType,
                     amount: paymentDTO.amount,
                     currency: paymentDTO.currency,
-                    initiatorUser: userId,
-                    initiatorUserType: userType,
-                    fromUser: userId,
-                    fromUserType: userType,
-                    description: 'Payment capture for PayPal',
-                    status: transaction_model_1.TRANSACTION_STATUS.SUCCESSFUL,
+                    initiatorUser: user.id,
+                    initiatorUserType: meta.userType,
+                    fromUser: user.id,
+                    fromUserType: meta.userType,
+                    toUser: metadata.contractorId,
+                    toUserType: 'contractors',
+                    description: meta.metadata.paymentType.split('_').map(function (word) { return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(); }).join(' '),
                     payment: payment._id,
-                    metadata: { invoice_id: invoice_id, payer_id: payer_id }
+                    remark: metadata.remark,
+                    metadata: metadata,
+                    paymentMethod: meta.metadata.paymentMethod,
+                    job: metadata.jobId,
+                    status: transaction_model_1.TRANSACTION_STATUS.SUCCESSFUL
                 });
                 payment.transaction = transaction._id;
-                return [4 /*yield*/, Promise.all([payment.save(), transaction.save()])];
-            case 7:
-                _c.sent();
-                _c.label = 8;
-            case 8: return [3 /*break*/, 10];
+                if (!metadata.jobId) return [3 /*break*/, 17];
+                jobId = metadata.jobId;
+                paymentType = metadata.paymentType;
+                quotationId = metadata.quotationId;
+                if (!(jobId && paymentType && quotationId)) return [3 /*break*/, 17];
+                return [4 /*yield*/, job_model_1.JobModel.findById(jobId)];
+            case 8:
+                job = _c.sent();
+                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findById(quotationId)];
             case 9:
+                quotation = _c.sent();
+                if (!job || !quotation)
+                    return [2 /*return*/];
+                return [4 /*yield*/, quotation.calculateCharges()];
+            case 10:
+                charges = _c.sent();
+                transaction.invoice = {
+                    items: quotation.estimates,
+                    charges: charges
+                };
+                if (!(paymentType == payment_schema_1.PAYMENT_TYPE.JOB_DAY_PAYMENT)) return [3 /*break*/, 12];
+                job.status = job_model_1.JOB_STATUS.BOOKED;
+                job.contract = quotation.id;
+                job.contractor = quotation.contractor;
+                quotation.isPaid = true;
+                quotation.payment = payment.id;
+                quotation.status = job_quotation_model_1.JOB_QUOTATION_STATUS.ACCEPTED;
+                job.schedule = {
+                    startDate: (_b = quotation.startDate) !== null && _b !== void 0 ? _b : job.date,
+                    estimatedDuration: quotation.estimatedDuration,
+                    type: job_model_1.JOB_SCHEDULE_TYPE.JOB_DAY,
+                    remark: 'Initial job schedule'
+                };
+                return [4 /*yield*/, Promise.all([
+                        quotation.save(),
+                        job.save()
+                    ])];
+            case 11:
+                _c.sent();
+                events_1.JobEvent.emit('JOB_BOOKED', { jobId: jobId, contractorId: quotation.contractor, customerId: job.customer, quotationId: quotationId, paymentType: paymentType });
+                _c.label = 12;
+            case 12:
+                if (!(paymentType == payment_schema_1.PAYMENT_TYPE.SITE_VISIT_PAYMENT)) return [3 /*break*/, 14];
+                job.status = job_model_1.JOB_STATUS.BOOKED;
+                job.contract = quotation.id;
+                job.contractor = quotation.contractor;
+                quotation.siteVisitEstimate.isPaid = true;
+                quotation.siteVisitEstimate.payment = payment.id;
+                quotation.status = job_quotation_model_1.JOB_QUOTATION_STATUS.ACCEPTED;
+                if (quotation.siteVisit instanceof Date) {
+                    job.schedule = {
+                        startDate: quotation.siteVisit,
+                        estimatedDuration: quotation.estimatedDuration,
+                        type: job_model_1.JOB_SCHEDULE_TYPE.SITE_VISIT,
+                        remark: 'Site visit schedule'
+                    };
+                }
+                else {
+                    logger_1.Logger.info('quotation.siteVisit.date is not a valid Date object.');
+                }
+                return [4 /*yield*/, Promise.all([
+                        quotation.save(),
+                        job.save()
+                    ])];
+            case 13:
+                _c.sent();
+                events_1.JobEvent.emit('JOB_BOOKED', { jobId: jobId, contractorId: quotation.contractor, customerId: job.customer, quotationId: quotationId, paymentType: paymentType });
+                _c.label = 14;
+            case 14:
+                if (paymentType == payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) {
+                    changeOrderEstimate = quotation.changeOrderEstimate;
+                    if (!changeOrderEstimate)
+                        return [2 /*return*/];
+                    changeOrderEstimate.isPaid = true;
+                    changeOrderEstimate.payment = payment.id;
+                }
+                if (!job.payments.includes(payment.id))
+                    job.payments.push(payment.id);
+                // Create Escrow Transaction here
+                return [4 /*yield*/, transaction_model_1.default.create({
+                        type: transaction_model_1.TRANSACTION_TYPE.ESCROW,
+                        amount: payment.amount,
+                        initiatorUser: user.id,
+                        initiatorUserType: 'customers',
+                        fromUser: job.customer,
+                        fromUserType: 'customers',
+                        toUser: job.contractor,
+                        toUserType: 'contractors',
+                        description: "Escrow Transaction for job: ".concat(job === null || job === void 0 ? void 0 : job.title),
+                        status: transaction_model_1.TRANSACTION_STATUS.PENDING,
+                        remark: 'job_escrow_transaction',
+                        invoice: {
+                            items: [],
+                            charges: quotation.charges
+                        },
+                        metadata: {
+                            paymentType: paymentType,
+                            parentTransaction: transaction.id
+                        },
+                        job: job.id,
+                        payment: payment.id,
+                    })];
+            case 15:
+                // Create Escrow Transaction here
+                _c.sent();
+                return [4 /*yield*/, Promise.all([quotation.save(), job.save()])];
+            case 16:
+                _c.sent();
+                _c.label = 17;
+            case 17: return [4 /*yield*/, Promise.all([payment.save(), transaction.save()])];
+            case 18:
+                _c.sent();
+                _c.label = 19;
+            case 19: return [3 /*break*/, 21];
+            case 20:
                 error_1 = _c.sent();
                 logger_1.Logger.info('Error handling paymentCaptureCompleted PayPal webhook event', error_1);
-                return [3 /*break*/, 10];
-            case 10: return [2 /*return*/];
+                return [3 /*break*/, 21];
+            case 21: return [2 /*return*/];
         }
     });
 }); };
 exports.paymentCaptureCompleted = paymentCaptureCompleted;
-var paymentCaptureDenied = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var id, payment, error_2;
+var paymentCaptureDenied = function (payload, resourceType) { return __awaiter(void 0, void 0, void 0, function () {
+    var id;
     return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                logger_1.Logger.info('PayPal Event Handler: paymentCaptureDenied', payload);
-                _a.label = 1;
-            case 1:
-                _a.trys.push([1, 5, , 6]);
-                // Ensure the payload is of type capture
-                if (payload.object !== 'capture')
-                    return [2 /*return*/];
-                id = payload.id;
-                return [4 /*yield*/, payment_schema_1.PaymentModel.findOne({ capture_id: id })];
-            case 2:
-                payment = _a.sent();
-                if (!payment) return [3 /*break*/, 4];
-                payment.status = 'DENIED';
-                return [4 /*yield*/, payment.save()];
-            case 3:
-                _a.sent();
-                _a.label = 4;
-            case 4: return [3 /*break*/, 6];
-            case 5:
-                error_2 = _a.sent();
-                logger_1.Logger.info('Error handling paymentCaptureDenied PayPal webhook event', error_2);
-                return [3 /*break*/, 6];
-            case 6: return [2 /*return*/];
+        logger_1.Logger.info('PayPal Event Handler: paymentCaptureDenied', payload);
+        try {
+            // Ensure the payload is of type capture
+            if (payload.object !== 'capture')
+                return [2 /*return*/];
+            id = payload.id;
         }
+        catch (error) {
+            logger_1.Logger.info('Error handling paymentCaptureDenied PayPal webhook event', error);
+        }
+        return [2 /*return*/];
     });
 }); };
 exports.paymentCaptureDenied = paymentCaptureDenied;
-var paymentCaptureRefunded = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var id, amount, value, payment, error_3;
+var paymentCaptureRefunded = function (payload, resourceType) { return __awaiter(void 0, void 0, void 0, function () {
+    var id, amount, value, payment, error_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -237,15 +348,15 @@ var paymentCaptureRefunded = function (payload) { return __awaiter(void 0, void 
                 _a.label = 4;
             case 4: return [3 /*break*/, 6];
             case 5:
-                error_3 = _a.sent();
-                logger_1.Logger.info('Error handling paymentCaptureRefunded PayPal webhook event', error_3);
+                error_2 = _a.sent();
+                logger_1.Logger.info('Error handling paymentCaptureRefunded PayPal webhook event', error_2);
                 return [3 /*break*/, 6];
             case 6: return [2 /*return*/];
         }
     });
 }); };
 exports.paymentCaptureRefunded = paymentCaptureRefunded;
-var orderApproved = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
+var orderApproved = function (payload, resourceType) { return __awaiter(void 0, void 0, void 0, function () {
     var id, purchase_units;
     return __generator(this, function (_a) {
         logger_1.Logger.info('PayPal Event Handler: orderApproved', payload);

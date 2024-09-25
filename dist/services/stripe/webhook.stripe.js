@@ -743,12 +743,13 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                 payload.amount_captured = payload.amount_captured / 100;
                 payload.application_fee_amount = payload.application_fee_amount / 100;
                 stripeChargeDTO = (0, interface_dto_util_1.castPayloadToDTO)(payload, payload);
-                stripeChargeDTO.charge = payload.id;
+                stripeChargeDTO.charge_id = payload.id;
                 stripeChargeDTO.type = payload.metadata.paymentType;
                 stripeChargeDTO.user = user.id;
                 stripeChargeDTO.userType = userType;
+                stripeChargeDTO.channel = 'stripe';
                 delete stripeChargeDTO.id;
-                return [4 /*yield*/, payment_schema_1.PaymentModel.findOneAndUpdate({ charge: stripeChargeDTO.charge }, stripeChargeDTO, {
+                return [4 /*yield*/, payment_schema_1.PaymentModel.findOneAndUpdate({ charge: stripeChargeDTO.charge_id }, stripeChargeDTO, {
                         new: true, upsert: true
                     })
                     // handle things here
@@ -784,7 +785,7 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                     captureDto.payment = payment.id;
                     captureDto.captured = false;
                     captureDto.currency = payment.currency;
-                    payment.capture = captureDto;
+                    payment.stripeCapture = captureDto;
                     transaction.status = transaction_model_1.TRANSACTION_STATUS.PENDING;
                 }
                 else {
@@ -796,7 +797,7 @@ var chargeSucceeded = function (payload) { return __awaiter(void 0, void 0, void
                     captureDto.captured = payment.captured;
                     captureDto.captured_at = payment.created;
                     captureDto.currency = payment.currency;
-                    payment.capture = captureDto;
+                    payment.stripeCapture = captureDto;
                     transaction.status = transaction_model_1.TRANSACTION_STATUS.SUCCESSFUL;
                 }
                 // link transaction to payment
@@ -949,9 +950,9 @@ var chargeRefunded = function (payload) { return __awaiter(void 0, void 0, void 
                 if (payload.object !== 'charge')
                     return [2 /*return*/];
                 stripeChargeDTO = (0, interface_dto_util_1.castPayloadToDTO)(payload, payload);
-                stripeChargeDTO.charge = payload.id;
+                stripeChargeDTO.charge_id = payload.id;
                 delete stripeChargeDTO.id;
-                return [4 /*yield*/, payment_schema_1.PaymentModel.findOne({ charge: stripeChargeDTO.charge })];
+                return [4 /*yield*/, payment_schema_1.PaymentModel.findOne({ charge: stripeChargeDTO.charge_id })];
             case 2:
                 payment = _a.sent();
                 if (!payment) return [3 /*break*/, 4];

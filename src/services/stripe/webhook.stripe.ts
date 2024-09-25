@@ -540,10 +540,6 @@ export const chargeSucceeded = async (payload: any) => {
 
         if (payload.object != 'charge') return
 
-        // const customer: any = await StripeService.customer.getCustomerById(payload.customer)
-        // const userType = customer?.metadata?.userType
-        // const userId = customer?.metadata?.userId
-
         const userType = 'customers'
         const userId = payload?.metadata?.customerId
 
@@ -559,14 +555,15 @@ export const chargeSucceeded = async (payload: any) => {
         payload.application_fee_amount = payload.application_fee_amount / 100
 
         let stripeChargeDTO: IPayment = castPayloadToDTO(payload, payload as IPayment);
-        stripeChargeDTO.charge = payload.id
+        stripeChargeDTO.charge_id = payload.id
         stripeChargeDTO.type = payload.metadata.paymentType
         stripeChargeDTO.user = user.id
         stripeChargeDTO.userType = userType
+        stripeChargeDTO.channel = 'stripe'
         delete (stripeChargeDTO as { id?: any }).id;
 
 
-        let payment = await PaymentModel.findOneAndUpdate({ charge: stripeChargeDTO.charge }, stripeChargeDTO, {
+        let payment = await PaymentModel.findOneAndUpdate({ charge: stripeChargeDTO.charge_id }, stripeChargeDTO, {
             new: true, upsert: true
         })
 
@@ -796,9 +793,9 @@ export const chargeRefunded = async (payload: any) => {
         if (payload.object !== 'charge') return;
 
         const stripeChargeDTO: IPayment = castPayloadToDTO(payload, payload as IPayment);
-        stripeChargeDTO.charge = payload.id;
+        stripeChargeDTO.charge_id = payload.id;
         delete (stripeChargeDTO as { id?: any }).id;
-        const payment = await PaymentModel.findOne({ charge: stripeChargeDTO.charge });
+        const payment = await PaymentModel.findOne({ charge: stripeChargeDTO.charge_id });
         if (payment) {
             payment.amount_refunded = payload.amount_refunded / 100;
             payment.refunded = payload.refunded;

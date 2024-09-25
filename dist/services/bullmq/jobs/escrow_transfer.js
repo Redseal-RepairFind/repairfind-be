@@ -76,42 +76,44 @@ var transaction_model_1 = __importStar(require("../../../database/common/transac
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var transaction_events_1 = require("../../../events/transaction.events");
 var logger_1 = require("../../logger");
+var paypal_1 = require("../../paypal");
 var stripe_1 = require("../../stripe");
 var handleEscrowTransfer = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var transactions, _i, transactions_1, transaction, toUser, toUserStripeConnectAccount, connectAccountId, payment, amount, transactionMeta, metadata, stripeTransfer, error_1, error_2;
-    var _a;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
+    var transactions, _i, transactions_1, transaction, toUser, payment, toUserStripeConnectAccount, connectAccountId, amount, transactionMeta, metadata, stripeTransfer, amount, paypalTransfer, transactionMeta, metadata, error_1, error_2;
+    var _a, _b;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
             case 0:
-                _b.trys.push([0, 11, , 12]);
+                _c.trys.push([0, 14, , 15]);
                 return [4 /*yield*/, transaction_model_1.default.find({
                         type: transaction_model_1.TRANSACTION_TYPE.ESCROW,
                         status: transaction_model_1.TRANSACTION_STATUS.APPROVED
                     })];
             case 1:
-                transactions = _b.sent();
+                transactions = _c.sent();
                 _i = 0, transactions_1 = transactions;
-                _b.label = 2;
+                _c.label = 2;
             case 2:
-                if (!(_i < transactions_1.length)) return [3 /*break*/, 10];
+                if (!(_i < transactions_1.length)) return [3 /*break*/, 13];
                 transaction = transactions_1[_i];
-                _b.label = 3;
+                _c.label = 3;
             case 3:
-                _b.trys.push([3, 8, , 9]);
+                _c.trys.push([3, 11, , 12]);
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(transaction.toUser)];
             case 4:
-                toUser = _b.sent();
+                toUser = _c.sent();
                 if (!toUser)
                     throw 'Contractor not found';
+                return [4 /*yield*/, payment_schema_1.PaymentModel.findById(transaction.payment)];
+            case 5:
+                payment = _c.sent();
+                if (!payment)
+                    return [2 /*return*/];
+                if (!(payment.channel == 'stripe')) return [3 /*break*/, 7];
                 toUserStripeConnectAccount = toUser === null || toUser === void 0 ? void 0 : toUser.stripeAccount;
                 if (!toUserStripeConnectAccount)
                     throw 'Contractor does not have an active connect account';
                 connectAccountId = toUserStripeConnectAccount.id;
-                return [4 /*yield*/, payment_schema_1.PaymentModel.findById(transaction.payment)];
-            case 5:
-                payment = _b.sent();
-                if (!payment)
-                    return [2 /*return*/];
                 amount = (transaction.amount * 100) // change to base currency
                 ;
                 transactionMeta = transaction.metadata;
@@ -120,31 +122,44 @@ var handleEscrowTransfer = function () { return __awaiter(void 0, void 0, void 0
                 metadata.paymentId = payment.id;
                 return [4 /*yield*/, stripe_1.StripeService.transfer.createTransfer(connectAccountId, amount, metadata)];
             case 6:
-                stripeTransfer = _b.sent();
+                stripeTransfer = _c.sent();
                 metadata.transfer = stripeTransfer;
                 transaction.metadata = metadata;
                 transaction.status = transaction_model_1.TRANSACTION_STATUS.SUCCESSFUL;
-                return [4 /*yield*/, transaction.save()
-                    //emit event and handle notifications from there ?
-                ];
+                _c.label = 7;
             case 7:
-                _b.sent();
-                //emit event and handle notifications from there ?
-                transaction_events_1.TransactionEvent.emit('ESCROW_TRANSFER_SUCCESSFUL ', transaction);
-                return [3 /*break*/, 9];
+                if (!(payment.channel == 'paypal')) return [3 /*break*/, 9];
+                amount = (transaction.amount * 100) // change to base currency
+                ;
+                return [4 /*yield*/, paypal_1.PayPalService.payout.transferToEmail(toUser.email, amount, 'CAD')];
             case 8:
-                error_1 = _b.sent();
+                paypalTransfer = _c.sent();
+                transactionMeta = transaction.metadata;
+                metadata = (_b = __assign({}, transactionMeta)) !== null && _b !== void 0 ? _b : {};
+                metadata.transactionId = transaction.id;
+                metadata.paymentId = payment.id;
+                metadata.transfer = paypalTransfer;
+                transaction.metadata = metadata;
+                transaction.status = transaction_model_1.TRANSACTION_STATUS.SUCCESSFUL;
+                _c.label = 9;
+            case 9: return [4 /*yield*/, transaction.save()];
+            case 10:
+                _c.sent();
+                transaction_events_1.TransactionEvent.emit('ESCROW_TRANSFER_SUCCESSFUL ', transaction);
+                return [3 /*break*/, 12];
+            case 11:
+                error_1 = _c.sent();
                 logger_1.Logger.info("Error processing payout transfer: ".concat(transaction.id), error_1);
-                return [3 /*break*/, 9];
-            case 9:
+                return [3 /*break*/, 12];
+            case 12:
                 _i++;
                 return [3 /*break*/, 2];
-            case 10: return [3 /*break*/, 12];
-            case 11:
-                error_2 = _b.sent();
+            case 13: return [3 /*break*/, 15];
+            case 14:
+                error_2 = _c.sent();
                 logger_1.Logger.error('Error processing handleEscrowTransfer:', error_2);
-                return [3 /*break*/, 12];
-            case 12: return [2 /*return*/];
+                return [3 /*break*/, 15];
+            case 15: return [2 /*return*/];
         }
     });
 }); };

@@ -145,6 +145,28 @@ export const getPaymentTokens = async (customerId: string) => {
 
 
 
+// Function to delete a PayPal Vault Payment Token
+export async function deleteVaultPaymentToken(paymentTokenId: string) {
+    const accessToken = await getPayPalAccessToken();
+
+    try {
+        const response = await axios({
+            url: `${config.paypal.apiUrl}/v3/vault/payment-tokens/${paymentTokenId}`,
+            method: 'delete',
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+        });
+
+        console.log('Payment token deleted successfully.');
+        return response.data;
+    } catch (error: any) {
+        console.error('Error deleting payment token:', error.response?.data || error.message);
+        throw error;
+    }
+}
+
+
 
 // Function to create a billing agreement token
 export async function createBillingAgreementToken() {

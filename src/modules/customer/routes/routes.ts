@@ -60,6 +60,7 @@ router.post("/stripe-setupintent",  checkCustomerRole, CustomerStripeController.
 
 router.post("/paypal/create-payment-method-order", checkCustomerRole, CustomerPaypalController.createPaymentMethodOrder ); 
 router.post("/paypal/authorize-payment-method-order", checkCustomerRole, CustomerPaypalController.authorizePaymentMethodOrder ); 
+router.get("/paypal/create-payment-method-view", checkCustomerRole, CustomerPaypalController.loadCreatePaymentMethodView ); 
 
 // Explore Contractors
 router.get("/explore/contractors", checkCustomerOrGuestRole, CustomerHttpRequest.queryContractorParams, CustomerExploreController.exploreContractors ); 
