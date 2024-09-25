@@ -588,7 +588,7 @@ export const chargeSucceeded = async (payload: any) => {
                 initiatorUserType: 'customers',
                 fromUser: metadata.customerId,
                 fromUserType: 'customers',
-                toUser: metadata.contractorId,
+                toUser: metadata.contractorId, 
                 toUserType: 'contractors',
                 description: metadata.paymentType.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' '),
                 remark: metadata.remark,

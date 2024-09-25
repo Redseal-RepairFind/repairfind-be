@@ -260,9 +260,6 @@ export const chargeSavedPaymentMethod = async (req: any, res: Response, next: Ne
             paymentMethod = customer.paypalPaymentMethods[0];
         }
 
-        console.log("paymentMethod", paymentMethod)
-
-
         if (!paymentMethod) throw new Error('No such payment method');
 
         if (job.status === JOB_STATUS.BOOKED) {
@@ -295,7 +292,7 @@ export const chargeSavedPaymentMethod = async (req: any, res: Response, next: Ne
         })
       
         
-        const capture = await PayPalService.payment.chargeSavedCard({paymentMethod: paymentToken, amount: charges.customerPayable, metaId: paypalPaymentLog?.id  })
+        const capture = await PayPalService.payment.chargeSavedCard({paymentToken: paymentToken, amount: charges.customerPayable, metaId: paypalPaymentLog?.id  })
         
        
         //  job.status = JOB_STATUS.BOOKED;
@@ -322,7 +319,7 @@ export const chargeSavedPaymentMethod = async (req: any, res: Response, next: Ne
 
         res.json({ success: true, message: 'Payment created', data: capture });
     } catch (err: any) {
-        return next(new BadRequestError(err.message, err));
+        return next(new BadRequestError(err.message, err.err));
     }
 };
 

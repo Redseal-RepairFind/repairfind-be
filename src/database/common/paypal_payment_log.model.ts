@@ -1,7 +1,7 @@
 import { ObjectId, Schema, model, Types } from "mongoose";
 
 export interface IPaypalPaymentLog {
-    metadata: Array<object>;
+    metadata: any;
     user: ObjectId; 
     userType: string; 
     createdAt: Date;
@@ -9,7 +9,7 @@ export interface IPaypalPaymentLog {
 
 const PaypalPaymentLogSchema = new Schema<IPaypalPaymentLog>({
     metadata: {
-        type: [Schema.Types.Mixed],
+        type: Schema.Types.Mixed,
         required: false,
     },
     user: {

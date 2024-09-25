@@ -106,16 +106,8 @@ export interface IPaypalCapture extends Document {
   };
   create_time: string;  // Capture creation timestamp
   update_time: string;  // Capture update timestamp
-  network_transaction_reference: {
-    id: string;  // Network transaction reference ID
-    date: string;  // Transaction date
-    network: string;  // Network name (e.g., "MASTERCARD", "VISA")
-  };
-  processor_response: {
-    avs_code: string;  // Address Verification System response code
-    cvv_code: string;  // CVV verification response code
-    response_code: string;  // Processor response code (e.g., "0000")
-  };
+  network_transaction_reference: object;
+  processor_response: object;
   links: Array<{
     href: string;  // Hypermedia link to capture details
     rel: string;  // Relation (e.g., "self", "refund")
@@ -274,16 +266,8 @@ export const PaypalCaptureSchema = new Schema<IPaypalCapture>({
   },
   create_time: { type: String, required: true },
   update_time: { type: String, required: true },
-  network_transaction_reference: {
-    id: { type: String, required: true },
-    date: { type: String, required: true },
-    network: { type: String, required: true }
-  },
-  processor_response: {
-    avs_code: { type: String, required: true },
-    cvv_code: { type: String, required: true },
-    response_code: { type: String, required: true }
-  },
+  network_transaction_reference: {type: Schema.Types.Mixed},
+  processor_response: {type: Schema.Types.Mixed},
   links: [
     {
       href: { type: String, required: true },

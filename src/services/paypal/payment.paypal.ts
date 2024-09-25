@@ -7,21 +7,27 @@ import { IPaypalPaymentMethod, PaypalPaymentMethodSchema } from '../../database/
 
 // Function to generate PayPal OAuth token
 const getPayPalAccessToken = async () => {
-  const auth = Buffer.from(
-    `${config.paypal.clientId}:${config.paypal.secretKey}`
-  ).toString('base64');
 
-  const response = await axios({
-    url: config.paypal.apiUrl + '/v1/oauth2/token',
-    method: 'post',
-    headers: {
-      Authorization: `Basic ${auth}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    data: 'grant_type=client_credentials',
-  });
 
-  return response.data.access_token;
+
+    const auth = Buffer.from(
+      `${config.paypal.clientId}:${config.paypal.secretKey}`
+    ).toString('base64');
+
+    const response = await axios({
+      url: config.paypal.apiUrl + '/v1/oauth2/token',
+      method: 'post',
+      headers: {
+        Authorization: `Basic ${auth}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      data: 'grant_type=client_credentials',
+    });
+
+    return response.data.access_token;
+
+ 
+
 };
 
 // Create a Payment Order (Standard Payment)
@@ -115,7 +121,7 @@ export const captureOrder = async (orderId: string) => {
       } as IPaypalPaymentMethod
     }
 
-    return {orderData, paymentMethod};
+    return { orderData, paymentMethod };
   } catch (error: any) {
     console.error("Error capturing order:", error);
     throw new Error(error.response?.data?.message || error.message);
@@ -169,7 +175,7 @@ export const captureAuthorization = async (authorizationId: string) => {
 export const authorizeOrder = async (orderId: string) => {
   const accessToken = await getPayPalAccessToken();
   let paymentMethod = null;
-  
+
   try {
     // Authorize the payment for the given orderId
     const response = await axios.post(
@@ -237,7 +243,7 @@ export const voidAuthorization = async (authorizationId: string) => {
       }
     );
 
-    return response.data; 
+    return response.data;
   } catch (error: any) {
     console.error("Error voiding authorization:", error);
     throw new Error(error.response?.data?.message || error.message);
@@ -259,9 +265,9 @@ export const chargeSavedCard = async (payload: any) => {
         intent: 'CAPTURE', // CAPTURE or AUTHORIZE
         purchase_units: [
           {
-            custom_id: "payload.metaId,",
-            reference_id: "payload.metaId",
-            description: "payload.description,",
+            custom_id: payload.metaId,
+            reference_id: payload.metaId,
+            description: payload.description,
             amount: {
               currency_code: 'CAD',
               value: (payload.amount / 100).toString(), // Amount in dollars
