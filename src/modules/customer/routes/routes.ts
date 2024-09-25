@@ -15,7 +15,8 @@ import { CustomerTransactionController } from "../controllers/customer_transacti
 import { CustomerBookingController } from "../controllers/customer_booking.controller";
 import { CustomerCallController } from "../controllers/customer_call.controller";
 import { checkCustomerOrGuestRole } from "../middleware/customerOrGuest.middleware";
-import { CustomerPaypalPaymentController } from "../controllers/customer_paypal_payment.controller";
+import { CustomerPaypalPaymentController } from "../controllers/paypal_payment.controller";
+import { CustomerPaypalController } from "../controllers/customer_paypal.controller";
 
 const express = require("express");
 const router = express.Router();
@@ -57,6 +58,8 @@ router.post("/stripe-payment-methods/:paymentMethodId/attach",  checkCustomerRol
 router.post("/stripe-session",  checkCustomerRole, CustomerHttpRequest.createStripeSessionParams, CustomerStripeController.createSession ); 
 router.post("/stripe-setupintent",  checkCustomerRole, CustomerStripeController.createSetupIntent ); 
 
+router.post("/paypal/create-payment-method-order", checkCustomerRole, CustomerPaypalController.createPaymentMethodOrder ); 
+router.post("/paypal/authorize-payment-method-order", checkCustomerRole, CustomerPaypalController.authorizePaymentMethodOrder ); 
 
 // Explore Contractors
 router.get("/explore/contractors", checkCustomerOrGuestRole, CustomerHttpRequest.queryContractorParams, CustomerExploreController.exploreContractors ); 

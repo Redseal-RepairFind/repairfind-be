@@ -31,7 +31,7 @@ export const createOrder = async (payload: any) => {
   const response = await axios.post(
     config.paypal.apiUrl + '/v2/checkout/orders',
     {
-      intent: 'CAPTURE', // CAPTURE or AUTHORIZE
+      intent: payload.intent, // CAPTURE or AUTHORIZE
       purchase_units: [
         {
           custom_id: payload.metaId,
@@ -68,46 +68,6 @@ export const createOrder = async (payload: any) => {
   return response.data;
 };
 
-// Capture the Full Authorized Amount
-export const captureAuthorization = async (authorizationId: string) => {
-  const accessToken = await getPayPalAccessToken();
-
-  // Fetch the authorization details to get the authorized amount
-  const authorizationResponse = await axios.get(
-    config.paypal.apiUrl + `/v2/payments/authorizations/${authorizationId}`,
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-    }
-  );
-
-  // Get the full authorized amount from the response
-  const authorizedAmount = authorizationResponse.data.amount;
-
-  const captureResponse = await axios.post(
-    config.paypal.apiUrl + `/v2/payments/authorizations/${authorizationId}/capture`,
-    {
-      amount: {
-        currency_code: authorizedAmount.currency_code,
-        value: authorizedAmount.value,
-      },
-      final_capture: true,
-      invoice_id: 'INV-' + Math.floor(Math.random() * 1000000),
-      note_to_payer: 'Thank you for your purchase!',
-      soft_descriptor: 'RepairFind',
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-    }
-  );
-
-  return captureResponse.data;
-};
 
 
 // Capture the Full Payment for an Order using orderId
@@ -162,6 +122,127 @@ export const captureOrder = async (orderId: string) => {
   }
 };
 
+
+// Capture the Full Authorized Amount
+export const captureAuthorization = async (authorizationId: string) => {
+  const accessToken = await getPayPalAccessToken();
+
+  // Fetch the authorization details to get the authorized amount
+  const authorizationResponse = await axios.get(
+    config.paypal.apiUrl + `/v2/payments/authorizations/${authorizationId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  // Get the full authorized amount from the response
+  const authorizedAmount = authorizationResponse.data.amount;
+
+  const captureResponse = await axios.post(
+    config.paypal.apiUrl + `/v2/payments/authorizations/${authorizationId}/capture`,
+    {
+      amount: {
+        currency_code: authorizedAmount.currency_code,
+        value: authorizedAmount.value,
+      },
+      final_capture: true,
+      invoice_id: 'INV-' + Math.floor(Math.random() * 1000000),
+      note_to_payer: 'Thank you for your purchase!',
+      soft_descriptor: 'RepairFind',
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  return captureResponse.data;
+};
+
+
+// Authorize a Payment (without capturing)
+export const authorizeOrder = async (orderId: string) => {
+  const accessToken = await getPayPalAccessToken();
+  let paymentMethod = null;
+  
+  try {
+    // Authorize the payment for the given orderId
+    const response = await axios.post(
+      `${config.paypal.apiUrl}/v2/checkout/orders/${orderId}/authorize`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    const orderData = response.data;
+
+    // Check if the payment source has a vaulted card and extract the token
+    const vault = orderData?.payment_source?.card?.attributes?.vault;
+
+    if (vault && vault.id) {
+      const vaultToken = vault.id;
+      const paypalCustomer = vault.customer?.id;
+
+      const cardDetails = {
+        lastDigits: orderData.payment_source.card.last_digits,
+        expiry: orderData.payment_source.card.expiry,
+        brand: orderData.payment_source.card.brand,
+      };
+
+      paymentMethod = {
+        vault_id: vaultToken,
+        customer: paypalCustomer,
+        status: "active",
+        card: {
+          last_digits: cardDetails.lastDigits,  // Last 4 digits of the card
+          expiry: cardDetails.expiry,           // Card expiration date
+          brand: cardDetails.brand,             // Card brand (e.g., Visa, Mastercard)
+        },
+        created_at: new Date(),  // Timestamp of when the token was saved
+      } as IPaypalPaymentMethod;
+    }
+
+    return { orderData, paymentMethod }; // Return both the authorization and payment method details
+  } catch (error: any) {
+    console.error("Error authorizing payment:", error);
+    throw new Error(error.response?.data?.message || error.message);
+  }
+};
+
+
+
+// Void an Authorization
+export const voidAuthorization = async (authorizationId: string) => {
+  const accessToken = await getPayPalAccessToken();
+
+  try {
+    // Void the authorization
+    const response = await axios.post(
+      `${config.paypal.apiUrl}/v2/payments/authorizations/${authorizationId}/void`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    return response.data; 
+  } catch (error: any) {
+    console.error("Error voiding authorization:", error);
+    throw new Error(error.response?.data?.message || error.message);
+  }
+};
 
 
 

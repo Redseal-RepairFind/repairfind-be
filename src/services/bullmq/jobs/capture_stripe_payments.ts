@@ -23,7 +23,7 @@ export const captureStripePayments = async () => {
 
         for (const payment of paymentCaptures) {
             try {
-                await StripeService.payment.capturePayment(payment.capture.payment_intent);
+                await StripeService.payment.capturePayment(payment.stripeCapture.payment_intent);
                 
                 // I should wait for webhook before updating transaction
                 // transaction.capture.captured = true;

@@ -35,18 +35,7 @@ export async function createSetupToken() {
             },
             data: {
                 payment_source: {
-                    paypal: {
-                        experience_context: {
-                            payment_method_preference: 'IMMEDIATE_PAYMENT_REQUIRED',
-                            payment_method_selected: 'PAYPAL',
-                            brand_name: 'Your Brand', // Customize your brand name
-                            locale: 'en-US',
-                            landing_page: 'LOGIN', // Options: LOGIN or BILLING
-                            user_action: 'CONTINUE', // CONTINUE or PAY_NOW
-                            return_url: 'https://your-return-url.com/success', // URL after PayPal approval
-                            cancel_url: 'https://your-cancel-url.com/cancel',  // URL if user cancels
-                        },
-                    },
+                    "card": {}
                 },
 
             },
@@ -68,14 +57,19 @@ export async function createPaymentToken(setupToken: string) {
 
     try {
         const response = await axios({
-            url: config.paypal.apiUrl + '/v3/vault/payment-ttokens',
+            url: config.paypal.apiUrl + '/v3/vault/payment-tokens',
             method: 'post',
             headers: {
                 Authorization: `Bearer ${accessToken}`,
                 'Content-Type': 'application/json',
             },
             data: {
-                setup_token: setupToken,
+                "payment_source": {
+                "token": {
+                    "id": setupToken,
+                    "type": "SETUP_TOKEN"
+                }
+      }
             },
         });
 
@@ -148,3 +142,68 @@ export const getPaymentTokens = async (customerId: string) => {
         throw error;
     }
 };
+
+
+
+
+// Function to create a billing agreement token
+export async function createBillingAgreementToken() {
+    const accessToken = await getPayPalAccessToken();
+
+    try {
+        const response = await axios({
+            url: `${config.paypal.apiUrl}/v1/billing-agreements/agreement-tokens`,
+            method: 'post',
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+                'Content-Type': 'application/json',
+            },
+            data: {
+                description: "Billing Agreement for future purchases",
+                payer: {
+                    payment_method: "PAYPAL"
+                },
+                plan: {
+                    type: "MERCHANT_INITIATED_BILLING",
+                    merchant_preferences: {
+                        return_url: "https://your-return-url.com/success", // Redirect after approval
+                        cancel_url: "https://your-cancel-url.com/cancel",  // Redirect on cancellation
+                        accepted_pymt_type: "INSTANT",
+                        skip_shipping_address: true
+                    }
+                }
+            }
+        });
+
+        return response.data;
+    } catch (error: any) {
+        console.error('Error creating billing agreement token:', error.response?.data || error.message);
+        throw error;
+    }
+}
+
+
+
+// Function to capture the billing agreement using the token
+export async function captureBillingAgreement(billingToken: string) {
+    const accessToken = await getPayPalAccessToken();
+
+    try {
+        const response = await axios({
+            url: `${config.paypal.apiUrl}/v1/billing-agreements/agreements`,
+            method: 'post',
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+                'Content-Type': 'application/json',
+            },
+            data: {
+                token_id: billingToken
+            }
+        });
+
+        return response.data;
+    } catch (error: any) {
+        console.error('Error capturing billing agreement:', error.response?.data || error.message);
+        throw error;
+    }
+}

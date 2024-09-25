@@ -8,26 +8,28 @@ export interface IPaypalPaymentMethod extends Document {
   card: {
     brand: string;
     last_digits: string;
-    expiry: {
-      month: number;
-      year: number;
-    };
+    expiry: string;
     country?: string;
   };
   created_at: Date;
 }
 
-// Sub-schema for card expiry details
-const ExpirySchema = new Schema({
-  month: { type: Number, required: true },
-  year: { type: Number, required: true },
-}, { _id: false });
+ // paymentMethod {
+            //     vault_id: '45t689864e821231d',
+            //     customer: 'lqilLngtad',
+            //     status: 'active',
+            //     card: { last_digits: '0011', expiry: '2027-12', brand: 'MASTERCARD' },
+            //     created_at: 2024-09-25T11:51:51.088Z
+            //   }
+
+
+
 
 // Sub-schema for card details
 const CardSchema = new Schema({
   brand: { type: String, required: true },
   last_digits: { type: String, required: true },
-  expiry: { type: ExpirySchema, required: true },
+  expiry: { type: String},
   country: { type: String }, // Optional country field
 }, { _id: false });
 

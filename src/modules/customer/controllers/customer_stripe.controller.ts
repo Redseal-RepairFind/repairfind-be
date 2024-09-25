@@ -263,7 +263,6 @@ export const attachStripePaymentMethod = async (
 }
 
 
-
 export const CustomerStripeController = {
     createSession,
     createAccount,

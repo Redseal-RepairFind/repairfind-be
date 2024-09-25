@@ -16,6 +16,7 @@ import { IMessage, MessageModel, MessageType } from "../../../database/common/me
 import { PayPalService } from "../../../services/paypal";
 import { ConversationUtil } from "../../../utils/conversation.util";
 import { PaypalPaymentLog } from "../../../database/common/paypal_payment_log.model";
+import { Logger } from "../../../services/logger";
 
 const findCustomer = async (customerId: string) => {
     const customer = await CustomerModel.findOne({ _id: customerId });
@@ -236,7 +237,7 @@ export const captureCheckoutOrder = async (req: any, res: Response, next: NextFu
 
 export const chargeSavedPaymentMethod = async (req: any, res: Response, next: NextFunction) => {
     try {
-        const { quotationId, paymentMethodId, paymentToken } = req.body;
+        const { quotationId, paymentToken } = req.body;
         const jobId = req.params.jobId;
 
         // Check for validation errors
@@ -252,10 +253,16 @@ export const chargeSavedPaymentMethod = async (req: any, res: Response, next: Ne
         const contractor = await findContractor(quotation.contractor);
         const contractorId = contractor.id
 
-        let paymentMethod = customer.stripePaymentMethods.find((method) => method.id === paymentMethodId);
+        let paymentMethod = customer.paypalPaymentMethods.find((method) => method.vault_id === paymentToken);
+
+        
         if (!paymentMethod) {
-            paymentMethod = customer.stripePaymentMethods[0];
+            paymentMethod = customer.paypalPaymentMethods[0];
         }
+
+        console.log("paymentMethod", paymentMethod)
+
+
         if (!paymentMethod) throw new Error('No such payment method');
 
         if (job.status === JOB_STATUS.BOOKED) {
@@ -296,21 +303,21 @@ export const chargeSavedPaymentMethod = async (req: any, res: Response, next: Ne
         // await job.save();
 
        
-        const conversation = await ConversationUtil.updateOrCreateConversation(customerId, 'customers', contractorId, 'contractors')
+        // const conversation = await ConversationUtil.updateOrCreateConversation(customerId, 'customers', contractorId, 'contractors')
 
-        // Create a message in the conversation
-        const newMessage: IMessage = await MessageModel.create({
-            conversation: conversation._id,
-            sender: customerId, 
-            senderType: 'customers',
-            message: `New Job Payment`, 
-            messageType: MessageType.ALERT, 
-            createdAt: new Date(),
-            entity: jobId,
-            entityType: 'jobs'
-        });
+        // // Create a message in the conversation
+        // const newMessage: IMessage = await MessageModel.create({
+        //     conversation: conversation._id,
+        //     sender: customerId, 
+        //     senderType: 'customers',
+        //     message: `New Job Payment`, 
+        //     messageType: MessageType.ALERT, 
+        //     createdAt: new Date(),
+        //     entity: jobId,
+        //     entityType: 'jobs'
+        // });
 
-        ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
+        // ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
         // JobEvent.emit('JOB_BOOKED', { jobId, contractorId, customerId, quotationId, paymentType })
 
         res.json({ success: true, message: 'Payment created', data: capture });
@@ -448,5 +455,5 @@ export const CustomerPaypalPaymentController = {
     captureOrderEstimatePaymentCheckout,
     createCheckoutOrder,
     createOrderEstimatePaymentCheckout,
-    chargeSavedPaymentMethod
+    chargeSavedPaymentMethod,
 };
