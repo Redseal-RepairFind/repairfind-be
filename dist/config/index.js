@@ -52,6 +52,7 @@ exports.config = {
     },
     google: {
         clientID: process.env.GOOGLE_CLIENT_ID,
+        apiKey: process.env.GOOGLE_API_KEY,
         serviceJson: process.env.GOOGLE_SERVICE_JSON || "https://repairfindbucket.s3.eu-west-3.amazonaws.com/googleService.json"
     },
     apple: {

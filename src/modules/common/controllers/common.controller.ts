@@ -8,6 +8,7 @@ import { Logger } from "../../../services/logger";
 import { PaymentUtil } from "../../../utils/payment.util";
 import { APNNotification, sendAPN2Notification, sendAPNNotification, sendNotification, sendSilentNotification } from "../../../services/notifications/apn";
 import { AppVersionModel } from "../../../database/common/app_versions.model";
+import { GoogleServiceProvider } from "../../../services/google";
 
 
 export const getBankList = async (
@@ -190,6 +191,23 @@ export const sendTestNotification = async (
 }
 
 
+export const translateText = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+
+  try {
+    const {text, targetLang} = req.body
+    const translatedText  = await GoogleServiceProvider.translate.translateText(text, targetLang)
+    return res.json({ success: true, message: "Text translated", data: translatedText });
+  } catch (err: any) {
+    return next(new InternalServerError('Error translating text', err))
+  }
+
+}
+
+
 
 export const CommonController = {
   getBankList,
@@ -198,6 +216,7 @@ export const CommonController = {
   getOptions,
   sendTestNotification,
   calculateCharges,
-  getCurrentOrLatestAppVersions
+  getCurrentOrLatestAppVersions,
+  translateText
 }
 

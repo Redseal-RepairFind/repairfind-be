@@ -35,6 +35,10 @@ router.post("/clear-queue",  CliController.clearQueue ); //
 router.post("/test-fcm-notification",  CommonController.sendTestNotification ); //
 
 
+router.post("/translate",  CommonController.translateText ); //
+
+
+
 router.post("/testing/paypal/create-order",  PaypalSandboxController.createOrder ); //
 router.post("/testing/paypal/capture-order",  PaypalSandboxController.captureOrder ); //
 router.post("/testing/paypal/authorize-order",  PaypalSandboxController.authorizeOrder ); //

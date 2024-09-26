@@ -23,6 +23,7 @@ router.post("/webhooks/certn", webhook_controller_1.WebhookController.certnWeboo
 router.post("/webhooks/paypal", webhook_controller_1.WebhookController.paypalWebhook); //  certn webhook
 router.post("/clear-queue", cli_controller_1.CliController.clearQueue); //
 router.post("/test-fcm-notification", common_controller_1.CommonController.sendTestNotification); //
+router.post("/translate", common_controller_1.CommonController.translateText); //
 router.post("/testing/paypal/create-order", paypal_sandbox_controller_1.PaypalSandboxController.createOrder); //
 router.post("/testing/paypal/capture-order", paypal_sandbox_controller_1.PaypalSandboxController.captureOrder); //
 router.post("/testing/paypal/authorize-order", paypal_sandbox_controller_1.PaypalSandboxController.authorizeOrder); //

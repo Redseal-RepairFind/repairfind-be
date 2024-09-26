@@ -39,13 +39,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CommonController = exports.sendTestNotification = exports.calculateCharges = exports.getCurrentOrLatestAppVersions = exports.getOptions = exports.getSkills = exports.getCurrencies = exports.getCountries = exports.getBankList = void 0;
+exports.CommonController = exports.translateText = exports.sendTestNotification = exports.calculateCharges = exports.getCurrentOrLatestAppVersions = exports.getOptions = exports.getSkills = exports.getCurrencies = exports.getCountries = exports.getBankList = void 0;
 var skill_model_1 = __importDefault(require("../../../database/admin/models/skill.model"));
 var custom_errors_1 = require("../../../utils/custom.errors");
 var country_schema_1 = require("../../../database/common/country.schema");
 var bank_schema_1 = require("../../../database/common/bank.schema");
 var payment_util_1 = require("../../../utils/payment.util");
 var app_versions_model_1 = require("../../../database/common/app_versions.model");
+var google_1 = require("../../../services/google");
 var getBankList = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var data, err_1;
     return __generator(this, function (_a) {
@@ -227,6 +228,25 @@ var sendTestNotification = function (req, res, next) { return __awaiter(void 0, 
     });
 }); };
 exports.sendTestNotification = sendTestNotification;
+var translateText = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, text, targetLang, translatedText, err_6;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 2, , 3]);
+                _a = req.body, text = _a.text, targetLang = _a.targetLang;
+                return [4 /*yield*/, google_1.GoogleServiceProvider.translate.translateText(text, targetLang)];
+            case 1:
+                translatedText = _b.sent();
+                return [2 /*return*/, res.json({ success: true, message: "Text translated", data: translatedText })];
+            case 2:
+                err_6 = _b.sent();
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError('Error translating text', err_6))];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.translateText = translateText;
 exports.CommonController = {
     getBankList: exports.getBankList,
     getSkills: exports.getSkills,
@@ -234,5 +254,6 @@ exports.CommonController = {
     getOptions: exports.getOptions,
     sendTestNotification: exports.sendTestNotification,
     calculateCharges: exports.calculateCharges,
-    getCurrentOrLatestAppVersions: exports.getCurrentOrLatestAppVersions
+    getCurrentOrLatestAppVersions: exports.getCurrentOrLatestAppVersions,
+    translateText: exports.translateText
 };

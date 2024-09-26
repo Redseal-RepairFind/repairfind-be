@@ -1,27 +1,4 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -62,39 +39,39 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GoogleServiceProvider = exports.getUserInfo = void 0;
-var custom_errors_1 = require("../../utils/custom.errors");
+exports.translateText = void 0;
 var axios_1 = __importDefault(require("axios"));
-var translate = __importStar(require("./translate"));
-function getUserInfo(googleAccessToken) {
+var config_1 = require("../../config");
+var logger_1 = require("../logger");
+function translateText(text, targetLang, sourceLang) {
+    var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function () {
-        var providerUser, error_1;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        var response, error_1;
+        return __generator(this, function (_e) {
+            switch (_e.label) {
                 case 0:
-                    _a.trys.push([0, 2, , 3]);
-                    if (!googleAccessToken) {
-                        throw new custom_errors_1.BadRequestError('Must pass google access token');
+                    _e.trys.push([0, 2, , 3]);
+                    if (!text || !targetLang) {
+                        throw new Error('Text, source language, and target language are required');
                     }
-                    return [4 /*yield*/, axios_1.default.get('https://www.googleapis.com/oauth2/v3/userinfo', {
-                            headers: {
-                                Authorization: "Bearer ".concat(googleAccessToken)
-                            }
+                    return [4 /*yield*/, axios_1.default.post("https://translation.googleapis.com/language/translate/v2", {}, {
+                            params: {
+                                q: text,
+                                source: sourceLang || 'auto', // Source language (original language of the text)
+                                target: targetLang, // Target language (desired language for translation)
+                                key: config_1.config.google.apiKey,
+                            },
                         })];
                 case 1:
-                    providerUser = _a.sent();
-                    return [2 /*return*/, providerUser.data];
+                    response = _e.sent();
+                    return [2 /*return*/, response.data.data.translations[0].translatedText];
                 case 2:
-                    error_1 = _a.sent();
-                    console.error('Error getting google user :', error_1);
-                    return [3 /*break*/, 3];
+                    error_1 = _e.sent();
+                    logger_1.Logger.error('Error translating text:', (_a = error_1 === null || error_1 === void 0 ? void 0 : error_1.response) === null || _a === void 0 ? void 0 : _a.data);
+                    throw new Error((_d = (_c = (_b = error_1 === null || error_1 === void 0 ? void 0 : error_1.response) === null || _b === void 0 ? void 0 : _b.data) === null || _c === void 0 ? void 0 : _c.error) === null || _d === void 0 ? void 0 : _d.message);
                 case 3: return [2 /*return*/];
             }
         });
     });
 }
-exports.getUserInfo = getUserInfo;
-exports.GoogleServiceProvider = {
-    getUserInfo: getUserInfo,
-    translate: translate
-};
+exports.translateText = translateText;
