@@ -27,10 +27,10 @@ exports.PayPalService = void 0;
 var webhook = __importStar(require("./webhook.paypal"));
 var payment = __importStar(require("./payment.paypal"));
 var payout = __importStar(require("./payout.paypal"));
-var vault = __importStar(require("./vault.paypal"));
+var customer = __importStar(require("./customer.paypal"));
 exports.PayPalService = {
     webhook: webhook,
     payment: payment,
     payout: payout,
-    vault: vault
+    customer: customer,
 };

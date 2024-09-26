@@ -45,25 +45,31 @@ var config_1 = require("../../../config");
 var paypal_1 = require("../../../services/paypal");
 var paypal_checkout_1 = require("../../../templates/common/paypal_checkout");
 var createPaymentMethodOrder = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, payload, response, err_1;
+    var customerId, customer, payload, response, err_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 customerId = req.customer.id;
                 _a.label = 1;
             case 1:
-                _a.trys.push([1, 3, , 4]);
-                payload = { amount: 1, intent: 'AUTHORIZE' };
-                return [4 /*yield*/, paypal_1.PayPalService.payment.createOrder(payload)];
+                _a.trys.push([1, 4, , 5]);
+                return [4 /*yield*/, customer_model_1.default.findById(customerId)];
             case 2:
+                customer = _a.sent();
+                if (!customer) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "customer not found" })];
+                }
+                payload = { amount: 1, intent: 'AUTHORIZE', customer_id: "IOQKDxvioH", };
+                return [4 /*yield*/, paypal_1.PayPalService.payment.createOrder(payload)];
+            case 3:
                 response = _a.sent();
                 return [2 /*return*/, res.status(200).json(response)];
-            case 3:
+            case 4:
                 err_1 = _a.sent();
                 console.log(err_1);
                 res.status(500).json({ success: false, message: err_1.message });
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/];
+                return [3 /*break*/, 5];
+            case 5: return [2 /*return*/];
         }
     });
 }); };
@@ -136,7 +142,6 @@ var loadCreatePaymentMethodView = function (req, res) { return __awaiter(void 0,
         try {
             token = req.query.token;
             paypalClientId = config_1.config.paypal.clientId;
-            console.log("token", token);
             html = (0, paypal_checkout_1.PaypalCheckoutTemplate)({ token: token, paypalClientId: paypalClientId });
             return [2 /*return*/, res.send(html)];
         }

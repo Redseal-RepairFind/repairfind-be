@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.captureBillingAgreement = exports.createBillingAgreementToken = exports.deleteVaultPaymentToken = exports.getPaymentTokens = exports.makeVaultPayment = exports.createPaymentToken = exports.createSetupToken = void 0;
+exports.getVaultedPaymentMethods = exports.vaultCustomerPaymentMethod = exports.createSetupToken = exports.updatePayPalCustomer = exports.getPayPalCustomerDetails = exports.createPayPalCustomer = void 0;
 var axios_1 = __importDefault(require("axios"));
 var config_1 = require("../../config");
 // Function to generate PayPal OAuth token
@@ -64,10 +64,128 @@ var getPayPalAccessToken = function () { return __awaiter(void 0, void 0, void 0
         }
     });
 }); };
-function createSetupToken() {
+// Function to create a new PayPal customer
+function createPayPalCustomer(payerInfo) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
         var accessToken, response, error_1;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0: return [4 /*yield*/, getPayPalAccessToken()];
+                case 1:
+                    accessToken = _b.sent();
+                    _b.label = 2;
+                case 2:
+                    _b.trys.push([2, 4, , 5]);
+                    return [4 /*yield*/, (0, axios_1.default)({
+                            url: config_1.config.paypal.apiUrl + '/v1/customer/partners/partner-id/customers',
+                            method: 'post',
+                            headers: {
+                                Authorization: "Bearer ".concat(accessToken),
+                                'Content-Type': 'application/json',
+                            },
+                            data: {
+                                customer: {
+                                    email: payerInfo.email,
+                                    first_name: payerInfo.firstName,
+                                    last_name: payerInfo.lastName,
+                                    customer_type: 'PERSONAL', // Can be BUSINESS if needed
+                                },
+                            },
+                        })];
+                case 3:
+                    response = _b.sent();
+                    return [2 /*return*/, response.data];
+                case 4:
+                    error_1 = _b.sent();
+                    console.error('Error creating PayPal customer:', ((_a = error_1.response) === null || _a === void 0 ? void 0 : _a.data) || error_1.message);
+                    throw error_1;
+                case 5: return [2 /*return*/];
+            }
+        });
+    });
+}
+exports.createPayPalCustomer = createPayPalCustomer;
+// Function to get PayPal customer details
+function getPayPalCustomerDetails(customerId) {
+    var _a;
+    return __awaiter(this, void 0, void 0, function () {
+        var accessToken, response, error_2;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0: return [4 /*yield*/, getPayPalAccessToken()];
+                case 1:
+                    accessToken = _b.sent();
+                    _b.label = 2;
+                case 2:
+                    _b.trys.push([2, 4, , 5]);
+                    return [4 /*yield*/, (0, axios_1.default)({
+                            url: "".concat(config_1.config.paypal.apiUrl, "/v1/customer/partners/partner-id/customers/").concat(customerId),
+                            method: 'get',
+                            headers: {
+                                Authorization: "Bearer ".concat(accessToken),
+                                'Content-Type': 'application/json',
+                            },
+                        })];
+                case 3:
+                    response = _b.sent();
+                    return [2 /*return*/, response.data];
+                case 4:
+                    error_2 = _b.sent();
+                    console.error('Error retrieving PayPal customer details:', ((_a = error_2.response) === null || _a === void 0 ? void 0 : _a.data) || error_2.message);
+                    throw error_2;
+                case 5: return [2 /*return*/];
+            }
+        });
+    });
+}
+exports.getPayPalCustomerDetails = getPayPalCustomerDetails;
+// Function to update PayPal customer details
+function updatePayPalCustomer(customerId, updatedInfo) {
+    var _a;
+    return __awaiter(this, void 0, void 0, function () {
+        var accessToken, response, error_3;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0: return [4 /*yield*/, getPayPalAccessToken()];
+                case 1:
+                    accessToken = _b.sent();
+                    _b.label = 2;
+                case 2:
+                    _b.trys.push([2, 4, , 5]);
+                    return [4 /*yield*/, (0, axios_1.default)({
+                            url: "".concat(config_1.config.paypal.apiUrl, "/v1/customer/partners/partner-id/customers/").concat(customerId),
+                            method: 'patch',
+                            headers: {
+                                Authorization: "Bearer ".concat(accessToken),
+                                'Content-Type': 'application/json',
+                            },
+                            data: {
+                                customer: {
+                                    email: updatedInfo.email,
+                                    first_name: updatedInfo.firstName,
+                                    last_name: updatedInfo.lastName,
+                                },
+                            },
+                        })];
+                case 3:
+                    response = _b.sent();
+                    return [2 /*return*/, response.data];
+                case 4:
+                    error_3 = _b.sent();
+                    console.error('Error updating PayPal customer:', ((_a = error_3.response) === null || _a === void 0 ? void 0 : _a.data) || error_3.message);
+                    throw error_3;
+                case 5: return [2 /*return*/];
+            }
+        });
+    });
+}
+exports.updatePayPalCustomer = updatePayPalCustomer;
+// Function to create a PayPal setup token for vaulting payment method
+function createSetupToken(customerId) {
+    var _a;
+    return __awaiter(this, void 0, void 0, function () {
+        var accessToken, response, error_4;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0: return [4 /*yield*/, getPayPalAccessToken()];
@@ -85,149 +203,29 @@ function createSetupToken() {
                             },
                             data: {
                                 payment_source: {
-                                    "card": {}
+                                    card: {
+                                    // You can add card details here if available, or leave it for customer input during checkout
+                                    },
                                 },
+                                customer_id: customerId, // Optional: Link setup token to an existing customer
+                                usage_type: 'MERCHANT_INITIATED_BILLING', // or 'FIRST_ORDER' if it's the first setup
                             },
                         })];
                 case 3:
                     response = _b.sent();
                     return [2 /*return*/, response.data];
                 case 4:
-                    error_1 = _b.sent();
-                    console.error('Error creating setup token:', ((_a = error_1.response) === null || _a === void 0 ? void 0 : _a.data) || error_1.message);
-                    throw error_1;
+                    error_4 = _b.sent();
+                    console.error('Error creating setup token:', ((_a = error_4.response) === null || _a === void 0 ? void 0 : _a.data) || error_4.message);
+                    throw error_4;
                 case 5: return [2 /*return*/];
             }
         });
     });
 }
 exports.createSetupToken = createSetupToken;
-// Function to create a PayPal Payment Token
-function createPaymentToken(setupToken) {
-    var _a;
-    return __awaiter(this, void 0, void 0, function () {
-        var accessToken, response, error_2;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
-                case 0: return [4 /*yield*/, getPayPalAccessToken()];
-                case 1:
-                    accessToken = _b.sent();
-                    _b.label = 2;
-                case 2:
-                    _b.trys.push([2, 4, , 5]);
-                    return [4 /*yield*/, (0, axios_1.default)({
-                            url: config_1.config.paypal.apiUrl + '/v3/vault/payment-tokens',
-                            method: 'post',
-                            headers: {
-                                Authorization: "Bearer ".concat(accessToken),
-                                'Content-Type': 'application/json',
-                            },
-                            data: {
-                                "payment_source": {
-                                    "token": {
-                                        "id": setupToken,
-                                        "type": "SETUP_TOKEN"
-                                    }
-                                }
-                            },
-                        })];
-                case 3:
-                    response = _b.sent();
-                    return [2 /*return*/, response.data];
-                case 4:
-                    error_2 = _b.sent();
-                    console.error('Error creating payment token:', ((_a = error_2.response) === null || _a === void 0 ? void 0 : _a.data) || error_2.message);
-                    throw error_2;
-                case 5: return [2 /*return*/];
-            }
-        });
-    });
-}
-exports.createPaymentToken = createPaymentToken;
-// Function to make a vault payment using the payment token
-function makeVaultPayment(paymentTokenId) {
-    var _a;
-    return __awaiter(this, void 0, void 0, function () {
-        var accessToken, response, error_3;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
-                case 0: return [4 /*yield*/, getPayPalAccessToken()];
-                case 1:
-                    accessToken = _b.sent();
-                    _b.label = 2;
-                case 2:
-                    _b.trys.push([2, 4, , 5]);
-                    return [4 /*yield*/, (0, axios_1.default)({
-                            url: config_1.config.paypal.apiUrl + '/v2/checkout/orders',
-                            method: 'post',
-                            headers: {
-                                Authorization: "Bearer ".concat(accessToken),
-                                'Content-Type': 'application/json',
-                            },
-                            data: {
-                                intent: 'CAPTURE',
-                                purchase_units: [
-                                    {
-                                        amount: {
-                                            currency_code: 'USD',
-                                            value: '10.00', // Pass actual amount dynamically
-                                        },
-                                    },
-                                ],
-                                payment_source: {
-                                    token: {
-                                        id: paymentTokenId,
-                                        type: 'PAYMENT_TOKEN',
-                                    },
-                                },
-                            },
-                        })];
-                case 3:
-                    response = _b.sent();
-                    return [2 /*return*/, response.data];
-                case 4:
-                    error_3 = _b.sent();
-                    console.error('Error making vault payment:', ((_a = error_3.response) === null || _a === void 0 ? void 0 : _a.data) || error_3.message);
-                    throw error_3;
-                case 5: return [2 /*return*/];
-            }
-        });
-    });
-}
-exports.makeVaultPayment = makeVaultPayment;
-// Function to retrieve payment tokens for a customer
-var getPaymentTokens = function (customerId) { return __awaiter(void 0, void 0, void 0, function () {
-    var accessToken, response, error_4;
-    var _a;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0: return [4 /*yield*/, getPayPalAccessToken()];
-            case 1:
-                accessToken = _b.sent();
-                _b.label = 2;
-            case 2:
-                _b.trys.push([2, 4, , 5]);
-                return [4 /*yield*/, (0, axios_1.default)({
-                        url: "".concat(config_1.config.paypal.apiUrl, "/v3/vault/payment-tokens?customer_id=").concat(customerId),
-                        method: 'get',
-                        headers: {
-                            Authorization: "Bearer ".concat(accessToken),
-                        },
-                    })];
-            case 3:
-                response = _b.sent();
-                return [2 /*return*/, response.data];
-            case 4:
-                error_4 = _b.sent();
-                console.error('Error retrieving payment tokens:', ((_a = error_4.response) === null || _a === void 0 ? void 0 : _a.data) || error_4.message);
-                throw error_4;
-            case 5: return [2 /*return*/];
-        }
-    });
-}); };
-exports.getPaymentTokens = getPaymentTokens;
-// Function to delete a PayPal Vault Payment Token
-function deleteVaultPaymentToken(paymentTokenId) {
+// Vault payment method for PayPal customer
+function vaultCustomerPaymentMethod(customerId, setupToken) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
         var accessToken, response, error_5;
@@ -240,28 +238,37 @@ function deleteVaultPaymentToken(paymentTokenId) {
                 case 2:
                     _b.trys.push([2, 4, , 5]);
                     return [4 /*yield*/, (0, axios_1.default)({
-                            url: "".concat(config_1.config.paypal.apiUrl, "/v3/vault/payment-tokens/").concat(paymentTokenId),
-                            method: 'delete',
+                            url: "".concat(config_1.config.paypal.apiUrl, "/v3/vault/payment-tokens"),
+                            method: 'post',
                             headers: {
                                 Authorization: "Bearer ".concat(accessToken),
+                                'Content-Type': 'application/json',
+                            },
+                            data: {
+                                payment_source: {
+                                    token: {
+                                        id: setupToken,
+                                        type: 'SETUP_TOKEN',
+                                    },
+                                },
+                                customer_id: customerId, // Link to existing customer
                             },
                         })];
                 case 3:
                     response = _b.sent();
-                    console.log('Payment token deleted successfully.');
                     return [2 /*return*/, response.data];
                 case 4:
                     error_5 = _b.sent();
-                    console.error('Error deleting payment token:', ((_a = error_5.response) === null || _a === void 0 ? void 0 : _a.data) || error_5.message);
+                    console.error('Error vaulting customer payment method:', ((_a = error_5.response) === null || _a === void 0 ? void 0 : _a.data) || error_5.message);
                     throw error_5;
                 case 5: return [2 /*return*/];
             }
         });
     });
 }
-exports.deleteVaultPaymentToken = deleteVaultPaymentToken;
-// Function to create a billing agreement token
-function createBillingAgreementToken() {
+exports.vaultCustomerPaymentMethod = vaultCustomerPaymentMethod;
+// Function to retrieve PayPal vaulted payment methods
+function getVaultedPaymentMethods(customerId) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
         var accessToken, response, error_6;
@@ -274,75 +281,23 @@ function createBillingAgreementToken() {
                 case 2:
                     _b.trys.push([2, 4, , 5]);
                     return [4 /*yield*/, (0, axios_1.default)({
-                            url: "".concat(config_1.config.paypal.apiUrl, "/v1/billing-agreements/agreement-tokens"),
-                            method: 'post',
+                            url: "".concat(config_1.config.paypal.apiUrl, "/v3/vault/payment-tokens?customer_id=").concat(customerId),
+                            method: 'get',
                             headers: {
                                 Authorization: "Bearer ".concat(accessToken),
                                 'Content-Type': 'application/json',
                             },
-                            data: {
-                                description: "Billing Agreement for future purchases",
-                                payer: {
-                                    payment_method: "PAYPAL"
-                                },
-                                plan: {
-                                    type: "MERCHANT_INITIATED_BILLING",
-                                    merchant_preferences: {
-                                        return_url: "https://your-return-url.com/success", // Redirect after approval
-                                        cancel_url: "https://your-cancel-url.com/cancel", // Redirect on cancellation
-                                        accepted_pymt_type: "INSTANT",
-                                        skip_shipping_address: true
-                                    }
-                                }
-                            }
                         })];
                 case 3:
                     response = _b.sent();
                     return [2 /*return*/, response.data];
                 case 4:
                     error_6 = _b.sent();
-                    console.error('Error creating billing agreement token:', ((_a = error_6.response) === null || _a === void 0 ? void 0 : _a.data) || error_6.message);
+                    console.error('Error retrieving vaulted payment methods:', ((_a = error_6.response) === null || _a === void 0 ? void 0 : _a.data) || error_6.message);
                     throw error_6;
                 case 5: return [2 /*return*/];
             }
         });
     });
 }
-exports.createBillingAgreementToken = createBillingAgreementToken;
-// Function to capture the billing agreement using the token
-function captureBillingAgreement(billingToken) {
-    var _a;
-    return __awaiter(this, void 0, void 0, function () {
-        var accessToken, response, error_7;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
-                case 0: return [4 /*yield*/, getPayPalAccessToken()];
-                case 1:
-                    accessToken = _b.sent();
-                    _b.label = 2;
-                case 2:
-                    _b.trys.push([2, 4, , 5]);
-                    return [4 /*yield*/, (0, axios_1.default)({
-                            url: "".concat(config_1.config.paypal.apiUrl, "/v1/billing-agreements/agreements"),
-                            method: 'post',
-                            headers: {
-                                Authorization: "Bearer ".concat(accessToken),
-                                'Content-Type': 'application/json',
-                            },
-                            data: {
-                                token_id: billingToken
-                            }
-                        })];
-                case 3:
-                    response = _b.sent();
-                    return [2 /*return*/, response.data];
-                case 4:
-                    error_7 = _b.sent();
-                    console.error('Error capturing billing agreement:', ((_a = error_7.response) === null || _a === void 0 ? void 0 : _a.data) || error_7.message);
-                    throw error_7;
-                case 5: return [2 /*return*/];
-            }
-        });
-    });
-}
-exports.captureBillingAgreement = captureBillingAgreement;
+exports.getVaultedPaymentMethods = getVaultedPaymentMethods;

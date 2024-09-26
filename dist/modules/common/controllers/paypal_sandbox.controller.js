@@ -143,7 +143,7 @@ var createSetupToken = function (req, res) { return __awaiter(void 0, void 0, vo
                 _a.label = 1;
             case 1:
                 _a.trys.push([1, 3, , 4]);
-                return [4 /*yield*/, paypal_1.PayPalService.vault.createSetupToken()];
+                return [4 /*yield*/, paypal_1.PayPalService.customer.createSetupToken()];
             case 2:
                 payment = _a.sent();
                 return [2 /*return*/, res.status(200).send({ data: payment })];

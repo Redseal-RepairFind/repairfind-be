@@ -16,7 +16,16 @@ export const createPaymentMethodOrder = async (
 
     const customerId = req.customer.id
     try {
-        const payload = { amount: 1, intent: 'AUTHORIZE' }
+        const customer = await CustomerModel.findById(customerId)
+        if(!customer){
+            return res.status(400).json({success: false, message: "customer not found"})
+        }
+
+        //create paypal customer here if not exists
+        // const paypalCustomer = PayPalService.customer.createPayPalCustomer({email: customer.email, firstName: customer.firstName, lastName: customer.lastName})
+        // console.log("paypalCustomer", paypalCustomer)
+
+        const payload = { amount: 1, intent: 'AUTHORIZE', customer_id: "IOQKDxvioH", }
         const response = await PayPalService.payment.createOrder(payload)
         return res.status(200).json(response)
     } catch (err: any) {
@@ -92,7 +101,6 @@ export const loadCreatePaymentMethodView = async (
         const {token} =req.query;
         const paypalClientId = config.paypal.clientId
 
-        console.log("token", token)
         let html = PaypalCheckoutTemplate({token, paypalClientId})
         return res.send(html);
     } catch (error) {

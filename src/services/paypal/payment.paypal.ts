@@ -39,6 +39,7 @@ export const createOrder = async (payload: any) => {
       config.paypal.apiUrl + '/v2/checkout/orders',
       {
         intent: payload.intent, // CAPTURE or AUTHORIZE
+        customer_id: payload.customer_id,
         purchase_units: [
           {
             custom_id: payload.metaId,
@@ -177,7 +178,7 @@ export const captureAuthorization = async (authorizationId: string) => {
 
 
 // Authorize a Payment (without capturing)
-export const authorizeOrder = async (orderId: string) => {
+export const authorizeOrder = async (orderId: string, custom_id?: string) => {
   const accessToken = await getPayPalAccessToken();
   let paymentMethod = null;
 
@@ -185,7 +186,9 @@ export const authorizeOrder = async (orderId: string) => {
     // Authorize the payment for the given orderId
     const response = await axios.post(
       `${config.paypal.apiUrl}/v2/checkout/orders/${orderId}/authorize`,
-      {},
+      {
+         customer_id: custom_id
+      },
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,

@@ -93,41 +93,6 @@ export const getAccount = async (req: any, res: Response) => {
     }
 
 
-
-    //TODO: for now always update the meta data of stripe customer with this email address
-
-    // const stripeCustomer = await StripeService.customer.getCustomer({email: customer.email});
-    // if (customer.stripeCustomer && stripeCustomer) {
-    //   StripeService.customer.updateCustomer(customer.stripeCustomer.id, {
-    //     metadata: { userType: 'customers', userId: customerId }
-    //   })
-
-    //   const stripe_customer =  castPayloadToDTO(stripeCustomer, stripeCustomer as IStripeCustomer)
-    //   console.log(stripe_customer)
-    //   // customer.save()
-
-    // } else {
-
-    //   await StripeService.customer.createCustomer({
-    //     email: customer.email,
-    //     metadata: {
-    //       userType: 'customers',
-    //       userId: customer.id,
-    //     },
-    //     name: `${customer.firstName} ${customer.lastName} `,
-    //     phone: `${customer.phoneNumber.code}${customer.phoneNumber.number} `,
-    //   })
-    // }
-
-    // //TODO: retrieve existing customer payment methods from stripe here - will move all this to scheduler jobs
-    // const paymentMethods = await StripeService.payment.listPaymentMethods({customer: customer.stripeCustomer.id})
-    // // console.log(paymentMethods)
-    // if(paymentMethods){
-    //   //@ts-ignore
-    //   customer.stripePaymentMethods = paymentMethods.data
-    // }
-
-
     //@ts-ignore
     const customerResponse = customer.toJSON({ includeStripeIdentity: true, includeStripeCustomer: true, includeStripePaymentMethods: true });
 

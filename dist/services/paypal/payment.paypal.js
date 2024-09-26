@@ -80,6 +80,7 @@ var createOrder = function (payload) { return __awaiter(void 0, void 0, void 0, 
                 accessToken = _c.sent();
                 return [4 /*yield*/, axios_1.default.post(config_1.config.paypal.apiUrl + '/v2/checkout/orders', {
                         intent: payload.intent, // CAPTURE or AUTHORIZE
+                        customer_id: payload.customer_id,
                         purchase_units: [
                             {
                                 custom_id: payload.metaId,
@@ -215,7 +216,7 @@ var captureAuthorization = function (authorizationId) { return __awaiter(void 0,
 }); };
 exports.captureAuthorization = captureAuthorization;
 // Authorize a Payment (without capturing)
-var authorizeOrder = function (orderId) { return __awaiter(void 0, void 0, void 0, function () {
+var authorizeOrder = function (orderId, custom_id) { return __awaiter(void 0, void 0, void 0, function () {
     var accessToken, paymentMethod, response, orderData, vault, vaultToken, paypalCustomer, cardDetails, error_3;
     var _a, _b, _c, _d, _e, _f;
     return __generator(this, function (_g) {
@@ -227,7 +228,9 @@ var authorizeOrder = function (orderId) { return __awaiter(void 0, void 0, void 
                 _g.label = 2;
             case 2:
                 _g.trys.push([2, 4, , 5]);
-                return [4 /*yield*/, axios_1.default.post("".concat(config_1.config.paypal.apiUrl, "/v2/checkout/orders/").concat(orderId, "/authorize"), {}, {
+                return [4 /*yield*/, axios_1.default.post("".concat(config_1.config.paypal.apiUrl, "/v2/checkout/orders/").concat(orderId, "/authorize"), {
+                        customer_id: custom_id
+                    }, {
                         headers: {
                             Authorization: "Bearer ".concat(accessToken),
                             'Content-Type': 'application/json',
