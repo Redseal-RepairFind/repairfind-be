@@ -42,7 +42,7 @@ export const PaypalCheckoutTemplate = (payload: {token: string, paypalClientId: 
         <script>
           async function createOrderCallback() {
             try {
-              const response = await fetch('http://localhost:3000/api/v1/customer/paypal/create-payment-method-order', {
+              const response = await fetch('/api/v1/customer/paypal/create-payment-method-order', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -60,7 +60,7 @@ export const PaypalCheckoutTemplate = (payload: {token: string, paypalClientId: 
 
           async function onApproveCallback(data, actions) {
             try {
-              const response = await fetch('http://localhost:3000/api/v1/customer/paypal/authorize-payment-method-order', {
+              const response = await fetch('/api/v1/customer/paypal/authorize-payment-method-order', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
