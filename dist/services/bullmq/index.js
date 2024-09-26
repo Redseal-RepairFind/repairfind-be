@@ -117,7 +117,7 @@ var JobQueue = /** @class */ (function () {
         this.addJob('handleJobRefunds', {}, { repeat: { every: 600000 } });
         this.addJob('syncCertnApplications', {}, { repeat: { every: 600000 } });
         this.addJob('expireJobs', {}, { repeat: { every: 7200000 } });
-        this.addJob('handleEscrowTransfer', {}, { repeat: { every: 600000 } });
+        this.addJob('handleEscrowTransfer', {}, { repeat: { every: 6000 } }); //600000
         this.addJob('jobNotStartedScheduleCheck', {}, { repeat: { cron: '0 0 * * *', tz: 'America/Los_Angeles', } }); //midnight
         this.addJob('jobDayScheduleCheck', {}, { repeat: { cron: '* * * * *' } }); //every minute
         this.addJob('quizReminderCheck', {}, { repeat: { cron: '0 0 */4 * *' } }); //4 days

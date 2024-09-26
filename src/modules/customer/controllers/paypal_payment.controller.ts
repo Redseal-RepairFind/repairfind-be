@@ -47,10 +47,10 @@ const findContractor = async (contractorId: ObjectId) => {
     if (!contractor) {
         throw new BadRequestError('Contractor not found');
     }
-    contractor.onboarding = await contractor.getOnboarding()
-    if (!contractor.onboarding.hasStripeAccount || !(contractor.stripeAccountStatus?.card_payments_enabled && contractor.stripeAccountStatus?.transfers_enabled)) {
-        throw new BadRequestError('You cannot make payment to this contractor because his/her Stripe connect account is not set up');
-    }
+    // contractor.onboarding = await contractor.getOnboarding()
+    // if (!contractor.onboarding.hasStripeAccount || !(contractor.stripeAccountStatus?.card_payments_enabled && contractor.stripeAccountStatus?.transfers_enabled)) {
+    //     throw new BadRequestError('You cannot make payment to this contractor because his/her Stripe connect account is not set up');
+    // }
     return contractor;
 };
 
@@ -92,38 +92,26 @@ export const createCheckoutOrder = async (req: any, res: Response, next: NextFun
             contractorId: contractor?.id,
             quotationId: quotation.id,
             paymentType,
+            paymentMethod: 'CAPTURE',
             jobId,
             email: customer.email,
             remark: 'initial_job_payment',
         } as any
 
+        const paypalPaymentLog = await PaypalPaymentLog.create({
+            user: customerId,
+            'userType': 'customers',
+            metadata: metadata
+        })
+
+
         const payload = {
             amount: charges.customerPayable,
             intent: "CAPTURE",
             description: `Job Payment - ${jobId}`,
-            metaId: jobId
+            metaId: paypalPaymentLog.id
         }
         const capture = await PayPalService.payment.createOrder(payload)
-
-        //  job.status = JOB_STATUS.BOOKED;
-        // job.bookingViewedByContractor = false;
-        // await job.save();
-
-        const conversation = await  ConversationUtil.updateOrCreateConversation(customerId, 'customers', contractorId, 'contractors')
-
-        // Create a message in the conversation
-        const newMessage: IMessage = await MessageModel.create({
-            conversation: conversation._id,
-            sender: customerId, 
-            senderType: 'customers',
-            message: `New Job Payment`, 
-            messageType: MessageType.ALERT, 
-            createdAt: new Date(),
-            entity: jobId,
-            entityType: 'jobs'
-        });
-
-        ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
 
         res.json({ success: true, message: 'Payment intent created', data: capture });
     } catch (err: any) {

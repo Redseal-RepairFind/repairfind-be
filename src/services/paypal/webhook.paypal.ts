@@ -11,6 +11,7 @@ import { JobModel, JOB_STATUS, JOB_SCHEDULE_TYPE } from '../../database/common/j
 import { IJobQuotation, JobQuotationModel, JOB_QUOTATION_STATUS } from '../../database/common/job_quotation.model';
 import { ObjectId } from 'mongoose';
 import { PaypalPaymentLog } from '../../database/common/paypal_payment_log.model';
+import { PayPalService } from '.';
 
 const PAYPAL_WEBHOOK_SECRET = <string>process.env.PAYPAL_WEBHOOK_SECRET;
 
@@ -294,10 +295,13 @@ export const orderApproved = async (payload: any, resourceType: any) => {
     Logger.info('PayPal Event Handler: orderApproved', payload);
     try {
         const { id, purchase_units } = payload;
-
         // You can process the approved order here
         Logger.info(`Order ${id} approved with purchase units:`, purchase_units);
+        const {orderData, paymentMethod} = await PayPalService.payment.captureOrder(id)
+        Logger.info(`Order Captured ${id}`, [orderData, paymentMethod]);
     } catch (error: any) {
         Logger.info('Error handling orderApproved PayPal webhook event', error);
     }
 };
+
+

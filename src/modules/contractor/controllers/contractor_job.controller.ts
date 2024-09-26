@@ -143,27 +143,6 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
     }
 
 
-    // ensure contractor has a verified connected account
-    if (contractor.onboarding.hasStripeAccount) {
-
-      //fetch and update contractor stripeaccount here
-      // TODO: If this impacts the response time so much we can prevent this request - doing this because stripe seems no to be sending account related events
-      const account: unknown = await StripeService.account.getAccount(contractor.stripeAccount.id); //acct_1P4N6NRdmDaBvbML ,acct_1P7XvFRZlKifQSOs
-      const stripeAccount = castPayloadToDTO(account, account as IStripeAccount)
-      contractor.stripeAccount = stripeAccount
-      await contractor.save()
-
-      if (!(contractor.stripeAccountStatus?.card_payments_enabled && contractor.stripeAccountStatus?.transfers_enabled)) {
-        return res
-          .status(400)
-          .json({ success: false, message: "Kindly connect your bank account to receive payment" });
-      }
-    } else {
-      return res
-        .status(400)
-        .json({ success: false, message: "Kindly connect your bank account to receive payment" });
-    }
-
 
     // Update the status of the job request to "Accepted"
     job.status = JOB_STATUS.ACCEPTED;
@@ -476,16 +455,6 @@ export const sendJobQuotation = async (
       return res.status(400).json({ success: false, message: "You have already submitted a quotation for this job" });
     }
 
-
-    // Check if contractor has a verified connected account
-    contractor.onboarding = await contractor.getOnboarding()
-    if (!(contractor.onboarding.hasStripeIdentity)  ) {
-      return res.status(400).json({ success: false, message: "Kindly complete your identity process" });
-    }
-
-    if (!contractor.onboarding.hasStripeAccount || !(contractor.stripeAccountStatus && contractor.stripeAccountStatus.card_payments_enabled && contractor.stripeAccountStatus.transfers_enabled)) {
-      return res.status(400).json({ success: false, message: "Kindly connect your bank account to receive payment" });
-    }
 
 
     const scheduleStartDate = startDate ? new Date(startDate) : new Date()

@@ -52,7 +52,6 @@ var payment_schema_1 = require("../../../database/common/payment.schema");
 var conversations_schema_1 = require("../../../database/common/conversations.schema");
 var messages_schema_1 = require("../../../database/common/messages.schema");
 var paypal_1 = require("../../../services/paypal");
-var conversation_util_1 = require("../../../utils/conversation.util");
 var paypal_payment_log_model_1 = require("../../../database/common/paypal_payment_log.model");
 var findCustomer = function (customerId) { return __awaiter(void 0, void 0, void 0, function () {
     var customer;
@@ -97,33 +96,29 @@ var findQuotation = function (quotationId) { return __awaiter(void 0, void 0, vo
     });
 }); };
 var findContractor = function (contractorId) { return __awaiter(void 0, void 0, void 0, function () {
-    var contractor, _a;
-    var _b, _c;
-    return __generator(this, function (_d) {
-        switch (_d.label) {
+    var contractor;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
             case 0: return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: contractorId })];
             case 1:
-                contractor = _d.sent();
+                contractor = _a.sent();
                 if (!contractor) {
                     throw new custom_errors_1.BadRequestError('Contractor not found');
                 }
-                _a = contractor;
-                return [4 /*yield*/, contractor.getOnboarding()];
-            case 2:
-                _a.onboarding = _d.sent();
-                if (!contractor.onboarding.hasStripeAccount || !(((_b = contractor.stripeAccountStatus) === null || _b === void 0 ? void 0 : _b.card_payments_enabled) && ((_c = contractor.stripeAccountStatus) === null || _c === void 0 ? void 0 : _c.transfers_enabled))) {
-                    throw new custom_errors_1.BadRequestError('You cannot make payment to this contractor because his/her Stripe connect account is not set up');
-                }
+                // contractor.onboarding = await contractor.getOnboarding()
+                // if (!contractor.onboarding.hasStripeAccount || !(contractor.stripeAccountStatus?.card_payments_enabled && contractor.stripeAccountStatus?.transfers_enabled)) {
+                //     throw new BadRequestError('You cannot make payment to this contractor because his/her Stripe connect account is not set up');
+                // }
                 return [2 /*return*/, contractor];
         }
     });
 }); };
 var createCheckoutOrder = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var quotationId, jobId, errors, customerId, customer, job, quotation, contractor, contractorId, paymentType, transactionType, charges, metadata, payload, capture, conversation, newMessage, err_1;
+    var quotationId, jobId, errors, customerId, customer, job, quotation, contractor, contractorId, paymentType, transactionType, charges, metadata, paypalPaymentLog, payload, capture, err_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 9, , 10]);
+                _a.trys.push([0, 8, , 9]);
                 quotationId = req.body.quotationId;
                 jobId = req.params.jobId;
                 errors = (0, express_validator_1.validationResult)(req);
@@ -161,47 +156,33 @@ var createCheckoutOrder = function (req, res, next) { return __awaiter(void 0, v
                     contractorId: contractor === null || contractor === void 0 ? void 0 : contractor.id,
                     quotationId: quotation.id,
                     paymentType: paymentType,
+                    paymentMethod: 'CAPTURE',
                     jobId: jobId,
                     email: customer.email,
                     remark: 'initial_job_payment',
                 };
+                return [4 /*yield*/, paypal_payment_log_model_1.PaypalPaymentLog.create({
+                        user: customerId,
+                        'userType': 'customers',
+                        metadata: metadata
+                    })];
+            case 6:
+                paypalPaymentLog = _a.sent();
                 payload = {
                     amount: charges.customerPayable,
                     intent: "CAPTURE",
                     description: "Job Payment - ".concat(jobId),
-                    metaId: jobId
+                    metaId: paypalPaymentLog.id
                 };
-                return [4 /*yield*/, paypal_1.PayPalService.payment.createOrder(payload)
-                    //  job.status = JOB_STATUS.BOOKED;
-                    // job.bookingViewedByContractor = false;
-                    // await job.save();
-                ];
-            case 6:
-                capture = _a.sent();
-                return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(customerId, 'customers', contractorId, 'contractors')
-                    // Create a message in the conversation
-                ];
+                return [4 /*yield*/, paypal_1.PayPalService.payment.createOrder(payload)];
             case 7:
-                conversation = _a.sent();
-                return [4 /*yield*/, messages_schema_1.MessageModel.create({
-                        conversation: conversation._id,
-                        sender: customerId,
-                        senderType: 'customers',
-                        message: "New Job Payment",
-                        messageType: messages_schema_1.MessageType.ALERT,
-                        createdAt: new Date(),
-                        entity: jobId,
-                        entityType: 'jobs'
-                    })];
-            case 8:
-                newMessage = _a.sent();
-                events_1.ConversationEvent.emit('NEW_MESSAGE', { message: newMessage });
+                capture = _a.sent();
                 res.json({ success: true, message: 'Payment intent created', data: capture });
-                return [3 /*break*/, 10];
-            case 9:
+                return [3 /*break*/, 9];
+            case 8:
                 err_1 = _a.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError(err_1.message, err_1))];
-            case 10: return [2 /*return*/];
+            case 9: return [2 /*return*/];
         }
     });
 }); };
