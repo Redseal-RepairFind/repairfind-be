@@ -59,6 +59,8 @@ var cors_1 = __importDefault(require("./modules/common/middlewares/cors"));
 var parsers_1 = __importDefault(require("./modules/common/middlewares/parsers"));
 var twillio_1 = __importDefault(require("./services/twillio"));
 var fcm_1 = require("./services/notifications/fcm");
+var config_1 = require("./config");
+var paypal_checkout_1 = require("./templates/common/paypal_checkout");
 dotenv_1.default.config();
 // intercept all console logs and bind it to configured log service
 console.warn = logger_1.Logger.warn.bind(logger_1.Logger);
@@ -66,6 +68,13 @@ console.error = logger_1.Logger.error.bind(logger_1.Logger);
 console.info = logger_1.Logger.info.bind(logger_1.Logger);
 var app = (0, express_1.default)();
 var server = http_1.default.createServer(app);
+app.get("/api/v1/customer/payment-method-checkout-view", function (req, res) {
+    var token = req.query.token;
+    var paypalClientId = config_1.config.paypal.clientId;
+    console.log("token", token);
+    var html = (0, paypal_checkout_1.PaypalCheckoutTemplate)({ token: token, paypalClientId: paypalClientId });
+    return res.send(html);
+});
 // Apply security-related middleware
 (0, security_1.default)(app);
 // Apply CSRF protection middleware
