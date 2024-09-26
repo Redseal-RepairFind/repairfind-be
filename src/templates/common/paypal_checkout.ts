@@ -6,6 +6,30 @@ export const PaypalCheckoutTemplate = (payload: {token: string, paypalClientId: 
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="stylesheet" type="text/css" href="https://www.paypalobjects.com/webstatic/en_US/developer/docs/css/cardfields.css" />
         <title>PayPal JS SDK Advanced Integration - Checkout Flow</title>
+
+        <style>
+        /* Loader style */
+        .loader {
+          border: 4px solid #f3f3f3;
+          border-radius: 50%;
+          border-top: 4px solid #3498db;
+          width: 30px;
+          height: 30px;
+          animation: spin 1s linear infinite;
+          display: none;
+          margin-left: 10px;
+        }
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        .disabled {
+          pointer-events: none;
+          opacity: 0.7;
+        }
+      </style>
+
+
       </head>
       <body>
         <div id="paypal-button-container" class="paypal-button-container"></div>
@@ -35,6 +59,7 @@ export const PaypalCheckoutTemplate = (payload: {token: string, paypalClientId: 
           </div>
           <br /><br />
           <button id="card-field-submit-button" type="button">Pay now with Card</button>
+          <div id="loader" class="loader"></div>
         </div>
         <p id="result-message"></p>
         
@@ -69,11 +94,17 @@ export const PaypalCheckoutTemplate = (payload: {token: string, paypalClientId: 
                 body: JSON.stringify({ orderID: data.orderID }) 
               });
 
-              const orderData = await response.json();
-              console.log('response', orderData);
+              const res = await response.json();
+              if (res.success) {
+                window.location.href = 'https://repairfind.ca/payment-success/';
+              }else{
+                alert("Sorry, your transaction could not be processed...");
+                window.history.back();
+              }
             } catch (error) {
               console.error(error);
-              resultMessage(\`Sorry, your transaction could not be processed...<br><br>\${error}\`);
+              alert("Sorry, your transaction could not be processed...");
+              window.history.back();
             }
           }
 
@@ -103,6 +134,13 @@ export const PaypalCheckoutTemplate = (payload: {token: string, paypalClientId: 
             expiryField.render('#card-expiry-field-container');
             
             document.getElementById('card-field-submit-button').addEventListener('click', () => {
+
+              const submitButton = document.getElementById('card-field-submit-button');
+              const loader = document.getElementById('loader');
+              submitButton.classList.add('disabled');
+              loader.style.display = 'inline-block';
+
+
               cardField
                 .submit({
                   billingAddress: {
@@ -115,7 +153,9 @@ export const PaypalCheckoutTemplate = (payload: {token: string, paypalClientId: 
                   },
                 })
                 .catch((error) => {
-                  resultMessage(\`Sorry, your transaction could not be processed...<br><br>\${error}\`);
+                  loader.style.display = 'none';
+                  submitButton.classList.remove('disabled');
+                  alert(\`Sorry, your transaction could not be processed...<br><br>\${error}\`);
                 });
             });
           } else {

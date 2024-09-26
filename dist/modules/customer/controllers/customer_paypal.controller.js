@@ -120,11 +120,11 @@ var authorizePaymentMethodOrder = function (req, res) { return __awaiter(void 0,
                 voidAuthorization = _b.sent();
                 console.log("voidAuthorization", [voidAuthorization, voidAuthorization]);
                 _b.label = 6;
-            case 6: return [2 /*return*/, res.status(200).send({ data: paymentMethod_1 })];
+            case 6: return [2 /*return*/, res.status(200).send({ success: true, data: [orderData, paymentMethod_1] })];
             case 7:
                 error_1 = _b.sent();
                 console.error('Error retrieving the order:', error_1);
-                return [2 /*return*/, res.status(500).send({ error: 'Failed to capture order.' })];
+                return [2 /*return*/, res.status(500).send({ success: false, error: 'Failed to capture order.' })];
             case 8: return [2 /*return*/];
         }
     });

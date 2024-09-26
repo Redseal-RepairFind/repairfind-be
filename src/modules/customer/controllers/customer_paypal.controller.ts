@@ -75,10 +75,10 @@ export const authorizePaymentMethodOrder = async (
                 console.log("voidAuthorization", [voidAuthorization, voidAuthorization])
             }
         } 
-        return res.status(200).send({ data: paymentMethod });
+        return res.status(200).send({success: true,  data: [orderData,paymentMethod] });
     } catch (error) {
         console.error('Error retrieving the order:', error);
-        return res.status(500).send({ error: 'Failed to capture order.' });
+        return res.status(500).send({success:false,  error: 'Failed to capture order.' });
     }
 
 }
