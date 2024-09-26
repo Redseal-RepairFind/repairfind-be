@@ -50,7 +50,8 @@ router.post("/stripe-session", customerRoleChecker_middleware_1.checkCustomerRol
 router.post("/stripe-setupintent", customerRoleChecker_middleware_1.checkCustomerRole, customer_stripe_controller_1.CustomerStripeController.createSetupIntent);
 router.post("/paypal/create-payment-method-order", customerRoleChecker_middleware_1.checkCustomerRole, customer_paypal_controller_1.CustomerPaypalController.createPaymentMethodOrder);
 router.post("/paypal/authorize-payment-method-order", customerRoleChecker_middleware_1.checkCustomerRole, customer_paypal_controller_1.CustomerPaypalController.authorizePaymentMethodOrder);
-router.get("/paypal/create-payment-method-view", customer_paypal_controller_1.CustomerPaypalController.loadCreatePaymentMethodView);
+router.get("/paypal/payment-methods", customerRoleChecker_middleware_1.checkCustomerRole, customer_paypal_controller_1.CustomerPaypalController.loadCreatePaymentMethodView);
+router.delete("/paypal/payment-methods/:vaultId", customerRoleChecker_middleware_1.checkCustomerRole, customer_paypal_controller_1.CustomerPaypalController.deletePaypalPaymentMethod);
 // Explore Contractors
 router.get("/explore/contractors", customerOrGuest_middleware_1.checkCustomerOrGuestRole, requests_1.CustomerHttpRequest.queryContractorParams, customer_explore_controller_1.CustomerExploreController.exploreContractors);
 router.get("/explore/contractors/favorites", customerRoleChecker_middleware_1.checkCustomerRole, customer_explore_controller_1.CustomerExploreController.getFavoriteContractors);

@@ -200,3 +200,26 @@ export async function getVaultedPaymentMethods(customerId: string) {
         throw error;
     }
 }
+
+
+
+// Function to delete a PayPal Vault Payment Token
+export async function deleteVaultPaymentToken(paymentTokenId: string) {
+    const accessToken = await getPayPalAccessToken(); // Make sure you have this function to get the access token
+
+    try {
+        const response = await axios({
+            url: `${config.paypal.apiUrl}/v3/vault/payment-tokens/${paymentTokenId}`,
+            method: 'delete',
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+        });
+
+        console.log('Payment token deleted successfully.');
+        return response.data; // Optionally, you can return the response
+    } catch (error: any) {
+        console.error('Error deleting payment token:', error.response?.data || error.message);
+        throw error;
+    }
+}

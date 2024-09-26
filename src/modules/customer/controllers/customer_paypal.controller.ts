@@ -6,6 +6,7 @@ import { config } from '../../../config';
 import { PayPalService } from '../../../services/paypal';
 import { Logger } from '../../../services/logger';
 import { PaypalCheckoutTemplate } from '../../../templates/common/paypal_checkout';
+import { BadRequestError } from '../../../utils/custom.errors';
 
 
 
@@ -112,10 +113,52 @@ export const loadCreatePaymentMethodView = async (
 
 
 
+export const deletePaypalPaymentMethod = async (
+    req: any,
+    res: Response,
+    next: NextFunction
+) => {
+
+    try {
+        // Find the customer document by ID
+        const vaultId = req.params.vaultId
+        const customerId = req.customer.id
+        const customer = await CustomerModel.findById(customerId);
+
+        // Check if the customer document exists
+        if (!customer) {
+            return res.status(404).json({ success: false, message: "Customer not found" });
+        }
+
+        const paymentMethodIndex = customer.paypalPaymentMethods.findIndex(method => method.vault_id === vaultId);
+
+        // Check if the payment method exists in the array
+        if (paymentMethodIndex === -1) {
+            return res.status(404).json({ success: false, message: "Payment method not found" });
+        }
+
+        // Remove the payment method from the stripePaymentMethods array using splice
+        customer.paypalPaymentMethods.splice(paymentMethodIndex, 1);
+
+        //attempt to remove on paypal
+        await PayPalService.customer.deleteVaultPaymentToken(vaultId);
+
+
+        // Save the updated customer document
+        const updatedCustomer = await customer.save();
+
+        return res.status(200).json({ success: true, message: "Payment method removed successfully", data: updatedCustomer });
+    } catch (err: any) {
+        next(new BadRequestError(err.message, err))
+    }
+}
+
+
 export const CustomerPaypalController = {
     createPaymentMethodOrder,
     authorizePaymentMethodOrder,
-    loadCreatePaymentMethodView
+    loadCreatePaymentMethodView,
+    deletePaypalPaymentMethod
 }
 
 

@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getVaultedPaymentMethods = exports.vaultCustomerPaymentMethod = exports.createSetupToken = exports.updatePayPalCustomer = exports.getPayPalCustomerDetails = exports.createPayPalCustomer = void 0;
+exports.deleteVaultPaymentToken = exports.getVaultedPaymentMethods = exports.vaultCustomerPaymentMethod = exports.createSetupToken = exports.updatePayPalCustomer = exports.getPayPalCustomerDetails = exports.createPayPalCustomer = void 0;
 var axios_1 = __importDefault(require("axios"));
 var config_1 = require("../../config");
 // Function to generate PayPal OAuth token
@@ -301,3 +301,37 @@ function getVaultedPaymentMethods(customerId) {
     });
 }
 exports.getVaultedPaymentMethods = getVaultedPaymentMethods;
+// Function to delete a PayPal Vault Payment Token
+function deleteVaultPaymentToken(paymentTokenId) {
+    var _a;
+    return __awaiter(this, void 0, void 0, function () {
+        var accessToken, response, error_7;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0: return [4 /*yield*/, getPayPalAccessToken()];
+                case 1:
+                    accessToken = _b.sent();
+                    _b.label = 2;
+                case 2:
+                    _b.trys.push([2, 4, , 5]);
+                    return [4 /*yield*/, (0, axios_1.default)({
+                            url: "".concat(config_1.config.paypal.apiUrl, "/v3/vault/payment-tokens/").concat(paymentTokenId),
+                            method: 'delete',
+                            headers: {
+                                Authorization: "Bearer ".concat(accessToken),
+                            },
+                        })];
+                case 3:
+                    response = _b.sent();
+                    console.log('Payment token deleted successfully.');
+                    return [2 /*return*/, response.data]; // Optionally, you can return the response
+                case 4:
+                    error_7 = _b.sent();
+                    console.error('Error deleting payment token:', ((_a = error_7.response) === null || _a === void 0 ? void 0 : _a.data) || error_7.message);
+                    throw error_7;
+                case 5: return [2 /*return*/];
+            }
+        });
+    });
+}
+exports.deleteVaultPaymentToken = deleteVaultPaymentToken;

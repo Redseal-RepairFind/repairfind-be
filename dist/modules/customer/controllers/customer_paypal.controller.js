@@ -39,11 +39,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerPaypalController = exports.loadCreatePaymentMethodView = exports.authorizePaymentMethodOrder = exports.createPaymentMethodOrder = void 0;
+exports.CustomerPaypalController = exports.deletePaypalPaymentMethod = exports.loadCreatePaymentMethodView = exports.authorizePaymentMethodOrder = exports.createPaymentMethodOrder = void 0;
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var config_1 = require("../../../config");
 var paypal_1 = require("../../../services/paypal");
 var paypal_checkout_1 = require("../../../templates/common/paypal_checkout");
+var custom_errors_1 = require("../../../utils/custom.errors");
 var createPaymentMethodOrder = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var customerId, customer, payload, response, err_1;
     return __generator(this, function (_a) {
@@ -153,8 +154,49 @@ var loadCreatePaymentMethodView = function (req, res) { return __awaiter(void 0,
     });
 }); };
 exports.loadCreatePaymentMethodView = loadCreatePaymentMethodView;
+var deletePaypalPaymentMethod = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var vaultId_1, customerId, customer, paymentMethodIndex, updatedCustomer, err_2;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 4, , 5]);
+                vaultId_1 = req.params.vaultId;
+                customerId = req.customer.id;
+                return [4 /*yield*/, customer_model_1.default.findById(customerId)];
+            case 1:
+                customer = _a.sent();
+                // Check if the customer document exists
+                if (!customer) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: "Customer not found" })];
+                }
+                paymentMethodIndex = customer.paypalPaymentMethods.findIndex(function (method) { return method.vault_id === vaultId_1; });
+                // Check if the payment method exists in the array
+                if (paymentMethodIndex === -1) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: "Payment method not found" })];
+                }
+                // Remove the payment method from the stripePaymentMethods array using splice
+                customer.paypalPaymentMethods.splice(paymentMethodIndex, 1);
+                //attempt to remove on paypal
+                return [4 /*yield*/, paypal_1.PayPalService.customer.deleteVaultPaymentToken(vaultId_1)];
+            case 2:
+                //attempt to remove on paypal
+                _a.sent();
+                return [4 /*yield*/, customer.save()];
+            case 3:
+                updatedCustomer = _a.sent();
+                return [2 /*return*/, res.status(200).json({ success: true, message: "Payment method removed successfully", data: updatedCustomer })];
+            case 4:
+                err_2 = _a.sent();
+                next(new custom_errors_1.BadRequestError(err_2.message, err_2));
+                return [3 /*break*/, 5];
+            case 5: return [2 /*return*/];
+        }
+    });
+}); };
+exports.deletePaypalPaymentMethod = deletePaypalPaymentMethod;
 exports.CustomerPaypalController = {
     createPaymentMethodOrder: exports.createPaymentMethodOrder,
     authorizePaymentMethodOrder: exports.authorizePaymentMethodOrder,
-    loadCreatePaymentMethodView: exports.loadCreatePaymentMethodView
+    loadCreatePaymentMethodView: exports.loadCreatePaymentMethodView,
+    deletePaypalPaymentMethod: exports.deletePaypalPaymentMethod
 };

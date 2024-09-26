@@ -60,7 +60,8 @@ router.post("/stripe-setupintent",  checkCustomerRole, CustomerStripeController.
 
 router.post("/paypal/create-payment-method-order", checkCustomerRole, CustomerPaypalController.createPaymentMethodOrder ); 
 router.post("/paypal/authorize-payment-method-order", checkCustomerRole, CustomerPaypalController.authorizePaymentMethodOrder ); 
-router.get("/paypal/create-payment-method-view", CustomerPaypalController.loadCreatePaymentMethodView ); 
+router.get("/paypal/payment-methods", checkCustomerRole, CustomerPaypalController.loadCreatePaymentMethodView ); 
+router.delete("/paypal/payment-methods/:vaultId", checkCustomerRole, CustomerPaypalController.deletePaypalPaymentMethod ); 
 
 // Explore Contractors
 router.get("/explore/contractors", checkCustomerOrGuestRole, CustomerHttpRequest.queryContractorParams, CustomerExploreController.exploreContractors ); 
