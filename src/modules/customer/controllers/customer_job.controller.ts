@@ -55,9 +55,9 @@ export const createJobRequest = async (
 
 
         // Check if contractor has a verified connected account
-        if (!contractor.onboarding.hasStripeAccount || !(contractor.stripeAccountStatus?.card_payments_enabled && contractor.stripeAccountStatus?.transfers_enabled)) {
-            return res.status(400).json({ success: false, message: "You cannot send a job request to this contractor because  stripe account is not set up" });
-        }
+        // if (!contractor.onboarding.hasStripeAccount || !(contractor.stripeAccountStatus?.card_payments_enabled && contractor.stripeAccountStatus?.transfers_enabled)) {
+        //     return res.status(400).json({ success: false, message: "You cannot send a job request to this contractor because  stripe account is not set up" });
+        // }
 
 
 
