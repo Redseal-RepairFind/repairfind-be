@@ -38,7 +38,7 @@ const server = http.createServer(app);
 
 
 
-app.get("/api/v1/customer/payment-method-checkout-view", (req: any, res) => {
+app.get("/api/v1/customer/paypal/payment-method-checkout-view", (req: any, res) => {
   const {token} =req.query;
   const paypalClientId = config.paypal.clientId
 

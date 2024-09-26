@@ -68,7 +68,7 @@ console.error = logger_1.Logger.error.bind(logger_1.Logger);
 console.info = logger_1.Logger.info.bind(logger_1.Logger);
 var app = (0, express_1.default)();
 var server = http_1.default.createServer(app);
-app.get("/api/v1/customer/payment-method-checkout-view", function (req, res) {
+app.get("/api/v1/customer/paypal/payment-method-checkout-view", function (req, res) {
     var token = req.query.token;
     var paypalClientId = config_1.config.paypal.clientId;
     console.log("token", token);
