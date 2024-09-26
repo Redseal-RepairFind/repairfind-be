@@ -89,9 +89,10 @@ export const loadCreatePaymentMethodView = async (
     res: Response,
 ) => {
     try {
-        const authHeader = req.headers.authorization;
-        const token = authHeader && authHeader.split(" ")[1];
+        const {token} =req.query;
         const paypalClientId = config.paypal.clientId
+
+        console.log("token", token)
         let html = PaypalCheckoutTemplate({token, paypalClientId})
         return res.send(html);
     } catch (error) {

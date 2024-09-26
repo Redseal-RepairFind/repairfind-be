@@ -131,12 +131,12 @@ var authorizePaymentMethodOrder = function (req, res) { return __awaiter(void 0,
 }); };
 exports.authorizePaymentMethodOrder = authorizePaymentMethodOrder;
 var loadCreatePaymentMethodView = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var authHeader, token, paypalClientId, html;
+    var token, paypalClientId, html;
     return __generator(this, function (_a) {
         try {
-            authHeader = req.headers.authorization;
-            token = authHeader && authHeader.split(" ")[1];
+            token = req.query.token;
             paypalClientId = config_1.config.paypal.clientId;
+            console.log("token", token);
             html = (0, paypal_checkout_1.PaypalCheckoutTemplate)({ token: token, paypalClientId: paypalClientId });
             return [2 /*return*/, res.send(html)];
         }
