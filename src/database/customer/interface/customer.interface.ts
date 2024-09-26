@@ -1,6 +1,7 @@
 import { Document, Types, ObjectId } from "mongoose";
 import { IStripeCustomer } from "../../common/stripe_customer.interface";
 import { IStripePaymentMethod } from "../../common/stripe_paymentmethod.schema";
+import { IPaypalPaymentMethod } from "../../common/paypal_paymentmethod.schema";
 
 export enum CustomerAuthProviders {
   PASSWORD = "PASSWORD",
@@ -57,6 +58,7 @@ export interface ICustomer extends Document {
   currentTimezone: string;
   stripeCustomer: IStripeCustomer
   stripePaymentMethods: Array<IStripePaymentMethod>
+  paypalPaymentMethods: Array<IPaypalPaymentMethod>
   stripeAccount: object,
   stripeIdentity: object
   acceptTerms: Boolean;

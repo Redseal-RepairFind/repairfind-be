@@ -9,7 +9,7 @@ import CustomerModel from '../../database/customer/models/customer.model';
 import ContractorDeviceModel from '../../database/contractor/models/contractor_devices.model';
 import { castPayloadToDTO } from '../../utils/interface_dto.util';
 import { IStripeAccount } from '../../database/common/stripe_account.schema';
-import { ICapture, IPayment, IRefund, PAYMENT_TYPE, PaymentModel } from '../../database/common/payment.schema';
+import { IPayment, IRefund, IStripeCapture, PAYMENT_TYPE, PaymentModel } from '../../database/common/payment.schema';
 import { JobModel, JOB_STATUS, JOB_SCHEDULE_TYPE } from '../../database/common/job.model';
 import { IJobQuotation, JobQuotationModel, JOB_QUOTATION_STATUS } from '../../database/common/job_quotation.model';
 import { ObjectId } from 'mongoose';
@@ -540,10 +540,6 @@ export const chargeSucceeded = async (payload: any) => {
 
         if (payload.object != 'charge') return
 
-        // const customer: any = await StripeService.customer.getCustomerById(payload.customer)
-        // const userType = customer?.metadata?.userType
-        // const userId = customer?.metadata?.userId
-
         const userType = 'customers'
         const userId = payload?.metadata?.customerId
 
@@ -559,14 +555,15 @@ export const chargeSucceeded = async (payload: any) => {
         payload.application_fee_amount = payload.application_fee_amount / 100
 
         let stripeChargeDTO: IPayment = castPayloadToDTO(payload, payload as IPayment);
-        stripeChargeDTO.charge = payload.id
+        stripeChargeDTO.charge_id = payload.id
         stripeChargeDTO.type = payload.metadata.paymentType
         stripeChargeDTO.user = user.id
         stripeChargeDTO.userType = userType
+        stripeChargeDTO.channel = 'stripe'
         delete (stripeChargeDTO as { id?: any }).id;
 
 
-        let payment = await PaymentModel.findOneAndUpdate({ charge: stripeChargeDTO.charge }, stripeChargeDTO, {
+        let payment = await PaymentModel.findOneAndUpdate({ charge: stripeChargeDTO.charge_id }, stripeChargeDTO, {
             new: true, upsert: true
         })
 
@@ -588,7 +585,7 @@ export const chargeSucceeded = async (payload: any) => {
                 initiatorUserType: 'customers',
                 fromUser: metadata.customerId,
                 fromUserType: 'customers',
-                toUser: metadata.contractorId,
+                toUser: metadata.contractorId, 
                 toUserType: 'contractors',
                 description: metadata.paymentType.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' '),
                 remark: metadata.remark,
@@ -602,7 +599,7 @@ export const chargeSucceeded = async (payload: any) => {
             if (!payment.captured) {
 
                 const capture = payload.payment_method_details.card
-                let captureDto: ICapture = castPayloadToDTO(capture, capture as ICapture);
+                let captureDto: IStripeCapture = castPayloadToDTO(capture, capture as IStripeCapture);
 
                 captureDto.payment_intent = payload.payment_intent
                 captureDto.payment_method = payload.payment_method
@@ -610,12 +607,12 @@ export const chargeSucceeded = async (payload: any) => {
                 captureDto.captured = false
                 captureDto.currency = payment.currency
 
-                payment.capture = captureDto
+                payment.stripeCapture = captureDto
                 transaction.status = TRANSACTION_STATUS.PENDING
 
             } else {
                 const capture = payload.payment_method_details.card
-                let captureDto: ICapture = castPayloadToDTO(capture, capture as ICapture);
+                let captureDto: IStripeCapture = castPayloadToDTO(capture, capture as IStripeCapture);
                 captureDto.payment_intent = payload.payment_intent
                 captureDto.payment_method = payload.payment_method
                 captureDto.payment = payment.id
@@ -623,7 +620,7 @@ export const chargeSucceeded = async (payload: any) => {
                 captureDto.captured_at = payment.created
                 captureDto.currency = payment.currency
 
-                payment.capture = captureDto
+                payment.stripeCapture = captureDto
                 transaction.status = TRANSACTION_STATUS.SUCCESSFUL
 
             }
@@ -796,9 +793,9 @@ export const chargeRefunded = async (payload: any) => {
         if (payload.object !== 'charge') return;
 
         const stripeChargeDTO: IPayment = castPayloadToDTO(payload, payload as IPayment);
-        stripeChargeDTO.charge = payload.id;
+        stripeChargeDTO.charge_id = payload.id;
         delete (stripeChargeDTO as { id?: any }).id;
-        const payment = await PaymentModel.findOne({ charge: stripeChargeDTO.charge });
+        const payment = await PaymentModel.findOne({ charge: stripeChargeDTO.charge_id });
         if (payment) {
             payment.amount_refunded = payload.amount_refunded / 100;
             payment.refunded = payload.refunded;

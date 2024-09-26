@@ -67,7 +67,7 @@ var captureStripePayments = function () { return __awaiter(void 0, void 0, void 
                 _a.label = 3;
             case 3:
                 _a.trys.push([3, 5, , 6]);
-                return [4 /*yield*/, stripe_1.StripeService.payment.capturePayment(payment.capture.payment_intent)];
+                return [4 /*yield*/, stripe_1.StripeService.payment.capturePayment(payment.stripeCapture.payment_intent)];
             case 4:
                 _a.sent();
                 return [3 /*break*/, 6];

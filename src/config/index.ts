@@ -33,7 +33,6 @@ export const config = {
     },
 
 
-
     apple: {
         apnAuthKey: <string>process.env.APN_AUTH_KEY,
         teamId: <string>process.env.APPLE_TEAM_ID,
@@ -64,6 +63,12 @@ export const config = {
         secretKey: <string>process.env.PAYSTACK_SECRET_KEY,
         publicKey: <string>process.env.PAYSTACK_PUBLIC_KEY,
         uri: <string>process.env.PAYSTACK_BASE_URL
+    },
+
+    paypal: {
+        secretKey: <string>process.env.PAYPAL_CLIENT_SECRET,
+        clientId: <string>process.env.PAYPAL_CLIENT_ID,
+        apiUrl: <string>process.env.PAYPAL_API_URL
     },
 
     kyc: {

@@ -61,11 +61,10 @@ var payment_schema_1 = require("../../../database/common/payment.schema");
 var job_util_1 = require("../../../utils/job.util");
 var createJobRequest = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, contractorId, category, description, location_1, date, _b, expiresIn, emergency, media, voiceDescription, time, customerId, customer, contractor, contractorProfile, currentDate, expiryDate, newJob, conversationMembers, conversation, newMessage, html, error_1;
-    var _c, _d;
-    return __generator(this, function (_e) {
-        switch (_e.label) {
+    return __generator(this, function (_c) {
+        switch (_c.label) {
             case 0:
-                _e.trys.push([0, 7, , 8]);
+                _c.trys.push([0, 7, , 8]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ message: 'Validation error occurred', errors: errors.array() })];
@@ -77,25 +76,25 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 }
                 return [4 /*yield*/, customer_model_1.default.findById(customerId)];
             case 1:
-                customer = _e.sent();
+                customer = _c.sent();
                 if (!customer) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "Customer not found" })];
                 }
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId).populate('profile')];
             case 2:
-                contractor = _e.sent();
+                contractor = _c.sent();
                 if (!contractor) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "Contractor not found" })];
                 }
                 return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: contractorId })
                     // Check if contractor has a verified connected account
+                    // if (!contractor.onboarding.hasStripeAccount || !(contractor.stripeAccountStatus?.card_payments_enabled && contractor.stripeAccountStatus?.transfers_enabled)) {
+                    //     return res.status(400).json({ success: false, message: "You cannot send a job request to this contractor because  stripe account is not set up" });
+                    // }
+                    // Calculate the expiry date
                 ];
             case 3:
-                contractorProfile = _e.sent();
-                // Check if contractor has a verified connected account
-                if (!contractor.onboarding.hasStripeAccount || !(((_c = contractor.stripeAccountStatus) === null || _c === void 0 ? void 0 : _c.card_payments_enabled) && ((_d = contractor.stripeAccountStatus) === null || _d === void 0 ? void 0 : _d.transfers_enabled))) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: "You cannot send a job request to this contractor because  stripe account is not set up" })];
-                }
+                contractorProfile = _c.sent();
                 currentDate = new Date();
                 expiryDate = new Date(currentDate);
                 expiryDate.setDate(currentDate.getDate() + Number(expiresIn));
@@ -119,14 +118,14 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 return [4 /*yield*/, newJob.save()];
             case 4:
                 // Save the job document to the database
-                _e.sent();
+                _c.sent();
                 conversationMembers = [
                     { memberType: 'customers', member: customerId },
                     { memberType: 'contractors', member: contractorId }
                 ];
                 return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(customerId, 'customers', contractorId, 'contractors')];
             case 5:
-                conversation = _e.sent();
+                conversation = _c.sent();
                 return [4 /*yield*/, messages_schema_1.MessageModel.create({
                         conversation: conversation._id,
                         sender: customerId, // Assuming the customer sends the initial message
@@ -138,7 +137,7 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                         entityType: 'jobs'
                     })];
             case 6:
-                newMessage = _e.sent();
+                newMessage = _c.sent();
                 events_1.ConversationEvent.emit('NEW_MESSAGE', { message: newMessage });
                 events_1.JobEvent.emit('NEW_JOB_REQUEST', { jobId: newJob.id, contractorId: contractorId, customerId: customerId, conversationId: conversation.id });
                 html = (0, jobRequestTemplate_1.htmlJobRequestTemplate)(customer.firstName, customer.firstName, "".concat(newJob.date), description);
@@ -146,7 +145,7 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 res.status(201).json({ success: true, message: 'Job request submitted successfully', data: newJob });
                 return [3 /*break*/, 8];
             case 7:
-                error_1 = _e.sent();
+                error_1 = _c.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('Bad Request', error_1))];
             case 8: return [2 /*return*/];
         }

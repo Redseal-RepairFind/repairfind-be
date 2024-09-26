@@ -5,6 +5,7 @@ import { StripeCustomerSchema } from "../../common/stripe_customer.schema";
 import { StripePaymentMethodSchema } from "../../common/stripe_paymentmethod.schema";
 import  MongooseDelete, { SoftDeleteModel } from 'mongoose-delete';
 import { customerStatus } from "../../../constants/contractorStatus";
+import { PaypalPaymentMethodSchema } from "../../common/paypal_paymentmethod.schema";
 
 
 
@@ -99,6 +100,9 @@ const CustomerSchema = new Schema<ICustomer>(
     },
     stripePaymentMethods: {
       type: [StripePaymentMethodSchema],
+    },
+    paypalPaymentMethods: {
+      type: [PaypalPaymentMethodSchema],
     },
     stripeAccount: {
       type: Object,

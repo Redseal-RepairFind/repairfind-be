@@ -1,98 +1,89 @@
-import paypalRest from 'paypal-rest-sdk';
+import axios from 'axios';
+import { BadRequestError } from '../../utils/custom.errors';
+import { config } from '../../config';
+import { v4 as uuidv4 } from 'uuid';
 
+// Function to generate PayPal OAuth token
+const getPayPalAccessToken = async () => {
+  const auth = Buffer.from(
+    `${config.paypal.clientId}:${config.paypal.secretKey}`
+  ).toString('base64');
 
+  const response = await axios({
+    url: config.paypal.apiUrl + '/v1/oauth2/token',
+    method: 'post',
+    headers: {
+      Authorization: `Basic ${auth}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    data: 'grant_type=client_credentials',
+  });
 
-// Configure PayPal SDK for Payouts
-paypalRest.configure({
-    mode: 'sandbox', // or 'live'
-    client_id: <string>process.env.PAYPAL_CLIENT_ID,
-    client_secret: <string>process.env.PAYPAL_CLIENT_SECRET,
-});
+  return response.data.access_token;
+};
 
+// Transfer Funds to PayPal Email (Payouts)
+export const transferToEmail = async (recipientEmail: string, amount: number, currency: string = 'USD') => {
+  const accessToken = await getPayPalAccessToken();
 
-// Define interfaces for the payout item and error if needed
-// This is an example of basic type annotation; you can enhance these based on the actual API response.
-
-interface PayoutError {
-    name: string;
-    message: string;
-    information_link?: string;
-    debug_id?: string;
-}
-
-interface PayoutItem {
-    transaction_status: string;
-    payout_item_id: string;
-    [key: string]: any; // Additional properties as needed
-}
-
-
-
-// Method to create a transfer to an email
-export const createEmailPayout = async (email: string, amount: number, currency: string = 'CAD') => {
-    const createPayoutJson = {
-        sender_batch_header: {
-            sender_batch_id: Math.random().toString(36).substring(9),
-            email_subject: 'You have a payout!',
-            email_message: 'You have received a payout. Thanks for using our service!',
+  const response = await axios.post(
+    config.paypal.apiUrl + '/v1/payments/payouts',
+    {
+      sender_batch_header: {
+        sender_batch_id: uuidv4(), // Unique ID for the batch
+        email_subject: 'You have a payment from RepairFind!',
+      },
+      items: [
+        {
+          recipient_type: 'EMAIL',
+          amount: {
+            value: amount.toString(), // Amount in dollars
+            currency: currency,
+          },
+          receiver: recipientEmail,
+          note: 'Payment for your completed job on RepairFind',
+          sender_item_id: uuidv4(), // Unique ID for the transaction
         },
-        items: [
-            {
-                recipient_type: 'EMAIL',
-                amount: {
-                    value: amount.toFixed(2),
-                    currency: currency,
-                },
-                receiver: email,
-                note: 'Thank you for your business.',
-                sender_item_id: Math.random().toString(36).substring(9),
-            },
-        ],
-    };
-
-    try {
-        const response = await new Promise<PayoutItem>((resolve, reject) => {
-            paypalRest.payout.create(createPayoutJson, (error: PayoutError, payout: PayoutItem) => {
-                if (error) {
-                    reject(error);
-                } else {
-                    resolve(payout);
-                }
-            });
-        });
-
-        console.log('Transfer created successfully:', response);
-        return response;
-    } catch (error) {
-        console.error('Error creating transfer:', error);
-        throw error;
+      ],
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
     }
+  );
+
+  if (response.data.batch_header.batch_status !== 'SUCCESS') {
+    throw new BadRequestError('Failed to send payment.');
+  }
+
+  return response.data;
 };
 
 
 
 
-
-// Check Payout Item Status
-const checkPayoutStatus = async (payoutItemId: string) => {
+// Check the status of a payout item
+export const checkPayoutStatus = async (payoutItemId: string) => {
+    const accessToken = await getPayPalAccessToken();
+  
     try {
-        const response = await new Promise<PayoutItem>((resolve, reject) => {
-            paypalRest.payoutItem.get(
-                payoutItemId,
-                (error: PayoutError | null, payoutItem: PayoutItem | null) => {
-                    if (error) {
-                        reject(error);
-                    } else {
-                        resolve(payoutItem as PayoutItem);
-                    }
-                }
-            );
-        });
-
-        console.log('Payout item status:', response.transaction_status);
-        return response;
-    } catch (error) {
-        console.error('Error fetching payout item status:', error);
-        throw error;
+      const response = await axios.get(
+        config.paypal.apiUrl +`${payoutItemId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+  
+      console.log('Payout item status:', response.data.transaction_status);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching payout item status:', error.response ? error.response.data : error.message);
+      throw error;
     }
-};
+  };
+  

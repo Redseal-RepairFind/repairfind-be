@@ -9,6 +9,7 @@ var stripe_customer_schema_1 = require("../../common/stripe_customer.schema");
 var stripe_paymentmethod_schema_1 = require("../../common/stripe_paymentmethod.schema");
 var mongoose_delete_1 = __importDefault(require("mongoose-delete"));
 var contractorStatus_1 = require("../../../constants/contractorStatus");
+var paypal_paymentmethod_schema_1 = require("../../common/paypal_paymentmethod.schema");
 var CustomerLocationSchema = new mongoose_1.Schema({
     address: String,
     city: String,
@@ -97,6 +98,9 @@ var CustomerSchema = new mongoose_1.Schema({
     },
     stripePaymentMethods: {
         type: [stripe_paymentmethod_schema_1.StripePaymentMethodSchema],
+    },
+    paypalPaymentMethods: {
+        type: [paypal_paymentmethod_schema_1.PaypalPaymentMethodSchema],
     },
     stripeAccount: {
         type: Object,

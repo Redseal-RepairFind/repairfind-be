@@ -39,94 +39,104 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createEmailPayout = void 0;
-var paypal_rest_sdk_1 = __importDefault(require("paypal-rest-sdk"));
-// Configure PayPal SDK for Payouts
-paypal_rest_sdk_1.default.configure({
-    mode: 'sandbox', // or 'live'
-    client_id: process.env.PAYPAL_CLIENT_ID,
-    client_secret: process.env.PAYPAL_CLIENT_SECRET,
-});
-// Method to create a transfer to an email
-var createEmailPayout = function (email, amount, currency) {
-    if (currency === void 0) { currency = 'CAD'; }
+exports.checkPayoutStatus = exports.transferToEmail = void 0;
+var axios_1 = __importDefault(require("axios"));
+var custom_errors_1 = require("../../utils/custom.errors");
+var config_1 = require("../../config");
+var uuid_1 = require("uuid");
+// Function to generate PayPal OAuth token
+var getPayPalAccessToken = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var auth, response;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                auth = Buffer.from("".concat(config_1.config.paypal.clientId, ":").concat(config_1.config.paypal.secretKey)).toString('base64');
+                return [4 /*yield*/, (0, axios_1.default)({
+                        url: config_1.config.paypal.apiUrl + '/v1/oauth2/token',
+                        method: 'post',
+                        headers: {
+                            Authorization: "Basic ".concat(auth),
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        data: 'grant_type=client_credentials',
+                    })];
+            case 1:
+                response = _a.sent();
+                return [2 /*return*/, response.data.access_token];
+        }
+    });
+}); };
+// Transfer Funds to PayPal Email (Payouts)
+var transferToEmail = function (recipientEmail, amount, currency) {
+    if (currency === void 0) { currency = 'USD'; }
     return __awaiter(void 0, void 0, void 0, function () {
-        var createPayoutJson, response, error_1;
+        var accessToken, response;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0:
-                    createPayoutJson = {
-                        sender_batch_header: {
-                            sender_batch_id: Math.random().toString(36).substring(9),
-                            email_subject: 'You have a payout!',
-                            email_message: 'You have received a payout. Thanks for using our service!',
-                        },
-                        items: [
-                            {
-                                recipient_type: 'EMAIL',
-                                amount: {
-                                    value: amount.toFixed(2),
-                                    currency: currency,
-                                },
-                                receiver: email,
-                                note: 'Thank you for your business.',
-                                sender_item_id: Math.random().toString(36).substring(9),
-                            },
-                        ],
-                    };
-                    _a.label = 1;
+                case 0: return [4 /*yield*/, getPayPalAccessToken()];
                 case 1:
-                    _a.trys.push([1, 3, , 4]);
-                    return [4 /*yield*/, new Promise(function (resolve, reject) {
-                            paypal_rest_sdk_1.default.payout.create(createPayoutJson, function (error, payout) {
-                                if (error) {
-                                    reject(error);
-                                }
-                                else {
-                                    resolve(payout);
-                                }
-                            });
+                    accessToken = _a.sent();
+                    return [4 /*yield*/, axios_1.default.post(config_1.config.paypal.apiUrl + '/v1/payments/payouts', {
+                            sender_batch_header: {
+                                sender_batch_id: (0, uuid_1.v4)(), // Unique ID for the batch
+                                email_subject: 'You have a payment from RepairFind!',
+                            },
+                            items: [
+                                {
+                                    recipient_type: 'EMAIL',
+                                    amount: {
+                                        value: amount.toString(), // Amount in dollars
+                                        currency: currency,
+                                    },
+                                    receiver: recipientEmail,
+                                    note: 'Payment for your completed job on RepairFind',
+                                    sender_item_id: (0, uuid_1.v4)(), // Unique ID for the transaction
+                                },
+                            ],
+                        }, {
+                            headers: {
+                                Authorization: "Bearer ".concat(accessToken),
+                                'Content-Type': 'application/json',
+                            },
                         })];
                 case 2:
                     response = _a.sent();
-                    console.log('Transfer created successfully:', response);
-                    return [2 /*return*/, response];
-                case 3:
-                    error_1 = _a.sent();
-                    console.error('Error creating transfer:', error_1);
-                    throw error_1;
-                case 4: return [2 /*return*/];
+                    if (response.data.batch_header.batch_status !== 'SUCCESS') {
+                        throw new custom_errors_1.BadRequestError('Failed to send payment.');
+                    }
+                    return [2 /*return*/, response.data];
             }
         });
     });
 };
-exports.createEmailPayout = createEmailPayout;
-// Check Payout Item Status
+exports.transferToEmail = transferToEmail;
+// Check the status of a payout item
 var checkPayoutStatus = function (payoutItemId) { return __awaiter(void 0, void 0, void 0, function () {
-    var response, error_2;
+    var accessToken, response, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0:
-                _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, new Promise(function (resolve, reject) {
-                        paypal_rest_sdk_1.default.payoutItem.get(payoutItemId, function (error, payoutItem) {
-                            if (error) {
-                                reject(error);
-                            }
-                            else {
-                                resolve(payoutItem);
-                            }
-                        });
-                    })];
+            case 0: return [4 /*yield*/, getPayPalAccessToken()];
             case 1:
-                response = _a.sent();
-                console.log('Payout item status:', response.transaction_status);
-                return [2 /*return*/, response];
+                accessToken = _a.sent();
+                _a.label = 2;
             case 2:
-                error_2 = _a.sent();
-                console.error('Error fetching payout item status:', error_2);
-                throw error_2;
-            case 3: return [2 /*return*/];
+                _a.trys.push([2, 4, , 5]);
+                return [4 /*yield*/, axios_1.default.get(config_1.config.paypal.apiUrl + "".concat(payoutItemId), {
+                        headers: {
+                            Authorization: "Bearer ".concat(accessToken),
+                            'Content-Type': 'application/json',
+                        },
+                    })];
+            case 3:
+                response = _a.sent();
+                console.log('Payout item status:', response.data.transaction_status);
+                return [2 /*return*/, response.data];
+            case 4:
+                error_1 = _a.sent();
+                console.error('Error fetching payout item status:', error_1.response ? error_1.response.data : error_1.message);
+                throw error_1;
+            case 5: return [2 /*return*/];
         }
     });
 }); };
+exports.checkPayoutStatus = checkPayoutStatus;

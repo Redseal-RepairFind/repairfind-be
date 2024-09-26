@@ -31,7 +31,7 @@ export const handleJobRefunds = async () => {
                     }
 
                     const amount = (transaction.amount * 100)
-                    const charge = payment.charge
+                    const charge = payment.charge_id
                     let metadata: any = transaction.metadata ?? {}
                     metadata.transactionId = transaction.id
                     metadata.paymentId = payment.id

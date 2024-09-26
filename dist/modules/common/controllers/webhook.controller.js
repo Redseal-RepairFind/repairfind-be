@@ -36,8 +36,10 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.WebhookController = exports.certnWebook = exports.stripeWebook = void 0;
+exports.WebhookController = exports.paypalWebhook = exports.certnWebook = exports.stripeWebook = void 0;
 var stripe_1 = require("../../../services/stripe");
+var logger_1 = require("../../../services/logger");
+var paypal_1 = require("../../../services/paypal");
 var stripeWebook = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var sig, payload;
     return __generator(this, function (_a) {
@@ -59,8 +61,7 @@ var certnWebook = function (req, res) { return __awaiter(void 0, void 0, void 0,
         try {
             // const sig = <string>req.headers['stripe-signature'];
             // const payload = req.body;
-            // StripeService.webhook.StripeWebhookHandler(req)
-            console.log(req);
+            logger_1.Logger.info("CERTN WEBHOOK", req);
             res.status(200).end();
         }
         catch (err) {
@@ -70,7 +71,22 @@ var certnWebook = function (req, res) { return __awaiter(void 0, void 0, void 0,
     });
 }); };
 exports.certnWebook = certnWebook;
+var paypalWebhook = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    return __generator(this, function (_a) {
+        try {
+            paypal_1.PayPalService.webhook.PayPalWebhookHandler(req);
+            logger_1.Logger.info("PAYPAL WEBHOOK RECEIVED");
+            res.status(200).end();
+        }
+        catch (err) {
+            res.status(500).json({ success: false, message: err.message });
+        }
+        return [2 /*return*/];
+    });
+}); };
+exports.paypalWebhook = paypalWebhook;
 exports.WebhookController = {
     stripeWebook: exports.stripeWebook,
-    certnWebook: exports.certnWebook
+    certnWebook: exports.certnWebook,
+    paypalWebhook: exports.paypalWebhook
 };
