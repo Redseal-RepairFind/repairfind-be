@@ -46,7 +46,7 @@ var logger_1 = require("../logger");
 function translateText(text, targetLang, sourceLang) {
     var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function () {
-        var response, error_1;
+        var url, response, error_1;
         return __generator(this, function (_e) {
             switch (_e.label) {
                 case 0:
@@ -54,11 +54,12 @@ function translateText(text, targetLang, sourceLang) {
                     if (!text || !targetLang) {
                         throw new Error('Text, source language, and target language are required');
                     }
-                    return [4 /*yield*/, axios_1.default.post("https://translation.googleapis.com/language/translate/v2", {}, {
+                    url = "https://translation.googleapis.com/language/translate/v2?key=".concat(config_1.config.google.apiKey);
+                    return [4 /*yield*/, axios_1.default.post(url, {}, {
                             params: {
                                 q: text,
-                                source: sourceLang || 'auto', // Source language (original language of the text)
-                                target: targetLang, // Target language (desired language for translation)
+                                source: sourceLang || null,
+                                target: targetLang,
                                 key: config_1.config.google.apiKey,
                             },
                         })];

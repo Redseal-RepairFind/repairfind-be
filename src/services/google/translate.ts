@@ -9,14 +9,16 @@ export async function translateText(text: string,  targetLang: string, sourceLan
         throw new Error('Text, source language, and target language are required');
     }
 
+    const url = `https://translation.googleapis.com/language/translate/v2?key=${config.google.apiKey}`;
+
     const response = await axios.post(
-      `https://translation.googleapis.com/language/translate/v2`,
+      url,
       {},
       {
         params: {
           q: text,
-          source: sourceLang || 'auto',  // Source language (original language of the text)
-          target: targetLang,      // Target language (desired language for translation)
+          source: sourceLang || null, 
+          target: targetLang, 
           key: config.google.apiKey,
         },
       }
