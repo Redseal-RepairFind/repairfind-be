@@ -7,6 +7,7 @@ import { ContractorModel } from "../../../database/contractor/models/contractor.
 import { ICustomer } from "../../../database/customer/interface/customer.interface";
 import CustomerModel from "../../../database/customer/models/customer.model";
 import { Logger } from "../../logger";
+import { PayPalService } from "../../paypal";
 import { StripeService } from "../../stripe";
 
 
@@ -30,14 +31,26 @@ export const handleJobRefunds = async () => {
                         return
                     }
 
-                    const amount = (transaction.amount * 100)
-                    const charge = payment.charge_id
-                    let metadata: any = transaction.metadata ?? {}
-                    metadata.transactionId = transaction.id
-                    metadata.paymentId = payment.id
-                    const stripePayment = await StripeService.payment.refundCharge(charge, amount, metadata)// convert to cent
+                    if (payment.channel == 'stripe'){
+                        const amount = (transaction.amount * 100)
+                        const charge = payment.charge_id
+                        let metadata: any = transaction.metadata ?? {}
+                        metadata.transactionId = transaction.id
+                        metadata.paymentId = payment.id
+                        const stripePayment = await StripeService.payment.refundCharge(charge, amount, metadata)// convert to cent
+                    }
 
+                    if (payment.channel == 'paypal'){
+                        const amount = (transaction.amount * 100)
+                        const capture_id = payment.capture_id
+                        let metadata: any = transaction.metadata ?? {}
+                        metadata.transactionId = transaction.id
+                        metadata.paymentId = payment.id
+                        const paypalRefund = await PayPalService.payment.refundPayment(capture_id, amount)
+                    }
 
+                    transaction.status == TRANSACTION_STATUS.SUCCESSFUL
+                
                 }
 
 
@@ -46,6 +59,8 @@ export const handleJobRefunds = async () => {
                 Logger.error(`Error processing refund transaction: ${transaction.id}`, error);
             }
         }
+
+
     } catch (error) {
         Logger.error('Error processing refund transaction:', error);
     }
