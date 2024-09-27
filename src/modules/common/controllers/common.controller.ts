@@ -106,18 +106,21 @@ export const getOptions = async (
 
 export const getCurrentOrLatestAppVersions = async (req: Request, res: Response, next: NextFunction) => {
   try {
-      // Fetch current versions for both IOS and ANDROID
-      let currentIosVersion = await AppVersionModel.findOne({ type: 'IOS', isCurrent: true }).exec();
-      let currentAndroidVersion = await AppVersionModel.findOne({ type: 'ANDROID', isCurrent: true }).exec();
 
+      const app = req.query.app
+
+      // Fetch current versions for both IOS and ANDROID
+      let currentIosVersion = await AppVersionModel.findOne({ type: 'IOS', isCurrent: true, app }).exec();
+      let currentAndroidVersion = await AppVersionModel.findOne({ type: 'ANDROID', isCurrent: true, app }).exec();
+      
       // Fetch latest versions for both IOS and ANDROID if current versions are not found
       if (!currentIosVersion) {
-          const latestIosVersion = await AppVersionModel.findOne({ type: 'IOS' }).sort({ createdAt: -1 }).exec();
+          const latestIosVersion = await AppVersionModel.findOne({ type: 'IOS', app }).sort({ createdAt: -1 }).exec();
           currentIosVersion = latestIosVersion;
       }
 
       if (!currentAndroidVersion) {
-          const latestAndroidVersion = await AppVersionModel.findOne({ type: 'ANDROID' }).sort({ createdAt: -1 }).exec();
+          const latestAndroidVersion = await AppVersionModel.findOne({ type: 'ANDROID', app }).sort({ createdAt: -1 }).exec();
           currentAndroidVersion = latestAndroidVersion;
       }
 

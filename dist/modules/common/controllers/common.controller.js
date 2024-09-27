@@ -143,26 +143,27 @@ var getOptions = function (req, res, next) { return __awaiter(void 0, void 0, vo
 }); };
 exports.getOptions = getOptions;
 var getCurrentOrLatestAppVersions = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var currentIosVersion, currentAndroidVersion, latestIosVersion, latestAndroidVersion, err_4;
+    var app, currentIosVersion, currentAndroidVersion, latestIosVersion, latestAndroidVersion, err_4;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 7, , 8]);
-                return [4 /*yield*/, app_versions_model_1.AppVersionModel.findOne({ type: 'IOS', isCurrent: true }).exec()];
+                app = req.query.app;
+                return [4 /*yield*/, app_versions_model_1.AppVersionModel.findOne({ type: 'IOS', isCurrent: true, app: app }).exec()];
             case 1:
                 currentIosVersion = _a.sent();
-                return [4 /*yield*/, app_versions_model_1.AppVersionModel.findOne({ type: 'ANDROID', isCurrent: true }).exec()];
+                return [4 /*yield*/, app_versions_model_1.AppVersionModel.findOne({ type: 'ANDROID', isCurrent: true, app: app }).exec()];
             case 2:
                 currentAndroidVersion = _a.sent();
                 if (!!currentIosVersion) return [3 /*break*/, 4];
-                return [4 /*yield*/, app_versions_model_1.AppVersionModel.findOne({ type: 'IOS' }).sort({ createdAt: -1 }).exec()];
+                return [4 /*yield*/, app_versions_model_1.AppVersionModel.findOne({ type: 'IOS', app: app }).sort({ createdAt: -1 }).exec()];
             case 3:
                 latestIosVersion = _a.sent();
                 currentIosVersion = latestIosVersion;
                 _a.label = 4;
             case 4:
                 if (!!currentAndroidVersion) return [3 /*break*/, 6];
-                return [4 /*yield*/, app_versions_model_1.AppVersionModel.findOne({ type: 'ANDROID' }).sort({ createdAt: -1 }).exec()];
+                return [4 /*yield*/, app_versions_model_1.AppVersionModel.findOne({ type: 'ANDROID', app: app }).sort({ createdAt: -1 }).exec()];
             case 5:
                 latestAndroidVersion = _a.sent();
                 currentAndroidVersion = latestAndroidVersion;
