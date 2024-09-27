@@ -129,8 +129,7 @@ var handleEscrowTransfer = function () { return __awaiter(void 0, void 0, void 0
                 _c.label = 7;
             case 7:
                 if (!(payment.channel == 'paypal')) return [3 /*break*/, 9];
-                amount = (transaction.amount * 100) // change to base currency
-                ;
+                amount = (transaction.amount);
                 return [4 /*yield*/, paypal_1.PayPalService.payout.transferToEmail(toUser.email, amount, 'CAD')];
             case 8:
                 paypalTransfer = _c.sent();
