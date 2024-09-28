@@ -1228,9 +1228,9 @@ export const createJobEnquiry = async (req: any, res: Response, next: NextFuncti
        return res.status(400).json({ success: false, message: "Kindly complete your identity process" });
      }
  
-     if (!contractor.onboarding.hasStripeAccount || !(contractor.stripeAccountStatus && contractor.stripeAccountStatus.card_payments_enabled && contractor.stripeAccountStatus.transfers_enabled)) {
-       return res.status(400).json({ success: false, message: "Kindly connect your bank account to receive payment" });
-     }
+    //  if (!contractor.onboarding.hasStripeAccount || !(contractor.stripeAccountStatus && contractor.stripeAccountStatus.card_payments_enabled && contractor.stripeAccountStatus.transfers_enabled)) {
+    //    return res.status(400).json({ success: false, message: "Kindly connect your bank account to receive payment" });
+    //  }
 
 
 

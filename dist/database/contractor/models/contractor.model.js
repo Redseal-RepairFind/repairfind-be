@@ -382,9 +382,8 @@ ContractorSchema.methods.getOnboarding = function () {
                             stage = { status: 3, label: 'quiz' };
                         // if (stage.status == 3 && hasGstDetails) stage = {status: 4, label: 'quiz'} 
                         if (stage.status == 3 && hasPassedQuiz)
-                            stage = { status: 4, label: 'stripeAccount' };
-                        if (stage.status == 4 && hasStripeAccount)
-                            stage = { status: 5, label: 'done' };
+                            stage = { status: 4, label: 'done' };
+                        // if (stage.status == 4 && hasStripeAccount) stage = { status: 5, label: 'done' }
                     }
                     if (this.accountType == 'Employee') {
                         if (stage.status == 1 && hasStripeIdentity && stripeIdentityStatus == 'verified')

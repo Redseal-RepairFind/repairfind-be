@@ -27,7 +27,7 @@ export const quizReminderCheck = async () => {
                 const daysSinceQuizTaken = quizTakenDate ? Math.floor((currentDate.getTime() - quizTakenDate.getTime()) / (1000 * 60 * 60 * 24)) : null;
 
                 if (!latestQuiz) {
-                    sendReminderContractor(contractor, `You have not taken or passed the mandatory quiz yet. Please complete it as soon as possible.`);
+                    sendReminderContractor(contractor, `You have not taken or passed the optional quiz yet. Please complete it as soon as possible.`);
                     continue;
                 }
 

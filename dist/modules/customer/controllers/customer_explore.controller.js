@@ -203,52 +203,21 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
                         $addFields: {
                             avgResponseTime: {
                                 $avg: "$quotations.responseTime"
+                            },
+                            expiresIn: {
+                                $cond: {
+                                    if: { $and: [{ $gt: ["$expiryDate", null] }, { $gt: ["$createdAt", null] }] },
+                                    then: {
+                                        $ceil: {
+                                            $divide: [
+                                                { $subtract: ["$expiryDate", "$$NOW"] },
+                                                1000 * 60 * 60 * 24
+                                            ]
+                                        }
+                                    },
+                                    else: null
+                                }
                             }
-                        }
-                    },
-                    {
-                        $addFields: {
-                        // formattedResponseTime: {
-                        //     $switch: {
-                        //         branches: [
-                        //             {
-                        //                 case: { $lte: ["$avgResponseTime", 2 * 60 ] },
-                        //                 then: "Less than 2 mins"
-                        //             },
-                        //             {
-                        //                 case: { $lte: ["$avgResponseTime", 10 * 60 ] },
-                        //                 then: "Within 10 mins"
-                        //             },
-                        //             {
-                        //                 case: { $lte: ["$avgResponseTime", 60 * 60 ] },
-                        //                 then: {
-                        //                     $concat: [
-                        //                         { $toString: { $round: [{ $divide: ["$avgResponseTime", 60 ] }, 0] } },
-                        //                         " mins"
-                        //                     ]
-                        //                 }
-                        //             },
-                        //             {
-                        //                 case: { $lte: ["$avgResponseTime", 2 * 60 * 60] },
-                        //                 then: "Greater than 2 hours"
-                        //             },
-                        //             {
-                        //                 case: { $lte: ["$avgResponseTime", 24 * 60 * 60 ] },
-                        //                 then: {
-                        //                     $concat: [
-                        //                         { $toString: { $round: [{ $divide: ["$avgResponseTime", 60 * 60 ] }, 0] } },
-                        //                         " hours"
-                        //                     ]
-                        //                 }
-                        //             },
-                        //             {
-                        //                 case: { $lte: ["$avgResponseTime", 48 * 60 * 60 ] },
-                        //                 then: "Greater than 1 day"
-                        //             }
-                        //         ],
-                        //         default: "More than 2 days"
-                        //     }
-                        // }
                         }
                     },
                     {
@@ -267,7 +236,7 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
                         }
                     },
                     //example filter out who do not have stripe account
-                    { $match: { "stripeAccountStatus.status": 'active' } },
+                    // { $match: { "stripeAccountStatus.status": 'active' } },
                     //example filter out employees and contractors 
                     { $match: { accountType: { $ne: contractor_interface_1.CONTRACTOR_TYPES.Employee } } },
                     { $match: { "profile.isOffDuty": { $eq: false } } }

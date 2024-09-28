@@ -129,23 +129,19 @@ var findQuotation = function (quotationId) { return __awaiter(void 0, void 0, vo
     });
 }); };
 var findContractor = function (contractorId) { return __awaiter(void 0, void 0, void 0, function () {
-    var contractor, _a;
-    var _b, _c;
-    return __generator(this, function (_d) {
-        switch (_d.label) {
+    var contractor;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
             case 0: return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: contractorId })];
             case 1:
-                contractor = _d.sent();
+                contractor = _a.sent();
                 if (!contractor) {
                     throw new custom_errors_1.BadRequestError('Contractor not found');
                 }
-                _a = contractor;
-                return [4 /*yield*/, contractor.getOnboarding()];
-            case 2:
-                _a.onboarding = _d.sent();
-                if (!contractor.onboarding.hasStripeAccount || !(((_b = contractor.stripeAccountStatus) === null || _b === void 0 ? void 0 : _b.card_payments_enabled) && ((_c = contractor.stripeAccountStatus) === null || _c === void 0 ? void 0 : _c.transfers_enabled))) {
-                    throw new custom_errors_1.BadRequestError('You cannot make payment to this contractor because his/her Stripe connect account is not set up');
-                }
+                // contractor.onboarding = await contractor.getOnboarding()
+                // if (!contractor.onboarding.hasStripeAccount || !(contractor.stripeAccountStatus?.card_payments_enabled && contractor.stripeAccountStatus?.transfers_enabled)) {
+                //     throw new BadRequestError('You cannot make payment to this contractor because his/her Stripe connect account is not set up');
+                // }
                 return [2 /*return*/, contractor];
         }
     });

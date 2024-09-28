@@ -75,7 +75,7 @@ var quizReminderCheck = function () { return __awaiter(void 0, void 0, void 0, f
                 quizTakenDate = latestQuiz ? new Date(latestQuiz.createdAt) : null;
                 daysSinceQuizTaken = quizTakenDate ? Math.floor((currentDate.getTime() - quizTakenDate.getTime()) / (1000 * 60 * 60 * 24)) : null;
                 if (!latestQuiz) {
-                    sendReminderContractor(contractor, "You have not taken or passed the mandatory quiz yet. Please complete it as soon as possible.");
+                    sendReminderContractor(contractor, "You have not taken or passed the optional quiz yet. Please complete it as soon as possible.");
                     return [3 /*break*/, 7];
                 }
                 return [4 /*yield*/, latestQuiz.result

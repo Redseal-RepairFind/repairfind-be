@@ -14,7 +14,6 @@ import { config } from "../../../config";
 import { CustomerWelcomeEmailTemplate } from "../../../templates/customer/welcome_email";
 import { EmailVerificationTemplate } from "../../../templates/common/email_verification";
 
-//customer signup /////////////
 export const signUp = async (
   req: Request,
   res: Response,

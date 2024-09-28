@@ -54,7 +54,6 @@ var services_1 = require("../../../services");
 var config_1 = require("../../../config");
 var welcome_email_1 = require("../../../templates/customer/welcome_email");
 var email_verification_1 = require("../../../templates/common/email_verification");
-//customer signup /////////////
 var signUp = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, email, password, firstName, lastName, acceptTerms, phoneNumber, errors, userEmailExists, otp, createdTime, emailOtp, welcomeHtml, emailVerificationHtml, hashedPassword, customer, customerSaved, err_1;
     return __generator(this, function (_b) {
