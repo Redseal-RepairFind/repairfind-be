@@ -38,27 +38,9 @@ export const PaypalCheckoutTemplate = (payload: {token: string, paypalClientId: 
           <div id="card-number-field-container"></div>
           <div id="card-expiry-field-container"></div>
           <div id="card-cvv-field-container"></div>
-          <div>
-            <label for="card-billing-address-line-1">Billing Address</label>
-            <input type="text" id="card-billing-address-line-1" name="card-billing-address-line-1" autocomplete="off" placeholder="Address line 1" />
-          </div>
-          <div>
-            <input type="text" id="card-billing-address-line-2" name="card-billing-address-line-2" autocomplete="off" placeholder="Address line 2" />
-          </div>
-          <div>
-            <input type="text" id="card-billing-address-admin-area-line-1" name="card-billing-address-admin-area-line-1" autocomplete="off" placeholder="Admin area line 1" />
-          </div>
-          <div>
-            <input type="text" id="card-billing-address-admin-area-line-2" name="card-billing-address-admin-area-line-2" autocomplete="off" placeholder="Admin area line 2" />
-          </div>
-          <div>
-            <input type="text" id="card-billing-address-country-code" name="card-billing-address-country-code" autocomplete="off" placeholder="Country code" />
-          </div>
-          <div>
-            <input type="text" id="card-billing-address-postal-code" name="card-billing-address-postal-code" autocomplete="off" placeholder="Postal/zip code" />
-          </div>
+          
           <br /><br />
-          <button id="card-field-submit-button" type="button">Pay now with Card</button>
+          <button id="card-field-submit-button" type="button">Add Payment Method</button>
           <div id="loader" class="loader"></div>
         </div>
         <p id="result-message"></p>
@@ -143,14 +125,7 @@ export const PaypalCheckoutTemplate = (payload: {token: string, paypalClientId: 
 
               cardField
                 .submit({
-                  billingAddress: {
-                    addressLine1: document.getElementById('card-billing-address-line-1').value,
-                    addressLine2: document.getElementById('card-billing-address-line-2').value,
-                    adminArea1: document.getElementById('card-billing-address-admin-area-line-1').value,
-                    adminArea2: document.getElementById('card-billing-address-admin-area-line-2').value,
-                    countryCode: document.getElementById('card-billing-address-country-code').value,
-                    postalCode: document.getElementById('card-billing-address-postal-code').value,
-                  },
+                 
                 })
                 .catch((error) => {
                   loader.style.display = 'none';
@@ -170,3 +145,40 @@ export const PaypalCheckoutTemplate = (payload: {token: string, paypalClientId: 
       </body>
     </html>
   `;
+
+
+
+
+
+  // <div>
+  //           <label for="card-billing-address-line-1">Billing Address</label>
+  //           <input type="text" id="card-billing-address-line-1" name="card-billing-address-line-1" autocomplete="off" placeholder="Address line 1" />
+  //         </div>
+  //         <div>
+  //           <input type="text" id="card-billing-address-line-2" name="card-billing-address-line-2" autocomplete="off" placeholder="Address line 2" />
+  //         </div>
+  //         <div>
+  //           <input type="text" id="card-billing-address-admin-area-line-1" name="card-billing-address-admin-area-line-1" autocomplete="off" placeholder="Admin area line 1" />
+  //         </div>
+  //         <div>
+  //           <input type="text" id="card-billing-address-admin-area-line-2" name="card-billing-address-admin-area-line-2" autocomplete="off" placeholder="Admin area line 2" />
+  //         </div>
+  //         <div>
+  //           <input type="text" id="card-billing-address-country-code" name="card-billing-address-country-code" autocomplete="off" placeholder="Country code" />
+  //         </div>
+  //         <div>
+  //           <input type="text" id="card-billing-address-postal-code" name="card-billing-address-postal-code" autocomplete="off" placeholder="Postal/zip code" />
+  //         </div>
+
+
+
+
+
+  // billingAddress: {
+  //   addressLine1: document.getElementById('card-billing-address-line-1').value,
+  //   addressLine2: document.getElementById('card-billing-address-line-2').value,
+  //   adminArea1: document.getElementById('card-billing-address-admin-area-line-1').value,
+  //   adminArea2: document.getElementById('card-billing-address-admin-area-line-2').value,
+  //   countryCode: document.getElementById('card-billing-address-country-code').value,
+  //   postalCode: document.getElementById('card-billing-address-postal-code').value,
+  // },
