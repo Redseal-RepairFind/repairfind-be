@@ -40,6 +40,7 @@ exports.WebhookController = exports.paypalWebhook = exports.certnWebook = export
 var stripe_1 = require("../../../services/stripe");
 var logger_1 = require("../../../services/logger");
 var paypal_1 = require("../../../services/paypal");
+var services_1 = require("../../../services");
 var stripeWebook = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var sig, payload;
     return __generator(this, function (_a) {
@@ -61,7 +62,8 @@ var certnWebook = function (req, res) { return __awaiter(void 0, void 0, void 0,
         try {
             // const sig = <string>req.headers['stripe-signature'];
             // const payload = req.body;
-            logger_1.Logger.info("CERTN WEBHOOK", req);
+            services_1.CertnService.webhook.CertnWebhookHandler(req);
+            logger_1.Logger.info("CERTN WEBHOOK");
             res.status(200).end();
         }
         catch (err) {

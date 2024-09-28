@@ -37,7 +37,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CertnWebhookHandler = void 0;
-var __1 = require("..");
 var logger_1 = require("../logger");
 var CertnWebhookHandler = function (req) { return __awaiter(void 0, void 0, void 0, function () {
     var eventType, eventData;
@@ -73,24 +72,19 @@ var CertnWebhookHandler = function (req) { return __awaiter(void 0, void 0, void
 }); };
 exports.CertnWebhookHandler = CertnWebhookHandler;
 var handleApplicantCreated = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var applicantId, applicantDetails, error_1;
+    var applicantId;
     return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                _a.trys.push([0, 2, , 3]);
-                applicantId = payload.applicant_id;
-                return [4 /*yield*/, __1.CertnService.initiateCertnInvite(applicantId)];
-            case 1:
-                applicantDetails = _a.sent();
-                // Update database or perform other actions based on applicant details
-                logger_1.Logger.info('handleApplicantCreated', applicantDetails);
-                return [3 /*break*/, 3];
-            case 2:
-                error_1 = _a.sent();
-                logger_1.Logger.error('Error handling Certn applicant created event:', error_1.message || "Something went wrong");
-                return [3 /*break*/, 3];
-            case 3: return [2 /*return*/];
+        try {
+            applicantId = payload.applicant_id;
+            // Fetch applicant details from Certn using CertnService
+            // const applicantDetails = await CertnService.initiateCertnInvite(applicantId);
+            // Update database or perform other actions based on applicant details
+            // Logger.info('handleApplicantCreated', applicantDetails)
         }
+        catch (error) {
+            logger_1.Logger.error('Error handling Certn applicant created event:', error.message || "Something went wrong");
+        }
+        return [2 /*return*/];
     });
 }); };
 var handleReportCompleted = function (payload) { return __awaiter(void 0, void 0, void 0, function () {

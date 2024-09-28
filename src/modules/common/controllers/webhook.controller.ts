@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { StripeService } from "../../../services/stripe";
 import { Logger } from "../../../services/logger";
 import { PayPalService } from "../../../services/paypal";
+import { CertnService } from "../../../services";
 
 
 export const stripeWebook = async (
@@ -30,9 +31,8 @@ export const certnWebook = async (
   try {
     // const sig = <string>req.headers['stripe-signature'];
     // const payload = req.body;
-    
-
-    Logger.info("CERTN WEBHOOK", req)
+    CertnService.webhook.CertnWebhookHandler(req)
+    Logger.info("CERTN WEBHOOK")
     res.status(200).end() 
 
   } catch (err: any) {
