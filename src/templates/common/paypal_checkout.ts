@@ -61,7 +61,7 @@ export const PaypalCheckoutTemplate = (payload: {token: string, paypalClientId: 
               return orderData.id;
             } catch (error) {
               console.error(error);
-              resultMessage(\`Could not initiate PayPal Checkout...<br><br>\${error}\`);
+              alert(\`Could not initiate PayPal Checkout...\`);
             }
           }
 
@@ -80,12 +80,12 @@ export const PaypalCheckoutTemplate = (payload: {token: string, paypalClientId: 
               if (res.success) {
                 window.location.href = 'https://repairfind.ca/payment-success/';
               }else{
-                alert("Sorry, your transaction could not be processed...");
+                alert("Sorry, your payment method could not be added...");
                 window.history.back();
               }
             } catch (error) {
               console.error(error);
-              alert("Sorry, your transaction could not be processed...");
+              alert("Sorry, your payment method could not be added...");
               window.history.back();
             }
           }
@@ -130,7 +130,7 @@ export const PaypalCheckoutTemplate = (payload: {token: string, paypalClientId: 
                 .catch((error) => {
                   loader.style.display = 'none';
                   submitButton.classList.remove('disabled');
-                  alert(\`Sorry, your transaction could not be processed...<br><br>\${error}\`);
+                  alert(\`Sorry, your payment method could not be added...\`);
                 });
             });
           } else {
