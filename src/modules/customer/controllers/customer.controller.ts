@@ -32,7 +32,8 @@ export const updateAccount = async (
       lastName,
       location,
       phoneNumber,
-      profilePhoto
+      profilePhoto,
+      language
     } = req.body;
 
     // Check for validation errors
@@ -54,7 +55,8 @@ export const updateAccount = async (
         lastName,
         phoneNumber,
         location,
-        profilePhoto
+        profilePhoto,
+        language
       },
       { new: true }
     )

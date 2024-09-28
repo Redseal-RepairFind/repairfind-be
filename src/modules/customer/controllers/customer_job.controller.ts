@@ -36,7 +36,7 @@ export const createJobRequest = async (
             return res.status(400).json({ message: 'Validation error occurred', errors: errors.array() });
         }
 
-        const { contractorId, category, description, location, date, expiresIn = 7, emergency, media, voiceDescription, time } = req.body;
+        const { contractorId, category, language, description, location, date, expiresIn = 7, emergency, media, voiceDescription, time } = req.body;
         const customerId = req.customer.id
 
         if (!mongoose.Types.ObjectId.isValid(contractorId)) {
@@ -84,7 +84,8 @@ export const createJobRequest = async (
             voiceDescription,
             media: media || [],
             title: `${contractorProfile?.skill} Service`,
-            category: `${contractorProfile?.skill}`
+            category: `${contractorProfile?.skill}`,
+            language: language || customer.language
 
         });
 
@@ -137,7 +138,7 @@ export const createJobListing = async (
             return res.status(400).json({ success: false, message: 'Validation error occurred', errors: errors.array() });
         }
 
-        const { category, description, location, date, expiresIn = 7, emergency, media, voiceDescription, time, contractorType = "Both" } = req.body;
+        const { category, description, location, date, expiresIn = 7, emergency, media, voiceDescription, time, contractorType = "Both", language } = req.body;
         const customerId = req.customer.id
 
         const customer = await CustomerModel.findById(customerId)
@@ -207,6 +208,7 @@ export const createJobListing = async (
             media: media || [],
             type: JobType.LISTING,
             title: `${category} Service`,
+            language: language || customer.language
 
         });
 

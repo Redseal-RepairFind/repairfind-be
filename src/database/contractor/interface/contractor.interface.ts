@@ -185,6 +185,7 @@ export interface IContractor extends Document {
   badge: {label?: string, icon?: string };
   stats: {formattedResponseTime?: any, responseTime?: any, jobsCompleted?: any, jobsCanceled?: any,  jobsPending?: any, jobsTotal?: any};
   currentTimezone: string;
+  language: string;
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date;

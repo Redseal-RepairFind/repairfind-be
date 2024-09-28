@@ -6,10 +6,7 @@ import { StripeCustomerSchema } from "../../common/stripe_customer.schema";
 import { StripeAccountSchema } from "../../common/stripe_account.schema";
 import { StripePaymentMethodSchema } from "../../common/stripe_paymentmethod.schema";
 import QuestionModel, { IQuestion } from "../../admin/models/question.model";
-import { CertnService } from "../../../services";
-import { deleteObjectFromS3 } from "../../../services/storage";
 import MongooseDelete, { SoftDeleteModel } from 'mongoose-delete';
-import { stringify } from "querystring";
 import { JobQuotationModel } from "../../common/job_quotation.model";
 import { JOB_STATUS, JobModel } from "../../common/job.model";
 
@@ -234,7 +231,11 @@ const ContractorSchema = new Schema<IContractor>(
       hasPassedQuiz: { default: false, type: Boolean },
       stage: { default: { status: 1, label: 'stripeIdentity' }, type: Object },
     },
-    currentTimezone: {type: String, default: "America/Los_Angeles" }
+    currentTimezone: {type: String, default: "America/Los_Angeles" },
+    language: {
+      type: String,
+      default: 'en'
+    },
 
   },
   {

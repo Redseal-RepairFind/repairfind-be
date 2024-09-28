@@ -15,19 +15,14 @@ import ContractorDeviceModel from "../../../database/contractor/models/contracto
 import { IStripeAccount } from "../../../database/common/stripe_account.schema";
 import { COMPANY_STATUS, CONTRACTOR_TYPES, GST_STATUS, IContractorCompanyDetails, IContractorGstDetails } from "../../../database/contractor/interface/contractor.interface";
 import { BadRequestError, InternalServerError } from "../../../utils/custom.errors";
-import { castPayloadToDTO } from "../../../utils/interface_dto.util";
 import { JOB_STATUS, JobModel } from "../../../database/common/job.model";
 import BlacklistedToken from "../../../database/common/blacklisted_tokens.schema";
-import { credential } from "firebase-admin";
 import { Logger } from "../../../services/logger";
 import { applyAPIFeature } from "../../../utils/api.feature";
 import { ReviewModel } from "../../../database/common/review.model";
 import { FeedbackModel } from "../../../database/common/feedback.model";
 import { AdminEvent } from "../../../events/admin.events";
-import { CONVERSATION_TYPE, ConversationModel } from "../../../database/common/conversations.schema";
 import { MessageModel, MessageType } from "../../../database/common/messages.schema";
-import TransactionModel, { TRANSACTION_TYPE } from "../../../database/common/transaction.model";
-import jwt, { JwtPayload } from "jsonwebtoken";
 import { AccountEvent, ConversationEvent } from "../../../events";
 import { ABUSE_REPORT_TYPE, AbuseReportModel } from "../../../database/common/abuse_reports.model";
 import { BLOCK_USER_REASON, BlockedUserModel } from "../../../database/common/blocked_users.model";
@@ -398,27 +393,27 @@ class ProfileHandler extends Base {
         profilePhoto,
         phoneNumber,
         dateOfBirth,
+        language
       } = req.body;
 
       let payload = {}
       if (account && account.accountType == 'Company') {
-        payload = { profilePhoto, phoneNumber, companyName }
+        payload = { profilePhoto, phoneNumber, companyName, language }
       }
 
       if (account && account.accountType == 'Individual') {
-        payload = { profilePhoto, phoneNumber, firstName, lastName, dateOfBirth }
+        payload = { profilePhoto, phoneNumber, firstName, lastName, dateOfBirth, language }
       }
 
       if (account && account.accountType == 'Employee') {
-        payload = { profilePhoto, phoneNumber, firstName, lastName, dateOfBirth }
+        payload = { profilePhoto, phoneNumber, firstName, lastName, dateOfBirth, language }
       }
 
-      const returnOriginal = await ContractorModel.findOneAndUpdate(
+      await ContractorModel.findOneAndUpdate(
         { _id: contractorId },
         payload,
         { new: true }
       );
-
 
 
       account.onboarding = await account.getOnboarding()
@@ -1231,9 +1226,6 @@ class ProfileHandler extends Base {
       return next(new InternalServerError('Error occurred while unblocking customer', err));
     }
   }
-
-
-
 
 
 }

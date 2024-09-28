@@ -115,6 +115,10 @@ const CustomerSchema = new Schema<ICustomer>(
     currentTimezone: {
       type: String,
     },
+    language: {
+      type: String,
+      default: 'en'
+    },
 
   },
   {

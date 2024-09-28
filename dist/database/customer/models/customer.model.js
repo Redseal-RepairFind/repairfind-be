@@ -112,6 +112,10 @@ var CustomerSchema = new mongoose_1.Schema({
     currentTimezone: {
         type: String,
     },
+    language: {
+        type: String,
+        default: 'en'
+    },
 }, {
     timestamps: true,
 });

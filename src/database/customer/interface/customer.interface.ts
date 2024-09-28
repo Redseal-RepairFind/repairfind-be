@@ -62,6 +62,7 @@ export interface ICustomer extends Document {
   stripeAccount: object,
   stripeIdentity: object
   acceptTerms: Boolean;
+  language: string; //eg en. fr etc
   provider: CustomerAuthProviders
   createdAt: Date;
   updatedAt: Date;

@@ -60,7 +60,7 @@ var conversation_util_1 = require("../../../utils/conversation.util");
 var payment_schema_1 = require("../../../database/common/payment.schema");
 var job_util_1 = require("../../../utils/job.util");
 var createJobRequest = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, contractorId, category, description, location_1, date, _b, expiresIn, emergency, media, voiceDescription, time, customerId, customer, contractor, contractorProfile, currentDate, expiryDate, newJob, conversationMembers, conversation, newMessage, html, error_1;
+    var errors, _a, contractorId, category, language, description, location_1, date, _b, expiresIn, emergency, media, voiceDescription, time, customerId, customer, contractor, contractorProfile, currentDate, expiryDate, newJob, conversationMembers, conversation, newMessage, html, error_1;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
@@ -69,7 +69,7 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ message: 'Validation error occurred', errors: errors.array() })];
                 }
-                _a = req.body, contractorId = _a.contractorId, category = _a.category, description = _a.description, location_1 = _a.location, date = _a.date, _b = _a.expiresIn, expiresIn = _b === void 0 ? 7 : _b, emergency = _a.emergency, media = _a.media, voiceDescription = _a.voiceDescription, time = _a.time;
+                _a = req.body, contractorId = _a.contractorId, category = _a.category, language = _a.language, description = _a.description, location_1 = _a.location, date = _a.date, _b = _a.expiresIn, expiresIn = _b === void 0 ? 7 : _b, emergency = _a.emergency, media = _a.media, voiceDescription = _a.voiceDescription, time = _a.time;
                 customerId = req.customer.id;
                 if (!mongoose_1.default.Types.ObjectId.isValid(contractorId)) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Invalid contractor format' })];
@@ -112,7 +112,8 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                     voiceDescription: voiceDescription,
                     media: media || [],
                     title: "".concat(contractorProfile === null || contractorProfile === void 0 ? void 0 : contractorProfile.skill, " Service"),
-                    category: "".concat(contractorProfile === null || contractorProfile === void 0 ? void 0 : contractorProfile.skill)
+                    category: "".concat(contractorProfile === null || contractorProfile === void 0 ? void 0 : contractorProfile.skill),
+                    language: language || customer.language
                 });
                 // Save the job document to the database
                 return [4 /*yield*/, newJob.save()];
@@ -153,7 +154,7 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
 }); };
 exports.createJobRequest = createJobRequest;
 var createJobListing = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, category, description, location_2, date, _b, expiresIn, emergency, media, voiceDescription, time, _c, contractorType, customerId, customer, dateParts, formattedDate, dateTimeString, jobDate, startOfToday, existingJobRequest, currentDate, expiryDate, newJob, error_2;
+    var errors, _a, category, description, location_2, date, _b, expiresIn, emergency, media, voiceDescription, time, _c, contractorType, language, customerId, customer, dateParts, formattedDate, dateTimeString, jobDate, startOfToday, existingJobRequest, currentDate, expiryDate, newJob, error_2;
     return __generator(this, function (_d) {
         switch (_d.label) {
             case 0:
@@ -162,7 +163,7 @@ var createJobListing = function (req, res, next) { return __awaiter(void 0, void
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation error occurred', errors: errors.array() })];
                 }
-                _a = req.body, category = _a.category, description = _a.description, location_2 = _a.location, date = _a.date, _b = _a.expiresIn, expiresIn = _b === void 0 ? 7 : _b, emergency = _a.emergency, media = _a.media, voiceDescription = _a.voiceDescription, time = _a.time, _c = _a.contractorType, contractorType = _c === void 0 ? "Both" : _c;
+                _a = req.body, category = _a.category, description = _a.description, location_2 = _a.location, date = _a.date, _b = _a.expiresIn, expiresIn = _b === void 0 ? 7 : _b, emergency = _a.emergency, media = _a.media, voiceDescription = _a.voiceDescription, time = _a.time, _c = _a.contractorType, contractorType = _c === void 0 ? "Both" : _c, language = _a.language;
                 customerId = req.customer.id;
                 return [4 /*yield*/, customer_model_1.default.findById(customerId)];
             case 1:
@@ -211,6 +212,7 @@ var createJobListing = function (req, res, next) { return __awaiter(void 0, void
                     media: media || [],
                     type: job_model_1.JobType.LISTING,
                     title: "".concat(category, " Service"),
+                    language: language || customer.language
                 });
                 // Save the job document to the database
                 return [4 /*yield*/, newJob.save()];

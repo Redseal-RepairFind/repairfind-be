@@ -412,7 +412,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     };
     ProfileHandler.prototype.updateAccount = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, contractor, contractorId, account, _a, firstName, lastName, companyName, profilePhoto, phoneNumber, dateOfBirth, payload, returnOriginal, _b, err_5;
+            var req, res, contractor, contractorId, account, _a, firstName, lastName, companyName, profilePhoto, phoneNumber, dateOfBirth, language, payload, _b, err_5;
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
@@ -429,20 +429,20 @@ var ProfileHandler = /** @class */ (function (_super) {
                         if (!account) {
                             return [2 /*return*/, res.status(404).json({ success: false, message: 'Account not found' })];
                         }
-                        _a = req.body, firstName = _a.firstName, lastName = _a.lastName, companyName = _a.companyName, profilePhoto = _a.profilePhoto, phoneNumber = _a.phoneNumber, dateOfBirth = _a.dateOfBirth;
+                        _a = req.body, firstName = _a.firstName, lastName = _a.lastName, companyName = _a.companyName, profilePhoto = _a.profilePhoto, phoneNumber = _a.phoneNumber, dateOfBirth = _a.dateOfBirth, language = _a.language;
                         payload = {};
                         if (account && account.accountType == 'Company') {
-                            payload = { profilePhoto: profilePhoto, phoneNumber: phoneNumber, companyName: companyName };
+                            payload = { profilePhoto: profilePhoto, phoneNumber: phoneNumber, companyName: companyName, language: language };
                         }
                         if (account && account.accountType == 'Individual') {
-                            payload = { profilePhoto: profilePhoto, phoneNumber: phoneNumber, firstName: firstName, lastName: lastName, dateOfBirth: dateOfBirth };
+                            payload = { profilePhoto: profilePhoto, phoneNumber: phoneNumber, firstName: firstName, lastName: lastName, dateOfBirth: dateOfBirth, language: language };
                         }
                         if (account && account.accountType == 'Employee') {
-                            payload = { profilePhoto: profilePhoto, phoneNumber: phoneNumber, firstName: firstName, lastName: lastName, dateOfBirth: dateOfBirth };
+                            payload = { profilePhoto: profilePhoto, phoneNumber: phoneNumber, firstName: firstName, lastName: lastName, dateOfBirth: dateOfBirth, language: language };
                         }
                         return [4 /*yield*/, contractor_model_1.ContractorModel.findOneAndUpdate({ _id: contractorId }, payload, { new: true })];
                     case 3:
-                        returnOriginal = _c.sent();
+                        _c.sent();
                         _b = account;
                         return [4 /*yield*/, account.getOnboarding()];
                     case 4:
