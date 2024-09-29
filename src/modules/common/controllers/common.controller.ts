@@ -9,6 +9,7 @@ import { PaymentUtil } from "../../../utils/payment.util";
 import { APNNotification, sendAPN2Notification, sendAPNNotification, sendNotification, sendSilentNotification } from "../../../services/notifications/apn";
 import { AppVersionModel } from "../../../database/common/app_versions.model";
 import { GoogleServiceProvider } from "../../../services/google";
+import { i18n } from "../../../i18n";
 
 
 export const getBankList = async (
@@ -202,7 +203,8 @@ export const translateText = async (
 
   try {
     const {text, targetLang} = req.body
-    const translatedText  = await GoogleServiceProvider.translate.translateText(text, targetLang)
+    // const translatedText  = await GoogleServiceProvider.translate.translateText(text, targetLang)
+    const translatedText  = await i18n.cloudTranslate(text, targetLang)
     return res.json({ success: true, message: "Text translated", data: translatedText });
   } catch (err: any) {
     return next(new InternalServerError('Error translating text', err))

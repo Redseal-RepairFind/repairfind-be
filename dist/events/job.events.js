@@ -95,15 +95,16 @@ var logger_1 = require("../services/logger");
 var conversation_util_1 = require("../utils/conversation.util");
 var messages_schema_1 = require("../database/common/messages.schema");
 var blockeduser_util_1 = require("../utils/blockeduser.util");
+var i18n_1 = require("../i18n");
 exports.JobEvent = new events_1.EventEmitter();
 exports.JobEvent.on('NEW_JOB_REQUEST', function (payload) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var customer, contractor, job, conversation, error_1;
+        var customer, contractor, job, conversation, contractorLang, nMessage, nTitle, customerLang, error_1;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
-                    _c.trys.push([0, 5, , 6]);
+                    _c.trys.push([0, 10, , 11]);
                     logger_1.Logger.info('handling NEW_JOB_REQUEST event');
                     return [4 /*yield*/, customer_model_1.default.findById(payload.customerId)];
                 case 1:
@@ -117,47 +118,61 @@ exports.JobEvent.on('NEW_JOB_REQUEST', function (payload) {
                     return [4 /*yield*/, conversations_schema_1.ConversationModel.findById(payload.conversationId)];
                 case 4:
                     conversation = _c.sent();
-                    if (job && contractor && customer) {
-                        services_1.NotificationService.sendNotification({
-                            user: contractor.id,
-                            userType: 'contractors',
-                            title: 'New Job Request',
-                            type: 'NEW_JOB_REQUEST', //
-                            message: "You've received a job request from ".concat(customer.firstName),
-                            heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_a = customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
-                            payload: {
-                                entity: job.id,
-                                entityType: 'jobs',
-                                message: "You've received a job request from ".concat(customer.firstName),
-                                contractor: contractor.id,
-                                event: 'NEW_JOB_REQUEST',
-                            }
-                        }, { database: true, push: true, socket: true });
-                        services_1.NotificationService.sendNotification({
-                            user: customer.id,
-                            userType: 'customers',
-                            title: 'New Job Request',
-                            type: 'NEW_JOB_REQUEST', // Conversation, Conversation_Notification
-                            //@ts-ignore
-                            message: "You've  sent a job request to ".concat(contractor.name),
-                            //@ts-ignore
-                            heading: { name: "".concat(contractor.name), image: (_b = contractor.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
-                            payload: {
-                                entity: job.id,
-                                entityType: 'jobs',
-                                //@ts-ignore
-                                message: "You've sent a job request to ".concat(contractor.name),
-                                customer: customer.id,
-                                event: 'NEW_JOB_REQUEST',
-                            }
-                        }, { database: true, push: true, socket: true });
-                    }
-                    return [3 /*break*/, 6];
+                    if (!(job && contractor && customer)) return [3 /*break*/, 9];
+                    contractorLang = contractor.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation("You've received a job request from", contractorLang)];
                 case 5:
+                    nMessage = _c.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('New Job Request', contractorLang)];
+                case 6:
+                    nTitle = _c.sent();
+                    services_1.NotificationService.sendNotification({
+                        user: contractor.id,
+                        userType: 'contractors',
+                        title: nTitle,
+                        type: 'NEW_JOB_REQUEST', //
+                        message: "".concat(nMessage, " ").concat(customer.firstName),
+                        heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_a = customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
+                        payload: {
+                            entity: job.id,
+                            entityType: 'jobs',
+                            message: "".concat(nMessage, " ").concat(customer.firstName),
+                            contractor: contractor.id,
+                            event: 'NEW_JOB_REQUEST',
+                        }
+                    }, { database: true, push: true, socket: true });
+                    customerLang = customer.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation("You've sent a job request to", customerLang)];
+                case 7:
+                    nMessage = _c.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('New Job Request', customerLang)];
+                case 8:
+                    nTitle = _c.sent();
+                    services_1.NotificationService.sendNotification({
+                        user: customer.id,
+                        userType: 'customers',
+                        title: nTitle,
+                        type: 'NEW_JOB_REQUEST', // Conversation, Conversation_Notification
+                        //@ts-ignore
+                        message: "".concat(nMessage, " ").concat(contractor.name),
+                        //@ts-ignore
+                        heading: { name: "".concat(contractor.name), image: (_b = contractor.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
+                        payload: {
+                            entity: job.id,
+                            entityType: 'jobs',
+                            //@ts-ignore
+                            message: "".concat(nMessage, " ").concat(contractor.name),
+                            customer: customer.id,
+                            event: 'NEW_JOB_REQUEST',
+                        }
+                    }, { database: true, push: true, socket: true });
+                    _c.label = 9;
+                case 9: return [3 /*break*/, 11];
+                case 10:
                     error_1 = _c.sent();
                     logger_1.Logger.error("Error handling NEW_JOB_REQUEST event: ".concat(error_1));
-                    return [3 /*break*/, 6];
-                case 6: return [2 /*return*/];
+                    return [3 /*break*/, 11];
+                case 11: return [2 /*return*/];
             }
         });
     });
@@ -165,11 +180,11 @@ exports.JobEvent.on('NEW_JOB_REQUEST', function (payload) {
 exports.JobEvent.on('JOB_REQUEST_ACCEPTED', function (payload) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var customer, contractor, job, error_2;
+        var customer, contractor, job, contractorLang, nMessage, nTitle, customerLang, error_2;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
-                    _c.trys.push([0, 3, , 4]);
+                    _c.trys.push([0, 8, , 9]);
                     logger_1.Logger.info('handling JOB_REQUEST_ACCEPTED event');
                     return [4 /*yield*/, customer_model_1.default.findById(payload.job.customer)];
                 case 1:
@@ -178,44 +193,72 @@ exports.JobEvent.on('JOB_REQUEST_ACCEPTED', function (payload) {
                 case 2:
                     contractor = _c.sent();
                     job = payload.job;
-                    if (job && contractor && customer) {
-                        services_1.NotificationService.sendNotification({
-                            user: contractor.id,
-                            userType: 'contractors',
-                            title: 'New Job Request',
-                            type: 'JOB_REQUEST_ACCEPTED', //
-                            message: "You've accepted a job request from ".concat(customer.firstName),
-                            heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_a = customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
-                            payload: {
-                                entity: job.id,
-                                entityType: 'jobs',
-                                message: "You've accepted a job request from ".concat(customer.firstName),
-                                contractor: contractor.id,
-                                event: 'JOB_REQUEST_ACCEPTED',
-                            }
-                        }, { push: true, socket: true, database: true });
-                        services_1.NotificationService.sendNotification({
-                            user: customer.id,
-                            userType: 'customers',
-                            title: 'New Job Request',
-                            type: 'JOB_REQUEST_ACCEPTED',
-                            message: "Contractor has accepted your job request",
-                            heading: { name: "".concat(contractor.name), image: (_b = contractor.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
-                            payload: {
-                                entity: job.id,
-                                entityType: 'jobs',
-                                message: "Contractor has accepted your job request",
-                                customer: customer.id,
-                                event: 'JOB_REQUEST_ACCEPTED',
-                            }
-                        }, { database: true, push: true, socket: true });
-                    }
-                    return [3 /*break*/, 4];
+                    if (!(job && contractor && customer)) return [3 /*break*/, 7];
+                    contractorLang = contractor.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation("You've accepted a job request from", contractorLang)];
                 case 3:
+                    nMessage = _c.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Request Accepted', contractorLang)];
+                case 4:
+                    nTitle = _c.sent();
+                    services_1.NotificationService.sendNotification({
+                        user: contractor.id,
+                        userType: 'contractors',
+                        title: nTitle,
+                        type: 'JOB_REQUEST_ACCEPTED',
+                        message: "".concat(nMessage, " ").concat(customer.firstName), // Translated message with the customer's first name
+                        heading: {
+                            name: "".concat(customer.firstName, " ").concat(customer.lastName), // Customer's full name
+                            image: (_a = customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url // Customer's profile photo, if available
+                        },
+                        payload: {
+                            entity: job.id, // Job ID
+                            entityType: 'jobs', // Type of entity (job)
+                            message: "".concat(nMessage, " ").concat(customer.firstName), // Translated message
+                            contractor: contractor.id, // Contractor's ID
+                            event: 'JOB_REQUEST_ACCEPTED', // Event type
+                        }
+                    }, {
+                        push: true,
+                        socket: true,
+                        database: true
+                    });
+                    customerLang = customer.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Request Accepted', customerLang)];
+                case 5:
+                    nTitle = _c.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation("Contractor has accepted your job request", customerLang)];
+                case 6:
+                    nMessage = _c.sent();
+                    services_1.NotificationService.sendNotification({
+                        user: customer.id,
+                        userType: 'customers',
+                        title: nTitle,
+                        type: 'JOB_REQUEST_ACCEPTED',
+                        message: nMessage,
+                        heading: {
+                            name: "".concat(contractor.name), // Contractor's name
+                            image: (_b = contractor.profilePhoto) === null || _b === void 0 ? void 0 : _b.url // Contractor's profile photo (if available)
+                        },
+                        payload: {
+                            entity: job.id,
+                            entityType: 'jobs', // Entity type (job)
+                            message: nMessage, // Translated message
+                            customer: customer.id, // Customer's ID
+                            event: 'JOB_REQUEST_ACCEPTED', // Event type
+                        }
+                    }, {
+                        database: true, // Save to database
+                        push: true, // Push notification
+                        socket: true // Real-time socket notification
+                    });
+                    _c.label = 7;
+                case 7: return [3 /*break*/, 9];
+                case 8:
                     error_2 = _c.sent();
                     logger_1.Logger.error("Error handling JOB_REQUEST_ACCEPTED event: ".concat(error_2));
-                    return [3 /*break*/, 4];
-                case 4: return [2 /*return*/];
+                    return [3 /*break*/, 9];
+                case 9: return [2 /*return*/];
             }
         });
     });
@@ -223,11 +266,11 @@ exports.JobEvent.on('JOB_REQUEST_ACCEPTED', function (payload) {
 exports.JobEvent.on('JOB_REQUEST_REJECTED', function (payload) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var customer, contractor, job, error_3;
+        var customer, contractor, job, contractorLang, nTitle, nMessage, customerLang, error_3;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
-                    _c.trys.push([0, 3, , 4]);
+                    _c.trys.push([0, 8, , 9]);
                     logger_1.Logger.info('handling JOB_REQUEST_REJECTED event');
                     return [4 /*yield*/, customer_model_1.default.findById(payload.job.customer)];
                 case 1:
@@ -236,51 +279,66 @@ exports.JobEvent.on('JOB_REQUEST_REJECTED', function (payload) {
                 case 2:
                     contractor = _c.sent();
                     job = payload.job;
-                    if (job && contractor && customer) {
-                        services_1.NotificationService.sendNotification({
-                            user: contractor.id,
-                            userType: 'contractors',
-                            title: 'New Job Request',
-                            type: 'JOB_REQUEST_ACCEPTED', //
-                            message: "You've rejected a job request from ".concat(customer.firstName),
-                            heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_a = customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
-                            payload: {
-                                entity: job.id,
-                                entityType: 'jobs',
-                                message: "You've rejected a job request from ".concat(customer.firstName),
-                                contractor: contractor.id,
-                                event: 'JOB_REQUEST_ACCEPTED',
-                            }
-                        }, { push: true, socket: true, database: true });
-                        services_1.NotificationService.sendNotification({
-                            user: customer.id,
-                            userType: 'customers',
-                            title: 'New Job Request',
-                            type: 'JOB_REQUEST_ACCEPTED',
-                            message: "Contractor has rejected your job request",
-                            heading: { name: "".concat(contractor.name), image: (_b = contractor.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
-                            payload: {
-                                entity: job.id,
-                                entityType: 'jobs',
-                                message: "Contractor has rejected your job request",
-                                customer: customer.id,
-                                event: 'JOB_REQUEST_ACCEPTED',
-                            }
-                        }, { database: true, push: true, socket: true });
-                    }
-                    return [3 /*break*/, 4];
+                    if (!(job && contractor && customer)) return [3 /*break*/, 7];
+                    contractorLang = contractor.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Request Rejected', contractorLang)];
                 case 3:
+                    nTitle = _c.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation("You've rejected a job request from", contractorLang)];
+                case 4:
+                    nMessage = _c.sent();
+                    services_1.NotificationService.sendNotification({
+                        user: contractor.id,
+                        userType: 'contractors',
+                        title: nTitle,
+                        type: 'JOB_REQUEST_REJECTED',
+                        message: "".concat(nMessage, " ").concat(customer.firstName),
+                        heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_a = customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
+                        payload: {
+                            entity: job.id,
+                            entityType: 'jobs',
+                            message: "".concat(nMessage, " ").concat(customer.firstName),
+                            contractor: contractor.id,
+                            event: 'JOB_REQUEST_REJECTED',
+                        }
+                    }, { push: true, socket: true, database: true });
+                    customerLang = customer.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Request Rejected', customerLang)];
+                case 5:
+                    nTitle = _c.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation("Contractor has rejected your job request", customerLang)];
+                case 6:
+                    nMessage = _c.sent();
+                    services_1.NotificationService.sendNotification({
+                        user: customer.id,
+                        userType: 'customers',
+                        title: nTitle,
+                        type: 'JOB_REQUEST_REJECTED',
+                        message: nMessage,
+                        heading: { name: "".concat(contractor.name), image: (_b = contractor.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
+                        payload: {
+                            entity: job.id,
+                            entityType: 'jobs',
+                            message: nMessage,
+                            customer: customer.id,
+                            event: 'JOB_REQUEST_REJECTED',
+                        }
+                    }, { database: true, push: true, socket: true });
+                    _c.label = 7;
+                case 7: return [3 /*break*/, 9];
+                case 8:
                     error_3 = _c.sent();
                     logger_1.Logger.error("Error handling JOB_REQUEST_REJECTED event: ".concat(error_3));
-                    return [3 /*break*/, 4];
-                case 4: return [2 /*return*/];
+                    return [3 /*break*/, 9];
+                case 9: return [2 /*return*/];
             }
         });
     });
 });
 exports.JobEvent.on('NEW_JOB_LISTING', function (payload) {
     return __awaiter(this, void 0, void 0, function () {
-        var job, contractorProfiles, contractorIds, customerId, filteredContractorIds, _i, contractorIds_1, contractorId, _a, isBlocked, block, devices, deviceTokens, error_4;
+        var job_1, contractorProfiles, contractorIds, customerId, filteredContractorIds, _i, contractorIds_1, contractorId, _a, isBlocked, block, devices, error_4;
+        var _this = this;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -288,18 +346,18 @@ exports.JobEvent.on('NEW_JOB_LISTING', function (payload) {
                     logger_1.Logger.info('handling alert NEW_JOB_LISTING event');
                     return [4 /*yield*/, job_model_1.JobModel.findById(payload.jobId)];
                 case 1:
-                    job = _b.sent();
-                    if (!job) return [3 /*break*/, 8];
+                    job_1 = _b.sent();
+                    if (!job_1) return [3 /*break*/, 8];
                     socket_1.SocketService.broadcastChannel('alerts', 'NEW_JOB_LISTING', {
                         type: 'NEW_JOB_LISTING',
                         message: 'A new Job listing has been added',
-                        data: job
+                        data: job_1
                     });
-                    return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.find({ skill: job.category })];
+                    return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.find({ skill: job_1.category })];
                 case 2:
                     contractorProfiles = _b.sent();
                     contractorIds = contractorProfiles.map(function (profile) { return profile.contractor; });
-                    customerId = job.customer;
+                    customerId = job_1.customer;
                     filteredContractorIds = [];
                     _i = 0, contractorIds_1 = contractorIds;
                     _b.label = 3;
@@ -316,22 +374,44 @@ exports.JobEvent.on('NEW_JOB_LISTING', function (payload) {
                 case 5:
                     _i++;
                     return [3 /*break*/, 3];
-                case 6: return [4 /*yield*/, contractor_devices_model_1.default.find({ contractor: { $in: filteredContractorIds } })];
+                case 6: return [4 /*yield*/, contractor_devices_model_1.default.find({ contractor: { $in: filteredContractorIds } })
+                    // const deviceTokens = devices.map(device => device.expoToken);
+                ];
                 case 7:
                     devices = _b.sent();
-                    deviceTokens = devices.map(function (device) { return device.expoToken; });
-                    (0, expo_1.sendPushNotifications)(deviceTokens, {
-                        title: 'New job listing',
-                        type: 'NEW_JOB_LISTING',
-                        icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
-                        body: 'There is a new job listing  that match your profile',
-                        data: {
-                            entity: job.id,
-                            entityType: 'jobs',
-                            message: "There is a new job listing  that match your profile",
-                            event: 'NEW_JOB_LISTING',
-                        }
-                    });
+                    // const deviceTokens = devices.map(device => device.expoToken);
+                    devices.map(function (device) { return __awaiter(_this, void 0, void 0, function () {
+                        var contractor, contractorLang, nTitle, nMessage;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0: return [4 /*yield*/, contractor_model_1.ContractorModel.findById(device.contractor)];
+                                case 1:
+                                    contractor = _a.sent();
+                                    if (!contractor) return [3 /*break*/, 4];
+                                    contractorLang = contractor.language;
+                                    return [4 /*yield*/, i18n_1.i18n.getTranslation('New Job Enquiry Reply', contractorLang)];
+                                case 2:
+                                    nTitle = _a.sent();
+                                    return [4 /*yield*/, i18n_1.i18n.getTranslation('There is a new job listing  that match your profile', contractorLang)];
+                                case 3:
+                                    nMessage = _a.sent();
+                                    (0, expo_1.sendPushNotifications)([device.deviceToken], {
+                                        title: nTitle,
+                                        type: 'NEW_JOB_LISTING',
+                                        icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
+                                        body: nMessage,
+                                        data: {
+                                            entity: job_1.id,
+                                            entityType: 'jobs',
+                                            message: nMessage,
+                                            event: 'NEW_JOB_LISTING',
+                                        }
+                                    });
+                                    _a.label = 4;
+                                case 4: return [2 /*return*/];
+                            }
+                        });
+                    }); });
                     _b.label = 8;
                 case 8: return [3 /*break*/, 10];
                 case 9:
@@ -346,11 +426,11 @@ exports.JobEvent.on('NEW_JOB_LISTING', function (payload) {
 exports.JobEvent.on('JOB_CANCELED', function (payload) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var customer, contractor, job, html, html, error_5;
+        var customer, contractor, job, html, html, customerLang, nTitle, nMessage, contractorLang, error_5;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
-                    _c.trys.push([0, 3, , 4]);
+                    _c.trys.push([0, 7, , 8]);
                     logger_1.Logger.info('handling alert JOB_CANCELED event');
                     return [4 /*yield*/, customer_model_1.default.findById(payload.job.customer)];
                 case 1:
@@ -371,42 +451,56 @@ exports.JobEvent.on('JOB_CANCELED', function (payload) {
                         html = (0, job_canceled_template_1.JobCanceledEmailTemplate)({ name: contractor.name, canceledBy: 'customer', job: payload.job });
                         services_1.EmailService.send(contractor.email, "Job Canceled", html);
                     }
+                    customerLang = customer.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Canceled', customerLang)];
+                case 3:
+                    nTitle = _c.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation("Your job on Repairfind has been canceled", customerLang)];
+                case 4:
+                    nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
                         user: customer.id,
                         userType: 'customers',
-                        title: 'Job Canceled',
-                        type: 'JOB_CANCELED', //
-                        message: "Your job on Repairfind has been canceled",
+                        title: nTitle,
+                        type: 'JOB_CANCELED',
+                        message: nMessage,
                         heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_a = customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
                         payload: {
                             entity: job.id,
                             entityType: 'jobs',
-                            message: "Your job on Repairfind has been canceled",
+                            message: nMessage,
                             customer: customer.id,
                             event: 'JOB_CANCELED',
                         }
                     }, { push: true, socket: true, database: true });
+                    contractorLang = contractor.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Canceled', contractorLang)];
+                case 5:
+                    nTitle = _c.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation("Your job on Repairfind has been canceled", contractorLang)];
+                case 6:
+                    nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
                         user: contractor.id,
                         userType: 'contractors',
-                        title: 'Job Canceled',
-                        type: 'JOB_CANCELED', //
-                        message: "Your job on Repairfind has been canceled",
+                        title: nTitle,
+                        type: 'JOB_CANCELED',
+                        message: nMessage,
                         heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_b = customer.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
                         payload: {
                             entity: job.id,
                             entityType: 'jobs',
-                            message: "Your job on Repairfind has been canceled",
+                            message: nMessage,
                             customer: customer.id,
                             event: 'JOB_CANCELED',
                         }
                     }, { push: true, socket: true, database: true });
-                    return [3 /*break*/, 4];
-                case 3:
+                    return [3 /*break*/, 8];
+                case 7:
                     error_5 = _c.sent();
                     logger_1.Logger.error("Error handling JOB_CANCELED event: ".concat(error_5));
-                    return [3 /*break*/, 4];
-                case 4: return [2 /*return*/];
+                    return [3 /*break*/, 8];
+                case 8: return [2 /*return*/];
             }
         });
     });
@@ -414,11 +508,11 @@ exports.JobEvent.on('JOB_CANCELED', function (payload) {
 exports.JobEvent.on('JOB_DISPUTE_REFUND_CREATED', function (payload) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var job, dispute, customer, contractor, error_6;
+        var job, dispute, customer, contractor, contractorLang, nTitle, nMessage, customerLang, error_6;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
-                    _c.trys.push([0, 3, , 4]);
+                    _c.trys.push([0, 8, , 9]);
                     logger_1.Logger.info('handling alert JOB_DISPUTE_REFUND_CREATED event');
                     job = payload.job;
                     dispute = payload.dispute;
@@ -428,45 +522,59 @@ exports.JobEvent.on('JOB_DISPUTE_REFUND_CREATED', function (payload) {
                     return [4 /*yield*/, contractor_model_1.ContractorModel.findById(payload.job.contractor)];
                 case 2:
                     contractor = _c.sent();
-                    if (job && contractor && customer) {
-                        services_1.NotificationService.sendNotification({
-                            user: contractor.id,
-                            userType: 'contractors',
-                            title: 'Job Dispute Refund Created',
-                            type: 'JOB_DISPUTE_REFUND_CREATED', //
-                            message: "Full refund of your disputed job has been approved  on Repairfind",
-                            heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_a = customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
-                            payload: {
-                                entity: dispute.id,
-                                entityType: 'job_disputes',
-                                message: "Full refund of your disputed job has been approved  on Repairfind",
-                                contractor: contractor.id,
-                                event: 'JOB_DISPUTE_REFUND_CREATED',
-                            }
-                        }, { push: true, socket: true, database: true });
-                        services_1.NotificationService.sendNotification({
-                            user: customer.id,
-                            userType: 'customers',
-                            title: 'Job Dispute Refund Created',
-                            type: 'JOB_DISPUTE_REFUND_CREATED',
-                            message: "Full refund of your disputed job has been approved  on Repairfind",
-                            heading: { name: "".concat(contractor.name), image: (_b = contractor.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
-                            payload: {
-                                entity: dispute.id,
-                                entityType: 'job_disputes',
-                                jobType: job.type,
-                                message: "Full refund of your disputed job has been approved  on Repairfind",
-                                customer: customer.id,
-                                event: 'JOB_DISPUTE_REFUND_CREATED',
-                            }
-                        }, { database: true, push: true, socket: true });
-                    }
-                    return [3 /*break*/, 4];
+                    if (!(job && contractor && customer)) return [3 /*break*/, 7];
+                    contractorLang = contractor.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Dispute Refund Created', contractorLang)];
                 case 3:
+                    nTitle = _c.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation("Full refund of your disputed job has been approved on Repairfind", contractorLang)];
+                case 4:
+                    nMessage = _c.sent();
+                    services_1.NotificationService.sendNotification({
+                        user: contractor.id,
+                        userType: 'contractors',
+                        title: nTitle,
+                        type: 'JOB_DISPUTE_REFUND_CREATED',
+                        message: nMessage,
+                        heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_a = customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
+                        payload: {
+                            entity: dispute.id,
+                            entityType: 'job_disputes',
+                            message: nMessage,
+                            contractor: contractor.id,
+                            event: 'JOB_DISPUTE_REFUND_CREATED',
+                        }
+                    }, { push: true, socket: true, database: true });
+                    customerLang = customer.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Dispute Refund Created', customerLang)];
+                case 5:
+                    nTitle = _c.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation("Full refund of your disputed job has been approved on Repairfind", customerLang)];
+                case 6:
+                    nMessage = _c.sent();
+                    services_1.NotificationService.sendNotification({
+                        user: customer.id,
+                        userType: 'customers',
+                        title: nTitle,
+                        type: 'JOB_DISPUTE_REFUND_CREATED',
+                        message: nMessage,
+                        heading: { name: "".concat(contractor.name), image: (_b = contractor.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
+                        payload: {
+                            entity: dispute.id,
+                            entityType: 'job_disputes',
+                            jobType: job.type,
+                            message: nMessage,
+                            customer: customer.id,
+                            event: 'JOB_DISPUTE_REFUND_CREATED',
+                        }
+                    }, { database: true, push: true, socket: true });
+                    _c.label = 7;
+                case 7: return [3 /*break*/, 9];
+                case 8:
                     error_6 = _c.sent();
                     logger_1.Logger.error("Error handling JOB_DISPUTE_REFUND_CREATED event: ".concat(error_6));
-                    return [3 /*break*/, 4];
-                case 4: return [2 /*return*/];
+                    return [3 /*break*/, 9];
+                case 9: return [2 /*return*/];
             }
         });
     });
@@ -474,11 +582,11 @@ exports.JobEvent.on('JOB_DISPUTE_REFUND_CREATED', function (payload) {
 exports.JobEvent.on('JOB_REVISIT_ENABLED', function (payload) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var job, dispute, customer, contractor, conversation, error_7;
+        var job, dispute, customer, contractor, conversation, contractorLang, nTitle, nMessage, customerLang, error_7;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
-                    _c.trys.push([0, 5, , 6]);
+                    _c.trys.push([0, 9, , 10]);
                     logger_1.Logger.info('handling alert JOB_REVISIT_ENABLED event');
                     job = payload.job;
                     dispute = payload.dispute;
@@ -488,50 +596,64 @@ exports.JobEvent.on('JOB_REVISIT_ENABLED', function (payload) {
                     return [4 /*yield*/, contractor_model_1.ContractorModel.findById(payload.job.contractor)];
                 case 2:
                     contractor = _c.sent();
-                    if (!(job && contractor && customer)) return [3 /*break*/, 4];
+                    if (!(job && contractor && customer)) return [3 /*break*/, 8];
                     return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(contractor.id, 'contractors', customer.id, 'customers')];
                 case 3:
                     conversation = _c.sent();
+                    contractorLang = contractor.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Revisit Enabled', contractorLang)];
+                case 4:
+                    nTitle = _c.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation("A revisit for your disputed job has been enabled on Repairfind", contractorLang)];
+                case 5:
+                    nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
                         user: contractor.id,
                         userType: 'contractors',
-                        title: 'Job Revisit  Enabled',
-                        type: 'JOB_REVISIT_ENABLED', //
-                        message: "A revisit for your disputed job has been enabled on Repairfind",
+                        title: nTitle,
+                        type: 'JOB_REVISIT_ENABLED',
+                        message: nMessage,
                         heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_a = customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
                         payload: {
                             entity: job.id,
                             entityType: 'jobs',
-                            message: "A revisit for your disputed job has been enabled on Repairfind",
+                            message: nMessage,
                             contractor: contractor.id,
                             conversationId: conversation === null || conversation === void 0 ? void 0 : conversation.id,
                             event: 'JOB_REVISIT_ENABLED',
                         }
                     }, { push: true, socket: true, database: true });
+                    customerLang = customer.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Revisit Enabled', customerLang)];
+                case 6:
+                    nTitle = _c.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation("A revisit for your disputed job has been enabled on Repairfind", customerLang)];
+                case 7:
+                    nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
                         user: customer.id,
                         userType: 'customers',
-                        title: 'Job Revisit  Enabled',
+                        title: nTitle,
                         type: 'JOB_REVISIT_ENABLED',
-                        message: "A revisit for your disputed job has been enabled on Repairfind",
+                        message: nMessage,
                         heading: { name: "".concat(contractor.name), image: (_b = contractor.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
                         payload: {
                             entity: job.id,
                             entityType: 'jobs',
                             jobType: job.type,
-                            message: "A revisit for your disputed job has been enabled on Repairfind",
+                            message: nMessage,
                             customer: customer.id,
                             conversationId: conversation === null || conversation === void 0 ? void 0 : conversation.id,
                             event: 'JOB_REVISIT_ENABLED',
                         }
                     }, { database: true, push: true, socket: true });
-                    _c.label = 4;
-                case 4: return [3 /*break*/, 6];
-                case 5:
+                    _c.label = 8;
+                case 8: return [3 /*break*/, 10];
+                case 9:
                     error_7 = _c.sent();
                     logger_1.Logger.error("Error handling JOB_REVISIT_ENABLED event: ".concat(error_7));
-                    return [3 /*break*/, 6];
-                case 6: return [2 /*return*/];
+                    return [3 /*break*/, 10];
+                case 10: return [2 /*return*/];
             }
         });
     });
@@ -539,11 +661,11 @@ exports.JobEvent.on('JOB_REVISIT_ENABLED', function (payload) {
 exports.JobEvent.on('JOB_QUOTATION_DECLINED', function (payload) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var customer, contractor, job, emailSubject, emailContent, html, conversation, error_8;
+        var customer, contractor, job, emailSubject, emailContent, html, conversation, nMessage, nTitle, error_8;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
-                    _b.trys.push([0, 6, , 7]);
+                    _b.trys.push([0, 8, , 9]);
                     logger_1.Logger.info('handling alert JOB_QUOTATION_DECLINED event');
                     return [4 /*yield*/, customer_model_1.default.findById(payload.customerId)];
                 case 1:
@@ -554,7 +676,7 @@ exports.JobEvent.on('JOB_QUOTATION_DECLINED', function (payload) {
                     return [4 /*yield*/, job_model_1.JobModel.findById(payload.jobId)];
                 case 3:
                     job = _b.sent();
-                    if (!contractor) return [3 /*break*/, 5];
+                    if (!contractor) return [3 /*break*/, 7];
                     emailSubject = 'Job Quotation Decline';
                     emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(contractor.name, ",</p>\n                <p style=\"color: #333333;\">Your job  quotation for a job  on RepairFind was declined.</p>\n                <p>\n                    <strong>Job Title:</strong> ").concat(job.title, " </br>\n                    <strong>Customer:</strong> ").concat(customer.name, " </br>\n                    <strong>Reason:</strong> ").concat(payload.reason, "  </br>\n                </p>\n              \n                <p>Login to our app to follow up </p>\n                ");
                     html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
@@ -562,30 +684,36 @@ exports.JobEvent.on('JOB_QUOTATION_DECLINED', function (payload) {
                     return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(customer.id, 'customers', contractor.id, 'contractors')];
                 case 4:
                     conversation = _b.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation("Your job quotation for a job on RepairFind was declined")];
+                case 5:
+                    nMessage = _b.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Quotation Declined')];
+                case 6:
+                    nTitle = _b.sent();
                     services_1.NotificationService.sendNotification({
                         user: contractor.id,
                         userType: 'contractors',
-                        title: 'Job quotation declined',
+                        title: nTitle,
                         type: 'JOB_QUOTATION_DECLINED', // Conversation, Conversation_Notification
-                        message: "Your job quotation for a job on RepairFind was declined",
+                        message: nMessage,
                         heading: { name: "".concat(contractor.name), image: (_a = contractor.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
                         payload: {
                             entity: job.id,
                             entityType: 'jobs',
-                            message: "Your job quotation for a job  on RepairFind was declined",
+                            message: nMessage,
                             customerId: customer.id,
                             jobType: job.type,
                             conversationId: conversation.id,
                             event: 'JOB_QUOTATION_DECLINED',
                         }
                     }, { push: true, socket: true, database: true });
-                    _b.label = 5;
-                case 5: return [3 /*break*/, 7];
-                case 6:
+                    _b.label = 7;
+                case 7: return [3 /*break*/, 9];
+                case 8:
                     error_8 = _b.sent();
                     logger_1.Logger.error("Error handling JOB_QUOTATION_DECLINED event: ".concat(error_8));
-                    return [3 /*break*/, 7];
-                case 7: return [2 /*return*/];
+                    return [3 /*break*/, 9];
+                case 9: return [2 /*return*/];
             }
         });
     });
@@ -593,11 +721,11 @@ exports.JobEvent.on('JOB_QUOTATION_DECLINED', function (payload) {
 exports.JobEvent.on('JOB_QUOTATION_ACCEPTED', function (payload) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var customer, contractor, job, emailSubject, emailContent, html, conversation, error_9;
+        var customer, contractor, job, emailSubject, emailContent, html, conversation, contractorLang, nTitle, nMessage, error_9;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
-                    _b.trys.push([0, 6, , 7]);
+                    _b.trys.push([0, 8, , 9]);
                     logger_1.Logger.info('handling alert JOB_QUOTATION_ACCEPTED event');
                     return [4 /*yield*/, customer_model_1.default.findById(payload.customerId)];
                 case 1:
@@ -608,7 +736,7 @@ exports.JobEvent.on('JOB_QUOTATION_ACCEPTED', function (payload) {
                     return [4 /*yield*/, job_model_1.JobModel.findById(payload.jobId)];
                 case 3:
                     job = _b.sent();
-                    if (!contractor) return [3 /*break*/, 5];
+                    if (!contractor) return [3 /*break*/, 7];
                     emailSubject = 'Job Quotation Accepted';
                     emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(contractor.name, ",</p>\n                <p style=\"color: #333333;\">Congratulations! your job quotation for a job  on RepairFind was accepted.</p>\n                <p>\n                    <strong>Job Title:</strong> ").concat(job.title, " </br>\n                    <strong>Customer:</strong> ").concat(customer.name, " </br>\n                </p>\n              \n                <p>Login to our app to follow up </p>\n                ");
                     html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
@@ -616,29 +744,36 @@ exports.JobEvent.on('JOB_QUOTATION_ACCEPTED', function (payload) {
                     return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(customer.id, 'customers', contractor.id, 'contractors')];
                 case 4:
                     conversation = _b.sent();
+                    contractorLang = contractor.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Quotation Accepted', contractorLang)];
+                case 5:
+                    nTitle = _b.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation("Your quotation for a job on RepairFind was accepted", contractorLang)];
+                case 6:
+                    nMessage = _b.sent();
                     services_1.NotificationService.sendNotification({
                         user: contractor.id,
                         userType: 'contractors',
-                        title: 'Job quotation accepted',
-                        type: 'JOB_QUOTATION_ACCEPTED', // Conversation, Conversation_Notification
-                        message: "Your  quotation for a job on RepairFind was accepted",
+                        title: nTitle,
+                        type: 'JOB_QUOTATION_ACCEPTED',
+                        message: nMessage,
                         heading: { name: "".concat(contractor.name), image: (_a = contractor.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
                         payload: {
                             entity: job.id,
                             entityType: 'jobs',
-                            message: "Your job quotation for a job  on RepairFind was accepted",
+                            message: nMessage,
                             customerId: customer.id,
                             conversationId: conversation.id,
                             event: 'JOB_QUOTATION_ACCEPTED',
                         }
                     }, { push: true, socket: true, database: true });
-                    _b.label = 5;
-                case 5: return [3 /*break*/, 7];
-                case 6:
+                    _b.label = 7;
+                case 7: return [3 /*break*/, 9];
+                case 8:
                     error_9 = _b.sent();
                     logger_1.Logger.error("Error handling JOB_QUOTATION_ACCEPTED event: ".concat(error_9));
-                    return [3 /*break*/, 7];
-                case 7: return [2 /*return*/];
+                    return [3 /*break*/, 9];
+                case 9: return [2 /*return*/];
             }
         });
     });
@@ -695,11 +830,11 @@ exports.JobEvent.on('JOB_DAY_EMERGENCY', function (payload) {
 exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
     var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function () {
-        var customer, contractor, job, event_1, conversation, message, dateTimeOptions, rescheduleDate, emailSubject, emailContent, html, dateTimeOptions, rescheduleDate, emailSubject, emailContent, html, error_11;
+        var customer, contractor, job, event_1, conversation, message, dateTimeOptions, rescheduleDate, emailSubject, emailContent, html, contractorLang, nTitle, nMessage, dateTimeOptions, rescheduleDate, emailSubject, emailContent, html, customerLang, nTitle, nMessage, error_11;
         return __generator(this, function (_e) {
             switch (_e.label) {
                 case 0:
-                    _e.trys.push([0, 6, , 7]);
+                    _e.trys.push([0, 12, , 13]);
                     logger_1.Logger.info('handling alert JOB_RESCHEDULE_DECLINED_ACCEPTED event', payload.action);
                     return [4 /*yield*/, customer_model_1.default.findById(payload.job.customer)];
                 case 1:
@@ -709,7 +844,7 @@ exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
                     contractor = _e.sent();
                     job = payload.job;
                     event_1 = payload.action == 'accepted' ? 'JOB_RESCHEDULE_ACCEPTED' : 'JOB_RESCHEDULE_DECLINED';
-                    if (!(contractor && customer)) return [3 /*break*/, 5];
+                    if (!(contractor && customer)) return [3 /*break*/, 11];
                     return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(customer.id, 'customers', contractor.id, 'contractors')];
                 case 3:
                     conversation = _e.sent();
@@ -720,94 +855,110 @@ exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
                         entity: job.id,
                         entityType: 'jobs'
                     });
-                    if (((_a = payload.job.reschedule) === null || _a === void 0 ? void 0 : _a.createdBy) == 'contractor') { // send mail to contractor
-                        dateTimeOptions = {
-                            weekday: 'short',
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric',
-                            hour: 'numeric',
-                            minute: 'numeric',
-                            hour12: true,
-                            timeZone: contractor.currentTimezone,
-                            timeZoneName: 'long'
-                        };
-                        rescheduleDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(payload.job.reschedule.date));
-                        emailSubject = 'Job Reschedule Request';
-                        emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(contractor.name, ",</p>\n                <p style=\"color: #333333;\">Your Job reschedule request on Repairfind has been ").concat(payload.action, " by customer</p>\n                <p><strong>Job Title:</strong> ").concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(rescheduleDate, "</p>\n                ");
-                        html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
-                        services_1.EmailService.send(contractor.email, emailSubject, html);
-                        services_1.NotificationService.sendNotification({
-                            user: contractor.id,
-                            userType: 'contractors',
-                            title: "Job Reschedule Request ".concat(payload.action),
-                            type: event_1,
-                            message: "Your Job reschedule request on Repairfind has been ".concat(payload.action, " by customer"),
-                            heading: { name: "".concat(contractor.name), image: (_b = contractor.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
-                            payload: {
-                                entity: job.id,
-                                entityType: 'jobs',
-                                message: "Your Job reschedule request on Repairfind has been ".concat(payload.action, " by customer"),
-                                customer: customer.id,
-                                contractor: contractor.id,
-                                conversationId: conversation.id,
-                                event: event_1,
-                            }
-                        }, { push: true, socket: true, database: true });
-                        message.sender = customer.id;
-                        message.senderType = 'customers';
-                    }
-                    if (((_c = payload.job.reschedule) === null || _c === void 0 ? void 0 : _c.createdBy) == 'customer') { // send mail to  customer
-                        dateTimeOptions = {
-                            weekday: 'short',
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric',
-                            hour: 'numeric',
-                            minute: 'numeric',
-                            hour12: true,
-                            timeZone: customer.currentTimezone,
-                            timeZoneName: 'long'
-                        };
-                        rescheduleDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(payload.job.reschedule.date));
-                        emailSubject = 'Job Reschedule Request';
-                        emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(customer.name, ",</p>\n                <p style=\"color: #333333;\">Your Job reschedule request on Repairfind has been ").concat(payload.action, "  by the contractor</p>\n                <p><strong>Job Title:</strong> ").concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(rescheduleDate, "</p>\n                ");
-                        html = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: emailSubject, content: emailContent });
-                        services_1.EmailService.send(customer.email, emailSubject, html);
-                        services_1.NotificationService.sendNotification({
-                            user: customer.id,
-                            userType: 'customers',
-                            title: "Job Reschedule Request ".concat(payload.action),
-                            type: event_1, //
-                            message: "Your Job reschedule request on Repairfind has been ".concat(payload.action, " by contractor"),
-                            heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_d = customer.profilePhoto) === null || _d === void 0 ? void 0 : _d.url },
-                            payload: {
-                                entity: job.id,
-                                entityType: 'jobs',
-                                message: "Your Job reschedule request on Repairfind has been ".concat(payload.action, " by contractor"),
-                                contractor: contractor.id,
-                                customer: customer.id,
-                                conversationId: conversation.id,
-                                event: event_1,
-                            }
-                        }, { push: true, socket: true, database: true });
-                        message.sender = contractor.id;
-                        message.senderType = 'contractors';
-                    }
-                    return [4 /*yield*/, message.save()];
+                    if (!(((_a = payload.job.reschedule) === null || _a === void 0 ? void 0 : _a.createdBy) == 'contractor')) return [3 /*break*/, 6];
+                    dateTimeOptions = {
+                        weekday: 'short',
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                        hour: 'numeric',
+                        minute: 'numeric',
+                        hour12: true,
+                        timeZone: contractor.currentTimezone,
+                        timeZoneName: 'long'
+                    };
+                    rescheduleDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(payload.job.reschedule.date));
+                    emailSubject = 'Job Reschedule Request';
+                    emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(contractor.name, ",</p>\n                <p style=\"color: #333333;\">Your Job reschedule request on Repairfind has been ").concat(payload.action, " by customer</p>\n                <p><strong>Job Title:</strong> ").concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(rescheduleDate, "</p>\n                ");
+                    html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
+                    services_1.EmailService.send(contractor.email, emailSubject, html);
+                    contractorLang = contractor.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation("Job Reschedule Request ".concat(payload.action), contractorLang)];
                 case 4:
-                    _e.sent();
-                    _e.label = 5;
-                case 5: return [3 /*break*/, 7];
+                    nTitle = _e.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation("Your job reschedule request on Repairfind has been ".concat(payload.action, " by customer"), contractorLang)];
+                case 5:
+                    nMessage = _e.sent();
+                    services_1.NotificationService.sendNotification({
+                        user: contractor.id,
+                        userType: 'contractors',
+                        title: nTitle,
+                        type: event_1,
+                        message: nMessage,
+                        heading: { name: "".concat(contractor.name), image: (_b = contractor.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
+                        payload: {
+                            entity: job.id,
+                            entityType: 'jobs',
+                            message: nMessage,
+                            customer: customer.id,
+                            contractor: contractor.id,
+                            conversationId: conversation.id,
+                            event: event_1,
+                        }
+                    }, { push: true, socket: true, database: true });
+                    message.sender = customer.id;
+                    message.senderType = 'customers';
+                    _e.label = 6;
                 case 6:
+                    if (!(((_c = payload.job.reschedule) === null || _c === void 0 ? void 0 : _c.createdBy) == 'customer')) return [3 /*break*/, 9];
+                    dateTimeOptions = {
+                        weekday: 'short',
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                        hour: 'numeric',
+                        minute: 'numeric',
+                        hour12: true,
+                        timeZone: customer.currentTimezone,
+                        timeZoneName: 'long'
+                    };
+                    rescheduleDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(payload.job.reschedule.date));
+                    emailSubject = 'Job Reschedule Request';
+                    emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(customer.name, ",</p>\n                <p style=\"color: #333333;\">Your Job reschedule request on Repairfind has been ").concat(payload.action, "  by the contractor</p>\n                <p><strong>Job Title:</strong> ").concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(rescheduleDate, "</p>\n                ");
+                    html = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: emailSubject, content: emailContent });
+                    services_1.EmailService.send(customer.email, emailSubject, html);
+                    customerLang = customer.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation("Job Reschedule Request ".concat(payload.action), customerLang)];
+                case 7:
+                    nTitle = _e.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation("Your job reschedule request on Repairfind has been ".concat(payload.action, " by contractor"), customerLang)];
+                case 8:
+                    nMessage = _e.sent();
+                    services_1.NotificationService.sendNotification({
+                        user: customer.id,
+                        userType: 'customers',
+                        title: nTitle,
+                        type: event_1,
+                        message: nMessage,
+                        heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_d = customer.profilePhoto) === null || _d === void 0 ? void 0 : _d.url },
+                        payload: {
+                            entity: job.id,
+                            entityType: 'jobs',
+                            message: nMessage,
+                            contractor: contractor.id,
+                            customer: customer.id,
+                            conversationId: conversation.id,
+                            event: event_1,
+                        }
+                    }, { push: true, socket: true, database: true });
+                    message.sender = contractor.id;
+                    message.senderType = 'contractors';
+                    _e.label = 9;
+                case 9: return [4 /*yield*/, message.save()];
+                case 10:
+                    _e.sent();
+                    _e.label = 11;
+                case 11: return [3 /*break*/, 13];
+                case 12:
                     error_11 = _e.sent();
                     logger_1.Logger.error("Error handling JOB_RESCHEDULE_DECLINED_ACCEPTED event: ".concat(error_11));
-                    return [3 /*break*/, 7];
-                case 7: return [2 /*return*/];
+                    return [3 /*break*/, 13];
+                case 13: return [2 /*return*/];
             }
         });
     });
 });
+// TODO: Separate this - so I ca translate, break the actions into individual events
 exports.JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', function (payload) {
     var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function () {
@@ -928,11 +1079,11 @@ exports.JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', function (payload) {
 exports.JobEvent.on('JOB_BOOKED', function (payload) {
     var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function () {
-        var customer, contractor, job, quotation, charges, contractorProfile, dateTimeOptions, jobDateContractor, currentDate, emailSubject, emailContent, receipthtmlContent, html, receipthtml, dateTimeOptions, jobDateCustomer, currentDate, emailSubject, emailContent, receiptContent, html, receipthtml, error_13;
+        var customer, contractor, job, quotation, charges, contractorProfile, dateTimeOptions, jobDateContractor, currentDate, emailSubject, emailContent, receipthtmlContent, html, receipthtml, dateTimeOptions, jobDateCustomer, currentDate, emailSubject, emailContent, receiptContent, html, receipthtml, customerLang, nTitle, nMessage, contractorLang, error_13;
         return __generator(this, function (_e) {
             switch (_e.label) {
                 case 0:
-                    _e.trys.push([0, 8, , 9]);
+                    _e.trys.push([0, 12, , 13]);
                     logger_1.Logger.info('handling alert JOB_BOOKED event');
                     return [4 /*yield*/, customer_model_1.default.findById(payload.customerId)];
                 case 1:
@@ -946,7 +1097,7 @@ exports.JobEvent.on('JOB_BOOKED', function (payload) {
                     return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findById(payload.quotationId)];
                 case 4:
                     quotation = _e.sent();
-                    if (!(job && contractor && customer && quotation)) return [3 /*break*/, 7];
+                    if (!(job && contractor && customer && quotation)) return [3 /*break*/, 11];
                     return [4 /*yield*/, quotation.calculateCharges()];
                 case 5:
                     charges = _e.sent();
@@ -997,45 +1148,59 @@ exports.JobEvent.on('JOB_BOOKED', function (payload) {
                         receipthtml = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: 'Payment Receipt', content: receiptContent });
                         services_1.EmailService.send(customer.email, 'Payment Receipt', receipthtml);
                     }
+                    customerLang = customer.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Booked', customerLang)];
+                case 7:
+                    nTitle = _e.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation("You have booked a job on Repairfind", customerLang)];
+                case 8:
+                    nMessage = _e.sent();
                     services_1.NotificationService.sendNotification({
                         user: customer.id,
                         userType: 'customers',
-                        title: 'Job Booked',
-                        type: 'JOB_BOOKED', // Conversation, Conversation_Notification
-                        message: "You have booked a job on Repairfind",
+                        title: nTitle,
+                        type: 'JOB_BOOKED',
+                        message: nMessage,
                         heading: { name: "".concat(contractor.name), image: (_c = contractor.profilePhoto) === null || _c === void 0 ? void 0 : _c.url },
                         payload: {
                             entity: job.id,
                             entityType: 'jobs',
-                            message: "You have booked a job",
+                            message: nMessage,
                             customer: customer.id,
                             contractor: contractor.id,
                             event: 'JOB_BOOKED',
                         }
                     }, { push: true, socket: true, database: true });
+                    contractorLang = contractor.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Booked', contractorLang)];
+                case 9:
+                    nTitle = _e.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation("You have a booked job on Repairfind", contractorLang)];
+                case 10:
+                    nMessage = _e.sent();
                     services_1.NotificationService.sendNotification({
                         user: contractor.id,
                         userType: 'contractors',
-                        title: 'Job Booked',
-                        type: 'JOB_BOOKED', //
-                        message: "You have a booked job on Repairfind",
+                        title: nTitle,
+                        type: 'JOB_BOOKED',
+                        message: nMessage,
                         heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_d = customer.profilePhoto) === null || _d === void 0 ? void 0 : _d.url },
                         payload: {
                             entity: job.id,
                             entityType: 'jobs',
-                            message: "You have a booked job",
+                            message: nMessage,
                             contractor: contractor.id,
                             customer: customer.id,
                             event: 'JOB_BOOKED',
                         }
                     }, { push: true, socket: true, database: true });
-                    _e.label = 7;
-                case 7: return [3 /*break*/, 9];
-                case 8:
+                    _e.label = 11;
+                case 11: return [3 /*break*/, 13];
+                case 12:
                     error_13 = _e.sent();
                     logger_1.Logger.error("Error handling JOB_BOOKED event: ".concat(error_13));
-                    return [3 /*break*/, 9];
-                case 9: return [2 /*return*/];
+                    return [3 /*break*/, 13];
+                case 13: return [2 /*return*/];
             }
         });
     });
@@ -1043,11 +1208,11 @@ exports.JobEvent.on('JOB_BOOKED', function (payload) {
 exports.JobEvent.on('JOB_DISPUTE_CREATED', function (payload) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var dispute, job, customer, contractor, error_14;
+        var dispute, job, customer, contractor, customerLang, nTitle, nMessage, contractorLang, error_14;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
-                    _c.trys.push([0, 4, , 5]);
+                    _c.trys.push([0, 8, , 9]);
                     logger_1.Logger.info('handling alert JOB_DISPUTE_CREATED event', payload.dispute);
                     dispute = payload.dispute;
                     return [4 /*yield*/, job_model_1.JobModel.findById(dispute.job)];
@@ -1064,32 +1229,46 @@ exports.JobEvent.on('JOB_DISPUTE_CREATED', function (payload) {
                     contractor = _c.sent();
                     if (!customer || !contractor)
                         return [2 /*return*/];
+                    customerLang = customer.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Disputed', customerLang)];
+                case 4:
+                    nTitle = _c.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation("You have an open job dispute", customerLang)];
+                case 5:
+                    nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
                         user: customer.id,
                         userType: 'customers',
-                        title: 'Job Disputed',
+                        title: nTitle,
                         type: 'JOB_DISPUTED',
-                        message: "You have an open job dispute",
+                        message: nMessage,
                         heading: { name: "".concat(contractor.name), image: (_a = contractor.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
                         payload: {
                             entity: job.id,
                             entityType: 'jobs',
-                            message: "You have an open job dispute",
+                            message: nMessage,
                             customer: customer.id,
                             event: 'JOB_DISPUTED',
                         }
                     }, { database: true, push: true, socket: true });
+                    contractorLang = contractor.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Disputed', contractorLang)];
+                case 6:
+                    nTitle = _c.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation("You have an open job dispute", contractorLang)];
+                case 7:
+                    nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
                         user: contractor.id,
                         userType: 'contractors',
-                        title: 'Job Disputed',
-                        type: 'JOB_DISPUTED', //
-                        message: "You have an open job dispute",
+                        title: nTitle,
+                        type: 'JOB_DISPUTED',
+                        message: nMessage,
                         heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_b = customer.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
                         payload: {
                             entity: job.id,
                             entityType: 'jobs',
-                            message: "You have an open job dispute",
+                            message: nMessage,
                             contractor: contractor.id,
                             event: 'JOB_DISPUTED',
                         }
@@ -1117,91 +1296,105 @@ exports.JobEvent.on('JOB_DISPUTE_CREATED', function (payload) {
                         message: 'A new Job dispute has been reported',
                         data: { dispute: dispute }
                     });
-                    return [3 /*break*/, 5];
-                case 4:
+                    return [3 /*break*/, 9];
+                case 8:
                     error_14 = _c.sent();
                     logger_1.Logger.error("Error handling JOB_DISPUTE_CREATED event: ".concat(error_14));
-                    return [3 /*break*/, 5];
-                case 5: return [2 /*return*/];
+                    return [3 /*break*/, 9];
+                case 9: return [2 /*return*/];
             }
         });
     });
 });
 exports.JobEvent.on('JOB_MARKED_COMPLETE_BY_CONTRACTOR', function (payload) {
-    var _a, _b, _c;
+    var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var job, customer, contractor, event_2, error_15;
-        return __generator(this, function (_d) {
-            switch (_d.label) {
+        var job, customer, contractor, event_2, customerLang, nTitle, nMessage, contractorLang, error_15;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
                 case 0:
-                    _d.trys.push([0, 4, , 5]);
+                    _c.trys.push([0, 8, , 9]);
                     logger_1.Logger.info('handling alert JOB_MARKED_COMPLETE_BY_CONTRACTOR event', payload.job.id);
                     return [4 /*yield*/, job_model_1.JobModel.findById(payload.job.id)];
                 case 1:
-                    job = _d.sent();
+                    job = _c.sent();
                     if (!job) {
                         return [2 /*return*/];
                     }
                     return [4 /*yield*/, customer_model_1.default.findById(job.customer)];
                 case 2:
-                    customer = _d.sent();
+                    customer = _c.sent();
                     return [4 /*yield*/, contractor_model_1.ContractorModel.findById(job.contractor)];
                 case 3:
-                    contractor = _d.sent();
+                    contractor = _c.sent();
                     if (!customer || !contractor)
                         return [2 /*return*/];
                     event_2 = (job.schedule.type == job_model_1.JOB_SCHEDULE_TYPE.SITE_VISIT) ? 'SITE_VISIT_MARKED_COMPLETE' : 'JOB_MARKED_COMPLETE';
+                    customerLang = customer.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Marked Complete', customerLang)];
+                case 4:
+                    nTitle = _c.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Contractor has marked job has completed', customerLang)];
+                case 5:
+                    nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
                         user: customer.id,
                         userType: 'customers',
-                        title: 'Job Marked Complete',
+                        title: nTitle,
                         type: event_2,
-                        message: "Contractor has marked job has completed",
+                        message: nMessage,
                         heading: { name: "".concat(contractor.name), image: (_a = contractor.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
                         payload: {
                             entity: job.id,
                             entityType: 'jobs',
-                            message: "Contractor has marked job has completed",
+                            message: nMessage,
                             event: event_2,
                         }
                     }, { database: true, push: true, socket: true });
+                    contractorLang = contractor.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Marked Complete', contractorLang)];
+                case 6:
+                    nTitle = _c.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job marked as completed', contractorLang)];
+                case 7:
+                    nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
                         user: contractor.id,
                         userType: 'contractors',
-                        title: 'Job Marked Complete',
+                        title: nTitle,
                         type: event_2,
-                        message: "Job marked as completed",
+                        message: nMessage,
                         heading: { name: "".concat(contractor.name), image: (_b = contractor.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
                         payload: {
                             entity: job.id,
                             entityType: 'jobs',
-                            message: "Job marked as completed",
+                            message: nMessage,
                             event: event_2,
                         }
                     }, { database: true, push: true, socket: true });
                     if (job.isAssigned) {
-                        services_1.NotificationService.sendNotification({
-                            user: job.assignment.contractor,
-                            userType: 'contractors',
-                            title: 'Job Marked Complete',
-                            type: event_2, //
-                            message: "Job marked as completed",
-                            heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_c = customer.profilePhoto) === null || _c === void 0 ? void 0 : _c.url },
-                            payload: {
-                                entity: job.id,
-                                entityType: 'jobs',
-                                message: "Job marked as completed",
-                                contractor: contractor.id,
-                                event: event_2,
-                            }
-                        }, { push: true, socket: true, database: true });
+                        // NotificationService.sendNotification({
+                        //     user: job.assignment.contractor,
+                        //     userType: 'contractors',
+                        //     title: 'Job Marked Complete',
+                        //     type: event, //
+                        //     message: `Job marked as completed`,
+                        //     heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
+                        //     payload: {
+                        //         entity: job.id,
+                        //         entityType: 'jobs',
+                        //         message: `Job marked as completed`,
+                        //         contractor: contractor.id,
+                        //         event: event,
+                        //     }
+                        // }, { push: true, socket: true, database: true })
                     }
-                    return [3 /*break*/, 5];
-                case 4:
-                    error_15 = _d.sent();
+                    return [3 /*break*/, 9];
+                case 8:
+                    error_15 = _c.sent();
                     logger_1.Logger.error("Error handling JOB_MARKED_COMPLETE_BY_CONTRACTOR event: ".concat(error_15));
-                    return [3 /*break*/, 5];
-                case 5: return [2 /*return*/];
+                    return [3 /*break*/, 9];
+                case 9: return [2 /*return*/];
             }
         });
     });
@@ -1209,11 +1402,11 @@ exports.JobEvent.on('JOB_MARKED_COMPLETE_BY_CONTRACTOR', function (payload) {
 exports.JobEvent.on('JOB_COMPLETED', function (payload) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var job, customer, contractor, event_3, transaction, metadata, error_16;
+        var job, customer, contractor, event_3, contractorLang, nTitle, nMessage, transaction, metadata, error_16;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
-                    _c.trys.push([0, 5, , 6]);
+                    _c.trys.push([0, 7, , 8]);
                     logger_1.Logger.info('handling alert JOB_COMPLETED event', payload.job.id);
                     return [4 /*yield*/, job_model_1.JobModel.findById(payload.job.id)];
                 case 1:
@@ -1230,23 +1423,30 @@ exports.JobEvent.on('JOB_COMPLETED', function (payload) {
                     event_3 = (job.schedule.type == job_model_1.JOB_SCHEDULE_TYPE.SITE_VISIT) ? 'COMPLETED_SITE_VISIT' : 'JOB_COMPLETED';
                     if (!customer || !contractor)
                         return [2 /*return*/];
+                    contractorLang = contractor.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Completed', contractorLang)];
+                case 4:
+                    nTitle = _c.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job completion confirmed by customer', contractorLang)];
+                case 5:
+                    nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
                         user: contractor.id,
                         userType: 'contractors',
-                        title: 'Job Completed',
-                        type: event_3, //
-                        message: "Job completion confirmed by customer",
+                        title: nTitle,
+                        type: event_3,
+                        message: nMessage,
                         heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_a = customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
                         payload: {
                             entity: job.id,
                             entityType: 'jobs',
-                            message: "Job completion confirmed by customer",
+                            message: nMessage,
                             contractor: contractor.id,
                             event: event_3,
                         }
                     }, { push: true, socket: true, database: true });
                     return [4 /*yield*/, transaction_model_1.default.findOne({ job: job.id, type: transaction_model_1.TRANSACTION_TYPE.ESCROW })];
-                case 4:
+                case 6:
                     transaction = _c.sent();
                     if (transaction) {
                         transaction.status = transaction_model_1.TRANSACTION_STATUS.APPROVED;
@@ -1254,12 +1454,12 @@ exports.JobEvent.on('JOB_COMPLETED', function (payload) {
                         transaction.metadata = __assign(__assign({}, metadata), { event: event_3 });
                         transaction.save();
                     }
-                    return [3 /*break*/, 6];
-                case 5:
+                    return [3 /*break*/, 8];
+                case 7:
                     error_16 = _c.sent();
                     logger_1.Logger.error("Error handling JOB_COMPLETED event: ".concat(error_16));
-                    return [3 /*break*/, 6];
-                case 6: return [2 /*return*/];
+                    return [3 /*break*/, 8];
+                case 8: return [2 /*return*/];
             }
         });
     });
@@ -1267,11 +1467,11 @@ exports.JobEvent.on('JOB_COMPLETED', function (payload) {
 exports.JobEvent.on('JOB_CHANGE_ORDER', function (payload) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var job, jobDay, customer, contractor, state, event_4, error_17;
+        var job, jobDay, customer, contractor, state, event_4, contractorLang, nTitle, nMessage, error_17;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
-                    _b.trys.push([0, 5, , 6]);
+                    _b.trys.push([0, 7, , 8]);
                     logger_1.Logger.info('handling JOB_CHANGE_ORDER event', payload.job.id);
                     return [4 /*yield*/, job_model_1.JobModel.findById(payload.job.id)];
                 case 1:
@@ -1292,28 +1492,35 @@ exports.JobEvent.on('JOB_CHANGE_ORDER', function (payload) {
                         return [2 /*return*/];
                     state = job.isChangeOrder ? 'enabled' : 'disabled';
                     event_4 = job.isChangeOrder ? 'JOB_CHANGE_ORDER_ENABLED' : 'JOB_CHANGE_ORDER_DISABLED';
+                    contractorLang = contractor.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Completed', contractorLang)];
+                case 5:
+                    nTitle = _b.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation("Change order is ".concat(state, " for your job"), contractorLang)];
+                case 6:
+                    nMessage = _b.sent();
                     services_1.NotificationService.sendNotification({
                         user: contractor.id,
                         userType: 'contractors',
-                        title: 'Job Completed',
-                        type: event_4, //
-                        message: "Change order is ".concat(state, " for your job"),
+                        title: nTitle,
+                        type: event_4,
+                        message: nMessage,
                         heading: { name: "".concat(customer.name), image: (_a = customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
                         payload: {
                             entity: job.id,
                             entityType: 'jobs',
                             jobId: job.id,
                             jobDayId: jobDay === null || jobDay === void 0 ? void 0 : jobDay.id,
-                            message: "Change order is ".concat(state, " for your job"),
+                            message: nMessage,
                             event: event_4,
                         }
                     }, { push: true, socket: true, database: true });
-                    return [3 /*break*/, 6];
-                case 5:
+                    return [3 /*break*/, 8];
+                case 7:
                     error_17 = _b.sent();
                     logger_1.Logger.error("Error handling JOB_CHANGE_ORDER event: ".concat(error_17));
-                    return [3 /*break*/, 6];
-                case 6: return [2 /*return*/];
+                    return [3 /*break*/, 8];
+                case 8: return [2 /*return*/];
             }
         });
     });
@@ -1321,11 +1528,11 @@ exports.JobEvent.on('JOB_CHANGE_ORDER', function (payload) {
 exports.JobEvent.on('SITE_VISIT_ESTIMATE_SUBMITTED', function (payload) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var job, quotation, customer, contractor, jobDay, error_18;
+        var job, quotation, customer, contractor, jobDay, customerLang, nTitle, nMessage, contractorLang, error_18;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
-                    _c.trys.push([0, 5, , 6]);
+                    _c.trys.push([0, 9, , 10]);
                     logger_1.Logger.info('handling SITE_VISIT_ESTIMATE_SUBMITTED event', payload.job.id);
                     return [4 /*yield*/, job_model_1.JobModel.findById(payload.job.id)];
                 case 1:
@@ -1345,17 +1552,24 @@ exports.JobEvent.on('SITE_VISIT_ESTIMATE_SUBMITTED', function (payload) {
                     return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ job: job.id })];
                 case 4:
                     jobDay = _c.sent();
+                    customerLang = customer.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Completed', customerLang)];
+                case 5:
+                    nTitle = _c.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation("Site visit estimate has been submitted", customerLang)];
+                case 6:
+                    nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
                         user: customer.id,
                         userType: 'customers',
-                        title: 'Job Completed',
-                        type: 'SITE_VISIT_ESTIMATE_SUBMITTED', //
-                        message: "Site visit estimate has been submitted",
+                        title: nTitle,
+                        type: 'SITE_VISIT_ESTIMATE_SUBMITTED',
+                        message: nMessage,
                         heading: { name: "".concat(contractor.name), image: (_a = contractor.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
                         payload: {
                             entity: job.id,
                             entityType: 'jobs',
-                            message: "Site visit estimate has been submitted",
+                            message: nMessage,
                             customer: customer.id,
                             event: 'SITE_VISIT_ESTIMATE_SUBMITTED',
                             jobDayId: jobDay === null || jobDay === void 0 ? void 0 : jobDay.id,
@@ -1363,17 +1577,24 @@ exports.JobEvent.on('SITE_VISIT_ESTIMATE_SUBMITTED', function (payload) {
                             quotationId: quotation.id,
                         }
                     }, { push: true, socket: true, database: true });
+                    contractorLang = contractor.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Completed', contractorLang)];
+                case 7:
+                    nTitle = _c.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation("Site visit estimate has been submitted", contractorLang)];
+                case 8:
+                    nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
                         user: contractor.id,
                         userType: 'contractors',
-                        title: 'Job Completed',
-                        type: 'SITE_VISIT_ESTIMATE_SUBMITTED', //
-                        message: "Site visit estimate has been submitted",
+                        title: nTitle,
+                        type: 'SITE_VISIT_ESTIMATE_SUBMITTED',
+                        message: nMessage,
                         heading: { name: "".concat(customer.name), image: (_b = customer.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
                         payload: {
                             entity: job.id,
                             entityType: 'jobs',
-                            message: "Site visit estimate has been submitted",
+                            message: nMessage,
                             customer: customer.id,
                             event: 'SITE_VISIT_ESTIMATE_SUBMITTED',
                             jobDayId: jobDay === null || jobDay === void 0 ? void 0 : jobDay.id,
@@ -1381,12 +1602,12 @@ exports.JobEvent.on('SITE_VISIT_ESTIMATE_SUBMITTED', function (payload) {
                             quotationId: quotation.id,
                         }
                     }, { push: true, socket: true, database: true });
-                    return [3 /*break*/, 6];
-                case 5:
+                    return [3 /*break*/, 10];
+                case 9:
                     error_18 = _c.sent();
                     logger_1.Logger.error("Error handling SITE_VISIT_ESTIMATE_SUBMITTED event: ".concat(error_18));
-                    return [3 /*break*/, 6];
-                case 6: return [2 /*return*/];
+                    return [3 /*break*/, 10];
+                case 10: return [2 /*return*/];
             }
         });
     });
@@ -1394,11 +1615,11 @@ exports.JobEvent.on('SITE_VISIT_ESTIMATE_SUBMITTED', function (payload) {
 exports.JobEvent.on('CHANGE_ORDER_ESTIMATE_SUBMITTED', function (payload) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var job, quotation, customer, contractor, jobDay, error_19;
+        var job, quotation, customer, contractor, jobDay, customerLang, nTitle, nMessage, error_19;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
-                    _b.trys.push([0, 5, , 6]);
+                    _b.trys.push([0, 7, , 8]);
                     logger_1.Logger.info('handling CHANGE_ORDER_ESTIMATE_SUBMITTED event', payload.job.id);
                     return [4 /*yield*/, job_model_1.JobModel.findById(payload.job.id)];
                 case 1:
@@ -1418,17 +1639,24 @@ exports.JobEvent.on('CHANGE_ORDER_ESTIMATE_SUBMITTED', function (payload) {
                     return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ job: job.id })];
                 case 4:
                     jobDay = _b.sent();
+                    customerLang = customer.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Change order estimate submitted', customerLang)];
+                case 5:
+                    nTitle = _b.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Change order estimate has been submitted', customerLang)];
+                case 6:
+                    nMessage = _b.sent();
                     services_1.NotificationService.sendNotification({
                         user: customer.id,
                         userType: 'customers',
-                        title: 'Change order estimate submitted',
-                        type: 'CHANGE_ORDER_ESTIMATE_SUBMITTED', //
-                        message: "Change order estimate has been submitted",
+                        title: nTitle,
+                        type: 'CHANGE_ORDER_ESTIMATE_SUBMITTED',
+                        message: nMessage,
                         heading: { name: "".concat(contractor.name), image: (_a = contractor.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
                         payload: {
                             entity: job.id,
                             entityType: 'jobs',
-                            message: "Change order estimate has been submitted",
+                            message: nMessage,
                             customer: customer.id,
                             event: 'CHANGE_ORDER_ESTIMATE_SUBMITTED',
                             jobDayId: jobDay === null || jobDay === void 0 ? void 0 : jobDay.id,
@@ -1436,12 +1664,12 @@ exports.JobEvent.on('CHANGE_ORDER_ESTIMATE_SUBMITTED', function (payload) {
                             quotationId: quotation.id
                         }
                     }, { push: true, socket: true, database: true });
-                    return [3 /*break*/, 6];
-                case 5:
+                    return [3 /*break*/, 8];
+                case 7:
                     error_19 = _b.sent();
                     logger_1.Logger.error("Error handling CHANGE_ORDER_ESTIMATE_SUBMITTED event: ".concat(error_19));
-                    return [3 /*break*/, 6];
-                case 6: return [2 /*return*/];
+                    return [3 /*break*/, 8];
+                case 8: return [2 /*return*/];
             }
         });
     });
@@ -1449,11 +1677,11 @@ exports.JobEvent.on('CHANGE_ORDER_ESTIMATE_SUBMITTED', function (payload) {
 exports.JobEvent.on('NEW_JOB_QUOTATION', function (payload) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var job, quotation, customer, contractor, conversation, error_20;
+        var job, quotation, customer, contractor, conversation, customerLang, nTitle, nMessage, error_20;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
-                    _b.trys.push([0, 4, , 5]);
+                    _b.trys.push([0, 6, , 7]);
                     logger_1.Logger.info('handling NEW_JOB_QUOTATION event', payload.job.id);
                     job = payload.job;
                     quotation = payload.quotation;
@@ -1468,17 +1696,24 @@ exports.JobEvent.on('NEW_JOB_QUOTATION', function (payload) {
                     return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(customer.id, 'customers', contractor.id, 'contractors')];
                 case 3:
                     conversation = _b.sent();
+                    customerLang = customer.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('New Job Bid', customerLang)];
+                case 4:
+                    nTitle = _b.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Your job on Repairfind has received a new bid', customerLang)];
+                case 5:
+                    nMessage = _b.sent();
                     services_1.NotificationService.sendNotification({
                         user: customer.id,
                         userType: 'customers',
-                        title: 'New Job Bid',
-                        type: 'NEW_JOB_QUOTATION', //
-                        message: "Your job on Repairfind has received a new bid",
+                        title: nTitle,
+                        type: 'NEW_JOB_QUOTATION',
+                        message: nMessage,
                         heading: { name: "".concat(contractor.name), image: (_a = contractor.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
                         payload: {
                             entity: job.id,
                             entityType: 'jobs',
-                            message: "Your job on Repairfind has received a new bid",
+                            message: nMessage,
                             customer: customer.id,
                             event: 'NEW_JOB_QUOTATION',
                             quotationId: quotation.id,
@@ -1486,12 +1721,12 @@ exports.JobEvent.on('NEW_JOB_QUOTATION', function (payload) {
                             conversationId: conversation.id,
                         }
                     }, { push: true, socket: true, database: true });
-                    return [3 /*break*/, 5];
-                case 4:
+                    return [3 /*break*/, 7];
+                case 6:
                     error_20 = _b.sent();
                     logger_1.Logger.error("Error handling NEW_JOB_QUOTATION event: ".concat(error_20));
-                    return [3 /*break*/, 5];
-                case 5: return [2 /*return*/];
+                    return [3 /*break*/, 7];
+                case 7: return [2 /*return*/];
             }
         });
     });
@@ -1499,11 +1734,11 @@ exports.JobEvent.on('NEW_JOB_QUOTATION', function (payload) {
 exports.JobEvent.on('JOB_QUOTATION_EDITED', function (payload) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var job, quotation, customer, contractor, error_21;
+        var job, quotation, customer, contractor, customerLang, nTitle, nMessage, error_21;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
-                    _b.trys.push([0, 3, , 4]);
+                    _b.trys.push([0, 5, , 6]);
                     logger_1.Logger.info('handling JOB_QUOTATION_EDITED event', payload.job.id);
                     job = payload.job;
                     quotation = payload.quotation;
@@ -1515,28 +1750,35 @@ exports.JobEvent.on('JOB_QUOTATION_EDITED', function (payload) {
                     contractor = _b.sent();
                     if (!customer || !contractor)
                         return [2 /*return*/];
+                    customerLang = customer.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Bid Edited', customerLang)];
+                case 3:
+                    nTitle = _b.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job estimate has been edited by contractor', customerLang)];
+                case 4:
+                    nMessage = _b.sent();
                     services_1.NotificationService.sendNotification({
                         user: customer.id,
                         userType: 'customers',
-                        title: 'Job Bid Edited',
-                        type: 'JOB_QUOTATION_EDITED', //
-                        message: "Job estimate as been edited by contractor",
+                        title: nTitle,
+                        type: 'JOB_QUOTATION_EDITED',
+                        message: nMessage,
                         heading: { name: "".concat(contractor.name), image: (_a = contractor.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
                         payload: {
                             entity: job.id,
                             entityType: 'jobs',
-                            message: "Job estimate as been edited by contractor",
+                            message: nMessage,
                             customer: customer.id,
                             event: 'JOB_QUOTATION_EDITED',
                             quotationId: quotation.id,
                         }
                     }, { push: true, socket: true, database: true });
-                    return [3 /*break*/, 4];
-                case 3:
+                    return [3 /*break*/, 6];
+                case 5:
                     error_21 = _b.sent();
                     logger_1.Logger.error("Error handling JOB_QUOTATION_EDITED event: ".concat(error_21));
-                    return [3 /*break*/, 4];
-                case 4: return [2 /*return*/];
+                    return [3 /*break*/, 6];
+                case 6: return [2 /*return*/];
             }
         });
     });
@@ -1544,11 +1786,11 @@ exports.JobEvent.on('JOB_QUOTATION_EDITED', function (payload) {
 exports.JobEvent.on('CHANGE_ORDER_ESTIMATE_PAID', function (payload) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var job, jobDay, customer, contractor, error_22;
+        var job, jobDay, customer, contractor, contractorLang, nTitle, nMessage, error_22;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
-                    _b.trys.push([0, 4, , 5]);
+                    _b.trys.push([0, 6, , 7]);
                     logger_1.Logger.info('handling CHANGE_ORDER_ESTIMATE_PAID event', payload.job.id);
                     job = payload.job;
                     if (!job)
@@ -1564,162 +1806,188 @@ exports.JobEvent.on('CHANGE_ORDER_ESTIMATE_PAID', function (payload) {
                     contractor = _b.sent();
                     if (!customer || !contractor)
                         return [2 /*return*/];
+                    contractorLang = contractor.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Change Order Estimate Paid', contractorLang)];
+                case 4:
+                    nTitle = _b.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Change order estimate has been paid', contractorLang)];
+                case 5:
+                    nMessage = _b.sent();
                     services_1.NotificationService.sendNotification({
                         user: contractor.id,
                         userType: 'contractors',
-                        title: 'Change Order Estimate Paid',
-                        type: 'CHANGE_ORDER_ESTIMATE_PAID', //
-                        message: "Change order estimate has been paid",
+                        title: nTitle,
+                        type: 'CHANGE_ORDER_ESTIMATE_PAID',
+                        message: nMessage,
                         heading: { name: "".concat(customer.name), image: (_a = customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
                         payload: {
                             entity: job.id,
                             entityType: 'jobs',
-                            message: "Change order estimate has been paid",
+                            message: nMessage,
                             customer: customer.id,
                             event: 'CHANGE_ORDER_ESTIMATE_PAID',
                             jobId: job.id,
                             jobDayId: jobDay === null || jobDay === void 0 ? void 0 : jobDay.id
                         }
                     }, { push: true, socket: true, database: true });
-                    return [3 /*break*/, 5];
-                case 4:
+                    return [3 /*break*/, 7];
+                case 6:
                     error_22 = _b.sent();
                     logger_1.Logger.error("Error handling CHANGE_ORDER_ESTIMATE_PAID event: ".concat(error_22));
-                    return [3 /*break*/, 5];
-                case 5: return [2 /*return*/];
+                    return [3 /*break*/, 7];
+                case 7: return [2 /*return*/];
             }
         });
     });
 });
 // JOB DAY
 exports.JobEvent.on('JOB_DAY_STARTED', function (payload) {
-    var _a, _b, _c;
+    var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var job, jobDay, customer, contractor, error_23;
-        return __generator(this, function (_d) {
-            switch (_d.label) {
+        var job, jobDay, customer, contractor, contractorLang, nTitle, nMessage, customerLang, error_23;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
                 case 0:
-                    _d.trys.push([0, 5, , 6]);
+                    _c.trys.push([0, 9, , 10]);
                     logger_1.Logger.info('handling alert JOB_DAY_STARTED event', payload.job.id);
                     return [4 /*yield*/, payload.job];
                 case 1:
-                    job = _d.sent();
+                    job = _c.sent();
                     return [4 /*yield*/, payload.jobDay];
                 case 2:
-                    jobDay = _d.sent();
+                    jobDay = _c.sent();
                     if (!job) {
                         return [2 /*return*/];
                     }
                     return [4 /*yield*/, customer_model_1.default.findById(job.customer)];
                 case 3:
-                    customer = _d.sent();
+                    customer = _c.sent();
                     return [4 /*yield*/, contractor_model_1.ContractorModel.findById(job.contractor)];
                 case 4:
-                    contractor = _d.sent();
+                    contractor = _c.sent();
                     if (!customer || !contractor)
                         return [2 /*return*/];
-                    // send notification to contractor or company
+                    contractorLang = contractor.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('JobDay Trip Started', contractorLang)];
+                case 5:
+                    nTitle = _c.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('JobDay trip started', contractorLang)];
+                case 6:
+                    nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
                         user: contractor.id,
                         userType: 'contractors',
-                        title: 'JobDay Trip Started',
+                        title: nTitle,
                         heading: { name: contractor.name, image: (_a = contractor.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
                         type: 'JOB_DAY_STARTED',
-                        message: 'JobDay trip  started',
+                        message: nMessage,
                         payload: { event: 'JOB_DAY_STARTED', jobDayId: jobDay._id, entityType: 'jobs', entity: job.id }
-                    }, {
-                        push: true,
-                        socket: true,
-                        database: true
-                    });
+                    }, { push: true, socket: true, database: true });
                     if (job.isAssigned) {
                         // send notification to  assigned contractor
-                        services_1.NotificationService.sendNotification({
-                            user: job.assignment.contractor,
-                            userType: 'contractors',
-                            title: 'JobDay Trip Started',
-                            heading: { name: contractor.name, image: (_b = contractor.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
-                            type: 'JOB_DAY_STARTED',
-                            message: 'JobDay trip  started',
-                            payload: { event: 'JOB_DAY_STARTED', jobDayId: jobDay._id, entityType: 'jobs', entity: job.id }
-                        }, {
-                            push: true,
-                            socket: true,
-                            database: true
-                        });
+                        // NotificationService.sendNotification(
+                        //     {
+                        //         user: job.assignment.contractor,
+                        //         userType: 'contractors',
+                        //         title: 'JobDay Trip Started',
+                        //         heading: { name: contractor.name, image: contractor.profilePhoto?.url },
+                        //         type: 'JOB_DAY_STARTED',
+                        //         message: 'JobDay trip  started',
+                        //         payload: { event: 'JOB_DAY_STARTED', jobDayId: jobDay._id, entityType: 'jobs', entity: job.id }
+                        //     },
+                        //     {
+                        //         push: true,
+                        //         socket: true,
+                        //         database: true
+                        //     }
+                        // )
                     }
-                    // send notification to customer
+                    customerLang = customer.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Day', customerLang)];
+                case 7:
+                    nTitle = _c.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Contractor is on his way', customerLang)];
+                case 8:
+                    nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
                         user: customer.id,
                         userType: 'customers',
-                        title: 'Job Day',
-                        heading: { name: customer.name, image: (_c = customer.profilePhoto) === null || _c === void 0 ? void 0 : _c.url },
+                        title: nTitle,
+                        heading: { name: customer.name, image: (_b = customer.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
                         type: 'JOB_DAY_STARTED',
-                        message: 'Contractor is on his way',
+                        message: nMessage,
                         payload: { event: 'JOB_DAY_STARTED', jobDayId: jobDay._id, entityType: 'jobs', entity: job.id }
-                    }, {
-                        push: true,
-                        socket: true,
-                        database: true
-                    });
-                    return [3 /*break*/, 6];
-                case 5:
-                    error_23 = _d.sent();
+                    }, { push: true, socket: true, database: true });
+                    return [3 /*break*/, 10];
+                case 9:
+                    error_23 = _c.sent();
                     logger_1.Logger.error("Error handling JOB_MARKED_COMPLETE_BY_CONTRACTOR event: ".concat(error_23));
-                    return [3 /*break*/, 6];
-                case 6: return [2 /*return*/];
+                    return [3 /*break*/, 10];
+                case 10: return [2 /*return*/];
             }
         });
     });
 });
 exports.JobEvent.on('JOB_DAY_ARRIVAL', function (payload) {
-    var _a, _b, _c;
+    var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var jobDay, job, verificationCode, customer, contractor, error_24;
-        return __generator(this, function (_d) {
-            switch (_d.label) {
+        var jobDay, job, verificationCode, customer, contractor, customerLang, nTitle, nMessage, contractorLang, error_24;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
                 case 0:
-                    _d.trys.push([0, 5, , 6]);
+                    _c.trys.push([0, 9, , 10]);
                     logger_1.Logger.info('handling alert JOB_DAY_ARRIVAL event', payload.jobDay.id);
                     return [4 /*yield*/, payload.jobDay];
                 case 1:
-                    jobDay = _d.sent();
+                    jobDay = _c.sent();
                     return [4 /*yield*/, job_model_1.JobModel.findById(jobDay.job)];
                 case 2:
-                    job = _d.sent();
+                    job = _c.sent();
                     verificationCode = payload.verificationCode;
                     if (!job || !jobDay)
                         return [2 /*return*/];
                     return [4 /*yield*/, customer_model_1.default.findById(jobDay.customer)];
                 case 3:
-                    customer = _d.sent();
+                    customer = _c.sent();
                     return [4 /*yield*/, contractor_model_1.ContractorModel.findById(jobDay.contractor)];
                 case 4:
-                    contractor = _d.sent();
+                    contractor = _c.sent();
                     if (!customer || !contractor)
                         return [2 /*return*/];
-                    // send notification to  customer
+                    customerLang = customer.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Day', customerLang)];
+                case 5:
+                    nTitle = _c.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Contractor is at your site.', customerLang)];
+                case 6:
+                    nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
-                        user: jobDay.customer.toString(),
+                        user: customer.id,
                         userType: 'customers',
-                        title: 'JobDay',
+                        title: nTitle,
                         heading: { name: contractor.name, image: (_a = contractor.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
                         type: 'JOB_DAY_ARRIVAL',
-                        message: 'Contractor is at your site.',
+                        message: nMessage,
                         payload: { event: 'JOB_DAY_ARRIVAL', jobDayId: jobDay.id, verificationCode: verificationCode, entityType: 'jobs', entity: job.id }
                     }, {
                         push: true,
                         socket: true,
                         database: true
                     });
-                    // send notification to  contractor
+                    contractorLang = contractor.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Day', contractorLang)];
+                case 7:
+                    nTitle = _c.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Day arrival, waiting for confirmation from customer.', contractorLang)];
+                case 8:
+                    nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
                         user: contractor.id,
                         userType: 'contractors',
-                        title: 'JobDay',
+                        title: nTitle,
                         heading: { name: customer.name, image: (_b = customer.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
                         type: 'JOB_DAY_ARRIVAL',
-                        message: 'Job Day arrival, waiting for confirmation from customer.',
+                        message: nMessage,
                         payload: { event: 'JOB_DAY_ARRIVAL', jobDayId: jobDay.id, verificationCode: verificationCode, entityType: 'jobs', entity: job.id }
                     }, {
                         push: true,
@@ -1727,63 +1995,72 @@ exports.JobEvent.on('JOB_DAY_ARRIVAL', function (payload) {
                         database: true
                     });
                     if (job.isAssigned) {
-                        services_1.NotificationService.sendNotification({
-                            user: job.assignment.contractor,
-                            userType: 'contractors',
-                            title: 'JobDay',
-                            heading: { name: customer.name, image: (_c = customer.profilePhoto) === null || _c === void 0 ? void 0 : _c.url },
-                            type: 'JOB_DAY_ARRIVAL',
-                            message: 'Job Day arrival, waiting for confirmation from customer.',
-                            payload: { event: 'JOB_DAY_ARRIVAL', jobDayId: jobDay.id, verificationCode: verificationCode, entityType: 'jobs', entity: job.id }
-                        }, {
-                            push: true,
-                            socket: true,
-                            database: true
-                        });
+                        // NotificationService.sendNotification(
+                        //     {
+                        //         user: job.assignment.contractor,
+                        //         userType: 'contractors',
+                        //         title: 'JobDay',
+                        //         heading: { name: customer.name, image: customer.profilePhoto?.url },
+                        //         type: 'JOB_DAY_ARRIVAL',
+                        //         message: 'Job Day arrival, waiting for confirmation from customer.',
+                        //         payload: { event: 'JOB_DAY_ARRIVAL', jobDayId: jobDay.id, verificationCode, entityType: 'jobs', entity: job.id }
+                        //     },
+                        //     {
+                        //         push: true,
+                        //         socket: true,
+                        //         database: true
+                        //     }
+                        // )
                     }
-                    return [3 /*break*/, 6];
-                case 5:
-                    error_24 = _d.sent();
+                    return [3 /*break*/, 10];
+                case 9:
+                    error_24 = _c.sent();
                     logger_1.Logger.error("Error handling JOB_DAY_ARRIVAL event: ".concat(error_24));
-                    return [3 /*break*/, 6];
-                case 6: return [2 /*return*/];
+                    return [3 /*break*/, 10];
+                case 10: return [2 /*return*/];
             }
         });
     });
 });
 exports.JobEvent.on('JOB_DAY_CONFIRMED', function (payload) {
-    var _a, _b, _c;
+    var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var jobDay, job, customer, contractor, error_25;
-        return __generator(this, function (_d) {
-            switch (_d.label) {
+        var jobDay, job, customer, contractor, contractorLang, nTitle, nMessage, customerLang, error_25;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
                 case 0:
-                    _d.trys.push([0, 5, , 6]);
+                    _c.trys.push([0, 9, , 10]);
                     logger_1.Logger.info('handling alert JOB_DAY_CONFIRMED event', payload.jobDay.id);
                     return [4 /*yield*/, payload.jobDay];
                 case 1:
-                    jobDay = _d.sent();
+                    jobDay = _c.sent();
                     return [4 /*yield*/, job_model_1.JobModel.findById(jobDay.job)];
                 case 2:
-                    job = _d.sent();
+                    job = _c.sent();
                     if (!job || !jobDay)
                         return [2 /*return*/];
                     return [4 /*yield*/, customer_model_1.default.findById(jobDay.customer)];
                 case 3:
-                    customer = _d.sent();
+                    customer = _c.sent();
                     return [4 /*yield*/, contractor_model_1.ContractorModel.findById(jobDay.contractor)];
                 case 4:
-                    contractor = _d.sent();
+                    contractor = _c.sent();
                     if (!customer || !contractor)
                         return [2 /*return*/];
-                    // send notification to  contractor
+                    contractorLang = contractor.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('JobDay Confirmation', contractorLang)];
+                case 5:
+                    nTitle = _c.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Customer has confirmed your arrival.', contractorLang)];
+                case 6:
+                    nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
                         user: job.contractor,
                         userType: 'contractors',
-                        title: 'JobDay confirmation',
+                        title: nTitle,
                         heading: { name: customer.name, image: (_a = customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
                         type: 'JOB_DAY_CONFIRMED',
-                        message: 'Customer has confirmed your arrival.',
+                        message: nMessage,
                         payload: { event: 'JOB_DAY_CONFIRMED', jobDayId: jobDay.id, entityType: 'jobs', entity: job.id }
                     }, {
                         push: true,
@@ -1791,40 +2068,45 @@ exports.JobEvent.on('JOB_DAY_CONFIRMED', function (payload) {
                         database: true
                     });
                     if (job.assignment) {
-                        services_1.NotificationService.sendNotification({
-                            user: job.assignment.contractor,
-                            userType: 'contractors',
-                            title: 'JobDay confirmation',
-                            heading: { name: customer.name, image: (_b = customer.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
-                            type: 'JOB_DAY_CONFIRMED',
-                            message: 'Customer has confirmed your arrival.',
-                            payload: { event: 'JOB_DAY_CONFIRMED', jobDayId: jobDay.id, entityType: 'jobs', entity: job.id }
-                        }, {
-                            push: true,
-                            socket: true,
-                            database: true
-                        });
+                        // NotificationService.sendNotification(
+                        //     {
+                        //         user: job.assignment.contractor,
+                        //         userType: 'contractors',
+                        //         title: 'JobDay confirmation',
+                        //         heading: { name: customer.name, image: customer.profilePhoto?.url },
+                        //         type: 'JOB_DAY_CONFIRMED',
+                        //         message: 'Customer has confirmed your arrival.',
+                        //         payload: { event: 'JOB_DAY_CONFIRMED', jobDayId: jobDay.id, entityType: 'jobs', entity: job.id }
+                        //     },
+                        //     {
+                        //         push: true,
+                        //         socket: true,
+                        //         database: true
+                        //     }
+                        // )
                     }
-                    // send notification to  customer
+                    customerLang = customer.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('JobDay confirmation', customerLang)];
+                case 7:
+                    nTitle = _c.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation("You successfully confirmed the contractor's arrival.", customerLang)];
+                case 8:
+                    nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
                         user: job.customer,
                         userType: 'customers',
-                        title: 'JobDay confirmation',
-                        heading: { name: contractor.name, image: (_c = contractor.profilePhoto) === null || _c === void 0 ? void 0 : _c.url },
+                        title: nTitle,
+                        heading: { name: contractor.name, image: (_b = contractor.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
                         type: 'JOB_DAY_CONFIRMED',
-                        message: "You successfully confirmed the contractor's arrival.",
+                        message: nMessage,
                         payload: { event: 'JOB_DAY_CONFIRMED', jobDayId: jobDay.id, entityType: 'jobs', entity: job.id }
-                    }, {
-                        push: true,
-                        socket: true,
-                        database: true
-                    });
-                    return [3 /*break*/, 6];
-                case 5:
-                    error_25 = _d.sent();
+                    }, { push: true, socket: true, database: true });
+                    return [3 /*break*/, 10];
+                case 9:
+                    error_25 = _c.sent();
                     logger_1.Logger.error("Error handling JOB_DAY_CONFIRMED event: ".concat(error_25));
-                    return [3 /*break*/, 6];
-                case 6: return [2 /*return*/];
+                    return [3 /*break*/, 10];
+                case 10: return [2 /*return*/];
             }
         });
     });
@@ -1870,21 +2152,22 @@ exports.JobEvent.on('JOB_REFUND_REQUESTED', function (payload) {
 exports.JobEvent.on('NEW_JOB_ENQUIRY', function (payload) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var job_1, enquiry, customer_1, contractor, savedJobs, contractorIds, devices, emailSubject, emailContent, html, error_27;
+        var job_2, enquiry, customer_1, contractor, savedJobs, contractorIds, devices, customerLang, nTitle, nMessage, emailSubject, emailContent, html, error_27;
+        var _this = this;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
-                    _b.trys.push([0, 7, , 8]);
+                    _b.trys.push([0, 10, , 11]);
                     logger_1.Logger.info('handling alert NEW_JOB_ENQUIRY event', payload.jobId);
                     return [4 /*yield*/, job_model_1.JobModel.findById(payload.jobId)];
                 case 1:
-                    job_1 = _b.sent();
+                    job_2 = _b.sent();
                     return [4 /*yield*/, job_enquiry_model_1.JobEnquiryModel.findById(payload.enquiryId)];
                 case 2:
                     enquiry = _b.sent();
-                    if (!job_1 || !enquiry)
+                    if (!job_2 || !enquiry)
                         return [2 /*return*/];
-                    return [4 /*yield*/, customer_model_1.default.findOne({ _id: job_1.customer })];
+                    return [4 /*yield*/, customer_model_1.default.findOne({ _id: job_2.customer })];
                 case 3:
                     customer_1 = _b.sent();
                     return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: enquiry.contractor })];
@@ -1892,57 +2175,79 @@ exports.JobEvent.on('NEW_JOB_ENQUIRY', function (payload) {
                     contractor = _b.sent();
                     if (!customer_1 || !contractor)
                         return [2 /*return*/];
-                    return [4 /*yield*/, contractor_saved_job_model_1.default.find({ job: job_1.id })];
+                    return [4 /*yield*/, contractor_saved_job_model_1.default.find({ job: job_2.id })];
                 case 5:
                     savedJobs = _b.sent();
                     contractorIds = savedJobs.map(function (savedJob) { return savedJob.contractor; });
                     return [4 /*yield*/, contractor_devices_model_1.default.find({ contractor: { $in: contractorIds } })];
                 case 6:
                     devices = _b.sent();
-                    devices.map(function (device) {
+                    devices.map(function (device) { return __awaiter(_this, void 0, void 0, function () {
+                        var contractor, contractorLang, nTitle, nMessage;
                         var _a;
-                        services_1.NotificationService.sendNotification({
-                            user: device.contractor.toString(),
-                            userType: 'contractors',
-                            title: 'New Job Enquiry',
-                            type: 'NEW_JOB_ENQUIRY',
-                            heading: { name: customer_1.name, image: (_a = customer_1.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
-                            message: 'A Job you  saved on Repairfind has a new enquiry',
-                            payload: { event: 'NEW_JOB_ENQUIRY', entityType: 'jobs', entity: job_1.id }
-                        }, {
-                            push: true,
-                            socket: true,
-                            database: true
+                        return __generator(this, function (_b) {
+                            switch (_b.label) {
+                                case 0: return [4 /*yield*/, contractor_model_1.ContractorModel.findById(device.contractor)];
+                                case 1:
+                                    contractor = _b.sent();
+                                    if (!contractor) return [3 /*break*/, 4];
+                                    contractorLang = contractor.language;
+                                    return [4 /*yield*/, i18n_1.i18n.getTranslation('New Job Enquiry', contractorLang)];
+                                case 2:
+                                    nTitle = _b.sent();
+                                    return [4 /*yield*/, i18n_1.i18n.getTranslation('A Job you saved on Repairfind has a new enquiry', contractorLang)];
+                                case 3:
+                                    nMessage = _b.sent();
+                                    services_1.NotificationService.sendNotification({
+                                        user: device.contractor.toString(),
+                                        userType: 'contractors',
+                                        title: nTitle,
+                                        type: 'NEW_JOB_ENQUIRY',
+                                        heading: { name: customer_1.name, image: (_a = customer_1.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
+                                        message: nMessage,
+                                        payload: { event: 'NEW_JOB_ENQUIRY', entityType: 'jobs', entity: job_2.id }
+                                    }, { push: true, socket: true, database: true });
+                                    _b.label = 4;
+                                case 4: return [2 /*return*/];
+                            }
                         });
-                    });
-                    if (customer_1) {
-                        services_1.NotificationService.sendNotification({
-                            user: job_1.customer,
-                            userType: 'customers',
-                            title: 'New Job Enquiry',
-                            heading: { name: contractor.name, image: (_a = contractor.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
-                            type: 'NEW_JOB_ENQUIRY',
-                            message: 'Your job on Repairfind has a new enquiry',
-                            payload: { event: 'NEW_JOB_ENQUIRY', entityType: 'jobs', entity: job_1.id }
-                        }, { push: true, socket: true, database: true });
-                        emailSubject = 'New Job Enquiry ';
-                        emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(customer_1.name, ",</p>\n                <p style=\"color: #333333;\">Your Job on Repairfind has a new enquiry</p>\n                <div style=\"background: whitesmoke;padding: 10px; border-radius: 10px;\">\n                <p style=\"border-bottom: 1px solid lightgray; padding-bottom: 5px;\"><strong>Job Title:</strong> ").concat(job_1.description, "</p>\n                <p style=\"border-bottom: 1px solid lightgray; padding-bottom: 5px;\"><strong>Enquiry:</strong> ").concat(enquiry.enquiry, "</p>\n                </div>\n                <p style=\"color: #333333;\">Do well to check and follow up as soon as possible </p>\n                ");
-                        html = (0, generic_email_1.GenericEmailTemplate)({ name: customer_1.name, subject: emailSubject, content: emailContent });
-                        services_1.EmailService.send(customer_1.email, emailSubject, html);
-                    }
-                    return [3 /*break*/, 8];
+                    }); });
+                    if (!customer_1) return [3 /*break*/, 9];
+                    customerLang = customer_1.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('New Job Enquiry', customerLang)];
                 case 7:
+                    nTitle = _b.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Your job on Repairfind has a new enquiry', customerLang)];
+                case 8:
+                    nMessage = _b.sent();
+                    services_1.NotificationService.sendNotification({
+                        user: customer_1.id,
+                        userType: 'customers',
+                        title: nTitle,
+                        heading: { name: contractor.name, image: (_a = contractor.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
+                        type: 'NEW_JOB_ENQUIRY',
+                        message: nMessage,
+                        payload: { event: 'NEW_JOB_ENQUIRY', entityType: 'jobs', entity: job_2.id }
+                    }, { push: true, socket: true, database: true });
+                    emailSubject = 'New Job Enquiry ';
+                    emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(customer_1.name, ",</p>\n                <p style=\"color: #333333;\">Your Job on Repairfind has a new enquiry</p>\n                <div style=\"background: whitesmoke;padding: 10px; border-radius: 10px;\">\n                <p style=\"border-bottom: 1px solid lightgray; padding-bottom: 5px;\"><strong>Job Title:</strong> ").concat(job_2.description, "</p>\n                <p style=\"border-bottom: 1px solid lightgray; padding-bottom: 5px;\"><strong>Enquiry:</strong> ").concat(enquiry.enquiry, "</p>\n                </div>\n                <p style=\"color: #333333;\">Do well to check and follow up as soon as possible </p>\n                ");
+                    html = (0, generic_email_1.GenericEmailTemplate)({ name: customer_1.name, subject: emailSubject, content: emailContent });
+                    services_1.EmailService.send(customer_1.email, emailSubject, html);
+                    _b.label = 9;
+                case 9: return [3 /*break*/, 11];
+                case 10:
                     error_27 = _b.sent();
                     logger_1.Logger.error("Error handling NEW_JOB_ENQUIRY event: ".concat(error_27));
-                    return [3 /*break*/, 8];
-                case 8: return [2 /*return*/];
+                    return [3 /*break*/, 11];
+                case 11: return [2 /*return*/];
             }
         });
     });
 });
 exports.JobEvent.on('NEW_JOB_ENQUIRY_REPLY', function (payload) {
     return __awaiter(this, void 0, void 0, function () {
-        var job_2, enquiry, customer_2, contractor, savedJobs, contractorIds, devices, deviceTokens, emailSubject, emailContent, html, error_28;
+        var job_3, enquiry, customer_2, contractor, savedJobs, contractorIds, devices, deviceTokens, emailSubject, emailContent, html, error_28;
+        var _this = this;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -1950,13 +2255,13 @@ exports.JobEvent.on('NEW_JOB_ENQUIRY_REPLY', function (payload) {
                     logger_1.Logger.info('handling alert NEW_JOB_ENQUIRY_REPLY event', payload.jobId);
                     return [4 /*yield*/, job_model_1.JobModel.findById(payload.jobId)];
                 case 1:
-                    job_2 = _a.sent();
+                    job_3 = _a.sent();
                     return [4 /*yield*/, job_enquiry_model_1.JobEnquiryModel.findById(payload.enquiryId)];
                 case 2:
                     enquiry = _a.sent();
-                    if (!job_2 || !enquiry)
+                    if (!job_3 || !enquiry)
                         return [2 /*return*/];
-                    return [4 /*yield*/, customer_model_1.default.findOne({ _id: job_2.customer })];
+                    return [4 /*yield*/, customer_model_1.default.findOne({ _id: job_3.customer })];
                 case 3:
                     customer_2 = _a.sent();
                     return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: enquiry.contractor })];
@@ -1964,7 +2269,7 @@ exports.JobEvent.on('NEW_JOB_ENQUIRY_REPLY', function (payload) {
                     contractor = _a.sent();
                     if (!customer_2 || !contractor)
                         return [2 /*return*/];
-                    return [4 /*yield*/, contractor_saved_job_model_1.default.find({ job: job_2.id })];
+                    return [4 /*yield*/, contractor_saved_job_model_1.default.find({ job: job_3.id })];
                 case 5:
                     savedJobs = _a.sent();
                     contractorIds = savedJobs.map(function (savedJob) { return savedJob.contractor; });
@@ -1972,38 +2277,40 @@ exports.JobEvent.on('NEW_JOB_ENQUIRY_REPLY', function (payload) {
                 case 6:
                     devices = _a.sent();
                     deviceTokens = devices.map(function (device) { return device.expoToken; });
-                    devices.map(function (device) {
+                    devices.map(function (device) { return __awaiter(_this, void 0, void 0, function () {
+                        var contractor, contractorLang, nTitle, nMessage;
                         var _a;
-                        services_1.NotificationService.sendNotification({
-                            user: device.contractor.toString(),
-                            userType: 'contractors',
-                            title: 'New Job Enquiry Reply',
-                            type: 'NEW_JOB_ENQUIRY_REPLY',
-                            heading: { name: customer_2.name, image: (_a = customer_2.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
-                            message: 'A job you are following on Repairfind has a new reply from the customer',
-                            payload: { event: 'NEW_JOB_ENQUIRY_REPLY', entityType: 'jobs', entity: job_2.id }
-                        }, {
-                            push: true,
-                            socket: true,
-                            database: true
+                        return __generator(this, function (_b) {
+                            switch (_b.label) {
+                                case 0: return [4 /*yield*/, contractor_model_1.ContractorModel.findById(device.contractor)];
+                                case 1:
+                                    contractor = _b.sent();
+                                    if (!contractor) return [3 /*break*/, 4];
+                                    contractorLang = contractor.language;
+                                    return [4 /*yield*/, i18n_1.i18n.getTranslation('New Job Enquiry Reply', contractorLang)];
+                                case 2:
+                                    nTitle = _b.sent();
+                                    return [4 /*yield*/, i18n_1.i18n.getTranslation('A job you are following on Repairfind has a new reply from the customer', contractorLang)];
+                                case 3:
+                                    nMessage = _b.sent();
+                                    services_1.NotificationService.sendNotification({
+                                        user: contractor.id,
+                                        userType: 'contractors',
+                                        title: nTitle,
+                                        type: 'NEW_JOB_ENQUIRY_REPLY',
+                                        heading: { name: customer_2.name, image: (_a = customer_2.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
+                                        message: nMessage,
+                                        payload: { event: 'NEW_JOB_ENQUIRY_REPLY', entityType: 'jobs', entity: job_3.id }
+                                    }, { push: true, socket: true, database: true });
+                                    _b.label = 4;
+                                case 4: return [2 /*return*/];
+                            }
                         });
-                    });
-                    // sendPushNotifications(deviceTokens, {
-                    //     title: 'New Job Enquiry Reply',
-                    //     type: 'NEW_JOB_ENQUIRY_REPLY',
-                    //     icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
-                    //     body: 'A job you are following on Repairfind has a new reply from the customer',
-                    //     data: {
-                    //         entity: job.id,
-                    //         entityType: 'jobs',
-                    //         message: `A job you are following on Repairfind has a new reply from the customer`,
-                    //         event: 'NEW_JOB_QUESTION_REPLY',
-                    //     }
-                    // })
+                    }); });
                     // send notification to  contractor  that asked the question
                     if (customer_2 && contractor) {
                         emailSubject = 'Job Enquiry Reply';
-                        emailContent = "\n                    <h2>".concat(emailSubject, "</h2>\n                    <p>Hello ").concat(contractor.name, ",</p>\n                    <p style=\"color: #333333;\">Customer has replied to your enquiry on Repairfind</p>\n                    <p style=\"color: #333333;\">Do well to check and follow up </p>\n                    <p><strong>Job Title:</strong> ").concat(job_2.description, "</p>\n                    <p><strong>Your Enquiry</strong> ").concat(enquiry.enquiry, "</p>\n                    <p><strong>Reply</strong> ").concat(enquiry.replies ? enquiry.replies[0] : '', "</p>\n                    ");
+                        emailContent = "\n                    <h2>".concat(emailSubject, "</h2>\n                    <p>Hello ").concat(contractor.name, ",</p>\n                    <p style=\"color: #333333;\">Customer has replied to your enquiry on Repairfind</p>\n                    <p style=\"color: #333333;\">Do well to check and follow up </p>\n                    <p><strong>Job Title:</strong> ").concat(job_3.description, "</p>\n                    <p><strong>Your Enquiry</strong> ").concat(enquiry.enquiry, "</p>\n                    <p><strong>Reply</strong> ").concat(enquiry.replies ? enquiry.replies[0] : '', "</p>\n                    ");
                         html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
                         services_1.EmailService.send(contractor.email, emailSubject, html);
                     }

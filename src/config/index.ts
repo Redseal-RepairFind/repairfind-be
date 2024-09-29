@@ -33,6 +33,10 @@ export const config = {
         serviceJson: <string>process.env.GOOGLE_SERVICE_JSON || "https://repairfindbucket.s3.eu-west-3.amazonaws.com/googleService.json"
     },
 
+    i18n: {
+        engine: <'google'| 'yandex'| 'libre'| 'deepl'>process.env.I18N_ENGINE || 'google', 
+        key: <string>process.env.I18N_ENGINE_KEY,
+    },
 
     apple: {
         apnAuthKey: <string>process.env.APN_AUTH_KEY,

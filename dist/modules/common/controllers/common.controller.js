@@ -46,7 +46,7 @@ var country_schema_1 = require("../../../database/common/country.schema");
 var bank_schema_1 = require("../../../database/common/bank.schema");
 var payment_util_1 = require("../../../utils/payment.util");
 var app_versions_model_1 = require("../../../database/common/app_versions.model");
-var google_1 = require("../../../services/google");
+var i18n_1 = require("../../../i18n");
 var getBankList = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var data, err_1;
     return __generator(this, function (_a) {
@@ -236,7 +236,7 @@ var translateText = function (req, res, next) { return __awaiter(void 0, void 0,
             case 0:
                 _b.trys.push([0, 2, , 3]);
                 _a = req.body, text = _a.text, targetLang = _a.targetLang;
-                return [4 /*yield*/, google_1.GoogleServiceProvider.translate.translateText(text, targetLang)];
+                return [4 /*yield*/, i18n_1.i18n.cloudTranslate(text, targetLang)];
             case 1:
                 translatedText = _b.sent();
                 return [2 /*return*/, res.json({ success: true, message: "Text translated", data: translatedText })];

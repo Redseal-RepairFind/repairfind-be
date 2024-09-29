@@ -69,6 +69,7 @@
     "redis": "^4.6.13",
     "socket.io": "4.6.1",
     "stripe": "14.20.0",
+    "translate": "^1.4.1",
     "twilio": "^5.0.3",
     "uuid": "^9.0.0",
     "winston": "3.12.0",

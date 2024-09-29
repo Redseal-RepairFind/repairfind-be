@@ -1,0 +1,120 @@
+{
+    "you_ve_received_a_job_request_from": {
+        "en": "You've received a job request from",
+        "fr": "Vous avez reçu une demande d'emploi de",
+        "pa": "ਤੁਹਾਨੂੰ ਇਸ ਤੋਂ ਨੌਕਰੀ ਦੀ ਬੇਨਤੀ ਪ੍ਰਾਪਤ ਹੋਈ ਹੈ",
+        "zh": "您收到了来自以下人员的工作请求",
+        "es": "Has recibido una solicitud de trabajo de"
+    },
+    "new_job_request": {
+        "en": "New Job Request",
+        "fr": "Nouvelle demande d'emploi",
+        "pa": "ਨਵੀਂ ਨੌਕਰੀ ਦੀ ਬੇਨਤੀ",
+        "zh": "新工作请求",
+        "es": "Nueva solicitud de trabajo"
+    },
+    "job_request_accepted": {
+        "en": "Job Request Accepted",
+        "fr": "Demande d'emploi acceptée",
+        "pa": "ਨੌਕਰੀ ਦੀ ਬੇਨਤੀ ਸਵੀਕਾਰ ਕੀਤੀ ਗਈ",
+        "zh": "工作请求已接受",
+        "es": "Solicitud de trabajo aceptada"
+    },
+    "you_ve_accepted_a_job_request_from": {
+        "en": "You've accepted a job request from",
+        "fr": "Vous avez accepté une demande d'emploi de",
+        "pa": "ਤੁਸੀਂ ਇਸ ਤੋਂ ਨੌਕਰੀ ਦੀ ਬੇਨਤੀ ਨੂੰ ਸਵੀਕਾਰ ਕਰ ਲਿਆ ਹੈ",
+        "zh": "您已接受来自",
+        "es": "Has aceptado una solicitud de trabajo de"
+    },
+    "contractor_has_accepted_your_job_request": {
+        "en": "Contractor has accepted your job request",
+        "fr": "L'entrepreneur a accepté votre demande d'emploi",
+        "pa": "ਠੇਕੇਦਾਰ ਨੇ ਤੁਹਾਡੀ ਨੌਕਰੀ ਦੀ ਬੇਨਤੀ ਸਵੀਕਾਰ ਕਰ ਲਈ ਹੈ",
+        "zh": "承包商已接受您的工作请求",
+        "es": "El contratista ha aceptado su solicitud de trabajo"
+    },
+    "job_request_rejected": {
+        "en": "Job Request Rejected",
+        "fr": "Demande d'emploi rejetée",
+        "pa": "ਨੌਕਰੀ ਦੀ ਬੇਨਤੀ ਅਸਵੀਕਾਰ ਕੀਤੀ ਗਈ",
+        "zh": "工作请求被拒绝",
+        "es": "Solicitud de trabajo rechazada"
+    },
+    "you_ve_rejected_a_job_request_from": {
+        "en": "You've rejected a job request from",
+        "fr": "Vous avez rejeté une demande d'emploi de",
+        "pa": "ਤੁਸੀਂ ਇਸ ਤੋਂ ਨੌਕਰੀ ਦੀ ਬੇਨਤੀ ਨੂੰ ਅਸਵੀਕਾਰ ਕਰ ਦਿੱਤਾ ਹੈ",
+        "zh": "您拒绝了来自",
+        "es": "Has rechazado una solicitud de trabajo de"
+    },
+    "contractor_has_rejected_your_job_request": {
+        "en": "Contractor has rejected your job request",
+        "fr": "L'entrepreneur a rejeté votre demande d'emploi",
+        "pa": "ਠੇਕੇਦਾਰ ਨੇ ਤੁਹਾਡੀ ਨੌਕਰੀ ਦੀ ਬੇਨਤੀ ਨੂੰ ਰੱਦ ਕਰ ਦਿੱਤਾ ਹੈ",
+        "zh": "承包商拒绝了您的工作请求",
+        "es": "El contratista ha rechazado su solicitud de trabajo"
+    },
+    "a_new_job_listing_has_been_added": {
+        "en": "A new Job listing has been added",
+        "fr": "Une nouvelle liste d'emplois a été ajoutée",
+        "pa": "ਇੱਕ ਨਵੀਂ ਨੌਕਰੀ ਦੀ ਸੂਚੀ ਸ਼ਾਮਲ ਕੀਤੀ ਗਈ ਹੈ",
+        "zh": "添加了新的职位列表",
+        "es": "Se ha agregado una nueva oferta de trabajo."
+    },
+    "new_job_listing": {
+        "en": "New Job Listing",
+        "fr": "Nouvelle offre d'emploi",
+        "pa": "ਨਵੀਂ ਨੌਕਰੀ ਦੀ ਸੂਚੀ",
+        "zh": "新职位列表",
+        "es": "Nueva oferta de trabajo"
+    },
+    "there_is_a_new_job_listing_that_match_your_profile": {
+        "en": "There is a new job listing  that match your profile",
+        "fr": "Il y a une nouvelle offre d'emploi qui correspond à votre profil",
+        "pa": "ਇੱਕ ਨਵੀਂ ਨੌਕਰੀ ਦੀ ਸੂਚੀ ਹੈ ਜੋ ਤੁਹਾਡੇ ਪ੍ਰੋਫਾਈਲ ਨਾਲ ਮੇਲ ਖਾਂਦੀ ਹੈ",
+        "zh": "有一个与您的个人资料相匹配的新职位列表",
+        "es": "Hay una nueva oferta de trabajo que coincide con tu perfil"
+    },
+    "your_job_on_repairfind_has_been_canceled": {
+        "en": "Your job on Repairfind has been canceled",
+        "fr": "Votre travail sur Repairfind a été annulé",
+        "pa": "ਰਿਪੇਅਰਫਾਈਂਡ 'ਤੇ ਤੁਹਾਡੀ ਨੌਕਰੀ ਰੱਦ ਕਰ ਦਿੱਤੀ ਗਈ ਹੈ",
+        "zh": "您在 Repairfind 上的工作已被取消",
+        "es": "Su trabajo en Repairfind ha sido cancelado"
+    },
+    "job_revisit_enabled": {
+        "en": "Job Revisit  Enabled",
+        "fr": "Reprise du travail activée",
+        "pa": "ਜੌਬ ਰੀਵਿਜ਼ਿਟ ਚਾਲੂ ਕੀਤੀ ਗਈ",
+        "zh": "启用工作重访",
+        "es": "Revisión de trabajo habilitada"
+    },
+    "a_revisit_for_your_disputed_job_has_been_enabled_on_repairfind": {
+        "en": "A revisit for your disputed job has been enabled on Repairfind",
+        "fr": "Une nouvelle visite pour votre travail litigieux a été activée sur Repairfind",
+        "pa": "ਰਿਪੇਅਰਫਾਈਂਡ 'ਤੇ ਤੁਹਾਡੀ ਵਿਵਾਦਿਤ ਨੌਕਰੀ ਲਈ ਮੁੜ-ਵਿਜ਼ਿਟ ਨੂੰ ਯੋਗ ਬਣਾਇਆ ਗਿਆ ਹੈ",
+        "zh": "Repairfind 已启用对您有争议的工作的重新访问",
+        "es": "Se ha habilitado una nueva visita para su trabajo en disputa en Repairfind"
+    },
+    "job_quotation_declined": {
+        "en": "Job Quotation Declined",
+        "fr": "Devis d'emploi refusé",
+        "pa": "ਨੌਕਰੀ ਦਾ ਹਵਾਲਾ ਅਸਵੀਕਾਰ ਕੀਤਾ ਗਿਆ",
+        "zh": "工作报价被拒绝",
+        "es": "Oferta de trabajo rechazada"
+    },
+    "_your_job_quotation_for_a_job_on_repairfind_was_declined": {
+        "en": "`Your job quotation for a job on RepairFind was declined",
+        "fr": "`Votre offre d'emploi pour un travail sur RepairFind a été refusée",
+        "pa": "ਰਿਪੇਅਰਫਾਈਂਡ 'ਤੇ ਨੌਕਰੀ ਲਈ ਤੁਹਾਡੀ ਨੌਕਰੀ ਦਾ ਹਵਾਲਾ ਅਸਵੀਕਾਰ ਕੀਤਾ ਗਿਆ ਸੀ",
+        "zh": "“您在 RepairFind 上的工作报价已被拒绝",
+        "es": "`Su oferta de trabajo para un trabajo en RepairFind fue rechazada"
+    },
+    "your_quotation_for_a_job_on_repairfind_was_declined": {
+        "en": "Your  quotation for a job  on RepairFind was declined",
+        "fr": "Votre devis pour un travail sur RepairFind a été refusé",
+        "pa": "RepairFind 'ਤੇ ਨੌਕਰੀ ਲਈ ਤੁਹਾਡਾ ਹਵਾਲਾ ਅਸਵੀਕਾਰ ਕੀਤਾ ਗਿਆ ਸੀ",
+        "zh": "您对 RepairFind 的工作报价被拒绝"
+    }
+}

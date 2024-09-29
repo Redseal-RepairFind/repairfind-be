@@ -55,6 +55,10 @@ exports.config = {
         apiKey: process.env.GOOGLE_API_KEY,
         serviceJson: process.env.GOOGLE_SERVICE_JSON || "https://repairfindbucket.s3.eu-west-3.amazonaws.com/googleService.json"
     },
+    i18n: {
+        engine: process.env.I18N_ENGINE || 'google',
+        key: process.env.I18N_ENGINE_KEY,
+    },
     apple: {
         apnAuthKey: process.env.APN_AUTH_KEY,
         teamId: process.env.APPLE_TEAM_ID,
