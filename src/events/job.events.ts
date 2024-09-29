@@ -260,7 +260,7 @@ JobEvent.on('NEW_JOB_LISTING', async function (payload) {
                 
                 if(contractor){
                     const contractorLang = contractor.language;
-                    let nTitle = await i18n.getTranslation('New Job Enquiry Reply', contractorLang);
+                    let nTitle = await i18n.getTranslation('New Job Listing', contractorLang);
                     let nMessage = await i18n.getTranslation('There is a new job listing  that match your profile', contractorLang);
                     sendPushNotifications([device.deviceToken], {
                         title: nTitle,
@@ -282,7 +282,7 @@ JobEvent.on('NEW_JOB_LISTING', async function (payload) {
 
 
     } catch (error) {
-        Logger.error(`Error handling NEW_JOB_REQUEST event: ${error}`);
+        Logger.error(`Error handling NEW_JOB_LISTING event: ${error}`);
     }
 });
 

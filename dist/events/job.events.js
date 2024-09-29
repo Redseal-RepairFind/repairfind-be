@@ -389,7 +389,7 @@ exports.JobEvent.on('NEW_JOB_LISTING', function (payload) {
                                     contractor = _a.sent();
                                     if (!contractor) return [3 /*break*/, 4];
                                     contractorLang = contractor.language;
-                                    return [4 /*yield*/, i18n_1.i18n.getTranslation('New Job Enquiry Reply', contractorLang)];
+                                    return [4 /*yield*/, i18n_1.i18n.getTranslation('New Job Listing', contractorLang)];
                                 case 2:
                                     nTitle = _a.sent();
                                     return [4 /*yield*/, i18n_1.i18n.getTranslation('There is a new job listing  that match your profile', contractorLang)];
@@ -416,7 +416,7 @@ exports.JobEvent.on('NEW_JOB_LISTING', function (payload) {
                 case 8: return [3 /*break*/, 10];
                 case 9:
                     error_4 = _b.sent();
-                    logger_1.Logger.error("Error handling NEW_JOB_REQUEST event: ".concat(error_4));
+                    logger_1.Logger.error("Error handling NEW_JOB_LISTING event: ".concat(error_4));
                     return [3 /*break*/, 10];
                 case 10: return [2 /*return*/];
             }
