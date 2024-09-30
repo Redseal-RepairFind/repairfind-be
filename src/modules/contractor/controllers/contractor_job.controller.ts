@@ -809,7 +809,7 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
 
   // Assume isGuest
   if(!contractorId){
-    const {data, error} = await applyAPIFeature(JobModel.find({status: JOB_STATUS.PENDING}), req.query)
+    const {data, error} = await applyAPIFeature(JobModel.find({status: JOB_STATUS.PENDING, type: JobType.LISTING}), req.query)
     return res.status(200).json({ success: true, message: 'Jobs retrieved successfully', data: data });
   }
   const profile = await ContractorProfileModel.findOne({ contractor: contractorId });
