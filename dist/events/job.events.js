@@ -120,10 +120,16 @@ exports.JobEvent.on('NEW_JOB_REQUEST', function (payload) {
                     conversation = _c.sent();
                     if (!(job && contractor && customer)) return [3 /*break*/, 9];
                     contractorLang = contractor.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation("You've received a job request from", contractorLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: "You've received a job request from",
+                            lang: contractorLang
+                        })];
                 case 5:
                     nMessage = _c.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('New Job Request', contractorLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'New Job Request',
+                            lang: contractorLang
+                        })];
                 case 6:
                     nTitle = _c.sent();
                     services_1.NotificationService.sendNotification({
@@ -142,10 +148,16 @@ exports.JobEvent.on('NEW_JOB_REQUEST', function (payload) {
                         }
                     }, { database: true, push: true, socket: true });
                     customerLang = customer.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation("You've sent a job request to", customerLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: "You've sent a job request to",
+                            lang: customerLang
+                        })];
                 case 7:
                     nMessage = _c.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('New Job Request', customerLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'New Job Request',
+                            lang: customerLang
+                        })];
                 case 8:
                     nTitle = _c.sent();
                     services_1.NotificationService.sendNotification({
@@ -195,10 +207,16 @@ exports.JobEvent.on('JOB_REQUEST_ACCEPTED', function (payload) {
                     job = payload.job;
                     if (!(job && contractor && customer)) return [3 /*break*/, 7];
                     contractorLang = contractor.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation("You've accepted a job request from", contractorLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: "You've accepted a job request from",
+                            lang: contractorLang
+                        })];
                 case 3:
                     nMessage = _c.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Request Accepted', contractorLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Job Request Accepted',
+                            lang: contractorLang
+                        })];
                 case 4:
                     nTitle = _c.sent();
                     services_1.NotificationService.sendNotification({
@@ -224,10 +242,16 @@ exports.JobEvent.on('JOB_REQUEST_ACCEPTED', function (payload) {
                         database: true
                     });
                     customerLang = customer.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Request Accepted', customerLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Job Request Accepted',
+                            lang: customerLang
+                        })];
                 case 5:
                     nTitle = _c.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation("Contractor has accepted your job request", customerLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: "Contractor has accepted your job request",
+                            lang: customerLang
+                        })];
                 case 6:
                     nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
@@ -281,10 +305,16 @@ exports.JobEvent.on('JOB_REQUEST_REJECTED', function (payload) {
                     job = payload.job;
                     if (!(job && contractor && customer)) return [3 /*break*/, 7];
                     contractorLang = contractor.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Request Rejected', contractorLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Job Request Rejected',
+                            lang: contractorLang
+                        })];
                 case 3:
                     nTitle = _c.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation("You've rejected a job request from", contractorLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: "You've rejected a job request from",
+                            lang: contractorLang
+                        })];
                 case 4:
                     nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
@@ -303,10 +333,16 @@ exports.JobEvent.on('JOB_REQUEST_REJECTED', function (payload) {
                         }
                     }, { push: true, socket: true, database: true });
                     customerLang = customer.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Request Rejected', customerLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Job Request Rejected',
+                            lang: customerLang
+                        })];
                 case 5:
                     nTitle = _c.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation("Contractor has rejected your job request", customerLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: "Contractor has rejected your job request",
+                            lang: customerLang
+                        })];
                 case 6:
                     nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
@@ -389,10 +425,16 @@ exports.JobEvent.on('NEW_JOB_LISTING', function (payload) {
                                     contractor = _a.sent();
                                     if (!contractor) return [3 /*break*/, 4];
                                     contractorLang = contractor.language;
-                                    return [4 /*yield*/, i18n_1.i18n.getTranslation('New Job Listing', contractorLang)];
+                                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                                            phraseOrSlug: 'New Job Listing',
+                                            lang: contractorLang
+                                        })];
                                 case 2:
                                     nTitle = _a.sent();
-                                    return [4 /*yield*/, i18n_1.i18n.getTranslation('There is a new job listing  that match your profile', contractorLang)];
+                                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                                            phraseOrSlug: 'There is a new job listing that matches your profile',
+                                            lang: contractorLang
+                                        })];
                                 case 3:
                                     nMessage = _a.sent();
                                     (0, expo_1.sendPushNotifications)([device.deviceToken], {
@@ -452,10 +494,16 @@ exports.JobEvent.on('JOB_CANCELED', function (payload) {
                         services_1.EmailService.send(contractor.email, "Job Canceled", html);
                     }
                     customerLang = customer.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Canceled', customerLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Job Canceled',
+                            lang: customerLang
+                        })];
                 case 3:
                     nTitle = _c.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation("Your job on Repairfind has been canceled", customerLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Your job on Repairfind has been canceled',
+                            lang: customerLang
+                        })];
                 case 4:
                     nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
@@ -474,10 +522,16 @@ exports.JobEvent.on('JOB_CANCELED', function (payload) {
                         }
                     }, { push: true, socket: true, database: true });
                     contractorLang = contractor.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Canceled', contractorLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Job Canceled',
+                            lang: contractorLang
+                        })];
                 case 5:
                     nTitle = _c.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation("Your job on Repairfind has been canceled", contractorLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Your job on Repairfind has been canceled',
+                            lang: contractorLang
+                        })];
                 case 6:
                     nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
@@ -524,10 +578,16 @@ exports.JobEvent.on('JOB_DISPUTE_REFUND_CREATED', function (payload) {
                     contractor = _c.sent();
                     if (!(job && contractor && customer)) return [3 /*break*/, 7];
                     contractorLang = contractor.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Dispute Refund Created', contractorLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Job Dispute Refund Created',
+                            lang: contractorLang
+                        })];
                 case 3:
                     nTitle = _c.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation("Full refund of your disputed job has been approved on Repairfind", contractorLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Full refund of your disputed job has been approved on Repairfind',
+                            lang: contractorLang
+                        })];
                 case 4:
                     nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
@@ -546,10 +606,16 @@ exports.JobEvent.on('JOB_DISPUTE_REFUND_CREATED', function (payload) {
                         }
                     }, { push: true, socket: true, database: true });
                     customerLang = customer.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Dispute Refund Created', customerLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Job Dispute Refund Created',
+                            lang: customerLang
+                        })];
                 case 5:
                     nTitle = _c.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation("Full refund of your disputed job has been approved on Repairfind", customerLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Full refund of your disputed job has been approved on Repairfind',
+                            lang: customerLang
+                        })];
                 case 6:
                     nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
@@ -601,10 +667,16 @@ exports.JobEvent.on('JOB_REVISIT_ENABLED', function (payload) {
                 case 3:
                     conversation = _c.sent();
                     contractorLang = contractor.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Revisit Enabled', contractorLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Job Revisit Enabled',
+                            lang: contractorLang
+                        })];
                 case 4:
                     nTitle = _c.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation("A revisit for your disputed job has been enabled on Repairfind", contractorLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'A revisit for your disputed job has been enabled on Repairfind',
+                            lang: contractorLang
+                        })];
                 case 5:
                     nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
@@ -624,10 +696,16 @@ exports.JobEvent.on('JOB_REVISIT_ENABLED', function (payload) {
                         }
                     }, { push: true, socket: true, database: true });
                     customerLang = customer.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Revisit Enabled', customerLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Job Revisit Enabled',
+                            lang: customerLang
+                        })];
                 case 6:
                     nTitle = _c.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation("A revisit for your disputed job has been enabled on Repairfind", customerLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'A revisit for your disputed job has been enabled on Repairfind',
+                            lang: customerLang
+                        })];
                 case 7:
                     nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
@@ -661,7 +739,7 @@ exports.JobEvent.on('JOB_REVISIT_ENABLED', function (payload) {
 exports.JobEvent.on('JOB_QUOTATION_DECLINED', function (payload) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var customer, contractor, job, emailSubject, emailContent, html, conversation, nMessage, nTitle, error_8;
+        var customer, contractor, job, emailSubject, emailContent, html, conversation, contractorLang, nMessage, nTitle, error_8;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -684,10 +762,17 @@ exports.JobEvent.on('JOB_QUOTATION_DECLINED', function (payload) {
                     return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(customer.id, 'customers', contractor.id, 'contractors')];
                 case 4:
                     conversation = _b.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation("Your job quotation for a job on RepairFind was declined")];
+                    contractorLang = contractor.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Your job quotation for a job on RepairFind was declined',
+                            lang: contractorLang
+                        })];
                 case 5:
                     nMessage = _b.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Quotation Declined')];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Job Quotation Declined',
+                            lang: contractorLang
+                        })];
                 case 6:
                     nTitle = _b.sent();
                     services_1.NotificationService.sendNotification({
@@ -745,10 +830,16 @@ exports.JobEvent.on('JOB_QUOTATION_ACCEPTED', function (payload) {
                 case 4:
                     conversation = _b.sent();
                     contractorLang = contractor.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Quotation Accepted', contractorLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Job Quotation Accepted',
+                            lang: contractorLang
+                        })];
                 case 5:
                     nTitle = _b.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation("Your quotation for a job on RepairFind was accepted", contractorLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Your quotation for a job on RepairFind was accepted',
+                            lang: contractorLang
+                        })];
                 case 6:
                     nMessage = _b.sent();
                     services_1.NotificationService.sendNotification({
@@ -873,10 +964,16 @@ exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
                     html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
                     services_1.EmailService.send(contractor.email, emailSubject, html);
                     contractorLang = contractor.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation("Job Reschedule Request ".concat(payload.action), contractorLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: "Job Reschedule Request ".concat(payload.action),
+                            lang: contractorLang
+                        })];
                 case 4:
                     nTitle = _e.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation("Your job reschedule request on Repairfind has been ".concat(payload.action, " by customer"), contractorLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: "Your job reschedule request on Repairfind has been ".concat(payload.action, " by customer"),
+                            lang: contractorLang
+                        })];
                 case 5:
                     nMessage = _e.sent();
                     services_1.NotificationService.sendNotification({
@@ -918,10 +1015,16 @@ exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
                     html = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: emailSubject, content: emailContent });
                     services_1.EmailService.send(customer.email, emailSubject, html);
                     customerLang = customer.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation("Job Reschedule Request ".concat(payload.action), customerLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: "Job Reschedule Request ".concat(payload.action),
+                            lang: customerLang
+                        })];
                 case 7:
                     nTitle = _e.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation("Your job reschedule request on Repairfind has been ".concat(payload.action, " by contractor"), customerLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: "Your job reschedule request on Repairfind has been ".concat(payload.action, " by contractor"),
+                            lang: customerLang
+                        })];
                 case 8:
                     nMessage = _e.sent();
                     services_1.NotificationService.sendNotification({
@@ -1149,10 +1252,16 @@ exports.JobEvent.on('JOB_BOOKED', function (payload) {
                         services_1.EmailService.send(customer.email, 'Payment Receipt', receipthtml);
                     }
                     customerLang = customer.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Booked', customerLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Job Booked',
+                            lang: customerLang
+                        })];
                 case 7:
                     nTitle = _e.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation("You have booked a job on Repairfind", customerLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'You have booked a job on Repairfind',
+                            lang: customerLang
+                        })];
                 case 8:
                     nMessage = _e.sent();
                     services_1.NotificationService.sendNotification({
@@ -1172,10 +1281,16 @@ exports.JobEvent.on('JOB_BOOKED', function (payload) {
                         }
                     }, { push: true, socket: true, database: true });
                     contractorLang = contractor.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Booked', contractorLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Job Booked',
+                            lang: contractorLang
+                        })];
                 case 9:
                     nTitle = _e.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation("You have a booked job on Repairfind", contractorLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'You have a booked job on Repairfind',
+                            lang: contractorLang
+                        })];
                 case 10:
                     nMessage = _e.sent();
                     services_1.NotificationService.sendNotification({
@@ -1230,10 +1345,16 @@ exports.JobEvent.on('JOB_DISPUTE_CREATED', function (payload) {
                     if (!customer || !contractor)
                         return [2 /*return*/];
                     customerLang = customer.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Disputed', customerLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Job Disputed',
+                            lang: customerLang
+                        })];
                 case 4:
                     nTitle = _c.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation("You have an open job dispute", customerLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'You have an open job dispute',
+                            lang: customerLang
+                        })];
                 case 5:
                     nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
@@ -1252,10 +1373,16 @@ exports.JobEvent.on('JOB_DISPUTE_CREATED', function (payload) {
                         }
                     }, { database: true, push: true, socket: true });
                     contractorLang = contractor.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Disputed', contractorLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Job Disputed',
+                            lang: contractorLang
+                        })];
                 case 6:
                     nTitle = _c.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation("You have an open job dispute", contractorLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'You have an open job dispute',
+                            lang: contractorLang
+                        })];
                 case 7:
                     nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
@@ -1331,10 +1458,16 @@ exports.JobEvent.on('JOB_MARKED_COMPLETE_BY_CONTRACTOR', function (payload) {
                         return [2 /*return*/];
                     event_2 = (job.schedule.type == job_model_1.JOB_SCHEDULE_TYPE.SITE_VISIT) ? 'SITE_VISIT_MARKED_COMPLETE' : 'JOB_MARKED_COMPLETE';
                     customerLang = customer.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Marked Complete', customerLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Job Marked Complete',
+                            lang: customerLang
+                        })];
                 case 4:
                     nTitle = _c.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Contractor has marked job has completed', customerLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Contractor has marked job as completed',
+                            lang: customerLang
+                        })];
                 case 5:
                     nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
@@ -1352,10 +1485,16 @@ exports.JobEvent.on('JOB_MARKED_COMPLETE_BY_CONTRACTOR', function (payload) {
                         }
                     }, { database: true, push: true, socket: true });
                     contractorLang = contractor.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Marked Complete', contractorLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Job Marked Complete',
+                            lang: contractorLang
+                        })];
                 case 6:
                     nTitle = _c.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job marked as completed', contractorLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Job marked as completed',
+                            lang: contractorLang
+                        })];
                 case 7:
                     nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
@@ -1424,10 +1563,16 @@ exports.JobEvent.on('JOB_COMPLETED', function (payload) {
                     if (!customer || !contractor)
                         return [2 /*return*/];
                     contractorLang = contractor.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Completed', contractorLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Job Completed',
+                            lang: contractorLang
+                        })];
                 case 4:
                     nTitle = _c.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job completion confirmed by customer', contractorLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Job completion confirmed by customer',
+                            lang: contractorLang
+                        })];
                 case 5:
                     nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
@@ -1493,10 +1638,16 @@ exports.JobEvent.on('JOB_CHANGE_ORDER', function (payload) {
                     state = job.isChangeOrder ? 'enabled' : 'disabled';
                     event_4 = job.isChangeOrder ? 'JOB_CHANGE_ORDER_ENABLED' : 'JOB_CHANGE_ORDER_DISABLED';
                     contractorLang = contractor.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Completed', contractorLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Job Completed',
+                            lang: contractorLang
+                        })];
                 case 5:
                     nTitle = _b.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation("Change order is ".concat(state, " for your job"), contractorLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: "Change order is ".concat(state, " for your job"),
+                            lang: contractorLang
+                        })];
                 case 6:
                     nMessage = _b.sent();
                     services_1.NotificationService.sendNotification({
@@ -1553,10 +1704,16 @@ exports.JobEvent.on('SITE_VISIT_ESTIMATE_SUBMITTED', function (payload) {
                 case 4:
                     jobDay = _c.sent();
                     customerLang = customer.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Completed', customerLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Job Completed',
+                            lang: customerLang
+                        })];
                 case 5:
                     nTitle = _c.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation("Site visit estimate has been submitted", customerLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Site visit estimate has been submitted',
+                            lang: customerLang
+                        })];
                 case 6:
                     nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
@@ -1578,10 +1735,16 @@ exports.JobEvent.on('SITE_VISIT_ESTIMATE_SUBMITTED', function (payload) {
                         }
                     }, { push: true, socket: true, database: true });
                     contractorLang = contractor.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Completed', contractorLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Job Completed',
+                            lang: contractorLang
+                        })];
                 case 7:
                     nTitle = _c.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation("Site visit estimate has been submitted", contractorLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Site visit estimate has been submitted',
+                            lang: contractorLang
+                        })];
                 case 8:
                     nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
@@ -1640,10 +1803,16 @@ exports.JobEvent.on('CHANGE_ORDER_ESTIMATE_SUBMITTED', function (payload) {
                 case 4:
                     jobDay = _b.sent();
                     customerLang = customer.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Change order estimate submitted', customerLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Change order estimate submitted',
+                            lang: customerLang
+                        })];
                 case 5:
                     nTitle = _b.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Change order estimate has been submitted', customerLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Change order estimate has been submitted',
+                            lang: customerLang
+                        })];
                 case 6:
                     nMessage = _b.sent();
                     services_1.NotificationService.sendNotification({
@@ -1697,10 +1866,16 @@ exports.JobEvent.on('NEW_JOB_QUOTATION', function (payload) {
                 case 3:
                     conversation = _b.sent();
                     customerLang = customer.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('New Job Bid', customerLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'New Job Bid',
+                            lang: customerLang
+                        })];
                 case 4:
                     nTitle = _b.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Your job on Repairfind has received a new bid', customerLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Your job on Repairfind has received a new bid',
+                            lang: customerLang
+                        })];
                 case 5:
                     nMessage = _b.sent();
                     services_1.NotificationService.sendNotification({
@@ -1751,10 +1926,16 @@ exports.JobEvent.on('JOB_QUOTATION_EDITED', function (payload) {
                     if (!customer || !contractor)
                         return [2 /*return*/];
                     customerLang = customer.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Bid Edited', customerLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Job Bid Edited',
+                            lang: customerLang
+                        })];
                 case 3:
                     nTitle = _b.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job estimate has been edited by contractor', customerLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Job estimate has been edited by contractor',
+                            lang: customerLang
+                        })];
                 case 4:
                     nMessage = _b.sent();
                     services_1.NotificationService.sendNotification({
@@ -1807,10 +1988,16 @@ exports.JobEvent.on('CHANGE_ORDER_ESTIMATE_PAID', function (payload) {
                     if (!customer || !contractor)
                         return [2 /*return*/];
                     contractorLang = contractor.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Change Order Estimate Paid', contractorLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Change Order Estimate Paid',
+                            lang: contractorLang
+                        })];
                 case 4:
                     nTitle = _b.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Change order estimate has been paid', contractorLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Change order estimate has been paid',
+                            lang: contractorLang
+                        })];
                 case 5:
                     nMessage = _b.sent();
                     services_1.NotificationService.sendNotification({
@@ -1868,10 +2055,16 @@ exports.JobEvent.on('JOB_DAY_STARTED', function (payload) {
                     if (!customer || !contractor)
                         return [2 /*return*/];
                     contractorLang = contractor.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('JobDay Trip Started', contractorLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'JobDay Trip Started',
+                            lang: contractorLang
+                        })];
                 case 5:
                     nTitle = _c.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('JobDay trip started', contractorLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'JobDay trip started',
+                            lang: contractorLang
+                        })];
                 case 6:
                     nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
@@ -1903,10 +2096,16 @@ exports.JobEvent.on('JOB_DAY_STARTED', function (payload) {
                         // )
                     }
                     customerLang = customer.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Day', customerLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Job Day',
+                            lang: customerLang
+                        })];
                 case 7:
                     nTitle = _c.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Contractor is on his way', customerLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Contractor is on his way',
+                            lang: customerLang
+                        })];
                 case 8:
                     nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
@@ -1955,10 +2154,16 @@ exports.JobEvent.on('JOB_DAY_ARRIVAL', function (payload) {
                     if (!customer || !contractor)
                         return [2 /*return*/];
                     customerLang = customer.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Day', customerLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Job Day',
+                            lang: customerLang
+                        })];
                 case 5:
                     nTitle = _c.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Contractor is at your site.', customerLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Contractor is at your site.',
+                            lang: customerLang
+                        })];
                 case 6:
                     nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
@@ -1975,10 +2180,16 @@ exports.JobEvent.on('JOB_DAY_ARRIVAL', function (payload) {
                         database: true
                     });
                     contractorLang = contractor.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Day', contractorLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Job Day',
+                            lang: contractorLang
+                        })];
                 case 7:
                     nTitle = _c.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Job Day arrival, waiting for confirmation from customer.', contractorLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Job Day arrival, waiting for confirmation from customer.',
+                            lang: contractorLang
+                        })];
                 case 8:
                     nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
@@ -2048,10 +2259,16 @@ exports.JobEvent.on('JOB_DAY_CONFIRMED', function (payload) {
                     if (!customer || !contractor)
                         return [2 /*return*/];
                     contractorLang = contractor.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('JobDay Confirmation', contractorLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'JobDay Confirmation',
+                            lang: contractorLang
+                        })];
                 case 5:
                     nTitle = _c.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Customer has confirmed your arrival.', contractorLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Customer has confirmed your arrival.',
+                            lang: contractorLang
+                        })];
                 case 6:
                     nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
@@ -2086,10 +2303,16 @@ exports.JobEvent.on('JOB_DAY_CONFIRMED', function (payload) {
                         // )
                     }
                     customerLang = customer.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('JobDay confirmation', customerLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'JobDay confirmation',
+                            lang: customerLang
+                        })];
                 case 7:
                     nTitle = _c.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation("You successfully confirmed the contractor's arrival.", customerLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: "You successfully confirmed the contractor's arrival.",
+                            lang: customerLang
+                        })];
                 case 8:
                     nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
@@ -2192,10 +2415,16 @@ exports.JobEvent.on('NEW_JOB_ENQUIRY', function (payload) {
                                     contractor = _b.sent();
                                     if (!contractor) return [3 /*break*/, 4];
                                     contractorLang = contractor.language;
-                                    return [4 /*yield*/, i18n_1.i18n.getTranslation('New Job Enquiry', contractorLang)];
+                                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                                            phraseOrSlug: 'New Job Enquiry',
+                                            lang: contractorLang
+                                        })];
                                 case 2:
                                     nTitle = _b.sent();
-                                    return [4 /*yield*/, i18n_1.i18n.getTranslation('A Job you saved on Repairfind has a new enquiry', contractorLang)];
+                                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                                            phraseOrSlug: 'A Job you saved on Repairfind has a new enquiry',
+                                            lang: contractorLang
+                                        })];
                                 case 3:
                                     nMessage = _b.sent();
                                     services_1.NotificationService.sendNotification({
@@ -2214,10 +2443,16 @@ exports.JobEvent.on('NEW_JOB_ENQUIRY', function (payload) {
                     }); });
                     if (!customer_1) return [3 /*break*/, 9];
                     customerLang = customer_1.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('New Job Enquiry', customerLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'New Job Enquiry',
+                            lang: customerLang
+                        })];
                 case 7:
                     nTitle = _b.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation('Your job on Repairfind has a new enquiry', customerLang)];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                            phraseOrSlug: 'Your job on Repairfind has a new enquiry',
+                            lang: customerLang
+                        })];
                 case 8:
                     nMessage = _b.sent();
                     services_1.NotificationService.sendNotification({
@@ -2287,10 +2522,16 @@ exports.JobEvent.on('NEW_JOB_ENQUIRY_REPLY', function (payload) {
                                     contractor = _b.sent();
                                     if (!contractor) return [3 /*break*/, 4];
                                     contractorLang = contractor.language;
-                                    return [4 /*yield*/, i18n_1.i18n.getTranslation('New Job Enquiry Reply', contractorLang)];
+                                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                                            phraseOrSlug: 'New Job Enquiry Reply',
+                                            lang: contractorLang
+                                        })];
                                 case 2:
                                     nTitle = _b.sent();
-                                    return [4 /*yield*/, i18n_1.i18n.getTranslation('A job you are following on Repairfind has a new reply from the customer', contractorLang)];
+                                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                                            phraseOrSlug: 'A job you are following on Repairfind has a new reply from the customer',
+                                            lang: contractorLang
+                                        })];
                                 case 3:
                                     nMessage = _b.sent();
                                     services_1.NotificationService.sendNotification({

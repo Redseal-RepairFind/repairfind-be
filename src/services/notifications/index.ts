@@ -13,16 +13,17 @@ import AdminModel from '../../database/admin/models/admin.model';
 import { APNNotification } from './apn';
 import { FCMNotification } from './fcm';
 import { Logger } from '../logger';
+import { i18n } from '../../i18n';
 
 
 
 export interface SendNotificationData {
     user: string | ObjectId
     userType: string
-    title: string
+    title: any // 
     heading: object
     type: string
-    message: string
+    message: any
     payload: any
 }
 
@@ -43,6 +44,8 @@ export class NotificationService {
         let user = null
         let deviceTokens: string[] = []
         let devices = []
+
+        
 
         params.payload.userType = params.userType
         params.payload.user = params.user
@@ -69,6 +72,10 @@ export class NotificationService {
 
 
         if (!user) return
+
+        // do translation of notifications here ?
+        // params.title = await i18n.getTranslation({phraseOrSlug: params.title, lang: user.language})
+        // params.message = await i18n.getTranslation({phraseOrSlug: params.message, lang: user.language})
 
         if ('firebase' in options) {
         }

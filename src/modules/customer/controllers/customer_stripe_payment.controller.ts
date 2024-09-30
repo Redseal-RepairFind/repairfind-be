@@ -171,6 +171,7 @@ const prepareStripePayload = (data:{paymentMethodId: string, customer: any, cont
     return payload;
 };
 
+
 export const makeJobPayment = async (req: any, res: Response, next: NextFunction) => {
     try {
         const { quotationId, paymentMethodId } = req.body;
@@ -230,6 +231,7 @@ export const makeJobPayment = async (req: any, res: Response, next: NextFunction
         job.bookingViewedByContractor = false;
         await job.save();
 
+        
         const conversationMembers = [
             { memberType: 'customers', member: customerId },
             { memberType: 'contractors', member: contractorId }
@@ -388,7 +390,7 @@ export const captureJobPayment = async (req: any, res: Response, next: NextFunct
     }
 };
 
-export const CustomerPaymentController = {
+export const CustomerStripePaymentController = {
     makeJobPayment,
     captureJobPayment,
     makeChangeOrderEstimatePayment

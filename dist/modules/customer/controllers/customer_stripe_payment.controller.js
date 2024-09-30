@@ -1,4 +1,38 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -39,20 +73,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerPaypalPaymentController = exports.captureOrderEstimatePaymentCheckout = exports.createOrderEstimatePaymentCheckout = exports.chargeSavedPaymentMethod = exports.captureCheckoutOrder = exports.createCheckoutOrder = void 0;
+exports.CustomerStripePaymentController = exports.captureJobPayment = exports.makeChangeOrderEstimatePayment = exports.makeJobPayment = void 0;
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var job_model_1 = require("../../../database/common/job.model");
 var custom_errors_1 = require("../../../utils/custom.errors");
-var transaction_model_1 = require("../../../database/common/transaction.model");
+var transaction_model_1 = __importStar(require("../../../database/common/transaction.model"));
+var stripe_1 = require("../../../services/stripe");
 var job_quotation_model_1 = require("../../../database/common/job_quotation.model");
 var events_1 = require("../../../events");
 var payment_schema_1 = require("../../../database/common/payment.schema");
 var conversations_schema_1 = require("../../../database/common/conversations.schema");
 var messages_schema_1 = require("../../../database/common/messages.schema");
-var paypal_1 = require("../../../services/paypal");
-var paypal_payment_log_model_1 = require("../../../database/common/paypal_payment_log.model");
 var findCustomer = function (customerId) { return __awaiter(void 0, void 0, void 0, function () {
     var customer;
     return __generator(this, function (_a) {
@@ -113,87 +146,116 @@ var findContractor = function (contractorId) { return __awaiter(void 0, void 0, 
         }
     });
 }); };
-var createCheckoutOrder = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var quotationId, jobId, errors, customerId, customer, job, quotation, contractor, contractorId, paymentType, transactionType, charges, metadata, paypalPaymentLog, payload, capture, err_1;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                _a.trys.push([0, 8, , 9]);
-                quotationId = req.body.quotationId;
-                jobId = req.params.jobId;
-                errors = (0, express_validator_1.validationResult)(req);
-                if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
-                }
-                customerId = req.customer.id;
-                return [4 /*yield*/, findCustomer(customerId)];
-            case 1:
-                customer = _a.sent();
-                return [4 /*yield*/, findJob(jobId)];
-            case 2:
-                job = _a.sent();
-                return [4 /*yield*/, findQuotation(quotationId)];
-            case 3:
-                quotation = _a.sent();
-                return [4 /*yield*/, findContractor(quotation.contractor)];
-            case 4:
-                contractor = _a.sent();
-                contractorId = contractor.id;
-                if (job.status === job_model_1.JOB_STATUS.BOOKED) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'This job is not pending, so new payment is not possible' })];
-                }
-                paymentType = payment_schema_1.PAYMENT_TYPE.JOB_DAY_PAYMENT;
-                transactionType = quotation.type;
-                if (transactionType == job_quotation_model_1.JOB_QUOTATION_TYPE.SITE_VISIT)
-                    paymentType = payment_schema_1.PAYMENT_TYPE.SITE_VISIT_PAYMENT;
-                if (transactionType == job_quotation_model_1.JOB_QUOTATION_TYPE.JOB_DAY)
-                    paymentType = payment_schema_1.PAYMENT_TYPE.JOB_DAY_PAYMENT;
-                return [4 /*yield*/, quotation.calculateCharges(paymentType)];
-            case 5:
-                charges = _a.sent();
-                metadata = {
-                    customerId: customer.id,
-                    contractorId: contractor === null || contractor === void 0 ? void 0 : contractor.id,
-                    quotationId: quotation.id,
-                    paymentType: paymentType,
-                    paymentMethod: 'CAPTURE',
-                    jobId: jobId,
-                    email: customer.email,
-                    remark: 'initial_job_payment',
-                };
-                return [4 /*yield*/, paypal_payment_log_model_1.PaypalPaymentLog.create({
-                        user: customerId,
-                        'userType': 'customers',
-                        metadata: metadata
-                    })];
-            case 6:
-                paypalPaymentLog = _a.sent();
-                payload = {
-                    amount: charges.customerPayable,
-                    intent: "CAPTURE",
-                    description: "Job Payment - ".concat(jobId),
-                    metaId: paypalPaymentLog.id
-                };
-                return [4 /*yield*/, paypal_1.PayPalService.payment.createOrder(payload)];
-            case 7:
-                capture = _a.sent();
-                res.json({ success: true, message: 'Payment intent created', data: capture });
-                return [3 /*break*/, 9];
-            case 8:
-                err_1 = _a.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError(err_1.message, err_1))];
-            case 9: return [2 /*return*/];
-        }
+var createTransaction = function (customerId, contractorId, jobId, charges, quotation, paymentMethod, transactionType, metadata) {
+    if (metadata === void 0) { metadata = null; }
+    return __awaiter(void 0, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, transaction_model_1.default.findOneAndUpdate({
+                        job: jobId,
+                        type: transactionType,
+                    }, {
+                        type: transactionType,
+                        amount: charges.customerPayable,
+                        currency: 'cad',
+                        initiatorUser: customerId,
+                        initiatorUserType: 'customers',
+                        fromUser: customerId,
+                        fromUserType: 'customers',
+                        toUser: contractorId,
+                        toUserType: 'contractors',
+                        description: "Quotation from ".concat(contractorId, " payment"),
+                        remark: 'quotation',
+                        metadata: metadata,
+                        invoice: __assign(__assign({}, quotation), { charges: charges }),
+                        paymentMethod: paymentMethod,
+                        job: jobId,
+                        status: transaction_model_1.TRANSACTION_STATUS.PENDING
+                    }, { new: true, upsert: true })];
+                case 1: return [2 /*return*/, _a.sent()];
+            }
+        });
     });
-}); };
-exports.createCheckoutOrder = createCheckoutOrder;
-var captureCheckoutOrder = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, quotationId, paymentMethodId_1, orderId, jobId, errors, customerId, customer, job, quotation, contractor, contractorId, paymentMethod, paymentType, transactionType, charges, metadata, capture, conversationMembers, conversation, newMessage, err_2;
+};
+var prepareStripePayload = function (data) {
+    //  Direct CHARGES
+    // With Connect, you can make charges directly to the connected account and take fees in the process.
+    // To create a direct charge on the connected account, create a PaymentIntent object and add the Stripe-Account header with a value of the connected account ID:
+    //  https://docs.stripe.com/connect/charges
+    // When using Standard accounts, Stripe recommends that you create direct charges. Though uncommon, there are times when it’s appropriate to use direct charges on Express or Custom accounts.
+    // With this charge type:
+    // You create a charge on your user’s account so the payment appears as a charge on the connected account, not in your account balance.
+    // The connected account’s balance increases with every charge.
+    // Funds always settle in the country of the connected account.
+    // Your account balance increases with application fees from every charge.
+    // The connected account’s balance is debited for refunds and chargebacks.
+    //direct charge requires the customer has to exists on the connected account platform -- consider cloning https://docs.stripe.com/connect/cloning-customers-across-accounts
+    // we can still take fees back to the platform by specifying application_fee_amount: 123,
+    // DESTINATION CHARGES
+    // Customers transact with your platform for products or services provided by your connected account.
+    // The transaction involves a single user.
+    // Stripe fees are debited from your platform account.
+    //flow 1
+    // here everything is transfered to connected account and then application_fee_amount is wired back to platform
+    // application_fee_amount: 123,
+    // transfer_data: {
+    //     destination: '{{CONNECTED_ACCOUNT_ID}}',
+    // },
+    //flow 2
+    // here only amount specified in transfer_data is transfered to connected account
+    // transfer_data: {
+    //     amount: 877,
+    //     destination: '{{CONNECTED_ACCOUNT_ID}}',
+    //   },
+    // When you use on_behalf_of:
+    // Charges are settled in the connected account’s country and settlement currency.
+    // The connected account’s statement descriptor is displayed on the customer’s credit card statement.
+    // If the connected account is in a different country than the platform, the connected account’s address and phone number are displayed on the customer’s credit card statement.
+    // The number of days that a pending balance is held before being paid out depends on the delay_days setting on the connected account.
+    var paymentMethodId = data.paymentMethodId, customer = data.customer, contractor = data.contractor, charges = data.charges, jobId = data.jobId, metadata = data.metadata, manualCapture = data.manualCapture;
+    // const repairfindStripeAccount = 'null'
+    //Charges
+    // subtotal, 
+    // gstAmount, 
+    // customerPayable,
+    // contractorPayable, 
+    // repairfindServiceFee, 
+    // customerProcessingFee, 
+    // contractorProcessingFee,
+    var payload = {
+        payment_method_types: ['card'],
+        payment_method: paymentMethodId,
+        currency: 'cad',
+        amount: Math.ceil(charges.customerPayable * 100),
+        // send amount  minus processingFee to contractor
+        // application_fee_amount: Math.ceil(charges.processingFee * 100),
+        // transfer_data: {
+        //     destination: contractor?.stripeAccount.id ?? ''
+        // },
+        // on_behalf_of: contractor?.stripeAccount.id,
+        // send everything to repairfind connected account - serving as escrow
+        // transfer_data: {
+        //     destination: repairfindStripeAccount
+        // },
+        // on_behalf_of: repairfindStripeAccount,
+        metadata: metadata,
+        customer: customer.stripeCustomer.id,
+        off_session: true,
+        confirm: true,
+    };
+    if (manualCapture) {
+        payload.payment_method_options = { card: { capture_method: 'manual' } };
+        payload.capture_method = 'manual';
+    }
+    return payload;
+};
+var makeJobPayment = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, quotationId, paymentMethodId_1, jobId, errors, customerId, customer, job, quotation, contractor, contractorId, paymentMethod, paymentType, transactionType, charges, metadata, payload, stripePayment, conversationMembers, conversation, newMessage, err_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
                 _b.trys.push([0, 10, , 11]);
-                _a = req.body, quotationId = _a.quotationId, paymentMethodId_1 = _a.paymentMethodId, orderId = _a.orderId;
+                _a = req.body, quotationId = _a.quotationId, paymentMethodId_1 = _a.paymentMethodId;
                 jobId = req.params.jobId;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
@@ -241,9 +303,11 @@ var captureCheckoutOrder = function (req, res, next) { return __awaiter(void 0, 
                     email: customer.email,
                     remark: 'initial_job_payment',
                 };
-                return [4 /*yield*/, paypal_1.PayPalService.payment.captureOrder(orderId)];
+                payload = prepareStripePayload({ paymentMethodId: paymentMethod.id, customer: customer, contractor: contractor, charges: charges, jobId: jobId, metadata: metadata, manualCapture: false });
+                return [4 /*yield*/, stripe_1.StripeService.payment.chargeCustomer(paymentMethod.customer, paymentMethod.id, payload)];
             case 6:
-                capture = _b.sent();
+                stripePayment = _b.sent();
+                //TODO: Check status of stripePayment before changing to booked here
                 job.status = job_model_1.JOB_STATUS.BOOKED;
                 job.bookingViewedByContractor = false;
                 return [4 /*yield*/, job.save()];
@@ -277,131 +341,22 @@ var captureCheckoutOrder = function (req, res, next) { return __awaiter(void 0, 
                 newMessage = _b.sent();
                 events_1.ConversationEvent.emit('NEW_MESSAGE', { message: newMessage });
                 // JobEvent.emit('JOB_BOOKED', { jobId, contractorId, customerId, quotationId, paymentType })
-                res.json({ success: true, message: 'Payment intent created', data: capture });
+                res.json({ success: true, message: 'Payment intent created', data: stripePayment });
                 return [3 /*break*/, 11];
             case 10:
-                err_2 = _b.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError(err_2.message, err_2))];
+                err_1 = _b.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError(err_1.message, err_1))];
             case 11: return [2 /*return*/];
         }
     });
 }); };
-exports.captureCheckoutOrder = captureCheckoutOrder;
-var chargeSavedPaymentMethod = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, quotationId, paymentToken_1, jobId, errors, customerId, customer, job, quotation, contractor, contractorId, paymentMethod, paymentType, transactionType, charges, metadata, paypalPaymentLog, capture, err_3;
+exports.makeJobPayment = makeJobPayment;
+var makeChangeOrderEstimatePayment = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, quotationId, paymentMethodId_2, jobId, errors, customerId, customer, job, quotation, contractor, changeOrderEstimate, paymentMethod, paymentType, transactionType, charges, metadata, payload, stripePayment, err_2;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
                 _b.trys.push([0, 8, , 9]);
-                _a = req.body, quotationId = _a.quotationId, paymentToken_1 = _a.paymentToken;
-                jobId = req.params.jobId;
-                errors = (0, express_validator_1.validationResult)(req);
-                if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
-                }
-                customerId = req.customer.id;
-                return [4 /*yield*/, findCustomer(customerId)];
-            case 1:
-                customer = _b.sent();
-                return [4 /*yield*/, findJob(jobId)];
-            case 2:
-                job = _b.sent();
-                return [4 /*yield*/, findQuotation(quotationId)];
-            case 3:
-                quotation = _b.sent();
-                return [4 /*yield*/, findContractor(quotation.contractor)];
-            case 4:
-                contractor = _b.sent();
-                contractorId = contractor.id;
-                paymentMethod = customer.paypalPaymentMethods.find(function (method) { return method.vault_id === paymentToken_1; });
-                if (!paymentMethod) {
-                    paymentMethod = customer.paypalPaymentMethods[0];
-                }
-                if (!paymentMethod)
-                    throw new Error('No such payment method');
-                if (job.status === job_model_1.JOB_STATUS.BOOKED) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'This job is not pending, so new payment is not possible' })];
-                }
-                paymentType = payment_schema_1.PAYMENT_TYPE.JOB_DAY_PAYMENT;
-                transactionType = quotation.type;
-                if (transactionType == job_quotation_model_1.JOB_QUOTATION_TYPE.SITE_VISIT)
-                    paymentType = payment_schema_1.PAYMENT_TYPE.SITE_VISIT_PAYMENT;
-                if (transactionType == job_quotation_model_1.JOB_QUOTATION_TYPE.JOB_DAY)
-                    paymentType = payment_schema_1.PAYMENT_TYPE.JOB_DAY_PAYMENT;
-                return [4 /*yield*/, quotation.calculateCharges(paymentType)];
-            case 5:
-                charges = _b.sent();
-                metadata = {
-                    customerId: customer.id,
-                    contractorId: contractor === null || contractor === void 0 ? void 0 : contractor.id,
-                    quotationId: quotation.id,
-                    paymentType: paymentType,
-                    paymentMethod: paymentMethod.id,
-                    jobId: jobId,
-                    email: customer.email,
-                    remark: 'initial_job_payment',
-                };
-                return [4 /*yield*/, paypal_payment_log_model_1.PaypalPaymentLog.create({
-                        user: customerId,
-                        'userType': 'customers',
-                        metadata: metadata
-                    })];
-            case 6:
-                paypalPaymentLog = _b.sent();
-                return [4 /*yield*/, paypal_1.PayPalService.payment.chargeSavedCard({ paymentToken: paymentToken_1, amount: charges.customerPayable, metaId: paypalPaymentLog === null || paypalPaymentLog === void 0 ? void 0 : paypalPaymentLog.id })
-                    //  job.status = JOB_STATUS.BOOKED;
-                    // job.bookingViewedByContractor = false;
-                    // await job.save();
-                    // const conversation = await ConversationUtil.updateOrCreateConversation(customerId, 'customers', contractorId, 'contractors')
-                    // // Create a message in the conversation
-                    // const newMessage: IMessage = await MessageModel.create({
-                    //     conversation: conversation._id,
-                    //     sender: customerId, 
-                    //     senderType: 'customers',
-                    //     message: `New Job Payment`, 
-                    //     messageType: MessageType.ALERT, 
-                    //     createdAt: new Date(),
-                    //     entity: jobId,
-                    //     entityType: 'jobs'
-                    // });
-                    // ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
-                    // JobEvent.emit('JOB_BOOKED', { jobId, contractorId, customerId, quotationId, paymentType })
-                ];
-            case 7:
-                capture = _b.sent();
-                //  job.status = JOB_STATUS.BOOKED;
-                // job.bookingViewedByContractor = false;
-                // await job.save();
-                // const conversation = await ConversationUtil.updateOrCreateConversation(customerId, 'customers', contractorId, 'contractors')
-                // // Create a message in the conversation
-                // const newMessage: IMessage = await MessageModel.create({
-                //     conversation: conversation._id,
-                //     sender: customerId, 
-                //     senderType: 'customers',
-                //     message: `New Job Payment`, 
-                //     messageType: MessageType.ALERT, 
-                //     createdAt: new Date(),
-                //     entity: jobId,
-                //     entityType: 'jobs'
-                // });
-                // ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
-                // JobEvent.emit('JOB_BOOKED', { jobId, contractorId, customerId, quotationId, paymentType })
-                res.json({ success: true, message: 'Payment created', data: capture });
-                return [3 /*break*/, 9];
-            case 8:
-                err_3 = _b.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError(err_3.message, err_3.err))];
-            case 9: return [2 /*return*/];
-        }
-    });
-}); };
-exports.chargeSavedPaymentMethod = chargeSavedPaymentMethod;
-var createOrderEstimatePaymentCheckout = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, quotationId, paymentMethodId_2, jobId, errors, customerId, customer, job, quotation, contractor, changeOrderEstimate, paymentMethod, paymentType, transactionType, charges, metadata, err_4;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0:
-                _b.trys.push([0, 7, , 8]);
                 _a = req.body, quotationId = _a.quotationId, paymentMethodId_2 = _a.paymentMethodId;
                 jobId = req.params.jobId;
                 errors = (0, express_validator_1.validationResult)(req);
@@ -447,30 +402,31 @@ var createOrderEstimatePaymentCheckout = function (req, res, next) { return __aw
                     email: customer.email,
                     remark: 'change_order_estimate_payment',
                 };
-                // const transaction = await createTransaction(customerId, contractor.id, jobId, charges, paymentMethod, transactionType, metadata);
-                // metadata.transactionId = transaction.id
-                // const payload = prepareStripePayload({paymentMethodId: paymentMethod.id, customer, contractor, charges, jobId, metadata, manualCapture:false});
+                payload = prepareStripePayload({ paymentMethodId: paymentMethod.id, customer: customer, contractor: contractor, charges: charges, jobId: jobId, metadata: metadata, manualCapture: false });
+                return [4 /*yield*/, stripe_1.StripeService.payment.chargeCustomer(paymentMethod.customer, paymentMethod.id, payload)];
+            case 6:
+                stripePayment = _b.sent();
                 job.isChangeOrder = false;
                 return [4 /*yield*/, job.save()];
-            case 6:
+            case 7:
                 _b.sent();
                 events_1.JobEvent.emit('CHANGE_ORDER_ESTIMATE_PAID', { job: job, quotation: quotation, changeOrderEstimate: changeOrderEstimate });
-                res.json({ success: true, message: 'Payment intent created', data: "" });
-                return [3 /*break*/, 8];
-            case 7:
-                err_4 = _b.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError(err_4.message, err_4))];
-            case 8: return [2 /*return*/];
+                res.json({ success: true, message: 'Payment intent created', data: stripePayment });
+                return [3 /*break*/, 9];
+            case 8:
+                err_2 = _b.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError(err_2.message, err_2))];
+            case 9: return [2 /*return*/];
         }
     });
 }); };
-exports.createOrderEstimatePaymentCheckout = createOrderEstimatePaymentCheckout;
-var captureOrderEstimatePaymentCheckout = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, quotationId, paymentMethodId_3, jobId, errors, customerId, customer, job, quotation, contractor, changeOrderEstimate, paymentMethod, paymentType, transactionType, charges, metadata, err_5;
+exports.makeChangeOrderEstimatePayment = makeChangeOrderEstimatePayment;
+var captureJobPayment = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, quotationId, paymentMethodId_3, jobId, errors, customerId, customer, job, quotation, contractor, paymentMethod, paymentType, charges, metadata, payload, stripePayment, err_3;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 7, , 8]);
+                _b.trys.push([0, 8, , 9]);
                 _a = req.body, quotationId = _a.quotationId, paymentMethodId_3 = _a.paymentMethodId;
                 jobId = req.params.jobId;
                 errors = (0, express_validator_1.validationResult)(req);
@@ -490,19 +446,20 @@ var captureOrderEstimatePaymentCheckout = function (req, res, next) { return __a
                 return [4 /*yield*/, findContractor(quotation.contractor)];
             case 4:
                 contractor = _b.sent();
-                changeOrderEstimate = quotation.changeOrderEstimate;
-                if (!changeOrderEstimate)
-                    throw new Error('No  changeOrder estimate for this job');
-                if (changeOrderEstimate.isPaid)
-                    throw new Error('Extra estimate already paid');
                 paymentMethod = customer.stripePaymentMethods.find(function (method) { return method.id === paymentMethodId_3; });
                 if (!paymentMethod) {
                     paymentMethod = customer.stripePaymentMethods[0];
                 }
                 if (!paymentMethod)
                     throw new Error('No such payment method');
-                paymentType = payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT;
-                transactionType = transaction_model_1.TRANSACTION_TYPE.CHANGE_ORDER;
+                if (job.status === job_model_1.JOB_STATUS.BOOKED) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'This job is not pending, so new payment is not possible' })];
+                }
+                paymentType = payment_schema_1.PAYMENT_TYPE.JOB_DAY_PAYMENT;
+                if (quotation.type == job_quotation_model_1.JOB_QUOTATION_TYPE.SITE_VISIT)
+                    paymentType = payment_schema_1.PAYMENT_TYPE.SITE_VISIT_PAYMENT;
+                if (quotation.type == job_quotation_model_1.JOB_QUOTATION_TYPE.JOB_DAY)
+                    paymentType = payment_schema_1.PAYMENT_TYPE.JOB_DAY_PAYMENT;
                 return [4 /*yield*/, quotation.calculateCharges(paymentType)];
             case 5:
                 charges = _b.sent();
@@ -514,29 +471,28 @@ var captureOrderEstimatePaymentCheckout = function (req, res, next) { return __a
                     paymentType: paymentType,
                     paymentMethod: paymentMethod.id,
                     email: customer.email,
-                    remark: 'change_order_estimate_payment',
+                    remark: 'initial_job_payment',
                 };
-                // const transaction = await createTransaction(customerId, contractor.id, jobId, charges, paymentMethod, transactionType, metadata);
-                // metadata.transactionId = transaction.id
-                job.isChangeOrder = false;
-                return [4 /*yield*/, job.save()];
+                payload = prepareStripePayload({ paymentMethodId: paymentMethod.id, customer: customer, contractor: contractor, charges: charges, jobId: jobId, metadata: metadata, manualCapture: true });
+                return [4 /*yield*/, stripe_1.StripeService.payment.chargeCustomer(paymentMethod.customer, paymentMethod.id, payload)];
             case 6:
-                _b.sent();
-                events_1.JobEvent.emit('CHANGE_ORDER_ESTIMATE_PAID', { job: job, quotation: quotation, changeOrderEstimate: changeOrderEstimate });
-                res.json({ success: true, message: 'Payment intent created', data: "" });
-                return [3 /*break*/, 8];
+                stripePayment = _b.sent();
+                job.status = job_model_1.JOB_STATUS.BOOKED;
+                return [4 /*yield*/, job.save()];
             case 7:
-                err_5 = _b.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError(err_5.message, err_5))];
-            case 8: return [2 /*return*/];
+                _b.sent();
+                res.json({ success: true, message: 'Payment intent created', data: stripePayment });
+                return [3 /*break*/, 9];
+            case 8:
+                err_3 = _b.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError(err_3.message, err_3))];
+            case 9: return [2 /*return*/];
         }
     });
 }); };
-exports.captureOrderEstimatePaymentCheckout = captureOrderEstimatePaymentCheckout;
-exports.CustomerPaypalPaymentController = {
-    captureCheckoutOrder: exports.captureCheckoutOrder,
-    captureOrderEstimatePaymentCheckout: exports.captureOrderEstimatePaymentCheckout,
-    createCheckoutOrder: exports.createCheckoutOrder,
-    createOrderEstimatePaymentCheckout: exports.createOrderEstimatePaymentCheckout,
-    chargeSavedPaymentMethod: exports.chargeSavedPaymentMethod,
+exports.captureJobPayment = captureJobPayment;
+exports.CustomerStripePaymentController = {
+    makeJobPayment: exports.makeJobPayment,
+    captureJobPayment: exports.captureJobPayment,
+    makeChangeOrderEstimatePayment: exports.makeChangeOrderEstimatePayment
 };

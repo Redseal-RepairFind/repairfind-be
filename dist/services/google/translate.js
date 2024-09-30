@@ -43,14 +43,15 @@ exports.translateText = void 0;
 var axios_1 = __importDefault(require("axios"));
 var config_1 = require("../../config");
 var logger_1 = require("../logger");
-function translateText(text, targetLang, sourceLang) {
-    var _a, _b, _c, _d;
+function translateText(_a) {
+    var _b, _c, _d, _e;
+    var text = _a.text, targetLang = _a.targetLang, sourceLang = _a.sourceLang, _f = _a.format, format = _f === void 0 ? 'text' : _f, _g = _a.model, model = _g === void 0 ? 'text' : _g;
     return __awaiter(this, void 0, void 0, function () {
         var url, response, error_1;
-        return __generator(this, function (_e) {
-            switch (_e.label) {
+        return __generator(this, function (_h) {
+            switch (_h.label) {
                 case 0:
-                    _e.trys.push([0, 2, , 3]);
+                    _h.trys.push([0, 2, , 3]);
                     if (!text || !targetLang) {
                         throw new Error('Text, source language, and target language are required');
                     }
@@ -61,15 +62,18 @@ function translateText(text, targetLang, sourceLang) {
                                 source: sourceLang || null,
                                 target: targetLang,
                                 key: config_1.config.google.apiKey,
+                                // model: model,
+                                format: format,
+                                // except: 'Contractor,Individual'
                             },
                         })];
                 case 1:
-                    response = _e.sent();
+                    response = _h.sent();
                     return [2 /*return*/, response.data.data.translations[0].translatedText];
                 case 2:
-                    error_1 = _e.sent();
-                    logger_1.Logger.error('Error translating text:', (_a = error_1 === null || error_1 === void 0 ? void 0 : error_1.response) === null || _a === void 0 ? void 0 : _a.data);
-                    throw new Error((_d = (_c = (_b = error_1 === null || error_1 === void 0 ? void 0 : error_1.response) === null || _b === void 0 ? void 0 : _b.data) === null || _c === void 0 ? void 0 : _c.error) === null || _d === void 0 ? void 0 : _d.message);
+                    error_1 = _h.sent();
+                    logger_1.Logger.error('Error translating text:', (_b = error_1 === null || error_1 === void 0 ? void 0 : error_1.response) === null || _b === void 0 ? void 0 : _b.data);
+                    throw new Error((_e = (_d = (_c = error_1 === null || error_1 === void 0 ? void 0 : error_1.response) === null || _c === void 0 ? void 0 : _c.data) === null || _d === void 0 ? void 0 : _d.error) === null || _e === void 0 ? void 0 : _e.message);
                 case 3: return [2 /*return*/];
             }
         });

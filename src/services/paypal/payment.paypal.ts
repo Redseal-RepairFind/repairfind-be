@@ -61,7 +61,7 @@ export const createOrder = async (payload: any) => {
           }
         },
         application_context: {
-          return_url: 'https://repairfind.ca/payment-success/',
+          return_url: payload.returnUrl ?? 'https://repairfind.ca/payment-success/',
           cancel_url: 'https://cancel.com',
         },
       },

@@ -203,8 +203,7 @@ export const translateText = async (
 
   try {
     const {text, targetLang} = req.body
-    // const translatedText  = await GoogleServiceProvider.translate.translateText(text, targetLang)
-    const translatedText  = await i18n.cloudTranslate(text, targetLang)
+    const translatedText  = await i18n.freeCloudTranslate(text, targetLang)
     return res.json({ success: true, message: "Text translated", data: translatedText });
   } catch (err: any) {
     return next(new InternalServerError('Error translating text', err))

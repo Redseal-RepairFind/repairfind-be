@@ -217,6 +217,7 @@ var paymentCaptureCompleted = function (payload, resourceType) { return __awaite
                     type: job_model_1.JOB_SCHEDULE_TYPE.JOB_DAY,
                     remark: 'Initial job schedule'
                 };
+                job.status = job_model_1.JOB_STATUS.BOOKED;
                 return [4 /*yield*/, Promise.all([
                         quotation.save(),
                         job.save()

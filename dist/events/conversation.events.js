@@ -140,10 +140,16 @@ exports.ConversationEvent.on('NEW_MESSAGE', function (params) {
                                     if (!!message_1.isOwn) return [3 /*break*/, 14];
                                     if (!(conversation_1.type == conversations_schema_1.CONVERSATION_TYPE.DIRECT_MESSAGE)) return [3 /*break*/, 11];
                                     userLang = user.language;
-                                    return [4 /*yield*/, i18n_1.i18n.getTranslation('New unread message', userLang)];
+                                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                                            phraseOrSlug: 'New unread message',
+                                            lang: userLang
+                                        })];
                                 case 9:
                                     nTitle = _e.sent();
-                                    return [4 /*yield*/, i18n_1.i18n.getTranslation("You have a new unread message from ".concat(sender_1.name), userLang)];
+                                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                                            phraseOrSlug: "You have a new unread message from",
+                                            lang: userLang
+                                        })];
                                 case 10:
                                     nMessage = _e.sent();
                                     notifications_1.NotificationService.sendNotification({
@@ -151,7 +157,7 @@ exports.ConversationEvent.on('NEW_MESSAGE', function (params) {
                                         userType: toUserType,
                                         title: nTitle,
                                         type: 'NEW_UNREAD_MESSAGE',
-                                        message: nMessage,
+                                        message: "".concat(nMessage, "  ").concat(sender_1.name),
                                         heading: { name: "".concat(user.name), image: (_c = user.profilePhoto) === null || _c === void 0 ? void 0 : _c.url },
                                         payload: {
                                             entity: conversation_1.id,
@@ -164,10 +170,16 @@ exports.ConversationEvent.on('NEW_MESSAGE', function (params) {
                                 case 11:
                                     if (!(conversation_1.type == conversations_schema_1.CONVERSATION_TYPE.TICKET)) return [3 /*break*/, 14];
                                     userLang = user.language;
-                                    return [4 /*yield*/, i18n_1.i18n.getTranslation('New unread dispute message', userLang)];
+                                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                                            phraseOrSlug: 'New unread dispute message',
+                                            lang: userLang
+                                        })];
                                 case 12:
                                     nTitle = _e.sent();
-                                    return [4 /*yield*/, i18n_1.i18n.getTranslation("You have a new unread job dispute message from ".concat(sender_1.name), userLang)];
+                                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                                            phraseOrSlug: "You have a new unread job dispute message from",
+                                            lang: userLang
+                                        })];
                                 case 13:
                                     nMessage = _e.sent();
                                     notifications_1.NotificationService.sendNotification({
@@ -175,7 +187,7 @@ exports.ConversationEvent.on('NEW_MESSAGE', function (params) {
                                         userType: toUserType,
                                         title: nTitle,
                                         type: 'NEW_DISPUTE_MESSAGE',
-                                        message: nMessage,
+                                        message: "".concat(nMessage, "  ").concat(sender_1.name),
                                         heading: { name: "".concat(user.name), image: (_d = user.profilePhoto) === null || _d === void 0 ? void 0 : _d.url },
                                         payload: {
                                             entity: conversation_1.id,

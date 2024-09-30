@@ -1,19 +1,15 @@
 import { validationResult } from "express-validator";
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Response } from "express";
 import { ContractorModel } from "../../../database/contractor/models/contractor.model";
-import { JobModel, JOB_STATUS, JobType, IJob } from "../../../database/common/job.model";
+import { JobModel, JOB_STATUS, JobType } from "../../../database/common/job.model";
 import { applyAPIFeature } from "../../../utils/api.feature";
 import { BadRequestError, InternalServerError, NotFoundError } from "../../../utils/custom.errors";
 import { JobQuotationModel, JOB_QUOTATION_STATUS, IExtraEstimate, JOB_QUOTATION_TYPE } from "../../../database/common/job_quotation.model";
 import CustomerModel from "../../../database/customer/models/customer.model";
-import mongoose, { Document, PipelineStage as MongoosePipelineStage } from 'mongoose'; // Import Document type from mongoose
-import { ConversationEntityType, ConversationModel } from "../../../database/common/conversations.schema";
+import mongoose, { PipelineStage as MongoosePipelineStage } from 'mongoose'; // Import Document type from mongoose
+import { ConversationModel } from "../../../database/common/conversations.schema";
 import { MessageModel, MessageType } from "../../../database/common/messages.schema";
-import { EmailService } from "../../../services";
 import { ContractorProfileModel } from "../../../database/contractor/models/contractor_profile.model";
-import { castPayloadToDTO } from "../../../utils/interface_dto.util";
-import { StripeService } from "../../../services/stripe";
-import { IStripeAccount } from "../../../database/common/stripe_account.schema";
 import { ConversationEvent, JobEvent } from "../../../events";
 import { JobEnquiryModel } from "../../../database/common/job_enquiry.model";
 import ContractorSavedJobModel from "../../../database/contractor/models/contractor_saved_job.model";

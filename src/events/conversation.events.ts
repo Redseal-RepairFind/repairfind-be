@@ -75,15 +75,21 @@ ConversationEvent.on('NEW_MESSAGE', async function (params) {
                 if (conversation.type == CONVERSATION_TYPE.DIRECT_MESSAGE) {
 
                     const userLang = user.language;
-                    let nTitle = await i18n.getTranslation('New unread message', userLang);
-                    let nMessage = await i18n.getTranslation(`You have a new unread message from ${sender.name}`, userLang);
-
+                    let nTitle = await i18n.getTranslation({
+                        phraseOrSlug: 'New unread message',
+                        lang: userLang
+                    });
+                    let nMessage = await i18n.getTranslation({
+                        phraseOrSlug: `You have a new unread message from`,
+                        lang: userLang
+                    });
+                    
                     NotificationService.sendNotification({
                         user: toUserId,
                         userType: toUserType,
                         title: nTitle,
                         type: 'NEW_UNREAD_MESSAGE',
-                        message: nMessage,
+                        message: `${nMessage}  ${sender.name}`,
                         heading: { name: `${user.name}`, image: user.profilePhoto?.url },
                         payload: {
                             entity: conversation.id,
@@ -100,15 +106,22 @@ ConversationEvent.on('NEW_MESSAGE', async function (params) {
 
                 if (conversation.type == CONVERSATION_TYPE.TICKET) {
                     const userLang = user.language;
-                    let nTitle = await i18n.getTranslation('New unread dispute message', userLang);
-                    let nMessage = await i18n.getTranslation(`You have a new unread job dispute message from ${sender.name}`, userLang);
+                    
+                    let nTitle = await i18n.getTranslation({
+                        phraseOrSlug: 'New unread dispute message',
+                        lang: userLang
+                    });
+                    let nMessage = await i18n.getTranslation({
+                        phraseOrSlug: `You have a new unread job dispute message from`,
+                        lang: userLang
+                    });
 
                     NotificationService.sendNotification({
                         user: toUserId,
                         userType: toUserType,
                         title: nTitle,
                         type: 'NEW_DISPUTE_MESSAGE',
-                        message: nMessage,
+                        message: `${nMessage}  ${sender.name}`,
                         heading: { name: `${user.name}`, image: user.profilePhoto?.url },
                         payload: {
                             entity: conversation.id,

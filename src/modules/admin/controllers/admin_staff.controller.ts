@@ -4,7 +4,6 @@ import { NextFunction, Request, Response } from "express";
 import AdminRegModel from "../../../database/admin/models/admin.model";
 import { generateOTP } from "../../../utils/otpGenerator";
 import { sendEmail } from "../../../utils/send_email_utility";
-import { htmlMailTemplate } from "../../../templates/sendEmailTemplate";
 import { AdminStatus } from "../../../database/admin/interface/admin.interface";
 import PermissionModel from "../../../database/admin/models/permission.model";
 import { InternalServerError } from "../../../utils/custom.errors";

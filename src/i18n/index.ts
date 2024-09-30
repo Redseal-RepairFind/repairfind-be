@@ -7,6 +7,7 @@ import { config } from '../config';
 
 //@ts-ignore
 import {Translate} from "translate";
+import { text } from 'body-parser';
 
 // Define the translation type structure
 interface Translation {
@@ -76,7 +77,13 @@ function saveTranslationToFile(slug: string, lang: Language, translatedText: str
 
 
 // Updated function to get translation with fallback to Google Translate API
-async function getTranslation(phraseOrSlug: string, lang: Language = 'en') {
+async function getTranslation({ phraseOrSlug, lang = 'en', saveToFile = true, contentType = 'text', useGoogle = false }: { 
+    phraseOrSlug: string; 
+    lang?: Language; 
+    saveToFile?: boolean; 
+    contentType?: string; 
+    useGoogle?: boolean; 
+  }) {
     try {
         // Check if the provided input is already a valid slug
         if (translations[phraseOrSlug] && translations[phraseOrSlug][lang]) {
@@ -91,23 +98,32 @@ async function getTranslation(phraseOrSlug: string, lang: Language = 'en') {
 
         // If no translation is found, fall back to Google Translate API
         Logger.info(`No local translation found for '${phraseOrSlug}', using Google Translate...`);
-        const translatedText = await GoogleServiceProvider.translate.translateText(phraseOrSlug, lang);
 
-        // Optionally, you can add the translated text to the local translations for future use
+        let translatedText = phraseOrSlug
+        if(useGoogle){
+            translatedText = await GoogleServiceProvider.translate.translateText({text: phraseOrSlug, targetLang: lang, format: contentType });
+        }else{
+            translatedText = await freeCloudTranslate(phraseOrSlug, lang)
+        }
+        // translatedText = await GoogleServiceProvider.translate.translateText({text: phraseOrSlug, targetLang: lang, format: contentType });
+
+
         // Save the new translation to general.json for future use
-        saveTranslationToFile(slug, lang, translatedText);
+        if(saveToFile){
+            saveTranslationToFile(slug, lang, translatedText);
+        }
 
         return translatedText;
     } catch (error) {
         Logger.error('Error getting translation:', error);
-        throw new Error(`Could not translate the text: ${phraseOrSlug}`);
+        return phraseOrSlug;
     }
 }
 
 
 
 
-export async function cloudTranslate(text: string, targetLang: string, sourceLang?: string,): Promise<any> {
+export async function freeCloudTranslate(text: string, targetLang: string, sourceLang?: string,): Promise<any> {
     try {
         if (!text || !targetLang) {
             throw new Error('Text, source language, and target language are required');
@@ -124,5 +140,5 @@ export async function cloudTranslate(text: string, targetLang: string, sourceLan
 
 export const i18n = {
     getTranslation,
-    cloudTranslate
+    freeCloudTranslate
 };

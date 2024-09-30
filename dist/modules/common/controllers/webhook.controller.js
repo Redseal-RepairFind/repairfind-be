@@ -60,10 +60,8 @@ exports.stripeWebook = stripeWebook;
 var certnWebook = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
         try {
-            // const sig = <string>req.headers['stripe-signature'];
-            // const payload = req.body;
-            services_1.CertnService.webhook.CertnWebhookHandler(req);
             logger_1.Logger.info("CERTN WEBHOOK");
+            services_1.CertnService.webhook.CertnWebhookHandler(req);
             res.status(200).end();
         }
         catch (err) {

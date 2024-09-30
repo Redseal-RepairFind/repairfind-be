@@ -26,7 +26,7 @@ export const createPaymentMethodOrder = async (
         // const paypalCustomer = PayPalService.customer.createPayPalCustomer({email: customer.email, firstName: customer.firstName, lastName: customer.lastName})
         // console.log("paypalCustomer", paypalCustomer)
 
-        const payload = { amount: 1, intent: 'AUTHORIZE', customer_id: "IOQKDxvioH", }
+        const payload = { amount: 1, intent: 'AUTHORIZE', returnUrl: 'https://repairfind.ca/card-connected-successfully'  }
         const response = await PayPalService.payment.createOrder(payload)
         return res.status(200).json(response)
     } catch (err: any) {

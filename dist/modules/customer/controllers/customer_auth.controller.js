@@ -45,8 +45,7 @@ var bcrypt_1 = __importDefault(require("bcrypt"));
 var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var otpGenerator_1 = require("../../../utils/otpGenerator");
-var send_email_utility_1 = require("../../../utils/send_email_utility");
-var sendEmailTemplate_1 = require("../../../templates/sendEmailTemplate");
+var OtpEmailTemplate_1 = require("../../../templates/common/OtpEmailTemplate");
 var google_1 = require("../../../services/google");
 var customer_interface_1 = require("../../../database/customer/interface/customer.interface");
 var facebook_1 = require("../../../services/facebook");
@@ -54,13 +53,14 @@ var services_1 = require("../../../services");
 var config_1 = require("../../../config");
 var welcome_email_1 = require("../../../templates/customer/welcome_email");
 var email_verification_1 = require("../../../templates/common/email_verification");
+var i18n_1 = require("../../../i18n");
 var signUp = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, email, password, firstName, lastName, acceptTerms, phoneNumber, errors, userEmailExists, otp, createdTime, emailOtp, welcomeHtml, emailVerificationHtml, hashedPassword, customer, customerSaved, err_1;
+    var _a, email, password, firstName, lastName, acceptTerms, phoneNumber, language, errors, userEmailExists, otp, createdTime, emailOtp, hashedPassword, customer, customerSaved, welcomeHtml, translatedWelcomeHtml, translatedWelcomeSubject, emailVerificationHtml, translatedVerificationHtml, translatedVerificationSubject, err_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 4, , 5]);
-                _a = req.body, email = _a.email, password = _a.password, firstName = _a.firstName, lastName = _a.lastName, acceptTerms = _a.acceptTerms, phoneNumber = _a.phoneNumber;
+                _b.trys.push([0, 8, , 9]);
+                _a = req.body, email = _a.email, password = _a.password, firstName = _a.firstName, lastName = _a.lastName, acceptTerms = _a.acceptTerms, phoneNumber = _a.phoneNumber, language = _a.language;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "Validation error occurred", errors: errors.array() })];
@@ -70,9 +70,7 @@ var signUp = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                 userEmailExists = _b.sent();
                 // check if user exists
                 if (userEmailExists) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ success: false, message: "Email exists already" })];
+                    return [2 /*return*/, res.status(401).json({ success: false, message: "Email exists already" })];
                 }
                 otp = (0, otpGenerator_1.generateOTP)();
                 createdTime = new Date();
@@ -81,10 +79,6 @@ var signUp = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                     createdTime: createdTime,
                     verified: false
                 };
-                welcomeHtml = (0, welcome_email_1.CustomerWelcomeEmailTemplate)(lastName);
-                services_1.EmailService.send(email, 'Welcome to Repairfind', welcomeHtml);
-                emailVerificationHtml = (0, email_verification_1.EmailVerificationTemplate)(otp, firstName);
-                services_1.EmailService.send(email, 'Email Verification', emailVerificationHtml);
                 return [4 /*yield*/, bcrypt_1.default.hash(password, 10)];
             case 2:
                 hashedPassword = _b.sent();
@@ -95,18 +89,28 @@ var signUp = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                     phoneNumber: phoneNumber,
                     password: hashedPassword,
                     emailOtp: emailOtp,
-                    acceptTerms: acceptTerms
+                    acceptTerms: acceptTerms,
+                    language: language
                 });
                 return [4 /*yield*/, customer.save()];
             case 3:
                 customerSaved = _b.sent();
-                // admin notification 
-                // const adminNoti = new AdminNoficationModel({
-                //   title: "New Account Created",
-                //   message: `A customer - ${lastName}  just created an account.`,
-                //   status: "unseen"
-                // })
-                // await adminNoti.save();
+                welcomeHtml = (0, welcome_email_1.CustomerWelcomeEmailTemplate)(lastName);
+                return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: welcomeHtml, lang: customer.language, saveToFile: false, useGoogle: true })];
+            case 4:
+                translatedWelcomeHtml = (_b.sent()) || welcomeHtml;
+                return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: "Welcome to Repairfind", lang: customer.language })];
+            case 5:
+                translatedWelcomeSubject = (_b.sent()) || 'Welcome to Repairfind';
+                services_1.EmailService.send(email, translatedWelcomeSubject, translatedWelcomeHtml);
+                emailVerificationHtml = (0, email_verification_1.EmailVerificationTemplate)(otp, firstName);
+                return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailVerificationHtml, lang: customer.language, saveToFile: false, useGoogle: true })];
+            case 6:
+                translatedVerificationHtml = (_b.sent()) || emailVerificationHtml;
+                return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: "'Email Verification", lang: customer.language })];
+            case 7:
+                translatedVerificationSubject = (_b.sent()) || 'Welcome to Repairfind';
+                services_1.EmailService.send(email, translatedVerificationHtml, translatedVerificationSubject);
                 res.json({
                     success: true,
                     message: "Signup successful",
@@ -118,13 +122,12 @@ var signUp = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                         email: customerSaved.email,
                     },
                 });
-                return [3 /*break*/, 5];
-            case 4:
+                return [3 /*break*/, 9];
+            case 8:
                 err_1 = _b.sent();
-                // signup error
                 res.status(500).json({ success: false, message: err_1.message });
-                return [3 /*break*/, 5];
-            case 5: return [2 /*return*/];
+                return [3 /*break*/, 9];
+            case 9: return [2 /*return*/];
         }
     });
 }); };
@@ -146,19 +149,13 @@ var verifyEmail = function (req, res) { return __awaiter(void 0, void 0, void 0,
                 customer = _b.sent();
                 // check if contractor exists
                 if (!customer) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ success: false, message: "Invalid email" })];
+                    return [2 /*return*/, res.status(401).json({ success: false, message: "Invalid email" })];
                 }
                 if (customer.emailOtp.otp != otp) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ success: false, message: "Invalid otp" })];
+                    return [2 /*return*/, res.status(401).json({ success: false, message: "Invalid otp" })];
                 }
                 if (customer.emailOtp.verified) {
-                    return [2 /*return*/, res
-                            .status(400)
-                            .json({ success: false, message: "Email is already verified" })];
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "Email is already verified" })];
                 }
                 timeDiff = new Date().getTime() - customer.emailOtp.createdTime.getTime();
                 if (timeDiff > otpGenerator_1.OTP_EXPIRY_TIME) {
@@ -183,7 +180,6 @@ var verifyEmail = function (req, res) { return __awaiter(void 0, void 0, void 0,
                     })];
             case 3:
                 err_2 = _b.sent();
-                // signup error
                 res.status(500).json({ success: false, message: err_2.message });
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
@@ -212,9 +208,7 @@ var signIn = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                             .json({ success: false, message: "Invalid credential" })];
                 }
                 if (!customer.password && customer.provider !== customer_interface_1.CustomerAuthProviders.PASSWORD) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ success: false, message: "The email is associated with a social signon" })];
+                    return [2 /*return*/, res.status(401).json({ success: false, message: "The email is associated with a social signon" })];
                 }
                 return [4 /*yield*/, bcrypt_1.default.compare(password, customer.password)];
             case 2:
@@ -328,11 +322,11 @@ var signInWithPhone = function (req, res) { return __awaiter(void 0, void 0, voi
 exports.signInWithPhone = signInWithPhone;
 //customer resend for verification email /////////////
 var resendEmail = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var email, errors, customer, otp, createdTime, html, emailData, err_5;
+    var email, errors, customer, otp, createdTime, html, translatedHtml, translatedSubject, err_5;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 3, , 4]);
+                _a.trys.push([0, 5, , 6]);
                 email = req.body.email;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
@@ -341,16 +335,11 @@ var resendEmail = function (req, res) { return __awaiter(void 0, void 0, void 0,
                 return [4 /*yield*/, customer_model_1.default.findOne({ email: email })];
             case 1:
                 customer = _a.sent();
-                // check if contractor exists
                 if (!customer) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ success: false, message: "Invalid email" })];
+                    return [2 /*return*/, res.status(401).json({ success: false, message: "Invalid email" })];
                 }
                 if (customer.emailOtp.verified) {
-                    return [2 /*return*/, res
-                            .status(400)
-                            .json({ success: false, message: "Email already verified" })];
+                    // return res.status(400).json({ success: false, message: "Email already verified" });
                 }
                 otp = (0, otpGenerator_1.generateOTP)();
                 createdTime = new Date();
@@ -362,30 +351,31 @@ var resendEmail = function (req, res) { return __awaiter(void 0, void 0, void 0,
                 return [4 /*yield*/, (customer === null || customer === void 0 ? void 0 : customer.save())];
             case 2:
                 _a.sent();
-                html = (0, sendEmailTemplate_1.htmlMailTemplate)(otp, customer.firstName, "We have received a request to verify your email");
-                emailData = {
-                    emailTo: email,
-                    subject: "email verification",
-                    html: html
-                };
-                (0, send_email_utility_1.sendEmail)(emailData);
-                return [2 /*return*/, res.status(200).json({ success: true, message: "OTP sent successfully to your email." })];
+                html = (0, OtpEmailTemplate_1.OtpEmailTemplate)(otp, customer.firstName, "We have received a request to verify your email");
+                return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, lang: customer.language, saveToFile: false, useGoogle: true })];
             case 3:
+                translatedHtml = (_a.sent()) || html;
+                return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: "Email Verification", lang: customer.language })];
+            case 4:
+                translatedSubject = (_a.sent()) || 'Email Verification';
+                services_1.EmailService.send(email, translatedSubject, translatedHtml);
+                return [2 /*return*/, res.status(200).json({ success: true, message: "OTP sent successfully to your email." })];
+            case 5:
                 err_5 = _a.sent();
                 // signup error
                 res.status(500).json({ message: err_5.message });
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/];
+                return [3 /*break*/, 6];
+            case 6: return [2 /*return*/];
         }
     });
 }); };
 exports.resendEmail = resendEmail;
 var forgotPassword = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var email, errors, customer, otp, createdTime, html, emailData, err_6;
+    var email, errors, customer, otp, createdTime, html, translatedHtml, translatedSubject, err_6;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 3, , 4]);
+                _a.trys.push([0, 5, , 6]);
                 email = req.body.email;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
@@ -409,19 +399,28 @@ var forgotPassword = function (req, res) { return __awaiter(void 0, void 0, void
                 return [4 /*yield*/, (customer === null || customer === void 0 ? void 0 : customer.save())];
             case 2:
                 _a.sent();
-                html = (0, sendEmailTemplate_1.htmlMailTemplate)(otp, customer.firstName, "We have received a request to change your password");
-                emailData = {
-                    emailTo: email,
-                    subject: "C password change",
-                    html: html
-                };
-                (0, send_email_utility_1.sendEmail)(emailData);
-                return [2 /*return*/, res.status(200).json({ success: true, message: "OTP sent successfully to your email." })];
+                html = (0, OtpEmailTemplate_1.OtpEmailTemplate)(otp, customer.firstName, "We have received a request to change your password");
+                return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                        phraseOrSlug: html,
+                        lang: customer.language,
+                        saveToFile: false,
+                        useGoogle: true
+                    })];
             case 3:
+                translatedHtml = (_a.sent()) || html;
+                return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                        phraseOrSlug: "Password Change",
+                        lang: customer.language
+                    })];
+            case 4:
+                translatedSubject = (_a.sent()) || 'Password Change';
+                services_1.EmailService.send(email, translatedSubject, translatedHtml);
+                return [2 /*return*/, res.status(200).json({ success: true, message: "OTP sent successfully to your email." })];
+            case 5:
                 err_6 = _a.sent();
                 res.status(500).json({ success: false, message: err_6.message });
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/];
+                return [3 /*break*/, 6];
+            case 6: return [2 /*return*/];
         }
     });
 }); };
@@ -442,16 +441,12 @@ var resetPassword = function (req, res) { return __awaiter(void 0, void 0, void 
                 customer = _c.sent();
                 // check if contractor exists
                 if (!customer) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ success: false, message: "Invalid email" })];
+                    return [2 /*return*/, res.status(401).json({ success: false, message: "Invalid email" })];
                 }
                 _b = customer.passwordOtp, createdTime = _b.createdTime, verified = _b.verified;
                 timeDiff = new Date().getTime() - createdTime.getTime();
                 if (!verified || timeDiff > otpGenerator_1.OTP_EXPIRY_TIME || otp !== customer.passwordOtp.otp) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ success: false, message: "Unable to reset password" })];
+                    return [2 /*return*/, res.status(401).json({ success: false, message: "Unable to reset password" })];
                 }
                 return [4 /*yield*/, bcrypt_1.default.hash(password, 10)];
             case 2:
@@ -651,6 +646,7 @@ var facebookSignon = function (req, res) { return __awaiter(void 0, void 0, void
     });
 }); };
 exports.facebookSignon = facebookSignon;
+// TODO: BUG: 
 var appleSignon = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, accessToken, email, firstName, lastName, errors, decodedToken, decodedIdToken, decodedAccessToken, appleUserId, appleEmail, createdTime, emailOtp, user, token, err_11;
     return __generator(this, function (_b) {
@@ -672,8 +668,6 @@ var appleSignon = function (req, res) { return __awaiter(void 0, void 0, void 0,
                 return [4 /*yield*/, services_1.AppleIdServiceProvider.decodeAccessToken(accessToken)];
             case 2:
                 decodedAccessToken = _b.sent();
-                console.log('decodedIdToken', decodedIdToken);
-                console.log('decodedAccessToken', decodedAccessToken);
                 appleUserId = decodedToken.sub;
                 appleEmail = decodedToken.email;
                 createdTime = new Date();

@@ -3,8 +3,6 @@ import bcrypt from "bcrypt";
 import { NextFunction, Request, Response } from "express";
 import { ContractorModel } from "../../../database/contractor/models/contractor.model";
 import AdminRegModel from "../../../database/admin/models/admin.model";
-import { htmlContractorDocumentValidatinToAdminTemplate } from "../../../templates/admin/adminContractorDocumentTemplate";
-import { htmlContractorDocumentValidatinTemplate } from "../../../templates/contractor/contractorDocumentTemplate";
 import { Base } from "../../../abstracts/base.abstract";
 import { handleAsyncError } from "../../../abstracts/decorators.abstract";
 import { ContractorProfileModel } from "../../../database/contractor/models/contractor_profile.model";
@@ -150,19 +148,20 @@ class ProfileHandler extends Base {
 
       // send email to contractor 
       // TODO: Emit event and handle email sending from there
-      const htmlCon = htmlContractorDocumentValidatinTemplate(contractor.firstName);
-      EmailService.send(contractor.email, 'New Profile', htmlCon)
-        .then(() => console.log('Email sent successfully'))
-        .catch(error => console.error('Error sending email:', error));
+      // const htmlCon = htmlContractorDocumentValidatinTemplate(contractor.firstName);
+      // EmailService.send(contractor.email, 'New Profile', htmlCon)
+      //   .then(() => console.log('Email sent successfully'))
+      //   .catch(error => console.error('Error sending email:', error));
+
 
 
       // send email to admin
-      const html = htmlContractorDocumentValidatinToAdminTemplate(contractor.firstName)
-      const adminsWithEmails = await AdminRegModel.find().select('email');
-      const adminEmails: Array<string> = adminsWithEmails.map(admin => admin.email);
-      EmailService.send(adminEmails, 'New Profile Registered', html, adminEmails)
-        .then(() => console.log('Emails sent successfully with CC'))
-        .catch(error => console.error('Error sending emails:', error));
+      // const html = htmlContractorDocumentValidatinToAdminTemplate(contractor.firstName)
+      // const adminsWithEmails = await AdminRegModel.find().select('email');
+      // const adminEmails: Array<string> = adminsWithEmails.map(admin => admin.email);
+      // EmailService.send(adminEmails, 'New Profile Registered', html, adminEmails)
+      //   .then(() => console.log('Emails sent successfully with CC'))
+      //   .catch(error => console.error('Error sending emails:', error));
 
 
       return res.json({

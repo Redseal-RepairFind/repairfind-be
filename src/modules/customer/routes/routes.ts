@@ -10,12 +10,12 @@ import { CustomerJobController } from "../controllers/customer_job.controller";
 import { CustomerNotificationController } from "../controllers/customer_notification.controller";
 import { CustomerConversationController } from "../controllers/customer_conversation.controller";
 import { CustomerJobDayController } from "../controllers/customer_jobday.controller";
-import { CustomerPaymentController } from "../controllers/customer_payment.controller";
+import { CustomerStripePaymentController } from "../controllers/customer_stripe_payment.controller";
 import { CustomerTransactionController } from "../controllers/customer_transaction.controller";
 import { CustomerBookingController } from "../controllers/customer_booking.controller";
 import { CustomerCallController } from "../controllers/customer_call.controller";
 import { checkCustomerOrGuestRole } from "../middleware/customerOrGuest.middleware";
-import { CustomerPaypalPaymentController } from "../controllers/paypal_payment.controller";
+import { CustomerPaypalPaymentController } from "../controllers/customer_paypal_payment.controller";
 import { CustomerPaypalController } from "../controllers/customer_paypal.controller";
 
 const express = require("express");
@@ -85,14 +85,15 @@ router.post("/jobs/:jobId/quotations/:quotationId/schedule", checkCustomerRole, 
 
 
 
-router.post("/jobs/:jobId/create-checkout-order", checkCustomerRole, CustomerPaypalPaymentController.createCheckoutOrder ); 
-router.post("/jobs/:jobId/capture-checkout-order", checkCustomerRole, CustomerPaypalPaymentController.captureCheckoutOrder ); 
-router.post("/jobs/:jobId/charge-payment-method", checkCustomerRole, CustomerPaypalPaymentController.chargeSavedPaymentMethod ); 
+router.post("/jobs/:jobId/paypal/create-checkout-order", checkCustomerRole, CustomerPaypalPaymentController.createCheckoutOrder ); 
+router.post("/jobs/:jobId/paypal/capture-checkout-order", checkCustomerRole, CustomerPaypalPaymentController.captureCheckoutOrder ); 
+router.post("/jobs/:jobId/paypal/pay", checkCustomerRole, CustomerPaypalPaymentController.payJobEstimate ); 
+router.post("/jobs/:jobId/paypal/pay-change-order", checkCustomerRole, CustomerPaypalPaymentController.payChangeOrderEstimate ); 
 
 
-router.post("/jobs/:jobId/pay", checkCustomerRole, CustomerPaymentController.makeJobPayment ); 
-router.post("/jobs/:jobId/payment-capture", checkCustomerRole, CustomerPaymentController.captureJobPayment ); 
-router.post("/jobs/:jobId/change-order-payment", checkCustomerRole, CustomerPaymentController.makeChangeOrderEstimatePayment ); 
+router.post("/jobs/:jobId/pay", checkCustomerRole, CustomerStripePaymentController.makeJobPayment ); 
+router.post("/jobs/:jobId/payment-capture", checkCustomerRole, CustomerStripePaymentController.captureJobPayment ); 
+router.post("/jobs/:jobId/change-order-payment", checkCustomerRole, CustomerStripePaymentController.makeChangeOrderEstimatePayment ); 
 
 
 router.get("/jobs/:jobId/enquiries", checkCustomerRole, CustomerJobController.getJobEnquiries ); 

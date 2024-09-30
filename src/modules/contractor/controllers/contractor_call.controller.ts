@@ -11,6 +11,7 @@ import { CallModel } from "../../../database/common/call.schema";
 import { v4 as uuid } from 'uuid';
 import { ConversationUtil } from "../../../utils/conversation.util";
 import { ObjectId } from "mongoose";
+import { i18n } from "../../../i18n";
 
 
 export const createRtmToken = async (
@@ -134,12 +135,17 @@ export const startCall = async (
         const call = await CallModel.create(callData);
         call.heading = await call.getHeading(fromUserId)
 
+
+        const userLang = user.language;          
+        let nTitle = await i18n.getTranslation({ phraseOrSlug: 'New Incoming Call', lang: userLang });
+        let nMessage = await i18n.getTranslation({phraseOrSlug: `You've an incoming call from`,lang: userLang});
+
         NotificationService.sendNotification({
             user: user.id,
             userType: toUserType,
-            title: 'New Incoming Call',
+            title: nTitle,
             type: 'NEW_INCOMING_CALL', //
-            message: `You've an incoming call from ${fromUser.name}`,
+            message: `${nMessage} ${fromUser.name}`,
             heading: { name: `${fromUser.name}`, image: fromUser.profilePhoto?.url },
             payload: {
                 entity: call.id,
@@ -148,7 +154,7 @@ export const startCall = async (
                 callId: call.id,
                 uid: toUserUid,
                 token: toUserToken,
-                message: `You've an incoming call from ${fromUser.name}`,
+                message: `${nMessage} ${fromUser.name}`,
                 name: `${fromUser.name}`,
                 image: fromUser.profilePhoto?.url,
                 event: 'NEW_INCOMING_CALL',
@@ -193,18 +199,23 @@ export const endCall = async (
             if(event == 'missed') title = 'Call Missed', type = 'CALL_MISSED',   message = `Your call to  ${toUser.name} was not answered`
             if(event == 'declined')  title = 'Call Declined', type = 'CALL_DECLINED',  message = `Your call to  ${toUser.name} was declined`
 
+
+            const userLang = fromUser.language;          
+            let nTitle = await i18n.getTranslation({ phraseOrSlug: title, lang: userLang });
+            let nMessage = await i18n.getTranslation({phraseOrSlug: message,lang: userLang});
+            
             NotificationService.sendNotification({
                 user: call.fromUser,
                 userType: call.fromUserType, 
-                title: title,
+                title: nTitle,
                 type: type,
-                message,
+                message: nMessage,
                 heading: { name: `${toUser.name}`, image: toUser.profilePhoto?.url },
                 payload: {
                     entity: call.id,
                     entityType: 'calls',
                     conversationId: conversation.id,
-                    message,
+                    message: nMessage,
                     name: `${toUser.name}`,
                     image: toUser.profilePhoto?.url,
                     event: type,
@@ -217,10 +228,15 @@ export const endCall = async (
             if(event == 'missed')  title = 'Call Missed', type = 'CALL_MISSED',    message = `You have a missed call from  ${fromUser.name}`
             if(event == 'declined') title = 'Call Declined', type = 'CALL_DECLINED',   message = `You declined a call from  ${fromUser.name}`
 
+
+            const userLang = toUser.language;          
+            let nTitle = await i18n.getTranslation({ phraseOrSlug: title, lang: userLang });
+            let nMessage = await i18n.getTranslation({phraseOrSlug: message,lang: userLang});
+
             NotificationService.sendNotification({
                 user: call.toUser,
                 userType: call.toUserType,
-                title: title,
+                title: nTitle,
                 type: type,
                 message,
                 heading: { name: `${fromUser.name}`, image: fromUser.profilePhoto?.url },
@@ -228,7 +244,7 @@ export const endCall = async (
                     entity: call.id,
                     entityType: 'calls',
                     conversationId: conversation.id,
-                    message,
+                    message: nMessage,
                     name: `${fromUser.name}`,
                     image: fromUser.profilePhoto?.url,
                     event: type,

@@ -29,10 +29,8 @@ export const certnWebook = async (
 ) => {
 
   try {
-    // const sig = <string>req.headers['stripe-signature'];
-    // const payload = req.body;
-    CertnService.webhook.CertnWebhookHandler(req)
     Logger.info("CERTN WEBHOOK")
+    CertnService.webhook.CertnWebhookHandler(req)
     res.status(200).end() 
 
   } catch (err: any) {

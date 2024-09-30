@@ -160,11 +160,13 @@ export const paymentCaptureCompleted = async (payload: any, resourceType: any) =
                             remark: 'Initial job schedule'
                         };
 
+                        job.status = JOB_STATUS.BOOKED
 
                         await Promise.all([
                             quotation.save(),
                             job.save()
                         ])
+
                         JobEvent.emit('JOB_BOOKED', { jobId, contractorId: quotation.contractor, customerId: job.customer, quotationId, paymentType })
 
                     }

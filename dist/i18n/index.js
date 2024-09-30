@@ -50,7 +50,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.i18n = exports.cloudTranslate = void 0;
+exports.i18n = exports.freeCloudTranslate = void 0;
 var fs_1 = require("fs");
 var path_1 = __importDefault(require("path"));
 var logger_1 = require("../services/logger");
@@ -93,14 +93,14 @@ function saveTranslationToFile(slug, lang, translatedText) {
     logger_1.Logger.info("New translation saved for '".concat(slug, "' in language '").concat(lang, "' to general.json."));
 }
 // Updated function to get translation with fallback to Google Translate API
-function getTranslation(phraseOrSlug, lang) {
-    if (lang === void 0) { lang = 'en'; }
+function getTranslation(_a) {
+    var phraseOrSlug = _a.phraseOrSlug, _b = _a.lang, lang = _b === void 0 ? 'en' : _b, _c = _a.saveToFile, saveToFile = _c === void 0 ? true : _c, _d = _a.contentType, contentType = _d === void 0 ? 'text' : _d, _e = _a.useGoogle, useGoogle = _e === void 0 ? false : _e;
     return __awaiter(this, void 0, void 0, function () {
         var slug, translatedText, error_1;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        return __generator(this, function (_f) {
+            switch (_f.label) {
                 case 0:
-                    _a.trys.push([0, 2, , 3]);
+                    _f.trys.push([0, 5, , 6]);
                     // Check if the provided input is already a valid slug
                     if (translations[phraseOrSlug] && translations[phraseOrSlug][lang]) {
                         return [2 /*return*/, translations[phraseOrSlug][lang]];
@@ -111,23 +111,33 @@ function getTranslation(phraseOrSlug, lang) {
                     }
                     // If no translation is found, fall back to Google Translate API
                     logger_1.Logger.info("No local translation found for '".concat(phraseOrSlug, "', using Google Translate..."));
-                    return [4 /*yield*/, google_1.GoogleServiceProvider.translate.translateText(phraseOrSlug, lang)];
+                    translatedText = phraseOrSlug;
+                    if (!useGoogle) return [3 /*break*/, 2];
+                    return [4 /*yield*/, google_1.GoogleServiceProvider.translate.translateText({ text: phraseOrSlug, targetLang: lang, format: contentType })];
                 case 1:
-                    translatedText = _a.sent();
-                    // Optionally, you can add the translated text to the local translations for future use
+                    translatedText = _f.sent();
+                    return [3 /*break*/, 4];
+                case 2: return [4 /*yield*/, freeCloudTranslate(phraseOrSlug, lang)];
+                case 3:
+                    translatedText = _f.sent();
+                    _f.label = 4;
+                case 4:
+                    // translatedText = await GoogleServiceProvider.translate.translateText({text: phraseOrSlug, targetLang: lang, format: contentType });
                     // Save the new translation to general.json for future use
-                    saveTranslationToFile(slug, lang, translatedText);
+                    if (saveToFile) {
+                        saveTranslationToFile(slug, lang, translatedText);
+                    }
                     return [2 /*return*/, translatedText];
-                case 2:
-                    error_1 = _a.sent();
+                case 5:
+                    error_1 = _f.sent();
                     logger_1.Logger.error('Error getting translation:', error_1);
-                    throw new Error("Could not translate the text: ".concat(phraseOrSlug));
-                case 3: return [2 /*return*/];
+                    return [2 /*return*/, phraseOrSlug];
+                case 6: return [2 /*return*/];
             }
         });
     });
 }
-function cloudTranslate(text, targetLang, sourceLang) {
+function freeCloudTranslate(text, targetLang, sourceLang) {
     var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function () {
         var translate, translatedText, error_2;
@@ -152,8 +162,8 @@ function cloudTranslate(text, targetLang, sourceLang) {
         });
     });
 }
-exports.cloudTranslate = cloudTranslate;
+exports.freeCloudTranslate = freeCloudTranslate;
 exports.i18n = {
     getTranslation: getTranslation,
-    cloudTranslate: cloudTranslate
+    freeCloudTranslate: freeCloudTranslate
 };

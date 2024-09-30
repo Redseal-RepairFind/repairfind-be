@@ -1,7 +1,7 @@
 
 export const EmailVerificationTemplate = (otp: string, firstName: string) => `
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en"> 
 
 <head>
     <meta charset="UTF-8">

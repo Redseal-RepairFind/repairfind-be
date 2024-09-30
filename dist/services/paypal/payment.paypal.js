@@ -70,14 +70,14 @@ var getPayPalAccessToken = function () { return __awaiter(void 0, void 0, void 0
 // Create a Payment Order (Standard Payment)
 var createOrder = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
     var accessToken, response, error_1;
-    var _a, _b;
-    return __generator(this, function (_c) {
-        switch (_c.label) {
+    var _a, _b, _c;
+    return __generator(this, function (_d) {
+        switch (_d.label) {
             case 0:
-                _c.trys.push([0, 3, , 4]);
+                _d.trys.push([0, 3, , 4]);
                 return [4 /*yield*/, getPayPalAccessToken()];
             case 1:
-                accessToken = _c.sent();
+                accessToken = _d.sent();
                 return [4 /*yield*/, axios_1.default.post(config_1.config.paypal.apiUrl + '/v2/checkout/orders', {
                         intent: payload.intent, // CAPTURE or AUTHORIZE
                         customer_id: payload.customer_id,
@@ -102,7 +102,7 @@ var createOrder = function (payload) { return __awaiter(void 0, void 0, void 0, 
                             }
                         },
                         application_context: {
-                            return_url: 'https://repairfind.ca/payment-success/',
+                            return_url: (_a = payload.returnUrl) !== null && _a !== void 0 ? _a : 'https://repairfind.ca/payment-success/',
                             cancel_url: 'https://cancel.com',
                         },
                     }, {
@@ -112,12 +112,12 @@ var createOrder = function (payload) { return __awaiter(void 0, void 0, void 0, 
                         },
                     })];
             case 2:
-                response = _c.sent();
+                response = _d.sent();
                 return [2 /*return*/, response.data];
             case 3:
-                error_1 = _c.sent();
+                error_1 = _d.sent();
                 logger_1.Logger.error("Error creating order:", error_1.response.data);
-                throw new Error(((_b = (_a = error_1.response) === null || _a === void 0 ? void 0 : _a.data) === null || _b === void 0 ? void 0 : _b.message) || error_1.message);
+                throw new Error(((_c = (_b = error_1.response) === null || _b === void 0 ? void 0 : _b.data) === null || _c === void 0 ? void 0 : _c.message) || error_1.message);
             case 4: return [2 /*return*/];
         }
     });
