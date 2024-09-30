@@ -52,7 +52,6 @@ var facebook_1 = require("../../../services/facebook");
 var services_1 = require("../../../services");
 var config_1 = require("../../../config");
 var welcome_email_1 = require("../../../templates/customer/welcome_email");
-var email_verification_1 = require("../../../templates/common/email_verification");
 var i18n_1 = require("../../../i18n");
 var signUp = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, email, password, firstName, lastName, acceptTerms, phoneNumber, language, errors, userEmailExists, otp, createdTime, emailOtp, hashedPassword, customer, customerSaved, welcomeHtml, translatedWelcomeHtml, translatedWelcomeSubject, emailVerificationHtml, translatedVerificationHtml, translatedVerificationSubject, err_1;
@@ -103,14 +102,14 @@ var signUp = function (req, res) { return __awaiter(void 0, void 0, void 0, func
             case 5:
                 translatedWelcomeSubject = (_b.sent()) || 'Welcome to Repairfind';
                 services_1.EmailService.send(email, translatedWelcomeSubject, translatedWelcomeHtml);
-                emailVerificationHtml = (0, email_verification_1.EmailVerificationTemplate)(otp, firstName);
+                emailVerificationHtml = (0, OtpEmailTemplate_1.OtpEmailTemplate)(otp, firstName, 'We have received a request to verify your email');
                 return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailVerificationHtml, lang: customer.language, saveToFile: false, useGoogle: true })];
             case 6:
                 translatedVerificationHtml = (_b.sent()) || emailVerificationHtml;
                 return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: "'Email Verification", lang: customer.language })];
             case 7:
                 translatedVerificationSubject = (_b.sent()) || 'Welcome to Repairfind';
-                services_1.EmailService.send(email, translatedVerificationHtml, translatedVerificationSubject);
+                services_1.EmailService.send(email, translatedVerificationSubject, translatedVerificationHtml);
                 res.json({
                     success: true,
                     message: "Signup successful",

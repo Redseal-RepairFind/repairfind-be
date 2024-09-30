@@ -82,10 +82,10 @@ export const signUp = async (
 
 
 
-    const emailVerificationHtml = EmailVerificationTemplate(otp, firstName);
+    const emailVerificationHtml = OtpEmailTemplate(otp, firstName, 'We have received a request to verify your email');
     const translatedVerificationHtml = await i18n.getTranslation({phraseOrSlug: emailVerificationHtml,lang: customer.language,saveToFile: false, useGoogle: true}) || emailVerificationHtml;
     const translatedVerificationSubject = await i18n.getTranslation({phraseOrSlug: "'Email Verification",lang: customer.language}) || 'Welcome to Repairfind';
-    EmailService.send(email, translatedVerificationHtml, translatedVerificationSubject)
+    EmailService.send(email, translatedVerificationSubject, translatedVerificationHtml, )
 
     res.json({
       success: true,
