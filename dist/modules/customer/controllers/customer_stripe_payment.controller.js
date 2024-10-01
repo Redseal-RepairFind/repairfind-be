@@ -73,7 +73,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerPaymentController = exports.captureJobPayment = exports.makeChangeOrderEstimatePayment = exports.makeJobPayment = void 0;
+exports.CustomerStripePaymentController = exports.captureJobPayment = exports.makeChangeOrderEstimatePayment = exports.makeJobPayment = void 0;
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
@@ -129,23 +129,19 @@ var findQuotation = function (quotationId) { return __awaiter(void 0, void 0, vo
     });
 }); };
 var findContractor = function (contractorId) { return __awaiter(void 0, void 0, void 0, function () {
-    var contractor, _a;
-    var _b, _c;
-    return __generator(this, function (_d) {
-        switch (_d.label) {
+    var contractor;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
             case 0: return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: contractorId })];
             case 1:
-                contractor = _d.sent();
+                contractor = _a.sent();
                 if (!contractor) {
                     throw new custom_errors_1.BadRequestError('Contractor not found');
                 }
-                _a = contractor;
-                return [4 /*yield*/, contractor.getOnboarding()];
-            case 2:
-                _a.onboarding = _d.sent();
-                if (!contractor.onboarding.hasStripeAccount || !(((_b = contractor.stripeAccountStatus) === null || _b === void 0 ? void 0 : _b.card_payments_enabled) && ((_c = contractor.stripeAccountStatus) === null || _c === void 0 ? void 0 : _c.transfers_enabled))) {
-                    throw new custom_errors_1.BadRequestError('You cannot make payment to this contractor because his/her Stripe connect account is not set up');
-                }
+                // contractor.onboarding = await contractor.getOnboarding()
+                // if (!contractor.onboarding.hasStripeAccount || !(contractor.stripeAccountStatus?.card_payments_enabled && contractor.stripeAccountStatus?.transfers_enabled)) {
+                //     throw new BadRequestError('You cannot make payment to this contractor because his/her Stripe connect account is not set up');
+                // }
                 return [2 /*return*/, contractor];
         }
     });
@@ -392,7 +388,7 @@ var makeChangeOrderEstimatePayment = function (req, res, next) { return __awaite
                 if (!paymentMethod)
                     throw new Error('No such payment method');
                 paymentType = payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT;
-                transactionType = transaction_model_1.TRANSACTION_TYPE.CHANGE_ORDER;
+                transactionType = transaction_model_1.TRANSACTION_TYPE.CHANGE_ORDER_PAYMENT;
                 return [4 /*yield*/, quotation.calculateCharges(paymentType)];
             case 5:
                 charges = _b.sent();
@@ -495,7 +491,7 @@ var captureJobPayment = function (req, res, next) { return __awaiter(void 0, voi
     });
 }); };
 exports.captureJobPayment = captureJobPayment;
-exports.CustomerPaymentController = {
+exports.CustomerStripePaymentController = {
     makeJobPayment: exports.makeJobPayment,
     captureJobPayment: exports.captureJobPayment,
     makeChangeOrderEstimatePayment: exports.makeChangeOrderEstimatePayment

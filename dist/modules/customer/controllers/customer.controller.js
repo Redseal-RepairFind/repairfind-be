@@ -56,12 +56,12 @@ var blockeduser_util_1 = require("../../../utils/blockeduser.util");
 var conversation_util_1 = require("../../../utils/conversation.util");
 var messages_schema_1 = require("../../../database/common/messages.schema");
 var updateAccount = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, firstName, lastName, location_1, phoneNumber, profilePhoto, errors, customerId, customer, updatedCustomer, err_1;
+    var _a, firstName, lastName, location_1, phoneNumber, profilePhoto, language, errors, customerId, customer, updatedCustomer, err_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
                 _b.trys.push([0, 3, , 4]);
-                _a = req.body, firstName = _a.firstName, lastName = _a.lastName, location_1 = _a.location, phoneNumber = _a.phoneNumber, profilePhoto = _a.profilePhoto;
+                _a = req.body, firstName = _a.firstName, lastName = _a.lastName, location_1 = _a.location, phoneNumber = _a.phoneNumber, profilePhoto = _a.profilePhoto, language = _a.language;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -78,7 +78,8 @@ var updateAccount = function (req, res) { return __awaiter(void 0, void 0, void 
                         lastName: lastName,
                         phoneNumber: phoneNumber,
                         location: location_1,
-                        profilePhoto: profilePhoto
+                        profilePhoto: profilePhoto,
+                        language: language
                     }, { new: true })];
             case 2:
                 updatedCustomer = _b.sent();

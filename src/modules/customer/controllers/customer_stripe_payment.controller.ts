@@ -43,10 +43,10 @@ const findContractor = async (contractorId: ObjectId) => {
     if (!contractor) {
         throw new BadRequestError('Contractor not found');
     }
-    contractor.onboarding = await contractor.getOnboarding()
-    if (!contractor.onboarding.hasStripeAccount || !(contractor.stripeAccountStatus?.card_payments_enabled && contractor.stripeAccountStatus?.transfers_enabled)) {
-        throw new BadRequestError('You cannot make payment to this contractor because his/her Stripe connect account is not set up');
-    }
+    // contractor.onboarding = await contractor.getOnboarding()
+    // if (!contractor.onboarding.hasStripeAccount || !(contractor.stripeAccountStatus?.card_payments_enabled && contractor.stripeAccountStatus?.transfers_enabled)) {
+    //     throw new BadRequestError('You cannot make payment to this contractor because his/her Stripe connect account is not set up');
+    // }
     return contractor;
 };
 
@@ -171,6 +171,7 @@ const prepareStripePayload = (data:{paymentMethodId: string, customer: any, cont
     return payload;
 };
 
+
 export const makeJobPayment = async (req: any, res: Response, next: NextFunction) => {
     try {
         const { quotationId, paymentMethodId } = req.body;
@@ -230,6 +231,7 @@ export const makeJobPayment = async (req: any, res: Response, next: NextFunction
         job.bookingViewedByContractor = false;
         await job.save();
 
+        
         const conversationMembers = [
             { memberType: 'customers', member: customerId },
             { memberType: 'contractors', member: contractorId }
@@ -299,7 +301,7 @@ export const makeChangeOrderEstimatePayment = async (req: any, res: Response, ne
 
 
         let paymentType = PAYMENT_TYPE.CHANGE_ORDER_PAYMENT
-        let transactionType = TRANSACTION_TYPE.CHANGE_ORDER
+        let transactionType = TRANSACTION_TYPE.CHANGE_ORDER_PAYMENT
         const charges = await quotation.calculateCharges(paymentType);
 
         
@@ -388,7 +390,7 @@ export const captureJobPayment = async (req: any, res: Response, next: NextFunct
     }
 };
 
-export const CustomerPaymentController = {
+export const CustomerStripePaymentController = {
     makeJobPayment,
     captureJobPayment,
     makeChangeOrderEstimatePayment

@@ -4,17 +4,14 @@ import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { ContractorModel } from "../../../database/contractor/models/contractor.model";
 import { OTP_EXPIRY_TIME, generateOTP } from "../../../utils/otpGenerator";
-import { sendEmail } from "../../../utils/send_email_utility";
-import { uploadToS3 } from "../../../utils/upload.utility";
-import { v4 as uuidv4 } from "uuid";
-import { htmlMailTemplate } from "../../../templates/sendEmailTemplate";
+import { OtpEmailTemplate } from "../../../templates/common/OtpEmailTemplate";
 import { ContractorWelcomeTemplate } from "../../../templates/contractor/welcome_email";
 import { handleAsyncError } from "../../../abstracts/decorators.abstract";
 import { Base } from "../../../abstracts/base.abstract";
 import { EmailService } from "../../../services";
 import { config } from "../../../config";
-import { EmailVerificationTemplate } from "../../../templates/common/email_verification";
 import TwilioService from "../../../services/twillio";
+import { i18n } from "../../../i18n";
 
 class AuthHandler extends Base {
     @handleAsyncError()
@@ -22,7 +19,7 @@ class AuthHandler extends Base {
         let req = this.req
         let res = this.res
         try {
-            const { email, password, firstName, dateOfBirth, lastName, phoneNumber, acceptTerms, accountType, companyName } = req.body;
+            const { email, password, firstName, dateOfBirth, lastName, phoneNumber, acceptTerms, accountType, companyName, language } = req.body;
             const errors = validationResult(req);
 
             if (!errors.isEmpty()) {
@@ -63,25 +60,21 @@ class AuthHandler extends Base {
                 phoneNumber,
                 acceptTerms,
                 accountType,
-                companyName
+                companyName,
+                language
             });
 
 
 
-
-            const html = EmailVerificationTemplate(otp, firstName ?? companyName);
-            await EmailService.send(email, 'Email Verification', html);
+            const html = OtpEmailTemplate(otp, firstName ?? companyName, "We have received a request to verify your email");
+            let translatedHtml = await i18n.getTranslation({phraseOrSlug: html,targetLang: contractor.language,saveToFile: false,useGoogle: true}) || html ;            
+            let translatedSubject = await i18n.getTranslation({phraseOrSlug: "Email Verification",targetLang: contractor.language}) || 'Email Verification';
+            await EmailService.send(email, translatedSubject, translatedHtml);
 
             const welcomeHtml = ContractorWelcomeTemplate(firstName ?? companyName);
-            await EmailService.send(email, 'Welcome to Repairfind', welcomeHtml);
-
-            // const adminNoti = new AdminNoficationModel({
-            //     title: "New Account Created",
-            //     message: `A contractor - ${firstName} just created an account.`,
-            //     status: "unseen"
-            // });
-
-            // await adminNoti.save();
+            translatedHtml = await i18n.getTranslation({phraseOrSlug: welcomeHtml,targetLang: contractor.language,saveToFile: false,useGoogle: true}) || welcomeHtml;            
+            translatedSubject = await i18n.getTranslation({phraseOrSlug: "Welcome to Repairfind",targetLang: contractor.language}) || 'Welcome to Repairfind';
+            await EmailService.send(email, translatedSubject!, translatedHtml!);
 
             return res.json({
                 success: true,
@@ -105,33 +98,25 @@ class AuthHandler extends Base {
                 otp,
                 currentTimezone
             } = req.body;
-            // Check for validation errors
+
             const errors = validationResult(req);
 
             if (!errors.isEmpty()) {
                 return res.status(400).json({ success: false, message: "validation errors", errors: errors.array() });
             }
 
-            // try find contractor with the same email
             const contractor = await ContractorModel.findOne({ email });
 
-            // check if contractor exists
             if (!contractor) {
-                return res
-                    .status(401)
-                    .json({ success: false, message: "invalid email" });
+                return res.status(401).json({ success: false, message: "invalid email" });
             }
 
             if (contractor.emailOtp.otp != otp) {
-                return res
-                    .status(401)
-                    .json({ success: false, message: "invalid otp" });
+                return res.status(401).json({ success: false, message: "invalid otp" });
             }
 
             if (contractor.emailOtp.verified) {
-                return res
-                    .status(401)
-                    .json({ success: false, message: "email already verified" });
+                return res.status(401).json({ success: false, message: "email already verified" });
             }
 
             const timeDiff = new Date().getTime() - contractor.emailOtp.createdTime.getTime();
@@ -144,10 +129,7 @@ class AuthHandler extends Base {
             await contractor.save();
 
             const accessToken = jwt.sign(
-                {
-                    id: contractor?._id,
-                    email: contractor.email,
-                    userType: 'contractors',
+                {id: contractor?._id, email: contractor.email, userType: 'contractors',
                 },
                 process.env.JWT_SECRET_KEY!,
                 { expiresIn: config.jwt.tokenLifetime }
@@ -155,9 +137,7 @@ class AuthHandler extends Base {
 
             const quiz = await contractor?.quiz ?? null
             const contractorResponse = {
-                //@ts-ignore
-                ...contractor.toJSON(), // Convert to plain JSON object
-                //@ts-ignore
+                ...contractor.toJSON(), 
                 quiz,
             };
 
@@ -170,11 +150,6 @@ class AuthHandler extends Base {
                 user: contractorResponse
             });
 
-            // return res.json({
-            //     success: true,
-            //     message: "email verified successfully",
-            // });
-
         } catch (err: any) {
             return res.status(500).json({ success: false, message: err.message });
         }
@@ -185,27 +160,20 @@ class AuthHandler extends Base {
         let req = <any>this.req
         let res = this.res
         try {
-            
+
             const contractorId = req.contractor.id
             const contractor = await ContractorModel.findById(contractorId);
 
-            // check if contractor exists
             if (!contractor) {
-                return res
-                    .status(404)
-                    .json({ success: false, message: "Account not found" });
+                return res.status(404).json({ success: false, message: "Account not found" });
             }
 
             if (contractor.phoneNumber && contractor?.phoneNumber.verifiedAt) {
-                return res
-                    .status(401)
-                    .json({ success: false, message: "Phone already verified" });
+                return res.status(401).json({ success: false, message: "Phone already verified" });
             }
 
             const phoneNumber = `${contractor?.phoneNumber?.code}${contractor?.phoneNumber?.number}`
             await TwilioService.sendVerificationCode(phoneNumber)
-
-
 
             return res.status(200).json({ success: true, message: "OTP sent successfully to your phone." });
 
@@ -222,46 +190,42 @@ class AuthHandler extends Base {
             const {
                 otp
             } = req.body;
-           
 
 
             if (!otp) {
-                return res.status(400).json({ success: false, message: "Otp is required",  });
+                return res.status(400).json({ success: false, message: "Otp is required", });
             }
 
             const contractorId = req.contractor.id
             const contractor = await ContractorModel.findById(contractorId);
 
             if (!contractor) {
-                return res
-                    .status(404)
-                    .json({ success: false, message: "Account not found" });
+                return res.status(404).json({ success: false, message: "Account not found" });
             }
 
 
             const phoneNumber = `${contractor?.phoneNumber?.code}${contractor?.phoneNumber?.number}`
             const verified = await TwilioService.verifyCode(phoneNumber, otp)
-            if(!verified){
+            if (!verified) {
                 return res.status(422).json({
                     success: false,
                     message: "Phone verification failed",
                 });
             }
-            
+
             if (contractor.phoneNumber) {
                 contractor.phoneNumber.verifiedAt = new Date();
             }
 
             await contractor.save();
 
-            
             return res.json({
                 success: true,
                 message: "Phone verified successful",
             });
 
         } catch (err: any) {
-            return res.status(500).json({ success: false, message: err.message });
+            return res.status(500).json({ success: false, message: 'Error verifying phone number' });
         }
     }
 
@@ -275,25 +239,19 @@ class AuthHandler extends Base {
                 password,
                 currentTimezone,
             } = req.body;
-            // Check for validation errors
+
             const errors = validationResult(req);
 
             if (!errors.isEmpty()) {
                 return res.status(400).json({ success: false, message: 'Validation errors', errors: errors.array() });
             }
 
-            // try find user with the same email
             let contractor = await ContractorModel.findOne({ email }).populate('profile');
 
-            // check if user exists
             if (!contractor) {
-                return res
-                    .status(401)
-                    .json({ success: false, message: "invalid credential" });
+                return res.status(401).json({ success: false, message: "invalid credential" });
             }
 
-
-            // compare password with hashed password in database
             const isPasswordMatch = await bcrypt.compare(password, contractor.password);
             if (!isPasswordMatch) {
                 return res.status(401).json({ success: false, message: "Incorrect credential." });
@@ -304,21 +262,17 @@ class AuthHandler extends Base {
             }
 
 
-
             const quiz = await contractor?.quiz ?? null
             contractor.onboarding = await contractor.getOnboarding()
             const contractorResponse = {
-                ...contractor.toJSON(), // Convert to plain JSON object
+                ...contractor.toJSON(), 
                 quiz,
             };
 
 
             // generate access token
             const accessToken = jwt.sign(
-                {
-                    id: contractor?._id,
-                    email: contractor.email,
-                    userType: 'contractors',
+                {id: contractor?._id, email: contractor.email, userType: 'contractors',
                 },
                 process.env.JWT_SECRET_KEY!,
                 { expiresIn: config.jwt.tokenLifetime }
@@ -328,7 +282,6 @@ class AuthHandler extends Base {
             contractor.currentTimezone = currentTimezone
             await contractor.save()
 
-            // return access token
             return res.json({
                 success: true,
                 message: "Login successful",
@@ -354,28 +307,21 @@ class AuthHandler extends Base {
                 code,
                 currentTimezone
             } = req.body;
-            // Check for validation errors
             const errors = validationResult(req);
 
             if (!errors.isEmpty()) {
                 return res.status(400).json({ success: false, message: 'Validation errors', errors: errors.array() });
             }
 
-            // try find user with the same email
-            const contractor = await ContractorModel.findOne({ 'phoneNumber.number': number, 'phoneNumber.code': code  });
+            const contractor = await ContractorModel.findOne({ 'phoneNumber.number': number, 'phoneNumber.code': code });
 
 
-            // check if user exists
             if (!contractor) {
                 return res
                     .status(401)
                     .json({ success: false, message: "Invalid credential" });
             }
 
-            // // Check if password is alphanumeric with symbols
-            // if (!/^[a-zA-Z0-9!@#$%^&*]+$/.test(password)) {
-            //     return res.status(400).json({ success: false, message: "Password must be alphanumeric with symbols." });
-            // }
 
             // compare password with hashed password in database
             const isPasswordMatch = await bcrypt.compare(password, contractor.password);
@@ -387,22 +333,17 @@ class AuthHandler extends Base {
                 return res.status(401).json({ success: false, message: "Email not verified." });
             }
 
-
-
             const quiz = await contractor?.quiz ?? null
             contractor.onboarding = await contractor.getOnboarding()
             const contractorResponse = {
-                ...contractor.toJSON(), // Convert to plain JSON object
+                ...contractor.toJSON(), 
                 quiz,
             };
 
 
             // generate access token
             const accessToken = jwt.sign(
-                {
-                    id: contractor?._id,
-                    email: contractor.email,
-                    userType: 'contractors',
+                { id: contractor?._id, email: contractor.email, userType: 'contractors',
                 },
                 process.env.JWT_SECRET_KEY!,
                 { expiresIn: config.jwt.tokenLifetime }
@@ -431,47 +372,34 @@ class AuthHandler extends Base {
         let req = this.req
         let res = this.res
         try {
-            const {
-                email,
-            } = req.body;
-            // Check for validation errors
+            const {email} = req.body;
+            
             const errors = validationResult(req);
-
             if (!errors.isEmpty()) {
-                return res.status(400).json({ success: false, message: 'Validation errors', errors: errors.array() });
+                return res.status(400).json({ success: false, message: 'Invalid inputs', errors: errors.array() });
             }
 
-            // try find customer with the same email
             const contractor = await ContractorModel.findOne({ email });
-
-            // check if contractor exists
             if (!contractor) {
-                return res
-                    .status(401)
-                    .json({ success: false, message: "invalid email" });
+                return res.status(401).json({ success: false, message: "Invalid email" });
             }
 
             if (contractor.emailOtp.verified) {
-                return res
-                    .status(401)
-                    .json({ success: false, message: "email already verified" });
+                // return res.status(401).json({ success: false, message: "Email already verified" });
             }
 
             const otp = generateOTP()
-
             const createdTime = new Date();
 
-            contractor!.emailOtp = {
-                otp,
-                createdTime,
-                verified: false
-            }
+            contractor!.emailOtp = {otp, createdTime, verified: false}
 
             await contractor?.save();
 
-            const html = htmlMailTemplate(otp, contractor.firstName, "We have received a request to verify your email")
-            EmailService.send(email, "Email Verification", html)
-
+            const html = OtpEmailTemplate(otp, contractor.firstName, "We have received a request to verify your email")
+            const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true}) || html;            
+            const translatedSubject = await i18n.getTranslation({ phraseOrSlug: "Email Verification", targetLang: contractor.language}) || 'Email Verification';
+            
+            EmailService.send(email, translatedSubject, translatedHtml)
             return res.status(200).json({ success: true, message: "OTP sent successfully to your email." });
 
         } catch (err: any) {
@@ -487,44 +415,36 @@ class AuthHandler extends Base {
             const {
                 email,
             } = req.body;
-            // Check for validation errors
+
+
             const errors = validationResult(req);
 
             if (!errors.isEmpty()) {
-                return res.status(400).json({ success: false, message: 'validation errors', errors: errors.array() });
+                return res.status(400).json({ success: false, message: 'Invalid inputs', errors: errors.array() });
             }
 
-            // try find user with the same email
             const contractor = await ContractorModel.findOne({ email });
 
-            // check if user exists
             if (!contractor) {
-                return res
-                    .status(401)
-                    .json({ success: false, message: "invalid email" });
+                return res.status(401).json({ success: false, message: "invalid email" });
             }
 
             const otp = generateOTP()
-
             const createdTime = new Date();
-
             contractor!.passwordOtp = {
                 otp,
                 createdTime,
                 verified: true
             }
 
+
             await contractor?.save();
-            const html = htmlMailTemplate(otp, contractor.firstName, "We have received a request to change your password")
+            const html = OtpEmailTemplate(otp, contractor.firstName, "We have received a request to change your password")
+            
+            const translatedHtml = await i18n.getTranslation({phraseOrSlug: html,targetLang: contractor.language,saveToFile: false,useGoogle: true});            
+            const translatedSubject = await i18n.getTranslation({phraseOrSlug: 'Password Change',targetLang: contractor.language});
 
-            let emailData = {
-                emailTo: email,
-                subject: "Contractor password change",
-                html
-            };
-
-            sendEmail(emailData);
-
+            EmailService.send(contractor.email, translatedSubject!, translatedHtml!)
             return res.status(200).json({ success: true, message: "OTP sent successfully to your email." });
 
         } catch (err: any) {
@@ -541,31 +461,25 @@ class AuthHandler extends Base {
                 otp,
                 password
             } = req.body;
-            // Check for validation errors
             const errors = validationResult(req);
 
             if (!errors.isEmpty()) {
                 return res.status(400).json({ success: false, message: "Validation errors", errors: errors.array() });
             }
 
-            // try find contractor with the same email
             const contractor = await ContractorModel.findOne({ email });
 
             // check if contractor exists
             if (!contractor) {
-                return res
-                    .status(401)
-                    .json({ success: false, message: "invalid email" });
+                return res.status(401).json({ success: false, message: "Invalid Email" });
             }
 
             const { createdTime, verified } = contractor.passwordOtp
-
             const timeDiff = new Date().getTime() - createdTime.getTime();
 
+
             if (!verified || timeDiff > OTP_EXPIRY_TIME || otp !== contractor.passwordOtp.otp) {
-                return res
-                    .status(401)
-                    .json({ sucess: false, message: "unable to reset password" });
+                return res.status(401).json({success: false, message: "Unable to reset password" });
             }
 
             // Hash password
@@ -576,10 +490,9 @@ class AuthHandler extends Base {
 
             await contractor.save();
 
-            return res.status(200).json({ success: true, message: "password successfully change" });
+            return res.status(200).json({ success: true, message: "Password successfully changed" });
 
         } catch (err: any) {
-            // signup error
             return res.status(500).json({ success: false, message: err.message });
         }
     }
@@ -594,6 +507,7 @@ class AuthHandler extends Base {
                 email,
                 otp,
             } = req.body;
+
             // Check for validation errors
             const errors = validationResult(req);
 
@@ -606,33 +520,28 @@ class AuthHandler extends Base {
 
             // check if contractor exists
             if (!contractor) {
-                return res
-                    .status(401)
-                    .json({ success: false, message: "invalid email" });
+                return res.status(401).json({ success: false, message: "Invalid email" });
             }
 
             const { createdTime } = contractor.passwordOtp
             const timeDiff = new Date().getTime() - createdTime.getTime();
 
             if (otp !== contractor.passwordOtp.otp) {
-                return res
-                    .status(401)
-                    .json({ sucess: false, message: "invalid password reset otp" });
+                return res.status(401).json({ success: false, message: "Invalid password reset otp" });
             }
 
             if (timeDiff > OTP_EXPIRY_TIME) {
-                return res
-                    .status(401)
-                    .json({ sucess: false, message: "reset password otp has expired" });
+                return res.status(401).json({ success: false, message: "Reset password otp has expired" });
             }
 
-
-            return res.status(200).json({ success: true, message: "password reset otp verified" });
+            return res.status(200).json({ success: true, message: "Password reset otp verified" });
 
         } catch (err: any) {
             return res.status(500).json({ success: false, message: err.message });
         }
     }
+
+
 }
 
 

@@ -6,10 +6,7 @@ import { StripeCustomerSchema } from "../../common/stripe_customer.schema";
 import { StripeAccountSchema } from "../../common/stripe_account.schema";
 import { StripePaymentMethodSchema } from "../../common/stripe_paymentmethod.schema";
 import QuestionModel, { IQuestion } from "../../admin/models/question.model";
-import { CertnService } from "../../../services";
-import { deleteObjectFromS3 } from "../../../services/storage";
 import MongooseDelete, { SoftDeleteModel } from 'mongoose-delete';
-import { stringify } from "querystring";
 import { JobQuotationModel } from "../../common/job_quotation.model";
 import { JOB_STATUS, JobModel } from "../../common/job.model";
 
@@ -146,7 +143,8 @@ const ContractorSchema = new Schema<IContractor>(
     },
 
     profilePhoto: {
-      type: Object
+      type: Object,
+      default: {url: 'https://ipalas3bucket.s3.us-east-2.amazonaws.com/avatar.png'}
     },
 
     phoneNumber: {
@@ -234,7 +232,11 @@ const ContractorSchema = new Schema<IContractor>(
       hasPassedQuiz: { default: false, type: Boolean },
       stage: { default: { status: 1, label: 'stripeIdentity' }, type: Object },
     },
-    currentTimezone: {type: String, default: "America/Los_Angeles" }
+    currentTimezone: {type: String, default: "America/Los_Angeles" },
+    language: {
+      type: String,
+      default: 'en'
+    },
 
   },
   {
@@ -386,8 +388,8 @@ ContractorSchema.methods.getOnboarding = async function () {
     if (stage.status == 1 && hasStripeIdentity && stripeIdentityStatus == 'verified') stage = { status: 2, label: 'profle' }
     if (stage.status == 2 && hasProfile) stage = { status: 3, label: 'quiz' }
     // if (stage.status == 3 && hasGstDetails) stage = {status: 4, label: 'quiz'} 
-    if (stage.status == 3 && hasPassedQuiz) stage = { status: 4, label: 'stripeAccount' }
-    if (stage.status == 4 && hasStripeAccount) stage = { status: 5, label: 'done' }
+    if (stage.status == 3 && hasPassedQuiz) stage = { status: 4, label: 'done' }
+    // if (stage.status == 4 && hasStripeAccount) stage = { status: 5, label: 'done' }
   }
 
 

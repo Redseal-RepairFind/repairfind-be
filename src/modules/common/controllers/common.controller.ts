@@ -8,6 +8,8 @@ import { Logger } from "../../../services/logger";
 import { PaymentUtil } from "../../../utils/payment.util";
 import { APNNotification, sendAPN2Notification, sendAPNNotification, sendNotification, sendSilentNotification } from "../../../services/notifications/apn";
 import { AppVersionModel } from "../../../database/common/app_versions.model";
+import { GoogleServiceProvider } from "../../../services/google";
+import { i18n } from "../../../i18n";
 
 
 export const getBankList = async (
@@ -105,18 +107,21 @@ export const getOptions = async (
 
 export const getCurrentOrLatestAppVersions = async (req: Request, res: Response, next: NextFunction) => {
   try {
-      // Fetch current versions for both IOS and ANDROID
-      let currentIosVersion = await AppVersionModel.findOne({ type: 'IOS', isCurrent: true }).exec();
-      let currentAndroidVersion = await AppVersionModel.findOne({ type: 'ANDROID', isCurrent: true }).exec();
 
+      const app = req.query.app
+
+      // Fetch current versions for both IOS and ANDROID
+      let currentIosVersion = await AppVersionModel.findOne({ type: 'IOS', isCurrent: true, app }).exec();
+      let currentAndroidVersion = await AppVersionModel.findOne({ type: 'ANDROID', isCurrent: true, app }).exec();
+      
       // Fetch latest versions for both IOS and ANDROID if current versions are not found
       if (!currentIosVersion) {
-          const latestIosVersion = await AppVersionModel.findOne({ type: 'IOS' }).sort({ createdAt: -1 }).exec();
+          const latestIosVersion = await AppVersionModel.findOne({ type: 'IOS', app }).sort({ createdAt: -1 }).exec();
           currentIosVersion = latestIosVersion;
       }
 
       if (!currentAndroidVersion) {
-          const latestAndroidVersion = await AppVersionModel.findOne({ type: 'ANDROID' }).sort({ createdAt: -1 }).exec();
+          const latestAndroidVersion = await AppVersionModel.findOne({ type: 'ANDROID', app }).sort({ createdAt: -1 }).exec();
           currentAndroidVersion = latestAndroidVersion;
       }
 
@@ -190,6 +195,23 @@ export const sendTestNotification = async (
 }
 
 
+export const translateText = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+
+  try {
+    const {text, targetLang} = req.body
+    const translatedText  = await i18n.getTranslation({phraseOrSlug:text, targetLang:targetLang, useGoogle: true, saveToFile: false})
+    return res.json({ success: true, message: "Text translated", data: translatedText });
+  } catch (err: any) {
+    return next(new InternalServerError('Error translating text', err))
+  }
+
+}
+
+
 
 export const CommonController = {
   getBankList,
@@ -198,6 +220,7 @@ export const CommonController = {
   getOptions,
   sendTestNotification,
   calculateCharges,
-  getCurrentOrLatestAppVersions
+  getCurrentOrLatestAppVersions,
+  translateText
 }
 

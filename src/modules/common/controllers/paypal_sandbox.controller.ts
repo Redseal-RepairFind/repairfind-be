@@ -95,7 +95,7 @@ export const createSetupToken = async (
     const { authorizationId } = req.body;
 
     try {
-        const payment = await PayPalService.vault.createSetupToken()
+        const payment = await PayPalService.customer.createSetupToken()
         return res.status(200).send({ data: payment });
     } catch (error) {
         console.error('Error retrieving the order:', error);

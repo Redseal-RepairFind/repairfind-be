@@ -7,6 +7,7 @@ import CustomerModel from '../database/customer/models/customer.model';
 import AdminModel from '../database/admin/models/admin.model';
 import { Logger } from '../services/logger';
 import { send } from 'process';
+import { i18n } from '../i18n';
 
 export const ConversationEvent: EventEmitter = new EventEmitter();
 
@@ -71,13 +72,24 @@ ConversationEvent.on('NEW_MESSAGE', async function (params) {
 
                 //TODO: still separate this and only send push for aggregated unread message notification user
 
-                if(conversation.type == CONVERSATION_TYPE.DIRECT_MESSAGE){
+                if (conversation.type == CONVERSATION_TYPE.DIRECT_MESSAGE) {
+
+                    const userLang = user.language;
+                    let nTitle = await i18n.getTranslation({
+                        phraseOrSlug: 'New unread message',
+                        targetLang: userLang
+                    });
+                    let nMessage = await i18n.getTranslation({
+                        phraseOrSlug: `You have a new unread message from`,
+                        targetLang: userLang
+                    });
+                    
                     NotificationService.sendNotification({
                         user: toUserId,
                         userType: toUserType,
-                        title: 'New unread message',
+                        title: nTitle,
                         type: 'NEW_UNREAD_MESSAGE',
-                        message: `You have a new unread message from ${sender.name}`,
+                        message: `${nMessage}  ${sender.name}`,
                         heading: { name: `${user.name}`, image: user.profilePhoto?.url },
                         payload: {
                             entity: conversation.id,
@@ -85,29 +97,43 @@ ConversationEvent.on('NEW_MESSAGE', async function (params) {
                             message: message,
                             event: 'NEW_UNREAD_MESSAGE',
                         }
-                    }, { socket: true, push: true, database:true })
+                    }, { socket: true, push: true, database: true });
+
+
+
                 }
-                
-                if(conversation.type == CONVERSATION_TYPE.TICKET){
+
+
+                if (conversation.type == CONVERSATION_TYPE.TICKET) {
+                    const userLang = user.language;
+                    
+                    let nTitle = await i18n.getTranslation({
+                        phraseOrSlug: 'New unread dispute message',
+                        targetLang: userLang
+                    });
+                    let nMessage = await i18n.getTranslation({
+                        phraseOrSlug: `You have a new unread job dispute message from`,
+                        targetLang: userLang
+                    });
+
                     NotificationService.sendNotification({
                         user: toUserId,
                         userType: toUserType,
-                        title: 'New unread dispute message',
+                        title: nTitle,
                         type: 'NEW_DISPUTE_MESSAGE',
-                        message: `You have a new unread job dispute message from ${sender.name}`,
+                        message: `${nMessage}  ${sender.name}`,
                         heading: { name: `${user.name}`, image: user.profilePhoto?.url },
                         payload: {
                             entity: conversation.id,
                             entityType: 'conversations',
                             message: message,
-                            event: 'NEW_DISPUTE_MESSAGE', 
+                            event: 'NEW_DISPUTE_MESSAGE',
                             disputeId: conversation.entity,
-
                         }
-                    }, { socket: true, push: true, database:true })
+                    }, { socket: true, push: true, database: true });
                 }
 
-                
+
             }
             message.isOwn = false
 

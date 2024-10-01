@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerPaypalPaymentController = exports.captureOrderEstimatePaymentCheckout = exports.createOrderEstimatePaymentCheckout = exports.chargeSavedPaymentMethod = exports.captureCheckoutOrder = exports.createCheckoutOrder = void 0;
+exports.CustomerPaypalPaymentController = exports.payChangeOrderEstimate = exports.payJobEstimate = exports.captureOrderEstimatePaymentCheckout = exports.createOrderEstimatePaymentCheckout = exports.captureCheckoutOrder = exports.createCheckoutOrder = void 0;
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
@@ -97,33 +97,29 @@ var findQuotation = function (quotationId) { return __awaiter(void 0, void 0, vo
     });
 }); };
 var findContractor = function (contractorId) { return __awaiter(void 0, void 0, void 0, function () {
-    var contractor, _a;
-    var _b, _c;
-    return __generator(this, function (_d) {
-        switch (_d.label) {
+    var contractor;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
             case 0: return [4 /*yield*/, contractor_model_1.ContractorModel.findOne({ _id: contractorId })];
             case 1:
-                contractor = _d.sent();
+                contractor = _a.sent();
                 if (!contractor) {
                     throw new custom_errors_1.BadRequestError('Contractor not found');
                 }
-                _a = contractor;
-                return [4 /*yield*/, contractor.getOnboarding()];
-            case 2:
-                _a.onboarding = _d.sent();
-                if (!contractor.onboarding.hasStripeAccount || !(((_b = contractor.stripeAccountStatus) === null || _b === void 0 ? void 0 : _b.card_payments_enabled) && ((_c = contractor.stripeAccountStatus) === null || _c === void 0 ? void 0 : _c.transfers_enabled))) {
-                    throw new custom_errors_1.BadRequestError('You cannot make payment to this contractor because his/her Stripe connect account is not set up');
-                }
+                // contractor.onboarding = await contractor.getOnboarding()
+                // if (!contractor.onboarding.hasStripeAccount || !(contractor.stripeAccountStatus?.card_payments_enabled && contractor.stripeAccountStatus?.transfers_enabled)) {
+                //     throw new BadRequestError('You cannot make payment to this contractor because his/her Stripe connect account is not set up');
+                // }
                 return [2 /*return*/, contractor];
         }
     });
 }); };
 var createCheckoutOrder = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var quotationId, jobId, errors, customerId, customer, job, quotation, contractor, contractorId, paymentType, transactionType, charges, metadata, payload, capture, conversation, newMessage, err_1;
+    var quotationId, jobId, errors, customerId, customer, job, quotation, contractor, contractorId, paymentType, transactionType, charges, metadata, paypalPaymentLog, payload, capture, err_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 9, , 10]);
+                _a.trys.push([0, 8, , 9]);
                 quotationId = req.body.quotationId;
                 jobId = req.params.jobId;
                 errors = (0, express_validator_1.validationResult)(req);
@@ -161,47 +157,33 @@ var createCheckoutOrder = function (req, res, next) { return __awaiter(void 0, v
                     contractorId: contractor === null || contractor === void 0 ? void 0 : contractor.id,
                     quotationId: quotation.id,
                     paymentType: paymentType,
+                    paymentMethod: 'CAPTURE',
                     jobId: jobId,
                     email: customer.email,
                     remark: 'initial_job_payment',
                 };
+                return [4 /*yield*/, paypal_payment_log_model_1.PaypalPaymentLog.create({
+                        user: customerId,
+                        'userType': 'customers',
+                        metadata: metadata
+                    })];
+            case 6:
+                paypalPaymentLog = _a.sent();
                 payload = {
                     amount: charges.customerPayable,
                     intent: "CAPTURE",
                     description: "Job Payment - ".concat(jobId),
-                    metaId: jobId
+                    metaId: paypalPaymentLog.id
                 };
-                return [4 /*yield*/, paypal_1.PayPalService.payment.createOrder(payload)
-                    //  job.status = JOB_STATUS.BOOKED;
-                    // job.bookingViewedByContractor = false;
-                    // await job.save();
-                ];
-            case 6:
-                capture = _a.sent();
-                return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(customerId, 'customers', contractorId, 'contractors')
-                    // Create a message in the conversation
-                ];
+                return [4 /*yield*/, paypal_1.PayPalService.payment.createOrder(payload)];
             case 7:
-                conversation = _a.sent();
-                return [4 /*yield*/, messages_schema_1.MessageModel.create({
-                        conversation: conversation._id,
-                        sender: customerId,
-                        senderType: 'customers',
-                        message: "New Job Payment",
-                        messageType: messages_schema_1.MessageType.ALERT,
-                        createdAt: new Date(),
-                        entity: jobId,
-                        entityType: 'jobs'
-                    })];
-            case 8:
-                newMessage = _a.sent();
-                events_1.ConversationEvent.emit('NEW_MESSAGE', { message: newMessage });
+                capture = _a.sent();
                 res.json({ success: true, message: 'Payment intent created', data: capture });
-                return [3 /*break*/, 10];
-            case 9:
+                return [3 /*break*/, 9];
+            case 8:
                 err_1 = _a.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError(err_1.message, err_1))];
-            case 10: return [2 /*return*/];
+            case 9: return [2 /*return*/];
         }
     });
 }); };
@@ -306,12 +288,149 @@ var captureCheckoutOrder = function (req, res, next) { return __awaiter(void 0, 
     });
 }); };
 exports.captureCheckoutOrder = captureCheckoutOrder;
-var chargeSavedPaymentMethod = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, quotationId, paymentToken_1, jobId, errors, customerId, customer, job, quotation, contractor, contractorId, paymentMethod, paymentType, transactionType, charges, metadata, paypalPaymentLog, capture, err_3;
+var createOrderEstimatePaymentCheckout = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, quotationId, paymentMethodId_2, jobId, errors, customerId, customer, job, quotation, contractor, changeOrderEstimate, paymentMethod, paymentType, transactionType, charges, metadata, err_3;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 8, , 9]);
+                _b.trys.push([0, 7, , 8]);
+                _a = req.body, quotationId = _a.quotationId, paymentMethodId_2 = _a.paymentMethodId;
+                jobId = req.params.jobId;
+                errors = (0, express_validator_1.validationResult)(req);
+                if (!errors.isEmpty()) {
+                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                }
+                customerId = req.customer.id;
+                return [4 /*yield*/, findCustomer(customerId)];
+            case 1:
+                customer = _b.sent();
+                return [4 /*yield*/, findJob(jobId)];
+            case 2:
+                job = _b.sent();
+                return [4 /*yield*/, findQuotation(quotationId)];
+            case 3:
+                quotation = _b.sent();
+                return [4 /*yield*/, findContractor(quotation.contractor)];
+            case 4:
+                contractor = _b.sent();
+                changeOrderEstimate = quotation.changeOrderEstimate;
+                if (!changeOrderEstimate)
+                    throw new Error('No  changeOrder estimate for this job');
+                if (changeOrderEstimate.isPaid)
+                    throw new Error('Extra estimate already paid');
+                paymentMethod = customer.stripePaymentMethods.find(function (method) { return method.id === paymentMethodId_2; });
+                if (!paymentMethod) {
+                    paymentMethod = customer.stripePaymentMethods[0];
+                }
+                if (!paymentMethod)
+                    throw new Error('No such payment method');
+                paymentType = payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT;
+                transactionType = transaction_model_1.TRANSACTION_TYPE.CHANGE_ORDER_PAYMENT;
+                return [4 /*yield*/, quotation.calculateCharges(paymentType)];
+            case 5:
+                charges = _b.sent();
+                metadata = {
+                    customerId: customer.id,
+                    contractorId: contractor === null || contractor === void 0 ? void 0 : contractor.id,
+                    quotationId: quotation.id,
+                    jobId: jobId,
+                    paymentType: paymentType,
+                    paymentMethod: paymentMethod.id,
+                    email: customer.email,
+                    remark: 'change_order_estimate_payment',
+                };
+                // const transaction = await createTransaction(customerId, contractor.id, jobId, charges, paymentMethod, transactionType, metadata);
+                // metadata.transactionId = transaction.id
+                // const payload = prepareStripePayload({paymentMethodId: paymentMethod.id, customer, contractor, charges, jobId, metadata, manualCapture:false});
+                job.isChangeOrder = false;
+                return [4 /*yield*/, job.save()];
+            case 6:
+                _b.sent();
+                events_1.JobEvent.emit('CHANGE_ORDER_ESTIMATE_PAID', { job: job, quotation: quotation, changeOrderEstimate: changeOrderEstimate });
+                res.json({ success: true, message: 'Payment intent created', data: "" });
+                return [3 /*break*/, 8];
+            case 7:
+                err_3 = _b.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError(err_3.message, err_3))];
+            case 8: return [2 /*return*/];
+        }
+    });
+}); };
+exports.createOrderEstimatePaymentCheckout = createOrderEstimatePaymentCheckout;
+var captureOrderEstimatePaymentCheckout = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, quotationId, paymentMethodId_3, jobId, errors, customerId, customer, job, quotation, contractor, changeOrderEstimate, paymentMethod, paymentType, transactionType, charges, metadata, err_4;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 7, , 8]);
+                _a = req.body, quotationId = _a.quotationId, paymentMethodId_3 = _a.paymentMethodId;
+                jobId = req.params.jobId;
+                errors = (0, express_validator_1.validationResult)(req);
+                if (!errors.isEmpty()) {
+                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                }
+                customerId = req.customer.id;
+                return [4 /*yield*/, findCustomer(customerId)];
+            case 1:
+                customer = _b.sent();
+                return [4 /*yield*/, findJob(jobId)];
+            case 2:
+                job = _b.sent();
+                return [4 /*yield*/, findQuotation(quotationId)];
+            case 3:
+                quotation = _b.sent();
+                return [4 /*yield*/, findContractor(quotation.contractor)];
+            case 4:
+                contractor = _b.sent();
+                changeOrderEstimate = quotation.changeOrderEstimate;
+                if (!changeOrderEstimate)
+                    throw new Error('No  changeOrder estimate for this job');
+                if (changeOrderEstimate.isPaid)
+                    throw new Error('Extra estimate already paid');
+                paymentMethod = customer.stripePaymentMethods.find(function (method) { return method.id === paymentMethodId_3; });
+                if (!paymentMethod) {
+                    paymentMethod = customer.stripePaymentMethods[0];
+                }
+                if (!paymentMethod)
+                    throw new Error('No such payment method');
+                paymentType = payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT;
+                transactionType = transaction_model_1.TRANSACTION_TYPE.CHANGE_ORDER_PAYMENT;
+                return [4 /*yield*/, quotation.calculateCharges(paymentType)];
+            case 5:
+                charges = _b.sent();
+                metadata = {
+                    customerId: customer.id,
+                    contractorId: contractor === null || contractor === void 0 ? void 0 : contractor.id,
+                    quotationId: quotation.id,
+                    jobId: jobId,
+                    paymentType: paymentType,
+                    paymentMethod: paymentMethod.id,
+                    email: customer.email,
+                    remark: 'change_order_estimate_payment',
+                };
+                // const transaction = await createTransaction(customerId, contractor.id, jobId, charges, paymentMethod, transactionType, metadata);
+                // metadata.transactionId = transaction.id
+                job.isChangeOrder = false;
+                return [4 /*yield*/, job.save()];
+            case 6:
+                _b.sent();
+                events_1.JobEvent.emit('CHANGE_ORDER_ESTIMATE_PAID', { job: job, quotation: quotation, changeOrderEstimate: changeOrderEstimate });
+                res.json({ success: true, message: 'Payment intent created', data: "" });
+                return [3 /*break*/, 8];
+            case 7:
+                err_4 = _b.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError(err_4.message, err_4))];
+            case 8: return [2 /*return*/];
+        }
+    });
+}); };
+exports.captureOrderEstimatePaymentCheckout = captureOrderEstimatePaymentCheckout;
+var payJobEstimate = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, quotationId, paymentToken_1, jobId, errors, customerId, customer, job, quotation, contractor, contractorId, paymentMethod, paymentType, transactionType, charges, metadata, paypalPaymentLog, capture, conversation, newMessage, err_5;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 11, , 12]);
                 _a = req.body, quotationId = _a.quotationId, paymentToken_1 = _a.paymentToken;
                 jobId = req.params.jobId;
                 errors = (0, express_validator_1.validationResult)(req);
@@ -368,194 +487,124 @@ var chargeSavedPaymentMethod = function (req, res, next) { return __awaiter(void
             case 6:
                 paypalPaymentLog = _b.sent();
                 return [4 /*yield*/, paypal_1.PayPalService.payment.chargeSavedCard({ paymentToken: paymentToken_1, amount: charges.customerPayable, metaId: paypalPaymentLog === null || paypalPaymentLog === void 0 ? void 0 : paypalPaymentLog.id })
-                    //  job.status = JOB_STATUS.BOOKED;
-                    // job.bookingViewedByContractor = false;
-                    // await job.save();
-                    // const conversation = await ConversationUtil.updateOrCreateConversation(customerId, 'customers', contractorId, 'contractors')
-                    // // Create a message in the conversation
-                    // const newMessage: IMessage = await MessageModel.create({
-                    //     conversation: conversation._id,
-                    //     sender: customerId, 
-                    //     senderType: 'customers',
-                    //     message: `New Job Payment`, 
-                    //     messageType: MessageType.ALERT, 
-                    //     createdAt: new Date(),
-                    //     entity: jobId,
-                    //     entityType: 'jobs'
-                    // });
-                    // ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
-                    // JobEvent.emit('JOB_BOOKED', { jobId, contractorId, customerId, quotationId, paymentType })
+                    // job.status = JOB_STATUS.BOOKED; // mark as booked from webhook event
                 ];
             case 7:
                 capture = _b.sent();
-                //  job.status = JOB_STATUS.BOOKED;
-                // job.bookingViewedByContractor = false;
-                // await job.save();
-                // const conversation = await ConversationUtil.updateOrCreateConversation(customerId, 'customers', contractorId, 'contractors')
-                // // Create a message in the conversation
-                // const newMessage: IMessage = await MessageModel.create({
-                //     conversation: conversation._id,
-                //     sender: customerId, 
-                //     senderType: 'customers',
-                //     message: `New Job Payment`, 
-                //     messageType: MessageType.ALERT, 
-                //     createdAt: new Date(),
-                //     entity: jobId,
-                //     entityType: 'jobs'
-                // });
-                // ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
+                // job.status = JOB_STATUS.BOOKED; // mark as booked from webhook event
+                job.bookingViewedByContractor = false;
+                return [4 /*yield*/, job.save()];
+            case 8:
+                _b.sent();
+                return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(customerId, 'customers', contractorId, 'contractors')];
+            case 9:
+                conversation = _b.sent();
+                return [4 /*yield*/, messages_schema_1.MessageModel.create({
+                        conversation: conversation._id,
+                        sender: customerId,
+                        senderType: 'customers',
+                        message: "New Job Payment",
+                        messageType: messages_schema_1.MessageType.ALERT,
+                        createdAt: new Date(),
+                        entity: jobId,
+                        entityType: 'jobs'
+                    })];
+            case 10:
+                newMessage = _b.sent();
+                events_1.ConversationEvent.emit('NEW_MESSAGE', { message: newMessage });
                 // JobEvent.emit('JOB_BOOKED', { jobId, contractorId, customerId, quotationId, paymentType })
                 res.json({ success: true, message: 'Payment created', data: capture });
-                return [3 /*break*/, 9];
-            case 8:
-                err_3 = _b.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError(err_3.message, err_3.err))];
-            case 9: return [2 /*return*/];
-        }
-    });
-}); };
-exports.chargeSavedPaymentMethod = chargeSavedPaymentMethod;
-var createOrderEstimatePaymentCheckout = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, quotationId, paymentMethodId_2, jobId, errors, customerId, customer, job, quotation, contractor, changeOrderEstimate, paymentMethod, paymentType, transactionType, charges, metadata, err_4;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0:
-                _b.trys.push([0, 7, , 8]);
-                _a = req.body, quotationId = _a.quotationId, paymentMethodId_2 = _a.paymentMethodId;
-                jobId = req.params.jobId;
-                errors = (0, express_validator_1.validationResult)(req);
-                if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
-                }
-                customerId = req.customer.id;
-                return [4 /*yield*/, findCustomer(customerId)];
-            case 1:
-                customer = _b.sent();
-                return [4 /*yield*/, findJob(jobId)];
-            case 2:
-                job = _b.sent();
-                return [4 /*yield*/, findQuotation(quotationId)];
-            case 3:
-                quotation = _b.sent();
-                return [4 /*yield*/, findContractor(quotation.contractor)];
-            case 4:
-                contractor = _b.sent();
-                changeOrderEstimate = quotation.changeOrderEstimate;
-                if (!changeOrderEstimate)
-                    throw new Error('No  changeOrder estimate for this job');
-                if (changeOrderEstimate.isPaid)
-                    throw new Error('Extra estimate already paid');
-                paymentMethod = customer.stripePaymentMethods.find(function (method) { return method.id === paymentMethodId_2; });
-                if (!paymentMethod) {
-                    paymentMethod = customer.stripePaymentMethods[0];
-                }
-                if (!paymentMethod)
-                    throw new Error('No such payment method');
-                paymentType = payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT;
-                transactionType = transaction_model_1.TRANSACTION_TYPE.CHANGE_ORDER;
-                return [4 /*yield*/, quotation.calculateCharges(paymentType)];
-            case 5:
-                charges = _b.sent();
-                metadata = {
-                    customerId: customer.id,
-                    contractorId: contractor === null || contractor === void 0 ? void 0 : contractor.id,
-                    quotationId: quotation.id,
-                    jobId: jobId,
-                    paymentType: paymentType,
-                    paymentMethod: paymentMethod.id,
-                    email: customer.email,
-                    remark: 'change_order_estimate_payment',
-                };
-                // const transaction = await createTransaction(customerId, contractor.id, jobId, charges, paymentMethod, transactionType, metadata);
-                // metadata.transactionId = transaction.id
-                // const payload = prepareStripePayload({paymentMethodId: paymentMethod.id, customer, contractor, charges, jobId, metadata, manualCapture:false});
-                job.isChangeOrder = false;
-                return [4 /*yield*/, job.save()];
-            case 6:
-                _b.sent();
-                events_1.JobEvent.emit('CHANGE_ORDER_ESTIMATE_PAID', { job: job, quotation: quotation, changeOrderEstimate: changeOrderEstimate });
-                res.json({ success: true, message: 'Payment intent created', data: "" });
-                return [3 /*break*/, 8];
-            case 7:
-                err_4 = _b.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError(err_4.message, err_4))];
-            case 8: return [2 /*return*/];
-        }
-    });
-}); };
-exports.createOrderEstimatePaymentCheckout = createOrderEstimatePaymentCheckout;
-var captureOrderEstimatePaymentCheckout = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, quotationId, paymentMethodId_3, jobId, errors, customerId, customer, job, quotation, contractor, changeOrderEstimate, paymentMethod, paymentType, transactionType, charges, metadata, err_5;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0:
-                _b.trys.push([0, 7, , 8]);
-                _a = req.body, quotationId = _a.quotationId, paymentMethodId_3 = _a.paymentMethodId;
-                jobId = req.params.jobId;
-                errors = (0, express_validator_1.validationResult)(req);
-                if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
-                }
-                customerId = req.customer.id;
-                return [4 /*yield*/, findCustomer(customerId)];
-            case 1:
-                customer = _b.sent();
-                return [4 /*yield*/, findJob(jobId)];
-            case 2:
-                job = _b.sent();
-                return [4 /*yield*/, findQuotation(quotationId)];
-            case 3:
-                quotation = _b.sent();
-                return [4 /*yield*/, findContractor(quotation.contractor)];
-            case 4:
-                contractor = _b.sent();
-                changeOrderEstimate = quotation.changeOrderEstimate;
-                if (!changeOrderEstimate)
-                    throw new Error('No  changeOrder estimate for this job');
-                if (changeOrderEstimate.isPaid)
-                    throw new Error('Extra estimate already paid');
-                paymentMethod = customer.stripePaymentMethods.find(function (method) { return method.id === paymentMethodId_3; });
-                if (!paymentMethod) {
-                    paymentMethod = customer.stripePaymentMethods[0];
-                }
-                if (!paymentMethod)
-                    throw new Error('No such payment method');
-                paymentType = payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT;
-                transactionType = transaction_model_1.TRANSACTION_TYPE.CHANGE_ORDER;
-                return [4 /*yield*/, quotation.calculateCharges(paymentType)];
-            case 5:
-                charges = _b.sent();
-                metadata = {
-                    customerId: customer.id,
-                    contractorId: contractor === null || contractor === void 0 ? void 0 : contractor.id,
-                    quotationId: quotation.id,
-                    jobId: jobId,
-                    paymentType: paymentType,
-                    paymentMethod: paymentMethod.id,
-                    email: customer.email,
-                    remark: 'change_order_estimate_payment',
-                };
-                // const transaction = await createTransaction(customerId, contractor.id, jobId, charges, paymentMethod, transactionType, metadata);
-                // metadata.transactionId = transaction.id
-                job.isChangeOrder = false;
-                return [4 /*yield*/, job.save()];
-            case 6:
-                _b.sent();
-                events_1.JobEvent.emit('CHANGE_ORDER_ESTIMATE_PAID', { job: job, quotation: quotation, changeOrderEstimate: changeOrderEstimate });
-                res.json({ success: true, message: 'Payment intent created', data: "" });
-                return [3 /*break*/, 8];
-            case 7:
+                return [3 /*break*/, 12];
+            case 11:
                 err_5 = _b.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError(err_5.message, err_5))];
-            case 8: return [2 /*return*/];
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError(err_5.message, err_5.err))];
+            case 12: return [2 /*return*/];
         }
     });
 }); };
-exports.captureOrderEstimatePaymentCheckout = captureOrderEstimatePaymentCheckout;
+exports.payJobEstimate = payJobEstimate;
+var payChangeOrderEstimate = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, quotationId, paymentToken_2, jobId, errors, customerId, customer, job, quotation, contractor, changeOrderEstimate, paymentMethod, paymentType, transactionType, charges, metadata, paypalPaymentLog, capture, err_6;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 9, , 10]);
+                _a = req.body, quotationId = _a.quotationId, paymentToken_2 = _a.paymentToken;
+                jobId = req.params.jobId;
+                errors = (0, express_validator_1.validationResult)(req);
+                if (!errors.isEmpty()) {
+                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
+                }
+                customerId = req.customer.id;
+                return [4 /*yield*/, findCustomer(customerId)];
+            case 1:
+                customer = _b.sent();
+                return [4 /*yield*/, findJob(jobId)];
+            case 2:
+                job = _b.sent();
+                return [4 /*yield*/, findQuotation(quotationId)];
+            case 3:
+                quotation = _b.sent();
+                return [4 /*yield*/, findContractor(quotation.contractor)];
+            case 4:
+                contractor = _b.sent();
+                changeOrderEstimate = quotation.changeOrderEstimate;
+                if (!changeOrderEstimate)
+                    throw new Error('No  changeOrder estimate for this job');
+                if (changeOrderEstimate.isPaid)
+                    throw new Error('Extra estimate already paid');
+                paymentMethod = customer.paypalPaymentMethods.find(function (method) { return method.vault_id === paymentToken_2; });
+                if (!paymentMethod) {
+                    paymentMethod = customer.paypalPaymentMethods[0];
+                }
+                if (!paymentMethod)
+                    throw new Error('No such payment method');
+                paymentType = payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT;
+                transactionType = transaction_model_1.TRANSACTION_TYPE.CHANGE_ORDER_PAYMENT;
+                return [4 /*yield*/, quotation.calculateCharges(paymentType)];
+            case 5:
+                charges = _b.sent();
+                metadata = {
+                    customerId: customer.id,
+                    contractorId: contractor === null || contractor === void 0 ? void 0 : contractor.id,
+                    quotationId: quotation.id,
+                    jobId: jobId,
+                    paymentType: paymentType,
+                    paymentMethod: paymentMethod.id,
+                    email: customer.email,
+                    remark: 'change_order_estimate_payment',
+                };
+                return [4 /*yield*/, paypal_payment_log_model_1.PaypalPaymentLog.create({
+                        user: customerId,
+                        'userType': 'customers',
+                        metadata: metadata
+                    })];
+            case 6:
+                paypalPaymentLog = _b.sent();
+                return [4 /*yield*/, paypal_1.PayPalService.payment.chargeSavedCard({ paymentToken: paymentToken_2, amount: charges.customerPayable, metaId: paypalPaymentLog === null || paypalPaymentLog === void 0 ? void 0 : paypalPaymentLog.id })];
+            case 7:
+                capture = _b.sent();
+                job.isChangeOrder = false;
+                job.bookingViewedByContractor = false;
+                return [4 /*yield*/, job.save()];
+            case 8:
+                _b.sent();
+                events_1.JobEvent.emit('CHANGE_ORDER_ESTIMATE_PAID', { job: job, quotation: quotation, changeOrderEstimate: changeOrderEstimate });
+                res.json({ success: true, message: 'Payment intent created', data: capture });
+                return [3 /*break*/, 10];
+            case 9:
+                err_6 = _b.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError(err_6.message, err_6))];
+            case 10: return [2 /*return*/];
+        }
+    });
+}); };
+exports.payChangeOrderEstimate = payChangeOrderEstimate;
 exports.CustomerPaypalPaymentController = {
     captureCheckoutOrder: exports.captureCheckoutOrder,
-    captureOrderEstimatePaymentCheckout: exports.captureOrderEstimatePaymentCheckout,
     createCheckoutOrder: exports.createCheckoutOrder,
     createOrderEstimatePaymentCheckout: exports.createOrderEstimatePaymentCheckout,
-    chargeSavedPaymentMethod: exports.chargeSavedPaymentMethod,
+    captureOrderEstimatePaymentCheckout: exports.captureOrderEstimatePaymentCheckout,
+    payChangeOrderEstimate: exports.payChangeOrderEstimate,
+    payJobEstimate: exports.payJobEstimate,
 };

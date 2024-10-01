@@ -115,6 +115,9 @@ var NotificationService = /** @class */ (function () {
                     case 9:
                         if (!user)
                             return [2 /*return*/];
+                        // do translation of notifications here ?
+                        // params.title = await i18n.getTranslation({phraseOrSlug: params.title, targetLang: user.language})
+                        // params.message = await i18n.getTranslation({phraseOrSlug: params.message, targetLang: user.language})
                         if ('firebase' in options) {
                         }
                         if (!('socket' in options)) return [3 /*break*/, 11];

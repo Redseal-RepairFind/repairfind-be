@@ -1,6 +1,6 @@
 import fetch from 'node-fetch';
 import { config } from '../../config';
-
+import * as webhook from './webhook.certn'
 export async function initiateCertnInvite(data: Object): Promise<any> {
   try {
 
@@ -69,3 +69,7 @@ export async function retrieveApplicant(id: string): Promise<any> {
   }
 }
 
+
+export {
+  webhook
+}

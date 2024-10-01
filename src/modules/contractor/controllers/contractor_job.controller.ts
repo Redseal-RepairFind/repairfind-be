@@ -1,19 +1,15 @@
 import { validationResult } from "express-validator";
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Response } from "express";
 import { ContractorModel } from "../../../database/contractor/models/contractor.model";
-import { JobModel, JOB_STATUS, JobType, IJob } from "../../../database/common/job.model";
+import { JobModel, JOB_STATUS, JobType } from "../../../database/common/job.model";
 import { applyAPIFeature } from "../../../utils/api.feature";
 import { BadRequestError, InternalServerError, NotFoundError } from "../../../utils/custom.errors";
 import { JobQuotationModel, JOB_QUOTATION_STATUS, IExtraEstimate, JOB_QUOTATION_TYPE } from "../../../database/common/job_quotation.model";
 import CustomerModel from "../../../database/customer/models/customer.model";
-import mongoose, { Document, PipelineStage as MongoosePipelineStage } from 'mongoose'; // Import Document type from mongoose
-import { ConversationEntityType, ConversationModel } from "../../../database/common/conversations.schema";
+import mongoose, { PipelineStage as MongoosePipelineStage } from 'mongoose'; // Import Document type from mongoose
+import { ConversationModel } from "../../../database/common/conversations.schema";
 import { MessageModel, MessageType } from "../../../database/common/messages.schema";
-import { EmailService } from "../../../services";
 import { ContractorProfileModel } from "../../../database/contractor/models/contractor_profile.model";
-import { castPayloadToDTO } from "../../../utils/interface_dto.util";
-import { StripeService } from "../../../services/stripe";
-import { IStripeAccount } from "../../../database/common/stripe_account.schema";
 import { ConversationEvent, JobEvent } from "../../../events";
 import { JobEnquiryModel } from "../../../database/common/job_enquiry.model";
 import ContractorSavedJobModel from "../../../database/contractor/models/contractor_saved_job.model";
@@ -142,27 +138,6 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
       return res.status(403).json({ success: false, message: 'Job request is not pending' });
     }
 
-
-    // ensure contractor has a verified connected account
-    if (contractor.onboarding.hasStripeAccount) {
-
-      //fetch and update contractor stripeaccount here
-      // TODO: If this impacts the response time so much we can prevent this request - doing this because stripe seems no to be sending account related events
-      const account: unknown = await StripeService.account.getAccount(contractor.stripeAccount.id); //acct_1P4N6NRdmDaBvbML ,acct_1P7XvFRZlKifQSOs
-      const stripeAccount = castPayloadToDTO(account, account as IStripeAccount)
-      contractor.stripeAccount = stripeAccount
-      await contractor.save()
-
-      if (!(contractor.stripeAccountStatus?.card_payments_enabled && contractor.stripeAccountStatus?.transfers_enabled)) {
-        return res
-          .status(400)
-          .json({ success: false, message: "Kindly connect your bank account to receive payment" });
-      }
-    } else {
-      return res
-        .status(400)
-        .json({ success: false, message: "Kindly connect your bank account to receive payment" });
-    }
 
 
     // Update the status of the job request to "Accepted"
@@ -476,16 +451,6 @@ export const sendJobQuotation = async (
       return res.status(400).json({ success: false, message: "You have already submitted a quotation for this job" });
     }
 
-
-    // Check if contractor has a verified connected account
-    contractor.onboarding = await contractor.getOnboarding()
-    if (!(contractor.onboarding.hasStripeIdentity)  ) {
-      return res.status(400).json({ success: false, message: "Kindly complete your identity process" });
-    }
-
-    if (!contractor.onboarding.hasStripeAccount || !(contractor.stripeAccountStatus && contractor.stripeAccountStatus.card_payments_enabled && contractor.stripeAccountStatus.transfers_enabled)) {
-      return res.status(400).json({ success: false, message: "Kindly connect your bank account to receive payment" });
-    }
 
 
     const scheduleStartDate = startDate ? new Date(startDate) : new Date()
@@ -840,7 +805,7 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
 
   // Assume isGuest
   if(!contractorId){
-    const {data, error} = await applyAPIFeature(JobModel.find({status: JOB_STATUS.PENDING}), req.query)
+    const {data, error} = await applyAPIFeature(JobModel.find({status: JOB_STATUS.PENDING, type: JobType.LISTING}), req.query)
     return res.status(200).json({ success: true, message: 'Jobs retrieved successfully', data: data });
   }
   const profile = await ContractorProfileModel.findOne({ contractor: contractorId });
@@ -1259,9 +1224,9 @@ export const createJobEnquiry = async (req: any, res: Response, next: NextFuncti
        return res.status(400).json({ success: false, message: "Kindly complete your identity process" });
      }
  
-     if (!contractor.onboarding.hasStripeAccount || !(contractor.stripeAccountStatus && contractor.stripeAccountStatus.card_payments_enabled && contractor.stripeAccountStatus.transfers_enabled)) {
-       return res.status(400).json({ success: false, message: "Kindly connect your bank account to receive payment" });
-     }
+    //  if (!contractor.onboarding.hasStripeAccount || !(contractor.stripeAccountStatus && contractor.stripeAccountStatus.card_payments_enabled && contractor.stripeAccountStatus.transfers_enabled)) {
+    //    return res.status(400).json({ success: false, message: "Kindly connect your bank account to receive payment" });
+    //  }
 
 
 

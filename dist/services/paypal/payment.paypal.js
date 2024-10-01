@@ -44,6 +44,7 @@ var axios_1 = __importDefault(require("axios"));
 var custom_errors_1 = require("../../utils/custom.errors");
 var config_1 = require("../../config");
 var uuid_1 = require("uuid");
+var logger_1 = require("../logger");
 // Function to generate PayPal OAuth token
 var getPayPalAccessToken = function () { return __awaiter(void 0, void 0, void 0, function () {
     var auth, response;
@@ -68,14 +69,18 @@ var getPayPalAccessToken = function () { return __awaiter(void 0, void 0, void 0
 }); };
 // Create a Payment Order (Standard Payment)
 var createOrder = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var accessToken, response;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0: return [4 /*yield*/, getPayPalAccessToken()];
+    var accessToken, response, error_1;
+    var _a, _b, _c;
+    return __generator(this, function (_d) {
+        switch (_d.label) {
+            case 0:
+                _d.trys.push([0, 3, , 4]);
+                return [4 /*yield*/, getPayPalAccessToken()];
             case 1:
-                accessToken = _a.sent();
+                accessToken = _d.sent();
                 return [4 /*yield*/, axios_1.default.post(config_1.config.paypal.apiUrl + '/v2/checkout/orders', {
                         intent: payload.intent, // CAPTURE or AUTHORIZE
+                        customer_id: payload.customer_id,
                         purchase_units: [
                             {
                                 custom_id: payload.metaId,
@@ -83,7 +88,7 @@ var createOrder = function (payload) { return __awaiter(void 0, void 0, void 0, 
                                 description: payload.description,
                                 amount: {
                                     currency_code: 'CAD',
-                                    value: (payload.amount / 100).toString(), // Amount in dollars
+                                    value: (payload.amount).toString(), // Amount in dollars
                                 },
                             },
                         ],
@@ -97,7 +102,7 @@ var createOrder = function (payload) { return __awaiter(void 0, void 0, void 0, 
                             }
                         },
                         application_context: {
-                            return_url: 'https://repairfind.ca/payment-success/',
+                            return_url: (_a = payload.returnUrl) !== null && _a !== void 0 ? _a : 'https://repairfind.ca/payment-success/',
                             cancel_url: 'https://cancel.com',
                         },
                     }, {
@@ -107,15 +112,20 @@ var createOrder = function (payload) { return __awaiter(void 0, void 0, void 0, 
                         },
                     })];
             case 2:
-                response = _a.sent();
+                response = _d.sent();
                 return [2 /*return*/, response.data];
+            case 3:
+                error_1 = _d.sent();
+                logger_1.Logger.error("Error creating order:", error_1.response.data);
+                throw new Error(((_c = (_b = error_1.response) === null || _b === void 0 ? void 0 : _b.data) === null || _c === void 0 ? void 0 : _c.message) || error_1.message);
+            case 4: return [2 /*return*/];
         }
     });
 }); };
 exports.createOrder = createOrder;
 // Capture the Full Payment for an Order using orderId
 var captureOrder = function (orderId) { return __awaiter(void 0, void 0, void 0, function () {
-    var accessToken, paymentMethod, captureResponse, orderData, vault, vaultToken, paypalCustomer, cardDetails, error_1;
+    var accessToken, paymentMethod, captureResponse, orderData, vault, vaultToken, paypalCustomer, cardDetails, error_2;
     var _a, _b, _c, _d, _e, _f;
     return __generator(this, function (_g) {
         switch (_g.label) {
@@ -158,9 +168,9 @@ var captureOrder = function (orderId) { return __awaiter(void 0, void 0, void 0,
                 }
                 return [2 /*return*/, { orderData: orderData, paymentMethod: paymentMethod }];
             case 4:
-                error_1 = _g.sent();
-                console.error("Error capturing order:", error_1);
-                throw new Error(((_f = (_e = error_1.response) === null || _e === void 0 ? void 0 : _e.data) === null || _f === void 0 ? void 0 : _f.message) || error_1.message);
+                error_2 = _g.sent();
+                logger_1.Logger.error("Error capturing order:", error_2.response.data);
+                throw new Error(((_f = (_e = error_2.response) === null || _e === void 0 ? void 0 : _e.data) === null || _f === void 0 ? void 0 : _f.message) || error_2.message);
             case 5: return [2 /*return*/];
         }
     });
@@ -206,8 +216,8 @@ var captureAuthorization = function (authorizationId) { return __awaiter(void 0,
 }); };
 exports.captureAuthorization = captureAuthorization;
 // Authorize a Payment (without capturing)
-var authorizeOrder = function (orderId) { return __awaiter(void 0, void 0, void 0, function () {
-    var accessToken, paymentMethod, response, orderData, vault, vaultToken, paypalCustomer, cardDetails, error_2;
+var authorizeOrder = function (orderId, custom_id) { return __awaiter(void 0, void 0, void 0, function () {
+    var accessToken, paymentMethod, response, orderData, vault, vaultToken, paypalCustomer, cardDetails, error_3;
     var _a, _b, _c, _d, _e, _f;
     return __generator(this, function (_g) {
         switch (_g.label) {
@@ -218,7 +228,9 @@ var authorizeOrder = function (orderId) { return __awaiter(void 0, void 0, void 
                 _g.label = 2;
             case 2:
                 _g.trys.push([2, 4, , 5]);
-                return [4 /*yield*/, axios_1.default.post("".concat(config_1.config.paypal.apiUrl, "/v2/checkout/orders/").concat(orderId, "/authorize"), {}, {
+                return [4 /*yield*/, axios_1.default.post("".concat(config_1.config.paypal.apiUrl, "/v2/checkout/orders/").concat(orderId, "/authorize"), {
+                        customer_id: custom_id
+                    }, {
                         headers: {
                             Authorization: "Bearer ".concat(accessToken),
                             'Content-Type': 'application/json',
@@ -250,9 +262,9 @@ var authorizeOrder = function (orderId) { return __awaiter(void 0, void 0, void 
                 }
                 return [2 /*return*/, { orderData: orderData, paymentMethod: paymentMethod }]; // Return both the authorization and payment method details
             case 4:
-                error_2 = _g.sent();
-                console.error("Error authorizing payment:", error_2);
-                throw new Error(((_f = (_e = error_2.response) === null || _e === void 0 ? void 0 : _e.data) === null || _f === void 0 ? void 0 : _f.message) || error_2.message);
+                error_3 = _g.sent();
+                logger_1.Logger.error("Error authorizing order:", error_3.response.data);
+                throw new Error(((_f = (_e = error_3.response) === null || _e === void 0 ? void 0 : _e.data) === null || _f === void 0 ? void 0 : _f.message) || error_3.message);
             case 5: return [2 /*return*/];
         }
     });
@@ -260,7 +272,7 @@ var authorizeOrder = function (orderId) { return __awaiter(void 0, void 0, void 
 exports.authorizeOrder = authorizeOrder;
 // Void an Authorization
 var voidAuthorization = function (authorizationId) { return __awaiter(void 0, void 0, void 0, function () {
-    var accessToken, response, error_3;
+    var accessToken, response, error_4;
     var _a, _b;
     return __generator(this, function (_c) {
         switch (_c.label) {
@@ -280,9 +292,9 @@ var voidAuthorization = function (authorizationId) { return __awaiter(void 0, vo
                 response = _c.sent();
                 return [2 /*return*/, response.data];
             case 4:
-                error_3 = _c.sent();
-                console.error("Error voiding authorization:", error_3);
-                throw new Error(((_b = (_a = error_3.response) === null || _a === void 0 ? void 0 : _a.data) === null || _b === void 0 ? void 0 : _b.message) || error_3.message);
+                error_4 = _c.sent();
+                logger_1.Logger.error("Error voiding authorization:", error_4.response.data);
+                throw new Error(((_b = (_a = error_4.response) === null || _a === void 0 ? void 0 : _a.data) === null || _b === void 0 ? void 0 : _b.message) || error_4.message);
             case 5: return [2 /*return*/];
         }
     });
@@ -290,16 +302,17 @@ var voidAuthorization = function (authorizationId) { return __awaiter(void 0, vo
 exports.voidAuthorization = voidAuthorization;
 // Create a Payment Order (Standard Payment)
 var chargeSavedCard = function (payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var accessToken, requestId, response, error_4;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var accessToken, requestId, response, error_5;
+    var _a, _b;
+    return __generator(this, function (_c) {
+        switch (_c.label) {
             case 0: return [4 /*yield*/, getPayPalAccessToken()];
             case 1:
-                accessToken = _a.sent();
+                accessToken = _c.sent();
                 requestId = (0, uuid_1.v4)();
-                _a.label = 2;
+                _c.label = 2;
             case 2:
-                _a.trys.push([2, 4, , 5]);
+                _c.trys.push([2, 4, , 5]);
                 return [4 /*yield*/, axios_1.default.post(config_1.config.paypal.apiUrl + '/v2/checkout/orders', {
                         intent: 'CAPTURE', // CAPTURE or AUTHORIZE
                         purchase_units: [
@@ -309,7 +322,7 @@ var chargeSavedCard = function (payload) { return __awaiter(void 0, void 0, void
                                 description: payload.description,
                                 amount: {
                                     currency_code: 'CAD',
-                                    value: (payload.amount / 100).toString(), // Amount in dollars
+                                    value: (payload.amount).toString(), // Amount in dollars
                                 },
                             },
                         ],
@@ -326,13 +339,12 @@ var chargeSavedCard = function (payload) { return __awaiter(void 0, void 0, void
                         },
                     })];
             case 3:
-                response = _a.sent();
+                response = _c.sent();
                 return [2 /*return*/, response.data];
             case 4:
-                error_4 = _a.sent();
-                // Handle error, e.g., logging or throwing a custom error
-                // console.error('Error occurred:', error);
-                throw new Error(error_4);
+                error_5 = _c.sent();
+                logger_1.Logger.error("Error charging saved card:", error_5.response.data);
+                throw new Error(((_b = (_a = error_5.response) === null || _a === void 0 ? void 0 : _a.data) === null || _b === void 0 ? void 0 : _b.message) || error_5.message);
             case 5: return [2 /*return*/];
         }
     });
@@ -349,7 +361,7 @@ var refundPayment = function (captureId, amountToRefund) { return __awaiter(void
                 return [4 /*yield*/, axios_1.default.post(config_1.config.paypal.apiUrl + "/v2/payments/captures/".concat(captureId, "/refund"), {
                         amount: {
                             currency_code: 'CAD',
-                            value: (amountToRefund / 100).toString(),
+                            value: (amountToRefund).toString(),
                         },
                     }, {
                         headers: {
@@ -366,7 +378,7 @@ var refundPayment = function (captureId, amountToRefund) { return __awaiter(void
 exports.refundPayment = refundPayment;
 // Retrieve Payment Method from Order
 var retrievePaymentMethod = function (orderId) { return __awaiter(void 0, void 0, void 0, function () {
-    var accessToken, response, paymentSource, error_5;
+    var accessToken, response, paymentSource, error_6;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0: return [4 /*yield*/, getPayPalAccessToken()];
@@ -395,8 +407,8 @@ var retrievePaymentMethod = function (orderId) { return __awaiter(void 0, void 0
                 }
                 return [3 /*break*/, 5];
             case 4:
-                error_5 = _a.sent();
-                throw new custom_errors_1.BadRequestError("Error retrieving payment method: ".concat(error_5.message));
+                error_6 = _a.sent();
+                throw new custom_errors_1.BadRequestError("Error retrieving payment method: ".concat(error_6.message));
             case 5: return [2 /*return*/];
         }
     });

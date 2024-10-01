@@ -62,6 +62,7 @@ export interface ICustomer extends Document {
   stripeAccount: object,
   stripeIdentity: object
   acceptTerms: Boolean;
+  language: any; //eg en. fr etc // change this to use interface latter
   provider: CustomerAuthProviders
   createdAt: Date;
   updatedAt: Date;

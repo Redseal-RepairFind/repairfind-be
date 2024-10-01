@@ -4,8 +4,7 @@ import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import CustomerModel from "../../../database/customer/models/customer.model";
 import { OTP_EXPIRY_TIME, generateOTP } from "../../../utils/otpGenerator";
-import { sendEmail } from "../../../utils/send_email_utility";
-import { htmlMailTemplate } from "../../../templates/sendEmailTemplate";
+import { OtpEmailTemplate } from "../../../templates/common/OtpEmailTemplate";
 import { GoogleServiceProvider } from "../../../services/google";
 import { CustomerAuthProviders } from "../../../database/customer/interface/customer.interface";
 import { FacebookServiceProvider } from "../../../services/facebook";
@@ -13,8 +12,8 @@ import { AppleIdServiceProvider, EmailService } from "../../../services";
 import { config } from "../../../config";
 import { CustomerWelcomeEmailTemplate } from "../../../templates/customer/welcome_email";
 import { EmailVerificationTemplate } from "../../../templates/common/email_verification";
+import { i18n } from "../../../i18n";
 
-//customer signup /////////////
 export const signUp = async (
   req: Request,
   res: Response,
@@ -28,6 +27,7 @@ export const signUp = async (
       lastName,
       acceptTerms,
       phoneNumber,
+      language
     } = req.body;
 
 
@@ -43,13 +43,10 @@ export const signUp = async (
 
     // check if user exists
     if (userEmailExists) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Email exists already" });
+      return res.status(401).json({ success: false, message: "Email exists already" });
     }
 
     const otp = generateOTP()
-
     const createdTime = new Date();
 
     const emailOtp = {
@@ -58,12 +55,8 @@ export const signUp = async (
       verified: false
     }
 
-    
-    const welcomeHtml = CustomerWelcomeEmailTemplate(lastName)
-    EmailService.send(email, 'Welcome to Repairfind', welcomeHtml,  )
 
-    const emailVerificationHtml = EmailVerificationTemplate(otp, firstName);
-    EmailService.send(email, 'Email Verification', emailVerificationHtml  )
+  
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -75,19 +68,24 @@ export const signUp = async (
       phoneNumber,
       password: hashedPassword,
       emailOtp,
-      acceptTerms
+      acceptTerms,
+      language
     });
 
     let customerSaved = await customer.save();
 
-    // admin notification 
-    // const adminNoti = new AdminNoficationModel({
-    //   title: "New Account Created",
-    //   message: `A customer - ${lastName}  just created an account.`,
-    //   status: "unseen"
-    // })
 
-    // await adminNoti.save();
+    const welcomeHtml = CustomerWelcomeEmailTemplate(lastName)
+    const translatedWelcomeHtml = await i18n.getTranslation({phraseOrSlug: welcomeHtml,targetLang: customer.language,saveToFile: false, useGoogle: true}) || welcomeHtml;
+    const translatedWelcomeSubject = await i18n.getTranslation({phraseOrSlug: "Welcome to Repairfind",targetLang: customer.language}) || 'Welcome to Repairfind';
+    EmailService.send(email, translatedWelcomeSubject, translatedWelcomeHtml,)
+
+
+
+    const emailVerificationHtml = OtpEmailTemplate(otp, firstName, 'We have received a request to verify your email');
+    const translatedVerificationHtml = await i18n.getTranslation({phraseOrSlug: emailVerificationHtml,targetLang: customer.language,saveToFile: false, useGoogle: true}) || emailVerificationHtml;
+    const translatedVerificationSubject = await i18n.getTranslation({phraseOrSlug: "'Email Verification",targetLang: customer.language}) || 'Welcome to Repairfind';
+    EmailService.send(email, translatedVerificationSubject, translatedVerificationHtml, )
 
     res.json({
       success: true,
@@ -103,7 +101,6 @@ export const signUp = async (
     });
 
   } catch (err: any) {
-    // signup error
     res.status(500).json({ success: false, message: err.message });
   }
 
@@ -134,21 +131,15 @@ export const verifyEmail = async (
 
     // check if contractor exists
     if (!customer) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Invalid email" });
+      return res.status(401).json({ success: false, message: "Invalid email" });
     }
 
     if (customer.emailOtp.otp != otp) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Invalid otp" });
+      return res.status(401).json({ success: false, message: "Invalid otp" });
     }
 
     if (customer.emailOtp.verified) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Email is already verified" });
+      return res.status(400).json({ success: false, message: "Email is already verified" });
     }
 
     const timeDiff = new Date().getTime() - customer.emailOtp.createdTime.getTime();
@@ -180,7 +171,6 @@ export const verifyEmail = async (
     });
 
   } catch (err: any) {
-    // signup error
     res.status(500).json({ success: false, message: err.message });
   }
 
@@ -202,7 +192,7 @@ export const signIn = async (
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-      return res.status(400).json({success: false, message: "Validation error occurred", errors: errors.array() });
+      return res.status(400).json({ success: false, message: "Validation error occurred", errors: errors.array() });
     }
 
     // try find user with the same email
@@ -212,29 +202,27 @@ export const signIn = async (
     if (!customer) {
       return res
         .status(401)
-        .json({success: false, message: "Invalid credential" });
+        .json({ success: false, message: "Invalid credential" });
     }
 
-    if (!customer.password && customer.provider !==  CustomerAuthProviders.PASSWORD) {
-      return res
-        .status(401)
-        .json({success: false, message: "The email is associated with a social signon" });
+    if (!customer.password && customer.provider !== CustomerAuthProviders.PASSWORD) {
+      return res.status(401).json({ success: false, message: "The email is associated with a social signon" });
     }
 
 
     // compare password with hashed password in database
     const isPasswordMatch = await bcrypt.compare(password, customer.password);
-    
+
     if (!customer.password && customer.provider) {
-      return res.status(401).json({success: false, message: `Account is associated with ${customer.provider} account` });
+      return res.status(401).json({ success: false, message: `Account is associated with ${customer.provider} account` });
     }
 
     if (!isPasswordMatch) {
-      return res.status(401).json({success: false, message: "Incorrect credential." });
+      return res.status(401).json({ success: false, message: "Incorrect credential." });
     }
 
     if (!customer.emailOtp.verified) {
-      return res.status(401).json({success: false, message: "The email or password you entered is incorrect" });
+      return res.status(401).json({ success: false, message: "The email or password you entered is incorrect" });
     }
 
     const profile = await CustomerModel.findOne({ email }).select('-password');
@@ -247,7 +235,7 @@ export const signIn = async (
         userType: 'customers',
       },
       process.env.JWT_SECRET_KEY!,
-      { expiresIn: config.jwt.tokenLifetime  }
+      { expiresIn: config.jwt.tokenLifetime }
     );
 
     customer.currentTimezone = currentTimezone
@@ -258,7 +246,7 @@ export const signIn = async (
       success: true,
       message: "Signin successful",
       accessToken,
-      expiresIn: config.jwt.tokenLifetime, 
+      expiresIn: config.jwt.tokenLifetime,
       data: profile
     });
 
@@ -284,36 +272,36 @@ export const signInWithPhone = async (
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
-      return res.status(400).json({success: false, message: "Validation error occurred", errors: errors.array() });
+      return res.status(400).json({ success: false, message: "Validation error occurred", errors: errors.array() });
     }
 
     // try find user with the same email
-    const customer = await CustomerModel.findOne({ 'phoneNumber.number': number, 'phoneNumber.code': code  });
+    const customer = await CustomerModel.findOne({ 'phoneNumber.number': number, 'phoneNumber.code': code });
 
     // check if user exists
     if (!customer) {
       return res
         .status(401)
-        .json({success: false, message: "The phone or password you entered is incorrect" });
+        .json({ success: false, message: "The phone or password you entered is incorrect" });
     }
 
-    if (!customer.password && customer.provider !==  CustomerAuthProviders.PASSWORD) {
+    if (!customer.password && customer.provider !== CustomerAuthProviders.PASSWORD) {
       return res
         .status(401)
-        .json({success: false, message: "These account is associated with a social signon" });
+        .json({ success: false, message: "These account is associated with a social signon" });
     }
 
 
     // compare password with hashed password in database
     const isPasswordMatch = await bcrypt.compare(password, customer.password);
-    
+
 
     if (!isPasswordMatch) {
-      return res.status(401).json({success: false, message: "Incorrect credential." });
+      return res.status(401).json({ success: false, message: "Incorrect credential." });
     }
 
     if (!customer.phoneNumber.verifiedAt) {
-      return res.status(401).json({success: false, message: "Phone number is not verified." });
+      return res.status(401).json({ success: false, message: "Phone number is not verified." });
     }
 
     const profile = await CustomerModel.findById(customer.id).select('-password');
@@ -326,7 +314,7 @@ export const signInWithPhone = async (
         userType: 'customers',
       },
       process.env.JWT_SECRET_KEY!,
-      { expiresIn: config.jwt.tokenLifetime  }
+      { expiresIn: config.jwt.tokenLifetime }
     );
 
     customer.currentTimezone = currentTimezone
@@ -337,7 +325,7 @@ export const signInWithPhone = async (
       success: true,
       message: "Signin successful",
       accessToken,
-      expiresIn: config.jwt.tokenLifetime, 
+      expiresIn: config.jwt.tokenLifetime,
       data: profile
     });
 
@@ -359,27 +347,21 @@ export const resendEmail = async (
     const {
       email,
     } = req.body;
-    // Check for Validation error occurred
+
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
       return res.status(400).json({ success: false, message: 'Validation error occurred', errors: errors.array() });
     }
 
-    // try find customer with the same email
     const customer = await CustomerModel.findOne({ email });
 
-    // check if contractor exists
     if (!customer) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Invalid email" });
+      return res.status(401).json({ success: false, message: "Invalid email" });
     }
 
     if (customer.emailOtp.verified) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Email already verified" });
+      // return res.status(400).json({ success: false, message: "Email already verified" });
     }
 
     const otp = generateOTP()
@@ -394,17 +376,11 @@ export const resendEmail = async (
 
     await customer?.save();
 
-    const html = htmlMailTemplate(otp, customer.firstName, "We have received a request to verify your email");
+    const html = OtpEmailTemplate(otp, customer.firstName, "We have received a request to verify your email");
+    const translatedHtml = await i18n.getTranslation({phraseOrSlug: html,targetLang: customer.language,saveToFile: false, useGoogle: true}) || html;
+    const translatedSubject = await i18n.getTranslation({phraseOrSlug: "Email Verification",targetLang: customer.language}) || 'Email Verification';
 
-
-    let emailData = {
-      emailTo: email,
-      subject: "email verification",
-      html
-    };
-
-    sendEmail(emailData);
-
+    EmailService.send(email, translatedSubject, translatedHtml)
     return res.status(200).json({ success: true, message: "OTP sent successfully to your email." });
 
   } catch (err: any) {
@@ -450,15 +426,20 @@ export const forgotPassword = async (
 
     await customer?.save();
 
-    const html = htmlMailTemplate(otp, customer.firstName, "We have received a request to change your password");
+    const html = OtpEmailTemplate(otp, customer.firstName, "We have received a request to change your password");
 
-    let emailData = {
-      emailTo: email,
-      subject: "C password change",
-      html
-    };
+    const translatedHtml = await i18n.getTranslation({
+      phraseOrSlug: html,
+      targetLang: customer.language,
+      saveToFile: false,
+      useGoogle: true
+    }) || html;
+    const translatedSubject = await i18n.getTranslation({
+      phraseOrSlug: "Password Change",
+      targetLang: customer.language
+    }) || 'Password Change';
 
-    sendEmail(emailData);
+    EmailService.send(email, translatedSubject, translatedHtml)
 
     return res.status(200).json({ success: true, message: "OTP sent successfully to your email." });
 
@@ -486,14 +467,11 @@ export const resetPassword = async (
       return res.status(400).json({ success: false, message: "Validation error occurred", errors: errors.array() });
     }
 
-    // try find customerr with the same email
     const customer = await CustomerModel.findOne({ email });
 
     // check if contractor exists
     if (!customer) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Invalid email" });
+      return res.status(401).json({ success: false, message: "Invalid email" });
     }
 
     const { createdTime, verified } = customer.passwordOtp
@@ -501,9 +479,7 @@ export const resetPassword = async (
     const timeDiff = new Date().getTime() - createdTime.getTime();
 
     if (!verified || timeDiff > OTP_EXPIRY_TIME || otp !== customer.passwordOtp.otp) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Unable to reset password" });
+      return res.status(401).json({ success: false, message: "Unable to reset password" });
     }
 
     // Hash password
@@ -604,7 +580,7 @@ export const googleSignon = async (
           firstName,
           lastName,
           provider: CustomerAuthProviders.GOOGLE,
-          profilePhoto: {url:picture},
+          profilePhoto: { url: picture },
           emailOtp: {
             otp: sub,
             createdTime: new Date(),
@@ -730,8 +706,12 @@ export const facebookSignon = async (req: Request, res: Response) => {
 };
 
 
+
+// TODO: BUG: 
 export const appleSignon = async (req: Request, res: Response) => {
   try {
+
+    
     const { accessToken, email, firstName, lastName } = req.body;
 
     // Check for Validation error occurred
@@ -748,14 +728,12 @@ export const appleSignon = async (req: Request, res: Response) => {
       sub: 'customerrepairfind.com',
       email: 'customer@repairfind.com'
     }
-    
+
     // const decodedTokend = await AppleIdServiceProvider.getUserInfo(accessToken); // accessToken = idToken
     const decodedIdToken = await AppleIdServiceProvider.verifyIdToken(accessToken); // accessToken = idToken
-    
+
     const decodedAccessToken = await AppleIdServiceProvider.decodeAccessToken(accessToken); // accessToken = idToken
 
-    console.log('decodedIdToken', decodedIdToken)
-    console.log('decodedAccessToken', decodedAccessToken)
 
     // Extract necessary information from the decoded token
     const appleUserId = decodedToken.sub;

@@ -3,6 +3,7 @@ import { BadRequestError } from '../../utils/custom.errors';
 import { config } from '../../config';
 import { v4 as uuidv4 } from 'uuid';
 import { IPaypalPaymentMethod, PaypalPaymentMethodSchema } from '../../database/common/paypal_paymentmethod.schema';
+import { Logger } from '../logger';
 
 
 // Function to generate PayPal OAuth token
@@ -10,68 +11,73 @@ const getPayPalAccessToken = async () => {
 
 
 
-    const auth = Buffer.from(
-      `${config.paypal.clientId}:${config.paypal.secretKey}`
-    ).toString('base64');
+  const auth = Buffer.from(
+    `${config.paypal.clientId}:${config.paypal.secretKey}`
+  ).toString('base64');
 
-    const response = await axios({
-      url: config.paypal.apiUrl + '/v1/oauth2/token',
-      method: 'post',
-      headers: {
-        Authorization: `Basic ${auth}`,
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      data: 'grant_type=client_credentials',
-    });
+  const response = await axios({
+    url: config.paypal.apiUrl + '/v1/oauth2/token',
+    method: 'post',
+    headers: {
+      Authorization: `Basic ${auth}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    data: 'grant_type=client_credentials',
+  });
 
-    return response.data.access_token;
+  return response.data.access_token;
 
- 
+
 
 };
 
 // Create a Payment Order (Standard Payment)
 export const createOrder = async (payload: any) => {
-  const accessToken = await getPayPalAccessToken();
-
-  const response = await axios.post(
-    config.paypal.apiUrl + '/v2/checkout/orders',
-    {
-      intent: payload.intent, // CAPTURE or AUTHORIZE
-      purchase_units: [
-        {
-          custom_id: payload.metaId,
-          reference_id: payload.metaId,
-          description: payload.description,
-          amount: {
-            currency_code: 'CAD',
-            value: (payload.amount / 100).toString(), // Amount in dollars
+  try {
+    const accessToken = await getPayPalAccessToken();
+    const response = await axios.post(
+      config.paypal.apiUrl + '/v2/checkout/orders',
+      {
+        intent: payload.intent, // CAPTURE or AUTHORIZE
+        customer_id: payload.customer_id,
+        purchase_units: [
+          {
+            custom_id: payload.metaId,
+            reference_id: payload.metaId,
+            description: payload.description,
+            amount: {
+              currency_code: 'CAD',
+              value: (payload.amount).toString(), // Amount in dollars
+            },
           },
-        },
-      ],
-      "payment_source": {
-        "card": {
-          "attributes": {
-            "vault": {
-              "store_in_vault": "ON_SUCCESS"
+        ],
+        "payment_source": {
+          "card": {
+            "attributes": {
+              "vault": {
+                "store_in_vault": "ON_SUCCESS"
+              }
             }
           }
-        }
+        },
+        application_context: {
+          return_url: payload.returnUrl ?? 'https://repairfind.ca/payment-success/',
+          cancel_url: 'https://cancel.com',
+        },
       },
-      application_context: {
-        return_url: 'https://repairfind.ca/payment-success/',
-        cancel_url: 'https://cancel.com',
-      },
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-    }
-  );
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
 
-  return response.data;
+    return response.data;
+  } catch (error: any) {
+    Logger.error("Error creating order:", error.response.data);
+    throw new Error(error.response?.data?.message || error.message);
+  }
 };
 
 
@@ -123,7 +129,7 @@ export const captureOrder = async (orderId: string) => {
 
     return { orderData, paymentMethod };
   } catch (error: any) {
-    console.error("Error capturing order:", error);
+    Logger.error("Error capturing order:", error.response.data);
     throw new Error(error.response?.data?.message || error.message);
   }
 };
@@ -172,7 +178,7 @@ export const captureAuthorization = async (authorizationId: string) => {
 
 
 // Authorize a Payment (without capturing)
-export const authorizeOrder = async (orderId: string) => {
+export const authorizeOrder = async (orderId: string, custom_id?: string) => {
   const accessToken = await getPayPalAccessToken();
   let paymentMethod = null;
 
@@ -180,7 +186,9 @@ export const authorizeOrder = async (orderId: string) => {
     // Authorize the payment for the given orderId
     const response = await axios.post(
       `${config.paypal.apiUrl}/v2/checkout/orders/${orderId}/authorize`,
-      {},
+      {
+         customer_id: custom_id
+      },
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -219,7 +227,7 @@ export const authorizeOrder = async (orderId: string) => {
 
     return { orderData, paymentMethod }; // Return both the authorization and payment method details
   } catch (error: any) {
-    console.error("Error authorizing payment:", error);
+    Logger.error("Error authorizing order:", error.response.data);
     throw new Error(error.response?.data?.message || error.message);
   }
 };
@@ -245,7 +253,7 @@ export const voidAuthorization = async (authorizationId: string) => {
 
     return response.data;
   } catch (error: any) {
-    console.error("Error voiding authorization:", error);
+    Logger.error("Error voiding authorization:", error.response.data);
     throw new Error(error.response?.data?.message || error.message);
   }
 };
@@ -270,7 +278,7 @@ export const chargeSavedCard = async (payload: any) => {
             description: payload.description,
             amount: {
               currency_code: 'CAD',
-              value: (payload.amount / 100).toString(), // Amount in dollars
+              value: (payload.amount).toString(), // Amount in dollars
             },
           },
         ],
@@ -292,9 +300,8 @@ export const chargeSavedCard = async (payload: any) => {
     return response.data;
 
   } catch (error: any) {
-    // Handle error, e.g., logging or throwing a custom error
-    // console.error('Error occurred:', error);
-    throw new Error(error);
+    Logger.error("Error charging saved card:", error.response.data);
+    throw new Error(error.response?.data?.message || error.message);
   }
 
 
@@ -311,7 +318,7 @@ export const refundPayment = async (captureId: string, amountToRefund: number) =
     {
       amount: {
         currency_code: 'CAD',
-        value: (amountToRefund / 100).toString(),
+        value: (amountToRefund).toString(),
       },
     },
     {

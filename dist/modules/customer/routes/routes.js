@@ -10,12 +10,12 @@ var customer_job_controller_1 = require("../controllers/customer_job.controller"
 var customer_notification_controller_1 = require("../controllers/customer_notification.controller");
 var customer_conversation_controller_1 = require("../controllers/customer_conversation.controller");
 var customer_jobday_controller_1 = require("../controllers/customer_jobday.controller");
-var customer_payment_controller_1 = require("../controllers/customer_payment.controller");
+var customer_stripe_payment_controller_1 = require("../controllers/customer_stripe_payment.controller");
 var customer_transaction_controller_1 = require("../controllers/customer_transaction.controller");
 var customer_booking_controller_1 = require("../controllers/customer_booking.controller");
 var customer_call_controller_1 = require("../controllers/customer_call.controller");
 var customerOrGuest_middleware_1 = require("../middleware/customerOrGuest.middleware");
-var paypal_payment_controller_1 = require("../controllers/paypal_payment.controller");
+var customer_paypal_payment_controller_1 = require("../controllers/customer_paypal_payment.controller");
 var customer_paypal_controller_1 = require("../controllers/customer_paypal.controller");
 var express = require("express");
 var router = express.Router();
@@ -50,7 +50,8 @@ router.post("/stripe-session", customerRoleChecker_middleware_1.checkCustomerRol
 router.post("/stripe-setupintent", customerRoleChecker_middleware_1.checkCustomerRole, customer_stripe_controller_1.CustomerStripeController.createSetupIntent);
 router.post("/paypal/create-payment-method-order", customerRoleChecker_middleware_1.checkCustomerRole, customer_paypal_controller_1.CustomerPaypalController.createPaymentMethodOrder);
 router.post("/paypal/authorize-payment-method-order", customerRoleChecker_middleware_1.checkCustomerRole, customer_paypal_controller_1.CustomerPaypalController.authorizePaymentMethodOrder);
-router.get("/paypal/create-payment-method-view", customerRoleChecker_middleware_1.checkCustomerRole, customer_paypal_controller_1.CustomerPaypalController.loadCreatePaymentMethodView);
+router.get("/paypal/payment-methods", customerRoleChecker_middleware_1.checkCustomerRole, customer_paypal_controller_1.CustomerPaypalController.loadCreatePaymentMethodView);
+router.delete("/paypal/payment-methods/:vaultId", customerRoleChecker_middleware_1.checkCustomerRole, customer_paypal_controller_1.CustomerPaypalController.deletePaypalPaymentMethod);
 // Explore Contractors
 router.get("/explore/contractors", customerOrGuest_middleware_1.checkCustomerOrGuestRole, requests_1.CustomerHttpRequest.queryContractorParams, customer_explore_controller_1.CustomerExploreController.exploreContractors);
 router.get("/explore/contractors/favorites", customerRoleChecker_middleware_1.checkCustomerRole, customer_explore_controller_1.CustomerExploreController.getFavoriteContractors);
@@ -68,12 +69,13 @@ router.get("/jobs/:jobId/quotations/:quotationId", customerRoleChecker_middlewar
 router.post("/jobs/:jobId/quotations/:quotationId/accept", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.acceptJobQuotation);
 router.post("/jobs/:jobId/quotations/:quotationId/decline", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.declineJobQuotation);
 router.post("/jobs/:jobId/quotations/:quotationId/schedule", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.scheduleJob);
-router.post("/jobs/:jobId/create-checkout-order", customerRoleChecker_middleware_1.checkCustomerRole, paypal_payment_controller_1.CustomerPaypalPaymentController.createCheckoutOrder);
-router.post("/jobs/:jobId/capture-checkout-order", customerRoleChecker_middleware_1.checkCustomerRole, paypal_payment_controller_1.CustomerPaypalPaymentController.captureCheckoutOrder);
-router.post("/jobs/:jobId/charge-payment-method", customerRoleChecker_middleware_1.checkCustomerRole, paypal_payment_controller_1.CustomerPaypalPaymentController.chargeSavedPaymentMethod);
-router.post("/jobs/:jobId/pay", customerRoleChecker_middleware_1.checkCustomerRole, customer_payment_controller_1.CustomerPaymentController.makeJobPayment);
-router.post("/jobs/:jobId/payment-capture", customerRoleChecker_middleware_1.checkCustomerRole, customer_payment_controller_1.CustomerPaymentController.captureJobPayment);
-router.post("/jobs/:jobId/change-order-payment", customerRoleChecker_middleware_1.checkCustomerRole, customer_payment_controller_1.CustomerPaymentController.makeChangeOrderEstimatePayment);
+router.post("/jobs/:jobId/paypal/create-checkout-order", customerRoleChecker_middleware_1.checkCustomerRole, customer_paypal_payment_controller_1.CustomerPaypalPaymentController.createCheckoutOrder);
+router.post("/jobs/:jobId/paypal/capture-checkout-order", customerRoleChecker_middleware_1.checkCustomerRole, customer_paypal_payment_controller_1.CustomerPaypalPaymentController.captureCheckoutOrder);
+router.post("/jobs/:jobId/paypal/pay", customerRoleChecker_middleware_1.checkCustomerRole, customer_paypal_payment_controller_1.CustomerPaypalPaymentController.payJobEstimate);
+router.post("/jobs/:jobId/paypal/pay-change-order", customerRoleChecker_middleware_1.checkCustomerRole, customer_paypal_payment_controller_1.CustomerPaypalPaymentController.payChangeOrderEstimate);
+router.post("/jobs/:jobId/pay", customerRoleChecker_middleware_1.checkCustomerRole, customer_stripe_payment_controller_1.CustomerStripePaymentController.makeJobPayment);
+router.post("/jobs/:jobId/payment-capture", customerRoleChecker_middleware_1.checkCustomerRole, customer_stripe_payment_controller_1.CustomerStripePaymentController.captureJobPayment);
+router.post("/jobs/:jobId/change-order-payment", customerRoleChecker_middleware_1.checkCustomerRole, customer_stripe_payment_controller_1.CustomerStripePaymentController.makeChangeOrderEstimatePayment);
 router.get("/jobs/:jobId/enquiries", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.getJobEnquiries);
 router.get("/jobs/:jobId/enquiries/:enquiryId", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.getJobSingleEnquiry);
 router.post("/jobs/:jobId/enquiry-reply", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.replyJobEnquiry);

@@ -11,6 +11,7 @@ import { JobModel, JOB_STATUS, JOB_SCHEDULE_TYPE } from '../../database/common/j
 import { IJobQuotation, JobQuotationModel, JOB_QUOTATION_STATUS } from '../../database/common/job_quotation.model';
 import { ObjectId } from 'mongoose';
 import { PaypalPaymentLog } from '../../database/common/paypal_payment_log.model';
+import { PayPalService } from '.';
 
 const PAYPAL_WEBHOOK_SECRET = <string>process.env.PAYPAL_WEBHOOK_SECRET;
 
@@ -159,11 +160,13 @@ export const paymentCaptureCompleted = async (payload: any, resourceType: any) =
                             remark: 'Initial job schedule'
                         };
 
+                        job.status = JOB_STATUS.BOOKED
 
                         await Promise.all([
                             quotation.save(),
                             job.save()
                         ])
+
                         JobEvent.emit('JOB_BOOKED', { jobId, contractorId: quotation.contractor, customerId: job.customer, quotationId, paymentType })
 
                     }
@@ -214,7 +217,7 @@ export const paymentCaptureCompleted = async (payload: any, resourceType: any) =
                     // Create Escrow Transaction here
                     await TransactionModel.create({
                         type: TRANSACTION_TYPE.ESCROW,
-                        amount: payment.amount,
+                        amount: charges.contractorPayable,
                         initiatorUser: user.id,
                         initiatorUserType: 'customers',
                         fromUser: job.customer,
@@ -294,10 +297,45 @@ export const orderApproved = async (payload: any, resourceType: any) => {
     Logger.info('PayPal Event Handler: orderApproved', payload);
     try {
         const { id, purchase_units } = payload;
-
         // You can process the approved order here
         Logger.info(`Order ${id} approved with purchase units:`, purchase_units);
+        const {orderData, paymentMethod} = await PayPalService.payment.captureOrder(id)
+        Logger.info(`Order Captured ${id}`, [orderData, paymentMethod]);
     } catch (error: any) {
         Logger.info('Error handling orderApproved PayPal webhook event', error);
     }
 };
+
+
+
+
+// PAYMENT.PAYOUTS-ITEM.UNCLAIMED"
+// "1727425397084":{
+// "id":"WH-20R39083BF462510V-40S654642A356503H"
+// "event_version":"1.0"
+// "create_time":"2024-09-27T08:23:06.711Z"
+// "resource_type":"payouts_item"
+// "event_type":"PAYMENT.PAYOUTS-ITEM.UNCLAIMED"
+// "summary":"A payout item is unclaimed"
+// "resource":{
+// "transaction_id":"5GR74669W57774449"
+// "payout_item_fee":{...}
+// "transaction_status":"UNCLAIMED"
+// "sender_batch_id":"b9dd91f2-8b28-4489-a42c-36f6d6374e57"
+// "time_processed":"2024-09-27T08:22:51Z"
+// "activity_id":"4XC70420RN5559137"
+// "payout_item":{
+// "recipient_type":"EMAIL"
+// "amount":{...}
+// "note":"Payment for your completed job on RepairFind"
+// "receiver":"airondev@gmail.com"
+// "sender_item_id":"84b0282c-64af-4bbd-8b5e-7542e394ab1f"
+// "recipient_wallet":"PAYPAL"
+// }
+// "links":[...]
+// "payout_item_id":"X8CUZMZFAJMB8"
+// "payout_batch_id":"ARF4WZLU59N5J"
+// "errors":{...}
+// }
+// "links":[...]
+// }

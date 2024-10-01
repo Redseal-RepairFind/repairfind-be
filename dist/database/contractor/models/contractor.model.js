@@ -163,7 +163,8 @@ var ContractorSchema = new mongoose_1.Schema({
         enum: Object.values(contractor_interface_1.CONTRACTOR_TYPES),
     },
     profilePhoto: {
-        type: Object
+        type: Object,
+        default: { url: 'https://ipalas3bucket.s3.us-east-2.amazonaws.com/avatar.png' }
     },
     phoneNumber: {
         code: { type: String },
@@ -241,7 +242,11 @@ var ContractorSchema = new mongoose_1.Schema({
         hasPassedQuiz: { default: false, type: Boolean },
         stage: { default: { status: 1, label: 'stripeIdentity' }, type: Object },
     },
-    currentTimezone: { type: String, default: "America/Los_Angeles" }
+    currentTimezone: { type: String, default: "America/Los_Angeles" },
+    language: {
+        type: String,
+        default: 'en'
+    },
 }, {
     timestamps: true,
 });
@@ -382,9 +387,8 @@ ContractorSchema.methods.getOnboarding = function () {
                             stage = { status: 3, label: 'quiz' };
                         // if (stage.status == 3 && hasGstDetails) stage = {status: 4, label: 'quiz'} 
                         if (stage.status == 3 && hasPassedQuiz)
-                            stage = { status: 4, label: 'stripeAccount' };
-                        if (stage.status == 4 && hasStripeAccount)
-                            stage = { status: 5, label: 'done' };
+                            stage = { status: 4, label: 'done' };
+                        // if (stage.status == 4 && hasStripeAccount) stage = { status: 5, label: 'done' }
                     }
                     if (this.accountType == 'Employee') {
                         if (stage.status == 1 && hasStripeIdentity && stripeIdentityStatus == 'verified')

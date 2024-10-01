@@ -1,5 +1,7 @@
 import { BadRequestError } from '../../utils/custom.errors';
 import axios from 'axios';
+import * as translate  from './translate';
+
 
 export async function getUserInfo(googleAccessToken: string): Promise<any> {
   try {
@@ -22,5 +24,6 @@ export async function getUserInfo(googleAccessToken: string): Promise<any> {
   }
 }
 export const GoogleServiceProvider = {
-  getUserInfo
+  getUserInfo,
+  translate
 }

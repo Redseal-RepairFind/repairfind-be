@@ -5,7 +5,7 @@ import { AppVersionModel } from "../../../database/common/app_versions.model";
 
 export const addAppVersion = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { version, changelogs, type, status, isCurrent } = req.body;
+        const { version, changelogs, type, status, isCurrent, app } = req.body;
 
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -17,8 +17,8 @@ export const addAppVersion = async (req: Request, res: Response, next: NextFunct
         }
 
         const newAppVersion = await AppVersionModel.findOneAndUpdate(
-            { version, type },
-            { version, changelogs, type, status, isCurrent },
+            { version, type, app },
+            { version, changelogs, type, status, isCurrent, app },
             { upsert: true, new: true }
         );
 
@@ -72,7 +72,7 @@ export const getAppVersionById = async (req: Request, res: Response, next: NextF
 export const updateAppVersion = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { id } = req.params;
-        const { version, changelogs, type, status, isCurrent } = req.body;
+        const { version, changelogs, type, status, isCurrent, app } = req.body;
 
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -85,7 +85,7 @@ export const updateAppVersion = async (req: Request, res: Response, next: NextFu
 
         const updatedAppVersion = await AppVersionModel.findByIdAndUpdate(
             id,
-            { version, changelogs, type, status, isCurrent },
+            { version, changelogs, type, status, isCurrent, app },
             { new: true }
         );
 

@@ -6,6 +6,30 @@ export const PaypalCheckoutTemplate = (payload: {token: string, paypalClientId: 
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link rel="stylesheet" type="text/css" href="https://www.paypalobjects.com/webstatic/en_US/developer/docs/css/cardfields.css" />
         <title>PayPal JS SDK Advanced Integration - Checkout Flow</title>
+
+        <style>
+        /* Loader style */
+        .loader {
+          border: 4px solid #f3f3f3;
+          border-radius: 50%;
+          border-top: 4px solid #3498db;
+          width: 30px;
+          height: 30px;
+          animation: spin 1s linear infinite;
+          display: none;
+          margin-left: 10px;
+        }
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        .disabled {
+          pointer-events: none;
+          opacity: 0.7;
+        }
+      </style>
+
+
       </head>
       <body>
         <div id="paypal-button-container" class="paypal-button-container"></div>
@@ -14,27 +38,10 @@ export const PaypalCheckoutTemplate = (payload: {token: string, paypalClientId: 
           <div id="card-number-field-container"></div>
           <div id="card-expiry-field-container"></div>
           <div id="card-cvv-field-container"></div>
-          <div>
-            <label for="card-billing-address-line-1">Billing Address</label>
-            <input type="text" id="card-billing-address-line-1" name="card-billing-address-line-1" autocomplete="off" placeholder="Address line 1" />
-          </div>
-          <div>
-            <input type="text" id="card-billing-address-line-2" name="card-billing-address-line-2" autocomplete="off" placeholder="Address line 2" />
-          </div>
-          <div>
-            <input type="text" id="card-billing-address-admin-area-line-1" name="card-billing-address-admin-area-line-1" autocomplete="off" placeholder="Admin area line 1" />
-          </div>
-          <div>
-            <input type="text" id="card-billing-address-admin-area-line-2" name="card-billing-address-admin-area-line-2" autocomplete="off" placeholder="Admin area line 2" />
-          </div>
-          <div>
-            <input type="text" id="card-billing-address-country-code" name="card-billing-address-country-code" autocomplete="off" placeholder="Country code" />
-          </div>
-          <div>
-            <input type="text" id="card-billing-address-postal-code" name="card-billing-address-postal-code" autocomplete="off" placeholder="Postal/zip code" />
-          </div>
+          
           <br /><br />
-          <button id="card-field-submit-button" type="button">Pay now with Card</button>
+          <button id="card-field-submit-button" type="button">Add Payment Method</button>
+          <div id="loader" class="loader"></div>
         </div>
         <p id="result-message"></p>
         
@@ -42,7 +49,7 @@ export const PaypalCheckoutTemplate = (payload: {token: string, paypalClientId: 
         <script>
           async function createOrderCallback() {
             try {
-              const response = await fetch('http://localhost:3000/api/v1/customer/paypal/create-payment-method-order', {
+              const response = await fetch('/api/v1/customer/paypal/create-payment-method-order', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -54,13 +61,13 @@ export const PaypalCheckoutTemplate = (payload: {token: string, paypalClientId: 
               return orderData.id;
             } catch (error) {
               console.error(error);
-              resultMessage(\`Could not initiate PayPal Checkout...<br><br>\${error}\`);
+              alert(\`Could not initiate PayPal Checkout...\`);
             }
           }
 
           async function onApproveCallback(data, actions) {
             try {
-              const response = await fetch('http://localhost:3000/api/v1/customer/paypal/authorize-payment-method-order', {
+              const response = await fetch('/api/v1/customer/paypal/authorize-payment-method-order', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -69,11 +76,17 @@ export const PaypalCheckoutTemplate = (payload: {token: string, paypalClientId: 
                 body: JSON.stringify({ orderID: data.orderID }) 
               });
 
-              const orderData = await response.json();
-              console.log('response', orderData);
+              const res = await response.json();
+              if (res.success) {
+                window.location.href = 'https://repairfind.ca/payment-success/';
+              }else{
+                alert("Sorry, your payment method could not be added...");
+                window.history.back();
+              }
             } catch (error) {
               console.error(error);
-              resultMessage(\`Sorry, your transaction could not be processed...<br><br>\${error}\`);
+              alert("Sorry, your payment method could not be added...");
+              window.history.back();
             }
           }
 
@@ -103,19 +116,21 @@ export const PaypalCheckoutTemplate = (payload: {token: string, paypalClientId: 
             expiryField.render('#card-expiry-field-container');
             
             document.getElementById('card-field-submit-button').addEventListener('click', () => {
+
+              const submitButton = document.getElementById('card-field-submit-button');
+              const loader = document.getElementById('loader');
+              submitButton.classList.add('disabled');
+              loader.style.display = 'inline-block';
+
+
               cardField
                 .submit({
-                  billingAddress: {
-                    addressLine1: document.getElementById('card-billing-address-line-1').value,
-                    addressLine2: document.getElementById('card-billing-address-line-2').value,
-                    adminArea1: document.getElementById('card-billing-address-admin-area-line-1').value,
-                    adminArea2: document.getElementById('card-billing-address-admin-area-line-2').value,
-                    countryCode: document.getElementById('card-billing-address-country-code').value,
-                    postalCode: document.getElementById('card-billing-address-postal-code').value,
-                  },
+                 
                 })
                 .catch((error) => {
-                  resultMessage(\`Sorry, your transaction could not be processed...<br><br>\${error}\`);
+                  loader.style.display = 'none';
+                  submitButton.classList.remove('disabled');
+                  alert(\`Sorry, your payment method could not be added...\`);
                 });
             });
           } else {
@@ -130,3 +145,40 @@ export const PaypalCheckoutTemplate = (payload: {token: string, paypalClientId: 
       </body>
     </html>
   `;
+
+
+
+
+
+  // <div>
+  //           <label for="card-billing-address-line-1">Billing Address</label>
+  //           <input type="text" id="card-billing-address-line-1" name="card-billing-address-line-1" autocomplete="off" placeholder="Address line 1" />
+  //         </div>
+  //         <div>
+  //           <input type="text" id="card-billing-address-line-2" name="card-billing-address-line-2" autocomplete="off" placeholder="Address line 2" />
+  //         </div>
+  //         <div>
+  //           <input type="text" id="card-billing-address-admin-area-line-1" name="card-billing-address-admin-area-line-1" autocomplete="off" placeholder="Admin area line 1" />
+  //         </div>
+  //         <div>
+  //           <input type="text" id="card-billing-address-admin-area-line-2" name="card-billing-address-admin-area-line-2" autocomplete="off" placeholder="Admin area line 2" />
+  //         </div>
+  //         <div>
+  //           <input type="text" id="card-billing-address-country-code" name="card-billing-address-country-code" autocomplete="off" placeholder="Country code" />
+  //         </div>
+  //         <div>
+  //           <input type="text" id="card-billing-address-postal-code" name="card-billing-address-postal-code" autocomplete="off" placeholder="Postal/zip code" />
+  //         </div>
+
+
+
+
+
+  // billingAddress: {
+  //   addressLine1: document.getElementById('card-billing-address-line-1').value,
+  //   addressLine2: document.getElementById('card-billing-address-line-2').value,
+  //   adminArea1: document.getElementById('card-billing-address-admin-area-line-1').value,
+  //   adminArea2: document.getElementById('card-billing-address-admin-area-line-2').value,
+  //   countryCode: document.getElementById('card-billing-address-country-code').value,
+  //   postalCode: document.getElementById('card-billing-address-postal-code').value,
+  // },

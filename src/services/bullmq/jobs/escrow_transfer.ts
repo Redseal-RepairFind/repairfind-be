@@ -52,7 +52,7 @@ export const handleEscrowTransfer = async () => {
 
                 if(payment.channel == 'paypal'){
 
-                    const amount = (transaction.amount * 100) // change to base currency
+                    const amount = (transaction.amount)
                     const paypalTransfer  = await PayPalService.payout.transferToEmail(toUser.email, amount, 'CAD' )
                     
                     const transactionMeta = transaction.metadata

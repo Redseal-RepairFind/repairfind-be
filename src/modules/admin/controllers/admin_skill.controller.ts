@@ -50,7 +50,9 @@ export const AddMultipleSkills = async (
             await SkillRegrModel.findOneAndUpdate({name: skill},{name: skill}, {new: true, upsert: true})
         });
 
-        return res.json({ success: true, message: "skill successfully added." });
+        const existingSkills = await SkillRegrModel.find({});
+
+        return res.json({ success: true, message: "skill successfully added.", data: existingSkills });
 
     } catch (err: any) {
         return next(new InternalServerError("Error occurred adding skill", err))

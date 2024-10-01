@@ -39,31 +39,38 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerPaypalController = exports.loadCreatePaymentMethodView = exports.authorizePaymentMethodOrder = exports.createPaymentMethodOrder = void 0;
+exports.CustomerPaypalController = exports.deletePaypalPaymentMethod = exports.loadCreatePaymentMethodView = exports.authorizePaymentMethodOrder = exports.createPaymentMethodOrder = void 0;
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var config_1 = require("../../../config");
 var paypal_1 = require("../../../services/paypal");
 var paypal_checkout_1 = require("../../../templates/common/paypal_checkout");
+var custom_errors_1 = require("../../../utils/custom.errors");
 var createPaymentMethodOrder = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, payload, response, err_1;
+    var customerId, customer, payload, response, err_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 customerId = req.customer.id;
                 _a.label = 1;
             case 1:
-                _a.trys.push([1, 3, , 4]);
-                payload = { amount: 1, intent: 'AUTHORIZE' };
-                return [4 /*yield*/, paypal_1.PayPalService.payment.createOrder(payload)];
+                _a.trys.push([1, 4, , 5]);
+                return [4 /*yield*/, customer_model_1.default.findById(customerId)];
             case 2:
+                customer = _a.sent();
+                if (!customer) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: "customer not found" })];
+                }
+                payload = { amount: 1, intent: 'AUTHORIZE', returnUrl: 'https://repairfind.ca/card-connected-successfully' };
+                return [4 /*yield*/, paypal_1.PayPalService.payment.createOrder(payload)];
+            case 3:
                 response = _a.sent();
                 return [2 /*return*/, res.status(200).json(response)];
-            case 3:
+            case 4:
                 err_1 = _a.sent();
                 console.log(err_1);
                 res.status(500).json({ success: false, message: err_1.message });
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/];
+                return [3 /*break*/, 5];
+            case 5: return [2 /*return*/];
         }
     });
 }); };
@@ -120,22 +127,21 @@ var authorizePaymentMethodOrder = function (req, res) { return __awaiter(void 0,
                 voidAuthorization = _b.sent();
                 console.log("voidAuthorization", [voidAuthorization, voidAuthorization]);
                 _b.label = 6;
-            case 6: return [2 /*return*/, res.status(200).send({ data: paymentMethod_1 })];
+            case 6: return [2 /*return*/, res.status(200).send({ success: true, data: [orderData, paymentMethod_1] })];
             case 7:
                 error_1 = _b.sent();
                 console.error('Error retrieving the order:', error_1);
-                return [2 /*return*/, res.status(500).send({ error: 'Failed to capture order.' })];
+                return [2 /*return*/, res.status(500).send({ success: false, error: 'Failed to capture order.' })];
             case 8: return [2 /*return*/];
         }
     });
 }); };
 exports.authorizePaymentMethodOrder = authorizePaymentMethodOrder;
 var loadCreatePaymentMethodView = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var authHeader, token, paypalClientId, html;
+    var token, paypalClientId, html;
     return __generator(this, function (_a) {
         try {
-            authHeader = req.headers.authorization;
-            token = authHeader && authHeader.split(" ")[1];
+            token = req.query.token;
             paypalClientId = config_1.config.paypal.clientId;
             html = (0, paypal_checkout_1.PaypalCheckoutTemplate)({ token: token, paypalClientId: paypalClientId });
             return [2 /*return*/, res.send(html)];
@@ -148,8 +154,49 @@ var loadCreatePaymentMethodView = function (req, res) { return __awaiter(void 0,
     });
 }); };
 exports.loadCreatePaymentMethodView = loadCreatePaymentMethodView;
+var deletePaypalPaymentMethod = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var vaultId_1, customerId, customer, paymentMethodIndex, updatedCustomer, err_2;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 4, , 5]);
+                vaultId_1 = req.params.vaultId;
+                customerId = req.customer.id;
+                return [4 /*yield*/, customer_model_1.default.findById(customerId)];
+            case 1:
+                customer = _a.sent();
+                // Check if the customer document exists
+                if (!customer) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: "Customer not found" })];
+                }
+                paymentMethodIndex = customer.paypalPaymentMethods.findIndex(function (method) { return method.vault_id === vaultId_1; });
+                // Check if the payment method exists in the array
+                if (paymentMethodIndex === -1) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: "Payment method not found" })];
+                }
+                // Remove the payment method from the stripePaymentMethods array using splice
+                customer.paypalPaymentMethods.splice(paymentMethodIndex, 1);
+                //attempt to remove on paypal
+                return [4 /*yield*/, paypal_1.PayPalService.customer.deleteVaultPaymentToken(vaultId_1)];
+            case 2:
+                //attempt to remove on paypal
+                _a.sent();
+                return [4 /*yield*/, customer.save()];
+            case 3:
+                updatedCustomer = _a.sent();
+                return [2 /*return*/, res.status(200).json({ success: true, message: "Payment method removed successfully", data: updatedCustomer })];
+            case 4:
+                err_2 = _a.sent();
+                next(new custom_errors_1.BadRequestError(err_2.message, err_2));
+                return [3 /*break*/, 5];
+            case 5: return [2 /*return*/];
+        }
+    });
+}); };
+exports.deletePaypalPaymentMethod = deletePaypalPaymentMethod;
 exports.CustomerPaypalController = {
     createPaymentMethodOrder: exports.createPaymentMethodOrder,
     authorizePaymentMethodOrder: exports.authorizePaymentMethodOrder,
-    loadCreatePaymentMethodView: exports.loadCreatePaymentMethodView
+    loadCreatePaymentMethodView: exports.loadCreatePaymentMethodView,
+    deletePaypalPaymentMethod: exports.deletePaypalPaymentMethod
 };

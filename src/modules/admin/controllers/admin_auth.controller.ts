@@ -4,7 +4,7 @@ import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import AdminRegModel from "../../../database/admin/models/admin.model";
 import { OTP_EXPIRY_TIME, generateOTP } from "../../../utils/otpGenerator";
-import { htmlMailTemplate } from "../../../templates/sendEmailTemplate";
+import { OtpEmailTemplate } from "../../../templates/common/OtpEmailTemplate";
 import { AdminStatus } from "../../../database/admin/interface/admin.interface";
 import { EmailService } from "../../../services";
 import { InternalServerError } from "../../../utils/custom.errors";
@@ -73,7 +73,7 @@ export const signUp = async (
             verified : false
         }
 
-        const html = htmlMailTemplate(otp, firstName, "We have received a request to verify your email");
+        const html = OtpEmailTemplate(otp, firstName, "We have received a request to verify your email");
         EmailService.send(email, "Email verification", html);
 
     // Hash password
@@ -278,7 +278,7 @@ export const forgotPassword = async (
 
       await admin.save();
 
-      const html = htmlMailTemplate(otp, admin.firstName, "We have received a request to change your password");    
+      const html = OtpEmailTemplate(otp, admin.firstName, "We have received a request to change your password");    
       EmailService.send(email, "Admin Forgot Password",  html);
   
       return res.status(200).json({ success: true, message: "OTP sent successfully to your email." });
@@ -439,7 +439,7 @@ export const resendEmail = async (
 
       await admin?.save();
 
-      const html = htmlMailTemplate(otp, admin.firstName, "We have received a request to verify your email");
+      const html = OtpEmailTemplate(otp, admin.firstName, "We have received a request to verify your email");
 
       let emailData = {
           email,

@@ -160,6 +160,7 @@ ConversationSchema.methods.getHeading = function (loggedInUserId) {
                                 lastMessage: lastMessage === null || lastMessage === void 0 ? void 0 : lastMessage.message,
                                 lastMessageAt: lastMessage === null || lastMessage === void 0 ? void 0 : lastMessage.createdAt,
                                 unreadCount: unreadCount,
+                                language: otherMemberUser.language,
                             }];
                     }
                     _c.label = 4;

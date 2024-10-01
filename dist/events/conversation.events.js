@@ -47,6 +47,7 @@ var contractor_model_1 = require("../database/contractor/models/contractor.model
 var customer_model_1 = __importDefault(require("../database/customer/models/customer.model"));
 var admin_model_1 = __importDefault(require("../database/admin/models/admin.model"));
 var logger_1 = require("../services/logger");
+var i18n_1 = require("../i18n");
 exports.ConversationEvent = new events_1.EventEmitter();
 exports.ConversationEvent.on('NEW_MESSAGE', function (params) {
     return __awaiter(this, void 0, void 0, function () {
@@ -89,7 +90,7 @@ exports.ConversationEvent.on('NEW_MESSAGE', function (params) {
                     if (!conversation_1 || !members || !sender_1)
                         return [2 /*return*/];
                     members.forEach(function (member) { return __awaiter(_this, void 0, void 0, function () {
-                        var user, _a, toUserId, toUserType;
+                        var user, _a, toUserId, toUserType, userLang, nTitle, nMessage, userLang, nTitle, nMessage;
                         var _b, _c, _d;
                         return __generator(this, function (_e) {
                             switch (_e.label) {
@@ -136,43 +137,68 @@ exports.ConversationEvent.on('NEW_MESSAGE', function (params) {
                                             event: 'NEW_MESSAGE',
                                         }
                                     }, { socket: true });
-                                    // send push notification and unread message alert to the other user
-                                    if (!message_1.isOwn) {
-                                        //TODO: still separate this and only send push for aggregated unread message notification user
-                                        if (conversation_1.type == conversations_schema_1.CONVERSATION_TYPE.DIRECT_MESSAGE) {
-                                            notifications_1.NotificationService.sendNotification({
-                                                user: toUserId,
-                                                userType: toUserType,
-                                                title: 'New unread message',
-                                                type: 'NEW_UNREAD_MESSAGE',
-                                                message: "You have a new unread message from ".concat(sender_1.name),
-                                                heading: { name: "".concat(user.name), image: (_c = user.profilePhoto) === null || _c === void 0 ? void 0 : _c.url },
-                                                payload: {
-                                                    entity: conversation_1.id,
-                                                    entityType: 'conversations',
-                                                    message: message_1,
-                                                    event: 'NEW_UNREAD_MESSAGE',
-                                                }
-                                            }, { socket: true, push: true, database: true });
+                                    if (!!message_1.isOwn) return [3 /*break*/, 14];
+                                    if (!(conversation_1.type == conversations_schema_1.CONVERSATION_TYPE.DIRECT_MESSAGE)) return [3 /*break*/, 11];
+                                    userLang = user.language;
+                                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                                            phraseOrSlug: 'New unread message',
+                                            targetLang: userLang
+                                        })];
+                                case 9:
+                                    nTitle = _e.sent();
+                                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                                            phraseOrSlug: "You have a new unread message from",
+                                            targetLang: userLang
+                                        })];
+                                case 10:
+                                    nMessage = _e.sent();
+                                    notifications_1.NotificationService.sendNotification({
+                                        user: toUserId,
+                                        userType: toUserType,
+                                        title: nTitle,
+                                        type: 'NEW_UNREAD_MESSAGE',
+                                        message: "".concat(nMessage, "  ").concat(sender_1.name),
+                                        heading: { name: "".concat(user.name), image: (_c = user.profilePhoto) === null || _c === void 0 ? void 0 : _c.url },
+                                        payload: {
+                                            entity: conversation_1.id,
+                                            entityType: 'conversations',
+                                            message: message_1,
+                                            event: 'NEW_UNREAD_MESSAGE',
                                         }
-                                        if (conversation_1.type == conversations_schema_1.CONVERSATION_TYPE.TICKET) {
-                                            notifications_1.NotificationService.sendNotification({
-                                                user: toUserId,
-                                                userType: toUserType,
-                                                title: 'New unread dispute message',
-                                                type: 'NEW_DISPUTE_MESSAGE',
-                                                message: "You have a new unread job dispute message from ".concat(sender_1.name),
-                                                heading: { name: "".concat(user.name), image: (_d = user.profilePhoto) === null || _d === void 0 ? void 0 : _d.url },
-                                                payload: {
-                                                    entity: conversation_1.id,
-                                                    entityType: 'conversations',
-                                                    message: message_1,
-                                                    event: 'NEW_DISPUTE_MESSAGE',
-                                                    disputeId: conversation_1.entity,
-                                                }
-                                            }, { socket: true, push: true, database: true });
+                                    }, { socket: true, push: true, database: true });
+                                    _e.label = 11;
+                                case 11:
+                                    if (!(conversation_1.type == conversations_schema_1.CONVERSATION_TYPE.TICKET)) return [3 /*break*/, 14];
+                                    userLang = user.language;
+                                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                                            phraseOrSlug: 'New unread dispute message',
+                                            targetLang: userLang
+                                        })];
+                                case 12:
+                                    nTitle = _e.sent();
+                                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
+                                            phraseOrSlug: "You have a new unread job dispute message from",
+                                            targetLang: userLang
+                                        })];
+                                case 13:
+                                    nMessage = _e.sent();
+                                    notifications_1.NotificationService.sendNotification({
+                                        user: toUserId,
+                                        userType: toUserType,
+                                        title: nTitle,
+                                        type: 'NEW_DISPUTE_MESSAGE',
+                                        message: "".concat(nMessage, "  ").concat(sender_1.name),
+                                        heading: { name: "".concat(user.name), image: (_d = user.profilePhoto) === null || _d === void 0 ? void 0 : _d.url },
+                                        payload: {
+                                            entity: conversation_1.id,
+                                            entityType: 'conversations',
+                                            message: message_1,
+                                            event: 'NEW_DISPUTE_MESSAGE',
+                                            disputeId: conversation_1.entity,
                                         }
-                                    }
+                                    }, { socket: true, push: true, database: true });
+                                    _e.label = 14;
+                                case 14:
                                     message_1.isOwn = false;
                                     return [2 /*return*/];
                             }

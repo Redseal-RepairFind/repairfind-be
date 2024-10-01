@@ -22,6 +22,8 @@ import configureParsers from "./modules/common/middlewares/parsers";
 import configureRateLimit from "./modules/common/middlewares/ratelimit";
 import TwilioService from "./services/twillio";
 import { FCMNotification } from "./services/notifications/fcm";
+import { config } from "./config";
+import { PaypalCheckoutTemplate } from "./templates/common/paypal_checkout";
 
 
 dotenv.config();
@@ -33,6 +35,19 @@ console.info = Logger.info.bind(Logger);
 
 const app = express();
 const server = http.createServer(app);
+
+
+
+app.get("/api/v1/customer/paypal/payment-method-checkout-view", (req: any, res) => {
+  const {token} =req.query;
+  const paypalClientId = config.paypal.clientId
+
+  console.log("token", token)
+  let html = PaypalCheckoutTemplate({token, paypalClientId})
+  return res.send(html);
+});
+
+
 
 // Apply security-related middleware
 securityMiddleware(app);

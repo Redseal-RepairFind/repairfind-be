@@ -1,18 +1,17 @@
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Response } from "express";
 import { validationResult } from "express-validator";
-import { JobModel, JOB_STATUS, JobType, JOB_SCHEDULE_TYPE } from "../../../database/common/job.model";
+import { JobModel, JOB_STATUS, JOB_SCHEDULE_TYPE } from "../../../database/common/job.model";
 import { generateOTP } from "../../../utils/otpGenerator";
-import { NotificationService } from "../../../services/notifications/index";
 import { JOB_DAY_STATUS, JOB_DAY_TYPE, JobDayModel } from "../../../database/common/job_day.model";
 import { ContractorModel } from "../../../database/contractor/models/contractor.model";
 import { BadRequestError, InternalServerError } from "../../../utils/custom.errors";
 import { JobEvent } from "../../../events";
 import { JobEmergencyModel } from "../../../database/common/job_emergency.model";
-import { CONVERSATION_TYPE, ConversationModel } from "../../../database/common/conversations.schema";
+import { ConversationModel } from "../../../database/common/conversations.schema";
 import { ContractorProfileModel } from "../../../database/contractor/models/contractor_profile.model";
 import CustomerModel from "../../../database/customer/models/customer.model";
 import { JOB_DISPUTE_STATUS, JobDisputeModel } from "../../../database/common/job_dispute.model";
-import { JOB_QUOTATION_TYPE, JobQuotationModel } from "../../../database/common/job_quotation.model";
+import { JobQuotationModel } from "../../../database/common/job_quotation.model";
 import { ConversationUtil } from "../../../utils/conversation.util";
 
 
@@ -32,7 +31,6 @@ export const startTrip = async (
 
         const contractorId = req.contractor.id
 
-        // Find the job request by ID
         const job = await JobModel.findOne({ _id: jobId, status: JOB_STATUS.BOOKED });
 
         // Check if the job request exists

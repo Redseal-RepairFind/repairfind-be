@@ -84,6 +84,7 @@ var payment_schema_1 = require("../../database/common/payment.schema");
 var job_model_1 = require("../../database/common/job.model");
 var job_quotation_model_1 = require("../../database/common/job_quotation.model");
 var paypal_payment_log_model_1 = require("../../database/common/paypal_payment_log.model");
+var _1 = require(".");
 var PAYPAL_WEBHOOK_SECRET = process.env.PAYPAL_WEBHOOK_SECRET;
 var PayPalWebhookHandler = function (req) { return __awaiter(void 0, void 0, void 0, function () {
     var event_1, eventType, resourceType, eventData;
@@ -216,6 +217,7 @@ var paymentCaptureCompleted = function (payload, resourceType) { return __awaite
                     type: job_model_1.JOB_SCHEDULE_TYPE.JOB_DAY,
                     remark: 'Initial job schedule'
                 };
+                job.status = job_model_1.JOB_STATUS.BOOKED;
                 return [4 /*yield*/, Promise.all([
                         quotation.save(),
                         job.save()
@@ -264,7 +266,7 @@ var paymentCaptureCompleted = function (payload, resourceType) { return __awaite
                 // Create Escrow Transaction here
                 return [4 /*yield*/, transaction_model_1.default.create({
                         type: transaction_model_1.TRANSACTION_TYPE.ESCROW,
-                        amount: payment.amount,
+                        amount: charges.contractorPayable,
                         initiatorUser: user.id,
                         initiatorUserType: 'customers',
                         fromUser: job.customer,
@@ -357,18 +359,58 @@ var paymentCaptureRefunded = function (payload, resourceType) { return __awaiter
 }); };
 exports.paymentCaptureRefunded = paymentCaptureRefunded;
 var orderApproved = function (payload, resourceType) { return __awaiter(void 0, void 0, void 0, function () {
-    var id, purchase_units;
-    return __generator(this, function (_a) {
-        logger_1.Logger.info('PayPal Event Handler: orderApproved', payload);
-        try {
-            id = payload.id, purchase_units = payload.purchase_units;
-            // You can process the approved order here
-            logger_1.Logger.info("Order ".concat(id, " approved with purchase units:"), purchase_units);
+    var id, purchase_units, _a, orderData, paymentMethod, error_3;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                logger_1.Logger.info('PayPal Event Handler: orderApproved', payload);
+                _b.label = 1;
+            case 1:
+                _b.trys.push([1, 3, , 4]);
+                id = payload.id, purchase_units = payload.purchase_units;
+                // You can process the approved order here
+                logger_1.Logger.info("Order ".concat(id, " approved with purchase units:"), purchase_units);
+                return [4 /*yield*/, _1.PayPalService.payment.captureOrder(id)];
+            case 2:
+                _a = _b.sent(), orderData = _a.orderData, paymentMethod = _a.paymentMethod;
+                logger_1.Logger.info("Order Captured ".concat(id), [orderData, paymentMethod]);
+                return [3 /*break*/, 4];
+            case 3:
+                error_3 = _b.sent();
+                logger_1.Logger.info('Error handling orderApproved PayPal webhook event', error_3);
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
         }
-        catch (error) {
-            logger_1.Logger.info('Error handling orderApproved PayPal webhook event', error);
-        }
-        return [2 /*return*/];
     });
 }); };
 exports.orderApproved = orderApproved;
+// PAYMENT.PAYOUTS-ITEM.UNCLAIMED"
+// "1727425397084":{
+// "id":"WH-20R39083BF462510V-40S654642A356503H"
+// "event_version":"1.0"
+// "create_time":"2024-09-27T08:23:06.711Z"
+// "resource_type":"payouts_item"
+// "event_type":"PAYMENT.PAYOUTS-ITEM.UNCLAIMED"
+// "summary":"A payout item is unclaimed"
+// "resource":{
+// "transaction_id":"5GR74669W57774449"
+// "payout_item_fee":{...}
+// "transaction_status":"UNCLAIMED"
+// "sender_batch_id":"b9dd91f2-8b28-4489-a42c-36f6d6374e57"
+// "time_processed":"2024-09-27T08:22:51Z"
+// "activity_id":"4XC70420RN5559137"
+// "payout_item":{
+// "recipient_type":"EMAIL"
+// "amount":{...}
+// "note":"Payment for your completed job on RepairFind"
+// "receiver":"airondev@gmail.com"
+// "sender_item_id":"84b0282c-64af-4bbd-8b5e-7542e394ab1f"
+// "recipient_wallet":"PAYPAL"
+// }
+// "links":[...]
+// "payout_item_id":"X8CUZMZFAJMB8"
+// "payout_batch_id":"ARF4WZLU59N5J"
+// "errors":{...}
+// }
+// "links":[...]
+// }

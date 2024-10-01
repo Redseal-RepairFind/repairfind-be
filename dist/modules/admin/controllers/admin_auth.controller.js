@@ -45,7 +45,7 @@ var bcrypt_1 = __importDefault(require("bcrypt"));
 var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 var admin_model_1 = __importDefault(require("../../../database/admin/models/admin.model"));
 var otpGenerator_1 = require("../../../utils/otpGenerator");
-var sendEmailTemplate_1 = require("../../../templates/sendEmailTemplate");
+var OtpEmailTemplate_1 = require("../../../templates/common/OtpEmailTemplate");
 var admin_interface_1 = require("../../../database/admin/interface/admin.interface");
 var services_1 = require("../../../services");
 var custom_errors_1 = require("../../../utils/custom.errors");
@@ -93,7 +93,7 @@ var signUp = function (req, res, next) { return __awaiter(void 0, void 0, void 0
                     createdTime: createdTime,
                     verified: false
                 };
-                html = (0, sendEmailTemplate_1.htmlMailTemplate)(otp, firstName, "We have received a request to verify your email");
+                html = (0, OtpEmailTemplate_1.OtpEmailTemplate)(otp, firstName, "We have received a request to verify your email");
                 services_1.EmailService.send(email, "Email verification", html);
                 return [4 /*yield*/, bcrypt_1.default.hash(password, 10)];
             case 3:
@@ -266,7 +266,7 @@ var forgotPassword = function (req, res, next) { return __awaiter(void 0, void 0
                 return [4 /*yield*/, admin.save()];
             case 2:
                 _a.sent();
-                html = (0, sendEmailTemplate_1.htmlMailTemplate)(otp, admin.firstName, "We have received a request to change your password");
+                html = (0, OtpEmailTemplate_1.OtpEmailTemplate)(otp, admin.firstName, "We have received a request to change your password");
                 services_1.EmailService.send(email, "Admin Forgot Password", html);
                 return [2 /*return*/, res.status(200).json({ success: true, message: "OTP sent successfully to your email." })];
             case 3:
@@ -401,7 +401,7 @@ var resendEmail = function (req, res, next) { return __awaiter(void 0, void 0, v
                 return [4 /*yield*/, (admin === null || admin === void 0 ? void 0 : admin.save())];
             case 2:
                 _a.sent();
-                html = (0, sendEmailTemplate_1.htmlMailTemplate)(otp, admin.firstName, "We have received a request to verify your email");
+                html = (0, OtpEmailTemplate_1.OtpEmailTemplate)(otp, admin.firstName, "We have received a request to verify your email");
                 emailData = {
                     email: email,
                     subject: "email verification",

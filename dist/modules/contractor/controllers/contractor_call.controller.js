@@ -47,6 +47,7 @@ var customer_model_1 = __importDefault(require("../../../database/customer/model
 var services_1 = require("../../../services");
 var call_schema_1 = require("../../../database/common/call.schema");
 var conversation_util_1 = require("../../../utils/conversation.util");
+var i18n_1 = require("../../../i18n");
 var createRtmToken = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var uid, rtmToken, err_1;
     return __generator(this, function (_a) {
@@ -148,12 +149,12 @@ var getLastCall = function (req, res, next) { return __awaiter(void 0, void 0, v
 }); };
 exports.getLastCall = getLastCall;
 var startCall = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, toUser, toUserType, fromUserId, fromUser, channelName, user, _b, toUserUid, fromUserUid, toUserToken, fromUserToken, callData, call, _c, err_5;
+    var _a, toUser, toUserType, fromUserId, fromUser, channelName, user, _b, toUserUid, fromUserUid, toUserToken, fromUserToken, callData, call, _c, userLang, nTitle, nMessage, err_5;
     var _d, _e;
     return __generator(this, function (_f) {
         switch (_f.label) {
             case 0:
-                _f.trys.push([0, 10, , 11]);
+                _f.trys.push([0, 12, , 13]);
                 _a = req.body, toUser = _a.toUser, toUserType = _a.toUserType;
                 fromUserId = req.contractor.id;
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(fromUserId)];
@@ -204,12 +205,19 @@ var startCall = function (req, res, next) { return __awaiter(void 0, void 0, voi
                 return [4 /*yield*/, call.getHeading(fromUserId)];
             case 9:
                 _c.heading = _f.sent();
+                userLang = user.language;
+                return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'New Incoming Call', targetLang: userLang })];
+            case 10:
+                nTitle = _f.sent();
+                return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: "You've an incoming call from", targetLang: userLang })];
+            case 11:
+                nMessage = _f.sent();
                 services_1.NotificationService.sendNotification({
                     user: user.id,
                     userType: toUserType,
-                    title: 'New Incoming Call',
+                    title: nTitle,
                     type: 'NEW_INCOMING_CALL', //
-                    message: "You've an incoming call from ".concat(fromUser.name),
+                    message: "".concat(nMessage, " ").concat(fromUser.name),
                     heading: { name: "".concat(fromUser.name), image: (_d = fromUser.profilePhoto) === null || _d === void 0 ? void 0 : _d.url },
                     payload: {
                         entity: call.id,
@@ -218,30 +226,30 @@ var startCall = function (req, res, next) { return __awaiter(void 0, void 0, voi
                         callId: call.id,
                         uid: toUserUid,
                         token: toUserToken,
-                        message: "You've an incoming call from ".concat(fromUser.name),
+                        message: "".concat(nMessage, " ").concat(fromUser.name),
                         name: "".concat(fromUser.name),
                         image: (_e = fromUser.profilePhoto) === null || _e === void 0 ? void 0 : _e.url,
                         event: 'NEW_INCOMING_CALL',
                     }
                 }, { database: true, push: true, socket: true });
                 res.status(200).json({ message: 'Token generated', data: { token: fromUserToken, uid: fromUserUid, channelName: channelName, call: call } });
-                return [3 /*break*/, 11];
-            case 10:
+                return [3 /*break*/, 13];
+            case 12:
                 err_5 = _f.sent();
                 res.status(500).json({ message: err_5.message });
-                return [3 /*break*/, 11];
-            case 11: return [2 /*return*/];
+                return [3 /*break*/, 13];
+            case 13: return [2 /*return*/];
         }
     });
 }); };
 exports.startCall = startCall;
 var endCall = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var callId, event_1, call, fromUser, _a, toUser, _b, conversation, message, title, type, err_6;
+    var callId, event_1, call, fromUser, _a, toUser, _b, conversation, message, title, type, userLang, nTitle, nMessage, userLang, nTitle, nMessage, err_6;
     var _c, _d, _e, _f;
     return __generator(this, function (_g) {
         switch (_g.label) {
             case 0:
-                _g.trys.push([0, 12, , 13]);
+                _g.trys.push([0, 18, , 19]);
                 callId = req.params.callId;
                 event_1 = req.body.event;
                 return [4 /*yield*/, call_schema_1.CallModel.findById(callId)];
@@ -285,61 +293,77 @@ var endCall = function (req, res, next) { return __awaiter(void 0, void 0, void 
                 message = "";
                 title = 'Call Ended';
                 type = 'CALL_ENDED';
-                if (fromUser) {
-                    message = "Your call with ".concat(toUser.name, " has ended");
-                    if (event_1 == 'missed')
-                        title = 'Call Missed', type = 'CALL_MISSED', message = "Your call to  ".concat(toUser.name, " was not answered");
-                    if (event_1 == 'declined')
-                        title = 'Call Declined', type = 'CALL_DECLINED', message = "Your call to  ".concat(toUser.name, " was declined");
-                    services_1.NotificationService.sendNotification({
-                        user: call.fromUser,
-                        userType: call.fromUserType,
-                        title: title,
-                        type: type,
-                        message: message,
-                        heading: { name: "".concat(toUser.name), image: (_c = toUser.profilePhoto) === null || _c === void 0 ? void 0 : _c.url },
-                        payload: {
-                            entity: call.id,
-                            entityType: 'calls',
-                            conversationId: conversation.id,
-                            message: message,
-                            name: "".concat(toUser.name),
-                            image: (_d = toUser.profilePhoto) === null || _d === void 0 ? void 0 : _d.url,
-                            event: type,
-                        },
-                    }, { database: true, push: true, socket: true });
-                }
-                if (toUser) {
-                    message = "Your call with ".concat(toUser.name, " has ended");
-                    if (event_1 == 'missed')
-                        title = 'Call Missed', type = 'CALL_MISSED', message = "You have a missed call from  ".concat(fromUser.name);
-                    if (event_1 == 'declined')
-                        title = 'Call Declined', type = 'CALL_DECLINED', message = "You declined a call from  ".concat(fromUser.name);
-                    services_1.NotificationService.sendNotification({
-                        user: call.toUser,
-                        userType: call.toUserType,
-                        title: title,
-                        type: type,
-                        message: message,
-                        heading: { name: "".concat(fromUser.name), image: (_e = fromUser.profilePhoto) === null || _e === void 0 ? void 0 : _e.url },
-                        payload: {
-                            entity: call.id,
-                            entityType: 'calls',
-                            conversationId: conversation.id,
-                            message: message,
-                            name: "".concat(fromUser.name),
-                            image: (_f = fromUser.profilePhoto) === null || _f === void 0 ? void 0 : _f.url,
-                            event: type,
-                        },
-                    }, { database: true, push: true, socket: true });
-                }
-                res.status(200).json({ success: true, message: 'Call ended successfully' });
-                return [3 /*break*/, 13];
+                if (!fromUser) return [3 /*break*/, 14];
+                message = "Your call with ".concat(toUser.name, " has ended");
+                if (event_1 == 'missed')
+                    title = 'Call Missed', type = 'CALL_MISSED', message = "Your call to  ".concat(toUser.name, " was not answered");
+                if (event_1 == 'declined')
+                    title = 'Call Declined', type = 'CALL_DECLINED', message = "Your call to  ".concat(toUser.name, " was declined");
+                userLang = fromUser.language;
+                return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: title, targetLang: userLang })];
             case 12:
+                nTitle = _g.sent();
+                return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: message, targetLang: userLang })];
+            case 13:
+                nMessage = _g.sent();
+                services_1.NotificationService.sendNotification({
+                    user: call.fromUser,
+                    userType: call.fromUserType,
+                    title: nTitle,
+                    type: type,
+                    message: nMessage,
+                    heading: { name: "".concat(toUser.name), image: (_c = toUser.profilePhoto) === null || _c === void 0 ? void 0 : _c.url },
+                    payload: {
+                        entity: call.id,
+                        entityType: 'calls',
+                        conversationId: conversation.id,
+                        message: nMessage,
+                        name: "".concat(toUser.name),
+                        image: (_d = toUser.profilePhoto) === null || _d === void 0 ? void 0 : _d.url,
+                        event: type,
+                    },
+                }, { database: true, push: true, socket: true });
+                _g.label = 14;
+            case 14:
+                if (!toUser) return [3 /*break*/, 17];
+                message = "Your call with ".concat(toUser.name, " has ended");
+                if (event_1 == 'missed')
+                    title = 'Call Missed', type = 'CALL_MISSED', message = "You have a missed call from  ".concat(fromUser.name);
+                if (event_1 == 'declined')
+                    title = 'Call Declined', type = 'CALL_DECLINED', message = "You declined a call from  ".concat(fromUser.name);
+                userLang = toUser.language;
+                return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: title, targetLang: userLang })];
+            case 15:
+                nTitle = _g.sent();
+                return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: message, targetLang: userLang })];
+            case 16:
+                nMessage = _g.sent();
+                services_1.NotificationService.sendNotification({
+                    user: call.toUser,
+                    userType: call.toUserType,
+                    title: nTitle,
+                    type: type,
+                    message: message,
+                    heading: { name: "".concat(fromUser.name), image: (_e = fromUser.profilePhoto) === null || _e === void 0 ? void 0 : _e.url },
+                    payload: {
+                        entity: call.id,
+                        entityType: 'calls',
+                        conversationId: conversation.id,
+                        message: nMessage,
+                        name: "".concat(fromUser.name),
+                        image: (_f = fromUser.profilePhoto) === null || _f === void 0 ? void 0 : _f.url,
+                        event: type,
+                    },
+                }, { database: true, push: true, socket: true });
+                _g.label = 17;
+            case 17:
+                res.status(200).json({ success: true, message: 'Call ended successfully' });
+                return [3 /*break*/, 19];
+            case 18:
                 err_6 = _g.sent();
                 res.status(500).json({ message: err_6.message });
-                return [3 /*break*/, 13];
-            case 13: return [2 /*return*/];
+                return [3 /*break*/, 19];
+            case 19: return [2 /*return*/];
         }
     });
 }); };

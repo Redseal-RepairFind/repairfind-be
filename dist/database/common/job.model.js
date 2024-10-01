@@ -219,6 +219,10 @@ var JobSchema = new mongoose_1.Schema({
     isSaved: { type: mongoose_1.Schema.Types.Boolean, default: false },
     revisitEnabled: { type: mongoose_1.Schema.Types.Boolean, default: false },
     bookingViewedByContractor: { type: Boolean, default: true },
+    language: {
+        type: String,
+        default: 'en'
+    },
 }, { timestamps: true });
 JobSchema.virtual('totalQuotations').get(function () {
     var pendingQuotations = this.quotations ? this.quotations.filter(function (quote) { return quote.status !== job_quotation_model_1.JOB_QUOTATION_STATUS.DECLINED; }) : [];

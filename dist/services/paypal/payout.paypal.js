@@ -41,9 +41,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.checkPayoutStatus = exports.transferToEmail = void 0;
 var axios_1 = __importDefault(require("axios"));
-var custom_errors_1 = require("../../utils/custom.errors");
 var config_1 = require("../../config");
 var uuid_1 = require("uuid");
+var logger_1 = require("../logger");
 // Function to generate PayPal OAuth token
 var getPayPalAccessToken = function () { return __awaiter(void 0, void 0, void 0, function () {
     var auth, response;
@@ -70,12 +70,15 @@ var getPayPalAccessToken = function () { return __awaiter(void 0, void 0, void 0
 var transferToEmail = function (recipientEmail, amount, currency) {
     if (currency === void 0) { currency = 'USD'; }
     return __awaiter(void 0, void 0, void 0, function () {
-        var accessToken, response;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0: return [4 /*yield*/, getPayPalAccessToken()];
+        var accessToken, response, error_1;
+        var _a, _b;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
+                case 0:
+                    _c.trys.push([0, 3, , 4]);
+                    return [4 /*yield*/, getPayPalAccessToken()];
                 case 1:
-                    accessToken = _a.sent();
+                    accessToken = _c.sent();
                     return [4 /*yield*/, axios_1.default.post(config_1.config.paypal.apiUrl + '/v1/payments/payouts', {
                             sender_batch_header: {
                                 sender_batch_id: (0, uuid_1.v4)(), // Unique ID for the batch
@@ -100,11 +103,16 @@ var transferToEmail = function (recipientEmail, amount, currency) {
                             },
                         })];
                 case 2:
-                    response = _a.sent();
-                    if (response.data.batch_header.batch_status !== 'SUCCESS') {
-                        throw new custom_errors_1.BadRequestError('Failed to send payment.');
-                    }
+                    response = _c.sent();
+                    // if (response.data.batch_header.batch_status !== 'SUCCESS') {
+                    //   throw new BadRequestError('Failed to send payment.');
+                    // }
                     return [2 /*return*/, response.data];
+                case 3:
+                    error_1 = _c.sent();
+                    logger_1.Logger.error("Error transfering to email:", error_1.response.data);
+                    throw new Error(((_b = (_a = error_1.response) === null || _a === void 0 ? void 0 : _a.data) === null || _b === void 0 ? void 0 : _b.message) || error_1.message);
+                case 4: return [2 /*return*/];
             }
         });
     });
@@ -112,7 +120,7 @@ var transferToEmail = function (recipientEmail, amount, currency) {
 exports.transferToEmail = transferToEmail;
 // Check the status of a payout item
 var checkPayoutStatus = function (payoutItemId) { return __awaiter(void 0, void 0, void 0, function () {
-    var accessToken, response, error_1;
+    var accessToken, response, error_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0: return [4 /*yield*/, getPayPalAccessToken()];
@@ -132,9 +140,9 @@ var checkPayoutStatus = function (payoutItemId) { return __awaiter(void 0, void 
                 console.log('Payout item status:', response.data.transaction_status);
                 return [2 /*return*/, response.data];
             case 4:
-                error_1 = _a.sent();
-                console.error('Error fetching payout item status:', error_1.response ? error_1.response.data : error_1.message);
-                throw error_1;
+                error_2 = _a.sent();
+                console.error('Error fetching payout item status:', error_2.response ? error_2.response.data : error_2.message);
+                throw error_2;
             case 5: return [2 /*return*/];
         }
     });

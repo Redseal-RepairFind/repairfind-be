@@ -87,9 +87,6 @@ exports.ContractorController = void 0;
 var express_validator_1 = require("express-validator");
 var bcrypt_1 = __importDefault(require("bcrypt"));
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
-var admin_model_1 = __importDefault(require("../../../database/admin/models/admin.model"));
-var adminContractorDocumentTemplate_1 = require("../../../templates/admin/adminContractorDocumentTemplate");
-var contractorDocumentTemplate_1 = require("../../../templates/contractor/contractorDocumentTemplate");
 var base_abstract_1 = require("../../../abstracts/base.abstract");
 var decorators_abstract_1 = require("../../../abstracts/decorators.abstract");
 var contractor_profile_model_1 = require("../../../database/contractor/models/contractor_profile.model");
@@ -118,7 +115,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     }
     ProfileHandler.prototype.createProfile = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, _a, location_1, backgroundCheckConsent, skill, website, experienceYear, about, email, phoneNumber, emergencyJobs, availability, profilePhoto, previousJobPhotos, previousJobVideos, contractorId, contractor_1, errors, payload, profile, _b, contractorResponse, data, htmlCon, html, adminsWithEmails, adminEmails, err_1;
+            var req, res, _a, location_1, backgroundCheckConsent, skill, website, experienceYear, about, email, phoneNumber, emergencyJobs, availability, profilePhoto, previousJobPhotos, previousJobVideos, contractorId, contractor_1, errors, payload, profile, _b, contractorResponse, data, err_1;
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
@@ -126,7 +123,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         res = this.res;
                         _c.label = 1;
                     case 1:
-                        _c.trys.push([1, 7, , 8]);
+                        _c.trys.push([1, 6, , 7]);
                         _a = req.body, location_1 = _a.location, backgroundCheckConsent = _a.backgroundCheckConsent, skill = _a.skill, website = _a.website, experienceYear = _a.experienceYear, about = _a.about, email = _a.email, phoneNumber = _a.phoneNumber, emergencyJobs = _a.emergencyJobs, availability = _a.availability, profilePhoto = _a.profilePhoto, previousJobPhotos = _a.previousJobPhotos, previousJobVideos = _a.previousJobVideos;
                         contractorId = req.contractor.id;
                         return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
@@ -204,28 +201,29 @@ var ProfileHandler = /** @class */ (function (_super) {
                                 });
                             }
                         }
-                        htmlCon = (0, contractorDocumentTemplate_1.htmlContractorDocumentValidatinTemplate)(contractor_1.firstName);
-                        services_1.EmailService.send(contractor_1.email, 'New Profile', htmlCon)
-                            .then(function () { return console.log('Email sent successfully'); })
-                            .catch(function (error) { return console.error('Error sending email:', error); });
-                        html = (0, adminContractorDocumentTemplate_1.htmlContractorDocumentValidatinToAdminTemplate)(contractor_1.firstName);
-                        return [4 /*yield*/, admin_model_1.default.find().select('email')];
-                    case 6:
-                        adminsWithEmails = _c.sent();
-                        adminEmails = adminsWithEmails.map(function (admin) { return admin.email; });
-                        services_1.EmailService.send(adminEmails, 'New Profile Registered', html, adminEmails)
-                            .then(function () { return console.log('Emails sent successfully with CC'); })
-                            .catch(function (error) { return console.error('Error sending emails:', error); });
+                        // send email to contractor 
+                        // TODO: Emit event and handle email sending from there
+                        // const htmlCon = htmlContractorDocumentValidatinTemplate(contractor.firstName);
+                        // EmailService.send(contractor.email, 'New Profile', htmlCon)
+                        //   .then(() => console.log('Email sent successfully'))
+                        //   .catch(error => console.error('Error sending email:', error));
+                        // send email to admin
+                        // const html = htmlContractorDocumentValidatinToAdminTemplate(contractor.firstName)
+                        // const adminsWithEmails = await AdminRegModel.find().select('email');
+                        // const adminEmails: Array<string> = adminsWithEmails.map(admin => admin.email);
+                        // EmailService.send(adminEmails, 'New Profile Registered', html, adminEmails)
+                        //   .then(() => console.log('Emails sent successfully with CC'))
+                        //   .catch(error => console.error('Error sending emails:', error));
                         return [2 /*return*/, res.json({
                                 success: true,
                                 message: "Profile created successfully",
                                 data: contractorResponse
                             })];
-                    case 7:
+                    case 6:
                         err_1 = _c.sent();
                         console.log("error", err_1);
                         return [2 /*return*/, res.status(500).json({ success: false, message: err_1.message })];
-                    case 8: return [2 /*return*/];
+                    case 7: return [2 /*return*/];
                 }
             });
         });
@@ -412,7 +410,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     };
     ProfileHandler.prototype.updateAccount = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, contractor, contractorId, account, _a, firstName, lastName, companyName, profilePhoto, phoneNumber, dateOfBirth, payload, returnOriginal, _b, err_5;
+            var req, res, contractor, contractorId, account, _a, firstName, lastName, companyName, profilePhoto, phoneNumber, dateOfBirth, language, payload, _b, err_5;
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
@@ -429,20 +427,20 @@ var ProfileHandler = /** @class */ (function (_super) {
                         if (!account) {
                             return [2 /*return*/, res.status(404).json({ success: false, message: 'Account not found' })];
                         }
-                        _a = req.body, firstName = _a.firstName, lastName = _a.lastName, companyName = _a.companyName, profilePhoto = _a.profilePhoto, phoneNumber = _a.phoneNumber, dateOfBirth = _a.dateOfBirth;
+                        _a = req.body, firstName = _a.firstName, lastName = _a.lastName, companyName = _a.companyName, profilePhoto = _a.profilePhoto, phoneNumber = _a.phoneNumber, dateOfBirth = _a.dateOfBirth, language = _a.language;
                         payload = {};
                         if (account && account.accountType == 'Company') {
-                            payload = { profilePhoto: profilePhoto, phoneNumber: phoneNumber, companyName: companyName };
+                            payload = { profilePhoto: profilePhoto, phoneNumber: phoneNumber, companyName: companyName, language: language };
                         }
                         if (account && account.accountType == 'Individual') {
-                            payload = { profilePhoto: profilePhoto, phoneNumber: phoneNumber, firstName: firstName, lastName: lastName, dateOfBirth: dateOfBirth };
+                            payload = { profilePhoto: profilePhoto, phoneNumber: phoneNumber, firstName: firstName, lastName: lastName, dateOfBirth: dateOfBirth, language: language };
                         }
                         if (account && account.accountType == 'Employee') {
-                            payload = { profilePhoto: profilePhoto, phoneNumber: phoneNumber, firstName: firstName, lastName: lastName, dateOfBirth: dateOfBirth };
+                            payload = { profilePhoto: profilePhoto, phoneNumber: phoneNumber, firstName: firstName, lastName: lastName, dateOfBirth: dateOfBirth, language: language };
                         }
                         return [4 /*yield*/, contractor_model_1.ContractorModel.findOneAndUpdate({ _id: contractorId }, payload, { new: true })];
                     case 3:
-                        returnOriginal = _c.sent();
+                        _c.sent();
                         _b = account;
                         return [4 /*yield*/, account.getOnboarding()];
                     case 4:

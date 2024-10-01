@@ -41,12 +41,12 @@ var express_validator_1 = require("express-validator");
 var custom_errors_1 = require("../../../utils/custom.errors");
 var app_versions_model_1 = require("../../../database/common/app_versions.model");
 var addAppVersion = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, version, changelogs, type, status_1, isCurrent, errors, newAppVersion, err_1;
+    var _a, version, changelogs, type, status_1, isCurrent, app, errors, newAppVersion, err_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
                 _b.trys.push([0, 4, , 5]);
-                _a = req.body, version = _a.version, changelogs = _a.changelogs, type = _a.type, status_1 = _a.status, isCurrent = _a.isCurrent;
+                _a = req.body, version = _a.version, changelogs = _a.changelogs, type = _a.type, status_1 = _a.status, isCurrent = _a.isCurrent, app = _a.app;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Validation error occurred', errors: errors.array() })];
@@ -56,7 +56,7 @@ var addAppVersion = function (req, res, next) { return __awaiter(void 0, void 0,
             case 1:
                 _b.sent();
                 _b.label = 2;
-            case 2: return [4 /*yield*/, app_versions_model_1.AppVersionModel.findOneAndUpdate({ version: version, type: type }, { version: version, changelogs: changelogs, type: type, status: status_1, isCurrent: isCurrent }, { upsert: true, new: true })];
+            case 2: return [4 /*yield*/, app_versions_model_1.AppVersionModel.findOneAndUpdate({ version: version, type: type, app: app }, { version: version, changelogs: changelogs, type: type, status: status_1, isCurrent: isCurrent, app: app }, { upsert: true, new: true })];
             case 3:
                 newAppVersion = _b.sent();
                 return [2 /*return*/, res.json({ success: true, message: "App version successfully added or updated.", data: { newAppVersion: newAppVersion } })];
@@ -119,13 +119,13 @@ var getAppVersionById = function (req, res, next) { return __awaiter(void 0, voi
 }); };
 exports.getAppVersionById = getAppVersionById;
 var updateAppVersion = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var id, _a, version, changelogs, type, status_2, isCurrent, errors, updatedAppVersion, err_4;
+    var id, _a, version, changelogs, type, status_2, isCurrent, app, errors, updatedAppVersion, err_4;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
                 _b.trys.push([0, 4, , 5]);
                 id = req.params.id;
-                _a = req.body, version = _a.version, changelogs = _a.changelogs, type = _a.type, status_2 = _a.status, isCurrent = _a.isCurrent;
+                _a = req.body, version = _a.version, changelogs = _a.changelogs, type = _a.type, status_2 = _a.status, isCurrent = _a.isCurrent, app = _a.app;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -135,7 +135,7 @@ var updateAppVersion = function (req, res, next) { return __awaiter(void 0, void
             case 1:
                 _b.sent();
                 _b.label = 2;
-            case 2: return [4 /*yield*/, app_versions_model_1.AppVersionModel.findByIdAndUpdate(id, { version: version, changelogs: changelogs, type: type, status: status_2, isCurrent: isCurrent }, { new: true })];
+            case 2: return [4 /*yield*/, app_versions_model_1.AppVersionModel.findByIdAndUpdate(id, { version: version, changelogs: changelogs, type: type, status: status_2, isCurrent: isCurrent, app: app }, { new: true })];
             case 3:
                 updatedAppVersion = _b.sent();
                 if (!updatedAppVersion) {

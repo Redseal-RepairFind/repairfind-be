@@ -3,8 +3,6 @@ import bcrypt from "bcrypt";
 import { NextFunction, Request, Response } from "express";
 import { ContractorModel } from "../../../database/contractor/models/contractor.model";
 import AdminRegModel from "../../../database/admin/models/admin.model";
-import { htmlContractorDocumentValidatinToAdminTemplate } from "../../../templates/admin/adminContractorDocumentTemplate";
-import { htmlContractorDocumentValidatinTemplate } from "../../../templates/contractor/contractorDocumentTemplate";
 import { Base } from "../../../abstracts/base.abstract";
 import { handleAsyncError } from "../../../abstracts/decorators.abstract";
 import { ContractorProfileModel } from "../../../database/contractor/models/contractor_profile.model";
@@ -15,19 +13,14 @@ import ContractorDeviceModel from "../../../database/contractor/models/contracto
 import { IStripeAccount } from "../../../database/common/stripe_account.schema";
 import { COMPANY_STATUS, CONTRACTOR_TYPES, GST_STATUS, IContractorCompanyDetails, IContractorGstDetails } from "../../../database/contractor/interface/contractor.interface";
 import { BadRequestError, InternalServerError } from "../../../utils/custom.errors";
-import { castPayloadToDTO } from "../../../utils/interface_dto.util";
 import { JOB_STATUS, JobModel } from "../../../database/common/job.model";
 import BlacklistedToken from "../../../database/common/blacklisted_tokens.schema";
-import { credential } from "firebase-admin";
 import { Logger } from "../../../services/logger";
 import { applyAPIFeature } from "../../../utils/api.feature";
 import { ReviewModel } from "../../../database/common/review.model";
 import { FeedbackModel } from "../../../database/common/feedback.model";
 import { AdminEvent } from "../../../events/admin.events";
-import { CONVERSATION_TYPE, ConversationModel } from "../../../database/common/conversations.schema";
 import { MessageModel, MessageType } from "../../../database/common/messages.schema";
-import TransactionModel, { TRANSACTION_TYPE } from "../../../database/common/transaction.model";
-import jwt, { JwtPayload } from "jsonwebtoken";
 import { AccountEvent, ConversationEvent } from "../../../events";
 import { ABUSE_REPORT_TYPE, AbuseReportModel } from "../../../database/common/abuse_reports.model";
 import { BLOCK_USER_REASON, BlockedUserModel } from "../../../database/common/blocked_users.model";
@@ -155,19 +148,20 @@ class ProfileHandler extends Base {
 
       // send email to contractor 
       // TODO: Emit event and handle email sending from there
-      const htmlCon = htmlContractorDocumentValidatinTemplate(contractor.firstName);
-      EmailService.send(contractor.email, 'New Profile', htmlCon)
-        .then(() => console.log('Email sent successfully'))
-        .catch(error => console.error('Error sending email:', error));
+      // const htmlCon = htmlContractorDocumentValidatinTemplate(contractor.firstName);
+      // EmailService.send(contractor.email, 'New Profile', htmlCon)
+      //   .then(() => console.log('Email sent successfully'))
+      //   .catch(error => console.error('Error sending email:', error));
+
 
 
       // send email to admin
-      const html = htmlContractorDocumentValidatinToAdminTemplate(contractor.firstName)
-      const adminsWithEmails = await AdminRegModel.find().select('email');
-      const adminEmails: Array<string> = adminsWithEmails.map(admin => admin.email);
-      EmailService.send(adminEmails, 'New Profile Registered', html, adminEmails)
-        .then(() => console.log('Emails sent successfully with CC'))
-        .catch(error => console.error('Error sending emails:', error));
+      // const html = htmlContractorDocumentValidatinToAdminTemplate(contractor.firstName)
+      // const adminsWithEmails = await AdminRegModel.find().select('email');
+      // const adminEmails: Array<string> = adminsWithEmails.map(admin => admin.email);
+      // EmailService.send(adminEmails, 'New Profile Registered', html, adminEmails)
+      //   .then(() => console.log('Emails sent successfully with CC'))
+      //   .catch(error => console.error('Error sending emails:', error));
 
 
       return res.json({
@@ -398,27 +392,27 @@ class ProfileHandler extends Base {
         profilePhoto,
         phoneNumber,
         dateOfBirth,
+        language
       } = req.body;
 
       let payload = {}
       if (account && account.accountType == 'Company') {
-        payload = { profilePhoto, phoneNumber, companyName }
+        payload = { profilePhoto, phoneNumber, companyName, language }
       }
 
       if (account && account.accountType == 'Individual') {
-        payload = { profilePhoto, phoneNumber, firstName, lastName, dateOfBirth }
+        payload = { profilePhoto, phoneNumber, firstName, lastName, dateOfBirth, language }
       }
 
       if (account && account.accountType == 'Employee') {
-        payload = { profilePhoto, phoneNumber, firstName, lastName, dateOfBirth }
+        payload = { profilePhoto, phoneNumber, firstName, lastName, dateOfBirth, language }
       }
 
-      const returnOriginal = await ContractorModel.findOneAndUpdate(
+      await ContractorModel.findOneAndUpdate(
         { _id: contractorId },
         payload,
         { new: true }
       );
-
 
 
       account.onboarding = await account.getOnboarding()
@@ -1231,9 +1225,6 @@ class ProfileHandler extends Base {
       return next(new InternalServerError('Error occurred while unblocking customer', err));
     }
   }
-
-
-
 
 
 }

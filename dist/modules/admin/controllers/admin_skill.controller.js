@@ -74,34 +74,39 @@ var AddNew = function (req, res, next) { return __awaiter(void 0, void 0, void 0
 }); };
 exports.AddNew = AddNew;
 var AddMultipleSkills = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var skills;
+    var skills, existingSkills, err_2;
     return __generator(this, function (_a) {
-        try {
-            skills = req.body.skills;
-            if (!Array.isArray(skills) && skills.length <= 0) {
-                return [2 /*return*/, res.json({ success: false, message: "Array is empty" })];
-            }
-            skills.forEach(function (skill) { return __awaiter(void 0, void 0, void 0, function () {
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
-                        case 0: return [4 /*yield*/, skill_model_1.default.findOneAndUpdate({ name: skill }, { name: skill }, { new: true, upsert: true })];
-                        case 1:
-                            _a.sent();
-                            return [2 /*return*/];
-                    }
-                });
-            }); });
-            return [2 /*return*/, res.json({ success: true, message: "skill successfully added." })];
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                skills = req.body.skills;
+                if (!Array.isArray(skills) && skills.length <= 0) {
+                    return [2 /*return*/, res.json({ success: false, message: "Array is empty" })];
+                }
+                skills.forEach(function (skill) { return __awaiter(void 0, void 0, void 0, function () {
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0: return [4 /*yield*/, skill_model_1.default.findOneAndUpdate({ name: skill }, { name: skill }, { new: true, upsert: true })];
+                            case 1:
+                                _a.sent();
+                                return [2 /*return*/];
+                        }
+                    });
+                }); });
+                return [4 /*yield*/, skill_model_1.default.find({})];
+            case 1:
+                existingSkills = _a.sent();
+                return [2 /*return*/, res.json({ success: true, message: "skill successfully added.", data: existingSkills })];
+            case 2:
+                err_2 = _a.sent();
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError("Error occurred adding skill", err_2))];
+            case 3: return [2 /*return*/];
         }
-        catch (err) {
-            return [2 /*return*/, next(new custom_errors_1.InternalServerError("Error occurred adding skill", err))];
-        }
-        return [2 /*return*/];
     });
 }); };
 exports.AddMultipleSkills = AddMultipleSkills;
 var GetSkills = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, errors, skills, err_2;
+    var _a, errors, skills, err_3;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -117,8 +122,8 @@ var GetSkills = function (req, res, next) { return __awaiter(void 0, void 0, voi
                 res.json({ success: true, message: "Skills retrieved successfully", data: skills });
                 return [3 /*break*/, 3];
             case 2:
-                err_2 = _b.sent();
-                return [2 /*return*/, next(new custom_errors_1.InternalServerError("Error occurred adding skill", err_2))];
+                err_3 = _b.sent();
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError("Error occurred adding skill", err_3))];
             case 3: return [2 /*return*/];
         }
     });

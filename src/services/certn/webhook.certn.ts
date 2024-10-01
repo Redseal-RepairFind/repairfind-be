@@ -38,9 +38,9 @@ const handleApplicantCreated = async (payload: any) => {
         // Handle applicant created event
         const applicantId = payload.applicant_id;
         // Fetch applicant details from Certn using CertnService
-        const applicantDetails = await CertnService.initiateCertnInvite(applicantId);
+        // const applicantDetails = await CertnService.initiateCertnInvite(applicantId);
         // Update database or perform other actions based on applicant details
-        Logger.info('handleApplicantCreated', applicantDetails)
+        // Logger.info('handleApplicantCreated', applicantDetails)
     } catch (error: any) {
         Logger.error('Error handling Certn applicant created event:', error.message || "Something went wrong");
     }

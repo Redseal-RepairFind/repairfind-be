@@ -24,13 +24,13 @@ import { Logger } from '../services/logger';
 import { ConversationUtil } from '../utils/conversation.util';
 import { MessageModel, MessageType } from '../database/common/messages.schema';
 import { BlockedUserUtil } from '../utils/blockeduser.util';
+import { i18n } from '../i18n';
 
 export const JobEvent: EventEmitter = new EventEmitter();
 
 JobEvent.on('NEW_JOB_REQUEST', async function (payload) {
     try {
         Logger.info('handling NEW_JOB_REQUEST event')
-
         const customer = await CustomerModel.findById(payload.customerId)
         const contractor = await ContractorModel.findById(payload.contractorId)
         const job = await JobModel.findById(payload.jobId)
@@ -38,36 +38,53 @@ JobEvent.on('NEW_JOB_REQUEST', async function (payload) {
 
         if (job && contractor && customer) {
 
+
+            const contractorLang = contractor.language
+            let nMessage = await i18n.getTranslation({phraseOrSlug: "You've received a job request from",targetLang: contractorLang});
+            let nTitle = await i18n.getTranslation({phraseOrSlug: 'New Job Request',targetLang: contractorLang});
+
             NotificationService.sendNotification({
                 user: contractor.id,
                 userType: 'contractors',
-                title: 'New Job Request',
+                title: nTitle,
                 type: 'NEW_JOB_REQUEST', //
-                message: `You've received a job request from ${customer.firstName}`,
+                message: `${nMessage} ${customer.firstName}`,
                 heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
                 payload: {
                     entity: job.id,
                     entityType: 'jobs',
-                    message: `You've received a job request from ${customer.firstName}`,
+                    message: `${nMessage} ${customer.firstName}`,
                     contractor: contractor.id,
                     event: 'NEW_JOB_REQUEST',
                 }
             }, { database: true, push: true, socket: true })
 
+
+            const customerLang = customer.language
+            nMessage = await i18n.getTranslation({
+                phraseOrSlug: "You've sent a job request to",
+                targetLang: customerLang
+            });
+            nTitle = await i18n.getTranslation({
+                phraseOrSlug: 'New Job Request',
+                targetLang: customerLang
+            });
+            
+
             NotificationService.sendNotification({
                 user: customer.id,
                 userType: 'customers',
-                title: 'New Job Request',
+                title: nTitle,
                 type: 'NEW_JOB_REQUEST', // Conversation, Conversation_Notification
                 //@ts-ignore
-                message: `You've  sent a job request to ${contractor.name}`,
+                message: `${nMessage} ${contractor.name}`,
                 //@ts-ignore
                 heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
                 payload: {
                     entity: job.id,
                     entityType: 'jobs',
                     //@ts-ignore
-                    message: `You've sent a job request to ${contractor.name}`,
+                    message: `${nMessage} ${contractor.name}`,
                     customer: customer.id,
                     event: 'NEW_JOB_REQUEST',
                 }
@@ -92,37 +109,73 @@ JobEvent.on('JOB_REQUEST_ACCEPTED', async function (payload) {
 
         if (job && contractor && customer) {
 
+            const contractorLang = contractor.language;  // Contractor's language
+            let nMessage = await i18n.getTranslation({
+                phraseOrSlug: "You've accepted a job request from",
+                targetLang: contractorLang
+            });
+            let nTitle = await i18n.getTranslation({
+                phraseOrSlug: 'Job Request Accepted',
+                targetLang: contractorLang
+            });
+            
             NotificationService.sendNotification({
                 user: contractor.id,
                 userType: 'contractors',
-                title: 'New Job Request',
-                type: 'JOB_REQUEST_ACCEPTED', //
-                message: `You've accepted a job request from ${customer.firstName}`,
-                heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
+                title: nTitle,
+                type: 'JOB_REQUEST_ACCEPTED',
+                message: `${nMessage} ${customer.firstName}`,  // Translated message with the customer's first name
+                heading: {
+                    name: `${customer.firstName} ${customer.lastName}`,  // Customer's full name
+                    image: customer.profilePhoto?.url  // Customer's profile photo, if available
+                },
                 payload: {
-                    entity: job.id,
-                    entityType: 'jobs',
-                    message: `You've accepted a job request from ${customer.firstName}`,
-                    contractor: contractor.id,
-                    event: 'JOB_REQUEST_ACCEPTED',
+                    entity: job.id,  // Job ID
+                    entityType: 'jobs',  // Type of entity (job)
+                    message: `${nMessage} ${customer.firstName}`,  // Translated message
+                    contractor: contractor.id,  // Contractor's ID
+                    event: 'JOB_REQUEST_ACCEPTED',  // Event type
                 }
-            }, { push: true, socket: true, database: true })
+            }, {
+                push: true,
+                socket: true,
+                database: true
+            });
 
+
+            const customerLang = customer.language;  // Customer's language
+            nTitle = await i18n.getTranslation({
+                phraseOrSlug: 'Job Request Accepted',
+                targetLang: customerLang
+            });
+            nMessage = await i18n.getTranslation({
+                phraseOrSlug: "Contractor has accepted your job request",
+                targetLang: customerLang
+            });
+            
             NotificationService.sendNotification({
                 user: customer.id,
                 userType: 'customers',
-                title: 'New Job Request',
+                title: nTitle,
                 type: 'JOB_REQUEST_ACCEPTED',
-                message: `Contractor has accepted your job request`,
-                heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
+                message: nMessage,
+                heading: {
+                    name: `${contractor.name}`,  // Contractor's name
+                    image: contractor.profilePhoto?.url  // Contractor's profile photo (if available)
+                },
                 payload: {
                     entity: job.id,
-                    entityType: 'jobs',
-                    message: `Contractor has accepted your job request`,
-                    customer: customer.id,
-                    event: 'JOB_REQUEST_ACCEPTED',
+                    entityType: 'jobs',  // Entity type (job)
+                    message: nMessage,  // Translated message
+                    customer: customer.id,  // Customer's ID
+                    event: 'JOB_REQUEST_ACCEPTED',  // Event type
                 }
-            }, { database: true, push: true, socket: true })
+            }, {
+                database: true,  // Save to database
+                push: true,  // Push notification
+                socket: true  // Real-time socket notification
+            });
+
 
         }
 
@@ -143,37 +196,60 @@ JobEvent.on('JOB_REQUEST_REJECTED', async function (payload) {
 
         if (job && contractor && customer) {
 
+
+            const contractorLang = contractor.language;
+            let nTitle = await i18n.getTranslation({
+                phraseOrSlug: 'Job Request Rejected',
+                targetLang: contractorLang
+            });
+            let nMessage = await i18n.getTranslation({
+                phraseOrSlug: "You've rejected a job request from",
+                targetLang: contractorLang
+            });
+            
             NotificationService.sendNotification({
                 user: contractor.id,
                 userType: 'contractors',
-                title: 'New Job Request',
-                type: 'JOB_REQUEST_ACCEPTED', //
-                message: `You've rejected a job request from ${customer.firstName}`,
+                title: nTitle,
+                type: 'JOB_REQUEST_REJECTED',
+                message: `${nMessage} ${customer.firstName}`,
                 heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
                 payload: {
                     entity: job.id,
                     entityType: 'jobs',
-                    message: `You've rejected a job request from ${customer.firstName}`,
+                    message: `${nMessage} ${customer.firstName}`,
                     contractor: contractor.id,
-                    event: 'JOB_REQUEST_ACCEPTED',
+                    event: 'JOB_REQUEST_REJECTED',
                 }
-            }, { push: true, socket: true, database: true })
+            }, { push: true, socket: true, database: true });
 
+
+            const customerLang = customer.language;
+            nTitle = await i18n.getTranslation({
+                phraseOrSlug: 'Job Request Rejected',
+                targetLang: customerLang
+            });
+            nMessage = await i18n.getTranslation({
+                phraseOrSlug: "Contractor has rejected your job request",
+                targetLang: customerLang
+            });
+            
             NotificationService.sendNotification({
                 user: customer.id,
                 userType: 'customers',
-                title: 'New Job Request',
-                type: 'JOB_REQUEST_ACCEPTED',
-                message: `Contractor has rejected your job request`,
+                title: nTitle,
+                type: 'JOB_REQUEST_REJECTED',
+                message: nMessage,
                 heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
                 payload: {
                     entity: job.id,
                     entityType: 'jobs',
-                    message: `Contractor has rejected your job request`,
+                    message: nMessage,
                     customer: customer.id,
-                    event: 'JOB_REQUEST_ACCEPTED',
+                    event: 'JOB_REQUEST_REJECTED',
                 }
-            }, { database: true, push: true, socket: true })
+            }, { database: true, push: true, socket: true });
+
 
         }
 
@@ -201,36 +277,52 @@ JobEvent.on('NEW_JOB_LISTING', async function (payload) {
             const contractorProfiles = await ContractorProfileModel.find({ skill: job.category });
             const contractorIds = contractorProfiles.map(profile => profile.contractor);
             const customerId = job.customer
-            
+
             const filteredContractorIds = [];
             for (const contractorId of contractorIds) {
-                const {isBlocked, block} = await BlockedUserUtil.isUserBlocked({customer: customerId, contractor: contractorId});
+                const { isBlocked, block } = await BlockedUserUtil.isUserBlocked({ customer: customerId, contractor: contractorId });
                 if (!isBlocked) {
                     filteredContractorIds.push(contractorId);
                 }
             }
 
             const devices = await ContractorDeviceModel.find({ contractor: { $in: filteredContractorIds } })
-            const deviceTokens = devices.map(device => device.expoToken);
+            // const deviceTokens = devices.map(device => device.expoToken);
 
-            sendPushNotifications(deviceTokens, {
-                title: 'New job listing',
-                type: 'NEW_JOB_LISTING',
-                icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
-                body: 'There is a new job listing  that match your profile',
-                data: {
-                    entity: job.id,
-                    entityType: 'jobs',
-                    message: `There is a new job listing  that match your profile`,
-                    event: 'NEW_JOB_LISTING',
+            devices.map( async(device) => {
+                const contractor = await ContractorModel.findById(device.contractor)
+                
+                if(contractor){
+                    const contractorLang = contractor.language;
+                    let nTitle = await i18n.getTranslation({
+                        phraseOrSlug: 'New Job Listing',
+                        targetLang: contractorLang
+                    });
+                    let nMessage = await i18n.getTranslation({
+                        phraseOrSlug: 'There is a new job listing that matches your profile',
+                        targetLang: contractorLang
+                    });
+                    sendPushNotifications([device.deviceToken], {
+                        title: nTitle,
+                        type: 'NEW_JOB_LISTING',
+                        icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
+                        body: nMessage,
+                        data: {
+                            entity: job.id,
+                            entityType: 'jobs',
+                            message: nMessage,
+                            event: 'NEW_JOB_LISTING',
+                        }
+                    })
                 }
-            })
 
+                
+            });
         }
 
 
     } catch (error) {
-        Logger.error(`Error handling NEW_JOB_REQUEST event: ${error}`);
+        Logger.error(`Error handling NEW_JOB_LISTING event: ${error}`);
     }
 });
 
@@ -247,48 +339,75 @@ JobEvent.on('JOB_CANCELED', async function (payload: { job: IJob, canceledBy: st
 
         if (payload.canceledBy == 'contractor') {
             Logger.info('job cancelled by contractor')
-            const html = JobCanceledEmailTemplate({ name: customer.name, canceledBy: payload.canceledBy, job: payload.job })
-            EmailService.send(customer.email, "Job Canceled", html)
+            const html = JobCanceledEmailTemplate({ name: customer.name, canceledBy: payload.canceledBy, job: payload.job })            
+            const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true}) || html;            
+            const translatedSubject = await i18n.getTranslation({phraseOrSlug: "Job Canceled", targetLang: contractor.language}) || 'Job Canceled';
+            EmailService.send(customer.email, translatedSubject, translatedHtml)
         }
         if (payload.canceledBy == 'customer') {
             Logger.info('job cancelled by customer')
             const html = JobCanceledEmailTemplate({ name: contractor.name, canceledBy: 'customer', job: payload.job })
-            EmailService.send(contractor.email, "Job Canceled", html)
+            const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true}) || html;            
+            const translatedSubject = await i18n.getTranslation({phraseOrSlug: "Job Canceled", targetLang: customer.language}) || 'Job Canceled';
+            EmailService.send(contractor.email, translatedSubject, translatedHtml)
 
         }
+
+        const customerLang = customer.language;
+        let nTitle = await i18n.getTranslation({
+            phraseOrSlug: 'Job Canceled',
+            targetLang: customerLang
+        });
+        let nMessage = await i18n.getTranslation({
+            phraseOrSlug: 'Your job on Repairfind has been canceled',
+            targetLang: customerLang
+        });
+        
 
         NotificationService.sendNotification({
             user: customer.id,
             userType: 'customers',
-            title: 'Job Canceled',
-            type: 'JOB_CANCELED', //
-            message: `Your job on Repairfind has been canceled`,
+            title: nTitle,
+            type: 'JOB_CANCELED',
+            message: nMessage,
             heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
             payload: {
                 entity: job.id,
                 entityType: 'jobs',
-                message: `Your job on Repairfind has been canceled`,
+                message: nMessage,
                 customer: customer.id,
                 event: 'JOB_CANCELED',
             }
-        }, { push: true, socket: true, database: true })
+        }, { push: true, socket: true, database: true });
 
 
+
+        const contractorLang = contractor.language;
+        nTitle = await i18n.getTranslation({
+            phraseOrSlug: 'Job Canceled',
+            targetLang: contractorLang
+        });
+        nMessage = await i18n.getTranslation({
+            phraseOrSlug: 'Your job on Repairfind has been canceled',
+            targetLang: contractorLang
+        });
+        
         NotificationService.sendNotification({
             user: contractor.id,
             userType: 'contractors',
-            title: 'Job Canceled',
-            type: 'JOB_CANCELED', //
-            message: `Your job on Repairfind has been canceled`,
+            title: nTitle,
+            type: 'JOB_CANCELED',
+            message: nMessage,
             heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
             payload: {
                 entity: job.id,
                 entityType: 'jobs',
-                message: `Your job on Repairfind has been canceled`,
+                message: nMessage,
                 customer: customer.id,
                 event: 'JOB_CANCELED',
             }
-        }, { push: true, socket: true, database: true })
+        }, { push: true, socket: true, database: true });
+
 
     } catch (error) {
         Logger.error(`Error handling JOB_CANCELED event: ${error}`);
@@ -308,38 +427,62 @@ JobEvent.on('JOB_DISPUTE_REFUND_CREATED', async function (payload: { job: IJob, 
 
         if (job && contractor && customer) {
 
+            const contractorLang = contractor.language;
+            let nTitle = await i18n.getTranslation({
+                phraseOrSlug: 'Job Dispute Refund Created',
+                targetLang: contractorLang
+            });
+            let nMessage = await i18n.getTranslation({
+                phraseOrSlug: 'Full refund of your disputed job has been approved on Repairfind',
+                targetLang: contractorLang
+            });
+            
+
             NotificationService.sendNotification({
                 user: contractor.id,
                 userType: 'contractors',
-                title: 'Job Dispute Refund Created',
-                type: 'JOB_DISPUTE_REFUND_CREATED', //
-                message: `Full refund of your disputed job has been approved  on Repairfind`,
+                title: nTitle,
+                type: 'JOB_DISPUTE_REFUND_CREATED',
+                message: nMessage,
                 heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
                 payload: {
                     entity: dispute.id,
                     entityType: 'job_disputes',
-                    message: `Full refund of your disputed job has been approved  on Repairfind`,
+                    message: nMessage,
                     contractor: contractor.id,
                     event: 'JOB_DISPUTE_REFUND_CREATED',
                 }
-            }, { push: true, socket: true, database: true })
+            }, { push: true, socket: true, database: true });
+
+
+            const customerLang = customer.language;
+            nTitle = await i18n.getTranslation({
+                phraseOrSlug: 'Job Dispute Refund Created',
+                targetLang: customerLang
+            });
+            nMessage = await i18n.getTranslation({
+                phraseOrSlug: 'Full refund of your disputed job has been approved on Repairfind',
+                targetLang: customerLang
+            });
+            
 
             NotificationService.sendNotification({
                 user: customer.id,
                 userType: 'customers',
-                title: 'Job Dispute Refund Created',
+                title: nTitle,
                 type: 'JOB_DISPUTE_REFUND_CREATED',
-                message: `Full refund of your disputed job has been approved  on Repairfind`,
+                message: nMessage,
                 heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
                 payload: {
                     entity: dispute.id,
                     entityType: 'job_disputes',
                     jobType: job.type,
-                    message: `Full refund of your disputed job has been approved  on Repairfind`,
+                    message: nMessage,
                     customer: customer.id,
                     event: 'JOB_DISPUTE_REFUND_CREATED',
                 }
-            }, { database: true, push: true, socket: true })
+            }, { database: true, push: true, socket: true });
+
 
         }
 
@@ -363,40 +506,63 @@ JobEvent.on('JOB_REVISIT_ENABLED', async function (payload: { job: IJob, dispute
         if (job && contractor && customer) {
 
             const conversation = await ConversationUtil.updateOrCreateConversation(contractor.id, 'contractors', customer.id, 'customers')
+
+            const contractorLang = contractor.language;
+            let nTitle = await i18n.getTranslation({
+                phraseOrSlug: 'Job Revisit Enabled',
+                targetLang: contractorLang
+            });
+            let nMessage = await i18n.getTranslation({
+                phraseOrSlug: 'A revisit for your disputed job has been enabled on Repairfind',
+                targetLang: contractorLang
+            });
             NotificationService.sendNotification({
                 user: contractor.id,
                 userType: 'contractors',
-                title: 'Job Revisit  Enabled',
-                type: 'JOB_REVISIT_ENABLED', //
-                message: `A revisit for your disputed job has been enabled on Repairfind`,
+                title: nTitle,
+                type: 'JOB_REVISIT_ENABLED',
+                message: nMessage,
                 heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
                 payload: {
                     entity: job.id,
                     entityType: 'jobs',
-                    message: `A revisit for your disputed job has been enabled on Repairfind`,
+                    message: nMessage,
                     contractor: contractor.id,
                     conversationId: conversation?.id,
                     event: 'JOB_REVISIT_ENABLED',
                 }
-            }, { push: true, socket: true, database: true })
+            }, { push: true, socket: true, database: true });
+
+
+            const customerLang = customer.language;
+            nTitle = await i18n.getTranslation({
+                phraseOrSlug: 'Job Revisit Enabled',
+                targetLang: customerLang
+            });
+            nMessage = await i18n.getTranslation({
+                phraseOrSlug: 'A revisit for your disputed job has been enabled on Repairfind',
+                targetLang: customerLang
+            });
+            
 
             NotificationService.sendNotification({
                 user: customer.id,
                 userType: 'customers',
-                title: 'Job Revisit  Enabled',
+                title: nTitle,
                 type: 'JOB_REVISIT_ENABLED',
-                message: `A revisit for your disputed job has been enabled on Repairfind`,
+                message: nMessage,
                 heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
                 payload: {
                     entity: job.id,
                     entityType: 'jobs',
                     jobType: job.type,
-                    message: `A revisit for your disputed job has been enabled on Repairfind`,
+                    message: nMessage,
                     customer: customer.id,
                     conversationId: conversation?.id,
                     event: 'JOB_REVISIT_ENABLED',
                 }
-            }, { database: true, push: true, socket: true })
+            }, { database: true, push: true, socket: true });
+
 
         }
 
@@ -432,21 +598,33 @@ JobEvent.on('JOB_QUOTATION_DECLINED', async function (payload: { jobId: ObjectId
                 <p>Login to our app to follow up </p>
                 `
             let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
-            EmailService.send(contractor.email, emailSubject, html)
+           
+            const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true}) || html;            
+            const translatedSubject = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: contractor.language}) || emailSubject;
+            EmailService.send(contractor.email, translatedSubject, translatedHtml)
 
             const conversation = await ConversationUtil.updateOrCreateConversation(customer.id, 'customers', contractor.id, 'contractors')
 
+            const contractorLang = contractor.language;
+            let nMessage = await i18n.getTranslation({
+                phraseOrSlug: 'Your job quotation for a job on RepairFind was declined',
+                targetLang: contractorLang
+            });
+            let nTitle = await i18n.getTranslation({
+                phraseOrSlug: 'Job Quotation Declined',
+                targetLang: contractorLang
+            });            
             NotificationService.sendNotification({
                 user: contractor.id,
                 userType: 'contractors',
-                title: 'Job quotation declined',
+                title: nTitle,
                 type: 'JOB_QUOTATION_DECLINED', // Conversation, Conversation_Notification
-                message: `Your job quotation for a job on RepairFind was declined`,
+                message: nMessage,
                 heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
                 payload: {
                     entity: job.id,
                     entityType: 'jobs',
-                    message: `Your job quotation for a job  on RepairFind was declined`,
+                    message: nMessage,
                     customerId: customer.id,
                     jobType: job.type,
                     conversationId: conversation.id,
@@ -489,26 +667,38 @@ JobEvent.on('JOB_QUOTATION_ACCEPTED', async function (payload: { jobId: ObjectId
                 `
 
             let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
-            EmailService.send(contractor.email, emailSubject, html)
+            const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true}) || html;            
+            const translatedSubject = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: contractor.language}) || emailSubject;
+            EmailService.send(contractor.email, translatedSubject, translatedHtml)
 
             const conversation = await ConversationUtil.updateOrCreateConversation(customer.id, 'customers', contractor.id, 'contractors')
 
+            const contractorLang = contractor.language;
+            let nTitle = await i18n.getTranslation({
+                phraseOrSlug: 'Job Quotation Accepted',
+                targetLang: contractorLang
+            });
+            let nMessage = await i18n.getTranslation({
+                phraseOrSlug: 'Your quotation for a job on RepairFind was accepted',
+                targetLang: contractorLang
+            });            
             NotificationService.sendNotification({
                 user: contractor.id,
                 userType: 'contractors',
-                title: 'Job quotation accepted',
-                type: 'JOB_QUOTATION_ACCEPTED', // Conversation, Conversation_Notification
-                message: `Your  quotation for a job on RepairFind was accepted`,
+                title: nTitle,
+                type: 'JOB_QUOTATION_ACCEPTED',
+                message: nMessage,
                 heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
                 payload: {
                     entity: job.id,
                     entityType: 'jobs',
-                    message: `Your job quotation for a job  on RepairFind was accepted`,
+                    message: nMessage,
                     customerId: customer.id,
                     conversationId: conversation.id,
                     event: 'JOB_QUOTATION_ACCEPTED',
                 }
-            }, { push: true, socket: true, database: true })
+            }, { push: true, socket: true, database: true });
+
 
         }
 
@@ -529,17 +719,9 @@ JobEvent.on('JOB_DAY_EMERGENCY', async function (payload: { jobEmergency: IJobEm
         if (job && contractor && customer) {
             if (payload.jobEmergency.triggeredBy == 'contractor') {
                 Logger.info('job emergency triggered by contractor')
-                // if (customer) {
-                //     const html = JobEmergencyEmailTemplate({ name: customer.name, emergency: payload.jobEmergency, job })
-                //     EmailService.send(customer.email, "Job Emergency", html)
-                // }
             }
             if (payload.jobEmergency.triggeredBy == 'customer') {
                 Logger.info('job emergency triggered by customer')
-                // if (contractor) {
-                //     const html = JobEmergencyEmailTemplate({ name: contractor.name, emergency: payload.jobEmergency, job })
-                //     EmailService.send(contractor.email, "Job Emergency", html)
-                // }
             }
 
             // send socket notification to general admins alert channel
@@ -556,6 +738,7 @@ JobEvent.on('JOB_DAY_EMERGENCY', async function (payload: { jobEmergency: IJobEm
         Logger.error(`Error handling JOB_DAY_EMERGENCY event: ${error}`);
     }
 });
+
 
 
 JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: IJob, action: string }) {
@@ -583,7 +766,7 @@ JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: 
                 const dateTimeOptions: any = {
                     weekday: 'short',
                     day: 'numeric',
-                    month: 'long', 
+                    month: 'long',
                     year: 'numeric',
                     hour: 'numeric',
                     minute: 'numeric',
@@ -603,25 +786,39 @@ JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: 
                 <p><strong>Proposed Date:</strong> ${rescheduleDate}</p>
                 `
                 let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
-                EmailService.send(contractor.email, emailSubject, html)
+                const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true}) || html;            
+                const translatedSubject = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: contractor.language}) || emailSubject;
+                EmailService.send(contractor.email, translatedSubject, translatedHtml)
+
+                const contractorLang = contractor.language;
+
+                let nTitle = await i18n.getTranslation({
+                    phraseOrSlug: `Job Reschedule Request ${payload.action}`,
+                    targetLang: contractorLang
+                });
+                let nMessage = await i18n.getTranslation({
+                    phraseOrSlug: `Your job reschedule request on Repairfind has been ${payload.action} by customer`,
+                    targetLang: contractorLang
+                });                
 
                 NotificationService.sendNotification({
                     user: contractor.id,
                     userType: 'contractors',
-                    title: `Job Reschedule Request ${payload.action}`,
+                    title: nTitle,
                     type: event,
-                    message: `Your Job reschedule request on Repairfind has been ${payload.action} by customer`,
+                    message: nMessage,
                     heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
                     payload: {
                         entity: job.id,
                         entityType: 'jobs',
-                        message: `Your Job reschedule request on Repairfind has been ${payload.action} by customer`,
+                        message: nMessage,
                         customer: customer.id,
                         contractor: contractor.id,
                         conversationId: conversation.id,
                         event: event,
                     }
-                }, { push: true, socket: true, database: true })
+                }, { push: true, socket: true, database: true });
+
 
                 message.sender = customer.id
                 message.senderType = 'customers'
@@ -632,7 +829,7 @@ JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: 
                 const dateTimeOptions: any = {
                     weekday: 'short',
                     day: 'numeric',
-                    month: 'long', 
+                    month: 'long',
                     year: 'numeric',
                     hour: 'numeric',
                     minute: 'numeric',
@@ -652,26 +849,40 @@ JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: 
                 <p><strong>Proposed Date:</strong> ${rescheduleDate}</p>
                 `
                 let html = GenericEmailTemplate({ name: customer.name, subject: emailSubject, content: emailContent })
-                EmailService.send(customer.email, emailSubject, html)
+                const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true}) || html;            
+                const translatedSubject = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: customer.language}) || emailSubject;
+                EmailService.send(customer.email, translatedSubject, translatedHtml)
 
+
+                const customerLang = customer.language;
+                let nTitle = await i18n.getTranslation({
+                    phraseOrSlug: `Job Reschedule Request ${payload.action}`,
+                    targetLang: customerLang
+                });
+                let nMessage = await i18n.getTranslation({
+                    phraseOrSlug: `Your job reschedule request on Repairfind has been ${payload.action} by contractor`,
+                    targetLang: customerLang
+                });
+                
 
                 NotificationService.sendNotification({
                     user: customer.id,
                     userType: 'customers',
-                    title: `Job Reschedule Request ${payload.action}`,
-                    type: event, //
-                    message: `Your Job reschedule request on Repairfind has been ${payload.action} by contractor`,
+                    title: nTitle,
+                    type: event,
+                    message: nMessage,
                     heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
                     payload: {
                         entity: job.id,
                         entityType: 'jobs',
-                        message: `Your Job reschedule request on Repairfind has been ${payload.action} by contractor`,
+                        message: nMessage,
                         contractor: contractor.id,
                         customer: customer.id,
                         conversationId: conversation.id,
                         event: event,
                     }
-                }, { push: true, socket: true, database: true })
+                }, { push: true, socket: true, database: true });
+
 
                 message.sender = contractor.id
                 message.senderType = 'contractors'
@@ -688,7 +899,7 @@ JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: 
     }
 });
 
-
+// TODO: Separate this - so I ca translate, break the actions into individual events
 JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', async function (payload: { job: IJob, action: string }) {
     try {
         Logger.info('handling alert NEW_JOB_RESCHEDULE_REQUEST event', payload.action)
@@ -710,14 +921,14 @@ JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', async function (payload: { job: IJob, 
             });
 
 
-        
+
 
             if (payload.job.reschedule?.createdBy == 'contractor') { // send mail to contractor
 
                 const dateTimeOptions: any = {
                     weekday: 'short',
                     day: 'numeric',
-                    month: 'long', 
+                    month: 'long',
                     year: 'numeric',
                     hour: 'numeric',
                     minute: 'numeric',
@@ -737,7 +948,9 @@ JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', async function (payload: { job: IJob, 
                 <p><strong>Proposed Date:</strong> ${rescheduleDate}</p>
                 `
                 let html = GenericEmailTemplate({ name: customer.name, subject: emailSubject, content: emailContent })
-                EmailService.send(customer.email, emailSubject, html)
+                const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true}) || html;            
+                const translatedSubject = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: customer.language}) || emailSubject;
+                EmailService.send(customer.email, translatedSubject, translatedHtml)
 
 
                 NotificationService.sendNotification({
@@ -766,7 +979,7 @@ JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', async function (payload: { job: IJob, 
                 const dateTimeOptions: any = {
                     weekday: 'short',
                     day: 'numeric',
-                    month: 'long', 
+                    month: 'long',
                     year: 'numeric',
                     hour: 'numeric',
                     minute: 'numeric',
@@ -785,7 +998,9 @@ JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', async function (payload: { job: IJob, 
                 <p><strong>Proposed Date:</strong> ${rescheduleDate}</p>
                 `
                 let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
-                EmailService.send(contractor.email, emailSubject, html)
+                const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true}) || html;            
+                const translatedSubject = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: contractor.language}) || emailSubject;
+                EmailService.send(contractor.email, translatedSubject, translatedHtml)
 
                 NotificationService.sendNotification({
                     user: contractor.id,
@@ -843,7 +1058,7 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
                 const dateTimeOptions: any = {
                     weekday: 'short',
                     day: 'numeric',
-                    month: 'long', 
+                    month: 'long',
                     year: 'numeric',
                     hour: 'numeric',
                     minute: 'numeric',
@@ -923,10 +1138,14 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
 
 
                 let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent });
-                EmailService.send(contractor.email, emailSubject, html);
+                const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true}) || html;            
+                const translatedSubject = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: contractor.language}) || emailSubject;
+                EmailService.send(contractor.email, translatedSubject, translatedHtml);
 
                 let receipthtml = GenericEmailTemplate({ name: contractor.name, subject: 'Payment Receipt', content: receipthtmlContent });
-                EmailService.send(contractor.email, 'Payment Receipt', receipthtml);
+                const translatedReceiptHtml = await i18n.getTranslation({phraseOrSlug: receipthtml, targetLang: contractor.language, saveToFile: false, useGoogle: true}) || html;            
+                const translatedReceiptSubject = await i18n.getTranslation({phraseOrSlug: 'Payment Receipt', targetLang: contractor.language}) || 'Payment Receipt';
+                EmailService.send(contractor.email, translatedReceiptSubject, translatedReceiptHtml);
 
             }
 
@@ -937,7 +1156,7 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
                 const dateTimeOptions: any = {
                     weekday: 'short',
                     day: 'numeric',
-                    month: 'long', 
+                    month: 'long',
                     year: 'numeric',
                     hour: 'numeric',
                     minute: 'numeric',
@@ -1012,11 +1231,15 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
                 `;
 
                 let html = GenericEmailTemplate({ name: customer.name, subject: emailSubject, content: emailContent });
-                EmailService.send(customer.email, emailSubject, html);
+                const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true}) || html;            
+                const translatedSubject = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: customer.language}) || emailSubject;
+                EmailService.send(customer.email, translatedSubject, translatedHtml);
 
 
                 let receipthtml = GenericEmailTemplate({ name: customer.name, subject: 'Payment Receipt', content: receiptContent });
-                EmailService.send(customer.email, 'Payment Receipt', receipthtml);
+                const translatedReceiptHtml = await i18n.getTranslation({phraseOrSlug: receipthtml, targetLang: customer.language, saveToFile: false, useGoogle: true}) || html;            
+                const translatedReceiptSubject = await i18n.getTranslation({phraseOrSlug: 'Payment Receipt', targetLang: customer.language}) || 'Payment Receipt';
+                EmailService.send(customer.email, translatedReceiptSubject, translatedReceiptHtml);
 
 
             }
@@ -1024,40 +1247,63 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
 
 
 
+            const customerLang = customer.language;
+            let nTitle = await i18n.getTranslation({
+                phraseOrSlug: 'Job Booked',
+                targetLang: customerLang
+            });
+            let nMessage = await i18n.getTranslation({
+                phraseOrSlug: 'You have booked a job on Repairfind',
+                targetLang: customerLang
+            });
+            
             NotificationService.sendNotification({
                 user: customer.id,
                 userType: 'customers',
-                title: 'Job Booked',
-                type: 'JOB_BOOKED', // Conversation, Conversation_Notification
-                message: `You have booked a job on Repairfind`,
+                title: nTitle,
+                type: 'JOB_BOOKED',
+                message: nMessage,
                 heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
                 payload: {
                     entity: job.id,
                     entityType: 'jobs',
-                    message: `You have booked a job`,
+                    message: nMessage,
                     customer: customer.id,
                     contractor: contractor.id,
                     event: 'JOB_BOOKED',
                 }
-            }, { push: true, socket: true, database: true })
+            }, { push: true, socket: true, database: true });
 
+
+
+            const contractorLang = contractor.language;
+            nTitle = await i18n.getTranslation({
+                phraseOrSlug: 'Job Booked',
+                targetLang: contractorLang
+            });
+            nMessage = await i18n.getTranslation({
+                phraseOrSlug: 'You have a booked job on Repairfind',
+                targetLang: contractorLang
+            });
+            
 
             NotificationService.sendNotification({
                 user: contractor.id,
                 userType: 'contractors',
-                title: 'Job Booked',
-                type: 'JOB_BOOKED', //
-                message: `You have a booked job on Repairfind`,
+                title: nTitle,
+                type: 'JOB_BOOKED',
+                message: nMessage,
                 heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
                 payload: {
                     entity: job.id,
                     entityType: 'jobs',
-                    message: `You have a booked job`,
+                    message: nMessage,
                     contractor: contractor.id,
                     customer: customer.id,
                     event: 'JOB_BOOKED',
                 }
-            }, { push: true, socket: true, database: true })
+            }, { push: true, socket: true, database: true });
+
 
         }
 
@@ -1084,38 +1330,61 @@ JobEvent.on('JOB_DISPUTE_CREATED', async function (payload: { dispute: IJobDispu
         if (!customer || !contractor) return
 
 
+        const customerLang = customer.language;
+        let nTitle = await i18n.getTranslation({
+            phraseOrSlug: 'Job Disputed',
+            targetLang: customerLang
+        });
+        let nMessage = await i18n.getTranslation({
+            phraseOrSlug: 'You have an open job dispute',
+            targetLang: customerLang
+        });
+        
         NotificationService.sendNotification({
             user: customer.id,
             userType: 'customers',
-            title: 'Job Disputed',
+            title: nTitle,
             type: 'JOB_DISPUTED',
-            message: `You have an open job dispute`,
+            message: nMessage,
             heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
             payload: {
                 entity: job.id,
                 entityType: 'jobs',
-                message: `You have an open job dispute`,
+                message: nMessage,
                 customer: customer.id,
                 event: 'JOB_DISPUTED',
             }
-        }, { database: true, push: true, socket: true })
+        }, { database: true, push: true, socket: true });
 
+
+
+        const contractorLang = contractor.language;
+        nTitle = await i18n.getTranslation({
+            phraseOrSlug: 'Job Disputed',
+            targetLang: contractorLang
+        });
+        nMessage = await i18n.getTranslation({
+            phraseOrSlug: 'You have an open job dispute',
+            targetLang: contractorLang
+        });
+        
 
         NotificationService.sendNotification({
             user: contractor.id,
             userType: 'contractors',
-            title: 'Job Disputed',
-            type: 'JOB_DISPUTED', //
-            message: `You have an open job dispute`,
+            title: nTitle,
+            type: 'JOB_DISPUTED',
+            message: nMessage,
             heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
             payload: {
                 entity: job.id,
                 entityType: 'jobs',
-                message: `You have an open job dispute`,
+                message: nMessage,
                 contractor: contractor.id,
                 event: 'JOB_DISPUTED',
             }
-        }, { database: true, push: true, socket: true })
+        }, { database: true, push: true, socket: true });
+
 
         // if (job.isAssigned) {
         //     NotificationService.sendNotification({
@@ -1169,54 +1438,75 @@ JobEvent.on('JOB_MARKED_COMPLETE_BY_CONTRACTOR', async function (payload: { job:
 
         const event = (job.schedule.type == JOB_SCHEDULE_TYPE.SITE_VISIT) ? 'SITE_VISIT_MARKED_COMPLETE' : 'JOB_MARKED_COMPLETE'
 
+        const customerLang = customer.language;
+        let nTitle = await i18n.getTranslation({
+            phraseOrSlug: 'Job Marked Complete',
+            targetLang: customerLang
+        });
+        let nMessage = await i18n.getTranslation({
+            phraseOrSlug: 'Contractor has marked job as completed',
+            targetLang: customerLang
+        });
+        
         NotificationService.sendNotification({
             user: customer.id,
             userType: 'customers',
-            title: 'Job Marked Complete',
+            title: nTitle,
             type: event,
-            message: `Contractor has marked job has completed`,
+            message: nMessage,
             heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
             payload: {
                 entity: job.id,
                 entityType: 'jobs',
-                message: `Contractor has marked job has completed`,
+                message: nMessage,
                 event: event,
             }
-        }, { database: true, push: true, socket: true })
+        }, { database: true, push: true, socket: true });
 
+
+        const contractorLang = contractor.language;
+        nTitle = await i18n.getTranslation({
+            phraseOrSlug: 'Job Marked Complete',
+            targetLang: contractorLang
+        });
+        nMessage = await i18n.getTranslation({
+            phraseOrSlug: 'Job marked as completed',
+            targetLang: contractorLang
+        });
         NotificationService.sendNotification({
             user: contractor.id,
             userType: 'contractors',
-            title: 'Job Marked Complete',
+            title: nTitle,
             type: event,
-            message: `Job marked as completed`,
+            message: nMessage,
             heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
             payload: {
                 entity: job.id,
                 entityType: 'jobs',
-                message: `Job marked as completed`,
+                message: nMessage,
                 event: event,
             }
-        }, { database: true, push: true, socket: true })
+        }, { database: true, push: true, socket: true });
+
 
 
 
         if (job.isAssigned) {
-            NotificationService.sendNotification({
-                user: job.assignment.contractor,
-                userType: 'contractors',
-                title: 'Job Marked Complete',
-                type: event, //
-                message: `Job marked as completed`,
-                heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
-                payload: {
-                    entity: job.id,
-                    entityType: 'jobs',
-                    message: `Job marked as completed`,
-                    contractor: contractor.id,
-                    event: event,
-                }
-            }, { push: true, socket: true, database: true })
+            // NotificationService.sendNotification({
+            //     user: job.assignment.contractor,
+            //     userType: 'contractors',
+            //     title: 'Job Marked Complete',
+            //     type: event, //
+            //     message: `Job marked as completed`,
+            //     heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
+            //     payload: {
+            //         entity: job.id,
+            //         entityType: 'jobs',
+            //         message: `Job marked as completed`,
+            //         contractor: contractor.id,
+            //         event: event,
+            //     }
+            // }, { push: true, socket: true, database: true })
         }
 
 
@@ -1243,21 +1533,32 @@ JobEvent.on('JOB_COMPLETED', async function (payload: { job: IJob }) {
 
         if (!customer || !contractor) return
 
+        const contractorLang = contractor.language;
+        let nTitle = await i18n.getTranslation({
+            phraseOrSlug: 'Job Completed',
+            targetLang: contractorLang
+        });
+        let nMessage = await i18n.getTranslation({
+            phraseOrSlug: 'Job completion confirmed by customer',
+            targetLang: contractorLang
+        });
+        
         NotificationService.sendNotification({
             user: contractor.id,
             userType: 'contractors',
-            title: 'Job Completed',
-            type: event, //
-            message: `Job completion confirmed by customer`,
+            title: nTitle,
+            type: event,
+            message: nMessage,
             heading: { name: `${customer.firstName} ${customer.lastName}`, image: customer.profilePhoto?.url },
             payload: {
                 entity: job.id,
                 entityType: 'jobs',
-                message: `Job completion confirmed by customer`,
+                message: nMessage,
                 contractor: contractor.id,
                 event: event,
             }
-        }, { push: true, socket: true, database: true })
+        }, { push: true, socket: true, database: true });
+
 
 
         // if (job.isAssigned) {
@@ -1312,22 +1613,33 @@ JobEvent.on('JOB_CHANGE_ORDER', async function (payload: { job: IJob }) {
         const state = job.isChangeOrder ? 'enabled' : 'disabled'
         const event = job.isChangeOrder ? 'JOB_CHANGE_ORDER_ENABLED' : 'JOB_CHANGE_ORDER_DISABLED'
 
+        const contractorLang = contractor.language;
+        let nTitle = await i18n.getTranslation({
+            phraseOrSlug: 'Job Completed',
+            targetLang: contractorLang
+        });
+        let nMessage = await i18n.getTranslation({
+            phraseOrSlug: `Change order is ${state} for your job`,
+            targetLang: contractorLang
+        });
+        
         NotificationService.sendNotification({
             user: contractor.id,
             userType: 'contractors',
-            title: 'Job Completed',
-            type: event, //
-            message: `Change order is ${state} for your job`,
+            title: nTitle,
+            type: event,
+            message: nMessage,
             heading: { name: `${customer.name}`, image: customer.profilePhoto?.url },
             payload: {
                 entity: job.id,
                 entityType: 'jobs',
                 jobId: job.id,
                 jobDayId: jobDay?.id,
-                message: `Change order is ${state} for your job`,
+                message: nMessage,
                 event: event,
             }
-        }, { push: true, socket: true, database: true })
+        }, { push: true, socket: true, database: true });
+
 
 
 
@@ -1373,43 +1685,65 @@ JobEvent.on('SITE_VISIT_ESTIMATE_SUBMITTED', async function (payload: { job: IJo
 
         const jobDay = await JobDayModel.findOne({ job: job.id })
 
+        const customerLang = customer.language;
+        let nTitle = await i18n.getTranslation({
+            phraseOrSlug: 'Job Completed',
+            targetLang: customerLang
+        });
+        let nMessage = await i18n.getTranslation({
+            phraseOrSlug: 'Site visit estimate has been submitted',
+            targetLang: customerLang
+        });
+        
         NotificationService.sendNotification({
             user: customer.id,
             userType: 'customers',
-            title: 'Job Completed',
-            type: 'SITE_VISIT_ESTIMATE_SUBMITTED', //
-            message: `Site visit estimate has been submitted`,
+            title: nTitle,
+            type: 'SITE_VISIT_ESTIMATE_SUBMITTED',
+            message: nMessage,
             heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
             payload: {
                 entity: job.id,
                 entityType: 'jobs',
-                message: `Site visit estimate has been submitted`,
+                message: nMessage,
                 customer: customer.id,
                 event: 'SITE_VISIT_ESTIMATE_SUBMITTED',
                 jobDayId: jobDay?.id,
                 jobId: job.id,
                 quotationId: quotation.id,
             }
-        }, { push: true, socket: true, database: true })
+        }, { push: true, socket: true, database: true });
 
+
+        const contractorLang = contractor.language;
+        nTitle = await i18n.getTranslation({
+            phraseOrSlug: 'Job Completed',
+            targetLang: contractorLang
+        });
+        nMessage = await i18n.getTranslation({
+            phraseOrSlug: 'Site visit estimate has been submitted',
+            targetLang: contractorLang
+        });
+        
         NotificationService.sendNotification({
             user: contractor.id,
             userType: 'contractors',
-            title: 'Job Completed',
-            type: 'SITE_VISIT_ESTIMATE_SUBMITTED', //
-            message: `Site visit estimate has been submitted`,
+            title: nTitle,
+            type: 'SITE_VISIT_ESTIMATE_SUBMITTED',
+            message: nMessage,
             heading: { name: `${customer.name}`, image: customer.profilePhoto?.url },
             payload: {
                 entity: job.id,
                 entityType: 'jobs',
-                message: `Site visit estimate has been submitted`,
+                message: nMessage,
                 customer: customer.id,
                 event: 'SITE_VISIT_ESTIMATE_SUBMITTED',
                 jobDayId: jobDay?.id,
                 jobId: job.id,
                 quotationId: quotation.id,
             }
-        }, { push: true, socket: true, database: true })
+        }, { push: true, socket: true, database: true });
+
 
 
     } catch (error) {
@@ -1437,24 +1771,36 @@ JobEvent.on('CHANGE_ORDER_ESTIMATE_SUBMITTED', async function (payload: { job: I
 
         const jobDay = await JobDayModel.findOne({ job: job.id })
 
+
+        const customerLang = customer.language;
+        let nTitle = await i18n.getTranslation({
+            phraseOrSlug: 'Change order estimate submitted',
+            targetLang: customerLang
+        });
+        let nMessage = await i18n.getTranslation({
+            phraseOrSlug: 'Change order estimate has been submitted',
+            targetLang: customerLang
+        });
+        
         NotificationService.sendNotification({
             user: customer.id,
             userType: 'customers',
-            title: 'Change order estimate submitted',
-            type: 'CHANGE_ORDER_ESTIMATE_SUBMITTED', //
-            message: `Change order estimate has been submitted`,
+            title: nTitle,
+            type: 'CHANGE_ORDER_ESTIMATE_SUBMITTED',
+            message: nMessage,
             heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
             payload: {
                 entity: job.id,
                 entityType: 'jobs',
-                message: `Change order estimate has been submitted`,
+                message: nMessage,
                 customer: customer.id,
                 event: 'CHANGE_ORDER_ESTIMATE_SUBMITTED',
                 jobDayId: jobDay?.id,
                 jobId: job.id,
                 quotationId: quotation.id
             }
-        }, { push: true, socket: true, database: true })
+        }, { push: true, socket: true, database: true });
+
 
 
         // if (job.isAssigned) {
@@ -1499,24 +1845,34 @@ JobEvent.on('NEW_JOB_QUOTATION', async function (payload: { job: IJob, quotation
 
         const conversation = await ConversationUtil.updateOrCreateConversation(customer.id, 'customers', contractor.id, 'contractors')
 
+        const customerLang = customer.language;
+        let nTitle = await i18n.getTranslation({
+            phraseOrSlug: 'New Job Bid',
+            targetLang: customerLang
+        });
+        let nMessage = await i18n.getTranslation({
+            phraseOrSlug: 'Your job on Repairfind has received a new bid',
+            targetLang: customerLang
+        });
+        
         NotificationService.sendNotification({
             user: customer.id,
             userType: 'customers',
-            title: 'New Job Bid',
-            type: 'NEW_JOB_QUOTATION', //
-            message: `Your job on Repairfind has received a new bid`,
+            title: nTitle,
+            type: 'NEW_JOB_QUOTATION',
+            message: nMessage,
             heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
             payload: {
                 entity: job.id,
                 entityType: 'jobs',
-                message: `Your job on Repairfind has received a new bid`,
+                message: nMessage,
                 customer: customer.id,
                 event: 'NEW_JOB_QUOTATION',
                 quotationId: quotation.id,
                 jobType: job.type,
                 conversationId: conversation.id,
             }
-        }, { push: true, socket: true, database: true })
+        }, { push: true, socket: true, database: true });
 
 
     } catch (error) {
@@ -1535,22 +1891,33 @@ JobEvent.on('JOB_QUOTATION_EDITED', async function (payload: { job: IJob, quotat
         if (!customer || !contractor) return
 
 
+        const customerLang = customer.language;
+        let nTitle = await i18n.getTranslation({
+            phraseOrSlug: 'Job Bid Edited',
+            targetLang: customerLang
+        });
+        let nMessage = await i18n.getTranslation({
+            phraseOrSlug: 'Job estimate has been edited by contractor',
+            targetLang: customerLang
+        });
+        
         NotificationService.sendNotification({
             user: customer.id,
             userType: 'customers',
-            title: 'Job Bid Edited',
-            type: 'JOB_QUOTATION_EDITED', //
-            message: `Job estimate as been edited by contractor`,
+            title: nTitle,
+            type: 'JOB_QUOTATION_EDITED',
+            message: nMessage,
             heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
             payload: {
                 entity: job.id,
                 entityType: 'jobs',
-                message: `Job estimate as been edited by contractor`,
+                message: nMessage,
                 customer: customer.id,
                 event: 'JOB_QUOTATION_EDITED',
                 quotationId: quotation.id,
             }
-        }, { push: true, socket: true, database: true })
+        }, { push: true, socket: true, database: true });
+
 
 
         // if (job.isAssigned) {
@@ -1593,23 +1960,34 @@ JobEvent.on('CHANGE_ORDER_ESTIMATE_PAID', async function (payload: { job: IJob, 
         if (!customer || !contractor) return
 
 
+        const contractorLang = contractor.language;
+        let nTitle = await i18n.getTranslation({
+            phraseOrSlug: 'Change Order Estimate Paid',
+            targetLang: contractorLang
+        });
+        let nMessage = await i18n.getTranslation({
+            phraseOrSlug: 'Change order estimate has been paid',
+            targetLang: contractorLang
+        });
+        
         NotificationService.sendNotification({
             user: contractor.id,
             userType: 'contractors',
-            title: 'Change Order Estimate Paid',
-            type: 'CHANGE_ORDER_ESTIMATE_PAID', //
-            message: `Change order estimate has been paid`,
+            title: nTitle,
+            type: 'CHANGE_ORDER_ESTIMATE_PAID',
+            message: nMessage,
             heading: { name: `${customer.name}`, image: customer.profilePhoto?.url },
             payload: {
                 entity: job.id,
                 entityType: 'jobs',
-                message: `Change order estimate has been paid`,
+                message: nMessage,
                 customer: customer.id,
                 event: 'CHANGE_ORDER_ESTIMATE_PAID',
                 jobId: job.id,
                 jobDayId: jobDay?.id
             }
-        }, { push: true, socket: true, database: true })
+        }, { push: true, socket: true, database: true });
+
 
 
     } catch (error) {
@@ -1638,60 +2016,72 @@ JobEvent.on('JOB_DAY_STARTED', async function (payload: { job: IJob, jobDay: IJo
 
 
         // send notification to contractor or company
+        const contractorLang = contractor.language;
+        let nTitle = await i18n.getTranslation({
+            phraseOrSlug: 'JobDay Trip Started',
+            targetLang: contractorLang
+        });
+        let nMessage = await i18n.getTranslation({
+            phraseOrSlug: 'JobDay trip started',
+            targetLang: contractorLang
+        });
+        
         NotificationService.sendNotification(
             {
                 user: contractor.id,
                 userType: 'contractors',
-                title: 'JobDay Trip Started',
+                title: nTitle,
                 heading: { name: contractor.name, image: contractor.profilePhoto?.url },
                 type: 'JOB_DAY_STARTED',
-                message: 'JobDay trip  started',
+                message: nMessage,
                 payload: { event: 'JOB_DAY_STARTED', jobDayId: jobDay._id, entityType: 'jobs', entity: job.id }
             },
-            {
-                push: true,
-                socket: true,
-                database: true
-            }
-        )
+            { push: true, socket: true, database: true }
+        );
+
 
         if (job.isAssigned) {
             // send notification to  assigned contractor
-            NotificationService.sendNotification(
-                {
-                    user: job.assignment.contractor,
-                    userType: 'contractors',
-                    title: 'JobDay Trip Started',
-                    heading: { name: contractor.name, image: contractor.profilePhoto?.url },
-                    type: 'JOB_DAY_STARTED',
-                    message: 'JobDay trip  started',
-                    payload: { event: 'JOB_DAY_STARTED', jobDayId: jobDay._id, entityType: 'jobs', entity: job.id }
-                },
-                {
-                    push: true,
-                    socket: true,
-                    database: true
-                }
-            )
+            // NotificationService.sendNotification(
+            //     {
+            //         user: job.assignment.contractor,
+            //         userType: 'contractors',
+            //         title: 'JobDay Trip Started',
+            //         heading: { name: contractor.name, image: contractor.profilePhoto?.url },
+            //         type: 'JOB_DAY_STARTED',
+            //         message: 'JobDay trip  started',
+            //         payload: { event: 'JOB_DAY_STARTED', jobDayId: jobDay._id, entityType: 'jobs', entity: job.id }
+            //     },
+            //     {
+            //         push: true,
+            //         socket: true,
+            //         database: true
+            //     }
+            // )
         }
 
         // send notification to customer
-        NotificationService.sendNotification(
-            {
-                user: customer.id,
-                userType: 'customers',
-                title: 'Job Day',
-                heading: { name: customer.name, image: customer.profilePhoto?.url },
-                type: 'JOB_DAY_STARTED',
-                message: 'Contractor is on his way',
-                payload: { event: 'JOB_DAY_STARTED', jobDayId: jobDay._id, entityType: 'jobs', entity: job.id }
-            },
-            {
-                push: true,
-                socket: true,
-                database: true
-            }
-        )
+        const customerLang = customer.language;
+        nTitle = await i18n.getTranslation({
+            phraseOrSlug: 'Job Day',
+            targetLang: customerLang
+        });
+        nMessage = await i18n.getTranslation({
+            phraseOrSlug: 'Contractor is on his way',
+            targetLang: customerLang
+        });
+        
+        NotificationService.sendNotification({
+            user: customer.id,
+            userType: 'customers',
+            title: nTitle,
+            heading: { name: customer.name, image: customer.profilePhoto?.url },
+            type: 'JOB_DAY_STARTED',
+            message: nMessage,
+            payload: { event: 'JOB_DAY_STARTED', jobDayId: jobDay._id, entityType: 'jobs', entity: job.id }
+        },
+            { push: true, socket: true, database: true });
+
 
     } catch (error) {
         Logger.error(`Error handling JOB_MARKED_COMPLETE_BY_CONTRACTOR event: ${error}`);
@@ -1715,14 +2105,25 @@ JobEvent.on('JOB_DAY_ARRIVAL', async function (payload: { jobDay: IJobDay, verif
         if (!customer || !contractor) return
 
         // send notification to  customer
+        const customerLang = customer.language;
+        let nTitle = await i18n.getTranslation({
+            phraseOrSlug: 'Job Day',
+            targetLang: customerLang
+        });
+        let nMessage = await i18n.getTranslation({
+            phraseOrSlug: 'Contractor is at your site.',
+            targetLang: customerLang
+        });
+        
+
         NotificationService.sendNotification(
             {
-                user: jobDay.customer.toString(),
+                user: customer.id,
                 userType: 'customers',
-                title: 'JobDay',
+                title: nTitle,
                 heading: { name: contractor.name, image: contractor.profilePhoto?.url },
                 type: 'JOB_DAY_ARRIVAL',
-                message: 'Contractor is at your site.',
+                message: nMessage,
                 payload: { event: 'JOB_DAY_ARRIVAL', jobDayId: jobDay.id, verificationCode, entityType: 'jobs', entity: job.id }
             },
             {
@@ -1730,17 +2131,29 @@ JobEvent.on('JOB_DAY_ARRIVAL', async function (payload: { jobDay: IJobDay, verif
                 socket: true,
                 database: true
             }
-        )
+        );
+
 
         // send notification to  contractor
+        const contractorLang = contractor.language;
+        nTitle = await i18n.getTranslation({
+            phraseOrSlug: 'Job Day',
+            targetLang: contractorLang
+        });
+        nMessage = await i18n.getTranslation({
+            phraseOrSlug: 'Job Day arrival, waiting for confirmation from customer.',
+            targetLang: contractorLang
+        });
+        
+
         NotificationService.sendNotification(
             {
                 user: contractor.id,
                 userType: 'contractors',
-                title: 'JobDay',
+                title: nTitle,
                 heading: { name: customer.name, image: customer.profilePhoto?.url },
                 type: 'JOB_DAY_ARRIVAL',
-                message: 'Job Day arrival, waiting for confirmation from customer.',
+                message: nMessage,
                 payload: { event: 'JOB_DAY_ARRIVAL', jobDayId: jobDay.id, verificationCode, entityType: 'jobs', entity: job.id }
             },
             {
@@ -1748,25 +2161,26 @@ JobEvent.on('JOB_DAY_ARRIVAL', async function (payload: { jobDay: IJobDay, verif
                 socket: true,
                 database: true
             }
-        )
+        );
+
 
         if (job.isAssigned) {
-            NotificationService.sendNotification(
-                {
-                    user: job.assignment.contractor,
-                    userType: 'contractors',
-                    title: 'JobDay',
-                    heading: { name: customer.name, image: customer.profilePhoto?.url },
-                    type: 'JOB_DAY_ARRIVAL',
-                    message: 'Job Day arrival, waiting for confirmation from customer.',
-                    payload: { event: 'JOB_DAY_ARRIVAL', jobDayId: jobDay.id, verificationCode, entityType: 'jobs', entity: job.id }
-                },
-                {
-                    push: true,
-                    socket: true,
-                    database: true
-                }
-            )
+            // NotificationService.sendNotification(
+            //     {
+            //         user: job.assignment.contractor,
+            //         userType: 'contractors',
+            //         title: 'JobDay',
+            //         heading: { name: customer.name, image: customer.profilePhoto?.url },
+            //         type: 'JOB_DAY_ARRIVAL',
+            //         message: 'Job Day arrival, waiting for confirmation from customer.',
+            //         payload: { event: 'JOB_DAY_ARRIVAL', jobDayId: jobDay.id, verificationCode, entityType: 'jobs', entity: job.id }
+            //     },
+            //     {
+            //         push: true,
+            //         socket: true,
+            //         database: true
+            //     }
+            // )
         }
 
     } catch (error) {
@@ -1791,14 +2205,24 @@ JobEvent.on('JOB_DAY_CONFIRMED', async function (payload: { jobDay: IJobDay }) {
         if (!customer || !contractor) return
 
         // send notification to  contractor
+        const contractorLang = contractor.language;
+        let nTitle = await i18n.getTranslation({
+            phraseOrSlug: 'JobDay Confirmation',
+            targetLang: contractorLang
+        });
+        let nMessage = await i18n.getTranslation({
+            phraseOrSlug: 'Customer has confirmed your arrival.',
+            targetLang: contractorLang
+        });
+        
         NotificationService.sendNotification(
             {
                 user: job.contractor,
                 userType: 'contractors',
-                title: 'JobDay confirmation',
+                title: nTitle,
                 heading: { name: customer.name, image: customer.profilePhoto?.url },
                 type: 'JOB_DAY_CONFIRMED',
-                message: 'Customer has confirmed your arrival.',
+                message: nMessage,
                 payload: { event: 'JOB_DAY_CONFIRMED', jobDayId: jobDay.id, entityType: 'jobs', entity: job.id }
             },
             {
@@ -1806,45 +2230,54 @@ JobEvent.on('JOB_DAY_CONFIRMED', async function (payload: { jobDay: IJobDay }) {
                 socket: true,
                 database: true
             }
-        )
+        );
+
 
         if (job.assignment) {
-            NotificationService.sendNotification(
-                {
-                    user: job.assignment.contractor,
-                    userType: 'contractors',
-                    title: 'JobDay confirmation',
-                    heading: { name: customer.name, image: customer.profilePhoto?.url },
-                    type: 'JOB_DAY_CONFIRMED',
-                    message: 'Customer has confirmed your arrival.',
-                    payload: { event: 'JOB_DAY_CONFIRMED', jobDayId: jobDay.id, entityType: 'jobs', entity: job.id }
-                },
-                {
-                    push: true,
-                    socket: true,
-                    database: true
-                }
-            )
+            // NotificationService.sendNotification(
+            //     {
+            //         user: job.assignment.contractor,
+            //         userType: 'contractors',
+            //         title: 'JobDay confirmation',
+            //         heading: { name: customer.name, image: customer.profilePhoto?.url },
+            //         type: 'JOB_DAY_CONFIRMED',
+            //         message: 'Customer has confirmed your arrival.',
+            //         payload: { event: 'JOB_DAY_CONFIRMED', jobDayId: jobDay.id, entityType: 'jobs', entity: job.id }
+            //     },
+            //     {
+            //         push: true,
+            //         socket: true,
+            //         database: true
+            //     }
+            // )
 
         }
 
         // send notification to  customer
+        const customerLang = customer.language;
+        nTitle = await i18n.getTranslation({
+            phraseOrSlug: 'JobDay confirmation',
+            targetLang: customerLang
+        });
+        nMessage = await i18n.getTranslation({
+            phraseOrSlug: "You successfully confirmed the contractor's arrival.",
+            targetLang: customerLang
+        });
+        
+
         NotificationService.sendNotification(
             {
                 user: job.customer,
                 userType: 'customers',
-                title: 'JobDay confirmation',
+                title: nTitle,
                 heading: { name: contractor.name, image: contractor.profilePhoto?.url },
                 type: 'JOB_DAY_CONFIRMED',
-                message: "You successfully confirmed the contractor's arrival.",
+                message: nMessage,
                 payload: { event: 'JOB_DAY_CONFIRMED', jobDayId: jobDay.id, entityType: 'jobs', entity: job.id }
             },
-            {
-                push: true,
-                socket: true,
-                database: true
-            }
-        )
+            { push: true, socket: true, database: true }
+        );
+
 
 
     } catch (error) {
@@ -1879,7 +2312,9 @@ JobEvent.on('JOB_REFUND_REQUESTED', async function (payload: { job: any, payment
                 <p><strong>Refund Amount:</strong> ${refund.refundAmount}</p>
                 `
         let html = GenericEmailTemplate({ name: customer.name, subject: emailSubject, content: emailContent })
-        EmailService.send(customer.email, emailSubject, html)
+        const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true}) || html;            
+        const translatedSubject = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: customer.language}) || emailSubject;
+        EmailService.send(customer.email, translatedSubject, translatedHtml)
 
 
         // send notification to  contractor
@@ -1894,7 +2329,9 @@ JobEvent.on('JOB_REFUND_REQUESTED', async function (payload: { job: any, payment
                 <p><strong>Refund Amount:</strong> ${refund.refundAmount}</p>
                 `
         html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
-        EmailService.send(contractor.email, emailSubject, html)
+        const translatedHtmlC = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true}) || html;            
+        const translatedSubjectC = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: contractor.language}) || emailSubject;
+        EmailService.send(contractor.email, translatedSubjectC, translatedHtmlC)
 
 
     } catch (error) {
@@ -1923,39 +2360,61 @@ JobEvent.on('NEW_JOB_ENQUIRY', async function (payload: { jobId: any, enquiryId:
         const savedJobs = await ContractorSavedJobModel.find({ job: job.id })
         const contractorIds = savedJobs.map(savedJob => savedJob.contractor)
         const devices = await ContractorDeviceModel.find({ contractor: { $in: contractorIds } })
-        devices.map(device => {
-            NotificationService.sendNotification(
-                {
-                    user: device.contractor.toString(),
-                    userType: 'contractors',
-                    title: 'New Job Enquiry',
-                    type: 'NEW_JOB_ENQUIRY',
-                    heading: { name: customer.name, image: customer.profilePhoto?.url },
-                    message: 'A Job you  saved on Repairfind has a new enquiry',
-                    payload: { event: 'NEW_JOB_ENQUIRY', entityType: 'jobs', entity: job.id }
-                },
-                {
-                    push: true,
-                    socket: true,
-                    database: true
-                }
-            )
+        devices.map(async (device) => {
+            const contractor = await ContractorModel.findById(device.contractor)
+            if (contractor) {
+                const contractorLang = contractor.language;
+                let nTitle = await i18n.getTranslation({
+                    phraseOrSlug: 'New Job Enquiry',
+                    targetLang: contractorLang
+                });
+                let nMessage = await i18n.getTranslation({
+                    phraseOrSlug: 'A Job you saved on Repairfind has a new enquiry',
+                    targetLang: contractorLang
+                });
+                
+                NotificationService.sendNotification(
+                    {
+                        user: device.contractor.toString(),
+                        userType: 'contractors',
+                        title: nTitle,
+                        type: 'NEW_JOB_ENQUIRY',
+                        heading: { name: customer.name, image: customer.profilePhoto?.url },
+                        message: nMessage,
+                        payload: { event: 'NEW_JOB_ENQUIRY', entityType: 'jobs', entity: job.id }
+                    },
+                    { push: true, socket: true, database: true }
+                );
+            }
+
         });
 
 
         if (customer) {
+            const customerLang = customer.language;
+            let nTitle = await i18n.getTranslation({
+                phraseOrSlug: 'New Job Enquiry',
+                targetLang: customerLang
+            });
+            let nMessage = await i18n.getTranslation({
+                phraseOrSlug: 'Your job on Repairfind has a new enquiry',
+                targetLang: customerLang
+            });
+            
             NotificationService.sendNotification(
                 {
-                    user: job.customer,
+                    user: customer.id,
                     userType: 'customers',
-                    title: 'New Job Enquiry',
+                    title: nTitle,
                     heading: { name: contractor.name, image: contractor.profilePhoto?.url },
                     type: 'NEW_JOB_ENQUIRY',
-                    message: 'Your job on Repairfind has a new enquiry',
+                    message: nMessage,
                     payload: { event: 'NEW_JOB_ENQUIRY', entityType: 'jobs', entity: job.id }
                 },
                 { push: true, socket: true, database: true }
-            )
+            );
+
+            
             let emailSubject = 'New Job Enquiry '
             let emailContent = `
                 <h2>${emailSubject}</h2>
@@ -1968,7 +2427,9 @@ JobEvent.on('NEW_JOB_ENQUIRY', async function (payload: { jobId: any, enquiryId:
                 <p style="color: #333333;">Do well to check and follow up as soon as possible </p>
                 `
             let html = GenericEmailTemplate({ name: customer.name, subject: emailSubject, content: emailContent })
-            EmailService.send(customer.email, emailSubject, html)
+            const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true}) || html;            
+            const translatedSubject = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: customer.language}) || emailSubject;
+            EmailService.send(customer.email, translatedSubject, translatedHtml)
         }
 
     } catch (error) {
@@ -2001,38 +2462,34 @@ JobEvent.on('NEW_JOB_ENQUIRY_REPLY', async function (payload: { jobId: any, enqu
         const deviceTokens = devices.map(device => device.expoToken);
 
 
-        devices.map(device => {
-            NotificationService.sendNotification(
-                {
-                    user: device.contractor.toString(),
-                    userType: 'contractors',
-                    title: 'New Job Enquiry Reply',
-                    type: 'NEW_JOB_ENQUIRY_REPLY',
-                    heading: { name: customer.name, image: customer.profilePhoto?.url },
-                    message: 'A job you are following on Repairfind has a new reply from the customer',
-                    payload: { event: 'NEW_JOB_ENQUIRY_REPLY', entityType: 'jobs', entity: job.id }
-                },
-                {
-                    push: true,
-                    socket: true,
-                    database: true
-                }
-            )
+        devices.map( async(device) => {
+            const contractor = await ContractorModel.findById(device.contractor)
+            if(contractor){
+                const contractorLang = contractor.language;
+                let nTitle = await i18n.getTranslation({
+                    phraseOrSlug: 'New Job Enquiry Reply',
+                    targetLang: contractorLang
+                });
+                let nMessage = await i18n.getTranslation({
+                    phraseOrSlug: 'A job you are following on Repairfind has a new reply from the customer',
+                    targetLang: contractorLang
+                });
+                
+                NotificationService.sendNotification(
+                    {
+                        user: contractor.id,
+                        userType: 'contractors',
+                        title: nTitle,
+                        type: 'NEW_JOB_ENQUIRY_REPLY',
+                        heading: { name: customer.name, image: customer.profilePhoto?.url },
+                        message: nMessage,
+                        payload: { event: 'NEW_JOB_ENQUIRY_REPLY', entityType: 'jobs', entity: job.id }
+                    },
+                    { push: true, socket: true, database: true }
+                );
+                
+            }
         });
-
-
-        // sendPushNotifications(deviceTokens, {
-        //     title: 'New Job Enquiry Reply',
-        //     type: 'NEW_JOB_ENQUIRY_REPLY',
-        //     icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
-        //     body: 'A job you are following on Repairfind has a new reply from the customer',
-        //     data: {
-        //         entity: job.id,
-        //         entityType: 'jobs',
-        //         message: `A job you are following on Repairfind has a new reply from the customer`,
-        //         event: 'NEW_JOB_QUESTION_REPLY',
-        //     }
-        // })
 
 
 
@@ -2049,7 +2506,9 @@ JobEvent.on('NEW_JOB_ENQUIRY_REPLY', async function (payload: { jobId: any, enqu
                     <p><strong>Reply</strong> ${enquiry.replies ? enquiry.replies[0] : ''}</p>
                     `
             let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
-            EmailService.send(contractor.email, emailSubject, html)
+            const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true}) || html;            
+            const translatedSubject = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: contractor.language}) || emailSubject;
+            EmailService.send(contractor.email, translatedSubject, translatedHtml)
         }
 
 
