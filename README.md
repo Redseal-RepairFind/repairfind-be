@@ -27,3 +27,4 @@
 ```
 
 <!-- npx copyfiles src/i18n/translations/* -u 1 dist/ &&  -->
+<!-- "translate": "^1.4.1", -->

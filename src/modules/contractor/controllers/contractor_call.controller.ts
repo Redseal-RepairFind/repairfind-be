@@ -137,8 +137,8 @@ export const startCall = async (
 
 
         const userLang = user.language;          
-        let nTitle = await i18n.getTranslation({ phraseOrSlug: 'New Incoming Call', lang: userLang });
-        let nMessage = await i18n.getTranslation({phraseOrSlug: `You've an incoming call from`,lang: userLang});
+        let nTitle = await i18n.getTranslation({ phraseOrSlug: 'New Incoming Call', targetLang: userLang });
+        let nMessage = await i18n.getTranslation({phraseOrSlug: `You've an incoming call from`,targetLang: userLang});
 
         NotificationService.sendNotification({
             user: user.id,
@@ -201,8 +201,8 @@ export const endCall = async (
 
 
             const userLang = fromUser.language;          
-            let nTitle = await i18n.getTranslation({ phraseOrSlug: title, lang: userLang });
-            let nMessage = await i18n.getTranslation({phraseOrSlug: message,lang: userLang});
+            let nTitle = await i18n.getTranslation({ phraseOrSlug: title, targetLang: userLang });
+            let nMessage = await i18n.getTranslation({phraseOrSlug: message,targetLang: userLang});
             
             NotificationService.sendNotification({
                 user: call.fromUser,
@@ -230,8 +230,8 @@ export const endCall = async (
 
 
             const userLang = toUser.language;          
-            let nTitle = await i18n.getTranslation({ phraseOrSlug: title, lang: userLang });
-            let nMessage = await i18n.getTranslation({phraseOrSlug: message,lang: userLang});
+            let nTitle = await i18n.getTranslation({ phraseOrSlug: title, targetLang: userLang });
+            let nMessage = await i18n.getTranslation({phraseOrSlug: message,targetLang: userLang});
 
             NotificationService.sendNotification({
                 user: call.toUser,

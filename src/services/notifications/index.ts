@@ -74,8 +74,8 @@ export class NotificationService {
         if (!user) return
 
         // do translation of notifications here ?
-        // params.title = await i18n.getTranslation({phraseOrSlug: params.title, lang: user.language})
-        // params.message = await i18n.getTranslation({phraseOrSlug: params.message, lang: user.language})
+        // params.title = await i18n.getTranslation({phraseOrSlug: params.title, targetLang: user.language})
+        // params.message = await i18n.getTranslation({phraseOrSlug: params.message, targetLang: user.language})
 
         if ('firebase' in options) {
         }

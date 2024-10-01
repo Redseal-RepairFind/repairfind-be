@@ -67,34 +67,15 @@ class AuthHandler extends Base {
 
 
             const html = OtpEmailTemplate(otp, firstName ?? companyName, "We have received a request to verify your email");
-            let translatedHtml = await i18n.getTranslation({
-                phraseOrSlug: html,
-                lang: contractor.language,
-                saveToFile: false,
-                useGoogle: true
-            }) || html ;            
-            
-            let translatedSubject = await i18n.getTranslation({
-                phraseOrSlug: "Email Verification",
-                lang: contractor.language
-            }) || 'Email Verification';
+            let translatedHtml = await i18n.getTranslation({phraseOrSlug: html,targetLang: contractor.language,saveToFile: false,useGoogle: true}) || html ;            
+            let translatedSubject = await i18n.getTranslation({phraseOrSlug: "Email Verification",targetLang: contractor.language}) || 'Email Verification';
             await EmailService.send(email, translatedSubject, translatedHtml);
 
-
             const welcomeHtml = ContractorWelcomeTemplate(firstName ?? companyName);
-             translatedHtml = await i18n.getTranslation({
-                phraseOrSlug: welcomeHtml,
-                lang: contractor.language,
-                saveToFile: false,
-                useGoogle: true
-            }) || welcomeHtml;            
-             translatedSubject = await i18n.getTranslation({
-                phraseOrSlug: "Welcome to Repairfind",
-                lang: contractor.language
-            }) || 'Welcome to Repairfind';
+            translatedHtml = await i18n.getTranslation({phraseOrSlug: welcomeHtml,targetLang: contractor.language,saveToFile: false,useGoogle: true}) || welcomeHtml;            
+            translatedSubject = await i18n.getTranslation({phraseOrSlug: "Welcome to Repairfind",targetLang: contractor.language}) || 'Welcome to Repairfind';
             await EmailService.send(email, translatedSubject!, translatedHtml!);
 
-         
             return res.json({
                 success: true,
                 message: "Signup successful",
@@ -415,16 +396,8 @@ class AuthHandler extends Base {
             await contractor?.save();
 
             const html = OtpEmailTemplate(otp, contractor.firstName, "We have received a request to verify your email")
-            const translatedHtml = await i18n.getTranslation({
-                phraseOrSlug: html,
-                lang: contractor.language,
-                saveToFile: false,
-                useGoogle: true
-            }) || html;            
-            const translatedSubject = await i18n.getTranslation({
-                phraseOrSlug: "Email Verification",
-                lang: contractor.language
-            }) || 'Email Verification';
+            const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true}) || html;            
+            const translatedSubject = await i18n.getTranslation({ phraseOrSlug: "Email Verification", targetLang: contractor.language}) || 'Email Verification';
             
             EmailService.send(email, translatedSubject, translatedHtml)
             return res.status(200).json({ success: true, message: "OTP sent successfully to your email." });
@@ -468,17 +441,8 @@ class AuthHandler extends Base {
             await contractor?.save();
             const html = OtpEmailTemplate(otp, contractor.firstName, "We have received a request to change your password")
             
-            const translatedHtml = await i18n.getTranslation({
-                phraseOrSlug: html,
-                lang: contractor.language,
-                saveToFile: false,
-                useGoogle: true
-            });            
-            
-            const translatedSubject = await i18n.getTranslation({
-                phraseOrSlug: 'Password Change',
-                lang: contractor.language
-            });
+            const translatedHtml = await i18n.getTranslation({phraseOrSlug: html,targetLang: contractor.language,saveToFile: false,useGoogle: true});            
+            const translatedSubject = await i18n.getTranslation({phraseOrSlug: 'Password Change',targetLang: contractor.language});
 
             EmailService.send(contractor.email, translatedSubject!, translatedHtml!)
             return res.status(200).json({ success: true, message: "OTP sent successfully to your email." });

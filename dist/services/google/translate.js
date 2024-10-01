@@ -64,7 +64,6 @@ function translateText(_a) {
                                 key: config_1.config.google.apiKey,
                                 // model: model,
                                 format: format,
-                                // except: 'Contractor,Individual'
                             },
                         })];
                 case 1:

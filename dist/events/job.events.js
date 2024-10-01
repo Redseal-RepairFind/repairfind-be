@@ -120,16 +120,10 @@ exports.JobEvent.on('NEW_JOB_REQUEST', function (payload) {
                     conversation = _c.sent();
                     if (!(job && contractor && customer)) return [3 /*break*/, 9];
                     contractorLang = contractor.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
-                            phraseOrSlug: "You've received a job request from",
-                            lang: contractorLang
-                        })];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: "You've received a job request from", targetLang: contractorLang })];
                 case 5:
                     nMessage = _c.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
-                            phraseOrSlug: 'New Job Request',
-                            lang: contractorLang
-                        })];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'New Job Request', targetLang: contractorLang })];
                 case 6:
                     nTitle = _c.sent();
                     services_1.NotificationService.sendNotification({
@@ -150,13 +144,13 @@ exports.JobEvent.on('NEW_JOB_REQUEST', function (payload) {
                     customerLang = customer.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: "You've sent a job request to",
-                            lang: customerLang
+                            targetLang: customerLang
                         })];
                 case 7:
                     nMessage = _c.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'New Job Request',
-                            lang: customerLang
+                            targetLang: customerLang
                         })];
                 case 8:
                     nTitle = _c.sent();
@@ -209,13 +203,13 @@ exports.JobEvent.on('JOB_REQUEST_ACCEPTED', function (payload) {
                     contractorLang = contractor.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: "You've accepted a job request from",
-                            lang: contractorLang
+                            targetLang: contractorLang
                         })];
                 case 3:
                     nMessage = _c.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Job Request Accepted',
-                            lang: contractorLang
+                            targetLang: contractorLang
                         })];
                 case 4:
                     nTitle = _c.sent();
@@ -244,13 +238,13 @@ exports.JobEvent.on('JOB_REQUEST_ACCEPTED', function (payload) {
                     customerLang = customer.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Job Request Accepted',
-                            lang: customerLang
+                            targetLang: customerLang
                         })];
                 case 5:
                     nTitle = _c.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: "Contractor has accepted your job request",
-                            lang: customerLang
+                            targetLang: customerLang
                         })];
                 case 6:
                     nMessage = _c.sent();
@@ -307,13 +301,13 @@ exports.JobEvent.on('JOB_REQUEST_REJECTED', function (payload) {
                     contractorLang = contractor.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Job Request Rejected',
-                            lang: contractorLang
+                            targetLang: contractorLang
                         })];
                 case 3:
                     nTitle = _c.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: "You've rejected a job request from",
-                            lang: contractorLang
+                            targetLang: contractorLang
                         })];
                 case 4:
                     nMessage = _c.sent();
@@ -335,13 +329,13 @@ exports.JobEvent.on('JOB_REQUEST_REJECTED', function (payload) {
                     customerLang = customer.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Job Request Rejected',
-                            lang: customerLang
+                            targetLang: customerLang
                         })];
                 case 5:
                     nTitle = _c.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: "Contractor has rejected your job request",
-                            lang: customerLang
+                            targetLang: customerLang
                         })];
                 case 6:
                     nMessage = _c.sent();
@@ -427,13 +421,13 @@ exports.JobEvent.on('NEW_JOB_LISTING', function (payload) {
                                     contractorLang = contractor.language;
                                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                                             phraseOrSlug: 'New Job Listing',
-                                            lang: contractorLang
+                                            targetLang: contractorLang
                                         })];
                                 case 2:
                                     nTitle = _a.sent();
                                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                                             phraseOrSlug: 'There is a new job listing that matches your profile',
-                                            lang: contractorLang
+                                            targetLang: contractorLang
                                         })];
                                 case 3:
                                     nMessage = _a.sent();
@@ -468,11 +462,11 @@ exports.JobEvent.on('NEW_JOB_LISTING', function (payload) {
 exports.JobEvent.on('JOB_CANCELED', function (payload) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var customer, contractor, job, html, html, customerLang, nTitle, nMessage, contractorLang, error_5;
+        var customer, contractor, job, html, translatedHtml, translatedSubject, html, translatedHtml, translatedSubject, customerLang, nTitle, nMessage, contractorLang, error_5;
         return __generator(this, function (_c) {
             switch (_c.label) {
                 case 0:
-                    _c.trys.push([0, 7, , 8]);
+                    _c.trys.push([0, 13, , 14]);
                     logger_1.Logger.info('handling alert JOB_CANCELED event');
                     return [4 /*yield*/, customer_model_1.default.findById(payload.job.customer)];
                 case 1:
@@ -483,28 +477,42 @@ exports.JobEvent.on('JOB_CANCELED', function (payload) {
                     job = payload.job;
                     if (!customer || !contractor || !job || !payload.canceledBy)
                         return [2 /*return*/];
-                    if (payload.canceledBy == 'contractor') {
-                        logger_1.Logger.info('job cancelled by contractor');
-                        html = (0, job_canceled_template_1.JobCanceledEmailTemplate)({ name: customer.name, canceledBy: payload.canceledBy, job: payload.job });
-                        services_1.EmailService.send(customer.email, "Job Canceled", html);
-                    }
-                    if (payload.canceledBy == 'customer') {
-                        logger_1.Logger.info('job cancelled by customer');
-                        html = (0, job_canceled_template_1.JobCanceledEmailTemplate)({ name: contractor.name, canceledBy: 'customer', job: payload.job });
-                        services_1.EmailService.send(contractor.email, "Job Canceled", html);
-                    }
+                    if (!(payload.canceledBy == 'contractor')) return [3 /*break*/, 5];
+                    logger_1.Logger.info('job cancelled by contractor');
+                    html = (0, job_canceled_template_1.JobCanceledEmailTemplate)({ name: customer.name, canceledBy: payload.canceledBy, job: payload.job });
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true })];
+                case 3:
+                    translatedHtml = (_c.sent()) || html;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: "Job Canceled", targetLang: contractor.language })];
+                case 4:
+                    translatedSubject = (_c.sent()) || 'Job Canceled';
+                    services_1.EmailService.send(customer.email, translatedSubject, translatedHtml);
+                    _c.label = 5;
+                case 5:
+                    if (!(payload.canceledBy == 'customer')) return [3 /*break*/, 8];
+                    logger_1.Logger.info('job cancelled by customer');
+                    html = (0, job_canceled_template_1.JobCanceledEmailTemplate)({ name: contractor.name, canceledBy: 'customer', job: payload.job });
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true })];
+                case 6:
+                    translatedHtml = (_c.sent()) || html;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: "Job Canceled", targetLang: contractor.language })];
+                case 7:
+                    translatedSubject = (_c.sent()) || 'Job Canceled';
+                    services_1.EmailService.send(contractor.email, translatedSubject, translatedHtml);
+                    _c.label = 8;
+                case 8:
                     customerLang = customer.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Job Canceled',
-                            lang: customerLang
+                            targetLang: customerLang
                         })];
-                case 3:
+                case 9:
                     nTitle = _c.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Your job on Repairfind has been canceled',
-                            lang: customerLang
+                            targetLang: customerLang
                         })];
-                case 4:
+                case 10:
                     nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
                         user: customer.id,
@@ -524,15 +532,15 @@ exports.JobEvent.on('JOB_CANCELED', function (payload) {
                     contractorLang = contractor.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Job Canceled',
-                            lang: contractorLang
+                            targetLang: contractorLang
                         })];
-                case 5:
+                case 11:
                     nTitle = _c.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Your job on Repairfind has been canceled',
-                            lang: contractorLang
+                            targetLang: contractorLang
                         })];
-                case 6:
+                case 12:
                     nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
                         user: contractor.id,
@@ -549,12 +557,12 @@ exports.JobEvent.on('JOB_CANCELED', function (payload) {
                             event: 'JOB_CANCELED',
                         }
                     }, { push: true, socket: true, database: true });
-                    return [3 /*break*/, 8];
-                case 7:
+                    return [3 /*break*/, 14];
+                case 13:
                     error_5 = _c.sent();
                     logger_1.Logger.error("Error handling JOB_CANCELED event: ".concat(error_5));
-                    return [3 /*break*/, 8];
-                case 8: return [2 /*return*/];
+                    return [3 /*break*/, 14];
+                case 14: return [2 /*return*/];
             }
         });
     });
@@ -580,13 +588,13 @@ exports.JobEvent.on('JOB_DISPUTE_REFUND_CREATED', function (payload) {
                     contractorLang = contractor.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Job Dispute Refund Created',
-                            lang: contractorLang
+                            targetLang: contractorLang
                         })];
                 case 3:
                     nTitle = _c.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Full refund of your disputed job has been approved on Repairfind',
-                            lang: contractorLang
+                            targetLang: contractorLang
                         })];
                 case 4:
                     nMessage = _c.sent();
@@ -608,13 +616,13 @@ exports.JobEvent.on('JOB_DISPUTE_REFUND_CREATED', function (payload) {
                     customerLang = customer.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Job Dispute Refund Created',
-                            lang: customerLang
+                            targetLang: customerLang
                         })];
                 case 5:
                     nTitle = _c.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Full refund of your disputed job has been approved on Repairfind',
-                            lang: customerLang
+                            targetLang: customerLang
                         })];
                 case 6:
                     nMessage = _c.sent();
@@ -669,13 +677,13 @@ exports.JobEvent.on('JOB_REVISIT_ENABLED', function (payload) {
                     contractorLang = contractor.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Job Revisit Enabled',
-                            lang: contractorLang
+                            targetLang: contractorLang
                         })];
                 case 4:
                     nTitle = _c.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'A revisit for your disputed job has been enabled on Repairfind',
-                            lang: contractorLang
+                            targetLang: contractorLang
                         })];
                 case 5:
                     nMessage = _c.sent();
@@ -698,13 +706,13 @@ exports.JobEvent.on('JOB_REVISIT_ENABLED', function (payload) {
                     customerLang = customer.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Job Revisit Enabled',
-                            lang: customerLang
+                            targetLang: customerLang
                         })];
                 case 6:
                     nTitle = _c.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'A revisit for your disputed job has been enabled on Repairfind',
-                            lang: customerLang
+                            targetLang: customerLang
                         })];
                 case 7:
                     nMessage = _c.sent();
@@ -765,13 +773,13 @@ exports.JobEvent.on('JOB_QUOTATION_DECLINED', function (payload) {
                     contractorLang = contractor.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Your job quotation for a job on RepairFind was declined',
-                            lang: contractorLang
+                            targetLang: contractorLang
                         })];
                 case 5:
                     nMessage = _b.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Job Quotation Declined',
-                            lang: contractorLang
+                            targetLang: contractorLang
                         })];
                 case 6:
                     nTitle = _b.sent();
@@ -832,13 +840,13 @@ exports.JobEvent.on('JOB_QUOTATION_ACCEPTED', function (payload) {
                     contractorLang = contractor.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Job Quotation Accepted',
-                            lang: contractorLang
+                            targetLang: contractorLang
                         })];
                 case 5:
                     nTitle = _b.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Your quotation for a job on RepairFind was accepted',
-                            lang: contractorLang
+                            targetLang: contractorLang
                         })];
                 case 6:
                     nMessage = _b.sent();
@@ -966,13 +974,13 @@ exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
                     contractorLang = contractor.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: "Job Reschedule Request ".concat(payload.action),
-                            lang: contractorLang
+                            targetLang: contractorLang
                         })];
                 case 4:
                     nTitle = _e.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: "Your job reschedule request on Repairfind has been ".concat(payload.action, " by customer"),
-                            lang: contractorLang
+                            targetLang: contractorLang
                         })];
                 case 5:
                     nMessage = _e.sent();
@@ -1017,13 +1025,13 @@ exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
                     customerLang = customer.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: "Job Reschedule Request ".concat(payload.action),
-                            lang: customerLang
+                            targetLang: customerLang
                         })];
                 case 7:
                     nTitle = _e.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: "Your job reschedule request on Repairfind has been ".concat(payload.action, " by contractor"),
-                            lang: customerLang
+                            targetLang: customerLang
                         })];
                 case 8:
                     nMessage = _e.sent();
@@ -1254,13 +1262,13 @@ exports.JobEvent.on('JOB_BOOKED', function (payload) {
                     customerLang = customer.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Job Booked',
-                            lang: customerLang
+                            targetLang: customerLang
                         })];
                 case 7:
                     nTitle = _e.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'You have booked a job on Repairfind',
-                            lang: customerLang
+                            targetLang: customerLang
                         })];
                 case 8:
                     nMessage = _e.sent();
@@ -1283,13 +1291,13 @@ exports.JobEvent.on('JOB_BOOKED', function (payload) {
                     contractorLang = contractor.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Job Booked',
-                            lang: contractorLang
+                            targetLang: contractorLang
                         })];
                 case 9:
                     nTitle = _e.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'You have a booked job on Repairfind',
-                            lang: contractorLang
+                            targetLang: contractorLang
                         })];
                 case 10:
                     nMessage = _e.sent();
@@ -1347,13 +1355,13 @@ exports.JobEvent.on('JOB_DISPUTE_CREATED', function (payload) {
                     customerLang = customer.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Job Disputed',
-                            lang: customerLang
+                            targetLang: customerLang
                         })];
                 case 4:
                     nTitle = _c.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'You have an open job dispute',
-                            lang: customerLang
+                            targetLang: customerLang
                         })];
                 case 5:
                     nMessage = _c.sent();
@@ -1375,13 +1383,13 @@ exports.JobEvent.on('JOB_DISPUTE_CREATED', function (payload) {
                     contractorLang = contractor.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Job Disputed',
-                            lang: contractorLang
+                            targetLang: contractorLang
                         })];
                 case 6:
                     nTitle = _c.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'You have an open job dispute',
-                            lang: contractorLang
+                            targetLang: contractorLang
                         })];
                 case 7:
                     nMessage = _c.sent();
@@ -1460,13 +1468,13 @@ exports.JobEvent.on('JOB_MARKED_COMPLETE_BY_CONTRACTOR', function (payload) {
                     customerLang = customer.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Job Marked Complete',
-                            lang: customerLang
+                            targetLang: customerLang
                         })];
                 case 4:
                     nTitle = _c.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Contractor has marked job as completed',
-                            lang: customerLang
+                            targetLang: customerLang
                         })];
                 case 5:
                     nMessage = _c.sent();
@@ -1487,13 +1495,13 @@ exports.JobEvent.on('JOB_MARKED_COMPLETE_BY_CONTRACTOR', function (payload) {
                     contractorLang = contractor.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Job Marked Complete',
-                            lang: contractorLang
+                            targetLang: contractorLang
                         })];
                 case 6:
                     nTitle = _c.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Job marked as completed',
-                            lang: contractorLang
+                            targetLang: contractorLang
                         })];
                 case 7:
                     nMessage = _c.sent();
@@ -1565,13 +1573,13 @@ exports.JobEvent.on('JOB_COMPLETED', function (payload) {
                     contractorLang = contractor.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Job Completed',
-                            lang: contractorLang
+                            targetLang: contractorLang
                         })];
                 case 4:
                     nTitle = _c.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Job completion confirmed by customer',
-                            lang: contractorLang
+                            targetLang: contractorLang
                         })];
                 case 5:
                     nMessage = _c.sent();
@@ -1640,13 +1648,13 @@ exports.JobEvent.on('JOB_CHANGE_ORDER', function (payload) {
                     contractorLang = contractor.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Job Completed',
-                            lang: contractorLang
+                            targetLang: contractorLang
                         })];
                 case 5:
                     nTitle = _b.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: "Change order is ".concat(state, " for your job"),
-                            lang: contractorLang
+                            targetLang: contractorLang
                         })];
                 case 6:
                     nMessage = _b.sent();
@@ -1706,13 +1714,13 @@ exports.JobEvent.on('SITE_VISIT_ESTIMATE_SUBMITTED', function (payload) {
                     customerLang = customer.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Job Completed',
-                            lang: customerLang
+                            targetLang: customerLang
                         })];
                 case 5:
                     nTitle = _c.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Site visit estimate has been submitted',
-                            lang: customerLang
+                            targetLang: customerLang
                         })];
                 case 6:
                     nMessage = _c.sent();
@@ -1737,13 +1745,13 @@ exports.JobEvent.on('SITE_VISIT_ESTIMATE_SUBMITTED', function (payload) {
                     contractorLang = contractor.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Job Completed',
-                            lang: contractorLang
+                            targetLang: contractorLang
                         })];
                 case 7:
                     nTitle = _c.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Site visit estimate has been submitted',
-                            lang: contractorLang
+                            targetLang: contractorLang
                         })];
                 case 8:
                     nMessage = _c.sent();
@@ -1805,13 +1813,13 @@ exports.JobEvent.on('CHANGE_ORDER_ESTIMATE_SUBMITTED', function (payload) {
                     customerLang = customer.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Change order estimate submitted',
-                            lang: customerLang
+                            targetLang: customerLang
                         })];
                 case 5:
                     nTitle = _b.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Change order estimate has been submitted',
-                            lang: customerLang
+                            targetLang: customerLang
                         })];
                 case 6:
                     nMessage = _b.sent();
@@ -1868,13 +1876,13 @@ exports.JobEvent.on('NEW_JOB_QUOTATION', function (payload) {
                     customerLang = customer.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'New Job Bid',
-                            lang: customerLang
+                            targetLang: customerLang
                         })];
                 case 4:
                     nTitle = _b.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Your job on Repairfind has received a new bid',
-                            lang: customerLang
+                            targetLang: customerLang
                         })];
                 case 5:
                     nMessage = _b.sent();
@@ -1928,13 +1936,13 @@ exports.JobEvent.on('JOB_QUOTATION_EDITED', function (payload) {
                     customerLang = customer.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Job Bid Edited',
-                            lang: customerLang
+                            targetLang: customerLang
                         })];
                 case 3:
                     nTitle = _b.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Job estimate has been edited by contractor',
-                            lang: customerLang
+                            targetLang: customerLang
                         })];
                 case 4:
                     nMessage = _b.sent();
@@ -1990,13 +1998,13 @@ exports.JobEvent.on('CHANGE_ORDER_ESTIMATE_PAID', function (payload) {
                     contractorLang = contractor.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Change Order Estimate Paid',
-                            lang: contractorLang
+                            targetLang: contractorLang
                         })];
                 case 4:
                     nTitle = _b.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Change order estimate has been paid',
-                            lang: contractorLang
+                            targetLang: contractorLang
                         })];
                 case 5:
                     nMessage = _b.sent();
@@ -2057,13 +2065,13 @@ exports.JobEvent.on('JOB_DAY_STARTED', function (payload) {
                     contractorLang = contractor.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'JobDay Trip Started',
-                            lang: contractorLang
+                            targetLang: contractorLang
                         })];
                 case 5:
                     nTitle = _c.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'JobDay trip started',
-                            lang: contractorLang
+                            targetLang: contractorLang
                         })];
                 case 6:
                     nMessage = _c.sent();
@@ -2098,13 +2106,13 @@ exports.JobEvent.on('JOB_DAY_STARTED', function (payload) {
                     customerLang = customer.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Job Day',
-                            lang: customerLang
+                            targetLang: customerLang
                         })];
                 case 7:
                     nTitle = _c.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Contractor is on his way',
-                            lang: customerLang
+                            targetLang: customerLang
                         })];
                 case 8:
                     nMessage = _c.sent();
@@ -2156,13 +2164,13 @@ exports.JobEvent.on('JOB_DAY_ARRIVAL', function (payload) {
                     customerLang = customer.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Job Day',
-                            lang: customerLang
+                            targetLang: customerLang
                         })];
                 case 5:
                     nTitle = _c.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Contractor is at your site.',
-                            lang: customerLang
+                            targetLang: customerLang
                         })];
                 case 6:
                     nMessage = _c.sent();
@@ -2182,13 +2190,13 @@ exports.JobEvent.on('JOB_DAY_ARRIVAL', function (payload) {
                     contractorLang = contractor.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Job Day',
-                            lang: contractorLang
+                            targetLang: contractorLang
                         })];
                 case 7:
                     nTitle = _c.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Job Day arrival, waiting for confirmation from customer.',
-                            lang: contractorLang
+                            targetLang: contractorLang
                         })];
                 case 8:
                     nMessage = _c.sent();
@@ -2261,13 +2269,13 @@ exports.JobEvent.on('JOB_DAY_CONFIRMED', function (payload) {
                     contractorLang = contractor.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'JobDay Confirmation',
-                            lang: contractorLang
+                            targetLang: contractorLang
                         })];
                 case 5:
                     nTitle = _c.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Customer has confirmed your arrival.',
-                            lang: contractorLang
+                            targetLang: contractorLang
                         })];
                 case 6:
                     nMessage = _c.sent();
@@ -2305,13 +2313,13 @@ exports.JobEvent.on('JOB_DAY_CONFIRMED', function (payload) {
                     customerLang = customer.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'JobDay confirmation',
-                            lang: customerLang
+                            targetLang: customerLang
                         })];
                 case 7:
                     nTitle = _c.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: "You successfully confirmed the contractor's arrival.",
-                            lang: customerLang
+                            targetLang: customerLang
                         })];
                 case 8:
                     nMessage = _c.sent();
@@ -2417,13 +2425,13 @@ exports.JobEvent.on('NEW_JOB_ENQUIRY', function (payload) {
                                     contractorLang = contractor.language;
                                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                                             phraseOrSlug: 'New Job Enquiry',
-                                            lang: contractorLang
+                                            targetLang: contractorLang
                                         })];
                                 case 2:
                                     nTitle = _b.sent();
                                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                                             phraseOrSlug: 'A Job you saved on Repairfind has a new enquiry',
-                                            lang: contractorLang
+                                            targetLang: contractorLang
                                         })];
                                 case 3:
                                     nMessage = _b.sent();
@@ -2445,13 +2453,13 @@ exports.JobEvent.on('NEW_JOB_ENQUIRY', function (payload) {
                     customerLang = customer_1.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'New Job Enquiry',
-                            lang: customerLang
+                            targetLang: customerLang
                         })];
                 case 7:
                     nTitle = _b.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Your job on Repairfind has a new enquiry',
-                            lang: customerLang
+                            targetLang: customerLang
                         })];
                 case 8:
                     nMessage = _b.sent();
@@ -2524,13 +2532,13 @@ exports.JobEvent.on('NEW_JOB_ENQUIRY_REPLY', function (payload) {
                                     contractorLang = contractor.language;
                                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                                             phraseOrSlug: 'New Job Enquiry Reply',
-                                            lang: contractorLang
+                                            targetLang: contractorLang
                                         })];
                                 case 2:
                                     nTitle = _b.sent();
                                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                                             phraseOrSlug: 'A job you are following on Repairfind has a new reply from the customer',
-                                            lang: contractorLang
+                                            targetLang: contractorLang
                                         })];
                                 case 3:
                                     nMessage = _b.sent();

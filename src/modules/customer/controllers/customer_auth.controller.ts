@@ -76,15 +76,15 @@ export const signUp = async (
 
 
     const welcomeHtml = CustomerWelcomeEmailTemplate(lastName)
-    const translatedWelcomeHtml = await i18n.getTranslation({phraseOrSlug: welcomeHtml,lang: customer.language,saveToFile: false, useGoogle: true}) || welcomeHtml;
-    const translatedWelcomeSubject = await i18n.getTranslation({phraseOrSlug: "Welcome to Repairfind",lang: customer.language}) || 'Welcome to Repairfind';
+    const translatedWelcomeHtml = await i18n.getTranslation({phraseOrSlug: welcomeHtml,targetLang: customer.language,saveToFile: false, useGoogle: true}) || welcomeHtml;
+    const translatedWelcomeSubject = await i18n.getTranslation({phraseOrSlug: "Welcome to Repairfind",targetLang: customer.language}) || 'Welcome to Repairfind';
     EmailService.send(email, translatedWelcomeSubject, translatedWelcomeHtml,)
 
 
 
     const emailVerificationHtml = OtpEmailTemplate(otp, firstName, 'We have received a request to verify your email');
-    const translatedVerificationHtml = await i18n.getTranslation({phraseOrSlug: emailVerificationHtml,lang: customer.language,saveToFile: false, useGoogle: true}) || emailVerificationHtml;
-    const translatedVerificationSubject = await i18n.getTranslation({phraseOrSlug: "'Email Verification",lang: customer.language}) || 'Welcome to Repairfind';
+    const translatedVerificationHtml = await i18n.getTranslation({phraseOrSlug: emailVerificationHtml,targetLang: customer.language,saveToFile: false, useGoogle: true}) || emailVerificationHtml;
+    const translatedVerificationSubject = await i18n.getTranslation({phraseOrSlug: "'Email Verification",targetLang: customer.language}) || 'Welcome to Repairfind';
     EmailService.send(email, translatedVerificationSubject, translatedVerificationHtml, )
 
     res.json({
@@ -377,8 +377,8 @@ export const resendEmail = async (
     await customer?.save();
 
     const html = OtpEmailTemplate(otp, customer.firstName, "We have received a request to verify your email");
-    const translatedHtml = await i18n.getTranslation({phraseOrSlug: html,lang: customer.language,saveToFile: false, useGoogle: true}) || html;
-    const translatedSubject = await i18n.getTranslation({phraseOrSlug: "Email Verification",lang: customer.language}) || 'Email Verification';
+    const translatedHtml = await i18n.getTranslation({phraseOrSlug: html,targetLang: customer.language,saveToFile: false, useGoogle: true}) || html;
+    const translatedSubject = await i18n.getTranslation({phraseOrSlug: "Email Verification",targetLang: customer.language}) || 'Email Verification';
 
     EmailService.send(email, translatedSubject, translatedHtml)
     return res.status(200).json({ success: true, message: "OTP sent successfully to your email." });
@@ -430,13 +430,13 @@ export const forgotPassword = async (
 
     const translatedHtml = await i18n.getTranslation({
       phraseOrSlug: html,
-      lang: customer.language,
+      targetLang: customer.language,
       saveToFile: false,
       useGoogle: true
     }) || html;
     const translatedSubject = await i18n.getTranslation({
       phraseOrSlug: "Password Change",
-      lang: customer.language
+      targetLang: customer.language
     }) || 'Password Change';
 
     EmailService.send(email, translatedSubject, translatedHtml)

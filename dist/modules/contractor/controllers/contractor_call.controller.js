@@ -206,10 +206,10 @@ var startCall = function (req, res, next) { return __awaiter(void 0, void 0, voi
             case 9:
                 _c.heading = _f.sent();
                 userLang = user.language;
-                return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'New Incoming Call', lang: userLang })];
+                return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'New Incoming Call', targetLang: userLang })];
             case 10:
                 nTitle = _f.sent();
-                return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: "You've an incoming call from", lang: userLang })];
+                return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: "You've an incoming call from", targetLang: userLang })];
             case 11:
                 nMessage = _f.sent();
                 services_1.NotificationService.sendNotification({
@@ -300,10 +300,10 @@ var endCall = function (req, res, next) { return __awaiter(void 0, void 0, void 
                 if (event_1 == 'declined')
                     title = 'Call Declined', type = 'CALL_DECLINED', message = "Your call to  ".concat(toUser.name, " was declined");
                 userLang = fromUser.language;
-                return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: title, lang: userLang })];
+                return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: title, targetLang: userLang })];
             case 12:
                 nTitle = _g.sent();
-                return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: message, lang: userLang })];
+                return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: message, targetLang: userLang })];
             case 13:
                 nMessage = _g.sent();
                 services_1.NotificationService.sendNotification({
@@ -332,10 +332,10 @@ var endCall = function (req, res, next) { return __awaiter(void 0, void 0, void 
                 if (event_1 == 'declined')
                     title = 'Call Declined', type = 'CALL_DECLINED', message = "You declined a call from  ".concat(fromUser.name);
                 userLang = toUser.language;
-                return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: title, lang: userLang })];
+                return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: title, targetLang: userLang })];
             case 15:
                 nTitle = _g.sent();
-                return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: message, lang: userLang })];
+                return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: message, targetLang: userLang })];
             case 16:
                 nMessage = _g.sent();
                 services_1.NotificationService.sendNotification({

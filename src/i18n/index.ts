@@ -7,7 +7,6 @@ import { config } from '../config';
 
 //@ts-ignore
 import {Translate} from "translate";
-import { text } from 'body-parser';
 
 // Define the translation type structure
 interface Translation {
@@ -58,7 +57,7 @@ type Language = 'en' | 'fr' | 'pa' | 'zh' | 'es';
 
 
 // Function to save new translations to general.json
-function saveTranslationToFile(slug: string, lang: Language, translatedText: string): void {
+function saveTranslationToFile(slug: string, targetLang: Language, translatedText: string): void {
     const currentTranslations = loadTranslations(generalTranslationsPath);
 
     // Update the translation object
@@ -67,33 +66,34 @@ function saveTranslationToFile(slug: string, lang: Language, translatedText: str
     }
 
     // Add the translated text for the target language
-    currentTranslations[slug][lang] = translatedText;
+    currentTranslations[slug][targetLang] = translatedText;
 
     // Write the updated translations back to the general.json file
     writeFileSync(generalTranslationsPath, JSON.stringify(currentTranslations, null, 2), 'utf8');
 
-    Logger.info(`New translation saved for '${slug}' in language '${lang}' to general.json.`);
+    Logger.info(`New translation saved for '${slug}' in language '${targetLang}' to general.json.`);
 }
 
 
 // Updated function to get translation with fallback to Google Translate API
-async function getTranslation({ phraseOrSlug, lang = 'en', saveToFile = true, contentType = 'text', useGoogle = false }: { 
+async function getTranslation({ phraseOrSlug,  sourceLang = 'en', targetLang, saveToFile = true, contentType = 'text', useGoogle = false }: { 
     phraseOrSlug: string; 
-    lang?: Language; 
+    sourceLang?: Language; 
+    targetLang: Language; 
     saveToFile?: boolean; 
     contentType?: string; 
     useGoogle?: boolean; 
   }) {
     try {
         // Check if the provided input is already a valid slug
-        if (translations[phraseOrSlug] && translations[phraseOrSlug][lang]) {
-            return translations[phraseOrSlug][lang];
+        if (translations[phraseOrSlug] && translations[phraseOrSlug][targetLang]) {
+            return translations[phraseOrSlug][targetLang];
         }
 
         // If not found, slugify the phrase and search for the translation
         const slug = slugify(phraseOrSlug);
-        if (translations[slug] && translations[slug][lang]) {
-            return translations[slug][lang];
+        if (translations[slug] && translations[slug][targetLang]) {
+            return translations[slug][targetLang];
         }
 
         // If no translation is found, fall back to Google Translate API
@@ -101,16 +101,15 @@ async function getTranslation({ phraseOrSlug, lang = 'en', saveToFile = true, co
 
         let translatedText = phraseOrSlug
         if(useGoogle){
-            translatedText = await GoogleServiceProvider.translate.translateText({text: phraseOrSlug, targetLang: lang, format: contentType });
+            translatedText = await GoogleServiceProvider.translate.translateText({text: phraseOrSlug, targetLang: targetLang, format: contentType });
         }else{
-            translatedText = await freeCloudTranslate(phraseOrSlug, lang)
+            translatedText = await freeCloudTranslate(phraseOrSlug, targetLang)
         }
-        // translatedText = await GoogleServiceProvider.translate.translateText({text: phraseOrSlug, targetLang: lang, format: contentType });
 
 
         // Save the new translation to general.json for future use
         if(saveToFile){
-            saveTranslationToFile(slug, lang, translatedText);
+            saveTranslationToFile(slug, targetLang, translatedText);
         }
 
         return translatedText;
@@ -130,6 +129,8 @@ export async function freeCloudTranslate(text: string, targetLang: string, sourc
         }
         const translate = Translate({ engine: config.i18n.engine, key: config.i18n.key });        
         const translatedText = await translate(text, { to: targetLang } );
+
+        console.log('translatedText', translatedText)
         return translatedText
     } catch (error: any) {
         Logger.error('Error translating text:', error?.response?.data);

@@ -31,7 +31,6 @@ export const JobEvent: EventEmitter = new EventEmitter();
 JobEvent.on('NEW_JOB_REQUEST', async function (payload) {
     try {
         Logger.info('handling NEW_JOB_REQUEST event')
-
         const customer = await CustomerModel.findById(payload.customerId)
         const contractor = await ContractorModel.findById(payload.contractorId)
         const job = await JobModel.findById(payload.jobId)
@@ -41,15 +40,8 @@ JobEvent.on('NEW_JOB_REQUEST', async function (payload) {
 
 
             const contractorLang = contractor.language
-            let nMessage = await i18n.getTranslation({
-                phraseOrSlug: "You've received a job request from",
-                lang: contractorLang
-            });
-            let nTitle = await i18n.getTranslation({
-                phraseOrSlug: 'New Job Request',
-                lang: contractorLang
-            });
-            
+            let nMessage = await i18n.getTranslation({phraseOrSlug: "You've received a job request from",targetLang: contractorLang});
+            let nTitle = await i18n.getTranslation({phraseOrSlug: 'New Job Request',targetLang: contractorLang});
 
             NotificationService.sendNotification({
                 user: contractor.id,
@@ -71,11 +63,11 @@ JobEvent.on('NEW_JOB_REQUEST', async function (payload) {
             const customerLang = customer.language
             nMessage = await i18n.getTranslation({
                 phraseOrSlug: "You've sent a job request to",
-                lang: customerLang
+                targetLang: customerLang
             });
             nTitle = await i18n.getTranslation({
                 phraseOrSlug: 'New Job Request',
-                lang: customerLang
+                targetLang: customerLang
             });
             
 
@@ -120,11 +112,11 @@ JobEvent.on('JOB_REQUEST_ACCEPTED', async function (payload) {
             const contractorLang = contractor.language;  // Contractor's language
             let nMessage = await i18n.getTranslation({
                 phraseOrSlug: "You've accepted a job request from",
-                lang: contractorLang
+                targetLang: contractorLang
             });
             let nTitle = await i18n.getTranslation({
                 phraseOrSlug: 'Job Request Accepted',
-                lang: contractorLang
+                targetLang: contractorLang
             });
             
             NotificationService.sendNotification({
@@ -154,11 +146,11 @@ JobEvent.on('JOB_REQUEST_ACCEPTED', async function (payload) {
             const customerLang = customer.language;  // Customer's language
             nTitle = await i18n.getTranslation({
                 phraseOrSlug: 'Job Request Accepted',
-                lang: customerLang
+                targetLang: customerLang
             });
             nMessage = await i18n.getTranslation({
                 phraseOrSlug: "Contractor has accepted your job request",
-                lang: customerLang
+                targetLang: customerLang
             });
             
             NotificationService.sendNotification({
@@ -208,11 +200,11 @@ JobEvent.on('JOB_REQUEST_REJECTED', async function (payload) {
             const contractorLang = contractor.language;
             let nTitle = await i18n.getTranslation({
                 phraseOrSlug: 'Job Request Rejected',
-                lang: contractorLang
+                targetLang: contractorLang
             });
             let nMessage = await i18n.getTranslation({
                 phraseOrSlug: "You've rejected a job request from",
-                lang: contractorLang
+                targetLang: contractorLang
             });
             
             NotificationService.sendNotification({
@@ -235,11 +227,11 @@ JobEvent.on('JOB_REQUEST_REJECTED', async function (payload) {
             const customerLang = customer.language;
             nTitle = await i18n.getTranslation({
                 phraseOrSlug: 'Job Request Rejected',
-                lang: customerLang
+                targetLang: customerLang
             });
             nMessage = await i18n.getTranslation({
                 phraseOrSlug: "Contractor has rejected your job request",
-                lang: customerLang
+                targetLang: customerLang
             });
             
             NotificationService.sendNotification({
@@ -304,11 +296,11 @@ JobEvent.on('NEW_JOB_LISTING', async function (payload) {
                     const contractorLang = contractor.language;
                     let nTitle = await i18n.getTranslation({
                         phraseOrSlug: 'New Job Listing',
-                        lang: contractorLang
+                        targetLang: contractorLang
                     });
                     let nMessage = await i18n.getTranslation({
                         phraseOrSlug: 'There is a new job listing that matches your profile',
-                        lang: contractorLang
+                        targetLang: contractorLang
                     });
                     sendPushNotifications([device.deviceToken], {
                         title: nTitle,
@@ -347,24 +339,28 @@ JobEvent.on('JOB_CANCELED', async function (payload: { job: IJob, canceledBy: st
 
         if (payload.canceledBy == 'contractor') {
             Logger.info('job cancelled by contractor')
-            const html = JobCanceledEmailTemplate({ name: customer.name, canceledBy: payload.canceledBy, job: payload.job })
-            EmailService.send(customer.email, "Job Canceled", html)
+            const html = JobCanceledEmailTemplate({ name: customer.name, canceledBy: payload.canceledBy, job: payload.job })            
+            const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true}) || html;            
+            const translatedSubject = await i18n.getTranslation({phraseOrSlug: "Job Canceled", targetLang: contractor.language}) || 'Job Canceled';
+            EmailService.send(customer.email, translatedSubject, translatedHtml)
         }
         if (payload.canceledBy == 'customer') {
             Logger.info('job cancelled by customer')
             const html = JobCanceledEmailTemplate({ name: contractor.name, canceledBy: 'customer', job: payload.job })
-            EmailService.send(contractor.email, "Job Canceled", html)
+            const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true}) || html;            
+            const translatedSubject = await i18n.getTranslation({phraseOrSlug: "Job Canceled", targetLang: contractor.language}) || 'Job Canceled';
+            EmailService.send(contractor.email, translatedSubject, translatedHtml)
 
         }
 
         const customerLang = customer.language;
         let nTitle = await i18n.getTranslation({
             phraseOrSlug: 'Job Canceled',
-            lang: customerLang
+            targetLang: customerLang
         });
         let nMessage = await i18n.getTranslation({
             phraseOrSlug: 'Your job on Repairfind has been canceled',
-            lang: customerLang
+            targetLang: customerLang
         });
         
 
@@ -389,11 +385,11 @@ JobEvent.on('JOB_CANCELED', async function (payload: { job: IJob, canceledBy: st
         const contractorLang = contractor.language;
         nTitle = await i18n.getTranslation({
             phraseOrSlug: 'Job Canceled',
-            lang: contractorLang
+            targetLang: contractorLang
         });
         nMessage = await i18n.getTranslation({
             phraseOrSlug: 'Your job on Repairfind has been canceled',
-            lang: contractorLang
+            targetLang: contractorLang
         });
         
         NotificationService.sendNotification({
@@ -434,11 +430,11 @@ JobEvent.on('JOB_DISPUTE_REFUND_CREATED', async function (payload: { job: IJob, 
             const contractorLang = contractor.language;
             let nTitle = await i18n.getTranslation({
                 phraseOrSlug: 'Job Dispute Refund Created',
-                lang: contractorLang
+                targetLang: contractorLang
             });
             let nMessage = await i18n.getTranslation({
                 phraseOrSlug: 'Full refund of your disputed job has been approved on Repairfind',
-                lang: contractorLang
+                targetLang: contractorLang
             });
             
 
@@ -462,11 +458,11 @@ JobEvent.on('JOB_DISPUTE_REFUND_CREATED', async function (payload: { job: IJob, 
             const customerLang = customer.language;
             nTitle = await i18n.getTranslation({
                 phraseOrSlug: 'Job Dispute Refund Created',
-                lang: customerLang
+                targetLang: customerLang
             });
             nMessage = await i18n.getTranslation({
                 phraseOrSlug: 'Full refund of your disputed job has been approved on Repairfind',
-                lang: customerLang
+                targetLang: customerLang
             });
             
 
@@ -514,11 +510,11 @@ JobEvent.on('JOB_REVISIT_ENABLED', async function (payload: { job: IJob, dispute
             const contractorLang = contractor.language;
             let nTitle = await i18n.getTranslation({
                 phraseOrSlug: 'Job Revisit Enabled',
-                lang: contractorLang
+                targetLang: contractorLang
             });
             let nMessage = await i18n.getTranslation({
                 phraseOrSlug: 'A revisit for your disputed job has been enabled on Repairfind',
-                lang: contractorLang
+                targetLang: contractorLang
             });
             NotificationService.sendNotification({
                 user: contractor.id,
@@ -541,11 +537,11 @@ JobEvent.on('JOB_REVISIT_ENABLED', async function (payload: { job: IJob, dispute
             const customerLang = customer.language;
             nTitle = await i18n.getTranslation({
                 phraseOrSlug: 'Job Revisit Enabled',
-                lang: customerLang
+                targetLang: customerLang
             });
             nMessage = await i18n.getTranslation({
                 phraseOrSlug: 'A revisit for your disputed job has been enabled on Repairfind',
-                lang: customerLang
+                targetLang: customerLang
             });
             
 
@@ -609,11 +605,11 @@ JobEvent.on('JOB_QUOTATION_DECLINED', async function (payload: { jobId: ObjectId
             const contractorLang = contractor.language;
             let nMessage = await i18n.getTranslation({
                 phraseOrSlug: 'Your job quotation for a job on RepairFind was declined',
-                lang: contractorLang
+                targetLang: contractorLang
             });
             let nTitle = await i18n.getTranslation({
                 phraseOrSlug: 'Job Quotation Declined',
-                lang: contractorLang
+                targetLang: contractorLang
             });            
             NotificationService.sendNotification({
                 user: contractor.id,
@@ -675,11 +671,11 @@ JobEvent.on('JOB_QUOTATION_ACCEPTED', async function (payload: { jobId: ObjectId
             const contractorLang = contractor.language;
             let nTitle = await i18n.getTranslation({
                 phraseOrSlug: 'Job Quotation Accepted',
-                lang: contractorLang
+                targetLang: contractorLang
             });
             let nMessage = await i18n.getTranslation({
                 phraseOrSlug: 'Your quotation for a job on RepairFind was accepted',
-                lang: contractorLang
+                targetLang: contractorLang
             });            
             NotificationService.sendNotification({
                 user: contractor.id,
@@ -799,11 +795,11 @@ JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: 
 
                 let nTitle = await i18n.getTranslation({
                     phraseOrSlug: `Job Reschedule Request ${payload.action}`,
-                    lang: contractorLang
+                    targetLang: contractorLang
                 });
                 let nMessage = await i18n.getTranslation({
                     phraseOrSlug: `Your job reschedule request on Repairfind has been ${payload.action} by customer`,
-                    lang: contractorLang
+                    targetLang: contractorLang
                 });                
 
                 NotificationService.sendNotification({
@@ -860,11 +856,11 @@ JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: 
                 const customerLang = customer.language;
                 let nTitle = await i18n.getTranslation({
                     phraseOrSlug: `Job Reschedule Request ${payload.action}`,
-                    lang: customerLang
+                    targetLang: customerLang
                 });
                 let nMessage = await i18n.getTranslation({
                     phraseOrSlug: `Your job reschedule request on Repairfind has been ${payload.action} by contractor`,
-                    lang: customerLang
+                    targetLang: customerLang
                 });
                 
 
@@ -1241,11 +1237,11 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
             const customerLang = customer.language;
             let nTitle = await i18n.getTranslation({
                 phraseOrSlug: 'Job Booked',
-                lang: customerLang
+                targetLang: customerLang
             });
             let nMessage = await i18n.getTranslation({
                 phraseOrSlug: 'You have booked a job on Repairfind',
-                lang: customerLang
+                targetLang: customerLang
             });
             
             NotificationService.sendNotification({
@@ -1270,11 +1266,11 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
             const contractorLang = contractor.language;
             nTitle = await i18n.getTranslation({
                 phraseOrSlug: 'Job Booked',
-                lang: contractorLang
+                targetLang: contractorLang
             });
             nMessage = await i18n.getTranslation({
                 phraseOrSlug: 'You have a booked job on Repairfind',
-                lang: contractorLang
+                targetLang: contractorLang
             });
             
 
@@ -1324,11 +1320,11 @@ JobEvent.on('JOB_DISPUTE_CREATED', async function (payload: { dispute: IJobDispu
         const customerLang = customer.language;
         let nTitle = await i18n.getTranslation({
             phraseOrSlug: 'Job Disputed',
-            lang: customerLang
+            targetLang: customerLang
         });
         let nMessage = await i18n.getTranslation({
             phraseOrSlug: 'You have an open job dispute',
-            lang: customerLang
+            targetLang: customerLang
         });
         
         NotificationService.sendNotification({
@@ -1352,11 +1348,11 @@ JobEvent.on('JOB_DISPUTE_CREATED', async function (payload: { dispute: IJobDispu
         const contractorLang = contractor.language;
         nTitle = await i18n.getTranslation({
             phraseOrSlug: 'Job Disputed',
-            lang: contractorLang
+            targetLang: contractorLang
         });
         nMessage = await i18n.getTranslation({
             phraseOrSlug: 'You have an open job dispute',
-            lang: contractorLang
+            targetLang: contractorLang
         });
         
 
@@ -1432,11 +1428,11 @@ JobEvent.on('JOB_MARKED_COMPLETE_BY_CONTRACTOR', async function (payload: { job:
         const customerLang = customer.language;
         let nTitle = await i18n.getTranslation({
             phraseOrSlug: 'Job Marked Complete',
-            lang: customerLang
+            targetLang: customerLang
         });
         let nMessage = await i18n.getTranslation({
             phraseOrSlug: 'Contractor has marked job as completed',
-            lang: customerLang
+            targetLang: customerLang
         });
         
         NotificationService.sendNotification({
@@ -1458,11 +1454,11 @@ JobEvent.on('JOB_MARKED_COMPLETE_BY_CONTRACTOR', async function (payload: { job:
         const contractorLang = contractor.language;
         nTitle = await i18n.getTranslation({
             phraseOrSlug: 'Job Marked Complete',
-            lang: contractorLang
+            targetLang: contractorLang
         });
         nMessage = await i18n.getTranslation({
             phraseOrSlug: 'Job marked as completed',
-            lang: contractorLang
+            targetLang: contractorLang
         });
         NotificationService.sendNotification({
             user: contractor.id,
@@ -1527,11 +1523,11 @@ JobEvent.on('JOB_COMPLETED', async function (payload: { job: IJob }) {
         const contractorLang = contractor.language;
         let nTitle = await i18n.getTranslation({
             phraseOrSlug: 'Job Completed',
-            lang: contractorLang
+            targetLang: contractorLang
         });
         let nMessage = await i18n.getTranslation({
             phraseOrSlug: 'Job completion confirmed by customer',
-            lang: contractorLang
+            targetLang: contractorLang
         });
         
         NotificationService.sendNotification({
@@ -1607,11 +1603,11 @@ JobEvent.on('JOB_CHANGE_ORDER', async function (payload: { job: IJob }) {
         const contractorLang = contractor.language;
         let nTitle = await i18n.getTranslation({
             phraseOrSlug: 'Job Completed',
-            lang: contractorLang
+            targetLang: contractorLang
         });
         let nMessage = await i18n.getTranslation({
             phraseOrSlug: `Change order is ${state} for your job`,
-            lang: contractorLang
+            targetLang: contractorLang
         });
         
         NotificationService.sendNotification({
@@ -1679,11 +1675,11 @@ JobEvent.on('SITE_VISIT_ESTIMATE_SUBMITTED', async function (payload: { job: IJo
         const customerLang = customer.language;
         let nTitle = await i18n.getTranslation({
             phraseOrSlug: 'Job Completed',
-            lang: customerLang
+            targetLang: customerLang
         });
         let nMessage = await i18n.getTranslation({
             phraseOrSlug: 'Site visit estimate has been submitted',
-            lang: customerLang
+            targetLang: customerLang
         });
         
         NotificationService.sendNotification({
@@ -1709,11 +1705,11 @@ JobEvent.on('SITE_VISIT_ESTIMATE_SUBMITTED', async function (payload: { job: IJo
         const contractorLang = contractor.language;
         nTitle = await i18n.getTranslation({
             phraseOrSlug: 'Job Completed',
-            lang: contractorLang
+            targetLang: contractorLang
         });
         nMessage = await i18n.getTranslation({
             phraseOrSlug: 'Site visit estimate has been submitted',
-            lang: contractorLang
+            targetLang: contractorLang
         });
         
         NotificationService.sendNotification({
@@ -1766,11 +1762,11 @@ JobEvent.on('CHANGE_ORDER_ESTIMATE_SUBMITTED', async function (payload: { job: I
         const customerLang = customer.language;
         let nTitle = await i18n.getTranslation({
             phraseOrSlug: 'Change order estimate submitted',
-            lang: customerLang
+            targetLang: customerLang
         });
         let nMessage = await i18n.getTranslation({
             phraseOrSlug: 'Change order estimate has been submitted',
-            lang: customerLang
+            targetLang: customerLang
         });
         
         NotificationService.sendNotification({
@@ -1839,11 +1835,11 @@ JobEvent.on('NEW_JOB_QUOTATION', async function (payload: { job: IJob, quotation
         const customerLang = customer.language;
         let nTitle = await i18n.getTranslation({
             phraseOrSlug: 'New Job Bid',
-            lang: customerLang
+            targetLang: customerLang
         });
         let nMessage = await i18n.getTranslation({
             phraseOrSlug: 'Your job on Repairfind has received a new bid',
-            lang: customerLang
+            targetLang: customerLang
         });
         
         NotificationService.sendNotification({
@@ -1885,11 +1881,11 @@ JobEvent.on('JOB_QUOTATION_EDITED', async function (payload: { job: IJob, quotat
         const customerLang = customer.language;
         let nTitle = await i18n.getTranslation({
             phraseOrSlug: 'Job Bid Edited',
-            lang: customerLang
+            targetLang: customerLang
         });
         let nMessage = await i18n.getTranslation({
             phraseOrSlug: 'Job estimate has been edited by contractor',
-            lang: customerLang
+            targetLang: customerLang
         });
         
         NotificationService.sendNotification({
@@ -1954,11 +1950,11 @@ JobEvent.on('CHANGE_ORDER_ESTIMATE_PAID', async function (payload: { job: IJob, 
         const contractorLang = contractor.language;
         let nTitle = await i18n.getTranslation({
             phraseOrSlug: 'Change Order Estimate Paid',
-            lang: contractorLang
+            targetLang: contractorLang
         });
         let nMessage = await i18n.getTranslation({
             phraseOrSlug: 'Change order estimate has been paid',
-            lang: contractorLang
+            targetLang: contractorLang
         });
         
         NotificationService.sendNotification({
@@ -2010,11 +2006,11 @@ JobEvent.on('JOB_DAY_STARTED', async function (payload: { job: IJob, jobDay: IJo
         const contractorLang = contractor.language;
         let nTitle = await i18n.getTranslation({
             phraseOrSlug: 'JobDay Trip Started',
-            lang: contractorLang
+            targetLang: contractorLang
         });
         let nMessage = await i18n.getTranslation({
             phraseOrSlug: 'JobDay trip started',
-            lang: contractorLang
+            targetLang: contractorLang
         });
         
         NotificationService.sendNotification(
@@ -2055,11 +2051,11 @@ JobEvent.on('JOB_DAY_STARTED', async function (payload: { job: IJob, jobDay: IJo
         const customerLang = customer.language;
         nTitle = await i18n.getTranslation({
             phraseOrSlug: 'Job Day',
-            lang: customerLang
+            targetLang: customerLang
         });
         nMessage = await i18n.getTranslation({
             phraseOrSlug: 'Contractor is on his way',
-            lang: customerLang
+            targetLang: customerLang
         });
         
         NotificationService.sendNotification({
@@ -2099,11 +2095,11 @@ JobEvent.on('JOB_DAY_ARRIVAL', async function (payload: { jobDay: IJobDay, verif
         const customerLang = customer.language;
         let nTitle = await i18n.getTranslation({
             phraseOrSlug: 'Job Day',
-            lang: customerLang
+            targetLang: customerLang
         });
         let nMessage = await i18n.getTranslation({
             phraseOrSlug: 'Contractor is at your site.',
-            lang: customerLang
+            targetLang: customerLang
         });
         
 
@@ -2129,11 +2125,11 @@ JobEvent.on('JOB_DAY_ARRIVAL', async function (payload: { jobDay: IJobDay, verif
         const contractorLang = contractor.language;
         nTitle = await i18n.getTranslation({
             phraseOrSlug: 'Job Day',
-            lang: contractorLang
+            targetLang: contractorLang
         });
         nMessage = await i18n.getTranslation({
             phraseOrSlug: 'Job Day arrival, waiting for confirmation from customer.',
-            lang: contractorLang
+            targetLang: contractorLang
         });
         
 
@@ -2199,11 +2195,11 @@ JobEvent.on('JOB_DAY_CONFIRMED', async function (payload: { jobDay: IJobDay }) {
         const contractorLang = contractor.language;
         let nTitle = await i18n.getTranslation({
             phraseOrSlug: 'JobDay Confirmation',
-            lang: contractorLang
+            targetLang: contractorLang
         });
         let nMessage = await i18n.getTranslation({
             phraseOrSlug: 'Customer has confirmed your arrival.',
-            lang: contractorLang
+            targetLang: contractorLang
         });
         
         NotificationService.sendNotification(
@@ -2248,11 +2244,11 @@ JobEvent.on('JOB_DAY_CONFIRMED', async function (payload: { jobDay: IJobDay }) {
         const customerLang = customer.language;
         nTitle = await i18n.getTranslation({
             phraseOrSlug: 'JobDay confirmation',
-            lang: customerLang
+            targetLang: customerLang
         });
         nMessage = await i18n.getTranslation({
             phraseOrSlug: "You successfully confirmed the contractor's arrival.",
-            lang: customerLang
+            targetLang: customerLang
         });
         
 
@@ -2353,11 +2349,11 @@ JobEvent.on('NEW_JOB_ENQUIRY', async function (payload: { jobId: any, enquiryId:
                 const contractorLang = contractor.language;
                 let nTitle = await i18n.getTranslation({
                     phraseOrSlug: 'New Job Enquiry',
-                    lang: contractorLang
+                    targetLang: contractorLang
                 });
                 let nMessage = await i18n.getTranslation({
                     phraseOrSlug: 'A Job you saved on Repairfind has a new enquiry',
-                    lang: contractorLang
+                    targetLang: contractorLang
                 });
                 
                 NotificationService.sendNotification(
@@ -2381,11 +2377,11 @@ JobEvent.on('NEW_JOB_ENQUIRY', async function (payload: { jobId: any, enquiryId:
             const customerLang = customer.language;
             let nTitle = await i18n.getTranslation({
                 phraseOrSlug: 'New Job Enquiry',
-                lang: customerLang
+                targetLang: customerLang
             });
             let nMessage = await i18n.getTranslation({
                 phraseOrSlug: 'Your job on Repairfind has a new enquiry',
-                lang: customerLang
+                targetLang: customerLang
             });
             
             NotificationService.sendNotification(
@@ -2453,11 +2449,11 @@ JobEvent.on('NEW_JOB_ENQUIRY_REPLY', async function (payload: { jobId: any, enqu
                 const contractorLang = contractor.language;
                 let nTitle = await i18n.getTranslation({
                     phraseOrSlug: 'New Job Enquiry Reply',
-                    lang: contractorLang
+                    targetLang: contractorLang
                 });
                 let nMessage = await i18n.getTranslation({
                     phraseOrSlug: 'A job you are following on Repairfind has a new reply from the customer',
-                    lang: contractorLang
+                    targetLang: contractorLang
                 });
                 
                 NotificationService.sendNotification(

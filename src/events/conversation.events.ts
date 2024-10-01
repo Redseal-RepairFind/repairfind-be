@@ -77,11 +77,11 @@ ConversationEvent.on('NEW_MESSAGE', async function (params) {
                     const userLang = user.language;
                     let nTitle = await i18n.getTranslation({
                         phraseOrSlug: 'New unread message',
-                        lang: userLang
+                        targetLang: userLang
                     });
                     let nMessage = await i18n.getTranslation({
                         phraseOrSlug: `You have a new unread message from`,
-                        lang: userLang
+                        targetLang: userLang
                     });
                     
                     NotificationService.sendNotification({
@@ -109,11 +109,11 @@ ConversationEvent.on('NEW_MESSAGE', async function (params) {
                     
                     let nTitle = await i18n.getTranslation({
                         phraseOrSlug: 'New unread dispute message',
-                        lang: userLang
+                        targetLang: userLang
                     });
                     let nMessage = await i18n.getTranslation({
                         phraseOrSlug: `You have a new unread job dispute message from`,
-                        lang: userLang
+                        targetLang: userLang
                     });
 
                     NotificationService.sendNotification({

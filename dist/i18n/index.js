@@ -80,21 +80,21 @@ function slugify(text) {
         .toLowerCase(); // Convert the string to lowercase
 }
 // Function to save new translations to general.json
-function saveTranslationToFile(slug, lang, translatedText) {
+function saveTranslationToFile(slug, targetLang, translatedText) {
     var currentTranslations = loadTranslations(generalTranslationsPath);
     // Update the translation object
     if (!currentTranslations[slug]) {
         currentTranslations[slug] = {};
     }
     // Add the translated text for the target language
-    currentTranslations[slug][lang] = translatedText;
+    currentTranslations[slug][targetLang] = translatedText;
     // Write the updated translations back to the general.json file
     (0, fs_1.writeFileSync)(generalTranslationsPath, JSON.stringify(currentTranslations, null, 2), 'utf8');
-    logger_1.Logger.info("New translation saved for '".concat(slug, "' in language '").concat(lang, "' to general.json."));
+    logger_1.Logger.info("New translation saved for '".concat(slug, "' in language '").concat(targetLang, "' to general.json."));
 }
 // Updated function to get translation with fallback to Google Translate API
 function getTranslation(_a) {
-    var phraseOrSlug = _a.phraseOrSlug, _b = _a.lang, lang = _b === void 0 ? 'en' : _b, _c = _a.saveToFile, saveToFile = _c === void 0 ? true : _c, _d = _a.contentType, contentType = _d === void 0 ? 'text' : _d, _e = _a.useGoogle, useGoogle = _e === void 0 ? false : _e;
+    var phraseOrSlug = _a.phraseOrSlug, _b = _a.sourceLang, sourceLang = _b === void 0 ? 'en' : _b, targetLang = _a.targetLang, _c = _a.saveToFile, saveToFile = _c === void 0 ? true : _c, _d = _a.contentType, contentType = _d === void 0 ? 'text' : _d, _e = _a.useGoogle, useGoogle = _e === void 0 ? false : _e;
     return __awaiter(this, void 0, void 0, function () {
         var slug, translatedText, error_1;
         return __generator(this, function (_f) {
@@ -102,30 +102,29 @@ function getTranslation(_a) {
                 case 0:
                     _f.trys.push([0, 5, , 6]);
                     // Check if the provided input is already a valid slug
-                    if (translations[phraseOrSlug] && translations[phraseOrSlug][lang]) {
-                        return [2 /*return*/, translations[phraseOrSlug][lang]];
+                    if (translations[phraseOrSlug] && translations[phraseOrSlug][targetLang]) {
+                        return [2 /*return*/, translations[phraseOrSlug][targetLang]];
                     }
                     slug = slugify(phraseOrSlug);
-                    if (translations[slug] && translations[slug][lang]) {
-                        return [2 /*return*/, translations[slug][lang]];
+                    if (translations[slug] && translations[slug][targetLang]) {
+                        return [2 /*return*/, translations[slug][targetLang]];
                     }
                     // If no translation is found, fall back to Google Translate API
                     logger_1.Logger.info("No local translation found for '".concat(phraseOrSlug, "', using Google Translate..."));
                     translatedText = phraseOrSlug;
                     if (!useGoogle) return [3 /*break*/, 2];
-                    return [4 /*yield*/, google_1.GoogleServiceProvider.translate.translateText({ text: phraseOrSlug, targetLang: lang, format: contentType })];
+                    return [4 /*yield*/, google_1.GoogleServiceProvider.translate.translateText({ text: phraseOrSlug, targetLang: targetLang, format: contentType })];
                 case 1:
                     translatedText = _f.sent();
                     return [3 /*break*/, 4];
-                case 2: return [4 /*yield*/, freeCloudTranslate(phraseOrSlug, lang)];
+                case 2: return [4 /*yield*/, freeCloudTranslate(phraseOrSlug, targetLang)];
                 case 3:
                     translatedText = _f.sent();
                     _f.label = 4;
                 case 4:
-                    // translatedText = await GoogleServiceProvider.translate.translateText({text: phraseOrSlug, targetLang: lang, format: contentType });
                     // Save the new translation to general.json for future use
                     if (saveToFile) {
-                        saveTranslationToFile(slug, lang, translatedText);
+                        saveTranslationToFile(slug, targetLang, translatedText);
                     }
                     return [2 /*return*/, translatedText];
                 case 5:
@@ -152,6 +151,7 @@ function freeCloudTranslate(text, targetLang, sourceLang) {
                     return [4 /*yield*/, translate(text, { to: targetLang })];
                 case 1:
                     translatedText = _e.sent();
+                    console.log('translatedText', translatedText);
                     return [2 /*return*/, translatedText];
                 case 2:
                     error_2 = _e.sent();

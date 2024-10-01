@@ -142,13 +142,13 @@ exports.ConversationEvent.on('NEW_MESSAGE', function (params) {
                                     userLang = user.language;
                                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                                             phraseOrSlug: 'New unread message',
-                                            lang: userLang
+                                            targetLang: userLang
                                         })];
                                 case 9:
                                     nTitle = _e.sent();
                                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                                             phraseOrSlug: "You have a new unread message from",
-                                            lang: userLang
+                                            targetLang: userLang
                                         })];
                                 case 10:
                                     nMessage = _e.sent();
@@ -172,13 +172,13 @@ exports.ConversationEvent.on('NEW_MESSAGE', function (params) {
                                     userLang = user.language;
                                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                                             phraseOrSlug: 'New unread dispute message',
-                                            lang: userLang
+                                            targetLang: userLang
                                         })];
                                 case 12:
                                     nTitle = _e.sent();
                                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                                             phraseOrSlug: "You have a new unread job dispute message from",
-                                            lang: userLang
+                                            targetLang: userLang
                                         })];
                                 case 13:
                                     nMessage = _e.sent();

@@ -156,36 +156,20 @@ var AuthHandler = /** @class */ (function (_super) {
                     case 5:
                         contractor = _b.sent();
                         html = (0, OtpEmailTemplate_1.OtpEmailTemplate)(otp, firstName !== null && firstName !== void 0 ? firstName : companyName, "We have received a request to verify your email");
-                        return [4 /*yield*/, i18n_1.i18n.getTranslation({
-                                phraseOrSlug: html,
-                                lang: contractor.language,
-                                saveToFile: false,
-                                useGoogle: true
-                            })];
+                        return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true })];
                     case 6:
                         translatedHtml = (_b.sent()) || html;
-                        return [4 /*yield*/, i18n_1.i18n.getTranslation({
-                                phraseOrSlug: "Email Verification",
-                                lang: contractor.language
-                            })];
+                        return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: "Email Verification", targetLang: contractor.language })];
                     case 7:
                         translatedSubject = (_b.sent()) || 'Email Verification';
                         return [4 /*yield*/, services_1.EmailService.send(email, translatedSubject, translatedHtml)];
                     case 8:
                         _b.sent();
                         welcomeHtml = (0, welcome_email_1.ContractorWelcomeTemplate)(firstName !== null && firstName !== void 0 ? firstName : companyName);
-                        return [4 /*yield*/, i18n_1.i18n.getTranslation({
-                                phraseOrSlug: welcomeHtml,
-                                lang: contractor.language,
-                                saveToFile: false,
-                                useGoogle: true
-                            })];
+                        return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: welcomeHtml, targetLang: contractor.language, saveToFile: false, useGoogle: true })];
                     case 9:
                         translatedHtml = (_b.sent()) || welcomeHtml;
-                        return [4 /*yield*/, i18n_1.i18n.getTranslation({
-                                phraseOrSlug: "Welcome to Repairfind",
-                                lang: contractor.language
-                            })];
+                        return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: "Welcome to Repairfind", targetLang: contractor.language })];
                     case 10:
                         translatedSubject = (_b.sent()) || 'Welcome to Repairfind';
                         return [4 /*yield*/, services_1.EmailService.send(email, translatedSubject, translatedHtml)];
@@ -506,18 +490,10 @@ var AuthHandler = /** @class */ (function (_super) {
                     case 3:
                         _a.sent();
                         html = (0, OtpEmailTemplate_1.OtpEmailTemplate)(otp, contractor.firstName, "We have received a request to verify your email");
-                        return [4 /*yield*/, i18n_1.i18n.getTranslation({
-                                phraseOrSlug: html,
-                                lang: contractor.language,
-                                saveToFile: false,
-                                useGoogle: true
-                            })];
+                        return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true })];
                     case 4:
                         translatedHtml = (_a.sent()) || html;
-                        return [4 /*yield*/, i18n_1.i18n.getTranslation({
-                                phraseOrSlug: "Email Verification",
-                                lang: contractor.language
-                            })];
+                        return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: "Email Verification", targetLang: contractor.language })];
                     case 5:
                         translatedSubject = (_a.sent()) || 'Email Verification';
                         services_1.EmailService.send(email, translatedSubject, translatedHtml);
@@ -563,18 +539,10 @@ var AuthHandler = /** @class */ (function (_super) {
                     case 3:
                         _a.sent();
                         html = (0, OtpEmailTemplate_1.OtpEmailTemplate)(otp, contractor.firstName, "We have received a request to change your password");
-                        return [4 /*yield*/, i18n_1.i18n.getTranslation({
-                                phraseOrSlug: html,
-                                lang: contractor.language,
-                                saveToFile: false,
-                                useGoogle: true
-                            })];
+                        return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true })];
                     case 4:
                         translatedHtml = _a.sent();
-                        return [4 /*yield*/, i18n_1.i18n.getTranslation({
-                                phraseOrSlug: 'Password Change',
-                                lang: contractor.language
-                            })];
+                        return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'Password Change', targetLang: contractor.language })];
                     case 5:
                         translatedSubject = _a.sent();
                         services_1.EmailService.send(contractor.email, translatedSubject, translatedHtml);

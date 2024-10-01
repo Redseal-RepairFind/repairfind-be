@@ -13,7 +13,6 @@ export async function translateText({ text, targetLang, sourceLang, format = 'te
     }
 
     const url = `https://translation.googleapis.com/language/translate/v2?key=${config.google.apiKey}`;
-
     const response = await axios.post(
       url,
       {},
@@ -25,8 +24,6 @@ export async function translateText({ text, targetLang, sourceLang, format = 'te
           key: config.google.apiKey,
           // model: model,
           format:  format,
-          // except: 'Contractor,Individual'
-
         },
       }
     );
