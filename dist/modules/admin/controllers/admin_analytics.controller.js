@@ -110,7 +110,7 @@ var getStats = function (req, res) { return __awaiter(void 0, void 0, void 0, fu
                 return [4 /*yield*/, contractor_model_1.ContractorModel.countDocuments(dateFilter)];
             case 3:
                 totalContractors = _b.sent();
-                return [4 /*yield*/, transaction_model_1.default.countDocuments(__assign(__assign({}, dateFilter), { type: { $in: [transaction_model_1.TRANSACTION_TYPE.CHANGE_ORDER, transaction_model_1.TRANSACTION_TYPE.JOB_DAY, transaction_model_1.TRANSACTION_TYPE.SITE_VISIT] } }))];
+                return [4 /*yield*/, transaction_model_1.default.countDocuments(__assign(__assign({}, dateFilter), { type: { $in: [transaction_model_1.TRANSACTION_TYPE.CHANGE_ORDER_PAYMENT, transaction_model_1.TRANSACTION_TYPE.JOB_DAY_PAYMENT, transaction_model_1.TRANSACTION_TYPE.SITE_VISIT_PAYMENT] } }))];
             case 4:
                 totalRevenue = _b.sent();
                 return [4 /*yield*/, job_model_1.JobModel.countDocuments()];
@@ -164,7 +164,7 @@ var getStats = function (req, res) { return __awaiter(void 0, void 0, void 0, fu
                 }); });
                 return [4 /*yield*/, transaction_model_1.default.aggregate([
                         {
-                            $match: __assign(__assign({}, dateFilter), { type: { $in: [transaction_model_1.TRANSACTION_TYPE.CHANGE_ORDER, transaction_model_1.TRANSACTION_TYPE.JOB_DAY, transaction_model_1.TRANSACTION_TYPE.SITE_VISIT] } }),
+                            $match: __assign(__assign({}, dateFilter), { type: { $in: [transaction_model_1.TRANSACTION_TYPE.CHANGE_ORDER_PAYMENT, transaction_model_1.TRANSACTION_TYPE.JOB_DAY_PAYMENT, transaction_model_1.TRANSACTION_TYPE.SITE_VISIT_PAYMENT] } }),
                         },
                         {
                             $group: {

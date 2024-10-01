@@ -81,7 +81,8 @@ var getTransactions = function (req, res, next) { return __awaiter(void 0, void 
                     $or: [
                         { fromUser: customerId, fromUserType: 'customers' },
                         { toUser: customerId, toUserType: 'customers' }
-                    ]
+                    ],
+                    type: { $ne: transaction_model_1.TRANSACTION_TYPE.ESCROW }
                 };
                 return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(transaction_model_1.default.find(filter).populate([{ path: 'fromUser' }, { path: 'toUser' }]), req.query)];
             case 2:

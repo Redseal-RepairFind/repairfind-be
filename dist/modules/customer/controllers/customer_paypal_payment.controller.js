@@ -325,7 +325,7 @@ var createOrderEstimatePaymentCheckout = function (req, res, next) { return __aw
                 if (!paymentMethod)
                     throw new Error('No such payment method');
                 paymentType = payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT;
-                transactionType = transaction_model_1.TRANSACTION_TYPE.CHANGE_ORDER;
+                transactionType = transaction_model_1.TRANSACTION_TYPE.CHANGE_ORDER_PAYMENT;
                 return [4 /*yield*/, quotation.calculateCharges(paymentType)];
             case 5:
                 charges = _b.sent();
@@ -394,7 +394,7 @@ var captureOrderEstimatePaymentCheckout = function (req, res, next) { return __a
                 if (!paymentMethod)
                     throw new Error('No such payment method');
                 paymentType = payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT;
-                transactionType = transaction_model_1.TRANSACTION_TYPE.CHANGE_ORDER;
+                transactionType = transaction_model_1.TRANSACTION_TYPE.CHANGE_ORDER_PAYMENT;
                 return [4 /*yield*/, quotation.calculateCharges(paymentType)];
             case 5:
                 charges = _b.sent();
@@ -560,7 +560,7 @@ var payChangeOrderEstimate = function (req, res, next) { return __awaiter(void 0
                 if (!paymentMethod)
                     throw new Error('No such payment method');
                 paymentType = payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT;
-                transactionType = transaction_model_1.TRANSACTION_TYPE.CHANGE_ORDER;
+                transactionType = transaction_model_1.TRANSACTION_TYPE.CHANGE_ORDER_PAYMENT;
                 return [4 /*yield*/, quotation.calculateCharges(paymentType)];
             case 5:
                 charges = _b.sent();

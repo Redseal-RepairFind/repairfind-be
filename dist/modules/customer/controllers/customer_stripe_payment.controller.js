@@ -388,7 +388,7 @@ var makeChangeOrderEstimatePayment = function (req, res, next) { return __awaite
                 if (!paymentMethod)
                     throw new Error('No such payment method');
                 paymentType = payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT;
-                transactionType = transaction_model_1.TRANSACTION_TYPE.CHANGE_ORDER;
+                transactionType = transaction_model_1.TRANSACTION_TYPE.CHANGE_ORDER_PAYMENT;
                 return [4 /*yield*/, quotation.calculateCharges(paymentType)];
             case 5:
                 charges = _b.sent();

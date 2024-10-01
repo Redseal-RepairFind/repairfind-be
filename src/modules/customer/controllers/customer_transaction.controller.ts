@@ -17,7 +17,8 @@ export const getTransactions = async (req: any, res: Response, next: NextFunctio
             $or: [
                 { fromUser: customerId, fromUserType: 'customers' },
                 { toUser: customerId, toUserType: 'customers' }
-            ]
+            ],
+            type: {$ne: TRANSACTION_TYPE.ESCROW}
         }
 
         // Fetch transactions for the specified customer

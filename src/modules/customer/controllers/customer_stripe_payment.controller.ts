@@ -301,7 +301,7 @@ export const makeChangeOrderEstimatePayment = async (req: any, res: Response, ne
 
 
         let paymentType = PAYMENT_TYPE.CHANGE_ORDER_PAYMENT
-        let transactionType = TRANSACTION_TYPE.CHANGE_ORDER
+        let transactionType = TRANSACTION_TYPE.CHANGE_ORDER_PAYMENT
         const charges = await quotation.calculateCharges(paymentType);
 
         

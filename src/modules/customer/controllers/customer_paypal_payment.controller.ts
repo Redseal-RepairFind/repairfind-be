@@ -254,7 +254,7 @@ export const createOrderEstimatePaymentCheckout = async (req: any, res: Response
 
 
         let paymentType = PAYMENT_TYPE.CHANGE_ORDER_PAYMENT
-        let transactionType = TRANSACTION_TYPE.CHANGE_ORDER
+        let transactionType = TRANSACTION_TYPE.CHANGE_ORDER_PAYMENT
         const charges = await quotation.calculateCharges(paymentType);
 
         
@@ -315,7 +315,7 @@ export const captureOrderEstimatePaymentCheckout = async (req: any, res: Respons
 
 
         let paymentType = PAYMENT_TYPE.CHANGE_ORDER_PAYMENT
-        let transactionType = TRANSACTION_TYPE.CHANGE_ORDER
+        let transactionType = TRANSACTION_TYPE.CHANGE_ORDER_PAYMENT
         const charges = await quotation.calculateCharges(paymentType);
 
         
@@ -463,7 +463,7 @@ export const payChangeOrderEstimate = async (req: any, res: Response, next: Next
 
 
         let paymentType = PAYMENT_TYPE.CHANGE_ORDER_PAYMENT
-        let transactionType = TRANSACTION_TYPE.CHANGE_ORDER
+        let transactionType = TRANSACTION_TYPE.CHANGE_ORDER_PAYMENT
         const charges = await quotation.calculateCharges(paymentType);
 
         

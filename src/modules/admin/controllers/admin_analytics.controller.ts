@@ -38,7 +38,7 @@ export const getStats = async (
       const totalContractors = await ContractorModel.countDocuments(dateFilter);
       const totalRevenue = await TransactionModel.countDocuments({
         ...dateFilter,
-        type: { $in: [TRANSACTION_TYPE.CHANGE_ORDER, TRANSACTION_TYPE.JOB_DAY, TRANSACTION_TYPE.SITE_VISIT] },
+        type: { $in: [TRANSACTION_TYPE.CHANGE_ORDER_PAYMENT, TRANSACTION_TYPE.JOB_DAY_PAYMENT, TRANSACTION_TYPE.SITE_VISIT_PAYMENT] },
       });
   
       // Job Status Counts
@@ -87,7 +87,7 @@ export const getStats = async (
         {
           $match: {
             ...dateFilter,
-            type: { $in: [TRANSACTION_TYPE.CHANGE_ORDER, TRANSACTION_TYPE.JOB_DAY, TRANSACTION_TYPE.SITE_VISIT] },
+            type: { $in: [TRANSACTION_TYPE.CHANGE_ORDER_PAYMENT, TRANSACTION_TYPE.JOB_DAY_PAYMENT, TRANSACTION_TYPE.SITE_VISIT_PAYMENT] },
           },
         },
         {
