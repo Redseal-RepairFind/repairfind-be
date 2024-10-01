@@ -279,13 +279,7 @@ const JobSchema = new Schema<IJob>({
     date: { type: Date, required: false },
     time: { type: Date, required: false },
     startDate: { type: Date },
-    expiryDate: {
-        type: Date,
-        default: function () {
-            const now = new Date();
-            return new Date(now.setDate(now.getDate() + 7));
-        }
-    },
+    expiryDate: {type: Date},
     endDate: { type: Date },
     media: { type: [String], default: [] },
     tags: { type: [String] },
@@ -341,7 +335,7 @@ JobSchema.virtual('totalQuotations').get(function () {
 JobSchema.virtual('expiresIn').get(function () {
     if (this.expiryDate && this.createdAt) {
         const millisecondsPerDay = 1000 * 60 * 60 * 24;
-        const timeDifference = this.expiryDate.getTime() - new Date(this.createdAt).getTime();
+        const timeDifference = this.expiryDate.getTime() - new Date().getTime();
         const daysDifference = Math.ceil(timeDifference / millisecondsPerDay);
         return daysDifference;
     }

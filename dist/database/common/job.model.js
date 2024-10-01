@@ -174,13 +174,7 @@ var JobSchema = new mongoose_1.Schema({
     date: { type: Date, required: false },
     time: { type: Date, required: false },
     startDate: { type: Date },
-    expiryDate: {
-        type: Date,
-        default: function () {
-            var now = new Date();
-            return new Date(now.setDate(now.getDate() + 7));
-        }
-    },
+    expiryDate: { type: Date },
     endDate: { type: Date },
     media: { type: [String], default: [] },
     tags: { type: [String] },
@@ -231,7 +225,7 @@ JobSchema.virtual('totalQuotations').get(function () {
 JobSchema.virtual('expiresIn').get(function () {
     if (this.expiryDate && this.createdAt) {
         var millisecondsPerDay = 1000 * 60 * 60 * 24;
-        var timeDifference = this.expiryDate.getTime() - new Date(this.createdAt).getTime();
+        var timeDifference = this.expiryDate.getTime() - new Date().getTime();
         var daysDifference = Math.ceil(timeDifference / millisecondsPerDay);
         return daysDifference;
     }
