@@ -278,7 +278,7 @@ export const chargeSavedCard = async (payload: any) => {
             description: payload.description,
             amount: {
               currency_code: 'CAD',
-              value: (payload.amount / 100).toString(), // Amount in dollars
+              value: (payload.amount).toString(), // Amount in dollars
             },
           },
         ],
@@ -318,7 +318,7 @@ export const refundPayment = async (captureId: string, amountToRefund: number) =
     {
       amount: {
         currency_code: 'CAD',
-        value: (amountToRefund / 100).toString(),
+        value: (amountToRefund).toString(),
       },
     },
     {

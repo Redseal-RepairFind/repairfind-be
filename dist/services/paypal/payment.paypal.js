@@ -322,7 +322,7 @@ var chargeSavedCard = function (payload) { return __awaiter(void 0, void 0, void
                                 description: payload.description,
                                 amount: {
                                     currency_code: 'CAD',
-                                    value: (payload.amount / 100).toString(), // Amount in dollars
+                                    value: (payload.amount).toString(), // Amount in dollars
                                 },
                             },
                         ],
@@ -361,7 +361,7 @@ var refundPayment = function (captureId, amountToRefund) { return __awaiter(void
                 return [4 /*yield*/, axios_1.default.post(config_1.config.paypal.apiUrl + "/v2/payments/captures/".concat(captureId, "/refund"), {
                         amount: {
                             currency_code: 'CAD',
-                            value: (amountToRefund / 100).toString(),
+                            value: (amountToRefund).toString(),
                         },
                     }, {
                         headers: {
