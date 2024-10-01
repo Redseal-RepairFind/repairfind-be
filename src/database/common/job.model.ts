@@ -341,7 +341,7 @@ JobSchema.virtual('totalQuotations').get(function () {
 JobSchema.virtual('expiresIn').get(function () {
     if (this.expiryDate && this.createdAt) {
         const millisecondsPerDay = 1000 * 60 * 60 * 24;
-        const timeDifference = this.expiryDate.getTime() - new Date().getTime();
+        const timeDifference = this.expiryDate.getTime() - new Date(this.createdAt).getTime();
         const daysDifference = Math.ceil(timeDifference / millisecondsPerDay);
         return daysDifference;
     }
@@ -406,8 +406,6 @@ JobSchema.methods.getJobDispute = async function () {
     return {
         ...dispute?.toJSON()
     }
-
-
 };
 
 
@@ -431,7 +429,6 @@ JobSchema.methods.getHasUnrepliedEnquiry = async function () {
     });
     return count > 0;
 };
-
 
 
 JobSchema.methods.getMyQuotation = async function (contractor: any) {

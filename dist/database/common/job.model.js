@@ -231,7 +231,7 @@ JobSchema.virtual('totalQuotations').get(function () {
 JobSchema.virtual('expiresIn').get(function () {
     if (this.expiryDate && this.createdAt) {
         var millisecondsPerDay = 1000 * 60 * 60 * 24;
-        var timeDifference = this.expiryDate.getTime() - new Date().getTime();
+        var timeDifference = this.expiryDate.getTime() - new Date(this.createdAt).getTime();
         var daysDifference = Math.ceil(timeDifference / millisecondsPerDay);
         return daysDifference;
     }
