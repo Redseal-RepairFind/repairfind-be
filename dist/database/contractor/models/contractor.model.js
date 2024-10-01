@@ -163,7 +163,8 @@ var ContractorSchema = new mongoose_1.Schema({
         enum: Object.values(contractor_interface_1.CONTRACTOR_TYPES),
     },
     profilePhoto: {
-        type: Object
+        type: Object,
+        default: { url: 'https://ipalas3bucket.s3.us-east-2.amazonaws.com/avatar.png' }
     },
     phoneNumber: {
         code: { type: String },
