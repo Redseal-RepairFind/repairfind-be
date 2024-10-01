@@ -978,7 +978,7 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
                             isSaved: { $gt: [{ $size: "$savedJobs" }, 0] },
                             expiresIn: {
                                 $dateDiff: {
-                                    unit: "day", // Change to "hour", "minute", etc. if needed
+                                    unit: "hour", // Change to "hour", "minute", "day", etc. if needed
                                     startDate: "$createdAt",
                                     endDate: "$expiryDate",
                                 },
