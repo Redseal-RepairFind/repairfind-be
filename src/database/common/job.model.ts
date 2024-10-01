@@ -279,7 +279,9 @@ const JobSchema = new Schema<IJob>({
     date: { type: Date, required: false },
     time: { type: Date, required: false },
     startDate: { type: Date },
-    expiryDate: {type: Date},
+    expiryDate: {
+        type: Date,
+    },
     endDate: { type: Date },
     media: { type: [String], default: [] },
     tags: { type: [String] },
