@@ -45,9 +45,9 @@ var config_1 = require("../../config");
 var logger_1 = require("../logger");
 function translateText(_a) {
     var _b, _c, _d, _e;
-    var text = _a.text, targetLang = _a.targetLang, sourceLang = _a.sourceLang, _f = _a.format, format = _f === void 0 ? 'text' : _f, _g = _a.model, model = _g === void 0 ? 'text' : _g;
+    var text = _a.text, targetLang = _a.targetLang, sourceLang = _a.sourceLang, _f = _a.format, format = _f === void 0 ? 'text/plain' : _f, _g = _a.model, model = _g === void 0 ? 'text' : _g;
     return __awaiter(this, void 0, void 0, function () {
-        var url, response, error_1;
+        var url, response, translatedText, error_1;
         return __generator(this, function (_h) {
             switch (_h.label) {
                 case 0:
@@ -63,12 +63,15 @@ function translateText(_a) {
                                 target: targetLang,
                                 key: config_1.config.google.apiKey,
                                 // model: model,
-                                format: format,
+                                // format: format,
+                                // mimeType: format,
                             },
                         })];
                 case 1:
                     response = _h.sent();
-                    return [2 /*return*/, response.data.data.translations[0].translatedText];
+                    translatedText = response.data.data.translations[0].translatedText;
+                    // const finalText = restoreExcludedWords(translatedText, wordsToExclude);
+                    return [2 /*return*/, translatedText];
                 case 2:
                     error_1 = _h.sent();
                     logger_1.Logger.error('Error translating text:', (_b = error_1 === null || error_1 === void 0 ? void 0 : error_1.response) === null || _b === void 0 ? void 0 : _b.data);
@@ -79,3 +82,19 @@ function translateText(_a) {
     });
 }
 exports.translateText = translateText;
+function excludeWords(text, wordsToExclude) {
+    var modifiedText = text;
+    wordsToExclude.forEach(function (word) {
+        var placeholder = "{{EXCLUDE_".concat(word, "}}"); // Use more unique placeholder format
+        modifiedText = modifiedText.replace(new RegExp("\\b".concat(word, "\\b"), 'g'), placeholder);
+    });
+    return modifiedText;
+}
+function restoreExcludedWords(translatedText, wordsToExclude) {
+    var modifiedText = translatedText;
+    wordsToExclude.forEach(function (word) {
+        var placeholder = "{{EXCLUDE_".concat(word, "}}");
+        modifiedText = modifiedText.replace(new RegExp(placeholder, 'g'), word); // Restore the original word
+    });
+    return modifiedText;
+}

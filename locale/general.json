@@ -10,5 +10,8 @@
   },
   "you_have_a_new_unread_message_from": {
     "fr": "Vous avez un nouveau message non lu de"
+  },
+  "password_change": {
+    "zh": "更改密码"
   }
 }
