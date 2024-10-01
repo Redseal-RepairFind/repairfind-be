@@ -888,11 +888,20 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
           
           expiresIn: {
             $dateDiff: {
-              unit: "hour", // Change to "hour", "minute", "day", etc. if needed
+              unit: "day", // Change to "hour", "minute", "day", etc. if needed
               startDate: "$createdAt",
               endDate: "$expiryDate",
             },
           },
+
+          differenceInDays: {
+            $divide: [
+              { $subtract: ["$expiryDate", "$createdAt"] },
+              1000 * 60 * 60 * 24, // Converts milliseconds to days
+            ],
+          },
+
+          
           
           distance: {
             $round: [
