@@ -28,12 +28,14 @@ export interface IConversation extends Document {
     entityType: ConversationEntityType
     heading: Object;
 
+
     getHeading: (loggedInUserId: any) => {
-        subtotal: number;
-        processingFee: number;
-        gst: number;
-        totalAmount: number;
-        contractorAmount: number;
+        name: string;
+        image: string;
+        lastMessage: string;
+        lastMessageAt: string;
+        unreadCount: number;
+        language: string;
     };
     getIsBlocked:  () => {}
 }
@@ -123,6 +125,7 @@ ConversationSchema.methods.getHeading = async function (loggedInUserId: string) 
                 lastMessage: lastMessage?.message,
                 lastMessageAt: lastMessage?.createdAt,
                 unreadCount: unreadCount,
+                language: otherMemberUser.language,
             };
         }
     }
