@@ -236,7 +236,7 @@ var translateText = function (req, res, next) { return __awaiter(void 0, void 0,
             case 0:
                 _b.trys.push([0, 2, , 3]);
                 _a = req.body, text = _a.text, targetLang = _a.targetLang;
-                return [4 /*yield*/, i18n_1.i18n.freeCloudTranslate(text, targetLang)];
+                return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: text, lang: targetLang, useGoogle: true, saveToFile: false })];
             case 1:
                 translatedText = _b.sent();
                 return [2 /*return*/, res.json({ success: true, message: "Text translated", data: translatedText })];

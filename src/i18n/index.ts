@@ -129,7 +129,7 @@ export async function freeCloudTranslate(text: string, targetLang: string, sourc
             throw new Error('Text, source language, and target language are required');
         }
         const translate = Translate({ engine: config.i18n.engine, key: config.i18n.key });        
-        const translatedText = await translate(text, targetLang);
+        const translatedText = await translate(text, { to: targetLang } );
         return translatedText
     } catch (error: any) {
         Logger.error('Error translating text:', error?.response?.data);

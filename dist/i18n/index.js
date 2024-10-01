@@ -149,7 +149,7 @@ function freeCloudTranslate(text, targetLang, sourceLang) {
                         throw new Error('Text, source language, and target language are required');
                     }
                     translate = (0, translate_1.Translate)({ engine: config_1.config.i18n.engine, key: config_1.config.i18n.key });
-                    return [4 /*yield*/, translate(text, targetLang)];
+                    return [4 /*yield*/, translate(text, { to: targetLang })];
                 case 1:
                     translatedText = _e.sent();
                     return [2 /*return*/, translatedText];
