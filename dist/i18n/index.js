@@ -64,9 +64,9 @@ function loadTranslations(filePath) {
     return JSON.parse(jsonData);
 }
 // Define the path to the general.json file
-var generalTranslationsPath = path_1.default.join(__dirname, 'translations', 'general.json');
+var generalTranslationsPath = path_1.default.join(__dirname, '..', '..', 'locale', 'general.json');
 // Load all translations from different files
-var translations = __assign(__assign(__assign(__assign({}, loadTranslations(generalTranslationsPath)), loadTranslations(path_1.default.join(__dirname, 'translations', 'notifications.json'))), loadTranslations(path_1.default.join(__dirname, 'translations', 'api_response.json'))), loadTranslations(path_1.default.join(__dirname, 'translations', 'email.json')));
+var translations = __assign(__assign(__assign(__assign({}, loadTranslations(generalTranslationsPath)), loadTranslations(path_1.default.join(__dirname, '..', '..', 'locale', 'notifications.json'))), loadTranslations(path_1.default.join(__dirname, '..', '..', 'locale', 'api_response.json'))), loadTranslations(path_1.default.join(__dirname, '..', '..', 'locale', 'email.json')));
 // Slugify function to convert plain English text to a slug
 function slugify(text) {
     return text

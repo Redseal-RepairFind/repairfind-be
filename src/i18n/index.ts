@@ -28,15 +28,15 @@ function loadTranslations(filePath: string): Translation {
 
 
 // Define the path to the general.json file
-const generalTranslationsPath = path.join(__dirname, 'translations', 'general.json');
+const generalTranslationsPath = path.join(__dirname, '..', '..', 'locale', 'general.json');
 
 
 // Load all translations from different files
 const translations: Translation = {
     ...loadTranslations(generalTranslationsPath),
-    ...loadTranslations(path.join(__dirname, 'translations', 'notifications.json')),
-    ...loadTranslations(path.join(__dirname, 'translations', 'api_response.json')),
-    ...loadTranslations(path.join(__dirname, 'translations', 'email.json')),
+    ...loadTranslations(path.join(__dirname, '..', '..', 'locale', 'notifications.json')),
+    ...loadTranslations(path.join(__dirname, '..', '..', 'locale', 'api_response.json')),
+    ...loadTranslations(path.join(__dirname, '..', '..', 'locale', 'email.json')),
 };
 
 // Slugify function to convert plain English text to a slug

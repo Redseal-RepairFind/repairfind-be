@@ -9,7 +9,7 @@
     "js-dev": "ts-node-dev dist/index.js",
     "build": "npm run clean && tsc && npm run copy-files",
     "clean": "rimraf ./dist",
-    "copy-files": "npx copyfiles src/i18n/translations/* -u 1 dist/ && npx copyfiles .env package.json package-lock.json ecosystem.config.js cli.js dist/",
+    "copy-files": "npx copyfiles .env package.json package-lock.json ecosystem.config.js cli.js dist/",
     "build-start": "npm run build && npm run start",
     "start": "node dist/index.js"
   },

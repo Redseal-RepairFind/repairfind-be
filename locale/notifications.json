@@ -1,11 +1,5 @@
 {
-    "you_ve_received_a_job_request_from": {
-        "en": "You've received a job request from",
-        "fr": "Vous avez reçu une demande d'emploi de",
-        "pa": "ਤੁਹਾਨੂੰ ਇਸ ਤੋਂ ਨੌਕਰੀ ਦੀ ਬੇਨਤੀ ਪ੍ਰਾਪਤ ਹੋਈ ਹੈ",
-        "zh": "您收到了来自以下人员的工作请求",
-        "es": "Has recibido una solicitud de trabajo de"
-    },
+   
     "new_job_request": {
         "en": "New Job Request",
         "fr": "Nouvelle demande d'emploi",
