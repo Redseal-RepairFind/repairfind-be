@@ -492,10 +492,10 @@ exports.JobEvent.on('JOB_CANCELED', function (payload) {
                     if (!(payload.canceledBy == 'customer')) return [3 /*break*/, 8];
                     logger_1.Logger.info('job cancelled by customer');
                     html = (0, job_canceled_template_1.JobCanceledEmailTemplate)({ name: contractor.name, canceledBy: 'customer', job: payload.job });
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true })];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true })];
                 case 6:
                     translatedHtml = (_c.sent()) || html;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: "Job Canceled", targetLang: contractor.language })];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: "Job Canceled", targetLang: customer.language })];
                 case 7:
                     translatedSubject = (_c.sent()) || 'Job Canceled';
                     services_1.EmailService.send(contractor.email, translatedSubject, translatedHtml);
@@ -747,11 +747,11 @@ exports.JobEvent.on('JOB_REVISIT_ENABLED', function (payload) {
 exports.JobEvent.on('JOB_QUOTATION_DECLINED', function (payload) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var customer, contractor, job, emailSubject, emailContent, html, conversation, contractorLang, nMessage, nTitle, error_8;
+        var customer, contractor, job, emailSubject, emailContent, html, translatedHtml, translatedSubject, conversation, contractorLang, nMessage, nTitle, error_8;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
-                    _b.trys.push([0, 8, , 9]);
+                    _b.trys.push([0, 10, , 11]);
                     logger_1.Logger.info('handling alert JOB_QUOTATION_DECLINED event');
                     return [4 /*yield*/, customer_model_1.default.findById(payload.customerId)];
                 case 1:
@@ -762,26 +762,32 @@ exports.JobEvent.on('JOB_QUOTATION_DECLINED', function (payload) {
                     return [4 /*yield*/, job_model_1.JobModel.findById(payload.jobId)];
                 case 3:
                     job = _b.sent();
-                    if (!contractor) return [3 /*break*/, 7];
+                    if (!contractor) return [3 /*break*/, 9];
                     emailSubject = 'Job Quotation Decline';
                     emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(contractor.name, ",</p>\n                <p style=\"color: #333333;\">Your job  quotation for a job  on RepairFind was declined.</p>\n                <p>\n                    <strong>Job Title:</strong> ").concat(job.title, " </br>\n                    <strong>Customer:</strong> ").concat(customer.name, " </br>\n                    <strong>Reason:</strong> ").concat(payload.reason, "  </br>\n                </p>\n              \n                <p>Login to our app to follow up </p>\n                ");
                     html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
-                    services_1.EmailService.send(contractor.email, emailSubject, html);
-                    return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(customer.id, 'customers', contractor.id, 'contractors')];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true })];
                 case 4:
+                    translatedHtml = (_b.sent()) || html;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: contractor.language })];
+                case 5:
+                    translatedSubject = (_b.sent()) || emailSubject;
+                    services_1.EmailService.send(contractor.email, translatedSubject, translatedHtml);
+                    return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(customer.id, 'customers', contractor.id, 'contractors')];
+                case 6:
                     conversation = _b.sent();
                     contractorLang = contractor.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Your job quotation for a job on RepairFind was declined',
                             targetLang: contractorLang
                         })];
-                case 5:
+                case 7:
                     nMessage = _b.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Job Quotation Declined',
                             targetLang: contractorLang
                         })];
-                case 6:
+                case 8:
                     nTitle = _b.sent();
                     services_1.NotificationService.sendNotification({
                         user: contractor.id,
@@ -800,13 +806,13 @@ exports.JobEvent.on('JOB_QUOTATION_DECLINED', function (payload) {
                             event: 'JOB_QUOTATION_DECLINED',
                         }
                     }, { push: true, socket: true, database: true });
-                    _b.label = 7;
-                case 7: return [3 /*break*/, 9];
-                case 8:
+                    _b.label = 9;
+                case 9: return [3 /*break*/, 11];
+                case 10:
                     error_8 = _b.sent();
                     logger_1.Logger.error("Error handling JOB_QUOTATION_DECLINED event: ".concat(error_8));
-                    return [3 /*break*/, 9];
-                case 9: return [2 /*return*/];
+                    return [3 /*break*/, 11];
+                case 11: return [2 /*return*/];
             }
         });
     });
@@ -814,11 +820,11 @@ exports.JobEvent.on('JOB_QUOTATION_DECLINED', function (payload) {
 exports.JobEvent.on('JOB_QUOTATION_ACCEPTED', function (payload) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var customer, contractor, job, emailSubject, emailContent, html, conversation, contractorLang, nTitle, nMessage, error_9;
+        var customer, contractor, job, emailSubject, emailContent, html, translatedHtml, translatedSubject, conversation, contractorLang, nTitle, nMessage, error_9;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
-                    _b.trys.push([0, 8, , 9]);
+                    _b.trys.push([0, 10, , 11]);
                     logger_1.Logger.info('handling alert JOB_QUOTATION_ACCEPTED event');
                     return [4 /*yield*/, customer_model_1.default.findById(payload.customerId)];
                 case 1:
@@ -829,26 +835,32 @@ exports.JobEvent.on('JOB_QUOTATION_ACCEPTED', function (payload) {
                     return [4 /*yield*/, job_model_1.JobModel.findById(payload.jobId)];
                 case 3:
                     job = _b.sent();
-                    if (!contractor) return [3 /*break*/, 7];
+                    if (!contractor) return [3 /*break*/, 9];
                     emailSubject = 'Job Quotation Accepted';
                     emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(contractor.name, ",</p>\n                <p style=\"color: #333333;\">Congratulations! your job quotation for a job  on RepairFind was accepted.</p>\n                <p>\n                    <strong>Job Title:</strong> ").concat(job.title, " </br>\n                    <strong>Customer:</strong> ").concat(customer.name, " </br>\n                </p>\n              \n                <p>Login to our app to follow up </p>\n                ");
                     html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
-                    services_1.EmailService.send(contractor.email, emailSubject, html);
-                    return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(customer.id, 'customers', contractor.id, 'contractors')];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true })];
                 case 4:
+                    translatedHtml = (_b.sent()) || html;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: contractor.language })];
+                case 5:
+                    translatedSubject = (_b.sent()) || emailSubject;
+                    services_1.EmailService.send(contractor.email, translatedSubject, translatedHtml);
+                    return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(customer.id, 'customers', contractor.id, 'contractors')];
+                case 6:
                     conversation = _b.sent();
                     contractorLang = contractor.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Job Quotation Accepted',
                             targetLang: contractorLang
                         })];
-                case 5:
+                case 7:
                     nTitle = _b.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Your quotation for a job on RepairFind was accepted',
                             targetLang: contractorLang
                         })];
-                case 6:
+                case 8:
                     nMessage = _b.sent();
                     services_1.NotificationService.sendNotification({
                         user: contractor.id,
@@ -866,13 +878,13 @@ exports.JobEvent.on('JOB_QUOTATION_ACCEPTED', function (payload) {
                             event: 'JOB_QUOTATION_ACCEPTED',
                         }
                     }, { push: true, socket: true, database: true });
-                    _b.label = 7;
-                case 7: return [3 /*break*/, 9];
-                case 8:
+                    _b.label = 9;
+                case 9: return [3 /*break*/, 11];
+                case 10:
                     error_9 = _b.sent();
                     logger_1.Logger.error("Error handling JOB_QUOTATION_ACCEPTED event: ".concat(error_9));
-                    return [3 /*break*/, 9];
-                case 9: return [2 /*return*/];
+                    return [3 /*break*/, 11];
+                case 11: return [2 /*return*/];
             }
         });
     });
@@ -897,17 +909,9 @@ exports.JobEvent.on('JOB_DAY_EMERGENCY', function (payload) {
                     if (job && contractor && customer) {
                         if (payload.jobEmergency.triggeredBy == 'contractor') {
                             logger_1.Logger.info('job emergency triggered by contractor');
-                            // if (customer) {
-                            //     const html = JobEmergencyEmailTemplate({ name: customer.name, emergency: payload.jobEmergency, job })
-                            //     EmailService.send(customer.email, "Job Emergency", html)
-                            // }
                         }
                         if (payload.jobEmergency.triggeredBy == 'customer') {
                             logger_1.Logger.info('job emergency triggered by customer');
-                            // if (contractor) {
-                            //     const html = JobEmergencyEmailTemplate({ name: contractor.name, emergency: payload.jobEmergency, job })
-                            //     EmailService.send(contractor.email, "Job Emergency", html)
-                            // }
                         }
                         // send socket notification to general admins alert channel
                         socket_1.SocketService.broadcastChannel('admin_alerts', 'NEW_JOB_EMERGENCY', {
@@ -929,11 +933,11 @@ exports.JobEvent.on('JOB_DAY_EMERGENCY', function (payload) {
 exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
     var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function () {
-        var customer, contractor, job, event_1, conversation, message, dateTimeOptions, rescheduleDate, emailSubject, emailContent, html, contractorLang, nTitle, nMessage, dateTimeOptions, rescheduleDate, emailSubject, emailContent, html, customerLang, nTitle, nMessage, error_11;
+        var customer, contractor, job, event_1, conversation, message, dateTimeOptions, rescheduleDate, emailSubject, emailContent, html, translatedHtml, translatedSubject, contractorLang, nTitle, nMessage, dateTimeOptions, rescheduleDate, emailSubject, emailContent, html, translatedHtml, translatedSubject, customerLang, nTitle, nMessage, error_11;
         return __generator(this, function (_e) {
             switch (_e.label) {
                 case 0:
-                    _e.trys.push([0, 12, , 13]);
+                    _e.trys.push([0, 16, , 17]);
                     logger_1.Logger.info('handling alert JOB_RESCHEDULE_DECLINED_ACCEPTED event', payload.action);
                     return [4 /*yield*/, customer_model_1.default.findById(payload.job.customer)];
                 case 1:
@@ -943,7 +947,7 @@ exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
                     contractor = _e.sent();
                     job = payload.job;
                     event_1 = payload.action == 'accepted' ? 'JOB_RESCHEDULE_ACCEPTED' : 'JOB_RESCHEDULE_DECLINED';
-                    if (!(contractor && customer)) return [3 /*break*/, 11];
+                    if (!(contractor && customer)) return [3 /*break*/, 15];
                     return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(customer.id, 'customers', contractor.id, 'contractors')];
                 case 3:
                     conversation = _e.sent();
@@ -954,7 +958,7 @@ exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
                         entity: job.id,
                         entityType: 'jobs'
                     });
-                    if (!(((_a = payload.job.reschedule) === null || _a === void 0 ? void 0 : _a.createdBy) == 'contractor')) return [3 /*break*/, 6];
+                    if (!(((_a = payload.job.reschedule) === null || _a === void 0 ? void 0 : _a.createdBy) == 'contractor')) return [3 /*break*/, 8];
                     dateTimeOptions = {
                         weekday: 'short',
                         day: 'numeric',
@@ -970,19 +974,25 @@ exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
                     emailSubject = 'Job Reschedule Request';
                     emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(contractor.name, ",</p>\n                <p style=\"color: #333333;\">Your Job reschedule request on Repairfind has been ").concat(payload.action, " by customer</p>\n                <p><strong>Job Title:</strong> ").concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(rescheduleDate, "</p>\n                ");
                     html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
-                    services_1.EmailService.send(contractor.email, emailSubject, html);
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true })];
+                case 4:
+                    translatedHtml = (_e.sent()) || html;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: contractor.language })];
+                case 5:
+                    translatedSubject = (_e.sent()) || emailSubject;
+                    services_1.EmailService.send(contractor.email, translatedSubject, translatedHtml);
                     contractorLang = contractor.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: "Job Reschedule Request ".concat(payload.action),
                             targetLang: contractorLang
                         })];
-                case 4:
+                case 6:
                     nTitle = _e.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: "Your job reschedule request on Repairfind has been ".concat(payload.action, " by customer"),
                             targetLang: contractorLang
                         })];
-                case 5:
+                case 7:
                     nMessage = _e.sent();
                     services_1.NotificationService.sendNotification({
                         user: contractor.id,
@@ -1003,9 +1013,9 @@ exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
                     }, { push: true, socket: true, database: true });
                     message.sender = customer.id;
                     message.senderType = 'customers';
-                    _e.label = 6;
-                case 6:
-                    if (!(((_c = payload.job.reschedule) === null || _c === void 0 ? void 0 : _c.createdBy) == 'customer')) return [3 /*break*/, 9];
+                    _e.label = 8;
+                case 8:
+                    if (!(((_c = payload.job.reschedule) === null || _c === void 0 ? void 0 : _c.createdBy) == 'customer')) return [3 /*break*/, 13];
                     dateTimeOptions = {
                         weekday: 'short',
                         day: 'numeric',
@@ -1021,19 +1031,25 @@ exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
                     emailSubject = 'Job Reschedule Request';
                     emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(customer.name, ",</p>\n                <p style=\"color: #333333;\">Your Job reschedule request on Repairfind has been ").concat(payload.action, "  by the contractor</p>\n                <p><strong>Job Title:</strong> ").concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(rescheduleDate, "</p>\n                ");
                     html = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: emailSubject, content: emailContent });
-                    services_1.EmailService.send(customer.email, emailSubject, html);
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true })];
+                case 9:
+                    translatedHtml = (_e.sent()) || html;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: customer.language })];
+                case 10:
+                    translatedSubject = (_e.sent()) || emailSubject;
+                    services_1.EmailService.send(customer.email, translatedSubject, translatedHtml);
                     customerLang = customer.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: "Job Reschedule Request ".concat(payload.action),
                             targetLang: customerLang
                         })];
-                case 7:
+                case 11:
                     nTitle = _e.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: "Your job reschedule request on Repairfind has been ".concat(payload.action, " by contractor"),
                             targetLang: customerLang
                         })];
-                case 8:
+                case 12:
                     nMessage = _e.sent();
                     services_1.NotificationService.sendNotification({
                         user: customer.id,
@@ -1054,17 +1070,17 @@ exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
                     }, { push: true, socket: true, database: true });
                     message.sender = contractor.id;
                     message.senderType = 'contractors';
-                    _e.label = 9;
-                case 9: return [4 /*yield*/, message.save()];
-                case 10:
+                    _e.label = 13;
+                case 13: return [4 /*yield*/, message.save()];
+                case 14:
                     _e.sent();
-                    _e.label = 11;
-                case 11: return [3 /*break*/, 13];
-                case 12:
+                    _e.label = 15;
+                case 15: return [3 /*break*/, 17];
+                case 16:
                     error_11 = _e.sent();
                     logger_1.Logger.error("Error handling JOB_RESCHEDULE_DECLINED_ACCEPTED event: ".concat(error_11));
-                    return [3 /*break*/, 13];
-                case 13: return [2 /*return*/];
+                    return [3 /*break*/, 17];
+                case 17: return [2 /*return*/];
             }
         });
     });
@@ -1073,11 +1089,11 @@ exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
 exports.JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', function (payload) {
     var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function () {
-        var customer, contractor, job, conversation, message, dateTimeOptions, rescheduleDate, emailSubject, emailContent, html, dateTimeOptions, rescheduleDate, emailSubject, emailContent, html, error_12;
+        var customer, contractor, job, conversation, message, dateTimeOptions, rescheduleDate, emailSubject, emailContent, html, translatedHtml, translatedSubject, dateTimeOptions, rescheduleDate, emailSubject, emailContent, html, translatedHtml, translatedSubject, error_12;
         return __generator(this, function (_e) {
             switch (_e.label) {
                 case 0:
-                    _e.trys.push([0, 7, , 8]);
+                    _e.trys.push([0, 13, , 14]);
                     logger_1.Logger.info('handling alert NEW_JOB_RESCHEDULE_REQUEST event', payload.action);
                     return [4 /*yield*/, customer_model_1.default.findById(payload.job.customer)];
                 case 1:
@@ -1086,7 +1102,7 @@ exports.JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', function (payload) {
                 case 2:
                     contractor = _e.sent();
                     job = payload.job;
-                    if (!(contractor && customer)) return [3 /*break*/, 6];
+                    if (!(contractor && customer)) return [3 /*break*/, 12];
                     return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(customer.id, 'customers', contractor.id, 'contractors')];
                 case 3:
                     conversation = _e.sent();
@@ -1097,92 +1113,105 @@ exports.JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', function (payload) {
                         entity: job.id,
                         entityType: 'jobs'
                     });
-                    if (((_a = payload.job.reschedule) === null || _a === void 0 ? void 0 : _a.createdBy) == 'contractor') { // send mail to contractor
-                        dateTimeOptions = {
-                            weekday: 'short',
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric',
-                            hour: 'numeric',
-                            minute: 'numeric',
-                            hour12: true,
-                            timeZone: contractor.currentTimezone,
-                            timeZoneName: 'long'
-                        };
-                        rescheduleDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(payload.job.reschedule.date));
-                        emailSubject = 'Job Schedule';
-                        emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(customer.name, ",</p>\n                <p style=\"color: #333333;\">Contractor has requested  to reschedule a job on RepairFind</p>\n                <p><strong>Job Title:</strong> ").concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(rescheduleDate, "</p>\n                ");
-                        html = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: emailSubject, content: emailContent });
-                        services_1.EmailService.send(customer.email, emailSubject, html);
-                        services_1.NotificationService.sendNotification({
-                            user: customer.id,
-                            userType: 'customers',
-                            title: job.revisitEnabled ? "Job Revisit reschedule request" : "Job reschedule request",
-                            type: 'NEW_JOB_RESCHEDULE_REQUEST', // Conversation, Conversation_Notification
-                            message: "Contractor has requested  to reschedule a job on RepairFind",
-                            heading: { name: "".concat(contractor.name), image: (_b = contractor.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
-                            payload: {
-                                entity: job.id,
-                                entityType: 'jobs',
-                                message: "Contractor has requested  to reschedule a job on RepairFind",
-                                customer: customer.id,
-                                contractor: contractor.id,
-                                event: 'NEW_JOB_RESCHEDULE_REQUEST',
-                            }
-                        }, { push: true, socket: true, database: true });
-                        message.sender = contractor.id;
-                        message.senderType = 'contractors';
-                    }
-                    if (((_c = payload.job.reschedule) === null || _c === void 0 ? void 0 : _c.createdBy) == 'customer') { // send mail to  customer
-                        dateTimeOptions = {
-                            weekday: 'short',
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric',
-                            hour: 'numeric',
-                            minute: 'numeric',
-                            hour12: true,
-                            timeZone: customer.currentTimezone,
-                            timeZoneName: 'long'
-                        };
-                        rescheduleDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(payload.job.reschedule.date));
-                        emailSubject = 'Job Schedule';
-                        emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(contractor.name, ",</p>\n                <p style=\"color: #333333;\">Customer has requested  to reschedule a job on RepairFind</p>\n                <p><strong>Job Title:</strong> ").concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(rescheduleDate, "</p>\n                ");
-                        html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
-                        services_1.EmailService.send(contractor.email, emailSubject, html);
-                        services_1.NotificationService.sendNotification({
-                            user: contractor.id,
-                            userType: 'contractors',
-                            title: job.revisitEnabled ? "Job Revisit reschedule request" : "Job reschedule request",
-                            type: 'NEW_JOB_RESCHEDULE_REQUEST', //
-                            message: "Customer has requested to reschedule your job on RepairFind",
-                            heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_d = customer.profilePhoto) === null || _d === void 0 ? void 0 : _d.url },
-                            payload: {
-                                entity: job.id,
-                                entityType: 'jobs',
-                                message: "Customer has requested to reschedule your job on RepairFind",
-                                contractor: contractor.id,
-                                customer: customer.id,
-                                event: 'NEW_JOB_RESCHEDULE_REQUEST',
-                            }
-                        }, { push: true, socket: true, database: true });
-                        message.sender = customer.id;
-                        message.senderType = 'customer';
-                    }
-                    return [4 /*yield*/, message.save()];
+                    if (!(((_a = payload.job.reschedule) === null || _a === void 0 ? void 0 : _a.createdBy) == 'contractor')) return [3 /*break*/, 6];
+                    dateTimeOptions = {
+                        weekday: 'short',
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                        hour: 'numeric',
+                        minute: 'numeric',
+                        hour12: true,
+                        timeZone: contractor.currentTimezone,
+                        timeZoneName: 'long'
+                    };
+                    rescheduleDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(payload.job.reschedule.date));
+                    emailSubject = 'Job Schedule';
+                    emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(customer.name, ",</p>\n                <p style=\"color: #333333;\">Contractor has requested  to reschedule a job on RepairFind</p>\n                <p><strong>Job Title:</strong> ").concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(rescheduleDate, "</p>\n                ");
+                    html = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: emailSubject, content: emailContent });
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true })];
                 case 4:
+                    translatedHtml = (_e.sent()) || html;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: customer.language })];
+                case 5:
+                    translatedSubject = (_e.sent()) || emailSubject;
+                    services_1.EmailService.send(customer.email, translatedSubject, translatedHtml);
+                    services_1.NotificationService.sendNotification({
+                        user: customer.id,
+                        userType: 'customers',
+                        title: job.revisitEnabled ? "Job Revisit reschedule request" : "Job reschedule request",
+                        type: 'NEW_JOB_RESCHEDULE_REQUEST', // Conversation, Conversation_Notification
+                        message: "Contractor has requested  to reschedule a job on RepairFind",
+                        heading: { name: "".concat(contractor.name), image: (_b = contractor.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
+                        payload: {
+                            entity: job.id,
+                            entityType: 'jobs',
+                            message: "Contractor has requested  to reschedule a job on RepairFind",
+                            customer: customer.id,
+                            contractor: contractor.id,
+                            event: 'NEW_JOB_RESCHEDULE_REQUEST',
+                        }
+                    }, { push: true, socket: true, database: true });
+                    message.sender = contractor.id;
+                    message.senderType = 'contractors';
+                    _e.label = 6;
+                case 6:
+                    if (!(((_c = payload.job.reschedule) === null || _c === void 0 ? void 0 : _c.createdBy) == 'customer')) return [3 /*break*/, 9];
+                    dateTimeOptions = {
+                        weekday: 'short',
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                        hour: 'numeric',
+                        minute: 'numeric',
+                        hour12: true,
+                        timeZone: customer.currentTimezone,
+                        timeZoneName: 'long'
+                    };
+                    rescheduleDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(payload.job.reschedule.date));
+                    emailSubject = 'Job Schedule';
+                    emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(contractor.name, ",</p>\n                <p style=\"color: #333333;\">Customer has requested  to reschedule a job on RepairFind</p>\n                <p><strong>Job Title:</strong> ").concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(rescheduleDate, "</p>\n                ");
+                    html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true })];
+                case 7:
+                    translatedHtml = (_e.sent()) || html;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: contractor.language })];
+                case 8:
+                    translatedSubject = (_e.sent()) || emailSubject;
+                    services_1.EmailService.send(contractor.email, translatedSubject, translatedHtml);
+                    services_1.NotificationService.sendNotification({
+                        user: contractor.id,
+                        userType: 'contractors',
+                        title: job.revisitEnabled ? "Job Revisit reschedule request" : "Job reschedule request",
+                        type: 'NEW_JOB_RESCHEDULE_REQUEST', //
+                        message: "Customer has requested to reschedule your job on RepairFind",
+                        heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_d = customer.profilePhoto) === null || _d === void 0 ? void 0 : _d.url },
+                        payload: {
+                            entity: job.id,
+                            entityType: 'jobs',
+                            message: "Customer has requested to reschedule your job on RepairFind",
+                            contractor: contractor.id,
+                            customer: customer.id,
+                            event: 'NEW_JOB_RESCHEDULE_REQUEST',
+                        }
+                    }, { push: true, socket: true, database: true });
+                    message.sender = customer.id;
+                    message.senderType = 'customer';
+                    _e.label = 9;
+                case 9: return [4 /*yield*/, message.save()];
+                case 10:
                     _e.sent();
                     conversation.lastMessageAt = new Date();
                     return [4 /*yield*/, conversation.save()];
-                case 5:
+                case 11:
                     _e.sent();
-                    _e.label = 6;
-                case 6: return [3 /*break*/, 8];
-                case 7:
+                    _e.label = 12;
+                case 12: return [3 /*break*/, 14];
+                case 13:
                     error_12 = _e.sent();
                     logger_1.Logger.error("Error handling NEW_JOB_RESCHEDULE_REQUEST event: ".concat(error_12));
-                    return [3 /*break*/, 8];
-                case 8: return [2 /*return*/];
+                    return [3 /*break*/, 14];
+                case 14: return [2 /*return*/];
             }
         });
     });
@@ -1190,11 +1219,11 @@ exports.JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', function (payload) {
 exports.JobEvent.on('JOB_BOOKED', function (payload) {
     var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function () {
-        var customer, contractor, job, quotation, charges, contractorProfile, dateTimeOptions, jobDateContractor, currentDate, emailSubject, emailContent, receipthtmlContent, html, receipthtml, dateTimeOptions, jobDateCustomer, currentDate, emailSubject, emailContent, receiptContent, html, receipthtml, customerLang, nTitle, nMessage, contractorLang, error_13;
+        var customer, contractor, job, quotation, charges, contractorProfile, dateTimeOptions, jobDateContractor, currentDate, emailSubject, emailContent, receipthtmlContent, html, translatedHtml, translatedSubject, receipthtml, translatedReceiptHtml, translatedReceiptSubject, dateTimeOptions, jobDateCustomer, currentDate, emailSubject, emailContent, receiptContent, html, translatedHtml, translatedSubject, receipthtml, translatedReceiptHtml, translatedReceiptSubject, customerLang, nTitle, nMessage, contractorLang, error_13;
         return __generator(this, function (_e) {
             switch (_e.label) {
                 case 0:
-                    _e.trys.push([0, 12, , 13]);
+                    _e.trys.push([0, 22, , 23]);
                     logger_1.Logger.info('handling alert JOB_BOOKED event');
                     return [4 /*yield*/, customer_model_1.default.findById(payload.customerId)];
                 case 1:
@@ -1208,69 +1237,95 @@ exports.JobEvent.on('JOB_BOOKED', function (payload) {
                     return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findById(payload.quotationId)];
                 case 4:
                     quotation = _e.sent();
-                    if (!(job && contractor && customer && quotation)) return [3 /*break*/, 11];
+                    if (!(job && contractor && customer && quotation)) return [3 /*break*/, 21];
                     return [4 /*yield*/, quotation.calculateCharges()];
                 case 5:
                     charges = _e.sent();
                     return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: contractor.id })];
                 case 6:
                     contractorProfile = _e.sent();
-                    if (contractor && contractorProfile) {
-                        dateTimeOptions = {
-                            weekday: 'short',
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric',
-                            hour: 'numeric',
-                            minute: 'numeric',
-                            hour12: true,
-                            timeZone: contractor.currentTimezone,
-                            timeZoneName: 'long'
-                        };
-                        jobDateContractor = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(job.schedule.startDate));
-                        currentDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(new Date));
-                        emailSubject = 'New Job Payment';
-                        emailContent = "\n                    <h2>".concat(emailSubject, "</h2>\n                    <p style=\"color: #333333;\">Hello ").concat(contractor.name, ",</p>\n                    <p style=\"color: #333333;\">You have received payment for a job on RepairFind.</p>\n                    <p><strong>Job Title:</strong> ").concat(job.description, "</p>\n                    <p><strong>Scheduled Date:</strong>").concat(jobDateContractor, "</p>\n                    <hr>\n                    <p style=\"color: #333333;\">Thank you for your service!</p>\n                    <p style=\"color: #333333;\">Kindly open the App for more information.</p>\n                ");
-                        receipthtmlContent = "\n                    <h3>Payment Receipt</h3>\n                    <p><strong>RepairFind</strong><br>\n                    Phone: (604) 568-6378<br>\n                    Email: info@repairfind.ca</p>\n                    <hr>\n\n                    <p>Date: ".concat(currentDate, "<br>\n                    Receipt Number: RFC").concat(quotation.payment, "</p>\n\n                    <p><strong>Contractor:</strong><br>\n                    ").concat(contractor.name, "<br>\n                    ").concat((_a = contractorProfile === null || contractorProfile === void 0 ? void 0 : contractorProfile.location) === null || _a === void 0 ? void 0 : _a.address, "<br>\n                    </p>\n\n                    <hr>\n                    <strong>Description:</strong>\n                    <strong>Job Title:</strong> ").concat(job.description, "<br>\n                    <strong>Scheduled Date:</strong> ").concat(jobDateContractor, "\n\n                    <p><strong>Invoice Items:</strong></p>\n                    <table style=\"width: 100%; border-collapse: collapse; border: 1px solid lightgray;\">\n                    ").concat(quotation.estimates.map(function (estimate) { return "\n                        <tr>\n                          <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>".concat(estimate.description, "</strong></td>\n                          <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat((estimate.rate * estimate.quantity).toFixed(2), "</td>\n                        </tr>\n                      "); }).join(''), "   \n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Subtotal</strong></td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat((charges.subtotal).toFixed(2), "</td>\n                        </tr>\n                    </table>\n                    <p><strong>Deduction/Charges:</strong></p>\n                    <table style=\"width: 100%; border-collapse: collapse; border: 1px solid lightgray;\">\n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\">Payment Processing Fee ($").concat(charges.customerProcessingFeeRate, "%)</td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat(charges.contractorProcessingFee, "</td>\n                        </tr>\n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\">Service Fee (").concat(charges.repairfindServiceFeeRate, "%)</td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat(charges.repairfindServiceFee, "</td>\n                        </tr>\n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Total Deducted</strong></td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\"><strong>$").concat(charges.repairfindServiceFee + charges.contractorProcessingFee, "</strong></td>\n                        </tr>\n                    </table>\n                    <p><strong>Net Amount to Contractor:</strong> $").concat(charges.subtotal, " + GST $").concat(charges.gstAmount, " - Total Deduction $").concat(charges.repairfindServiceFee + charges.contractorProcessingFee, " = $").concat(charges.contractorPayable, "</p>\n                    <p><strong>Payment Method:</strong> Card Payment<br>\n                    <strong>Transaction ID:</strong> RFT").concat(quotation.id, "</p>\n                ");
-                        html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
-                        services_1.EmailService.send(contractor.email, emailSubject, html);
-                        receipthtml = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: 'Payment Receipt', content: receipthtmlContent });
-                        services_1.EmailService.send(contractor.email, 'Payment Receipt', receipthtml);
-                    }
-                    if (customer) {
-                        dateTimeOptions = {
-                            weekday: 'short',
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric',
-                            hour: 'numeric',
-                            minute: 'numeric',
-                            hour12: true,
-                            timeZone: customer.currentTimezone,
-                            timeZoneName: 'long'
-                        };
-                        jobDateCustomer = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(job.schedule.startDate));
-                        currentDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(new Date));
-                        emailSubject = 'New Job Payment';
-                        emailContent = "\n                 <h2>".concat(emailSubject, "</h2>\n                  <p style=\"color: #333333;\">Hello ").concat(customer.name, ",</p>\n                  <p style=\"color: #333333;\">You have made a payment for a job on RepairFind.</p>\n                  <p><strong>Job Title:</strong> ").concat(job.description, "</p>\n                  <p><strong>Proposed Date:</strong>").concat(jobDateCustomer, "</p>\n                  <p style=\"color: #333333;\">Thank you for your payment!</p>\n                  <p style=\"color: #333333;\">If you did not initiate this payment, kindly reach out to us via support.</p>\n                ");
-                        receiptContent = "\n                    <p><strong>RepairFind</strong><br>\n                    Phone: (604) 568-6378<br>\n                    Email: info@repairfind.ca</p>\n                    <hr>\n\n                    <p><strong>Receipt</strong></p>\n                    <p>Date: ".concat(currentDate, "<br>\n                    Receipt Number: RFC").concat(quotation.payment, "</p>\n                    <p><strong>Customer:</strong><br>\n                    ").concat(customer.name, "<br>\n                    ").concat((_b = customer === null || customer === void 0 ? void 0 : customer.location) === null || _b === void 0 ? void 0 : _b.address, "<br>\n\n                    <hr>\n                    <strong>Description:</strong>\n                    <strong>Job Title:</strong> ").concat(job.description, " <br>\n                    <strong>Scheduled Date:</strong> ").concat(jobDateCustomer, "\n\n                    <p><strong>Services/Charges:</strong></p>\n                    <table style=\"width: 100%; border-collapse: collapse; border: 1px solid lightgray; margin-bottom: 10px;\">\n                         ").concat(quotation.estimates.map(function (estimate) { return "\n                        <tr>\n                          <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>".concat(estimate.description, "</strong></td>\n                          <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat((estimate.rate * estimate.quantity).toFixed(2), "</td>\n                        </tr>\n                      "); }).join(''), "   \n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Subtotal</strong></td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\"><strong>$").concat((charges.subtotal).toFixed(2), "</strong></td>\n                        </tr>\n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\">GST (").concat(charges.gstRate, "%)</td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat(charges.gstAmount, "</td>\n                        </tr>\n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\">Payment Processing Fee (").concat(charges.customerProcessingFeeRate, "%)</td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat(charges.customerProcessingFee, "</td>\n                        </tr>\n                       \n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Total Amount Due</strong></td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\"><strong>$").concat(charges.customerPayable, "</strong></td>\n                        </tr>\n                    </table>\n                  <p><strong>Payment Method:</strong> Credit/Debit Card<br>\n                  <strong>Transaction ID:</strong> RPT").concat(quotation.id, "</p>\n                  <p style=\"color: #333333;\">Thank you for your payment!</p>\n                  <p style=\"color: #333333;\">If you did not initiate this payment, kindly reach out to us via support.</p>\n                ");
-                        html = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: emailSubject, content: emailContent });
-                        services_1.EmailService.send(customer.email, emailSubject, html);
-                        receipthtml = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: 'Payment Receipt', content: receiptContent });
-                        services_1.EmailService.send(customer.email, 'Payment Receipt', receipthtml);
-                    }
+                    if (!(contractor && contractorProfile)) return [3 /*break*/, 11];
+                    dateTimeOptions = {
+                        weekday: 'short',
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                        hour: 'numeric',
+                        minute: 'numeric',
+                        hour12: true,
+                        timeZone: contractor.currentTimezone,
+                        timeZoneName: 'long'
+                    };
+                    jobDateContractor = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(job.schedule.startDate));
+                    currentDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(new Date));
+                    emailSubject = 'New Job Payment';
+                    emailContent = "\n                    <h2>".concat(emailSubject, "</h2>\n                    <p style=\"color: #333333;\">Hello ").concat(contractor.name, ",</p>\n                    <p style=\"color: #333333;\">You have received payment for a job on RepairFind.</p>\n                    <p><strong>Job Title:</strong> ").concat(job.description, "</p>\n                    <p><strong>Scheduled Date:</strong>").concat(jobDateContractor, "</p>\n                    <hr>\n                    <p style=\"color: #333333;\">Thank you for your service!</p>\n                    <p style=\"color: #333333;\">Kindly open the App for more information.</p>\n                ");
+                    receipthtmlContent = "\n                    <h3>Payment Receipt</h3>\n                    <p><strong>RepairFind</strong><br>\n                    Phone: (604) 568-6378<br>\n                    Email: info@repairfind.ca</p>\n                    <hr>\n\n                    <p>Date: ".concat(currentDate, "<br>\n                    Receipt Number: RFC").concat(quotation.payment, "</p>\n\n                    <p><strong>Contractor:</strong><br>\n                    ").concat(contractor.name, "<br>\n                    ").concat((_a = contractorProfile === null || contractorProfile === void 0 ? void 0 : contractorProfile.location) === null || _a === void 0 ? void 0 : _a.address, "<br>\n                    </p>\n\n                    <hr>\n                    <strong>Description:</strong>\n                    <strong>Job Title:</strong> ").concat(job.description, "<br>\n                    <strong>Scheduled Date:</strong> ").concat(jobDateContractor, "\n\n                    <p><strong>Invoice Items:</strong></p>\n                    <table style=\"width: 100%; border-collapse: collapse; border: 1px solid lightgray;\">\n                    ").concat(quotation.estimates.map(function (estimate) { return "\n                        <tr>\n                          <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>".concat(estimate.description, "</strong></td>\n                          <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat((estimate.rate * estimate.quantity).toFixed(2), "</td>\n                        </tr>\n                      "); }).join(''), "   \n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Subtotal</strong></td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat((charges.subtotal).toFixed(2), "</td>\n                        </tr>\n                    </table>\n                    <p><strong>Deduction/Charges:</strong></p>\n                    <table style=\"width: 100%; border-collapse: collapse; border: 1px solid lightgray;\">\n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\">Payment Processing Fee ($").concat(charges.customerProcessingFeeRate, "%)</td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat(charges.contractorProcessingFee, "</td>\n                        </tr>\n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\">Service Fee (").concat(charges.repairfindServiceFeeRate, "%)</td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat(charges.repairfindServiceFee, "</td>\n                        </tr>\n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Total Deducted</strong></td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\"><strong>$").concat(charges.repairfindServiceFee + charges.contractorProcessingFee, "</strong></td>\n                        </tr>\n                    </table>\n                    <p><strong>Net Amount to Contractor:</strong> $").concat(charges.subtotal, " + GST $").concat(charges.gstAmount, " - Total Deduction $").concat(charges.repairfindServiceFee + charges.contractorProcessingFee, " = $").concat(charges.contractorPayable, "</p>\n                    <p><strong>Payment Method:</strong> Card Payment<br>\n                    <strong>Transaction ID:</strong> RFT").concat(quotation.id, "</p>\n                ");
+                    html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true })];
+                case 7:
+                    translatedHtml = (_e.sent()) || html;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: contractor.language })];
+                case 8:
+                    translatedSubject = (_e.sent()) || emailSubject;
+                    services_1.EmailService.send(contractor.email, translatedSubject, translatedHtml);
+                    receipthtml = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: 'Payment Receipt', content: receipthtmlContent });
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: receipthtml, targetLang: contractor.language, saveToFile: false, useGoogle: true })];
+                case 9:
+                    translatedReceiptHtml = (_e.sent()) || html;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'Payment Receipt', targetLang: contractor.language })];
+                case 10:
+                    translatedReceiptSubject = (_e.sent()) || 'Payment Receipt';
+                    services_1.EmailService.send(contractor.email, translatedReceiptSubject, translatedReceiptHtml);
+                    _e.label = 11;
+                case 11:
+                    if (!customer) return [3 /*break*/, 16];
+                    dateTimeOptions = {
+                        weekday: 'short',
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                        hour: 'numeric',
+                        minute: 'numeric',
+                        hour12: true,
+                        timeZone: customer.currentTimezone,
+                        timeZoneName: 'long'
+                    };
+                    jobDateCustomer = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(job.schedule.startDate));
+                    currentDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(new Date));
+                    emailSubject = 'New Job Payment';
+                    emailContent = "\n                 <h2>".concat(emailSubject, "</h2>\n                  <p style=\"color: #333333;\">Hello ").concat(customer.name, ",</p>\n                  <p style=\"color: #333333;\">You have made a payment for a job on RepairFind.</p>\n                  <p><strong>Job Title:</strong> ").concat(job.description, "</p>\n                  <p><strong>Proposed Date:</strong>").concat(jobDateCustomer, "</p>\n                  <p style=\"color: #333333;\">Thank you for your payment!</p>\n                  <p style=\"color: #333333;\">If you did not initiate this payment, kindly reach out to us via support.</p>\n                ");
+                    receiptContent = "\n                    <p><strong>RepairFind</strong><br>\n                    Phone: (604) 568-6378<br>\n                    Email: info@repairfind.ca</p>\n                    <hr>\n\n                    <p><strong>Receipt</strong></p>\n                    <p>Date: ".concat(currentDate, "<br>\n                    Receipt Number: RFC").concat(quotation.payment, "</p>\n                    <p><strong>Customer:</strong><br>\n                    ").concat(customer.name, "<br>\n                    ").concat((_b = customer === null || customer === void 0 ? void 0 : customer.location) === null || _b === void 0 ? void 0 : _b.address, "<br>\n\n                    <hr>\n                    <strong>Description:</strong>\n                    <strong>Job Title:</strong> ").concat(job.description, " <br>\n                    <strong>Scheduled Date:</strong> ").concat(jobDateCustomer, "\n\n                    <p><strong>Services/Charges:</strong></p>\n                    <table style=\"width: 100%; border-collapse: collapse; border: 1px solid lightgray; margin-bottom: 10px;\">\n                         ").concat(quotation.estimates.map(function (estimate) { return "\n                        <tr>\n                          <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>".concat(estimate.description, "</strong></td>\n                          <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat((estimate.rate * estimate.quantity).toFixed(2), "</td>\n                        </tr>\n                      "); }).join(''), "   \n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Subtotal</strong></td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\"><strong>$").concat((charges.subtotal).toFixed(2), "</strong></td>\n                        </tr>\n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\">GST (").concat(charges.gstRate, "%)</td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat(charges.gstAmount, "</td>\n                        </tr>\n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\">Payment Processing Fee (").concat(charges.customerProcessingFeeRate, "%)</td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat(charges.customerProcessingFee, "</td>\n                        </tr>\n                       \n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Total Amount Due</strong></td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\"><strong>$").concat(charges.customerPayable, "</strong></td>\n                        </tr>\n                    </table>\n                  <p><strong>Payment Method:</strong> Credit/Debit Card<br>\n                  <strong>Transaction ID:</strong> RPT").concat(quotation.id, "</p>\n                  <p style=\"color: #333333;\">Thank you for your payment!</p>\n                  <p style=\"color: #333333;\">If you did not initiate this payment, kindly reach out to us via support.</p>\n                ");
+                    html = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: emailSubject, content: emailContent });
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true })];
+                case 12:
+                    translatedHtml = (_e.sent()) || html;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: customer.language })];
+                case 13:
+                    translatedSubject = (_e.sent()) || emailSubject;
+                    services_1.EmailService.send(customer.email, translatedSubject, translatedHtml);
+                    receipthtml = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: 'Payment Receipt', content: receiptContent });
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: receipthtml, targetLang: customer.language, saveToFile: false, useGoogle: true })];
+                case 14:
+                    translatedReceiptHtml = (_e.sent()) || html;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'Payment Receipt', targetLang: customer.language })];
+                case 15:
+                    translatedReceiptSubject = (_e.sent()) || 'Payment Receipt';
+                    services_1.EmailService.send(customer.email, translatedReceiptSubject, translatedReceiptHtml);
+                    _e.label = 16;
+                case 16:
                     customerLang = customer.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'Job Booked',
                             targetLang: customerLang
                         })];
-                case 7:
+                case 17:
                     nTitle = _e.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'You have booked a job on Repairfind',
                             targetLang: customerLang
                         })];
-                case 8:
+                case 18:
                     nMessage = _e.sent();
                     services_1.NotificationService.sendNotification({
                         user: customer.id,
@@ -1293,13 +1348,13 @@ exports.JobEvent.on('JOB_BOOKED', function (payload) {
                             phraseOrSlug: 'Job Booked',
                             targetLang: contractorLang
                         })];
-                case 9:
+                case 19:
                     nTitle = _e.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'You have a booked job on Repairfind',
                             targetLang: contractorLang
                         })];
-                case 10:
+                case 20:
                     nMessage = _e.sent();
                     services_1.NotificationService.sendNotification({
                         user: contractor.id,
@@ -1317,13 +1372,13 @@ exports.JobEvent.on('JOB_BOOKED', function (payload) {
                             event: 'JOB_BOOKED',
                         }
                     }, { push: true, socket: true, database: true });
-                    _e.label = 11;
-                case 11: return [3 /*break*/, 13];
-                case 12:
+                    _e.label = 21;
+                case 21: return [3 /*break*/, 23];
+                case 22:
                     error_13 = _e.sent();
                     logger_1.Logger.error("Error handling JOB_BOOKED event: ".concat(error_13));
-                    return [3 /*break*/, 13];
-                case 13: return [2 /*return*/];
+                    return [3 /*break*/, 23];
+                case 23: return [2 /*return*/];
             }
         });
     });
@@ -2344,11 +2399,11 @@ exports.JobEvent.on('JOB_DAY_CONFIRMED', function (payload) {
 });
 exports.JobEvent.on('JOB_REFUND_REQUESTED', function (payload) {
     return __awaiter(this, void 0, void 0, function () {
-        var job, payment, refund, customer, contractor, emailSubject, emailContent, html, error_26;
+        var job, payment, refund, customer, contractor, emailSubject, emailContent, html, translatedHtml, translatedSubject, translatedHtmlC, translatedSubjectC, error_26;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    _a.trys.push([0, 3, , 4]);
+                    _a.trys.push([0, 7, , 8]);
                     logger_1.Logger.info('handling alert JOB_REFUND_REQUESTED event', payload.payment.id);
                     job = payload.job;
                     payment = payload.payment;
@@ -2364,18 +2419,30 @@ exports.JobEvent.on('JOB_REFUND_REQUESTED', function (payload) {
                     emailSubject = 'Job Refund Requested';
                     emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(customer.name, ",</p>\n                <p style=\"color: #333333;\">A refund for your job on Repairfind has been requested </p>\n                <p style=\"color: #333333;\">The refund should be completed in 24 hours </p>\n                <p><strong>Job Title:</strong> ").concat(job.description, "</p>\n                <p><strong>Job Amount</strong> ").concat(payment.amount, "</p>\n                <p><strong>Refund Amount:</strong> ").concat(refund.refundAmount, "</p>\n                ");
                     html = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: emailSubject, content: emailContent });
-                    services_1.EmailService.send(customer.email, emailSubject, html);
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true })];
+                case 3:
+                    translatedHtml = (_a.sent()) || html;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: customer.language })];
+                case 4:
+                    translatedSubject = (_a.sent()) || emailSubject;
+                    services_1.EmailService.send(customer.email, translatedSubject, translatedHtml);
                     // send notification to  contractor
                     emailSubject = 'Job Refund Requested';
                     emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(contractor.name, ",</p>\n                <p style=\"color: #333333;\">A refund for your job on Repairfind has been requested </p>\n                <p style=\"color: #333333;\">The refund should be completed in 24 hours </p>\n                <p><strong>Job Title:</strong> ").concat(job.description, "</p>\n                <p><strong>Job Amount</strong> ").concat(payment.amount, "</p>\n                <p><strong>Refund Amount:</strong> ").concat(refund.refundAmount, "</p>\n                ");
                     html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
-                    services_1.EmailService.send(contractor.email, emailSubject, html);
-                    return [3 /*break*/, 4];
-                case 3:
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true })];
+                case 5:
+                    translatedHtmlC = (_a.sent()) || html;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: contractor.language })];
+                case 6:
+                    translatedSubjectC = (_a.sent()) || emailSubject;
+                    services_1.EmailService.send(contractor.email, translatedSubjectC, translatedHtmlC);
+                    return [3 /*break*/, 8];
+                case 7:
                     error_26 = _a.sent();
                     logger_1.Logger.error("Error handling JOB_REFUND_REQUESTED event: ".concat(error_26));
-                    return [3 /*break*/, 4];
-                case 4: return [2 /*return*/];
+                    return [3 /*break*/, 8];
+                case 8: return [2 /*return*/];
             }
         });
     });
@@ -2383,12 +2450,12 @@ exports.JobEvent.on('JOB_REFUND_REQUESTED', function (payload) {
 exports.JobEvent.on('NEW_JOB_ENQUIRY', function (payload) {
     var _a;
     return __awaiter(this, void 0, void 0, function () {
-        var job_2, enquiry, customer_1, contractor, savedJobs, contractorIds, devices, customerLang, nTitle, nMessage, emailSubject, emailContent, html, error_27;
+        var job_2, enquiry, customer_1, contractor, savedJobs, contractorIds, devices, customerLang, nTitle, nMessage, emailSubject, emailContent, html, translatedHtml, translatedSubject, error_27;
         var _this = this;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
-                    _b.trys.push([0, 10, , 11]);
+                    _b.trys.push([0, 12, , 13]);
                     logger_1.Logger.info('handling alert NEW_JOB_ENQUIRY event', payload.jobId);
                     return [4 /*yield*/, job_model_1.JobModel.findById(payload.jobId)];
                 case 1:
@@ -2449,7 +2516,7 @@ exports.JobEvent.on('NEW_JOB_ENQUIRY', function (payload) {
                             }
                         });
                     }); });
-                    if (!customer_1) return [3 /*break*/, 9];
+                    if (!customer_1) return [3 /*break*/, 11];
                     customerLang = customer_1.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'New Job Enquiry',
@@ -2475,26 +2542,32 @@ exports.JobEvent.on('NEW_JOB_ENQUIRY', function (payload) {
                     emailSubject = 'New Job Enquiry ';
                     emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(customer_1.name, ",</p>\n                <p style=\"color: #333333;\">Your Job on Repairfind has a new enquiry</p>\n                <div style=\"background: whitesmoke;padding: 10px; border-radius: 10px;\">\n                <p style=\"border-bottom: 1px solid lightgray; padding-bottom: 5px;\"><strong>Job Title:</strong> ").concat(job_2.description, "</p>\n                <p style=\"border-bottom: 1px solid lightgray; padding-bottom: 5px;\"><strong>Enquiry:</strong> ").concat(enquiry.enquiry, "</p>\n                </div>\n                <p style=\"color: #333333;\">Do well to check and follow up as soon as possible </p>\n                ");
                     html = (0, generic_email_1.GenericEmailTemplate)({ name: customer_1.name, subject: emailSubject, content: emailContent });
-                    services_1.EmailService.send(customer_1.email, emailSubject, html);
-                    _b.label = 9;
-                case 9: return [3 /*break*/, 11];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: customer_1.language, saveToFile: false, useGoogle: true })];
+                case 9:
+                    translatedHtml = (_b.sent()) || html;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: customer_1.language })];
                 case 10:
+                    translatedSubject = (_b.sent()) || emailSubject;
+                    services_1.EmailService.send(customer_1.email, translatedSubject, translatedHtml);
+                    _b.label = 11;
+                case 11: return [3 /*break*/, 13];
+                case 12:
                     error_27 = _b.sent();
                     logger_1.Logger.error("Error handling NEW_JOB_ENQUIRY event: ".concat(error_27));
-                    return [3 /*break*/, 11];
-                case 11: return [2 /*return*/];
+                    return [3 /*break*/, 13];
+                case 13: return [2 /*return*/];
             }
         });
     });
 });
 exports.JobEvent.on('NEW_JOB_ENQUIRY_REPLY', function (payload) {
     return __awaiter(this, void 0, void 0, function () {
-        var job_3, enquiry, customer_2, contractor, savedJobs, contractorIds, devices, deviceTokens, emailSubject, emailContent, html, error_28;
+        var job_3, enquiry, customer_2, contractor, savedJobs, contractorIds, devices, deviceTokens, emailSubject, emailContent, html, translatedHtml, translatedSubject, error_28;
         var _this = this;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    _a.trys.push([0, 7, , 8]);
+                    _a.trys.push([0, 10, , 11]);
                     logger_1.Logger.info('handling alert NEW_JOB_ENQUIRY_REPLY event', payload.jobId);
                     return [4 /*yield*/, job_model_1.JobModel.findById(payload.jobId)];
                 case 1:
@@ -2556,19 +2629,24 @@ exports.JobEvent.on('NEW_JOB_ENQUIRY_REPLY', function (payload) {
                             }
                         });
                     }); });
-                    // send notification to  contractor  that asked the question
-                    if (customer_2 && contractor) {
-                        emailSubject = 'Job Enquiry Reply';
-                        emailContent = "\n                    <h2>".concat(emailSubject, "</h2>\n                    <p>Hello ").concat(contractor.name, ",</p>\n                    <p style=\"color: #333333;\">Customer has replied to your enquiry on Repairfind</p>\n                    <p style=\"color: #333333;\">Do well to check and follow up </p>\n                    <p><strong>Job Title:</strong> ").concat(job_3.description, "</p>\n                    <p><strong>Your Enquiry</strong> ").concat(enquiry.enquiry, "</p>\n                    <p><strong>Reply</strong> ").concat(enquiry.replies ? enquiry.replies[0] : '', "</p>\n                    ");
-                        html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
-                        services_1.EmailService.send(contractor.email, emailSubject, html);
-                    }
-                    return [3 /*break*/, 8];
+                    if (!(customer_2 && contractor)) return [3 /*break*/, 9];
+                    emailSubject = 'Job Enquiry Reply';
+                    emailContent = "\n                    <h2>".concat(emailSubject, "</h2>\n                    <p>Hello ").concat(contractor.name, ",</p>\n                    <p style=\"color: #333333;\">Customer has replied to your enquiry on Repairfind</p>\n                    <p style=\"color: #333333;\">Do well to check and follow up </p>\n                    <p><strong>Job Title:</strong> ").concat(job_3.description, "</p>\n                    <p><strong>Your Enquiry</strong> ").concat(enquiry.enquiry, "</p>\n                    <p><strong>Reply</strong> ").concat(enquiry.replies ? enquiry.replies[0] : '', "</p>\n                    ");
+                    html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true })];
                 case 7:
+                    translatedHtml = (_a.sent()) || html;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: contractor.language })];
+                case 8:
+                    translatedSubject = (_a.sent()) || emailSubject;
+                    services_1.EmailService.send(contractor.email, translatedSubject, translatedHtml);
+                    _a.label = 9;
+                case 9: return [3 /*break*/, 11];
+                case 10:
                     error_28 = _a.sent();
                     logger_1.Logger.error("Error handling NEW_JOB_ENQUIRY_REPLY event: ".concat(error_28));
-                    return [3 /*break*/, 8];
-                case 8: return [2 /*return*/];
+                    return [3 /*break*/, 11];
+                case 11: return [2 /*return*/];
             }
         });
     });
