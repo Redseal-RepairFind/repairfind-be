@@ -59,7 +59,7 @@ export const PaypalPaymentCheckoutTemplate = (payload: {token: string, paypalCli
               });
               const orderData = await response.json();
               console.log('orderData', orderData);
-              return orderData.id;
+              return orderData.data.id;
             } catch (error) {
               console.error(error);
               alert(\`Could not initiate PayPal Checkout...\`);
