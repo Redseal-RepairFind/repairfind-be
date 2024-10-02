@@ -90,7 +90,7 @@ const MONGODB_URI = process.env.MONGODB_URI as string;
 
 // Routes
 app.use("/health", (req, res) => {
-  res.json({success: true, message: `App is up and running:  ${req.hostname}${req.originalUrl}`});
+  res.json({success: true, message: `App is up and runnings:  ${req.hostname}${req.originalUrl}`});
 });
 
 app.use("/api/v1/contractor", contractorRoute);

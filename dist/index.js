@@ -113,7 +113,7 @@ var MONGODB_URI = process.env.MONGODB_URI;
 }); })();
 // Routes
 app.use("/health", function (req, res) {
-    res.json({ success: true, message: "App is up and running:  ".concat(req.hostname).concat(req.originalUrl) });
+    res.json({ success: true, message: "App is up and runnings:  ".concat(req.hostname).concat(req.originalUrl) });
 });
 app.use("/api/v1/contractor", routes_1.default);
 app.use("/api/v1/admin", routes_2.default);
