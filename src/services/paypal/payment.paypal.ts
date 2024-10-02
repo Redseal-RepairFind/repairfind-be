@@ -39,7 +39,6 @@ export const createOrder = async (payload: any) => {
       config.paypal.apiUrl + '/v2/checkout/orders',
       {
         intent: payload.intent, // CAPTURE or AUTHORIZE
-        customer_id: payload.customer_id,
         purchase_units: [
           {
             custom_id: payload.metaId,

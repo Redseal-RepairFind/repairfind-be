@@ -84,16 +84,17 @@ function getAccessAPNTokenAsync() {
     });
 }
 var sendAPNNotification = function (deviceToken) { return __awaiter(void 0, void 0, void 0, function () {
-    var AUTHORIZATION_TOKEN, http2, client_1, request, responseBody_1, error_1;
+    var IS_PRODUCTION_1, AUTHORIZATION_TOKEN, http2, client_1, request, responseBody_1, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
+                IS_PRODUCTION_1 = config_1.config.apple.env == 'production';
                 return [4 /*yield*/, getAccessAPNTokenAsync()];
             case 1:
                 AUTHORIZATION_TOKEN = _a.sent();
                 http2 = require('http2');
-                client_1 = http2.connect(IS_PRODUCTION ? 'https://api.push.apple.com' : 'https://api.sandbox.push.apple.com');
+                client_1 = http2.connect(IS_PRODUCTION_1 ? 'https://api.push.apple.com' : 'https://api.sandbox.push.apple.com');
                 request = client_1.request({
                     ':method': 'POST',
                     ':scheme': 'https',
@@ -143,10 +144,11 @@ var sendAPNNotification = function (deviceToken) { return __awaiter(void 0, void
 }); };
 exports.sendAPNNotification = sendAPNNotification;
 var sendAPN2Notification = function (deviceToken, payload) { return __awaiter(void 0, void 0, void 0, function () {
-    var options, apnProvider, note, result, error_2;
+    var IS_PRODUCTION, options, apnProvider, note, result, error_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
+                IS_PRODUCTION = config_1.config.apple.env == 'production';
                 options = {
                     token: {
                         key: './apn.p8',
@@ -185,10 +187,11 @@ var sendAPN2Notification = function (deviceToken, payload) { return __awaiter(vo
 exports.sendAPN2Notification = sendAPN2Notification;
 // Function to send a notification
 var sendNotification = function (deviceTokens, alert, options, data) { return __awaiter(void 0, void 0, void 0, function () {
-    var client, notifications, err_1;
+    var IS_PRODUCTION, client, notifications, err_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
+                IS_PRODUCTION = config_1.config.apple.env == 'production';
                 client = new apns2_1.ApnsClient({
                     team: config_1.config.apple.teamId,
                     keyId: config_1.config.apple.keyId,

@@ -298,9 +298,9 @@ export const orderApproved = async (payload: any, resourceType: any) => {
     try {
         const { id, purchase_units } = payload;
         // You can process the approved order here
-        Logger.info(`Order ${id} approved with purchase units:`, purchase_units);
-        const {orderData, paymentMethod} = await PayPalService.payment.captureOrder(id)
-        Logger.info(`Order Captured ${id}`, [orderData, paymentMethod]);
+        // Logger.info(`Order ${id} approved with purchase units:`, purchase_units);
+        // const {orderData, paymentMethod} = await PayPalService.payment.captureOrder(id)
+        // Logger.info(`Order Captured ${id}`, [orderData, paymentMethod]);
     } catch (error: any) {
         Logger.info('Error handling orderApproved PayPal webhook event', error);
     }

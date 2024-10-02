@@ -84,7 +84,6 @@ var payment_schema_1 = require("../../database/common/payment.schema");
 var job_model_1 = require("../../database/common/job.model");
 var job_quotation_model_1 = require("../../database/common/job_quotation.model");
 var paypal_payment_log_model_1 = require("../../database/common/paypal_payment_log.model");
-var _1 = require(".");
 var PAYPAL_WEBHOOK_SECRET = process.env.PAYPAL_WEBHOOK_SECRET;
 var PayPalWebhookHandler = function (req) { return __awaiter(void 0, void 0, void 0, function () {
     var event_1, eventType, resourceType, eventData;
@@ -359,28 +358,20 @@ var paymentCaptureRefunded = function (payload, resourceType) { return __awaiter
 }); };
 exports.paymentCaptureRefunded = paymentCaptureRefunded;
 var orderApproved = function (payload, resourceType) { return __awaiter(void 0, void 0, void 0, function () {
-    var id, purchase_units, _a, orderData, paymentMethod, error_3;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0:
-                logger_1.Logger.info('PayPal Event Handler: orderApproved', payload);
-                _b.label = 1;
-            case 1:
-                _b.trys.push([1, 3, , 4]);
-                id = payload.id, purchase_units = payload.purchase_units;
-                // You can process the approved order here
-                logger_1.Logger.info("Order ".concat(id, " approved with purchase units:"), purchase_units);
-                return [4 /*yield*/, _1.PayPalService.payment.captureOrder(id)];
-            case 2:
-                _a = _b.sent(), orderData = _a.orderData, paymentMethod = _a.paymentMethod;
-                logger_1.Logger.info("Order Captured ".concat(id), [orderData, paymentMethod]);
-                return [3 /*break*/, 4];
-            case 3:
-                error_3 = _b.sent();
-                logger_1.Logger.info('Error handling orderApproved PayPal webhook event', error_3);
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/];
+    var id, purchase_units;
+    return __generator(this, function (_a) {
+        logger_1.Logger.info('PayPal Event Handler: orderApproved', payload);
+        try {
+            id = payload.id, purchase_units = payload.purchase_units;
+            // You can process the approved order here
+            // Logger.info(`Order ${id} approved with purchase units:`, purchase_units);
+            // const {orderData, paymentMethod} = await PayPalService.payment.captureOrder(id)
+            // Logger.info(`Order Captured ${id}`, [orderData, paymentMethod]);
         }
+        catch (error) {
+            logger_1.Logger.info('Error handling orderApproved PayPal webhook event', error);
+        }
+        return [2 /*return*/];
     });
 }); };
 exports.orderApproved = orderApproved;

@@ -80,7 +80,6 @@ var createOrder = function (payload) { return __awaiter(void 0, void 0, void 0, 
                 accessToken = _d.sent();
                 return [4 /*yield*/, axios_1.default.post(config_1.config.paypal.apiUrl + '/v2/checkout/orders', {
                         intent: payload.intent, // CAPTURE or AUTHORIZE
-                        customer_id: payload.customer_id,
                         purchase_units: [
                             {
                                 custom_id: payload.metaId,
