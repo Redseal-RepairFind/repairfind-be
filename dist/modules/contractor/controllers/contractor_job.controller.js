@@ -1086,13 +1086,6 @@ var getJobListings = function (req, res, next) { return __awaiter(void 0, void 0
             case 7:
                 result = _o.sent();
                 jobs = result[0].data;
-                if (jobs) {
-                    //NO longer neccessary since applied jobs don't show up again
-                    // Map through each job and attach myQuotation if contractor has applied 
-                    // await Promise.all(jobs.map(async (job: any) => {
-                    //    job.myQuotation = await JobQuotationModel.findOne({ job: job._id, contractor: contractorId })
-                    // }));
-                }
                 metadata = result[0].metadata[0];
                 // Send response with job listings data
                 res.status(200).json({ success: true, data: __assign(__assign({}, metadata), { data: jobs }) });

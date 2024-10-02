@@ -1116,6 +1116,8 @@ class ProfileHandler extends Base {
 
       // Save the report to the database
       const savedReport = await newReport.save();
+
+      AccountEvent.emit('ACCOUNT_REPORTED', {report: savedReport})
       return res.status(201).json({ success: true, message: 'Report successfully created', data: savedReport });
     } catch (err: any) {
       return next(new InternalServerError('Error occurred creating report', err));

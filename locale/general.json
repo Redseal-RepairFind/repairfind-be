@@ -13,5 +13,9 @@
   },
   "password_change": {
     "zh": "更改密码"
+  },
+  "account_reported": {
+    "fr": "Compte signalé",
+    "zh": "帐户已报告"
   }
 }
