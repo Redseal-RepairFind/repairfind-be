@@ -101,8 +101,8 @@ var createOrder = function (payload) { return __awaiter(void 0, void 0, void 0, 
                             }
                         },
                         application_context: {
-                            return_url: (_a = payload.returnUrl) !== null && _a !== void 0 ? _a : 'https://repairfind.ca/payment-success/',
-                            cancel_url: 'https://cancel.com',
+                            return_url: (_a = payload.returnUrl) !== null && _a !== void 0 ? _a : 'https://repairfind.ca/payment-success',
+                            cancel_url: 'https://repairfind.ca/action-cancelled-successfully',
                         },
                     }, {
                         headers: {

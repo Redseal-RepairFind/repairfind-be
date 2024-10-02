@@ -86,7 +86,6 @@ export const createCheckoutOrder = async (req: any, res: Response, next: NextFun
         const charges = await quotation.calculateCharges(paymentType);
 
 
-
         const metadata = {
             customerId: customer.id,
             contractorId: contractor?.id,
@@ -109,7 +108,8 @@ export const createCheckoutOrder = async (req: any, res: Response, next: NextFun
             amount: charges.customerPayable,
             intent: "CAPTURE",
             description: `Job Payment - ${jobId}`,
-            metaId: paypalPaymentLog.id
+            metaId: paypalPaymentLog.id,
+            returnUrl: "https://repairfind.ca/payment-success"
         }
         const capture = await PayPalService.payment.createOrder(payload)
 

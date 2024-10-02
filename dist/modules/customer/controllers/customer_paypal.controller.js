@@ -43,8 +43,8 @@ exports.CustomerPaypalController = exports.deletePaypalPaymentMethod = exports.l
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var config_1 = require("../../../config");
 var paypal_1 = require("../../../services/paypal");
-var paypal_checkout_1 = require("../../../templates/common/paypal_checkout");
 var custom_errors_1 = require("../../../utils/custom.errors");
+var paypal_payment_method_template_1 = require("../../../templates/common/paypal_payment_method.template");
 var createPaymentMethodOrder = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var customerId, customer, payload, response, err_1;
     return __generator(this, function (_a) {
@@ -143,7 +143,7 @@ var loadCreatePaymentMethodView = function (req, res) { return __awaiter(void 0,
         try {
             token = req.query.token;
             paypalClientId = config_1.config.paypal.clientId;
-            html = (0, paypal_checkout_1.PaypalCheckoutTemplate)({ token: token, paypalClientId: paypalClientId });
+            html = (0, paypal_payment_method_template_1.PaypalPaymentMethodTemplate)({ token: token, paypalClientId: paypalClientId });
             return [2 /*return*/, res.send(html)];
         }
         catch (error) {

@@ -1,4 +1,4 @@
-export const PaypalCheckoutTemplate = (payload: {token: string, paypalClientId: string}) =>  `
+export const PaypalPaymentMethodTemplate = (payload: {token: string, paypalClientId: string}) =>  `
     <!DOCTYPE html>
     <html lang="en">
       <head>

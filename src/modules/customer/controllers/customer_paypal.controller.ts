@@ -5,8 +5,8 @@ import CustomerModel from '../../../database/customer/models/customer.model';
 import { config } from '../../../config';
 import { PayPalService } from '../../../services/paypal';
 import { Logger } from '../../../services/logger';
-import { PaypalCheckoutTemplate } from '../../../templates/common/paypal_checkout';
 import { BadRequestError } from '../../../utils/custom.errors';
+import { PaypalPaymentMethodTemplate } from '../../../templates/common/paypal_payment_method.template';
 
 
 
@@ -102,7 +102,7 @@ export const loadCreatePaymentMethodView = async (
         const {token} =req.query;
         const paypalClientId = config.paypal.clientId
 
-        let html = PaypalCheckoutTemplate({token, paypalClientId})
+        let html = PaypalPaymentMethodTemplate({token, paypalClientId})
         return res.send(html);
     } catch (error) {
         console.error('Error retrieving the order:', error);

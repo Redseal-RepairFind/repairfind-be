@@ -23,7 +23,7 @@ import configureRateLimit from "./modules/common/middlewares/ratelimit";
 import TwilioService from "./services/twillio";
 import { FCMNotification } from "./services/notifications/fcm";
 import { config } from "./config";
-import { PaypalCheckoutTemplate } from "./templates/common/paypal_checkout";
+import { PaypalPaymentCheckoutTemplate } from "./templates/common/paypal_payment.template";
 
 
 dotenv.config();
@@ -41,11 +41,18 @@ const server = http.createServer(app);
 app.get("/api/v1/customer/paypal/payment-method-checkout-view", (req: any, res) => {
   const {token} =req.query;
   const paypalClientId = config.paypal.clientId
-
-  console.log("token", token)
-  let html = PaypalCheckoutTemplate({token, paypalClientId})
+  let html = PaypalPaymentMethodCheckoutTemplate({token, paypalClientId})
   return res.send(html);
 });
+
+
+app.get("/api/v1/customer/paypal/create-checkout-order", (req: any, res) => {
+  const {token, quotationId, jobId} =req.query;
+  const paypalClientId = config.paypal.clientId
+  let html = PaypalPaymentCheckoutTemplate({token, paypalClientId, quotationId, jobId})
+  return res.send(html);
+});
+
 
 
 
@@ -143,3 +150,7 @@ Logger.info(`Current timezone: ${FirsttimeZone}`);
 server.listen(port, () => {
   Logger.info(`Server listening on port ${port} - Timezone::: ${process.env.TZ}`);
 });
+
+function PaypalPaymentMethodCheckoutTemplate(arg0: { token: any; paypalClientId: string; }) {
+  throw new Error("Function not implemented.");
+}

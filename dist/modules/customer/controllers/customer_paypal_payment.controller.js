@@ -173,7 +173,8 @@ var createCheckoutOrder = function (req, res, next) { return __awaiter(void 0, v
                     amount: charges.customerPayable,
                     intent: "CAPTURE",
                     description: "Job Payment - ".concat(jobId),
-                    metaId: paypalPaymentLog.id
+                    metaId: paypalPaymentLog.id,
+                    returnUrl: "https://repairfind.ca/payment-success"
                 };
                 return [4 /*yield*/, paypal_1.PayPalService.payment.createOrder(payload)];
             case 7:
