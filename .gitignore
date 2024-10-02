@@ -5,3 +5,4 @@
 /uploads/*
 /.clinic
 # fcm.json
+prod.env
