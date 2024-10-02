@@ -190,17 +190,13 @@ var createCheckoutOrder = function (req, res, next) { return __awaiter(void 0, v
 }); };
 exports.createCheckoutOrder = createCheckoutOrder;
 var captureCheckoutOrder = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, quotationId, paymentMethodId_1, orderId, jobId, errors, customerId, customer, job, quotation, contractor, contractorId, paymentMethod, paymentType, transactionType, charges, metadata, capture, conversationMembers, conversation, newMessage, err_2;
+    var _a, quotationId, paymentMethodId_1, orderId, jobId, customerId, customer, job, quotation, contractor, contractorId, paymentMethod, paymentType, transactionType, charges, metadata, capture, conversationMembers, conversation, newMessage, err_2;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
                 _b.trys.push([0, 10, , 11]);
                 _a = req.body, quotationId = _a.quotationId, paymentMethodId_1 = _a.paymentMethodId, orderId = _a.orderId;
                 jobId = req.params.jobId;
-                errors = (0, express_validator_1.validationResult)(req);
-                if (!errors.isEmpty()) {
-                    return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
-                }
                 customerId = req.customer.id;
                 return [4 /*yield*/, findCustomer(customerId)];
             case 1:
@@ -243,10 +239,12 @@ var captureCheckoutOrder = function (req, res, next) { return __awaiter(void 0, 
                     email: customer.email,
                     remark: 'initial_job_payment',
                 };
-                return [4 /*yield*/, paypal_1.PayPalService.payment.captureOrder(orderId)];
+                return [4 /*yield*/, paypal_1.PayPalService.payment.captureOrder(orderId)
+                    //  job.status = JOB_STATUS.BOOKED;
+                ];
             case 6:
                 capture = _b.sent();
-                job.status = job_model_1.JOB_STATUS.BOOKED;
+                //  job.status = JOB_STATUS.BOOKED;
                 job.bookingViewedByContractor = false;
                 return [4 /*yield*/, job.save()];
             case 7:

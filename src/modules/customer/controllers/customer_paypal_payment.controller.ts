@@ -127,10 +127,10 @@ export const captureCheckoutOrder = async (req: any, res: Response, next: NextFu
         const jobId = req.params.jobId;
 
         // Check for validation errors
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        }
+        // const errors = validationResult(req);
+        // if (!errors.isEmpty()) {
+        //     return res.status(400).json({ errors: errors.array() });
+        // }
 
         const customerId = req.customer.id;
         const customer = await findCustomer(customerId);
@@ -176,11 +176,10 @@ export const captureCheckoutOrder = async (req: any, res: Response, next: NextFu
 
         // const stripePayment = await StripeService.payment.chargeCustomer(paymentMethod.customer, paymentMethod.id, payload);
         
-        
         const capture = await PayPalService.payment.captureOrder(orderId)
         
        
-         job.status = JOB_STATUS.BOOKED;
+        //  job.status = JOB_STATUS.BOOKED;
         job.bookingViewedByContractor = false;
         await job.save();
 

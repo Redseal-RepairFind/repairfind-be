@@ -24,6 +24,7 @@ import TwilioService from "./services/twillio";
 import { FCMNotification } from "./services/notifications/fcm";
 import { config } from "./config";
 import { PaypalPaymentCheckoutTemplate } from "./templates/common/paypal_payment.template";
+import { JOB_STATUS, JobModel } from "./database/common/job.model";
 
 
 dotenv.config();
@@ -46,8 +47,15 @@ app.get("/api/v1/customer/paypal/payment-method-checkout-view", (req: any, res) 
 });
 
 
-app.get("/api/v1/customer/paypal/create-checkout-view", (req: any, res) => {
+app.get("/api/v1/customer/paypal/create-checkout-view", async(req: any, res) => {
   const {token, quotationId, jobId} =req.query;
+
+  const job = await JobModel.findById(jobId)
+  if (!job || (job.status === JOB_STATUS.BOOKED)) {
+    return res.status(400).json({ success: false, message: 'Job not found or is not pending, so new payment is not possible' });
+  }
+
+
   const paypalClientId = config.paypal.clientId
   let html = PaypalPaymentCheckoutTemplate({token, paypalClientId, quotationId, jobId})
   return res.send(html);

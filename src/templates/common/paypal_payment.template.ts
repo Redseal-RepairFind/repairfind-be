@@ -68,26 +68,24 @@ export const PaypalPaymentCheckoutTemplate = (payload: {token: string, paypalCli
 
           async function onApproveCallback(data, actions) {
             try {
-              const response = await fetch('/api/v1/customer/paypal/authorize-payment-method-order', {
+              const response = await fetch('/api/v1/customer/jobs/${payload.jobId}/paypal/capture-checkout-order', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
                   'Authorization': 'Bearer ${payload.token}'
                 },
-                body: JSON.stringify({ orderID: data.orderID }) 
+                body: JSON.stringify({ orderId: data.orderID, quotationId:'${payload.quotationId}' }) 
               });
 
               const res = await response.json();
               if (res.success) {
                 window.location.href = 'https://repairfind.ca/payment-success/';
               }else{
-                alert("Sorry, your payment method could not be added...");
-                window.history.back();
+                alert("Sorry, your payment was not successful...");
               }
             } catch (error) {
               console.error(error);
-              alert("Sorry, your payment method could not be added...");
-              window.history.back();
+              alert("Sorry, your payment  was not successful...");
             }
           }
 
@@ -146,3 +144,6 @@ export const PaypalPaymentCheckoutTemplate = (payload: {token: string, paypalCli
       </body>
     </html>
   `;
+
+
+                // window.history.back();

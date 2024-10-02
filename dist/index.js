@@ -61,6 +61,7 @@ var twillio_1 = __importDefault(require("./services/twillio"));
 var fcm_1 = require("./services/notifications/fcm");
 var config_1 = require("./config");
 var paypal_payment_template_1 = require("./templates/common/paypal_payment.template");
+var job_model_1 = require("./database/common/job.model");
 dotenv_1.default.config();
 // intercept all console logs and bind it to configured log service
 console.warn = logger_1.Logger.warn.bind(logger_1.Logger);
@@ -74,12 +75,24 @@ app.get("/api/v1/customer/paypal/payment-method-checkout-view", function (req, r
     var html = PaypalPaymentMethodCheckoutTemplate({ token: token, paypalClientId: paypalClientId });
     return res.send(html);
 });
-app.get("/api/v1/customer/paypal/create-checkout-view", function (req, res) {
-    var _a = req.query, token = _a.token, quotationId = _a.quotationId, jobId = _a.jobId;
-    var paypalClientId = config_1.config.paypal.clientId;
-    var html = (0, paypal_payment_template_1.PaypalPaymentCheckoutTemplate)({ token: token, paypalClientId: paypalClientId, quotationId: quotationId, jobId: jobId });
-    return res.send(html);
-});
+app.get("/api/v1/customer/paypal/create-checkout-view", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, token, quotationId, jobId, job, paypalClientId, html;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _a = req.query, token = _a.token, quotationId = _a.quotationId, jobId = _a.jobId;
+                return [4 /*yield*/, job_model_1.JobModel.findById(jobId)];
+            case 1:
+                job = _b.sent();
+                if (!job || (job.status === job_model_1.JOB_STATUS.BOOKED)) {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Job not found or is not pending, so new payment is not possible' })];
+                }
+                paypalClientId = config_1.config.paypal.clientId;
+                html = (0, paypal_payment_template_1.PaypalPaymentCheckoutTemplate)({ token: token, paypalClientId: paypalClientId, quotationId: quotationId, jobId: jobId });
+                return [2 /*return*/, res.send(html)];
+        }
+    });
+}); });
 // Apply security-related middleware
 (0, security_1.default)(app);
 // Apply CSRF protection middleware
