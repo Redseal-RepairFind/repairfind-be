@@ -370,6 +370,7 @@ var submitReport = function (req, res, next) { return __awaiter(void 0, void 0, 
                 return [4 /*yield*/, newReport.save()];
             case 1:
                 savedReport = _d.sent();
+                events_1.AccountEvent.emit('ACCOUNT_REPORTED', { report: savedReport });
                 return [2 /*return*/, res.status(201).json({ success: true, message: 'Report successfully created', data: savedReport })];
             case 2:
                 err_6 = _d.sent();

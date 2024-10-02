@@ -176,10 +176,6 @@ var JobSchema = new mongoose_1.Schema({
     startDate: { type: Date },
     expiryDate: {
         type: Date,
-        default: function () {
-            var now = new Date();
-            return new Date(now.setDate(now.getDate() + 7));
-        }
     },
     endDate: { type: Date },
     media: { type: [String], default: [] },

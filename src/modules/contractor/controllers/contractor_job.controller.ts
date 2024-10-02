@@ -947,9 +947,6 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
       pipeline.push({ $match: { hideFrom: { $nin: [contractorId] } } });
     }
 
-
-
-
     if (category) {
       pipeline.push({ $match: { category: { $regex: new RegExp(category, 'i') } } });
     }
@@ -1017,15 +1014,6 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
     const result = await JobModel.aggregate(pipeline); // Assuming Contractor is your Mongoose model
     const jobs = result[0].data;
 
-    if (jobs) {
-
-      //NO longer neccessary since applied jobs don't show up again
-      // Map through each job and attach myQuotation if contractor has applied 
-      // await Promise.all(jobs.map(async (job: any) => {
-      //    job.myQuotation = await JobQuotationModel.findOne({ job: job._id, contractor: contractorId })
-      // }));
-
-    }
 
     const metadata = result[0].metadata[0];
 

@@ -281,10 +281,6 @@ const JobSchema = new Schema<IJob>({
     startDate: { type: Date },
     expiryDate: {
         type: Date,
-        default: function () {
-            const now = new Date();
-            return new Date(now.setDate(now.getDate() + 7));
-        }
     },
     endDate: { type: Date },
     media: { type: [String], default: [] },
@@ -406,8 +402,6 @@ JobSchema.methods.getJobDispute = async function () {
     return {
         ...dispute?.toJSON()
     }
-
-
 };
 
 
@@ -431,7 +425,6 @@ JobSchema.methods.getHasUnrepliedEnquiry = async function () {
     });
     return count > 0;
 };
-
 
 
 JobSchema.methods.getMyQuotation = async function (contractor: any) {
