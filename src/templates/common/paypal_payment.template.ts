@@ -40,7 +40,7 @@ export const PaypalPaymentCheckoutTemplate = (payload: {token: string, paypalCli
           <div id="card-cvv-field-container"></div>
           
           <br /><br />
-          <button id="card-field-submit-button" type="button">Add Payment Method</button>
+          <button id="card-field-submit-button" type="button">Make Payment</button>
           <div id="loader" class="loader"></div>
         </div>
         <p id="result-message"></p>
@@ -55,7 +55,7 @@ export const PaypalPaymentCheckoutTemplate = (payload: {token: string, paypalCli
                   'Content-Type': 'application/json',
                   'Authorization': 'Bearer ${payload.token}'
                 },
-                body: JSON.stringify({ quotationId: ${payload.quotationId} }) 
+                body: JSON.stringify({quotationId:'${payload.quotationId}' }) 
               });
               const orderData = await response.json();
               console.log('orderData', orderData);
