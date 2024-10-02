@@ -1,0 +1,52 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - production    # For production deployment
+      - dev # For development deployment
+
+jobs:
+  # deploy-production:
+  #   if: github.ref == 'refs/heads/production'
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #     - name: Checkout the code
+  #       uses: actions/checkout@v2
+
+  #     - name: Install SSH Key for Production
+  #       uses: webfactory/ssh-agent@v0.5.3
+  #       with:
+  #         ssh-private-key: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+
+  #     - name: Deploy to Production EC2
+  #       run: |
+  #         ssh -o StrictHostKeyChecking=no ubuntu@prod-ec2-public-ip << 'EOF'
+  #           cd /home/ubuntu/repairfind-be
+  #           git pull origin main
+  #           npm install
+  #           pm2 restart my-app
+  #         EOF
+
+  deploy-development:
+    if: github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v2
+
+      - name: Install SSH Key for Development
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.EC2_STAGING_SSH_PRIVATE_KEY }}
+
+      - name: Deploy to Development EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@13.39.11.80 << 'EOF'
+            cd /home/ubuntu/repairfind-be
+            git pull origin dev
+            npm install
+            pm2 restart repairfindbe
+          EOF
