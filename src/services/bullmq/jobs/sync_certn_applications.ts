@@ -11,7 +11,8 @@ export const syncCertnApplications = async () => {
     try {
 
         const contractors = await ContractorModel.find({
-            certnId: {$ne: null}
+            certnId: {$ne: null},
+            "certnDetails.result": {$ne: "CLEARED"}
         }) as IContractor[];
 
         for (const contractor of contractors) {

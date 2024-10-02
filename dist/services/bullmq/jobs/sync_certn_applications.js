@@ -48,7 +48,8 @@ var syncCertnApplications = function () { return __awaiter(void 0, void 0, void 
             case 0:
                 _a.trys.push([0, 8, , 9]);
                 return [4 /*yield*/, contractor_model_1.ContractorModel.find({
-                        certnId: { $ne: null }
+                        certnId: { $ne: null },
+                        "certnDetails.result": { $ne: "CLEARED" }
                     })];
             case 1:
                 contractors = _a.sent();

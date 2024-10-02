@@ -90,7 +90,7 @@ class JobQueue {
 
     this.addJob('CapturePayments', {}, { repeat: { every: 600000 } });
     this.addJob('handleJobRefunds', {}, { repeat: { every: 600000 } });
-    this.addJob('syncCertnApplications', {}, { repeat: { every: 600000 } });
+    this.addJob('syncCertnApplications', {}, { repeat: { every: 3600000 } });
     this.addJob('expireJobs', {}, { repeat: { every: 7200000 } });
     this.addJob('handleEscrowTransfer', {}, { repeat: { every: 600000 } }); //600000
     this.addJob('jobNotStartedScheduleCheck', {}, { repeat: { cron: '0 0 * * *', tz: 'America/Los_Angeles',} }); //midnight
