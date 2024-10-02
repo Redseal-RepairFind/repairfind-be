@@ -74,7 +74,7 @@ app.get("/api/v1/customer/paypal/payment-method-checkout-view", function (req, r
     var html = PaypalPaymentMethodCheckoutTemplate({ token: token, paypalClientId: paypalClientId });
     return res.send(html);
 });
-app.get("/api/v1/customer/paypal/create-checkout-order", function (req, res) {
+app.get("/api/v1/customer/paypal/create-checkout-view", function (req, res) {
     var _a = req.query, token = _a.token, quotationId = _a.quotationId, jobId = _a.jobId;
     var paypalClientId = config_1.config.paypal.clientId;
     var html = (0, paypal_payment_template_1.PaypalPaymentCheckoutTemplate)({ token: token, paypalClientId: paypalClientId, quotationId: quotationId, jobId: jobId });
