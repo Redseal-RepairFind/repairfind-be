@@ -295,7 +295,8 @@ ContractorSchema.virtual('certnStatus').get(function (this: IContractor) {
       status = 'NOT_SUBMITTED'
     } else {
       for (const execution of certnDetails.check_executions) {
-        if (execution.status !== 'COMPLETED') {
+        status = certnDetails.report_status
+        if (execution.status !== 'COMPLETE') {
           status = 'FAILED'; // If any check is not completed, status is failed
           break; // No need to continue, we already found a failed check
         }
@@ -303,6 +304,10 @@ ContractorSchema.virtual('certnStatus').get(function (this: IContractor) {
     }
   }
 
+  // temp fix until app is updated
+  if(status === 'COMPLETE'){
+    status = 'COMPLETED'
+  }
   return status
 });
 
@@ -316,9 +321,10 @@ ContractorSchema.virtual('certnReport').get(function (this: IContractor) {
     if (!certnDetails.is_submitted) {
       status = 'NOT_SUBMITTED'
     } else {
-      status = 'COMPLETED'
+      status = 'COMPLETE'
       for (const execution of certnDetails.check_executions) {
-        if (execution.status !== 'COMPLETED') {
+        status = certnDetails.report_status
+        if (execution.status !== 'COMPLETE') {
           status = 'FAILED'; // If any check is not completed, status is failed
           break; // No need to continue, we already found a failed check
         }
@@ -327,6 +333,10 @@ ContractorSchema.virtual('certnReport').get(function (this: IContractor) {
     action = certnDetails.application.applicant.application_url
   }
 
+  // temp fix until app is updated
+  if(status === 'COMPLETE'){
+    status = 'COMPLETED'
+  }
   return { status, action }
 });
 

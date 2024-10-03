@@ -292,12 +292,17 @@ ContractorSchema.virtual('certnStatus').get(function () {
         else {
             for (var _i = 0, _a = certnDetails.check_executions; _i < _a.length; _i++) {
                 var execution = _a[_i];
-                if (execution.status !== 'COMPLETED') {
+                status = certnDetails.report_status;
+                if (execution.status !== 'COMPLETE') {
                     status = 'FAILED'; // If any check is not completed, status is failed
                     break; // No need to continue, we already found a failed check
                 }
             }
         }
+    }
+    // temp fix until app is updated
+    if (status === 'COMPLETE') {
+        status = 'COMPLETED';
     }
     return status;
 });
@@ -310,16 +315,21 @@ ContractorSchema.virtual('certnReport').get(function () {
             status = 'NOT_SUBMITTED';
         }
         else {
-            status = 'COMPLETED';
+            status = 'COMPLETE';
             for (var _i = 0, _a = certnDetails.check_executions; _i < _a.length; _i++) {
                 var execution = _a[_i];
-                if (execution.status !== 'COMPLETED') {
+                status = certnDetails.report_status;
+                if (execution.status !== 'COMPLETE') {
                     status = 'FAILED'; // If any check is not completed, status is failed
                     break; // No need to continue, we already found a failed check
                 }
             }
         }
         action = certnDetails.application.applicant.application_url;
+    }
+    // temp fix until app is updated
+    if (status === 'COMPLETE') {
+        status = 'COMPLETED';
     }
     return { status: status, action: action };
 });

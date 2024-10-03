@@ -6,3 +6,4 @@
 /.clinic
 # fcm.json
 prod.env
+staging.env

@@ -168,5 +168,6 @@ router.delete("/questions/:questionId", checkAdminRole, AdminQuizController.Dele
 // CONTRACTOR
 router.post("/contractors/:contractorId/attach-stripe-account",  AdminContractorController.attachStripeAccount ); //
 router.post("/contractors/:contractorId/remove-stripe-account",  AdminContractorController.removeStripeAccount ); //
+router.post("/contractors/:contractorId/attach-certn-details",  AdminContractorController.attachCertnDetails ); //
 
 export default router;

@@ -122,4 +122,5 @@ router.delete("/questions/:questionId", adminRoleChecker_middleware_1.checkAdmin
 // CONTRACTOR
 router.post("/contractors/:contractorId/attach-stripe-account", admin_contractors_controller_1.AdminContractorController.attachStripeAccount); //
 router.post("/contractors/:contractorId/remove-stripe-account", admin_contractors_controller_1.AdminContractorController.removeStripeAccount); //
+router.post("/contractors/:contractorId/attach-certn-details", admin_contractors_controller_1.AdminContractorController.attachCertnDetails); //
 exports.default = router;
