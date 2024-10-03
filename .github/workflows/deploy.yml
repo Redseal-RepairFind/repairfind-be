@@ -8,26 +8,27 @@ on:
 
 jobs:
   # deploy-production:
-  #   if: github.ref == 'refs/heads/production'
-  #   runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/production'
+    runs-on: ubuntu-latest
 
-  #   steps:
-  #     - name: Checkout the code
-  #       uses: actions/checkout@v2
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v2
 
-  #     - name: Install SSH Key for Production
-  #       uses: webfactory/ssh-agent@v0.5.3
-  #       with:
-  #         ssh-private-key: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+      - name: Install SSH Key for Production
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.EC2_PROD_SSH_PRIVATE_KEY }}
 
-  #     - name: Deploy to Production EC2
-  #       run: |
-  #         ssh -o StrictHostKeyChecking=no ubuntu@prod-ec2-public-ip << 'EOF'
-  #           cd /home/ubuntu/repairfind-be
-  #           git pull origin main
-  #           npm install
-  #           pm2 restart my-app
-  #         EOF
+      - name: Deploy to Production EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@35.181.176.57 << 'EOF'
+            cd /home/ubuntu/repairfind-be
+            git pull origin production
+            npm install
+            npm run build
+            pm2 restart repairfind
+          EOF
 
   deploy-development:
     if: github.ref == 'refs/heads/dev'
