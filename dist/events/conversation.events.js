@@ -158,7 +158,7 @@ exports.ConversationEvent.on('NEW_MESSAGE', function (params) {
                                         title: nTitle,
                                         type: 'NEW_UNREAD_MESSAGE',
                                         message: "".concat(nMessage, "  ").concat(sender_1.name),
-                                        heading: { name: "".concat(user.name), image: (_c = user.profilePhoto) === null || _c === void 0 ? void 0 : _c.url },
+                                        heading: { name: "".concat(sender_1.name), image: (_c = sender_1.profilePhoto) === null || _c === void 0 ? void 0 : _c.url },
                                         payload: {
                                             entity: conversation_1.id,
                                             entityType: 'conversations',
