@@ -90,7 +90,7 @@ ConversationEvent.on('NEW_MESSAGE', async function (params) {
                         title: nTitle,
                         type: 'NEW_UNREAD_MESSAGE',
                         message: `${nMessage}  ${sender.name}`,
-                        heading: { name: `${user.name}`, image: user.profilePhoto?.url },
+                        heading: { name: `${sender.name}`, image: sender.profilePhoto?.url },
                         payload: {
                             entity: conversation.id,
                             entityType: 'conversations',
