@@ -65,8 +65,6 @@ export const exploreContractors = async (
             sortByResponseTime,
         } = req.query;
 
-
-
         const availableDaysArray = availability ? availability.split(',') : [];
         const skip = (parseInt(page) - 1) * parseInt(limit);
 
@@ -223,15 +221,16 @@ export const exploreContractors = async (
             //example filter out who do not have stripe account
             // { $match: { "stripeAccountStatus.status": 'active' } },
 
+
+            // filter out contractors without certn approval
+             { $match: { "certnDetails.report_status": 'COMPLETE' } },
+
             //example filter out employees and contractors 
             { $match: { accountType: { $ne: CONTRACTOR_TYPES.Employee } } },
 
             { $match: { "profile.isOffDuty": { $eq: false } } }
         ];
 
-
-
- 
 
         if (customerId) {
             pipeline.push(
@@ -262,7 +261,6 @@ export const exploreContractors = async (
                 }
             );
         }
-        
         
 
         if (searchName) {
