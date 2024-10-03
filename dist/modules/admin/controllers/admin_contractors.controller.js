@@ -59,7 +59,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AdminContractorController = exports.attachStripeAccount = exports.removeStripeAccount = exports.AdminChangeContractorAccountStatusController = exports.updateAccountStatus = exports.sendCustomEmail = exports.updateGstDetails = exports.getSingleJob = exports.getJobHistory = exports.getSingleContractor = exports.exploreContractors = void 0;
+exports.AdminContractorController = exports.attachCertnDetails = exports.attachStripeAccount = exports.removeStripeAccount = exports.AdminChangeContractorAccountStatusController = exports.updateAccountStatus = exports.sendCustomEmail = exports.updateGstDetails = exports.getSingleJob = exports.getJobHistory = exports.getSingleContractor = exports.exploreContractors = void 0;
 var express_validator_1 = require("express-validator");
 var admin_model_1 = __importDefault(require("../../../database/admin/models/admin.model"));
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
@@ -700,6 +700,49 @@ var attachStripeAccount = function (req, res, next) { return __awaiter(void 0, v
     });
 }); };
 exports.attachStripeAccount = attachStripeAccount;
+var attachCertnDetails = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var certnDetails, contractorId, contractor, error_5;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 3, , 4]);
+                certnDetails = req.body;
+                contractorId = req.params.contractorId;
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findById(contractorId)];
+            case 1:
+                contractor = _a.sent();
+                if (!contractor) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Contractor not found' })];
+                }
+                // Attach certnDetails to the contractor
+                return [4 /*yield*/, contractor_model_1.ContractorModel.findByIdAndUpdate(contractorId, {
+                        certnId: certnDetails.application.id,
+                        certnDetails: certnDetails
+                    })
+                    // contractor.certnId = certnDetails.application.id; // Attach the certnId
+                    // contractor.certnDetails = certnDetails; // Attach the certnDetails
+                    // Save the updated contractor
+                    // await contractor.save();
+                    // Respond with success message
+                ];
+            case 2:
+                // Attach certnDetails to the contractor
+                _a.sent();
+                // contractor.certnId = certnDetails.application.id; // Attach the certnId
+                // contractor.certnDetails = certnDetails; // Attach the certnDetails
+                // Save the updated contractor
+                // await contractor.save();
+                // Respond with success message
+                return [2 /*return*/, res.json({ success: true, message: 'Certn details attached', data: contractor })];
+            case 3:
+                error_5 = _a.sent();
+                // Handle any errors that occur
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError("Error attaching certn details: ".concat(error_5.message), error_5))];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.attachCertnDetails = attachCertnDetails;
 exports.AdminContractorController = {
     exploreContractors: exports.exploreContractors,
     removeStripeAccount: exports.removeStripeAccount,
@@ -709,5 +752,6 @@ exports.AdminContractorController = {
     getSingleJob: exports.getSingleJob,
     updateGstDetails: exports.updateGstDetails,
     updateAccountStatus: exports.updateAccountStatus,
-    sendCustomEmail: exports.sendCustomEmail
+    sendCustomEmail: exports.sendCustomEmail,
+    attachCertnDetails: exports.attachCertnDetails
 };

@@ -737,6 +737,41 @@ export const attachStripeAccount = async (
 }
 
 
+export const attachCertnDetails = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const certnDetails = req.body; // Extract certnId and certnDetails from the request body
+    const { contractorId } = req.params; // Extract contractorId from the request parameters
+
+    // Find the contractor by ID
+    const contractor = await ContractorModel.findById(contractorId);
+    if (!contractor) {
+      return res.status(404).json({ success: false, message: 'Contractor not found' });
+    }
+
+    // Attach certnDetails to the contractor
+    await ContractorModel.findByIdAndUpdate(contractorId, {
+      certnId: certnDetails.application.id,
+      certnDetails: certnDetails
+    })
+    // contractor.certnId = certnDetails.application.id; // Attach the certnId
+    // contractor.certnDetails = certnDetails; // Attach the certnDetails
+
+    // Save the updated contractor
+    // await contractor.save();
+
+    // Respond with success message
+    return res.json({ success: true, message: 'Certn details attached', data: contractor });
+  } catch (error: any) {
+    // Handle any errors that occur
+    return next(new InternalServerError(`Error attaching certn details: ${error.message}`, error));
+  }
+};
+
+
 
 
 export const AdminContractorController = {
@@ -748,6 +783,7 @@ export const AdminContractorController = {
   getSingleJob,
   updateGstDetails,
   updateAccountStatus,
-  sendCustomEmail
+  sendCustomEmail,
+  attachCertnDetails
 
 }
