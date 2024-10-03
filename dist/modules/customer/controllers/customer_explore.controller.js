@@ -237,6 +237,8 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
                     },
                     //example filter out who do not have stripe account
                     // { $match: { "stripeAccountStatus.status": 'active' } },
+                    // filter out contractors without certn approval
+                    { $match: { "certnDetails.report_status": 'COMPLETE' } },
                     //example filter out employees and contractors 
                     { $match: { accountType: { $ne: contractor_interface_1.CONTRACTOR_TYPES.Employee } } },
                     { $match: { "profile.isOffDuty": { $eq: false } } }
