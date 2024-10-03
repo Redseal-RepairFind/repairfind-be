@@ -304,6 +304,10 @@ ContractorSchema.virtual('certnStatus').get(function (this: IContractor) {
     }
   }
 
+  // temp fix until app is updated
+  if(status === 'COMPLETE'){
+    status = 'COMPLETED'
+  }
   return status
 });
 
