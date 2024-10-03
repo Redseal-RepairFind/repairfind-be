@@ -35,6 +35,15 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.JobQuotationModel = exports.ExtraEstimateSchema = exports.JOB_QUOTATION_TYPE = exports.JOB_QUOTATION_STATUS = void 0;
 var mongoose_1 = require("mongoose");
@@ -86,21 +95,27 @@ var JobQuotationSchema = new mongoose_1.Schema({
 }, { timestamps: true });
 // Define the static method to calculate charges
 JobQuotationSchema.methods.calculateCharges = function (type) {
-    var _a, _b;
+    var _a, _b, _c, _d, _e, _f, _g;
     if (type === void 0) { type = null; }
     return __awaiter(this, void 0, void 0, function () {
         var estimates, totalEstimateAmount, charges;
-        return __generator(this, function (_c) {
-            switch (_c.label) {
+        return __generator(this, function (_h) {
+            switch (_h.label) {
                 case 0:
                     estimates = this.estimates;
-                    if (type == payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) {
-                        estimates = (_a = this === null || this === void 0 ? void 0 : this.changeOrderEstimate) === null || _a === void 0 ? void 0 : _a.estimates;
-                    }
-                    if (type == payment_schema_1.PAYMENT_TYPE.SITE_VISIT_PAYMENT) {
-                        estimates = (_b = this === null || this === void 0 ? void 0 : this.siteVisitEstimate) === null || _b === void 0 ? void 0 : _b.estimates;
-                    }
                     totalEstimateAmount = 0;
+                    if (type) {
+                        if (type == payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) {
+                            estimates = (_a = this === null || this === void 0 ? void 0 : this.changeOrderEstimate) === null || _a === void 0 ? void 0 : _a.estimates;
+                        }
+                        if (type == payment_schema_1.PAYMENT_TYPE.SITE_VISIT_PAYMENT) {
+                            estimates = (_b = this === null || this === void 0 ? void 0 : this.siteVisitEstimate) === null || _b === void 0 ? void 0 : _b.estimates;
+                        }
+                    }
+                    else {
+                        //merge all arrays
+                        estimates = __spreadArray(__spreadArray(__spreadArray([], ((_d = (_c = this === null || this === void 0 ? void 0 : this.siteVisitEstimate) === null || _c === void 0 ? void 0 : _c.estimates) !== null && _d !== void 0 ? _d : []), true), ((_f = (_e = this === null || this === void 0 ? void 0 : this.changeOrderEstimate) === null || _e === void 0 ? void 0 : _e.estimates) !== null && _f !== void 0 ? _f : []), true), ((_g = this.estimates) !== null && _g !== void 0 ? _g : []), true);
+                    }
                     if (estimates) {
                         estimates.forEach(function (estimate) {
                             totalEstimateAmount += estimate.rate * estimate.quantity;
@@ -108,7 +123,7 @@ JobQuotationSchema.methods.calculateCharges = function (type) {
                     }
                     return [4 /*yield*/, payment_util_1.PaymentUtil.calculateCharges(totalEstimateAmount)];
                 case 1:
-                    charges = _c.sent();
+                    charges = _h.sent();
                     return [2 /*return*/, charges];
             }
         });

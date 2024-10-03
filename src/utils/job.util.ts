@@ -25,7 +25,7 @@ const populate = async (
                 if (contract.changeOrderEstimate) 
                     contract.changeOrderEstimate.charges = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {};
                 if (contract.siteVisitEstimate) 
-                    contract.siteVisitEstimate.charges = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {};
+                    contract.siteVisitEstimate.charges = await contract.calculateCharges(PAYMENT_TYPE.SITE_VISIT_PAYMENT) ?? {};
                 contract.charges = await contract.calculateCharges();
                 result.contract = contract;
             }

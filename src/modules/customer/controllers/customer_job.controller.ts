@@ -458,7 +458,7 @@ export const getJobQuotations = async (req: any, res: Response, next: NextFuncti
 
             if (quotation) {
                 if (quotation.changeOrderEstimate) quotation.changeOrderEstimate.charges = await quotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
-                if (quotation.siteVisitEstimate) quotation.siteVisitEstimate.charges = await quotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
+                if (quotation.siteVisitEstimate) quotation.siteVisitEstimate.charges = await quotation.calculateCharges(PAYMENT_TYPE.SITE_VISIT_PAYMENT)
                 quotation.charges = await quotation.calculateCharges()
             }
         }));
@@ -483,7 +483,7 @@ export const getAllQuotations = async (req: any, res: Response, next: NextFuncti
             await Promise.all(data.data.map(async (contract: any) => {
                 if (contract) {
                     if (contract.changeOrderEstimate) contract.changeOrderEstimate.charges = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
-                    if (contract.siteVisitEstimate) contract.siteVisitEstimate.charges = await contract.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
+                    if (contract.siteVisitEstimate) contract.siteVisitEstimate.charges = await contract.calculateCharges(PAYMENT_TYPE.SITE_VISIT_PAYMENT)
                     contract.charges = await contract.calculateCharges()
                 }
             }));
@@ -509,7 +509,7 @@ export const getQuotation = async (req: any, res: Response, next: NextFunction) 
         }
 
         if (quotation.changeOrderEstimate) quotation.changeOrderEstimate.charges = await quotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
-        if (quotation.siteVisitEstimate) quotation.siteVisitEstimate.charges = await quotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
+        if (quotation.siteVisitEstimate) quotation.siteVisitEstimate.charges = await quotation.calculateCharges(PAYMENT_TYPE.SITE_VISIT_PAYMENT)
         quotation.charges = await quotation.calculateCharges()
 
 
@@ -534,7 +534,7 @@ export const getSingleQuotation = async (req: any, res: Response, next: NextFunc
         }
 
         if (quotation.changeOrderEstimate) quotation.changeOrderEstimate.charges = await quotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
-        if (quotation.siteVisitEstimate) quotation.siteVisitEstimate.charges = await quotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
+        if (quotation.siteVisitEstimate) quotation.siteVisitEstimate.charges = await quotation.calculateCharges(PAYMENT_TYPE.SITE_VISIT_PAYMENT)
         quotation.charges = await quotation.calculateCharges()
 
         res.json({ success: true, message: 'Job quotation retrieved', data: quotation });

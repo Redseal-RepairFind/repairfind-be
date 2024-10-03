@@ -65,7 +65,7 @@ var populate = function (job, options) {
                                     case 2:
                                         if (!contract.siteVisitEstimate) return [3 /*break*/, 4];
                                         _b = contract.siteVisitEstimate;
-                                        return [4 /*yield*/, contract.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
+                                        return [4 /*yield*/, contract.calculateCharges(payment_schema_1.PAYMENT_TYPE.SITE_VISIT_PAYMENT)];
                                     case 3:
                                         _b.charges = (_e = _f.sent()) !== null && _e !== void 0 ? _e : {};
                                         _f.label = 4;

@@ -724,7 +724,7 @@ var getQuotationForJob = function (req, res, next) { return __awaiter(void 0, vo
             case 3:
                 if (!quotation.siteVisitEstimate) return [3 /*break*/, 5];
                 _b = quotation.siteVisitEstimate;
-                return [4 /*yield*/, quotation.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
+                return [4 /*yield*/, quotation.calculateCharges(payment_schema_1.PAYMENT_TYPE.SITE_VISIT_PAYMENT)];
             case 4:
                 _b.charges = _e.sent();
                 _e.label = 5;
@@ -772,7 +772,7 @@ var getQuotation = function (req, res, next) { return __awaiter(void 0, void 0, 
             case 3:
                 if (!quotation.siteVisitEstimate) return [3 /*break*/, 5];
                 _b = quotation.siteVisitEstimate;
-                return [4 /*yield*/, quotation.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
+                return [4 /*yield*/, quotation.calculateCharges(payment_schema_1.PAYMENT_TYPE.SITE_VISIT_PAYMENT)];
             case 4:
                 _b.charges = _e.sent();
                 _e.label = 5;
@@ -847,7 +847,7 @@ var updateJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
             case 6:
                 if (!quotation.siteVisitEstimate) return [3 /*break*/, 8];
                 _d = quotation.siteVisitEstimate;
-                return [4 /*yield*/, quotation.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
+                return [4 /*yield*/, quotation.calculateCharges(payment_schema_1.PAYMENT_TYPE.SITE_VISIT_PAYMENT)];
             case 7:
                 _d.charges = _g.sent();
                 _g.label = 8;
