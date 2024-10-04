@@ -932,8 +932,8 @@ var getJobSingleEnquiry = function (req, res, next) { return __awaiter(void 0, v
                     return [2 /*return*/, res.status(404).json({ message: "Job not found" })];
                 }
                 return [4 /*yield*/, job_enquiry_model_1.JobEnquiryModel.findById(enquiryId).populate([
-                        { path: 'customer', select: "firstName lastName name profilePhoto _id" },
-                        { path: 'contractor', select: "firstName lastName name profilePhoto _id" },
+                        { path: 'customer', select: "firstName lastName name profilePhoto language _id" },
+                        { path: 'contractor', select: "firstName lastName name profilePhoto language _id" },
                     ])];
             case 2:
                 enquiry = _b.sent();
@@ -979,8 +979,8 @@ var getJobEnquiries = function (req, res, next) { return __awaiter(void 0, void 
                     return [2 /*return*/, res.status(404).json({ success: false, message: "Job not found" })];
                 }
                 return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(job_enquiry_model_1.JobEnquiryModel.find({ job: jobId }).populate([
-                        { path: 'customer', select: "firstName lastName name profilePhoto _id" },
-                        { path: 'contractor', select: "firstName lastName name profilePhoto _id" },
+                        { path: 'customer', select: "firstName lastName name profilePhoto language _id" },
+                        { path: 'contractor', select: "firstName lastName name profilePhoto language _id" },
                     ]), req.query)];
             case 2:
                 enquiries = _a.sent();

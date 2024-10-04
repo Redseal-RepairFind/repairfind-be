@@ -63,5 +63,11 @@
   },
   "escrow_payment_receipt": {
     "en": "Escrow Payment Receipt"
+  },
+  "new_job_enquiry": {
+    "en": "New Job Enquiry "
+  },
+  "your_job_on_repairfind_has_a_new_enquiry": {
+    "en": "Your job on Repairfind has a new enquiry"
   }
 }
