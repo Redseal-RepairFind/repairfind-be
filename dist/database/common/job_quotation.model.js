@@ -95,12 +95,12 @@ var JobQuotationSchema = new mongoose_1.Schema({
 }, { timestamps: true });
 // Define the static method to calculate charges
 JobQuotationSchema.methods.calculateCharges = function (type) {
-    var _a, _b, _c, _d, _e, _f, _g;
+    var _a, _b, _c, _d, _e, _f;
     if (type === void 0) { type = null; }
     return __awaiter(this, void 0, void 0, function () {
-        var estimates, totalEstimateAmount, charges;
-        return __generator(this, function (_h) {
-            switch (_h.label) {
+        var estimates, totalEstimateAmount, siteVisitEstimateNotPaid, charges;
+        return __generator(this, function (_g) {
+            switch (_g.label) {
                 case 0:
                     estimates = this.estimates;
                     totalEstimateAmount = 0;
@@ -113,8 +113,8 @@ JobQuotationSchema.methods.calculateCharges = function (type) {
                         }
                     }
                     else {
-                        //merge all arrays
-                        estimates = __spreadArray(__spreadArray(__spreadArray([], ((_d = (_c = this === null || this === void 0 ? void 0 : this.siteVisitEstimate) === null || _c === void 0 ? void 0 : _c.estimates) !== null && _d !== void 0 ? _d : []), true), ((_f = (_e = this === null || this === void 0 ? void 0 : this.changeOrderEstimate) === null || _e === void 0 ? void 0 : _e.estimates) !== null && _f !== void 0 ? _f : []), true), ((_g = this.estimates) !== null && _g !== void 0 ? _g : []), true);
+                        siteVisitEstimateNotPaid = ((_c = this === null || this === void 0 ? void 0 : this.siteVisitEstimate) === null || _c === void 0 ? void 0 : _c.isPaid) === false ? this.siteVisitEstimate.estimates : [];
+                        estimates = __spreadArray(__spreadArray(__spreadArray([], siteVisitEstimateNotPaid, true), ((_e = (_d = this === null || this === void 0 ? void 0 : this.changeOrderEstimate) === null || _d === void 0 ? void 0 : _d.estimates) !== null && _e !== void 0 ? _e : []), true), ((_f = this.estimates) !== null && _f !== void 0 ? _f : []), true);
                     }
                     if (estimates) {
                         estimates.forEach(function (estimate) {
@@ -123,7 +123,7 @@ JobQuotationSchema.methods.calculateCharges = function (type) {
                     }
                     return [4 /*yield*/, payment_util_1.PaymentUtil.calculateCharges(totalEstimateAmount)];
                 case 1:
-                    charges = _h.sent();
+                    charges = _g.sent();
                     return [2 /*return*/, charges];
             }
         });

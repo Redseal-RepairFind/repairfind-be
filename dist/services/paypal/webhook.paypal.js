@@ -260,6 +260,7 @@ var paymentCaptureCompleted = function (payload, resourceType) { return __awaite
                         return [2 /*return*/];
                     changeOrderEstimate.isPaid = true;
                     changeOrderEstimate.payment = payment.id;
+                    events_1.JobEvent.emit('CHANGE_ORDER_ESTIMATE_PAID', { job: job, quotation: quotation, changeOrderEstimate: changeOrderEstimate });
                 }
                 if (!job.payments.includes(payment.id))
                     job.payments.push(payment.id);

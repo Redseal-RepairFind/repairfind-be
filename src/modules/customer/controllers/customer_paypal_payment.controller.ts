@@ -80,9 +80,10 @@ export const createCheckoutOrder = async (req: any, res: Response, next: NextFun
         }
 
         let paymentType = PAYMENT_TYPE.JOB_DAY_PAYMENT
-        const transactionType = quotation.type
-        if(transactionType == JOB_QUOTATION_TYPE.SITE_VISIT) paymentType = PAYMENT_TYPE.SITE_VISIT_PAYMENT
-        if(transactionType == JOB_QUOTATION_TYPE.JOB_DAY) paymentType = PAYMENT_TYPE.JOB_DAY_PAYMENT
+        if(quotation.type == JOB_QUOTATION_TYPE.SITE_VISIT) paymentType = PAYMENT_TYPE.SITE_VISIT_PAYMENT
+        if(quotation.type == JOB_QUOTATION_TYPE.JOB_DAY) paymentType = PAYMENT_TYPE.JOB_DAY_PAYMENT
+
+
         const charges = await quotation.calculateCharges(paymentType);
 
 

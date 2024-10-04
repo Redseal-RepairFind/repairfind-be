@@ -76,7 +76,9 @@ var populate = function (job, options) {
                                         _c.charges = _f.sent();
                                         result.contract = contract;
                                         _f.label = 6;
-                                    case 6: return [2 /*return*/];
+                                    case 6:
+                                        console.log(contract);
+                                        return [2 /*return*/];
                                 }
                             });
                         }); });
@@ -95,9 +97,34 @@ var populate = function (job, options) {
                         tasks.push(hasUnrepliedEnquiryTask);
                     }
                     if (options.myQuotation) {
-                        myQuotationTask = job.getMyQuotation(options.myQuotation).then(function (myQuotation) {
-                            result.myQuotation = myQuotation;
-                        });
+                        myQuotationTask = job.getMyQuotation(options.myQuotation).then(function (myQuotation) { return __awaiter(void 0, void 0, void 0, function () {
+                            var _a, _b, _c;
+                            return __generator(this, function (_d) {
+                                switch (_d.label) {
+                                    case 0:
+                                        _a = myQuotation;
+                                        return [4 /*yield*/, myQuotation.calculateCharges()];
+                                    case 1:
+                                        _a.charges = _d.sent();
+                                        if (!myQuotation.siteVisitEstimate) return [3 /*break*/, 3];
+                                        _b = myQuotation.siteVisitEstimate;
+                                        return [4 /*yield*/, myQuotation.calculateCharges(payment_schema_1.PAYMENT_TYPE.SITE_VISIT_PAYMENT)];
+                                    case 2:
+                                        _b.charges = _d.sent();
+                                        _d.label = 3;
+                                    case 3:
+                                        if (!myQuotation.changeOrderEstimate) return [3 /*break*/, 5];
+                                        _c = myQuotation.changeOrderEstimate;
+                                        return [4 /*yield*/, myQuotation.calculateCharges(payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)];
+                                    case 4:
+                                        _c.charges = _d.sent();
+                                        _d.label = 5;
+                                    case 5:
+                                        result.myQuotation = myQuotation;
+                                        return [2 /*return*/];
+                                }
+                            });
+                        }); });
                         tasks.push(myQuotationTask);
                     }
                     if (options.jobDay) {

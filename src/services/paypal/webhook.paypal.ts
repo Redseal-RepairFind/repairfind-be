@@ -207,6 +207,8 @@ export const paymentCaptureCompleted = async (payload: any, resourceType: any) =
                         if (!changeOrderEstimate) return
                         changeOrderEstimate.isPaid = true
                         changeOrderEstimate.payment = payment.id
+
+                        JobEvent.emit('CHANGE_ORDER_ESTIMATE_PAID', { job, quotation, changeOrderEstimate })
                     }
 
                     if (!job.payments.includes(payment.id)) job.payments.push(payment.id)

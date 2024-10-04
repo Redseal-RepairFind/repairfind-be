@@ -4,14 +4,16 @@
   },
   "new_unread_message": {
     "fr": "Nouveau message non lu",
-    "zh": "新的未读消息"
+    "zh": "新的未读消息",
+    "en": "New unread message"
   },
   "you_ve_sent_a_job_request_to": {
     "zh": "您已将工作请求发送至"
   },
   "you_have_a_new_unread_message_from": {
     "fr": "Vous avez un nouveau message non lu de",
-    "zh": "您有一条新的未读消息，来自"
+    "zh": "您有一条新的未读消息，来自",
+    "en": "You have a new unread message from"
   },
   "password_change": {
     "zh": "更改密码"
@@ -32,5 +34,34 @@
   },
   "your_job_on_repairfind_has_received_a_new_bid": {
     "zh": "您在 Repairfind 上的工作已收到新的出价"
+  },
+  "new_job_payment": {
+    "en": "New Job Payment",
+    "zh": "新工作付款"
+  },
+  "payment_receipt": {
+    "en": "Payment Receipt",
+    "zh": "付款收据"
+  },
+  "job_booked": {
+    "zh": "已预订工作",
+    "en": "Job Booked"
+  },
+  "you_have_booked_a_job_on_repairfind": {
+    "zh": "您已在 Repairfind 上预订了工作",
+    "en": "You have booked a job on Repairfind"
+  },
+  "you_have_a_booked_job_on_repairfind": {
+    "en": "You have a booked job on Repairfind"
+  },
+  "job_escrow_payment": {
+    "en": "Job Escrow Payment"
+  },
+  "job_payment": {
+    "zh": "工作报酬",
+    "en": "Job Payment"
+  },
+  "escrow_payment_receipt": {
+    "en": "Escrow Payment Receipt"
   }
 }

@@ -124,11 +124,13 @@ JobQuotationSchema.methods.calculateCharges = async function (type = null) {
         }
     }else{
         //merge all arrays
+        const siteVisitEstimateNotPaid = this?.siteVisitEstimate?.isPaid === false ? this.siteVisitEstimate.estimates : [];
         estimates = [
-            ...(this?.siteVisitEstimate?.estimates ?? []),
+            ...siteVisitEstimateNotPaid,
             ...(this?.changeOrderEstimate?.estimates ?? []),
             ...(this.estimates ?? [])
         ];
+        
     }
    
 
