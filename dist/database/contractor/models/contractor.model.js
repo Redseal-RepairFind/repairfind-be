@@ -290,12 +290,16 @@ ContractorSchema.virtual('certnStatus').get(function () {
             status = 'NOT_SUBMITTED';
         }
         else {
+            status = 'COMPLETE';
             for (var _i = 0, _a = certnDetails.check_executions; _i < _a.length; _i++) {
                 var execution = _a[_i];
-                status = certnDetails.report_status;
-                if (execution.status !== 'COMPLETE') {
-                    status = 'FAILED'; // If any check is not completed, status is failed
-                    break; // No need to continue, we already found a failed check
+                if (execution.status == 'IN_PROGRESS') {
+                    status = 'IN_PROGRESS';
+                    break; // No need to continue, we already found a IN_PROGRESS check
+                }
+                if (execution.status == 'FAILED') {
+                    status = 'FAILED';
+                    break;
                 }
             }
         }
@@ -319,8 +323,12 @@ ContractorSchema.virtual('certnReport').get(function () {
             for (var _i = 0, _a = certnDetails.check_executions; _i < _a.length; _i++) {
                 var execution = _a[_i];
                 status = certnDetails.report_status;
-                if (execution.status !== 'COMPLETE') {
-                    status = 'FAILED'; // If any check is not completed, status is failed
+                if (execution.status == 'IN_PROGRESS') {
+                    status = 'IN_PROGRESS';
+                    break; // No need to continue, we already found a failed check
+                }
+                if (execution.status == 'FAILED') {
+                    status = 'FAILED';
                     break; // No need to continue, we already found a failed check
                 }
             }
