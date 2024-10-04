@@ -189,6 +189,7 @@ export interface IContractor extends Document {
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date;
+  activeUserPromotions: [ {promotion: ObjectId, name: string, code: string } ] // store array of un redeemed promotions or offers here
   getOnboarding: () => {
     hasStripeAccount: boolean,
     hasStripeIdentity: boolean,
