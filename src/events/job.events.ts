@@ -25,6 +25,7 @@ import { ConversationUtil } from '../utils/conversation.util';
 import { MessageModel, MessageType } from '../database/common/messages.schema';
 import { BlockedUserUtil } from '../utils/blockeduser.util';
 import { i18n } from '../i18n';
+import { PAYMENT_TYPE } from '../database/common/payment.schema';
 
 export const JobEvent: EventEmitter = new EventEmitter();
 
@@ -1047,13 +1048,22 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
         const contractor = await ContractorModel.findById(payload.contractorId)
         const job = await JobModel.findById(payload.jobId)
         const quotation = await JobQuotationModel.findById(payload.quotationId)
-
-
+        const paymentType = payload.paymentType ?? null
+        
         if (job && contractor && customer && quotation) {
-            const charges = await quotation.calculateCharges();
+            const charges = await quotation.calculateCharges(paymentType);
             const contractorProfile = await ContractorProfileModel.findOne({ contractor: contractor.id })
+            let paymentReceipt: any = quotation.payment
+            let estimates = quotation.estimates
 
-
+            if(paymentType == PAYMENT_TYPE.SITE_VISIT_PAYMENT){
+                paymentReceipt = quotation?.siteVisitEstimate?.payment
+                estimates =  paymentReceipt = quotation?.siteVisitEstimate?.estimates
+            }
+            if(paymentType == PAYMENT_TYPE.SITE_VISIT_PAYMENT){
+                paymentReceipt = quotation.siteVisitEstimate?.payment
+                estimates = quotation.siteVisitEstimate?.estimates
+            }
             if (contractor && contractorProfile) {
                 const dateTimeOptions: any = {
                     weekday: 'short',
@@ -1068,13 +1078,13 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
                 }
                 const jobDateContractor = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(job.schedule.startDate));
                 const currentDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(new Date));
-
-
-                let emailSubject = 'New Job Payment';
+               
+                   
+                let emailSubject = 'Job Escrow Payment';
                 let emailContent = `
                     <h2>${emailSubject}</h2>
                     <p style="color: #333333;">Hello ${contractor.name},</p>
-                    <p style="color: #333333;">You have received payment for a job on RepairFind.</p>
+                    <p style="color: #333333;">You have received escrow payment for a job on RepairFind. The money is securely held in Escrow, and will be released to your paypal email once job is done</p>
                     <p><strong>Job Title:</strong> ${job.description}</p>
                     <p><strong>Scheduled Date:</strong>${jobDateContractor}</p>
                     <hr>
@@ -1082,16 +1092,19 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
                     <p style="color: #333333;">Kindly open the App for more information.</p>
                 `;
 
+
+               
+
                 // HTML content for the receipt
                 const receipthtmlContent = `
-                    <h3>Payment Receipt</h3>
+                    <h3>Escrow Payment Receipt</h3>
                     <p><strong>RepairFind</strong><br>
                     Phone: (604) 568-6378<br>
                     Email: info@repairfind.ca</p>
                     <hr>
 
                     <p>Date: ${currentDate}<br>
-                    Receipt Number: RFC${quotation.payment}</p>
+                    Receipt Number: RFP${paymentReceipt}</p>
 
                     <p><strong>Contractor:</strong><br>
                     ${contractor.name}<br>
@@ -1105,7 +1118,7 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
 
                     <p><strong>Invoice Items:</strong></p>
                     <table style="width: 100%; border-collapse: collapse; border: 1px solid lightgray;">
-                    ${quotation.estimates.map(estimate => `
+                    ${estimates.map(estimate => `
                         <tr>
                           <td style="border: 1px solid lightgray; padding: 8px;"><strong>${estimate.description}</strong></td>
                           <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${(estimate.rate * estimate.quantity).toFixed(2)}</td>
@@ -1142,9 +1155,9 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
                 const translatedSubject = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: contractor.language}) || emailSubject;
                 EmailService.send(contractor.email, translatedSubject, translatedHtml);
 
-                let receipthtml = GenericEmailTemplate({ name: contractor.name, subject: 'Payment Receipt', content: receipthtmlContent });
+                let receipthtml = GenericEmailTemplate({ name: contractor.name, subject: 'Escrow Payment Receipt', content: receipthtmlContent });
                 const translatedReceiptHtml = await i18n.getTranslation({phraseOrSlug: receipthtml, targetLang: contractor.language, saveToFile: false, useGoogle: true}) || html;            
-                const translatedReceiptSubject = await i18n.getTranslation({phraseOrSlug: 'Payment Receipt', targetLang: contractor.language}) || 'Payment Receipt';
+                const translatedReceiptSubject = await i18n.getTranslation({phraseOrSlug: 'Escrow Payment Receipt', targetLang: contractor.language}) || 'Escrow Payment Receipt';
                 EmailService.send(contractor.email, translatedReceiptSubject, translatedReceiptHtml);
 
             }
@@ -1168,11 +1181,11 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
                 const currentDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(new Date));
 
 
-                let emailSubject = 'New Job Payment';
+                let emailSubject = 'Job Payment';
                 let emailContent = `
                  <h2>${emailSubject}</h2>
                   <p style="color: #333333;">Hello ${customer.name},</p>
-                  <p style="color: #333333;">You have made a payment for a job on RepairFind.</p>
+                  <p style="color: #333333;">You have made a payment for a job on RepairFind. The money is held securely in Escrow until job is is complete</p>
                   <p><strong>Job Title:</strong> ${job.description}</p>
                   <p><strong>Proposed Date:</strong>${jobDateCustomer}</p>
                   <p style="color: #333333;">Thank you for your payment!</p>
@@ -1188,7 +1201,7 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
 
                     <p><strong>Receipt</strong></p>
                     <p>Date: ${currentDate}<br>
-                    Receipt Number: RFC${quotation.payment}</p>
+                    Receipt Number: RFP${paymentReceipt}</p>
                     <p><strong>Customer:</strong><br>
                     ${customer.name}<br>
                     ${customer?.location?.address}<br>
@@ -1200,7 +1213,7 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
 
                     <p><strong>Services/Charges:</strong></p>
                     <table style="width: 100%; border-collapse: collapse; border: 1px solid lightgray; margin-bottom: 10px;">
-                         ${quotation.estimates.map(estimate => `
+                         ${estimates.map(estimate => `
                         <tr>
                           <td style="border: 1px solid lightgray; padding: 8px;"><strong>${estimate.description}</strong></td>
                           <td style="border: 1px solid lightgray; padding: 8px; text-align: right;">$${(estimate.rate * estimate.quantity).toFixed(2)}</td>

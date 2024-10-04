@@ -112,14 +112,27 @@ const JobQuotationSchema = new Schema<IJobQuotation>({
 JobQuotationSchema.methods.calculateCharges = async function (type = null) {
 
     let estimates = this.estimates
-    if (type == PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) {
-        estimates = this?.changeOrderEstimate?.estimates
-    }
-
-    if (type == PAYMENT_TYPE.SITE_VISIT_PAYMENT) {
-        estimates = this?.siteVisitEstimate?.estimates
-    }
     let totalEstimateAmount = 0
+
+    if(type){
+        if (type == PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) {
+            estimates = this?.changeOrderEstimate?.estimates
+        }
+    
+        if (type == PAYMENT_TYPE.SITE_VISIT_PAYMENT) {
+            estimates = this?.siteVisitEstimate?.estimates
+        }
+    }else{
+        //merge all arrays
+        const siteVisitEstimateNotPaid = this?.siteVisitEstimate?.isPaid === false ? this.siteVisitEstimate.estimates : [];
+        estimates = [
+            ...siteVisitEstimateNotPaid,
+            ...(this?.changeOrderEstimate?.estimates ?? []),
+            ...(this.estimates ?? [])
+        ];
+        
+    }
+   
 
     if(estimates){
         estimates.forEach((estimate: any) => {

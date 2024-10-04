@@ -115,7 +115,7 @@ var findContractor = function (contractorId) { return __awaiter(void 0, void 0, 
     });
 }); };
 var createCheckoutOrder = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var quotationId, jobId, errors, customerId, customer, job, quotation, contractor, contractorId, paymentType, transactionType, charges, metadata, paypalPaymentLog, payload, capture, err_1;
+    var quotationId, jobId, errors, customerId, customer, job, quotation, contractor, contractorId, paymentType, charges, metadata, paypalPaymentLog, payload, capture, err_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -144,10 +144,9 @@ var createCheckoutOrder = function (req, res, next) { return __awaiter(void 0, v
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'This job is not pending, so new payment is not possible' })];
                 }
                 paymentType = payment_schema_1.PAYMENT_TYPE.JOB_DAY_PAYMENT;
-                transactionType = quotation.type;
-                if (transactionType == job_quotation_model_1.JOB_QUOTATION_TYPE.SITE_VISIT)
+                if (quotation.type == job_quotation_model_1.JOB_QUOTATION_TYPE.SITE_VISIT)
                     paymentType = payment_schema_1.PAYMENT_TYPE.SITE_VISIT_PAYMENT;
-                if (transactionType == job_quotation_model_1.JOB_QUOTATION_TYPE.JOB_DAY)
+                if (quotation.type == job_quotation_model_1.JOB_QUOTATION_TYPE.JOB_DAY)
                     paymentType = payment_schema_1.PAYMENT_TYPE.JOB_DAY_PAYMENT;
                 return [4 /*yield*/, quotation.calculateCharges(paymentType)];
             case 5:

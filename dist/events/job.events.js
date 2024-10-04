@@ -96,6 +96,7 @@ var conversation_util_1 = require("../utils/conversation.util");
 var messages_schema_1 = require("../database/common/messages.schema");
 var blockeduser_util_1 = require("../utils/blockeduser.util");
 var i18n_1 = require("../i18n");
+var payment_schema_1 = require("../database/common/payment.schema");
 exports.JobEvent = new events_1.EventEmitter();
 exports.JobEvent.on('NEW_JOB_REQUEST', function (payload) {
     var _a, _b;
@@ -1217,33 +1218,44 @@ exports.JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', function (payload) {
     });
 });
 exports.JobEvent.on('JOB_BOOKED', function (payload) {
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j;
     return __awaiter(this, void 0, void 0, function () {
-        var customer, contractor, job, quotation, charges, contractorProfile, dateTimeOptions, jobDateContractor, currentDate, emailSubject, emailContent, receipthtmlContent, html, translatedHtml, translatedSubject, receipthtml, translatedReceiptHtml, translatedReceiptSubject, dateTimeOptions, jobDateCustomer, currentDate, emailSubject, emailContent, receiptContent, html, translatedHtml, translatedSubject, receipthtml, translatedReceiptHtml, translatedReceiptSubject, customerLang, nTitle, nMessage, contractorLang, error_13;
-        return __generator(this, function (_e) {
-            switch (_e.label) {
+        var customer, contractor, job, quotation, paymentType, charges, contractorProfile, paymentReceipt, estimates, dateTimeOptions, jobDateContractor, currentDate, emailSubject, emailContent, receipthtmlContent, html, translatedHtml, translatedSubject, receipthtml, translatedReceiptHtml, translatedReceiptSubject, dateTimeOptions, jobDateCustomer, currentDate, emailSubject, emailContent, receiptContent, html, translatedHtml, translatedSubject, receipthtml, translatedReceiptHtml, translatedReceiptSubject, customerLang, nTitle, nMessage, contractorLang, error_13;
+        return __generator(this, function (_k) {
+            switch (_k.label) {
                 case 0:
-                    _e.trys.push([0, 22, , 23]);
+                    _k.trys.push([0, 22, , 23]);
                     logger_1.Logger.info('handling alert JOB_BOOKED event');
                     return [4 /*yield*/, customer_model_1.default.findById(payload.customerId)];
                 case 1:
-                    customer = _e.sent();
+                    customer = _k.sent();
                     return [4 /*yield*/, contractor_model_1.ContractorModel.findById(payload.contractorId)];
                 case 2:
-                    contractor = _e.sent();
+                    contractor = _k.sent();
                     return [4 /*yield*/, job_model_1.JobModel.findById(payload.jobId)];
                 case 3:
-                    job = _e.sent();
+                    job = _k.sent();
                     return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findById(payload.quotationId)];
                 case 4:
-                    quotation = _e.sent();
+                    quotation = _k.sent();
+                    paymentType = (_a = payload.paymentType) !== null && _a !== void 0 ? _a : null;
                     if (!(job && contractor && customer && quotation)) return [3 /*break*/, 21];
-                    return [4 /*yield*/, quotation.calculateCharges()];
+                    return [4 /*yield*/, quotation.calculateCharges(paymentType)];
                 case 5:
-                    charges = _e.sent();
+                    charges = _k.sent();
                     return [4 /*yield*/, contractor_profile_model_1.ContractorProfileModel.findOne({ contractor: contractor.id })];
                 case 6:
-                    contractorProfile = _e.sent();
+                    contractorProfile = _k.sent();
+                    paymentReceipt = quotation.payment;
+                    estimates = quotation.estimates;
+                    if (paymentType == payment_schema_1.PAYMENT_TYPE.SITE_VISIT_PAYMENT) {
+                        paymentReceipt = (_b = quotation === null || quotation === void 0 ? void 0 : quotation.siteVisitEstimate) === null || _b === void 0 ? void 0 : _b.payment;
+                        estimates = paymentReceipt = (_c = quotation === null || quotation === void 0 ? void 0 : quotation.siteVisitEstimate) === null || _c === void 0 ? void 0 : _c.estimates;
+                    }
+                    if (paymentType == payment_schema_1.PAYMENT_TYPE.SITE_VISIT_PAYMENT) {
+                        paymentReceipt = (_d = quotation.siteVisitEstimate) === null || _d === void 0 ? void 0 : _d.payment;
+                        estimates = (_e = quotation.siteVisitEstimate) === null || _e === void 0 ? void 0 : _e.estimates;
+                    }
                     if (!(contractor && contractorProfile)) return [3 /*break*/, 11];
                     dateTimeOptions = {
                         weekday: 'short',
@@ -1258,26 +1270,26 @@ exports.JobEvent.on('JOB_BOOKED', function (payload) {
                     };
                     jobDateContractor = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(job.schedule.startDate));
                     currentDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(new Date));
-                    emailSubject = 'New Job Payment';
-                    emailContent = "\n                    <h2>".concat(emailSubject, "</h2>\n                    <p style=\"color: #333333;\">Hello ").concat(contractor.name, ",</p>\n                    <p style=\"color: #333333;\">You have received payment for a job on RepairFind.</p>\n                    <p><strong>Job Title:</strong> ").concat(job.description, "</p>\n                    <p><strong>Scheduled Date:</strong>").concat(jobDateContractor, "</p>\n                    <hr>\n                    <p style=\"color: #333333;\">Thank you for your service!</p>\n                    <p style=\"color: #333333;\">Kindly open the App for more information.</p>\n                ");
-                    receipthtmlContent = "\n                    <h3>Payment Receipt</h3>\n                    <p><strong>RepairFind</strong><br>\n                    Phone: (604) 568-6378<br>\n                    Email: info@repairfind.ca</p>\n                    <hr>\n\n                    <p>Date: ".concat(currentDate, "<br>\n                    Receipt Number: RFC").concat(quotation.payment, "</p>\n\n                    <p><strong>Contractor:</strong><br>\n                    ").concat(contractor.name, "<br>\n                    ").concat((_a = contractorProfile === null || contractorProfile === void 0 ? void 0 : contractorProfile.location) === null || _a === void 0 ? void 0 : _a.address, "<br>\n                    </p>\n\n                    <hr>\n                    <strong>Description:</strong>\n                    <strong>Job Title:</strong> ").concat(job.description, "<br>\n                    <strong>Scheduled Date:</strong> ").concat(jobDateContractor, "\n\n                    <p><strong>Invoice Items:</strong></p>\n                    <table style=\"width: 100%; border-collapse: collapse; border: 1px solid lightgray;\">\n                    ").concat(quotation.estimates.map(function (estimate) { return "\n                        <tr>\n                          <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>".concat(estimate.description, "</strong></td>\n                          <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat((estimate.rate * estimate.quantity).toFixed(2), "</td>\n                        </tr>\n                      "); }).join(''), "   \n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Subtotal</strong></td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat((charges.subtotal).toFixed(2), "</td>\n                        </tr>\n                    </table>\n                    <p><strong>Deduction/Charges:</strong></p>\n                    <table style=\"width: 100%; border-collapse: collapse; border: 1px solid lightgray;\">\n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\">Payment Processing Fee ($").concat(charges.customerProcessingFeeRate, "%)</td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat(charges.contractorProcessingFee, "</td>\n                        </tr>\n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\">Service Fee (").concat(charges.repairfindServiceFeeRate, "%)</td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat(charges.repairfindServiceFee, "</td>\n                        </tr>\n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Total Deducted</strong></td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\"><strong>$").concat(charges.repairfindServiceFee + charges.contractorProcessingFee, "</strong></td>\n                        </tr>\n                    </table>\n                    <p><strong>Net Amount to Contractor:</strong> $").concat(charges.subtotal, " + GST $").concat(charges.gstAmount, " - Total Deduction $").concat(charges.repairfindServiceFee + charges.contractorProcessingFee, " = $").concat(charges.contractorPayable, "</p>\n                    <p><strong>Payment Method:</strong> Card Payment<br>\n                    <strong>Transaction ID:</strong> RFT").concat(quotation.id, "</p>\n                ");
+                    emailSubject = 'Job Escrow Payment';
+                    emailContent = "\n                    <h2>".concat(emailSubject, "</h2>\n                    <p style=\"color: #333333;\">Hello ").concat(contractor.name, ",</p>\n                    <p style=\"color: #333333;\">You have received escrow payment for a job on RepairFind. The money is securely held in Escrow, and will be released to your paypal email once job is done</p>\n                    <p><strong>Job Title:</strong> ").concat(job.description, "</p>\n                    <p><strong>Scheduled Date:</strong>").concat(jobDateContractor, "</p>\n                    <hr>\n                    <p style=\"color: #333333;\">Thank you for your service!</p>\n                    <p style=\"color: #333333;\">Kindly open the App for more information.</p>\n                ");
+                    receipthtmlContent = "\n                    <h3>Escrow Payment Receipt</h3>\n                    <p><strong>RepairFind</strong><br>\n                    Phone: (604) 568-6378<br>\n                    Email: info@repairfind.ca</p>\n                    <hr>\n\n                    <p>Date: ".concat(currentDate, "<br>\n                    Receipt Number: RFP").concat(paymentReceipt, "</p>\n\n                    <p><strong>Contractor:</strong><br>\n                    ").concat(contractor.name, "<br>\n                    ").concat((_f = contractorProfile === null || contractorProfile === void 0 ? void 0 : contractorProfile.location) === null || _f === void 0 ? void 0 : _f.address, "<br>\n                    </p>\n\n                    <hr>\n                    <strong>Description:</strong>\n                    <strong>Job Title:</strong> ").concat(job.description, "<br>\n                    <strong>Scheduled Date:</strong> ").concat(jobDateContractor, "\n\n                    <p><strong>Invoice Items:</strong></p>\n                    <table style=\"width: 100%; border-collapse: collapse; border: 1px solid lightgray;\">\n                    ").concat(estimates.map(function (estimate) { return "\n                        <tr>\n                          <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>".concat(estimate.description, "</strong></td>\n                          <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat((estimate.rate * estimate.quantity).toFixed(2), "</td>\n                        </tr>\n                      "); }).join(''), "   \n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Subtotal</strong></td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat((charges.subtotal).toFixed(2), "</td>\n                        </tr>\n                    </table>\n                    <p><strong>Deduction/Charges:</strong></p>\n                    <table style=\"width: 100%; border-collapse: collapse; border: 1px solid lightgray;\">\n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\">Payment Processing Fee ($").concat(charges.customerProcessingFeeRate, "%)</td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat(charges.contractorProcessingFee, "</td>\n                        </tr>\n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\">Service Fee (").concat(charges.repairfindServiceFeeRate, "%)</td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat(charges.repairfindServiceFee, "</td>\n                        </tr>\n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Total Deducted</strong></td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\"><strong>$").concat(charges.repairfindServiceFee + charges.contractorProcessingFee, "</strong></td>\n                        </tr>\n                    </table>\n                    <p><strong>Net Amount to Contractor:</strong> $").concat(charges.subtotal, " + GST $").concat(charges.gstAmount, " - Total Deduction $").concat(charges.repairfindServiceFee + charges.contractorProcessingFee, " = $").concat(charges.contractorPayable, "</p>\n                    <p><strong>Payment Method:</strong> Card Payment<br>\n                    <strong>Transaction ID:</strong> RFT").concat(quotation.id, "</p>\n                ");
                     html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true })];
                 case 7:
-                    translatedHtml = (_e.sent()) || html;
+                    translatedHtml = (_k.sent()) || html;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: contractor.language })];
                 case 8:
-                    translatedSubject = (_e.sent()) || emailSubject;
+                    translatedSubject = (_k.sent()) || emailSubject;
                     services_1.EmailService.send(contractor.email, translatedSubject, translatedHtml);
-                    receipthtml = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: 'Payment Receipt', content: receipthtmlContent });
+                    receipthtml = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: 'Escrow Payment Receipt', content: receipthtmlContent });
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: receipthtml, targetLang: contractor.language, saveToFile: false, useGoogle: true })];
                 case 9:
-                    translatedReceiptHtml = (_e.sent()) || html;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'Payment Receipt', targetLang: contractor.language })];
+                    translatedReceiptHtml = (_k.sent()) || html;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'Escrow Payment Receipt', targetLang: contractor.language })];
                 case 10:
-                    translatedReceiptSubject = (_e.sent()) || 'Payment Receipt';
+                    translatedReceiptSubject = (_k.sent()) || 'Escrow Payment Receipt';
                     services_1.EmailService.send(contractor.email, translatedReceiptSubject, translatedReceiptHtml);
-                    _e.label = 11;
+                    _k.label = 11;
                 case 11:
                     if (!customer) return [3 /*break*/, 16];
                     dateTimeOptions = {
@@ -1293,26 +1305,26 @@ exports.JobEvent.on('JOB_BOOKED', function (payload) {
                     };
                     jobDateCustomer = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(job.schedule.startDate));
                     currentDate = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(new Date));
-                    emailSubject = 'New Job Payment';
-                    emailContent = "\n                 <h2>".concat(emailSubject, "</h2>\n                  <p style=\"color: #333333;\">Hello ").concat(customer.name, ",</p>\n                  <p style=\"color: #333333;\">You have made a payment for a job on RepairFind.</p>\n                  <p><strong>Job Title:</strong> ").concat(job.description, "</p>\n                  <p><strong>Proposed Date:</strong>").concat(jobDateCustomer, "</p>\n                  <p style=\"color: #333333;\">Thank you for your payment!</p>\n                  <p style=\"color: #333333;\">If you did not initiate this payment, kindly reach out to us via support.</p>\n                ");
-                    receiptContent = "\n                    <p><strong>RepairFind</strong><br>\n                    Phone: (604) 568-6378<br>\n                    Email: info@repairfind.ca</p>\n                    <hr>\n\n                    <p><strong>Receipt</strong></p>\n                    <p>Date: ".concat(currentDate, "<br>\n                    Receipt Number: RFC").concat(quotation.payment, "</p>\n                    <p><strong>Customer:</strong><br>\n                    ").concat(customer.name, "<br>\n                    ").concat((_b = customer === null || customer === void 0 ? void 0 : customer.location) === null || _b === void 0 ? void 0 : _b.address, "<br>\n\n                    <hr>\n                    <strong>Description:</strong>\n                    <strong>Job Title:</strong> ").concat(job.description, " <br>\n                    <strong>Scheduled Date:</strong> ").concat(jobDateCustomer, "\n\n                    <p><strong>Services/Charges:</strong></p>\n                    <table style=\"width: 100%; border-collapse: collapse; border: 1px solid lightgray; margin-bottom: 10px;\">\n                         ").concat(quotation.estimates.map(function (estimate) { return "\n                        <tr>\n                          <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>".concat(estimate.description, "</strong></td>\n                          <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat((estimate.rate * estimate.quantity).toFixed(2), "</td>\n                        </tr>\n                      "); }).join(''), "   \n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Subtotal</strong></td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\"><strong>$").concat((charges.subtotal).toFixed(2), "</strong></td>\n                        </tr>\n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\">GST (").concat(charges.gstRate, "%)</td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat(charges.gstAmount, "</td>\n                        </tr>\n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\">Payment Processing Fee (").concat(charges.customerProcessingFeeRate, "%)</td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat(charges.customerProcessingFee, "</td>\n                        </tr>\n                       \n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Total Amount Due</strong></td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\"><strong>$").concat(charges.customerPayable, "</strong></td>\n                        </tr>\n                    </table>\n                  <p><strong>Payment Method:</strong> Credit/Debit Card<br>\n                  <strong>Transaction ID:</strong> RPT").concat(quotation.id, "</p>\n                  <p style=\"color: #333333;\">Thank you for your payment!</p>\n                  <p style=\"color: #333333;\">If you did not initiate this payment, kindly reach out to us via support.</p>\n                ");
+                    emailSubject = 'Job Payment';
+                    emailContent = "\n                 <h2>".concat(emailSubject, "</h2>\n                  <p style=\"color: #333333;\">Hello ").concat(customer.name, ",</p>\n                  <p style=\"color: #333333;\">You have made a payment for a job on RepairFind. The money is held securely in Escrow until job is is complete</p>\n                  <p><strong>Job Title:</strong> ").concat(job.description, "</p>\n                  <p><strong>Proposed Date:</strong>").concat(jobDateCustomer, "</p>\n                  <p style=\"color: #333333;\">Thank you for your payment!</p>\n                  <p style=\"color: #333333;\">If you did not initiate this payment, kindly reach out to us via support.</p>\n                ");
+                    receiptContent = "\n                    <p><strong>RepairFind</strong><br>\n                    Phone: (604) 568-6378<br>\n                    Email: info@repairfind.ca</p>\n                    <hr>\n\n                    <p><strong>Receipt</strong></p>\n                    <p>Date: ".concat(currentDate, "<br>\n                    Receipt Number: RFP").concat(paymentReceipt, "</p>\n                    <p><strong>Customer:</strong><br>\n                    ").concat(customer.name, "<br>\n                    ").concat((_g = customer === null || customer === void 0 ? void 0 : customer.location) === null || _g === void 0 ? void 0 : _g.address, "<br>\n\n                    <hr>\n                    <strong>Description:</strong>\n                    <strong>Job Title:</strong> ").concat(job.description, " <br>\n                    <strong>Scheduled Date:</strong> ").concat(jobDateCustomer, "\n\n                    <p><strong>Services/Charges:</strong></p>\n                    <table style=\"width: 100%; border-collapse: collapse; border: 1px solid lightgray; margin-bottom: 10px;\">\n                         ").concat(estimates.map(function (estimate) { return "\n                        <tr>\n                          <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>".concat(estimate.description, "</strong></td>\n                          <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat((estimate.rate * estimate.quantity).toFixed(2), "</td>\n                        </tr>\n                      "); }).join(''), "   \n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Subtotal</strong></td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\"><strong>$").concat((charges.subtotal).toFixed(2), "</strong></td>\n                        </tr>\n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\">GST (").concat(charges.gstRate, "%)</td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat(charges.gstAmount, "</td>\n                        </tr>\n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\">Payment Processing Fee (").concat(charges.customerProcessingFeeRate, "%)</td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat(charges.customerProcessingFee, "</td>\n                        </tr>\n                       \n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Total Amount Due</strong></td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\"><strong>$").concat(charges.customerPayable, "</strong></td>\n                        </tr>\n                    </table>\n                  <p><strong>Payment Method:</strong> Credit/Debit Card<br>\n                  <strong>Transaction ID:</strong> RPT").concat(quotation.id, "</p>\n                  <p style=\"color: #333333;\">Thank you for your payment!</p>\n                  <p style=\"color: #333333;\">If you did not initiate this payment, kindly reach out to us via support.</p>\n                ");
                     html = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: emailSubject, content: emailContent });
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true })];
                 case 12:
-                    translatedHtml = (_e.sent()) || html;
+                    translatedHtml = (_k.sent()) || html;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: customer.language })];
                 case 13:
-                    translatedSubject = (_e.sent()) || emailSubject;
+                    translatedSubject = (_k.sent()) || emailSubject;
                     services_1.EmailService.send(customer.email, translatedSubject, translatedHtml);
                     receipthtml = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: 'Payment Receipt', content: receiptContent });
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: receipthtml, targetLang: customer.language, saveToFile: false, useGoogle: true })];
                 case 14:
-                    translatedReceiptHtml = (_e.sent()) || html;
+                    translatedReceiptHtml = (_k.sent()) || html;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'Payment Receipt', targetLang: customer.language })];
                 case 15:
-                    translatedReceiptSubject = (_e.sent()) || 'Payment Receipt';
+                    translatedReceiptSubject = (_k.sent()) || 'Payment Receipt';
                     services_1.EmailService.send(customer.email, translatedReceiptSubject, translatedReceiptHtml);
-                    _e.label = 16;
+                    _k.label = 16;
                 case 16:
                     customerLang = customer.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
@@ -1320,20 +1332,20 @@ exports.JobEvent.on('JOB_BOOKED', function (payload) {
                             targetLang: customerLang
                         })];
                 case 17:
-                    nTitle = _e.sent();
+                    nTitle = _k.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'You have booked a job on Repairfind',
                             targetLang: customerLang
                         })];
                 case 18:
-                    nMessage = _e.sent();
+                    nMessage = _k.sent();
                     services_1.NotificationService.sendNotification({
                         user: customer.id,
                         userType: 'customers',
                         title: nTitle,
                         type: 'JOB_BOOKED',
                         message: nMessage,
-                        heading: { name: "".concat(contractor.name), image: (_c = contractor.profilePhoto) === null || _c === void 0 ? void 0 : _c.url },
+                        heading: { name: "".concat(contractor.name), image: (_h = contractor.profilePhoto) === null || _h === void 0 ? void 0 : _h.url },
                         payload: {
                             entity: job.id,
                             entityType: 'jobs',
@@ -1349,20 +1361,20 @@ exports.JobEvent.on('JOB_BOOKED', function (payload) {
                             targetLang: contractorLang
                         })];
                 case 19:
-                    nTitle = _e.sent();
+                    nTitle = _k.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({
                             phraseOrSlug: 'You have a booked job on Repairfind',
                             targetLang: contractorLang
                         })];
                 case 20:
-                    nMessage = _e.sent();
+                    nMessage = _k.sent();
                     services_1.NotificationService.sendNotification({
                         user: contractor.id,
                         userType: 'contractors',
                         title: nTitle,
                         type: 'JOB_BOOKED',
                         message: nMessage,
-                        heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_d = customer.profilePhoto) === null || _d === void 0 ? void 0 : _d.url },
+                        heading: { name: "".concat(customer.firstName, " ").concat(customer.lastName), image: (_j = customer.profilePhoto) === null || _j === void 0 ? void 0 : _j.url },
                         payload: {
                             entity: job.id,
                             entityType: 'jobs',
@@ -1372,10 +1384,10 @@ exports.JobEvent.on('JOB_BOOKED', function (payload) {
                             event: 'JOB_BOOKED',
                         }
                     }, { push: true, socket: true, database: true });
-                    _e.label = 21;
+                    _k.label = 21;
                 case 21: return [3 /*break*/, 23];
                 case 22:
-                    error_13 = _e.sent();
+                    error_13 = _k.sent();
                     logger_1.Logger.error("Error handling JOB_BOOKED event: ".concat(error_13));
                     return [3 /*break*/, 23];
                 case 23: return [2 /*return*/];

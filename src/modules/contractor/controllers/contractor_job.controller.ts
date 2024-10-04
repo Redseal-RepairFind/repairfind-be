@@ -647,7 +647,7 @@ export const getQuotationForJob = async (req: any, res: Response, next: NextFunc
     }
 
     if (quotation.changeOrderEstimate) quotation.changeOrderEstimate.charges = await quotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
-    if (quotation.siteVisitEstimate) quotation.siteVisitEstimate.charges = await quotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
+    if (quotation.siteVisitEstimate) quotation.siteVisitEstimate.charges = await quotation.calculateCharges(PAYMENT_TYPE.SITE_VISIT_PAYMENT)
     quotation.charges = await quotation.calculateCharges()
 
     res.status(200).json({ success: true, message: 'Job quotation retrieved successfully', data: quotation });
@@ -676,7 +676,7 @@ export const getQuotation = async (req: any, res: Response, next: NextFunction) 
     }
 
     if (quotation.changeOrderEstimate) quotation.changeOrderEstimate.charges = await quotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
-    if (quotation.siteVisitEstimate) quotation.siteVisitEstimate.charges = await quotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
+    if (quotation.siteVisitEstimate) quotation.siteVisitEstimate.charges = await quotation.calculateCharges(PAYMENT_TYPE.SITE_VISIT_PAYMENT)
     quotation.charges = await quotation.calculateCharges()
 
 
@@ -733,7 +733,7 @@ export const updateJobQuotation = async (req: any, res: Response, next: NextFunc
     await quotation.save();
     quotation.charges = await quotation.calculateCharges()
     if (quotation.changeOrderEstimate) quotation.changeOrderEstimate.charges = await quotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) ?? {}
-    if (quotation.siteVisitEstimate) quotation.siteVisitEstimate.charges = await quotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
+    if (quotation.siteVisitEstimate) quotation.siteVisitEstimate.charges = await quotation.calculateCharges(PAYMENT_TYPE.SITE_VISIT_PAYMENT)
     quotation.charges = await quotation.calculateCharges()
 
 
