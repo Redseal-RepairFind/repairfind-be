@@ -1263,8 +1263,8 @@ export const getJobEnquiries = async (req: any, res: Response, next: NextFunctio
     }
 
     const enquiries = await applyAPIFeature(JobEnquiryModel.find({ job: jobId }).populate([
-      { path: 'customer', select: "firstName lastName name profilePhoto _id" },
-      { path: 'contractor', select: "firstName lastName name profilePhoto _id" },
+      { path: 'customer', select: "firstName lastName name profilePhoto _id language" },
+      { path: 'contractor', select: "firstName lastName name profilePhoto _id language" },
     ]), req.query)
 
     return res.status(200).json({ success: true, message: "Enquiries retrieved", data: enquiries });
@@ -1285,8 +1285,8 @@ export const getJobSingleEnquiry = async (req: any, res: Response, next: NextFun
 
     // Find the question from the JobQuestion collection
     const enquiry = await JobEnquiryModel.findById(enquiryId).populate([
-      { path: 'customer', select: "firstName lastName name profilePhoto _id" },
-      { path: 'contractor', select: "firstName lastName name profilePhoto _id" },
+      { path: 'customer', select: "firstName lastName name profilePhoto language _id" },
+      { path: 'contractor', select: "firstName lastName name profilePhoto language _id" },
     ]);
     if (!enquiry) {
       return res.status(404).json({ success: false, message: "Enquiry not found" });
