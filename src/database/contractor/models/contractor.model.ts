@@ -294,13 +294,21 @@ ContractorSchema.virtual('certnStatus').get(function (this: IContractor) {
     if (!certnDetails.is_submitted) {
       status = 'NOT_SUBMITTED'
     } else {
+      status = 'COMPLETE'
       for (const execution of certnDetails.check_executions) {
-        status = certnDetails.report_status
-        if (execution.status !== 'COMPLETE') {
-          status = 'FAILED'; // If any check is not completed, status is failed
-          break; // No need to continue, we already found a failed check
+        if (execution.status == 'IN_PROGRESS') {
+          status = 'IN_PROGRESS'; 
+          break; // No need to continue, we already found a IN_PROGRESS check
+        }
+
+        if (execution.status == 'FAILED') {
+          status = 'FAILED'; 
+          break; 
         }
       }
+
+
+
     }
   }
 
@@ -324,8 +332,13 @@ ContractorSchema.virtual('certnReport').get(function (this: IContractor) {
       status = 'COMPLETE'
       for (const execution of certnDetails.check_executions) {
         status = certnDetails.report_status
-        if (execution.status !== 'COMPLETE') {
-          status = 'FAILED'; // If any check is not completed, status is failed
+        
+        if (execution.status == 'IN_PROGRESS') {
+          status = 'IN_PROGRESS'; 
+          break; // No need to continue, we already found a failed check
+        }
+        if (execution.status == 'FAILED') {
+          status = 'FAILED'; 
           break; // No need to continue, we already found a failed check
         }
       }
