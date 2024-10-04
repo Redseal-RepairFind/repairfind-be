@@ -44,9 +44,10 @@ const AdminSchema = new Schema(
           url: 'https://ipalas3bucket.s3.us-east-2.amazonaws.com/avatar.png'
         }
       },
-      permissions: {
-        type: Array<String>
-      },
+      permissions: [{
+        type: Schema.Types.ObjectId,
+        ref: 'PermissionModel'
+      }],
       status: {
         type: String,
         enum: Object.values(AdminStatus),

@@ -1,9 +1,8 @@
 import { validationResult } from "express-validator";
 import bcrypt from "bcrypt";
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Response } from "express";
 import AdminRegModel from "../../../database/admin/models/admin.model";
 import { generateOTP } from "../../../utils/otpGenerator";
-import { sendEmail } from "../../../utils/send_email_utility";
 import { AdminStatus } from "../../../database/admin/interface/admin.interface";
 import PermissionModel from "../../../database/admin/models/permission.model";
 import { InternalServerError } from "../../../utils/custom.errors";
@@ -42,7 +41,9 @@ export const getAdminStaffs = async (
                 .json({ success: false, message: "Only super admin can perform this action" });
         }
 
-        const { data, error } = await applyAPIFeature(AdminRegModel.find().select('-password'), req.query)
+        const { data, error } = await applyAPIFeature(AdminRegModel.find()
+                                        .select('-password')
+                                        .populate({path: 'permissions', model: 'permissions', select: '_id name'}), req.query)
 
         return res.json({ success: true, data });
 
@@ -224,7 +225,7 @@ export const addPermissionToStaff = async (
     try {
         const {
             staffId,
-            permision
+            permissions
         } = req.body;
         // Check for validation errors
         const errors = validationResult(req);
@@ -248,36 +249,35 @@ export const addPermissionToStaff = async (
 
         if (!subAdmin) {
             return res
-                .status(401)
+                .status(404)
                 .json({ message: "staff does not exist" });
         }
 
-        const checkPermission = await PermissionModel.findOne({ _id: permision })
+        const validPermissions = await PermissionModel.find({ _id:{ $in: permissions } });
 
-        if (!checkPermission) {
+        if (validPermissions.length === 0) {
             return res
-                .status(401)
-                .json({success: false, message: "Invalid permission" });
+                .status(400)
+                .json({success: false, message: "Invalid permissions" });
         }
 
-        let permissions = [permision]
-        for (let i = 0; i < subAdmin.permissions.length; i++) {
-            const availabePermission = subAdmin.permissions[i];
+        const validPermissionIds = validPermissions.map((permission)=> permission._id.toString());
 
-            if (availabePermission == permision) {
-                return res
-                    .status(401)
-                    .json({success: false, message: "Staff already has this permission" });
-            }
+        const existingPermissions = subAdmin.permissions.map((permission)=> permission.toString());
+        const newPermissions = Array.from(new Set([...existingPermissions, ...validPermissionIds]));
 
-            permissions.push(availabePermission)
+        // Check if the permission have changed
+        if (existingPermissions.length === newPermissions.length) {
+            return res
+                .status(400)
+                .json({success: false, message: "Staff already has these permissions" });
         }
 
-        subAdmin.permissions = permissions
+        subAdmin.permissions = newPermissions;
         await subAdmin.save()
 
         res.json({
-            message: `permission added successfully`,
+            message: `Permissions added successfully`,
         });
 
 
