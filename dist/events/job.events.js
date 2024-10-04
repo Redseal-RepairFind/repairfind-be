@@ -432,7 +432,7 @@ exports.JobEvent.on('NEW_JOB_LISTING', function (payload) {
                                         })];
                                 case 3:
                                     nMessage = _a.sent();
-                                    (0, expo_1.sendPushNotifications)([device.deviceToken], {
+                                    (0, expo_1.sendPushNotifications)([device.expoToken], {
                                         title: nTitle,
                                         type: 'NEW_JOB_LISTING',
                                         icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
