@@ -303,7 +303,7 @@ JobEvent.on('NEW_JOB_LISTING', async function (payload) {
                         phraseOrSlug: 'There is a new job listing that matches your profile',
                         targetLang: contractorLang
                     });
-                    sendPushNotifications([device.deviceToken], {
+                    sendPushNotifications([device.expoToken], {
                         title: nTitle,
                         type: 'NEW_JOB_LISTING',
                         icon: 'https://cdn-icons-png.flaticon.com/512/1077/1077114.png',
