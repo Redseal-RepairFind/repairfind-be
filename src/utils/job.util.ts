@@ -56,8 +56,8 @@ const populate = async (
                 myQuotation.charges = await myQuotation.calculateCharges()
                 if(myQuotation.siteVisitEstimate)myQuotation.siteVisitEstimate.charges = await myQuotation.calculateCharges(PAYMENT_TYPE.SITE_VISIT_PAYMENT)
                 if(myQuotation.changeOrderEstimate)myQuotation.changeOrderEstimate.charges = await myQuotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
-                result.myQuotation = myQuotation;
             }
+            result.myQuotation = myQuotation;
         });
         tasks.push(myQuotationTask);
     }
