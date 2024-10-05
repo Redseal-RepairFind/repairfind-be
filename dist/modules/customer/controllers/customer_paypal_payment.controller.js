@@ -141,7 +141,7 @@ var createCheckoutOrder = function (req, res, next) { return __awaiter(void 0, v
                 contractor = _b.sent();
                 contractorId = contractor.id;
                 logger_1.Logger.info("createCheckoutOrder", { quotationId: quotationId, isChangeOrder: isChangeOrder });
-                if (!isChangeOrder) return [3 /*break*/, 9];
+                if (!(isChangeOrder === "true")) return [3 /*break*/, 9];
                 changeOrderEstimate = quotation.changeOrderEstimate;
                 if (!changeOrderEstimate)
                     throw new Error('No  changeOrder estimate for this job');

@@ -79,7 +79,8 @@ export const createCheckoutOrder = async (req: any, res: Response, next: NextFun
         Logger.info("createCheckoutOrder", {quotationId, isChangeOrder})
 
 
-        if(isChangeOrder){
+
+        if( isChangeOrder === "true") {
             const changeOrderEstimate: any = quotation.changeOrderEstimate
             if (!changeOrderEstimate) throw new Error('No  changeOrder estimate for this job');
 
