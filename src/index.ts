@@ -140,23 +140,19 @@ app.use(errorHandler)
  FCMNotification.initializeFirebase()
 
 
-const InittimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-Logger.info(`Current timezone: ${InittimeZone}`);
-
 
 // Set the default timezone to PST (Pacific Standard Time)
-process.env.TZ = 'America/Los_Angeles';
+// process.env.TZ = 'America/Los_Angeles';
 
 
 // Initialize server
 const port = process.env.PORT || 3000;
 
-
-const FirsttimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-Logger.info(`Current timezone: ${FirsttimeZone}`);
+const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+Logger.info(`Current server timezone: ${timeZone}`);
 
 server.listen(port, () => {
-  Logger.info(`Server listening on port ${port} - Timezone::: ${process.env.TZ}`);
+  Logger.info(`Server listening on port ${port} - Timezone::: ${timeZone}`);
 });
 
 function PaypalPaymentMethodCheckoutTemplate(arg0: { token: any; paypalClientId: string; }) {
