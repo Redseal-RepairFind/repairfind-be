@@ -3,7 +3,7 @@ import { EmailService, NotificationService } from '../services';
 import CustomerModel from '../database/customer/models/customer.model';
 import { ContractorModel } from '../database/contractor/models/contractor.model';
 import { IJob, JOB_SCHEDULE_TYPE, JobModel } from '../database/common/job.model';
-import { ConversationModel } from '../database/common/conversations.schema';
+import { ConversationEntityType, ConversationModel } from '../database/common/conversations.schema';
 import { SocketService } from '../services/socket';
 import { IContractor } from '../database/contractor/interface/contractor.interface';
 import { ICustomer } from '../database/customer/interface/customer.interface';
@@ -1029,6 +1029,9 @@ JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', async function (payload: { job: IJob, 
             await message.save();
 
             conversation.lastMessageAt = new Date()
+            conversation.lastMessage = "Job reschedule requested"
+            conversation.entity = job.id
+            conversation.entityType = ConversationEntityType.JOB
             await conversation.save()
 
         }
