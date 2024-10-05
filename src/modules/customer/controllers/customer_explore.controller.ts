@@ -37,9 +37,8 @@ export const exploreContractors = async (
     const customerId = req?.customer?.id
 
     if (!customerId) {
-        delete req.query.recommended
-        req.limit = 10
-        const { data, error } = await applyAPIFeature(ContractorModel.find({accountType: CONTRACTOR_TYPES.Individual }).populate('profile'), req.query)
+        const query = {limit: 10}
+        const { data, error } = await applyAPIFeature(ContractorModel.find({accountType: CONTRACTOR_TYPES.Individual }).populate('profile'), query)
         return res.status(200).json({ success: true, message: 'Contractors retrieved successfully', data: data });
     }
 

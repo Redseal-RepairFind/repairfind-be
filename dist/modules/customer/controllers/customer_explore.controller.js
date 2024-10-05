@@ -76,7 +76,7 @@ var customer_model_1 = __importDefault(require("../../../database/customer/model
 var job_model_1 = require("../../../database/common/job.model");
 var job_quotation_model_1 = require("../../../database/common/job_quotation.model");
 var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, customerId, _a, data, error, customer, _b, searchName, listing, minDistance, maxDistance, radius, _c, latitude, _d, longitude, emergencyJobs, category, location_1, city, country, address, accountType, date, isOffDuty, availability, experienceYear, gstNumber, _e, page, _f, limit, sort, minResponseTime, maxResponseTime, sortByResponseTime, availableDaysArray, skip, toRadians, pipeline, contractorIdsWithDateInSchedule, _g, sortField, sortOrder, sortStage, result, contractors, metadata, err_1;
+    var errors, customerId, query, _a, data, error, customer, _b, searchName, listing, minDistance, maxDistance, radius, _c, latitude, _d, longitude, emergencyJobs, category, location_1, city, country, address, accountType, date, isOffDuty, availability, experienceYear, gstNumber, _e, page, _f, limit, sort, minResponseTime, maxResponseTime, sortByResponseTime, availableDaysArray, skip, toRadians, pipeline, contractorIdsWithDateInSchedule, _g, sortField, sortOrder, sortStage, result, contractors, metadata, err_1;
     var _h;
     var _j, _k, _l;
     return __generator(this, function (_m) {
@@ -88,9 +88,8 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
                 }
                 customerId = (_j = req === null || req === void 0 ? void 0 : req.customer) === null || _j === void 0 ? void 0 : _j.id;
                 if (!!customerId) return [3 /*break*/, 2];
-                delete req.query.recommended;
-                req.limit = 10;
-                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(contractor_model_1.ContractorModel.find({ accountType: contractor_interface_1.CONTRACTOR_TYPES.Individual }).populate('profile'), req.query)];
+                query = { limit: 10 };
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(contractor_model_1.ContractorModel.find({ accountType: contractor_interface_1.CONTRACTOR_TYPES.Individual }).populate('profile'), query)];
             case 1:
                 _a = _m.sent(), data = _a.data, error = _a.error;
                 return [2 /*return*/, res.status(200).json({ success: true, message: 'Contractors retrieved successfully', data: data })];
