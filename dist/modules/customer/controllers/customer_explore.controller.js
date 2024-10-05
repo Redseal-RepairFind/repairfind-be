@@ -89,7 +89,7 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
                 customerId = (_j = req === null || req === void 0 ? void 0 : req.customer) === null || _j === void 0 ? void 0 : _j.id;
                 if (!!customerId) return [3 /*break*/, 2];
                 query = { limit: 10, address: req.query.address, category: req.query.category };
-                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(contractor_model_1.ContractorModel.find({ accountType: contractor_interface_1.CONTRACTOR_TYPES.Individual }).populate('profile'), query)];
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(contractor_model_1.ContractorModel.find({ accountType: contractor_interface_1.CONTRACTOR_TYPES.Individual, profile: { $ne: null } }).populate('profile'), query)];
             case 1:
                 _a = _m.sent(), data = _a.data, error = _a.error;
                 return [2 /*return*/, res.status(200).json({ success: true, message: 'Contractors retrieved successfully', data: data })];

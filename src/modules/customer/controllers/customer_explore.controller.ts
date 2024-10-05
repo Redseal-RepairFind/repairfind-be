@@ -14,6 +14,7 @@ import CustomerFavoriteContractorModel from "../../../database/customer/models/c
 import CustomerModel from "../../../database/customer/models/customer.model";
 import { JobModel } from "../../../database/common/job.model";
 import { JobQuotationModel } from "../../../database/common/job_quotation.model";
+import { profile } from "console";
 
 
 type PipelineStage =
@@ -38,7 +39,7 @@ export const exploreContractors = async (
 
     if (!customerId) {
         const query = {limit: 10, address: req.query.address, category: req.query.category}
-        const { data, error } = await applyAPIFeature(ContractorModel.find({accountType: CONTRACTOR_TYPES.Individual }).populate('profile'), query)
+        const { data, error } = await applyAPIFeature(ContractorModel.find({accountType: CONTRACTOR_TYPES.Individual, profile: {$ne: null}}).populate('profile'), query)
         return res.status(200).json({ success: true, message: 'Contractors retrieved successfully', data: data });
     }
 
