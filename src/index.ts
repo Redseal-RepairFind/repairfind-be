@@ -48,11 +48,15 @@ app.get("/api/v1/customer/paypal/payment-method-checkout-view", (req: any, res) 
 
 
 app.get("/api/v1/customer/paypal/create-checkout-view", async(req: any, res) => {
-  const {token, quotationId, jobId, isChangeOrder} =req.query;
+  const {token, quotationId, jobId, isChangeOrder = false} =req.query;
 
   const job = await JobModel.findById(jobId)
-  if (!job || (job.status === JOB_STATUS.BOOKED)) {
-    return res.status(400).json({ success: false, message: 'Job not found or is not pending, so new payment is not possible' });
+  if (!job) {
+    return res.status(400).json({ success: false, message: 'Job not found' });
+  }
+
+  if (!isChangeOrder && (job.status === JOB_STATUS.BOOKED)) {
+    return res.status(400).json({ success: false, message: 'Job is not pending, so new payment is not possible' });
   }
 
 
