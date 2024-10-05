@@ -56,7 +56,6 @@ const ConversationSchema = new mongoose.Schema<IConversation>({
     },
     entityType: {
         type: String,
-        required: true,
         enum: Object.values(ConversationEntityType)
     },
 
