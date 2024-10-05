@@ -1977,14 +1977,8 @@ JobEvent.on('CHANGE_ORDER_ESTIMATE_PAID', async function (payload: { job: IJob, 
 
 
         const contractorLang = contractor.language;
-        let nTitle = await i18n.getTranslation({
-            phraseOrSlug: 'Change Order Estimate Paid',
-            targetLang: contractorLang
-        });
-        let nMessage = await i18n.getTranslation({
-            phraseOrSlug: 'Change order estimate has been paid',
-            targetLang: contractorLang
-        });
+        let nTitle = await i18n.getTranslation({ phraseOrSlug: 'Change Order Estimate Paid', targetLang: contractorLang });
+        let nMessage = await i18n.getTranslation({ phraseOrSlug: 'Change order estimate has been paid', targetLang: contractorLang });
         
         NotificationService.sendNotification({
             user: contractor.id,

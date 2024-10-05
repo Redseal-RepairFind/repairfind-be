@@ -2066,16 +2066,10 @@ exports.JobEvent.on('CHANGE_ORDER_ESTIMATE_PAID', function (payload) {
                     if (!customer || !contractor)
                         return [2 /*return*/];
                     contractorLang = contractor.language;
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
-                            phraseOrSlug: 'Change Order Estimate Paid',
-                            targetLang: contractorLang
-                        })];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'Change Order Estimate Paid', targetLang: contractorLang })];
                 case 4:
                     nTitle = _b.sent();
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation({
-                            phraseOrSlug: 'Change order estimate has been paid',
-                            targetLang: contractorLang
-                        })];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'Change order estimate has been paid', targetLang: contractorLang })];
                 case 5:
                     nMessage = _b.sent();
                     services_1.NotificationService.sendNotification({

@@ -306,7 +306,6 @@ var paymentCaptureCompleted = function (payload, resourceType) { return __awaite
                 changeOrderEstimate.isPaid = true;
                 changeOrderEstimate.payment = payment.id;
                 events_1.JobEvent.emit('CHANGE_ORDER_ESTIMATE_PAID', { job: job, quotation: quotation, changeOrderEstimate: changeOrderEstimate });
-                events_1.JobEvent.emit('JOB_BOOKED', { jobId: jobId, contractorId: quotation.contractor, customerId: job.customer, quotationId: quotationId, paymentType: paymentType });
                 return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(job.customer, 'customers', job.contractor, 'contractors')];
             case 21:
                 conversation = _c.sent();

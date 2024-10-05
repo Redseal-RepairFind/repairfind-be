@@ -245,7 +245,6 @@ export const paymentCaptureCompleted = async (payload: any, resourceType: any) =
                         changeOrderEstimate.payment = payment.id
 
                         JobEvent.emit('CHANGE_ORDER_ESTIMATE_PAID', { job, quotation, changeOrderEstimate })
-                        JobEvent.emit('JOB_BOOKED', { jobId, contractorId: quotation.contractor, customerId: job.customer, quotationId, paymentType })
                         const conversation = await ConversationUtil.updateOrCreateConversation(job.customer, 'customers', job.contractor, 'contractors')
                         const newMessage: IMessage = await MessageModel.create({
                             conversation: conversation._id,
