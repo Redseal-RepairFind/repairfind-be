@@ -204,7 +204,6 @@ export const translateText = async (
   try {
     const {text, targetLang} = req.body
 
-    console.log(text)
     const translatedText  = await i18n.getTranslation({phraseOrSlug:text, targetLang:targetLang, useGoogle: true, saveToFile: false})
     return res.json({ success: true, message: "Text translated", data: translatedText });
   } catch (err: any) {
