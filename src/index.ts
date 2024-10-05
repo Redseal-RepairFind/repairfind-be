@@ -55,6 +55,8 @@ app.get("/api/v1/customer/paypal/create-checkout-view", async(req: any, res) => 
     return res.status(400).json({ success: false, message: 'Job not found' });
   }
 
+  Logger.info("Checkout View Loaded", {token, quotationId, jobId, isChangeOrder})
+  
   if (!isChangeOrder && (job.status === JOB_STATUS.BOOKED)) {
     return res.status(400).json({ success: false, message: 'Job is not pending, so new payment is not possible' });
   }
