@@ -158,7 +158,8 @@ export const createJobListing = async (
         const dateParts = date.split('-').map((part: any) => part.padStart(2, '0'));
         const formattedDate = dateParts.join('-');
 
-        let dateTimeString = `${new Date(formattedDate).toISOString().split('T')[0]}T${'23:59:59.000Z'}`; // Combine date and time
+        // let dateTimeString = `${new Date(formattedDate).toISOString().split('T')[0]}T${'23:59:59.000Z'}`; // Combine date and time
+        let dateTimeString = `${new Date(formattedDate).toISOString()}`; // Combine date and time
         let jobDate = new Date(dateTimeString);
 
 
