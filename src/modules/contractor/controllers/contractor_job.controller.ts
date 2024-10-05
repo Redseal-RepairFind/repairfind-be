@@ -7,7 +7,7 @@ import { BadRequestError, InternalServerError, NotFoundError } from "../../../ut
 import { JobQuotationModel, JOB_QUOTATION_STATUS, IExtraEstimate, JOB_QUOTATION_TYPE } from "../../../database/common/job_quotation.model";
 import CustomerModel from "../../../database/customer/models/customer.model";
 import mongoose, { PipelineStage as MongoosePipelineStage } from 'mongoose'; // Import Document type from mongoose
-import { ConversationModel } from "../../../database/common/conversations.schema";
+import { ConversationEntityType, ConversationModel } from "../../../database/common/conversations.schema";
 import { MessageModel, MessageType } from "../../../database/common/messages.schema";
 import { ContractorProfileModel } from "../../../database/contractor/models/contractor_profile.model";
 import { ConversationEvent, JobEvent } from "../../../events";
@@ -173,6 +173,13 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
     });
     await message.save();
 
+
+    conversation.lastMessage = "Job Request accepted"
+    conversation.lastMessageAt = new Date()
+    conversation.entityType =  ConversationEntityType.JOB
+    conversation.entity =  job.id
+    await conversation.save()
+
     ConversationEvent.emit('NEW_MESSAGE', { message })
     JobEvent.emit('JOB_REQUEST_ACCEPTED', { job });
 
@@ -246,6 +253,13 @@ export const rejectJobRequest = async (req: any, res: Response) => {
       entity: job.id,
       entityType: 'jobs'
     });
+
+
+    conversation.lastMessage = "Job Request rejected"
+    conversation.lastMessageAt = new Date()
+    conversation.entityType =  ConversationEntityType.JOB
+    conversation.entity =  job.id
+    await conversation.save()
 
     ConversationEvent.emit('NEW_MESSAGE', { message })
     JobEvent.emit('JOB_REQUEST_REJECTED', { job });
@@ -542,6 +556,12 @@ export const sendJobQuotation = async (
     });
     await message.save();
 
+
+    conversation.lastMessage = "Job estimate submitted"
+    conversation.lastMessageAt = new Date()
+    conversation.entityType =  ConversationEntityType.QUOTATION
+    conversation.entity =  jobQuotation.id
+    await conversation.save()
 
     JobEvent.emit('NEW_JOB_QUOTATION', { job, quotation: jobQuotation });
     ConversationEvent.emit('NEW_MESSAGE', { message })
