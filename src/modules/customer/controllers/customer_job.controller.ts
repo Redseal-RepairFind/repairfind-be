@@ -170,6 +170,8 @@ export const createJobListing = async (
             return res.status(400).json({ success: false, message: 'Invalid date format' });
         }
 
+
+        console.log('jobDate', jobDate)
         if ((!isFuture(new Date(jobDate)) && new Date(jobDate) < startOfToday)) {
             return res.status(400).json({ success: false, message: 'Selected Job Date is in the past' });
         }
