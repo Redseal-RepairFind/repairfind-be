@@ -5,13 +5,16 @@ import CustomerModel from '../../database/customer/models/customer.model';
 import { castPayloadToDTO } from '../../utils/interface_dto.util';
 import TransactionModel, { ITransaction, TRANSACTION_STATUS, TRANSACTION_TYPE, } from '../../database/common/transaction.model';
 import { Logger } from '../logger';
-import { JobEvent } from '../../events';
+import { ConversationEvent, JobEvent } from '../../events';
 import { IPayment, PaymentModel, PAYMENT_TYPE, IPaypalCapture } from '../../database/common/payment.schema';
 import { JobModel, JOB_STATUS, JOB_SCHEDULE_TYPE } from '../../database/common/job.model';
 import { IJobQuotation, JobQuotationModel, JOB_QUOTATION_STATUS } from '../../database/common/job_quotation.model';
 import { ObjectId } from 'mongoose';
 import { PaypalPaymentLog } from '../../database/common/paypal_payment_log.model';
 import { PayPalService } from '.';
+import { ConversationModel } from '../../database/common/conversations.schema';
+import { IMessage, MessageModel, MessageType } from '../../database/common/messages.schema';
+import { ConversationUtil } from '../../utils/conversation.util';
 
 const PAYPAL_WEBHOOK_SECRET = <string>process.env.PAYPAL_WEBHOOK_SECRET;
 
@@ -161,12 +164,30 @@ export const paymentCaptureCompleted = async (payload: any, resourceType: any) =
                         };
 
                         job.status = JOB_STATUS.BOOKED
+                        job.bookingViewedByContractor = false;
 
                         await Promise.all([
                             quotation.save(),
                             job.save()
                         ])
 
+
+                        const conversation = await ConversationUtil.updateOrCreateConversation(job.customer, 'customers', job.contractor, 'contractors')
+                        const newMessage: IMessage = await MessageModel.create({
+                            conversation: conversation._id,
+                            sender: job.customer, 
+                            senderType: 'customers',
+                            message: `New Job Payment`, 
+                            messageType: MessageType.ALERT, 
+                            createdAt: new Date(),
+                            entity: jobId,
+                            entityType: 'jobs'
+                        });
+                        conversation.lastMessage = 'New Job Payment'
+                        conversation.lastMessageAt = new Date()
+                        await conversation.save()
+
+                        ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
                         JobEvent.emit('JOB_BOOKED', { jobId, contractorId: quotation.contractor, customerId: job.customer, quotationId, paymentType })
 
                     }
@@ -176,6 +197,7 @@ export const paymentCaptureCompleted = async (payload: any, resourceType: any) =
                         job.status = JOB_STATUS.BOOKED
                         job.contract = quotation.id
                         job.contractor = quotation.contractor
+                        job.bookingViewedByContractor = false;
 
                         quotation.siteVisitEstimate.isPaid = true
                         quotation.siteVisitEstimate.payment = payment.id
@@ -197,8 +219,22 @@ export const paymentCaptureCompleted = async (payload: any, resourceType: any) =
                             job.save()
                         ])
 
-                        JobEvent.emit('JOB_BOOKED', { jobId, contractorId: quotation.contractor, customerId: job.customer, quotationId, paymentType })
 
+                        JobEvent.emit('JOB_BOOKED', { jobId, contractorId: quotation.contractor, customerId: job.customer, quotationId, paymentType })
+                        const conversation = await ConversationUtil.updateOrCreateConversation(job.customer, 'customers', job.contractor, 'contractors')
+                        const newMessage: IMessage = await MessageModel.create({
+                            conversation: conversation._id,
+                            sender: job.customer, 
+                            senderType: 'customers',
+                            message: `New Site Visit Payment`, 
+                            messageType: MessageType.ALERT, 
+                            createdAt: new Date(),
+                            entity: jobId,
+                            entityType: 'jobs'
+                        });
+                        conversation.lastMessage = 'New Site Visit Payment'
+                        conversation.lastMessageAt = new Date()
+                        await conversation.save()
                     }
 
 
@@ -209,6 +245,21 @@ export const paymentCaptureCompleted = async (payload: any, resourceType: any) =
                         changeOrderEstimate.payment = payment.id
 
                         JobEvent.emit('CHANGE_ORDER_ESTIMATE_PAID', { job, quotation, changeOrderEstimate })
+                        JobEvent.emit('JOB_BOOKED', { jobId, contractorId: quotation.contractor, customerId: job.customer, quotationId, paymentType })
+                        const conversation = await ConversationUtil.updateOrCreateConversation(job.customer, 'customers', job.contractor, 'contractors')
+                        const newMessage: IMessage = await MessageModel.create({
+                            conversation: conversation._id,
+                            sender: job.customer, 
+                            senderType: 'customers',
+                            message: `New Change Order Payment`, 
+                            messageType: MessageType.ALERT, 
+                            createdAt: new Date(),
+                            entity: jobId,
+                            entityType: 'jobs'
+                        });
+                        conversation.lastMessage = 'New Change Order Payment'
+                        conversation.lastMessageAt = new Date()
+                        await conversation.save()
                     }
 
                     if (!job.payments.includes(payment.id)) job.payments.push(payment.id)

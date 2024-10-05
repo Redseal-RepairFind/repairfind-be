@@ -121,17 +121,10 @@ export const createCheckoutOrder = async (req: any, res: Response, next: NextFun
 };
 
 
-
 export const captureCheckoutOrder = async (req: any, res: Response, next: NextFunction) => {
     try {
         const { quotationId, paymentMethodId, orderId } = req.body;
         const jobId = req.params.jobId;
-
-        // Check for validation errors
-        // const errors = validationResult(req);
-        // if (!errors.isEmpty()) {
-        //     return res.status(400).json({ errors: errors.array() });
-        // }
 
         const customerId = req.customer.id;
         const customer = await findCustomer(customerId);
@@ -139,83 +132,8 @@ export const captureCheckoutOrder = async (req: any, res: Response, next: NextFu
         const quotation = await findQuotation(quotationId);
         const contractor = await findContractor(quotation.contractor);
         const contractorId = contractor.id
-
-        let paymentMethod = customer.stripePaymentMethods.find((method) => method.id === paymentMethodId);
-        if (!paymentMethod) {
-            paymentMethod = customer.stripePaymentMethods[0];
-        }
-        if (!paymentMethod) throw new Error('No such payment method');
-
-        if (job.status === JOB_STATUS.BOOKED) {
-            return res.status(400).json({ success: false, message: 'This job is not pending, so new payment is not possible' });
-        }
-
-        let paymentType = PAYMENT_TYPE.JOB_DAY_PAYMENT
-        const transactionType = quotation.type
-        if(transactionType == JOB_QUOTATION_TYPE.SITE_VISIT) paymentType = PAYMENT_TYPE.SITE_VISIT_PAYMENT
-        if(transactionType == JOB_QUOTATION_TYPE.JOB_DAY) paymentType = PAYMENT_TYPE.JOB_DAY_PAYMENT
-        const charges = await quotation.calculateCharges(paymentType);
-
-
-
-        const metadata = {
-            customerId: customer.id,
-            contractorId: contractor?.id,
-            quotationId: quotation.id,
-            paymentType,
-            paymentMethod: paymentMethod.id,
-            jobId,
-            email: customer.email,
-            remark: 'initial_job_payment',
-        } as any
-
-     
-
-        // const transaction = await createTransaction(customerId, contractor.id, jobId, quotation, charges, paymentMethod, transactionType, metadata  );
-        // metadata.transactionId = transaction.id
-        // const payload = prepareStripePayload({paymentMethodId: paymentMethod.id, customer, contractor, charges, jobId, metadata, manualCapture:false});
-
-        // const stripePayment = await StripeService.payment.chargeCustomer(paymentMethod.customer, paymentMethod.id, payload);
-        
         const capture = await PayPalService.payment.captureOrder(orderId)
-        
-       
-        //  job.status = JOB_STATUS.BOOKED;
-        job.bookingViewedByContractor = false;
         await job.save();
-
-        const conversationMembers = [
-            { memberType: 'customers', member: customerId },
-            { memberType: 'contractors', member: contractorId }
-        ];
-        const conversation = await ConversationModel.findOneAndUpdate(
-            {
-                $and: [
-                    { members: { $elemMatch: { member: customerId } } }, 
-                    { members: { $elemMatch: { member: contractorId } } }
-                ]
-            },
-            {
-                members: conversationMembers,
-            },
-            { new: true, upsert: true });
-
-
-        // Create a message in the conversation
-        const newMessage: IMessage = await MessageModel.create({
-            conversation: conversation._id,
-            sender: customerId, 
-            senderType: 'customers',
-            message: `New Job Payment`, 
-            messageType: MessageType.ALERT, 
-            createdAt: new Date(),
-            entity: jobId,
-            entityType: 'jobs'
-        });
-
-        ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
-        // JobEvent.emit('JOB_BOOKED', { jobId, contractorId, customerId, quotationId, paymentType })
-
         res.json({ success: true, message: 'Payment intent created', data: capture });
     } catch (err: any) {
         return next(new BadRequestError(err.message, err));
@@ -342,7 +260,6 @@ export const captureOrderEstimatePaymentCheckout = async (req: any, res: Respons
         return next(new BadRequestError(err.message, err));
     }
 };
-
 
 
 

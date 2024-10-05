@@ -26,9 +26,26 @@ export const jobDayScheduleCheck = async () => {
                 const hourDifference = Math.floor(timeDifference / (1000 * 60 * 60));
                 const minuteDifference = Math.floor(timeDifference / (1000 * 60));
 
-                const formattedJobStartDate = `${jobStartDate.toDateString()} at ${get12HourFormat(jobStartDate)}`;
 
-                Logger.info(`JobSchedule Reminder: currentDate: ${currentDate} jobStartDate: ${jobStartDate} formattedJobStartDate: ${formattedJobStartDate} daysDifference: ${daysDifference} hourDifference: ${hourDifference}`);
+                const dateTimeOptions: any = {
+                    weekday: 'short',
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    hour12: true,
+                    timeZone: contractor?.currentTimezone,
+                    timeZoneName: 'long'
+                }
+
+
+
+                const formattedJobStartDate = `${jobStartDate.toDateString()} at ${get12HourFormat(jobStartDate)}`;
+                const formattedJobStartDateTz = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(formattedJobStartDate));
+
+                
+                Logger.info(`JobSchedule Reminder: formattedJobStartDateTz: ${formattedJobStartDateTz}, currentDate: ${currentDate} jobStartDate: ${jobStartDate} formattedJobStartDate: ${formattedJobStartDate} daysDifference: ${daysDifference} hourDifference: ${hourDifference}`);
 
                 if (customer && contractor) {
 
@@ -97,9 +114,9 @@ export const jobDayScheduleCheck = async () => {
                     }
                 }
 
-                Logger.info(`Processed job day reminder: daysDifference: ${daysDifference} - JobId: ${job.id}`);
+                // Logger.info(`Processed job day reminder: daysDifference: ${daysDifference} - JobId: ${job.id}`);
             } catch (error) {
-                Logger.error(`Error sending job day reminder for job ID ${job.id}:`, error);
+                // Logger.error(`Error sending job day reminder for job ID ${job.id}:`, error);
             }
         }
     } catch (error) {
