@@ -58,8 +58,9 @@ const findContractor = async (contractorId: ObjectId) => {
 
 export const createCheckoutOrder = async (req: any, res: Response, next: NextFunction) => {
     try {
-        const { quotationId } = req.body;
+        const { quotationId, isChangeOrder } = req.body;
         const jobId = req.params.jobId;
+
 
         // Check for validation errors
         const errors = validationResult(req);
@@ -74,7 +75,52 @@ export const createCheckoutOrder = async (req: any, res: Response, next: NextFun
         const contractor = await findContractor(quotation.contractor);
         const contractorId = contractor.id
 
+
+
+        if(isChangeOrder){
+            const changeOrderEstimate: any = quotation.changeOrderEstimate
+            if (!changeOrderEstimate) throw new Error('No  changeOrder estimate for this job');
+
+            if (changeOrderEstimate.isPaid) throw new Error('Extra estimate already paid');
+
+            let paymentType = PAYMENT_TYPE.CHANGE_ORDER_PAYMENT
+            let transactionType = TRANSACTION_TYPE.CHANGE_ORDER_PAYMENT
+            const charges = await quotation.calculateCharges(paymentType);
+
+            const metadata = {
+                customerId: customer.id,
+                contractorId: contractor?.id,
+                quotationId: quotation.id,
+                jobId,
+                paymentType,
+                paymentMethod: 'CAPTURE',
+                email: customer.email,
+                remark: 'change_order_estimate_payment',
+            } as any
+
+
+            const paypalPaymentLog = await PaypalPaymentLog.create({
+                user: customerId,
+                'userType': 'customers',
+                metadata: metadata
+            })
+    
+            const payload = {
+                amount: charges.customerPayable,
+                intent: "CAPTURE",
+                description: `Job Change Order Payment - ${jobId}`,
+                metaId: paypalPaymentLog.id,
+                returnUrl: "https://repairfind.ca/payment-success"
+            }
+            const capture = await PayPalService.payment.createOrder(payload)
+    
+            job.isChangeOrder = false;
+            await job.save();
+            return res.json({ success: true, message: 'Payment intent created', data: capture });
+            
+        }
        
+
         if (job.status === JOB_STATUS.BOOKED) {
             return res.status(400).json({ success: false, message: 'This job is not pending, so new payment is not possible' });
         }
@@ -82,10 +128,7 @@ export const createCheckoutOrder = async (req: any, res: Response, next: NextFun
         let paymentType = PAYMENT_TYPE.JOB_DAY_PAYMENT
         if(quotation.type == JOB_QUOTATION_TYPE.SITE_VISIT) paymentType = PAYMENT_TYPE.SITE_VISIT_PAYMENT
         if(quotation.type == JOB_QUOTATION_TYPE.JOB_DAY) paymentType = PAYMENT_TYPE.JOB_DAY_PAYMENT
-
-
         const charges = await quotation.calculateCharges(paymentType);
-
 
         const metadata = {
             customerId: customer.id,

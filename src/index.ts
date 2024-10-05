@@ -48,7 +48,7 @@ app.get("/api/v1/customer/paypal/payment-method-checkout-view", (req: any, res) 
 
 
 app.get("/api/v1/customer/paypal/create-checkout-view", async(req: any, res) => {
-  const {token, quotationId, jobId} =req.query;
+  const {token, quotationId, jobId, isChangeOrder} =req.query;
 
   const job = await JobModel.findById(jobId)
   if (!job || (job.status === JOB_STATUS.BOOKED)) {
@@ -57,7 +57,7 @@ app.get("/api/v1/customer/paypal/create-checkout-view", async(req: any, res) => 
 
 
   const paypalClientId = config.paypal.clientId
-  let html = PaypalPaymentCheckoutTemplate({token, paypalClientId, quotationId, jobId})
+  let html = PaypalPaymentCheckoutTemplate({token, paypalClientId, quotationId, jobId, isChangeOrder})
   return res.send(html);
 });
 

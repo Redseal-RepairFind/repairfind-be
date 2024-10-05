@@ -114,12 +114,12 @@ var findContractor = function (contractorId) { return __awaiter(void 0, void 0, 
     });
 }); };
 var createCheckoutOrder = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var quotationId, jobId, errors, customerId, customer, job, quotation, contractor, contractorId, paymentType, charges, metadata, paypalPaymentLog, payload, capture, err_1;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var _a, quotationId, isChangeOrder, jobId, errors, customerId, customer, job, quotation, contractor, contractorId, changeOrderEstimate, paymentType_1, transactionType, charges_1, metadata_1, paypalPaymentLog_1, payload_1, capture_1, paymentType, charges, metadata, paypalPaymentLog, payload, capture, err_1;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
-                _a.trys.push([0, 8, , 9]);
-                quotationId = req.body.quotationId;
+                _b.trys.push([0, 13, , 14]);
+                _a = req.body, quotationId = _a.quotationId, isChangeOrder = _a.isChangeOrder;
                 jobId = req.params.jobId;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
@@ -128,17 +128,61 @@ var createCheckoutOrder = function (req, res, next) { return __awaiter(void 0, v
                 customerId = req.customer.id;
                 return [4 /*yield*/, findCustomer(customerId)];
             case 1:
-                customer = _a.sent();
+                customer = _b.sent();
                 return [4 /*yield*/, findJob(jobId)];
             case 2:
-                job = _a.sent();
+                job = _b.sent();
                 return [4 /*yield*/, findQuotation(quotationId)];
             case 3:
-                quotation = _a.sent();
+                quotation = _b.sent();
                 return [4 /*yield*/, findContractor(quotation.contractor)];
             case 4:
-                contractor = _a.sent();
+                contractor = _b.sent();
                 contractorId = contractor.id;
+                if (!isChangeOrder) return [3 /*break*/, 9];
+                changeOrderEstimate = quotation.changeOrderEstimate;
+                if (!changeOrderEstimate)
+                    throw new Error('No  changeOrder estimate for this job');
+                if (changeOrderEstimate.isPaid)
+                    throw new Error('Extra estimate already paid');
+                paymentType_1 = payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT;
+                transactionType = transaction_model_1.TRANSACTION_TYPE.CHANGE_ORDER_PAYMENT;
+                return [4 /*yield*/, quotation.calculateCharges(paymentType_1)];
+            case 5:
+                charges_1 = _b.sent();
+                metadata_1 = {
+                    customerId: customer.id,
+                    contractorId: contractor === null || contractor === void 0 ? void 0 : contractor.id,
+                    quotationId: quotation.id,
+                    jobId: jobId,
+                    paymentType: paymentType_1,
+                    paymentMethod: 'CAPTURE',
+                    email: customer.email,
+                    remark: 'change_order_estimate_payment',
+                };
+                return [4 /*yield*/, paypal_payment_log_model_1.PaypalPaymentLog.create({
+                        user: customerId,
+                        'userType': 'customers',
+                        metadata: metadata_1
+                    })];
+            case 6:
+                paypalPaymentLog_1 = _b.sent();
+                payload_1 = {
+                    amount: charges_1.customerPayable,
+                    intent: "CAPTURE",
+                    description: "Job Change Order Payment - ".concat(jobId),
+                    metaId: paypalPaymentLog_1.id,
+                    returnUrl: "https://repairfind.ca/payment-success"
+                };
+                return [4 /*yield*/, paypal_1.PayPalService.payment.createOrder(payload_1)];
+            case 7:
+                capture_1 = _b.sent();
+                job.isChangeOrder = false;
+                return [4 /*yield*/, job.save()];
+            case 8:
+                _b.sent();
+                return [2 /*return*/, res.json({ success: true, message: 'Payment intent created', data: capture_1 })];
+            case 9:
                 if (job.status === job_model_1.JOB_STATUS.BOOKED) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'This job is not pending, so new payment is not possible' })];
                 }
@@ -148,8 +192,8 @@ var createCheckoutOrder = function (req, res, next) { return __awaiter(void 0, v
                 if (quotation.type == job_quotation_model_1.JOB_QUOTATION_TYPE.JOB_DAY)
                     paymentType = payment_schema_1.PAYMENT_TYPE.JOB_DAY_PAYMENT;
                 return [4 /*yield*/, quotation.calculateCharges(paymentType)];
-            case 5:
-                charges = _a.sent();
+            case 10:
+                charges = _b.sent();
                 metadata = {
                     customerId: customer.id,
                     contractorId: contractor === null || contractor === void 0 ? void 0 : contractor.id,
@@ -165,8 +209,8 @@ var createCheckoutOrder = function (req, res, next) { return __awaiter(void 0, v
                         'userType': 'customers',
                         metadata: metadata
                     })];
-            case 6:
-                paypalPaymentLog = _a.sent();
+            case 11:
+                paypalPaymentLog = _b.sent();
                 payload = {
                     amount: charges.customerPayable,
                     intent: "CAPTURE",
@@ -175,14 +219,14 @@ var createCheckoutOrder = function (req, res, next) { return __awaiter(void 0, v
                     returnUrl: "https://repairfind.ca/payment-success"
                 };
                 return [4 /*yield*/, paypal_1.PayPalService.payment.createOrder(payload)];
-            case 7:
-                capture = _a.sent();
+            case 12:
+                capture = _b.sent();
                 res.json({ success: true, message: 'Payment intent created', data: capture });
-                return [3 /*break*/, 9];
-            case 8:
-                err_1 = _a.sent();
+                return [3 /*break*/, 14];
+            case 13:
+                err_1 = _b.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError(err_1.message, err_1))];
-            case 9: return [2 /*return*/];
+            case 14: return [2 /*return*/];
         }
     });
 }); };

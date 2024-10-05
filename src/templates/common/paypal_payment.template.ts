@@ -1,5 +1,4 @@
-export const PaypalPaymentCheckoutTemplate = (payload: {token: string, paypalClientId: string, quotationId: any, jobId:
-any}) => `
+export const PaypalPaymentCheckoutTemplate = (payload: {token: string, paypalClientId: string, quotationId: any, jobId: any, isChangeOrder: false }) => `
 <!DOCTYPE html>
 <html lang="en">
 
@@ -67,7 +66,7 @@ any}) => `
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ${payload.token}'
           },
-          body: JSON.stringify({ quotationId: '${payload.quotationId}' })
+          body: JSON.stringify({ quotationId: '${payload.quotationId}', isChangeOrder: '${payload.isChangeOrder}' })
         });
         const orderData = await response.json();
         console.log('orderData', orderData);

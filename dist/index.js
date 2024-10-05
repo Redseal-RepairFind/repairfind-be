@@ -76,11 +76,11 @@ app.get("/api/v1/customer/paypal/payment-method-checkout-view", function (req, r
     return res.send(html);
 });
 app.get("/api/v1/customer/paypal/create-checkout-view", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, token, quotationId, jobId, job, paypalClientId, html;
+    var _a, token, quotationId, jobId, isChangeOrder, job, paypalClientId, html;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _a = req.query, token = _a.token, quotationId = _a.quotationId, jobId = _a.jobId;
+                _a = req.query, token = _a.token, quotationId = _a.quotationId, jobId = _a.jobId, isChangeOrder = _a.isChangeOrder;
                 return [4 /*yield*/, job_model_1.JobModel.findById(jobId)];
             case 1:
                 job = _b.sent();
@@ -88,7 +88,7 @@ app.get("/api/v1/customer/paypal/create-checkout-view", function (req, res) { re
                     return [2 /*return*/, res.status(400).json({ success: false, message: 'Job not found or is not pending, so new payment is not possible' })];
                 }
                 paypalClientId = config_1.config.paypal.clientId;
-                html = (0, paypal_payment_template_1.PaypalPaymentCheckoutTemplate)({ token: token, paypalClientId: paypalClientId, quotationId: quotationId, jobId: jobId });
+                html = (0, paypal_payment_template_1.PaypalPaymentCheckoutTemplate)({ token: token, paypalClientId: paypalClientId, quotationId: quotationId, jobId: jobId, isChangeOrder: isChangeOrder });
                 return [2 /*return*/, res.send(html)];
         }
     });
