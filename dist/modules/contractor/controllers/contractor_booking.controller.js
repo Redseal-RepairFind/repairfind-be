@@ -76,7 +76,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ContractorBookingController = exports.markBookingComplete = exports.cancelBooking = exports.assignJob = exports.acceptOrDeclineReschedule = exports.requestBookingReschedule = exports.getSingleBooking = exports.getBookingDisputes = exports.getBookingHistory = exports.getMyBookings = void 0;
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
-var services_1 = require("../../../services");
 var job_model_1 = require("../../../database/common/job.model");
 var custom_errors_1 = require("../../../utils/custom.errors");
 var api_feature_1 = require("../../../utils/api.feature");
@@ -85,7 +84,6 @@ var events_1 = require("../../../events");
 var mongoose_1 = __importDefault(require("mongoose"));
 var contractor_interface_1 = require("../../../database/contractor/interface/contractor.interface");
 var contractor_team_model_1 = __importDefault(require("../../../database/contractor/models/contractor_team.model"));
-var job_assigned_template_1 = require("../../../templates/contractor/job_assigned.template");
 var review_model_1 = require("../../../database/common/review.model");
 var payment_schema_1 = require("../../../database/common/payment.schema");
 var transaction_model_1 = __importStar(require("../../../database/common/transaction.model"));
@@ -522,7 +520,7 @@ var acceptOrDeclineReschedule = function (req, res, next) { return __awaiter(voi
 }); };
 exports.acceptOrDeclineReschedule = acceptOrDeclineReschedule;
 var assignJob = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var contractorId, bookingId, employeeId, job, contractor, employee, team, assignData, html, error_7;
+    var contractorId, bookingId, employeeId, job, contractor, employee, team, assignData, error_7;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -580,8 +578,9 @@ var assignJob = function (req, res, next) { return __awaiter(void 0, void 0, voi
                 return [4 /*yield*/, job.save()];
             case 5:
                 _a.sent();
-                html = (0, job_assigned_template_1.NewJobAssignedEmailTemplate)(contractor, employee, job);
-                services_1.EmailService.send(employee.email, "New Job Assigned", html);
+                //send email to employee 
+                // const html = NewJobAssignedEmailTemplate(contractor, employee, job)
+                // EmailService.send(employee.email, "New Job Assigned", html)
                 res.json({ success: true, message: "Job assigned successfully", data: job });
                 return [3 /*break*/, 7];
             case 6:

@@ -44,40 +44,43 @@ var __1 = require("../..");
 var job_model_1 = require("../../../database/common/job.model");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
+var i18n_1 = require("../../../i18n");
 var logger_1 = require("../../logger");
 var jobDayScheduleCheck = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var jobs, _i, jobs_1, job, customer, contractor, currentDate, jobStartDate, timeDifference, daysDifference, hourDifference, minuteDifference, dateTimeOptions, formattedJobStartDate, formattedJobStartDateTz, error_1, error_2;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var jobs, _i, jobs_1, job, customer, contractor, currentDate, jobStartDate, timeDifference, daysDifference, hourDifference, minuteDifference, formattedJobStartDate, formattedJobStartDateContractorTz, formattedJobStartDateCustomerTz, _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, error_1, error_2;
+    return __generator(this, function (_o) {
+        switch (_o.label) {
             case 0:
-                _a.trys.push([0, 24, , 25]);
+                _o.trys.push([0, 29, , 30]);
                 return [4 /*yield*/, job_model_1.JobModel.find({
                         status: { $in: ['BOOKED'] },
                         'schedule.startDate': { $exists: true }
                     })];
             case 1:
-                jobs = _a.sent();
+                jobs = _o.sent();
                 _i = 0, jobs_1 = jobs;
-                _a.label = 2;
+                _o.label = 2;
             case 2:
-                if (!(_i < jobs_1.length)) return [3 /*break*/, 23];
+                if (!(_i < jobs_1.length)) return [3 /*break*/, 28];
                 job = jobs_1[_i];
-                _a.label = 3;
+                _o.label = 3;
             case 3:
-                _a.trys.push([3, 21, , 22]);
+                _o.trys.push([3, 26, , 27]);
                 return [4 /*yield*/, customer_model_1.default.findById(job.customer)];
             case 4:
-                customer = _a.sent();
+                customer = _o.sent();
                 return [4 /*yield*/, contractor_model_1.ContractorModel.findById(job.contractor)];
             case 5:
-                contractor = _a.sent();
+                contractor = _o.sent();
                 currentDate = new Date();
                 jobStartDate = new Date(job.schedule.startDate);
                 timeDifference = jobStartDate.getTime() - currentDate.getTime();
                 daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
                 hourDifference = Math.floor(timeDifference / (1000 * 60 * 60));
                 minuteDifference = Math.floor(timeDifference / (1000 * 60));
-                dateTimeOptions = {
+                formattedJobStartDate = "".concat(jobStartDate.toDateString(), " at ").concat(get12HourFormat(jobStartDate));
+                if (!(customer && contractor)) return [3 /*break*/, 25];
+                formattedJobStartDateContractorTz = new Intl.DateTimeFormat('en-GB', {
                     weekday: 'short',
                     day: 'numeric',
                     month: 'long',
@@ -87,87 +90,118 @@ var jobDayScheduleCheck = function () { return __awaiter(void 0, void 0, void 0,
                     hour12: true,
                     timeZone: contractor === null || contractor === void 0 ? void 0 : contractor.currentTimezone,
                     timeZoneName: 'long'
-                };
-                formattedJobStartDate = "".concat(jobStartDate.toDateString(), " at ").concat(get12HourFormat(jobStartDate));
-                formattedJobStartDateTz = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(formattedJobStartDate));
-                logger_1.Logger.info("JobSchedule Reminder: formattedJobStartDateTz: ".concat(formattedJobStartDateTz, ", currentDate: ").concat(currentDate, " jobStartDate: ").concat(jobStartDate, " formattedJobStartDate: ").concat(formattedJobStartDate, " daysDifference: ").concat(daysDifference, " hourDifference: ").concat(hourDifference));
-                if (!(customer && contractor)) return [3 /*break*/, 20];
-                if (daysDifference <= -1) {
-                    // if (!job.reminders.includes(JOB_SCHEDULE_REMINDER.NOT_STARTED)) {
-                    //     sendReminderContractor(customer, contractor, job, `Your job with ${customer.name} scheduled for yesterday: ${formattedJobStartDate} was not started`);
-                    //     job.status = JOB_STATUS.NOT_STARTED;
-                    //     job.reminders.push(JOB_SCHEDULE_REMINDER.NOT_STARTED);
-                    //     await job.save();
-                    // }
-                    // continue;
-                }
+                }).format(new Date(jobStartDate));
+                formattedJobStartDateCustomerTz = new Intl.DateTimeFormat('en-GB', {
+                    weekday: 'short',
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    hour12: true,
+                    timeZone: customer === null || customer === void 0 ? void 0 : customer.currentTimezone,
+                    timeZoneName: 'long'
+                }).format(new Date(jobStartDate));
+                logger_1.Logger.info("JobSchedule Reminder", {
+                    formattedJobStartDateContractorTz: "".concat(formattedJobStartDateContractorTz),
+                    formattedJobStartDateCustomerTz: "".concat(formattedJobStartDateCustomerTz),
+                    currentDate: "".concat(currentDate, " "),
+                    jobStartDate: "".concat(jobStartDate, " "),
+                    formattedJobStartDate: "".concat(formattedJobStartDate, " "),
+                    daysDifference: "".concat(daysDifference, " "),
+                    hourDifference: "".concat(hourDifference),
+                });
                 if (!(hourDifference <= 1)) return [3 /*break*/, 8];
                 if (!!job.reminders.includes(job_model_1.JOB_SCHEDULE_REMINDER.HOURS_1)) return [3 /*break*/, 7];
-                sendReminderContractor(customer, contractor, job, "You have a job with ".concat(customer.name, " scheduled for today ").concat(formattedJobStartDate));
-                sendReminderCustomer(customer, contractor, job, "You have a job with ".concat(contractor.name, " scheduled for today ").concat(formattedJobStartDate));
                 job.reminders.push(job_model_1.JOB_SCHEDULE_REMINDER.HOURS_1);
-                return [4 /*yield*/, job.save()];
+                return [4 /*yield*/, Promise.all([
+                        sendReminderContractor(customer, contractor, job, "You have a job with ".concat(customer.name, " scheduled for today ").concat(formattedJobStartDateContractorTz)),
+                        sendReminderCustomer(customer, contractor, job, "You have a job with ".concat(contractor.name, " scheduled for today ").concat(formattedJobStartDateCustomerTz)),
+                        job.save()
+                    ])];
             case 6:
-                _a.sent();
-                _a.label = 7;
-            case 7: return [3 /*break*/, 22];
+                _o.sent();
+                _o.label = 7;
+            case 7: return [3 /*break*/, 27];
             case 8:
-                if (!(hourDifference <= 6)) return [3 /*break*/, 11];
-                if (!!job.reminders.includes(job_model_1.JOB_SCHEDULE_REMINDER.HOURS_6)) return [3 /*break*/, 10];
-                sendReminderContractor(customer, contractor, job, "You have a job with ".concat(customer.name, " scheduled for today ").concat(formattedJobStartDate));
-                sendReminderCustomer(customer, contractor, job, "You have a job with ".concat(contractor.name, " scheduled for today ").concat(formattedJobStartDate));
+                if (!(hourDifference <= 6)) return [3 /*break*/, 12];
+                if (!!job.reminders.includes(job_model_1.JOB_SCHEDULE_REMINDER.HOURS_6)) return [3 /*break*/, 11];
                 job.reminders.push(job_model_1.JOB_SCHEDULE_REMINDER.HOURS_6);
+                _b = (_a = Promise).all;
+                _c = [sendReminderContractor(customer, contractor, job, "You have a job with ".concat(customer.name, " scheduled for today ").concat(formattedJobStartDateContractorTz)),
+                    sendReminderCustomer(customer, contractor, job, "You have a job with ".concat(contractor.name, " scheduled for today ").concat(formattedJobStartDateCustomerTz))];
                 return [4 /*yield*/, job.save()];
-            case 9:
-                _a.sent();
-                _a.label = 10;
-            case 10: return [3 /*break*/, 22];
-            case 11:
-                if (!(hourDifference <= 12)) return [3 /*break*/, 14];
-                if (!!job.reminders.includes(job_model_1.JOB_SCHEDULE_REMINDER.HOURS_12)) return [3 /*break*/, 13];
-                sendReminderContractor(customer, contractor, job, "You have a job with ".concat(customer.name, " scheduled for today ").concat(formattedJobStartDate));
-                sendReminderCustomer(customer, contractor, job, "You have a job with ".concat(contractor.name, " scheduled for today ").concat(formattedJobStartDate));
+            case 9: return [4 /*yield*/, _b.apply(_a, [_c.concat([
+                        _o.sent()
+                    ])])];
+            case 10:
+                _o.sent();
+                _o.label = 11;
+            case 11: return [3 /*break*/, 27];
+            case 12:
+                if (!(hourDifference <= 12)) return [3 /*break*/, 17];
+                if (!!job.reminders.includes(job_model_1.JOB_SCHEDULE_REMINDER.HOURS_12)) return [3 /*break*/, 16];
                 job.reminders.push(job_model_1.JOB_SCHEDULE_REMINDER.HOURS_12);
                 return [4 /*yield*/, job.save()];
-            case 12:
-                _a.sent();
-                _a.label = 13;
-            case 13: return [3 /*break*/, 22];
-            case 14:
-                if (!(hourDifference <= 24)) return [3 /*break*/, 17];
-                if (!!job.reminders.includes(job_model_1.JOB_SCHEDULE_REMINDER.HOURS_24)) return [3 /*break*/, 16];
-                sendReminderContractor(customer, contractor, job, "You have a job with ".concat(customer.name, " scheduled for tomorrow ").concat(formattedJobStartDate));
-                sendReminderCustomer(customer, contractor, job, "You have a job with ".concat(contractor.name, " scheduled for tomorrow ").concat(formattedJobStartDate));
-                job.reminders.push(job_model_1.JOB_SCHEDULE_REMINDER.HOURS_24);
+            case 13:
+                _o.sent();
+                _e = (_d = Promise).all;
+                _f = [sendReminderContractor(customer, contractor, job, "You have a job with ".concat(customer.name, " scheduled for today ").concat(formattedJobStartDateContractorTz)),
+                    sendReminderCustomer(customer, contractor, job, "You have a job with ".concat(contractor.name, " scheduled for today ").concat(formattedJobStartDateCustomerTz))];
                 return [4 /*yield*/, job.save()];
+            case 14: return [4 /*yield*/, _e.apply(_d, [_f.concat([
+                        _o.sent()
+                    ])])];
             case 15:
-                _a.sent();
-                _a.label = 16;
-            case 16: return [3 /*break*/, 22];
+                _o.sent();
+                _o.label = 16;
+            case 16: return [3 /*break*/, 27];
             case 17:
-                if (!(hourDifference <= 48)) return [3 /*break*/, 20];
-                if (!!job.reminders.includes(job_model_1.JOB_SCHEDULE_REMINDER.HOURS_48)) return [3 /*break*/, 19];
-                sendReminderContractor(customer, contractor, job, "You have a job with ".concat(customer.name, " scheduled for ").concat(formattedJobStartDate));
-                sendReminderCustomer(customer, contractor, job, "You have a job with ".concat(contractor.name, " scheduled for ").concat(formattedJobStartDate));
-                job.reminders.push(job_model_1.JOB_SCHEDULE_REMINDER.HOURS_48);
+                if (!(hourDifference <= 24)) return [3 /*break*/, 21];
+                if (!!job.reminders.includes(job_model_1.JOB_SCHEDULE_REMINDER.HOURS_24)) return [3 /*break*/, 20];
+                job.reminders.push(job_model_1.JOB_SCHEDULE_REMINDER.HOURS_24);
+                _h = (_g = Promise).all;
+                _j = [sendReminderContractor(customer, contractor, job, "You have a job with ".concat(customer.name, " scheduled for tomorrow ").concat(formattedJobStartDateContractorTz)),
+                    sendReminderCustomer(customer, contractor, job, "You have a job with ".concat(contractor.name, " scheduled for tomorrow ").concat(formattedJobStartDateCustomerTz))];
                 return [4 /*yield*/, job.save()];
-            case 18:
-                _a.sent();
-                _a.label = 19;
-            case 19: return [3 /*break*/, 22];
-            case 20: return [3 /*break*/, 22];
+            case 18: return [4 /*yield*/, _h.apply(_g, [_j.concat([
+                        _o.sent()
+                    ])])];
+            case 19:
+                _o.sent();
+                _o.label = 20;
+            case 20: return [3 /*break*/, 27];
             case 21:
-                error_1 = _a.sent();
-                return [3 /*break*/, 22];
-            case 22:
+                if (!(hourDifference <= 48)) return [3 /*break*/, 25];
+                if (!!job.reminders.includes(job_model_1.JOB_SCHEDULE_REMINDER.HOURS_48)) return [3 /*break*/, 24];
+                job.reminders.push(job_model_1.JOB_SCHEDULE_REMINDER.HOURS_48);
+                _l = (_k = Promise).all;
+                _m = [sendReminderContractor(customer, contractor, job, "You have a job with ".concat(customer.name, " scheduled for ").concat(formattedJobStartDateContractorTz)),
+                    sendReminderCustomer(customer, contractor, job, "You have a job with ".concat(contractor.name, " scheduled for ").concat(formattedJobStartDateCustomerTz))];
+                return [4 /*yield*/, job.save()];
+            case 22: return [4 /*yield*/, _l.apply(_k, [_m.concat([
+                        _o.sent()
+                    ])])];
+            case 23:
+                _o.sent();
+                _o.label = 24;
+            case 24: return [3 /*break*/, 27];
+            case 25:
+                logger_1.Logger.info("Processed job day reminder: daysDifference: ".concat(daysDifference, " - JobId: ").concat(job.id));
+                return [3 /*break*/, 27];
+            case 26:
+                error_1 = _o.sent();
+                logger_1.Logger.error("Error sending job day reminder for job ID ".concat(job.id, ":"), error_1);
+                return [3 /*break*/, 27];
+            case 27:
                 _i++;
                 return [3 /*break*/, 2];
-            case 23: return [3 /*break*/, 25];
-            case 24:
-                error_2 = _a.sent();
+            case 28: return [3 /*break*/, 30];
+            case 29:
+                error_2 = _o.sent();
                 logger_1.Logger.error('Error fetching jobs for day reminder:', error_2);
-                return [3 /*break*/, 25];
-            case 25: return [2 /*return*/];
+                return [3 /*break*/, 30];
+            case 30: return [2 /*return*/];
         }
     });
 }); };
@@ -181,37 +215,69 @@ function get12HourFormat(date) {
 }
 function sendReminderContractor(customer, contractor, job, message) {
     var _a;
-    __1.NotificationService.sendNotification({
-        user: contractor.id,
-        userType: 'contractors',
-        title: 'Job Schedule Reminder',
-        type: 'JOB_DAY_REMINDER',
-        message: message,
-        heading: { name: "".concat(customer.name), image: (_a = customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
-        payload: {
-            entity: job.id,
-            entityType: 'jobs',
-            message: message,
-            contractor: contractor.id,
-            event: 'JOB_DAY_REMINDER',
-        }
-    }, { push: true, socket: true });
+    return __awaiter(this, void 0, void 0, function () {
+        var contractorLang, nTitle, nMessage;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    contractorLang = contractor.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'Job Schedule Reminder', targetLang: contractorLang })];
+                case 1:
+                    nTitle = _b.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: message, targetLang: contractorLang })];
+                case 2:
+                    nMessage = _b.sent();
+                    __1.NotificationService.sendNotification({
+                        user: contractor.id,
+                        userType: 'contractors',
+                        title: nTitle,
+                        type: 'JOB_DAY_REMINDER',
+                        message: nMessage,
+                        heading: { name: "".concat(customer.name), image: (_a = customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
+                        payload: {
+                            entity: job.id,
+                            entityType: 'jobs',
+                            message: nMessage,
+                            contractor: contractor.id,
+                            event: 'JOB_DAY_REMINDER',
+                        }
+                    }, { push: true, socket: true });
+                    return [2 /*return*/];
+            }
+        });
+    });
 }
 function sendReminderCustomer(customer, contractor, job, message) {
     var _a;
-    __1.NotificationService.sendNotification({
-        user: customer.id,
-        userType: 'customers',
-        title: 'Job Schedule Reminder',
-        type: 'JOB_DAY_REMINDER',
-        message: message,
-        heading: { name: "".concat(contractor.name), image: (_a = contractor.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
-        payload: {
-            entity: job.id,
-            entityType: 'jobs',
-            message: message,
-            contractor: contractor.id,
-            event: 'JOB_DAY_REMINDER',
-        }
-    }, { push: true, socket: true });
+    return __awaiter(this, void 0, void 0, function () {
+        var customerLang, nTitle, nMessage;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    customerLang = customer.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'Job Schedule Reminder', targetLang: customerLang })];
+                case 1:
+                    nTitle = _b.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: message, targetLang: customerLang })];
+                case 2:
+                    nMessage = _b.sent();
+                    __1.NotificationService.sendNotification({
+                        user: customer.id,
+                        userType: 'customers',
+                        title: nTitle,
+                        type: 'JOB_DAY_REMINDER',
+                        message: nMessage,
+                        heading: { name: "".concat(contractor.name), image: (_a = contractor.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
+                        payload: {
+                            entity: job.id,
+                            entityType: 'jobs',
+                            message: nMessage,
+                            contractor: contractor.id,
+                            event: 'JOB_DAY_REMINDER',
+                        }
+                    }, { push: true, socket: true });
+                    return [2 /*return*/];
+            }
+        });
+    });
 }

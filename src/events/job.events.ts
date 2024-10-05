@@ -341,14 +341,14 @@ JobEvent.on('JOB_CANCELED', async function (payload: { job: IJob, canceledBy: st
         if (payload.canceledBy == 'contractor') {
             Logger.info('job cancelled by contractor')
             const html = JobCanceledEmailTemplate({ name: customer.name, canceledBy: payload.canceledBy, job: payload.job })            
-            const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true}) || html;            
+            const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html'}) || html;            
             const translatedSubject = await i18n.getTranslation({phraseOrSlug: "Job Canceled", targetLang: contractor.language}) || 'Job Canceled';
             EmailService.send(customer.email, translatedSubject, translatedHtml)
         }
         if (payload.canceledBy == 'customer') {
             Logger.info('job cancelled by customer')
             const html = JobCanceledEmailTemplate({ name: contractor.name, canceledBy: 'customer', job: payload.job })
-            const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true}) || html;            
+            const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html'}) || html;            
             const translatedSubject = await i18n.getTranslation({phraseOrSlug: "Job Canceled", targetLang: customer.language}) || 'Job Canceled';
             EmailService.send(contractor.email, translatedSubject, translatedHtml)
 
@@ -600,7 +600,7 @@ JobEvent.on('JOB_QUOTATION_DECLINED', async function (payload: { jobId: ObjectId
                 `
             let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
            
-            const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true}) || html;            
+            const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html'}) || html;            
             const translatedSubject = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: contractor.language}) || emailSubject;
             EmailService.send(contractor.email, translatedSubject, translatedHtml)
 
@@ -668,7 +668,7 @@ JobEvent.on('JOB_QUOTATION_ACCEPTED', async function (payload: { jobId: ObjectId
                 `
 
             let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
-            const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true}) || html;            
+            const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html'}) || html;            
             const translatedSubject = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: contractor.language}) || emailSubject;
             EmailService.send(contractor.email, translatedSubject, translatedHtml)
 
@@ -787,7 +787,7 @@ JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: 
                 <p><strong>Proposed Date:</strong> ${rescheduleDate}</p>
                 `
                 let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
-                const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true}) || html;            
+                const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html'}) || html;            
                 const translatedSubject = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: contractor.language}) || emailSubject;
                 EmailService.send(contractor.email, translatedSubject, translatedHtml)
 
@@ -850,7 +850,7 @@ JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', async function (payload: { job: 
                 <p><strong>Proposed Date:</strong> ${rescheduleDate}</p>
                 `
                 let html = GenericEmailTemplate({ name: customer.name, subject: emailSubject, content: emailContent })
-                const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true}) || html;            
+                const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html'}) || html;            
                 const translatedSubject = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: customer.language}) || emailSubject;
                 EmailService.send(customer.email, translatedSubject, translatedHtml)
 
@@ -949,7 +949,7 @@ JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', async function (payload: { job: IJob, 
                 <p><strong>Proposed Date:</strong> ${rescheduleDate}</p>
                 `
                 let html = GenericEmailTemplate({ name: customer.name, subject: emailSubject, content: emailContent })
-                const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true}) || html;            
+                const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html'}) || html;            
                 const translatedSubject = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: customer.language}) || emailSubject;
                 EmailService.send(customer.email, translatedSubject, translatedHtml)
 
@@ -999,7 +999,7 @@ JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', async function (payload: { job: IJob, 
                 <p><strong>Proposed Date:</strong> ${rescheduleDate}</p>
                 `
                 let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
-                const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true}) || html;            
+                const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html'}) || html;            
                 const translatedSubject = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: contractor.language}) || emailSubject;
                 EmailService.send(contractor.email, translatedSubject, translatedHtml)
 
@@ -1154,12 +1154,12 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
 
 
                 let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent });
-                const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true}) || html;            
+                const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html'}) || html;            
                 const translatedSubject = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: contractor.language}) || emailSubject;
                 EmailService.send(contractor.email, translatedSubject, translatedHtml);
 
                 let receipthtml = GenericEmailTemplate({ name: contractor.name, subject: 'Escrow Payment Receipt', content: receipthtmlContent });
-                const translatedReceiptHtml = await i18n.getTranslation({phraseOrSlug: receipthtml, targetLang: contractor.language, saveToFile: false, useGoogle: true}) || html;            
+                const translatedReceiptHtml = await i18n.getTranslation({phraseOrSlug: receipthtml, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html'}) || receipthtml;            
                 const translatedReceiptSubject = await i18n.getTranslation({phraseOrSlug: 'Escrow Payment Receipt', targetLang: contractor.language}) || 'Escrow Payment Receipt';
                 EmailService.send(contractor.email, translatedReceiptSubject, translatedReceiptHtml);
 
@@ -1247,13 +1247,13 @@ JobEvent.on('JOB_BOOKED', async function (payload: { jobId: ObjectId, contractor
                 `;
 
                 let html = GenericEmailTemplate({ name: customer.name, subject: emailSubject, content: emailContent });
-                const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true}) || html;            
+                const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html'}) || html;            
                 const translatedSubject = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: customer.language}) || emailSubject;
                 EmailService.send(customer.email, translatedSubject, translatedHtml);
 
 
                 let receipthtml = GenericEmailTemplate({ name: customer.name, subject: 'Payment Receipt', content: receiptContent });
-                const translatedReceiptHtml = await i18n.getTranslation({phraseOrSlug: receipthtml, targetLang: customer.language, saveToFile: false, useGoogle: true}) || html;            
+                const translatedReceiptHtml = await i18n.getTranslation({phraseOrSlug: receipthtml, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html'}) || receipthtml;            
                 const translatedReceiptSubject = await i18n.getTranslation({phraseOrSlug: 'Payment Receipt', targetLang: customer.language}) || 'Payment Receipt';
                 EmailService.send(customer.email, translatedReceiptSubject, translatedReceiptHtml);
 
@@ -2328,7 +2328,7 @@ JobEvent.on('JOB_REFUND_REQUESTED', async function (payload: { job: any, payment
                 <p><strong>Refund Amount:</strong> ${refund.refundAmount}</p>
                 `
         let html = GenericEmailTemplate({ name: customer.name, subject: emailSubject, content: emailContent })
-        const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true}) || html;            
+        const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html'}) || html;            
         const translatedSubject = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: customer.language}) || emailSubject;
         EmailService.send(customer.email, translatedSubject, translatedHtml)
 
@@ -2345,7 +2345,7 @@ JobEvent.on('JOB_REFUND_REQUESTED', async function (payload: { job: any, payment
                 <p><strong>Refund Amount:</strong> ${refund.refundAmount}</p>
                 `
         html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
-        const translatedHtmlC = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true}) || html;            
+        const translatedHtmlC = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html'}) || html;            
         const translatedSubjectC = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: contractor.language}) || emailSubject;
         EmailService.send(contractor.email, translatedSubjectC, translatedHtmlC)
 
@@ -2443,7 +2443,7 @@ JobEvent.on('NEW_JOB_ENQUIRY', async function (payload: { jobId: any, enquiryId:
                 <p style="color: #333333;">Do well to check and follow up as soon as possible </p>
                 `
             let html = GenericEmailTemplate({ name: customer.name, subject: emailSubject, content: emailContent })
-            const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true}) || html;            
+            const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html'}) || html;            
             const translatedSubject = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: customer.language}) || emailSubject;
             EmailService.send(customer.email, translatedSubject, translatedHtml)
         }
@@ -2522,7 +2522,7 @@ JobEvent.on('NEW_JOB_ENQUIRY_REPLY', async function (payload: { jobId: any, enqu
                     <p><strong>Reply</strong> ${enquiry.replies ? enquiry.replies[0] : ''}</p>
                     `
             let html = GenericEmailTemplate({ name: contractor.name, subject: emailSubject, content: emailContent })
-            const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true}) || html;            
+            const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html'}) || html;            
             const translatedSubject = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: contractor.language}) || emailSubject;
             EmailService.send(contractor.email, translatedSubject, translatedHtml)
         }

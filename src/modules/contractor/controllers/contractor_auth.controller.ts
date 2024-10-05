@@ -67,12 +67,12 @@ class AuthHandler extends Base {
 
 
             const html = OtpEmailTemplate(otp, firstName ?? companyName, "We have received a request to verify your email");
-            let translatedHtml = await i18n.getTranslation({phraseOrSlug: html,targetLang: contractor.language,saveToFile: false,useGoogle: true}) || html ;            
+            let translatedHtml = await i18n.getTranslation({phraseOrSlug: html,targetLang: contractor.language,saveToFile: false,useGoogle: true, contentType: 'html'}) || html ;            
             let translatedSubject = await i18n.getTranslation({phraseOrSlug: "Email Verification",targetLang: contractor.language}) || 'Email Verification';
             await EmailService.send(email, translatedSubject, translatedHtml);
 
             const welcomeHtml = ContractorWelcomeTemplate(firstName ?? companyName);
-            translatedHtml = await i18n.getTranslation({phraseOrSlug: welcomeHtml,targetLang: contractor.language,saveToFile: false,useGoogle: true}) || welcomeHtml;            
+            translatedHtml = await i18n.getTranslation({phraseOrSlug: welcomeHtml,targetLang: contractor.language,saveToFile: false,useGoogle: true, contentType: 'html'}) || welcomeHtml;            
             translatedSubject = await i18n.getTranslation({phraseOrSlug: "Welcome to Repairfind",targetLang: contractor.language}) || 'Welcome to Repairfind';
             await EmailService.send(email, translatedSubject!, translatedHtml!);
 
@@ -396,7 +396,7 @@ class AuthHandler extends Base {
             await contractor?.save();
 
             const html = OtpEmailTemplate(otp, contractor.firstName, "We have received a request to verify your email")
-            const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true}) || html;            
+            const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html'}) || html;            
             const translatedSubject = await i18n.getTranslation({ phraseOrSlug: "Email Verification", targetLang: contractor.language}) || 'Email Verification';
             
             EmailService.send(email, translatedSubject, translatedHtml)
@@ -441,7 +441,7 @@ class AuthHandler extends Base {
             await contractor?.save();
             const html = OtpEmailTemplate(otp, contractor.firstName, "We have received a request to change your password")
             
-            const translatedHtml = await i18n.getTranslation({phraseOrSlug: html,targetLang: contractor.language,saveToFile: false,useGoogle: true});            
+            const translatedHtml = await i18n.getTranslation({phraseOrSlug: html,targetLang: contractor.language,saveToFile: false,useGoogle: true, contentType: 'html'});            
             const translatedSubject = await i18n.getTranslation({phraseOrSlug: 'Password Change',targetLang: contractor.language});
 
             EmailService.send(contractor.email, translatedSubject!, translatedHtml!)

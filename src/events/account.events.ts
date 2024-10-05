@@ -57,7 +57,7 @@ AccountEvent.on('ACCOUNT_REPORTED', async function (payload: { report: IAbuseRep
                     <p style="color: #333333;">Thanks for your patronage</p>
                     `
             let html = GenericEmailTemplate({ name: reportedUser.firstName, subject: emailSubject, content: emailContent })
-            const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: reportedUser.language, saveToFile: false, useGoogle: true}) || html;            
+            const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: reportedUser.language, saveToFile: false, useGoogle: true, contentType: 'html'}) || html;            
             const translatedSubject = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: reportedUser.language}) || emailSubject;
             EmailService.send(reportedUser.email, translatedSubject, translatedHtml)
         }

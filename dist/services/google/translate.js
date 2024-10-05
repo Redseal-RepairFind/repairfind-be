@@ -45,7 +45,7 @@ var config_1 = require("../../config");
 var logger_1 = require("../logger");
 function translateText(_a) {
     var _b, _c, _d, _e;
-    var text = _a.text, targetLang = _a.targetLang, sourceLang = _a.sourceLang, _f = _a.format, format = _f === void 0 ? 'text/plain' : _f, _g = _a.model, model = _g === void 0 ? 'text' : _g;
+    var text = _a.text, targetLang = _a.targetLang, sourceLang = _a.sourceLang, _f = _a.format, format = _f === void 0 ? 'plain' : _f, _g = _a.model, model = _g === void 0 ? 'text' : _g;
     return __awaiter(this, void 0, void 0, function () {
         var url, response, translatedText, error_1;
         return __generator(this, function (_h) {
@@ -63,8 +63,7 @@ function translateText(_a) {
                                 target: targetLang,
                                 key: config_1.config.google.apiKey,
                                 // model: model,
-                                // format: format,
-                                // mimeType: format,
+                                format: format,
                             },
                         })];
                 case 1:

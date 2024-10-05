@@ -44,9 +44,10 @@ var __1 = require("../..");
 var job_model_1 = require("../../../database/common/job.model");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
+var i18n_1 = require("../../../i18n");
 var logger_1 = require("../../logger");
 var jobNotStartedScheduleCheck = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var jobs, _i, jobs_1, job, customer, contractor, currentDate, jobStartDate, timeDifference, daysDifference, hourDifference, minuteDifference, formattedJobStartDate, error_1, error_2;
+    var jobs, _i, jobs_1, job, customer, contractor, currentDate, jobStartDate, timeDifference, daysDifference, hourDifference, minuteDifference, formattedJobStartDate, formattedJobStartDateContractorTz, formattedJobStartDateCustomerTz, error_1, error_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -79,14 +80,47 @@ var jobNotStartedScheduleCheck = function () { return __awaiter(void 0, void 0, 
                 hourDifference = Math.floor(timeDifference / (1000 * 60 * 60));
                 minuteDifference = Math.floor(timeDifference / (1000 * 60));
                 formattedJobStartDate = "".concat(jobStartDate.toDateString(), " at ").concat(get12HourFormat(jobStartDate));
-                logger_1.Logger.info("JobSchedule Reminder: currentDate: ".concat(currentDate, " jobStartDate: ").concat(jobStartDate, " formattedJobStartDate: ").concat(formattedJobStartDate, " daysDifference: ").concat(daysDifference, " hourDifference: ").concat(hourDifference));
                 if (!(customer && contractor)) return [3 /*break*/, 8];
+                formattedJobStartDateContractorTz = new Intl.DateTimeFormat('en-GB', {
+                    weekday: 'short',
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    hour12: true,
+                    timeZone: contractor === null || contractor === void 0 ? void 0 : contractor.currentTimezone,
+                    timeZoneName: 'long'
+                }).format(new Date(jobStartDate));
+                formattedJobStartDateCustomerTz = new Intl.DateTimeFormat('en-GB', {
+                    weekday: 'short',
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    hour12: true,
+                    timeZone: customer === null || customer === void 0 ? void 0 : customer.currentTimezone,
+                    timeZoneName: 'long'
+                }).format(new Date(jobStartDate));
+                logger_1.Logger.info("JobSchedule Reminder: Not Started", {
+                    formattedJobStartDateContractorTz: "".concat(formattedJobStartDateContractorTz),
+                    formattedJobStartDateCustomerTz: "".concat(formattedJobStartDateCustomerTz),
+                    currentDate: "".concat(currentDate, " "),
+                    jobStartDate: "".concat(jobStartDate, " "),
+                    formattedJobStartDate: "".concat(formattedJobStartDate, " "),
+                    daysDifference: "".concat(daysDifference, " "),
+                    hourDifference: "".concat(hourDifference),
+                });
                 if (!(daysDifference <= -1)) return [3 /*break*/, 8];
                 if (!!job.reminders.includes(job_model_1.JOB_SCHEDULE_REMINDER.NOT_STARTED)) return [3 /*break*/, 7];
-                sendReminderContractor(customer, contractor, job, "Your job with ".concat(customer.name, " scheduled for yesterday: ").concat(formattedJobStartDate, " was not started"));
                 job.status = job_model_1.JOB_STATUS.NOT_STARTED;
                 job.reminders.push(job_model_1.JOB_SCHEDULE_REMINDER.NOT_STARTED);
-                return [4 /*yield*/, job.save()];
+                return [4 /*yield*/, Promise.all([
+                        sendReminderContractor(customer, contractor, job, "Your job with ".concat(customer.name, " scheduled for yesterday: ").concat(formattedJobStartDate, " was not started")),
+                        sendReminderCustomer(customer, contractor, job, "Your job with ".concat(contractor.name, " scheduled for yesterday: ").concat(formattedJobStartDate, " was not started")),
+                        job.save()
+                    ])];
             case 6:
                 _a.sent();
                 _a.label = 7;
@@ -120,37 +154,69 @@ function get12HourFormat(date) {
 }
 function sendReminderContractor(customer, contractor, job, message) {
     var _a;
-    __1.NotificationService.sendNotification({
-        user: contractor.id,
-        userType: 'contractors',
-        title: 'Job Schedule Reminder',
-        type: 'JOB_DAY_REMINDER',
-        message: message,
-        heading: { name: "".concat(customer.name), image: (_a = customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
-        payload: {
-            entity: job.id,
-            entityType: 'jobs',
-            message: message,
-            contractor: contractor.id,
-            event: 'JOB_DAY_REMINDER',
-        }
-    }, { push: true, socket: true });
+    return __awaiter(this, void 0, void 0, function () {
+        var contractorLang, nTitle, nMessage;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    contractorLang = contractor.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'Job Schedule Reminder', targetLang: contractorLang })];
+                case 1:
+                    nTitle = _b.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: message, targetLang: contractorLang })];
+                case 2:
+                    nMessage = _b.sent();
+                    __1.NotificationService.sendNotification({
+                        user: contractor.id,
+                        userType: 'contractors',
+                        title: nTitle,
+                        type: 'JOB_DAY_REMINDER',
+                        message: nMessage,
+                        heading: { name: "".concat(customer.name), image: (_a = customer.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
+                        payload: {
+                            entity: job.id,
+                            entityType: 'jobs',
+                            message: message,
+                            contractor: contractor.id,
+                            event: 'JOB_DAY_REMINDER',
+                        }
+                    }, { push: true, socket: true });
+                    return [2 /*return*/];
+            }
+        });
+    });
 }
 function sendReminderCustomer(customer, contractor, job, message) {
     var _a;
-    __1.NotificationService.sendNotification({
-        user: customer.id,
-        userType: 'customers',
-        title: 'Job Schedule Reminder',
-        type: 'JOB_DAY_REMINDER',
-        message: message,
-        heading: { name: "".concat(contractor.name), image: (_a = contractor.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
-        payload: {
-            entity: job.id,
-            entityType: 'jobs',
-            message: message,
-            contractor: contractor.id,
-            event: 'JOB_DAY_REMINDER',
-        }
-    }, { push: true, socket: true });
+    return __awaiter(this, void 0, void 0, function () {
+        var customerLang, nTitle, nMessage;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    customerLang = customer.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'Job Schedule Reminder', targetLang: customerLang })];
+                case 1:
+                    nTitle = _b.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: message, targetLang: customerLang })];
+                case 2:
+                    nMessage = _b.sent();
+                    __1.NotificationService.sendNotification({
+                        user: customer.id,
+                        userType: 'customers',
+                        title: nTitle,
+                        type: 'JOB_DAY_REMINDER',
+                        message: nMessage,
+                        heading: { name: "".concat(contractor.name), image: (_a = contractor.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
+                        payload: {
+                            entity: job.id,
+                            entityType: 'jobs',
+                            message: message,
+                            contractor: contractor.id,
+                            event: 'JOB_DAY_REMINDER',
+                        }
+                    }, { push: true, socket: true });
+                    return [2 /*return*/];
+            }
+        });
+    });
 }

@@ -95,7 +95,7 @@ var signUp = function (req, res) { return __awaiter(void 0, void 0, void 0, func
             case 3:
                 customerSaved = _b.sent();
                 welcomeHtml = (0, welcome_email_1.CustomerWelcomeEmailTemplate)(lastName);
-                return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: welcomeHtml, targetLang: customer.language, saveToFile: false, useGoogle: true })];
+                return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: welcomeHtml, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
             case 4:
                 translatedWelcomeHtml = (_b.sent()) || welcomeHtml;
                 return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: "Welcome to Repairfind", targetLang: customer.language })];
@@ -103,7 +103,7 @@ var signUp = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                 translatedWelcomeSubject = (_b.sent()) || 'Welcome to Repairfind';
                 services_1.EmailService.send(email, translatedWelcomeSubject, translatedWelcomeHtml);
                 emailVerificationHtml = (0, OtpEmailTemplate_1.OtpEmailTemplate)(otp, firstName, 'We have received a request to verify your email');
-                return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailVerificationHtml, targetLang: customer.language, saveToFile: false, useGoogle: true })];
+                return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailVerificationHtml, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
             case 6:
                 translatedVerificationHtml = (_b.sent()) || emailVerificationHtml;
                 return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: "'Email Verification", targetLang: customer.language })];
@@ -351,7 +351,7 @@ var resendEmail = function (req, res) { return __awaiter(void 0, void 0, void 0,
             case 2:
                 _a.sent();
                 html = (0, OtpEmailTemplate_1.OtpEmailTemplate)(otp, customer.firstName, "We have received a request to verify your email");
-                return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true })];
+                return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
             case 3:
                 translatedHtml = (_a.sent()) || html;
                 return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: "Email Verification", targetLang: customer.language })];
@@ -399,18 +399,10 @@ var forgotPassword = function (req, res) { return __awaiter(void 0, void 0, void
             case 2:
                 _a.sent();
                 html = (0, OtpEmailTemplate_1.OtpEmailTemplate)(otp, customer.firstName, "We have received a request to change your password");
-                return [4 /*yield*/, i18n_1.i18n.getTranslation({
-                        phraseOrSlug: html,
-                        targetLang: customer.language,
-                        saveToFile: false,
-                        useGoogle: true
-                    })];
+                return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
             case 3:
                 translatedHtml = (_a.sent()) || html;
-                return [4 /*yield*/, i18n_1.i18n.getTranslation({
-                        phraseOrSlug: "Password Change",
-                        targetLang: customer.language
-                    })];
+                return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: "Password Change", targetLang: customer.language })];
             case 4:
                 translatedSubject = (_a.sent()) || 'Password Change';
                 services_1.EmailService.send(email, translatedSubject, translatedHtml);

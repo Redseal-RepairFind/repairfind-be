@@ -92,7 +92,7 @@ exports.AccountEvent.on('ACCOUNT_REPORTED', function (payload) {
                     emailSubject = 'Account Reported ';
                     emailContent = "\n                    <h2>".concat(emailSubject, "</h2>\n                    <p>Hello ").concat(reportedUser.firstName, ",</p>\n                    <p style=\"color: #333333;\">Your account was reported for abuse and we are currently investigating your account </p>\n                    <p style=\"color: #333333;\">Please note that we operate a three(3) count strike approach, which means that three (3) consecutive reports will lead to your account being temporary suspended</p>\n                     <p style=\"color: #333333;\">If you have any enquiry or concerns kindly reach via any of our available channels</p>\n                    <p style=\"color: #333333;\">Thanks for your patronage</p>\n                    ");
                     html = (0, generic_email_1.GenericEmailTemplate)({ name: reportedUser.firstName, subject: emailSubject, content: emailContent });
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: reportedUser.language, saveToFile: false, useGoogle: true })];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: reportedUser.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
                 case 5:
                     translatedHtml = (_b.sent()) || html;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: reportedUser.language })];

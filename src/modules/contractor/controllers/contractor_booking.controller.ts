@@ -564,8 +564,8 @@ export const assignJob = async (req: any, res: Response, next: NextFunction) => 
         await job.save();
 
         //send email to employee 
-        const html = NewJobAssignedEmailTemplate(contractor, employee, job)
-        EmailService.send(employee.email, "New Job Assigned", html)
+        // const html = NewJobAssignedEmailTemplate(contractor, employee, job)
+        // EmailService.send(employee.email, "New Job Assigned", html)
 
 
         res.json({ success: true, message: `Job assigned successfully`, data: job });

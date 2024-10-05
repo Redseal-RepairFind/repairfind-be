@@ -42,9 +42,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CustomerJobController = exports.getJobEnquiries = exports.getJobSingleEnquiry = exports.replyJobEnquiry = exports.declineJobQuotation = exports.scheduleJob = exports.acceptJobQuotation = exports.getSingleQuotation = exports.getQuotation = exports.getAllQuotations = exports.getJobQuotations = exports.getSingleJob = exports.getJobHistory = exports.getMyJobs = exports.createJobListing = exports.createJobRequest = void 0;
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
-var jobRequestTemplate_1 = require("../../../templates/contractor/jobRequestTemplate");
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
-var services_1 = require("../../../services");
 var date_fns_1 = require("date-fns");
 var job_model_1 = require("../../../database/common/job.model");
 var custom_errors_1 = require("../../../utils/custom.errors");
@@ -60,7 +58,7 @@ var conversation_util_1 = require("../../../utils/conversation.util");
 var payment_schema_1 = require("../../../database/common/payment.schema");
 var job_util_1 = require("../../../utils/job.util");
 var createJobRequest = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, _a, contractorId, category, language, description, location_1, date, _b, expiresIn, emergency, media, voiceDescription, time, customerId, customer, contractor, contractorProfile, currentDate, expiryDate, newJob, conversationMembers, conversation, newMessage, html, error_1;
+    var errors, _a, contractorId, category, language, description, location_1, date, _b, expiresIn, emergency, media, voiceDescription, time, customerId, customer, contractor, contractorProfile, currentDate, expiryDate, newJob, conversationMembers, conversation, newMessage, error_1;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
@@ -147,8 +145,8 @@ var createJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 _c.sent();
                 events_1.ConversationEvent.emit('NEW_MESSAGE', { message: newMessage });
                 events_1.JobEvent.emit('NEW_JOB_REQUEST', { jobId: newJob.id, contractorId: contractorId, customerId: customerId, conversationId: conversation.id });
-                html = (0, jobRequestTemplate_1.htmlJobRequestTemplate)(customer.firstName, customer.firstName, "".concat(newJob.date), description);
-                services_1.EmailService.send(contractor.email, 'Job request from customer', html);
+                // const html = htmlJobRequestTemplate(customer.firstName, customer.firstName, `${newJob.date}`, description)
+                // EmailService.send(contractor.email, 'Job request from customer', html)
                 res.status(201).json({ success: true, message: 'Job request submitted successfully', data: newJob });
                 return [3 /*break*/, 9];
             case 8:

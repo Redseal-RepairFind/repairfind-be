@@ -117,8 +117,9 @@ export const createJobRequest = async (
         await conversation.save()
         ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
         JobEvent.emit('NEW_JOB_REQUEST', { jobId: newJob.id, contractorId, customerId, conversationId: conversation.id })
-        const html = htmlJobRequestTemplate(customer.firstName, customer.firstName, `${newJob.date}`, description)
-        EmailService.send(contractor.email, 'Job request from customer', html)
+        
+        // const html = htmlJobRequestTemplate(customer.firstName, customer.firstName, `${newJob.date}`, description)
+        // EmailService.send(contractor.email, 'Job request from customer', html)
 
         res.status(201).json({ success: true, message: 'Job request submitted successfully', data: newJob });
     } catch (error: any) {

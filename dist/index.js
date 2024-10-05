@@ -155,16 +155,14 @@ socketio_1.default.initialize(server);
 twillio_1.default.initialize();
 //FCM
 fcm_1.FCMNotification.initializeFirebase();
-var InittimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-logger_1.Logger.info("Current timezone: ".concat(InittimeZone));
 // Set the default timezone to PST (Pacific Standard Time)
 // process.env.TZ = 'America/Los_Angeles';
 // Initialize server
 var port = process.env.PORT || 3000;
-var FirsttimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-logger_1.Logger.info("Current timezone: ".concat(FirsttimeZone));
+var timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+logger_1.Logger.info("Current server timezone: ".concat(timeZone));
 server.listen(port, function () {
-    logger_1.Logger.info("Server listening on port ".concat(port, " - Timezone::: ").concat(process.env.TZ));
+    logger_1.Logger.info("Server listening on port ".concat(port, " - Timezone::: ").concat(timeZone));
 });
 function PaypalPaymentMethodCheckoutTemplate(arg0) {
     throw new Error("Function not implemented.");

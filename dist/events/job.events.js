@@ -481,7 +481,7 @@ exports.JobEvent.on('JOB_CANCELED', function (payload) {
                     if (!(payload.canceledBy == 'contractor')) return [3 /*break*/, 5];
                     logger_1.Logger.info('job cancelled by contractor');
                     html = (0, job_canceled_template_1.JobCanceledEmailTemplate)({ name: customer.name, canceledBy: payload.canceledBy, job: payload.job });
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true })];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
                 case 3:
                     translatedHtml = (_c.sent()) || html;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: "Job Canceled", targetLang: contractor.language })];
@@ -493,7 +493,7 @@ exports.JobEvent.on('JOB_CANCELED', function (payload) {
                     if (!(payload.canceledBy == 'customer')) return [3 /*break*/, 8];
                     logger_1.Logger.info('job cancelled by customer');
                     html = (0, job_canceled_template_1.JobCanceledEmailTemplate)({ name: contractor.name, canceledBy: 'customer', job: payload.job });
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true })];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
                 case 6:
                     translatedHtml = (_c.sent()) || html;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: "Job Canceled", targetLang: customer.language })];
@@ -767,7 +767,7 @@ exports.JobEvent.on('JOB_QUOTATION_DECLINED', function (payload) {
                     emailSubject = 'Job Quotation Decline';
                     emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(contractor.name, ",</p>\n                <p style=\"color: #333333;\">Your job  quotation for a job  on RepairFind was declined.</p>\n                <p>\n                    <strong>Job Title:</strong> ").concat(job.title, " </br>\n                    <strong>Customer:</strong> ").concat(customer.name, " </br>\n                    <strong>Reason:</strong> ").concat(payload.reason, "  </br>\n                </p>\n              \n                <p>Login to our app to follow up </p>\n                ");
                     html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true })];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
                 case 4:
                     translatedHtml = (_b.sent()) || html;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: contractor.language })];
@@ -840,7 +840,7 @@ exports.JobEvent.on('JOB_QUOTATION_ACCEPTED', function (payload) {
                     emailSubject = 'Job Quotation Accepted';
                     emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(contractor.name, ",</p>\n                <p style=\"color: #333333;\">Congratulations! your job quotation for a job  on RepairFind was accepted.</p>\n                <p>\n                    <strong>Job Title:</strong> ").concat(job.title, " </br>\n                    <strong>Customer:</strong> ").concat(customer.name, " </br>\n                </p>\n              \n                <p>Login to our app to follow up </p>\n                ");
                     html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true })];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
                 case 4:
                     translatedHtml = (_b.sent()) || html;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: contractor.language })];
@@ -975,7 +975,7 @@ exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
                     emailSubject = 'Job Reschedule Request';
                     emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(contractor.name, ",</p>\n                <p style=\"color: #333333;\">Your Job reschedule request on Repairfind has been ").concat(payload.action, " by customer</p>\n                <p><strong>Job Title:</strong> ").concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(rescheduleDate, "</p>\n                ");
                     html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true })];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
                 case 4:
                     translatedHtml = (_e.sent()) || html;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: contractor.language })];
@@ -1032,7 +1032,7 @@ exports.JobEvent.on('JOB_RESCHEDULE_DECLINED_ACCEPTED', function (payload) {
                     emailSubject = 'Job Reschedule Request';
                     emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(customer.name, ",</p>\n                <p style=\"color: #333333;\">Your Job reschedule request on Repairfind has been ").concat(payload.action, "  by the contractor</p>\n                <p><strong>Job Title:</strong> ").concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(rescheduleDate, "</p>\n                ");
                     html = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: emailSubject, content: emailContent });
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true })];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
                 case 9:
                     translatedHtml = (_e.sent()) || html;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: customer.language })];
@@ -1130,7 +1130,7 @@ exports.JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', function (payload) {
                     emailSubject = 'Job Schedule';
                     emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(customer.name, ",</p>\n                <p style=\"color: #333333;\">Contractor has requested  to reschedule a job on RepairFind</p>\n                <p><strong>Job Title:</strong> ").concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(rescheduleDate, "</p>\n                ");
                     html = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: emailSubject, content: emailContent });
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true })];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
                 case 4:
                     translatedHtml = (_e.sent()) || html;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: customer.language })];
@@ -1173,7 +1173,7 @@ exports.JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', function (payload) {
                     emailSubject = 'Job Schedule';
                     emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(contractor.name, ",</p>\n                <p style=\"color: #333333;\">Customer has requested  to reschedule a job on RepairFind</p>\n                <p><strong>Job Title:</strong> ").concat(payload.job.description, "</p>\n                <p><strong>Proposed Date:</strong> ").concat(rescheduleDate, "</p>\n                ");
                     html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true })];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
                 case 7:
                     translatedHtml = (_e.sent()) || html;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: contractor.language })];
@@ -1277,7 +1277,7 @@ exports.JobEvent.on('JOB_BOOKED', function (payload) {
                     emailContent = "\n                    <h2>".concat(emailSubject, "</h2>\n                    <p style=\"color: #333333;\">Hello ").concat(contractor.name, ",</p>\n                    <p style=\"color: #333333;\">You have received escrow payment for a job on RepairFind. The money is securely held in Escrow, and will be released to your paypal email once job is done</p>\n                    <p><strong>Job Title:</strong> ").concat(job.description, "</p>\n                    <p><strong>Scheduled Date:</strong>").concat(jobDateContractor, "</p>\n                    <hr>\n                    <p style=\"color: #333333;\">Thank you for your service!</p>\n                    <p style=\"color: #333333;\">Kindly open the App for more information.</p>\n                ");
                     receipthtmlContent = "\n                    <h3>Escrow Payment Receipt</h3>\n                    <p><strong>RepairFind</strong><br>\n                    Phone: (604) 568-6378<br>\n                    Email: info@repairfind.ca</p>\n                    <hr>\n\n                    <p>Date: ".concat(currentDate, "<br>\n                    Receipt Number: RFP").concat(paymentReceipt, "</p>\n\n                    <p><strong>Contractor:</strong><br>\n                    ").concat(contractor.name, "<br>\n                    ").concat((_f = contractorProfile === null || contractorProfile === void 0 ? void 0 : contractorProfile.location) === null || _f === void 0 ? void 0 : _f.address, "<br>\n                    </p>\n\n                    <hr>\n                    <strong>Description:</strong>\n                    <strong>Job Title:</strong> ").concat(job.description, "<br>\n                    <strong>Scheduled Date:</strong> ").concat(jobDateContractor, "\n\n                    <p><strong>Invoice Items:</strong></p>\n                    <table style=\"width: 100%; border-collapse: collapse; border: 1px solid lightgray;\">\n                    ").concat(estimates.map(function (estimate) { return "\n                        <tr>\n                          <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>".concat(estimate.description, "</strong></td>\n                          <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat((estimate.rate * estimate.quantity).toFixed(2), "</td>\n                        </tr>\n                      "); }).join(''), "   \n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Subtotal</strong></td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat((charges.subtotal).toFixed(2), "</td>\n                        </tr>\n                    </table>\n                    <p><strong>Deduction/Charges:</strong></p>\n                    <table style=\"width: 100%; border-collapse: collapse; border: 1px solid lightgray;\">\n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\">Payment Processing Fee ($").concat(charges.customerProcessingFeeRate, "%)</td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat(charges.contractorProcessingFee, "</td>\n                        </tr>\n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\">Service Fee (").concat(charges.repairfindServiceFeeRate, "%)</td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat(charges.repairfindServiceFee, "</td>\n                        </tr>\n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Total Deducted</strong></td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\"><strong>$").concat(charges.repairfindServiceFee + charges.contractorProcessingFee, "</strong></td>\n                        </tr>\n                    </table>\n                    <p><strong>Net Amount to Contractor:</strong> $").concat(charges.subtotal, " + GST $").concat(charges.gstAmount, " - Total Deduction $").concat(charges.repairfindServiceFee + charges.contractorProcessingFee, " = $").concat(charges.contractorPayable, "</p>\n                    <p><strong>Payment Method:</strong> Card Payment<br>\n                    <strong>Transaction ID:</strong> RFT").concat(quotation.id, "</p>\n                ");
                     html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true })];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
                 case 7:
                     translatedHtml = (_k.sent()) || html;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: contractor.language })];
@@ -1285,9 +1285,9 @@ exports.JobEvent.on('JOB_BOOKED', function (payload) {
                     translatedSubject = (_k.sent()) || emailSubject;
                     services_1.EmailService.send(contractor.email, translatedSubject, translatedHtml);
                     receipthtml = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: 'Escrow Payment Receipt', content: receipthtmlContent });
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: receipthtml, targetLang: contractor.language, saveToFile: false, useGoogle: true })];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: receipthtml, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
                 case 9:
-                    translatedReceiptHtml = (_k.sent()) || html;
+                    translatedReceiptHtml = (_k.sent()) || receipthtml;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'Escrow Payment Receipt', targetLang: contractor.language })];
                 case 10:
                     translatedReceiptSubject = (_k.sent()) || 'Escrow Payment Receipt';
@@ -1312,7 +1312,7 @@ exports.JobEvent.on('JOB_BOOKED', function (payload) {
                     emailContent = "\n                 <h2>".concat(emailSubject, "</h2>\n                  <p style=\"color: #333333;\">Hello ").concat(customer.name, ",</p>\n                  <p style=\"color: #333333;\">You have made a payment for a job on RepairFind. The money is held securely in Escrow until job is is complete</p>\n                  <p><strong>Job Title:</strong> ").concat(job.description, "</p>\n                  <p><strong>Proposed Date:</strong>").concat(jobDateCustomer, "</p>\n                  <p style=\"color: #333333;\">Thank you for your payment!</p>\n                  <p style=\"color: #333333;\">If you did not initiate this payment, kindly reach out to us via support.</p>\n                ");
                     receiptContent = "\n                    <p><strong>RepairFind</strong><br>\n                    Phone: (604) 568-6378<br>\n                    Email: info@repairfind.ca</p>\n                    <hr>\n\n                    <p><strong>Receipt</strong></p>\n                    <p>Date: ".concat(currentDate, "<br>\n                    Receipt Number: RFP").concat(paymentReceipt, "</p>\n                    <p><strong>Customer:</strong><br>\n                    ").concat(customer.name, "<br>\n                    ").concat((_g = customer === null || customer === void 0 ? void 0 : customer.location) === null || _g === void 0 ? void 0 : _g.address, "<br>\n\n                    <hr>\n                    <strong>Description:</strong>\n                    <strong>Job Title:</strong> ").concat(job.description, " <br>\n                    <strong>Scheduled Date:</strong> ").concat(jobDateCustomer, "\n\n                    <p><strong>Services/Charges:</strong></p>\n                    <table style=\"width: 100%; border-collapse: collapse; border: 1px solid lightgray; margin-bottom: 10px;\">\n                         ").concat(estimates.map(function (estimate) { return "\n                        <tr>\n                          <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>".concat(estimate.description, "</strong></td>\n                          <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat((estimate.rate * estimate.quantity).toFixed(2), "</td>\n                        </tr>\n                      "); }).join(''), "   \n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Subtotal</strong></td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\"><strong>$").concat((charges.subtotal).toFixed(2), "</strong></td>\n                        </tr>\n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\">GST (").concat(charges.gstRate, "%)</td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat(charges.gstAmount, "</td>\n                        </tr>\n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\">Payment Processing Fee (").concat(charges.customerProcessingFeeRate, "%)</td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\">$").concat(charges.customerProcessingFee, "</td>\n                        </tr>\n                       \n                        <tr>\n                            <td style=\"border: 1px solid lightgray; padding: 8px;\"><strong>Total Amount Due</strong></td>\n                            <td style=\"border: 1px solid lightgray; padding: 8px; text-align: right;\"><strong>$").concat(charges.customerPayable, "</strong></td>\n                        </tr>\n                    </table>\n                  <p><strong>Payment Method:</strong> Credit/Debit Card<br>\n                  <strong>Transaction ID:</strong> RPT").concat(quotation.id, "</p>\n                  <p style=\"color: #333333;\">Thank you for your payment!</p>\n                  <p style=\"color: #333333;\">If you did not initiate this payment, kindly reach out to us via support.</p>\n                ");
                     html = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: emailSubject, content: emailContent });
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true })];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
                 case 12:
                     translatedHtml = (_k.sent()) || html;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: customer.language })];
@@ -1320,9 +1320,9 @@ exports.JobEvent.on('JOB_BOOKED', function (payload) {
                     translatedSubject = (_k.sent()) || emailSubject;
                     services_1.EmailService.send(customer.email, translatedSubject, translatedHtml);
                     receipthtml = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: 'Payment Receipt', content: receiptContent });
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: receipthtml, targetLang: customer.language, saveToFile: false, useGoogle: true })];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: receipthtml, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
                 case 14:
-                    translatedReceiptHtml = (_k.sent()) || html;
+                    translatedReceiptHtml = (_k.sent()) || receipthtml;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'Payment Receipt', targetLang: customer.language })];
                 case 15:
                     translatedReceiptSubject = (_k.sent()) || 'Payment Receipt';
@@ -2434,7 +2434,7 @@ exports.JobEvent.on('JOB_REFUND_REQUESTED', function (payload) {
                     emailSubject = 'Job Refund Requested';
                     emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(customer.name, ",</p>\n                <p style=\"color: #333333;\">A refund for your job on Repairfind has been requested </p>\n                <p style=\"color: #333333;\">The refund should be completed in 24 hours </p>\n                <p><strong>Job Title:</strong> ").concat(job.description, "</p>\n                <p><strong>Job Amount</strong> ").concat(payment.amount, "</p>\n                <p><strong>Refund Amount:</strong> ").concat(refund.refundAmount, "</p>\n                ");
                     html = (0, generic_email_1.GenericEmailTemplate)({ name: customer.name, subject: emailSubject, content: emailContent });
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true })];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: customer.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
                 case 3:
                     translatedHtml = (_a.sent()) || html;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: customer.language })];
@@ -2445,7 +2445,7 @@ exports.JobEvent.on('JOB_REFUND_REQUESTED', function (payload) {
                     emailSubject = 'Job Refund Requested';
                     emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(contractor.name, ",</p>\n                <p style=\"color: #333333;\">A refund for your job on Repairfind has been requested </p>\n                <p style=\"color: #333333;\">The refund should be completed in 24 hours </p>\n                <p><strong>Job Title:</strong> ").concat(job.description, "</p>\n                <p><strong>Job Amount</strong> ").concat(payment.amount, "</p>\n                <p><strong>Refund Amount:</strong> ").concat(refund.refundAmount, "</p>\n                ");
                     html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true })];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
                 case 5:
                     translatedHtmlC = (_a.sent()) || html;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: contractor.language })];
@@ -2557,7 +2557,7 @@ exports.JobEvent.on('NEW_JOB_ENQUIRY', function (payload) {
                     emailSubject = 'New Job Enquiry ';
                     emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p>Hello ").concat(customer_1.name, ",</p>\n                <p style=\"color: #333333;\">Your Job on Repairfind has a new enquiry</p>\n                <div style=\"background: whitesmoke;padding: 10px; border-radius: 10px;\">\n                <p style=\"border-bottom: 1px solid lightgray; padding-bottom: 5px;\"><strong>Job Title:</strong> ").concat(job_2.description, "</p>\n                <p style=\"border-bottom: 1px solid lightgray; padding-bottom: 5px;\"><strong>Enquiry:</strong> ").concat(enquiry.enquiry, "</p>\n                </div>\n                <p style=\"color: #333333;\">Do well to check and follow up as soon as possible </p>\n                ");
                     html = (0, generic_email_1.GenericEmailTemplate)({ name: customer_1.name, subject: emailSubject, content: emailContent });
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: customer_1.language, saveToFile: false, useGoogle: true })];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: customer_1.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
                 case 9:
                     translatedHtml = (_b.sent()) || html;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: customer_1.language })];
@@ -2648,7 +2648,7 @@ exports.JobEvent.on('NEW_JOB_ENQUIRY_REPLY', function (payload) {
                     emailSubject = 'Job Enquiry Reply';
                     emailContent = "\n                    <h2>".concat(emailSubject, "</h2>\n                    <p>Hello ").concat(contractor.name, ",</p>\n                    <p style=\"color: #333333;\">Customer has replied to your enquiry on Repairfind</p>\n                    <p style=\"color: #333333;\">Do well to check and follow up </p>\n                    <p><strong>Job Title:</strong> ").concat(job_3.description, "</p>\n                    <p><strong>Your Enquiry</strong> ").concat(enquiry.enquiry, "</p>\n                    <p><strong>Reply</strong> ").concat(enquiry.replies ? enquiry.replies[0] : '', "</p>\n                    ");
                     html = (0, generic_email_1.GenericEmailTemplate)({ name: contractor.name, subject: emailSubject, content: emailContent });
-                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true })];
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: contractor.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
                 case 7:
                     translatedHtml = (_a.sent()) || html;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: contractor.language })];

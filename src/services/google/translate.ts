@@ -6,7 +6,7 @@ import { exceptions } from 'winston';
 
 
 
-export async function translateText({ text, targetLang, sourceLang, format = 'text/plain', model = 'text' }: { text: string; targetLang: string; sourceLang?: string; format?: string; model?: string }): Promise<any> {
+export async function translateText({ text, targetLang, sourceLang, format = 'plain', model = 'text' }: { text: string; targetLang: string; sourceLang?: string; format?: string; model?: string }): Promise<any> {
   try {
     if (!text || !targetLang) {
       throw new Error('Text, source language, and target language are required');
@@ -26,8 +26,7 @@ export async function translateText({ text, targetLang, sourceLang, format = 'te
           target: targetLang,
           key: config.google.apiKey,
           // model: model,
-          // format: format,
-          // mimeType: format,
+          format: format,
         },
       }
     );

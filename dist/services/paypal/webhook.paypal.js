@@ -227,6 +227,7 @@ var paymentCaptureCompleted = function (payload, resourceType) { return __awaite
                     ])];
             case 11:
                 _c.sent();
+                events_1.JobEvent.emit('JOB_BOOKED', { jobId: jobId, contractorId: quotation.contractor, customerId: job.customer, quotationId: quotationId, paymentType: paymentType });
                 return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(job.customer, 'customers', job.contractor, 'contractors')];
             case 12:
                 conversation = _c.sent();
@@ -248,7 +249,6 @@ var paymentCaptureCompleted = function (payload, resourceType) { return __awaite
             case 14:
                 _c.sent();
                 events_1.ConversationEvent.emit('NEW_MESSAGE', { message: newMessage });
-                events_1.JobEvent.emit('JOB_BOOKED', { jobId: jobId, contractorId: quotation.contractor, customerId: job.customer, quotationId: quotationId, paymentType: paymentType });
                 _c.label = 15;
             case 15:
                 if (!(paymentType == payment_schema_1.PAYMENT_TYPE.SITE_VISIT_PAYMENT)) return [3 /*break*/, 20];
