@@ -313,9 +313,9 @@ ContractorSchema.virtual('certnStatus').get(function (this: IContractor) {
   }
 
   // temp fix until app is updated
-  if(status === 'COMPLETE'){
-    status = 'COMPLETED'
-  }
+  // if(status === 'COMPLETE'){
+  //   status = 'COMPLETED'
+  // }
   return status
 });
 
@@ -347,9 +347,9 @@ ContractorSchema.virtual('certnReport').get(function (this: IContractor) {
   }
 
   // temp fix until app is updated
-  if(status === 'COMPLETE'){
-    status = 'COMPLETED'
-  }
+  // if(status === 'COMPLETE'){
+  //   status = 'COMPLETED'
+  // }
   return { status, action }
 });
 
