@@ -2043,35 +2043,35 @@ exports.JobEvent.on('JOB_QUOTATION_EDITED', function (payload) {
     });
 });
 exports.JobEvent.on('CHANGE_ORDER_ESTIMATE_PAID', function (payload) {
-    var _a;
+    var _a, _b;
     return __awaiter(this, void 0, void 0, function () {
-        var job, jobDay, customer, contractor, contractorLang, nTitle, nMessage, error_22;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
+        var job, jobDay, customer, contractor, contractorLang, nTitle, nMessage, customerLang, error_22;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
                 case 0:
-                    _b.trys.push([0, 6, , 7]);
+                    _c.trys.push([0, 8, , 9]);
                     logger_1.Logger.info('handling CHANGE_ORDER_ESTIMATE_PAID event', payload.job.id);
                     job = payload.job;
                     if (!job)
                         return [2 /*return*/];
                     return [4 /*yield*/, job_day_model_1.JobDayModel.findOne({ job: job.id })];
                 case 1:
-                    jobDay = _b.sent();
+                    jobDay = _c.sent();
                     return [4 /*yield*/, customer_model_1.default.findById(job.customer)];
                 case 2:
-                    customer = _b.sent();
+                    customer = _c.sent();
                     return [4 /*yield*/, contractor_model_1.ContractorModel.findById(job.contractor)];
                 case 3:
-                    contractor = _b.sent();
+                    contractor = _c.sent();
                     if (!customer || !contractor)
                         return [2 /*return*/];
                     contractorLang = contractor.language;
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'Change Order Estimate Paid', targetLang: contractorLang })];
                 case 4:
-                    nTitle = _b.sent();
+                    nTitle = _c.sent();
                     return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'Change order estimate has been paid', targetLang: contractorLang })];
                 case 5:
-                    nMessage = _b.sent();
+                    nMessage = _c.sent();
                     services_1.NotificationService.sendNotification({
                         user: contractor.id,
                         userType: 'contractors',
@@ -2089,12 +2089,36 @@ exports.JobEvent.on('CHANGE_ORDER_ESTIMATE_PAID', function (payload) {
                             jobDayId: jobDay === null || jobDay === void 0 ? void 0 : jobDay.id
                         }
                     }, { push: true, socket: true, database: true });
-                    return [3 /*break*/, 7];
+                    customerLang = contractor.language;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'Change Order Estimate Paid', targetLang: customerLang })];
                 case 6:
-                    error_22 = _b.sent();
+                    nTitle = _c.sent();
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: 'Change order estimate has been paid', targetLang: customerLang })];
+                case 7:
+                    nMessage = _c.sent();
+                    services_1.NotificationService.sendNotification({
+                        user: customer.id,
+                        userType: 'customers',
+                        title: nTitle,
+                        type: 'CHANGE_ORDER_ESTIMATE_PAID',
+                        message: nMessage,
+                        heading: { name: "".concat(contractor.name), image: (_b = contractor.profilePhoto) === null || _b === void 0 ? void 0 : _b.url },
+                        payload: {
+                            entity: job.id,
+                            entityType: 'jobs',
+                            message: nMessage,
+                            customer: customer.id,
+                            event: 'CHANGE_ORDER_ESTIMATE_PAID',
+                            jobId: job.id,
+                            jobDayId: jobDay === null || jobDay === void 0 ? void 0 : jobDay.id
+                        }
+                    }, { push: true, socket: true, database: true });
+                    return [3 /*break*/, 9];
+                case 8:
+                    error_22 = _c.sent();
                     logger_1.Logger.error("Error handling CHANGE_ORDER_ESTIMATE_PAID event: ".concat(error_22));
-                    return [3 /*break*/, 7];
-                case 7: return [2 /*return*/];
+                    return [3 /*break*/, 9];
+                case 9: return [2 /*return*/];
             }
         });
     });

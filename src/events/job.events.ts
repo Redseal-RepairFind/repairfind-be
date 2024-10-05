@@ -2000,6 +2000,30 @@ JobEvent.on('CHANGE_ORDER_ESTIMATE_PAID', async function (payload: { job: IJob, 
 
 
 
+        const customerLang = contractor.language;
+         nTitle = await i18n.getTranslation({ phraseOrSlug: 'Change Order Estimate Paid', targetLang: customerLang });
+         nMessage = await i18n.getTranslation({ phraseOrSlug: 'Change order estimate has been paid', targetLang: customerLang });
+
+        NotificationService.sendNotification({
+            user: customer.id,
+            userType: 'customers',
+            title: nTitle,
+            type: 'CHANGE_ORDER_ESTIMATE_PAID',
+            message: nMessage,
+            heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
+            payload: {
+                entity: job.id,
+                entityType: 'jobs',
+                message: nMessage,
+                customer: customer.id,
+                event: 'CHANGE_ORDER_ESTIMATE_PAID',
+                jobId: job.id,
+                jobDayId: jobDay?.id
+            }
+        }, { push: true, socket: true, database: true });
+
+
+
     } catch (error) {
         Logger.error(`Error handling CHANGE_ORDER_ESTIMATE_PAID event: ${error}`);
     }
