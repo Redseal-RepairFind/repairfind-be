@@ -69,5 +69,18 @@
   },
   "your_job_on_repairfind_has_a_new_enquiry": {
     "en": "Your job on Repairfind has a new enquiry"
+  },
+  "job_schedule_reminder": {
+    "en": "Job Schedule Reminder",
+    "es": "Recordatorio de horario de trabajo",
+    "zh": "工作安排提醒"
+  },
+  "you_have_a_job_with_customer_user_scheduled_for_today_sat_5_october_2024_at_8_13_am_pacific_daylight_time": {
+    "en": "You have a job with Customer User scheduled for today Sat 5 October 2024 at 8:13 am Pacific Daylight Time",
+    "es": "Tiene un trabajo con Usuario Cliente programado para hoy sábado 5 de octubre de 2024 a las 8:13 am, hora de verano del Pacífico."
+  },
+  "you_have_a_job_with_company_scheduled_for_today_sat_5_october_2024_at_6_13_pm_eastern_european_summer_time": {
+    "en": "You have a job with Company scheduled for today Sat 5 October 2024 at 6:13 pm Eastern European Summer Time",
+    "zh": "您在公司工作的时间安排在今天东欧夏令时间 2024 年 10 月 5 日星期六下午 6:13"
   }
 }

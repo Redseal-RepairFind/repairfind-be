@@ -154,16 +154,9 @@ function get12HourFormat(date: Date) {
 async function sendReminderContractor(customer: ICustomer, contractor: IContractor, job: IJob, message: string) {
     
     const contractorLang = contractor.language;
-    let nTitle = await i18n.getTranslation({
-        phraseOrSlug: 'Job Schedule Reminder',
-        targetLang: contractorLang
-    });
-    let nMessage = await i18n.getTranslation({
-        phraseOrSlug: message,
-        targetLang: contractorLang
-    });
+    let nTitle = await i18n.getTranslation({ phraseOrSlug: 'Job Schedule Reminder', targetLang: contractorLang });
+    let nMessage = await i18n.getTranslation({ phraseOrSlug: message, targetLang: contractorLang});
     
-
     NotificationService.sendNotification({
         user: contractor.id,
         userType: 'contractors',
@@ -186,23 +179,16 @@ async function sendReminderContractor(customer: ICustomer, contractor: IContract
 
 async function sendReminderCustomer(customer: ICustomer, contractor: IContractor, job: IJob, message: string) {
     
-    
     const customerLang = customer.language;
-    let nTitle = await i18n.getTranslation({
-        phraseOrSlug: 'Job Schedule Reminder',
-        targetLang: customerLang
-    });
-    let nMessage = await i18n.getTranslation({
-        phraseOrSlug: message,
-        targetLang: customerLang
-    });
+    let nTitle = await i18n.getTranslation({ phraseOrSlug: 'Job Schedule Reminder', targetLang: customerLang });
+    let nMessage = await i18n.getTranslation({ phraseOrSlug: message, targetLang: customerLang});
     
     NotificationService.sendNotification({
         user: customer.id,
         userType: 'customers',
         title: nTitle,
         type: 'JOB_DAY_REMINDER',
-        message: message,
+        message: nMessage,
         heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
         payload: {
             entity: job.id,

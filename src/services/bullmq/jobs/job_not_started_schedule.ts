@@ -4,6 +4,7 @@ import { IContractor, IContractorCertnDetails } from "../../../database/contract
 import { ContractorModel } from "../../../database/contractor/models/contractor.model";
 import { ICustomer } from "../../../database/customer/interface/customer.interface";
 import CustomerModel from "../../../database/customer/models/customer.model";
+import { i18n } from "../../../i18n";
 import { Logger } from "../../logger";
 
 export const jobNotStartedScheduleCheck = async () => {
@@ -29,16 +30,55 @@ export const jobNotStartedScheduleCheck = async () => {
 
                 const formattedJobStartDate = `${jobStartDate.toDateString()} at ${get12HourFormat(jobStartDate)}`;
 
-                Logger.info(`JobSchedule Reminder: currentDate: ${currentDate} jobStartDate: ${jobStartDate} formattedJobStartDate: ${formattedJobStartDate} daysDifference: ${daysDifference} hourDifference: ${hourDifference}`);
 
                 if (customer && contractor) {
 
+                    const formattedJobStartDateContractorTz = new Intl.DateTimeFormat('en-GB', {
+                        weekday: 'short',
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                        hour: 'numeric',
+                        minute: 'numeric',
+                        hour12: true,
+                        timeZone: contractor?.currentTimezone,
+                        timeZoneName: 'long'
+                    }).format(new Date(jobStartDate));
+
+                    const formattedJobStartDateCustomerTz = new Intl.DateTimeFormat('en-GB', {
+                        weekday: 'short',
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                        hour: 'numeric',
+                        minute: 'numeric',
+                        hour12: true,
+                        timeZone: customer?.currentTimezone,
+                        timeZoneName: 'long'
+                    }).format(new Date(jobStartDate));
+
+
+                    Logger.info(`JobSchedule Reminder: Not Started`, {
+                        formattedJobStartDateContractorTz: `${formattedJobStartDateContractorTz}`,
+                        formattedJobStartDateCustomerTz: `${formattedJobStartDateCustomerTz}`,
+                        currentDate: `${currentDate} `,
+                        jobStartDate: `${jobStartDate} `,
+                        formattedJobStartDate: `${formattedJobStartDate} `,
+                        daysDifference: `${daysDifference} `,
+                        hourDifference: `${hourDifference}`,
+                    });
+                    
+                    
                     if (daysDifference <= -1) {
                         if (!job.reminders.includes(JOB_SCHEDULE_REMINDER.NOT_STARTED)) {
-                            sendReminderContractor(customer, contractor, job, `Your job with ${customer.name} scheduled for yesterday: ${formattedJobStartDate} was not started`);
                             job.status = JOB_STATUS.NOT_STARTED;
                             job.reminders.push(JOB_SCHEDULE_REMINDER.NOT_STARTED);
-                            await job.save();
+                            await Promise.all([
+                                sendReminderContractor(customer, contractor, job, `Your job with ${customer.name} scheduled for yesterday: ${formattedJobStartDate} was not started`),
+                                sendReminderCustomer(customer, contractor, job, `Your job with ${contractor.name} scheduled for yesterday: ${formattedJobStartDate} was not started`),
+                                job.save()
+                            ])
+
                         }
                         continue;
                     }
@@ -62,13 +102,18 @@ function get12HourFormat(date: Date) {
     return `${formattedHours}:${minutes} ${period}`;
 }
 
-function sendReminderContractor(customer: ICustomer, contractor: IContractor, job: IJob, message: string) {
+async function sendReminderContractor(customer: ICustomer, contractor: IContractor, job: IJob, message: string) {
+    
+    const contractorLang = contractor.language;
+    let nTitle = await i18n.getTranslation({phraseOrSlug: 'Job Schedule Reminder', targetLang: contractorLang });
+    let nMessage = await i18n.getTranslation({ phraseOrSlug: message, targetLang: contractorLang });
+    
     NotificationService.sendNotification({
         user: contractor.id,
         userType: 'contractors',
-        title: 'Job Schedule Reminder',
+        title: nTitle,
         type: 'JOB_DAY_REMINDER',
-        message: message,
+        message: nMessage,
         heading: { name: `${customer.name}`, image: customer.profilePhoto?.url },
         payload: {
             entity: job.id,
@@ -80,13 +125,18 @@ function sendReminderContractor(customer: ICustomer, contractor: IContractor, jo
     }, { push: true, socket: true });
 }
 
-function sendReminderCustomer(customer: ICustomer, contractor: IContractor, job: IJob, message: string) {
+async function sendReminderCustomer(customer: ICustomer, contractor: IContractor, job: IJob, message: string) {
+
+    const customerLang = customer.language;
+    let nTitle = await i18n.getTranslation({ phraseOrSlug: 'Job Schedule Reminder', targetLang: customerLang });
+    let nMessage = await i18n.getTranslation({ phraseOrSlug: message, targetLang: customerLang});
+
     NotificationService.sendNotification({
         user: customer.id,
         userType: 'customers',
-        title: 'Job Schedule Reminder',
+        title: nTitle,
         type: 'JOB_DAY_REMINDER',
-        message: message,
+        message: nMessage,
         heading: { name: `${contractor.name}`, image: contractor.profilePhoto?.url },
         payload: {
             entity: job.id,
