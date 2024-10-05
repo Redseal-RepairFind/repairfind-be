@@ -601,6 +601,8 @@ export const acceptJobQuotation = async (req: any, res: Response, next: NextFunc
         });
 
 
+        conversation.lastMessage = 'Job estimate accepted'
+        await conversation.save()
         ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
 
         await quotation.save()
@@ -744,6 +746,8 @@ export const declineJobQuotation = async (req: any, res: Response, next: NextFun
         });
 
 
+        conversation.lastMessage = 'Job estimate declined'
+        await conversation.save()
         ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
 
         const contractor = await ContractorModel.findById(quotation.contractor)
