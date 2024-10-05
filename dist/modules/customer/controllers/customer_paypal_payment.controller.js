@@ -53,6 +53,7 @@ var messages_schema_1 = require("../../../database/common/messages.schema");
 var paypal_1 = require("../../../services/paypal");
 var conversation_util_1 = require("../../../utils/conversation.util");
 var paypal_payment_log_model_1 = require("../../../database/common/paypal_payment_log.model");
+var logger_1 = require("../../../services/logger");
 var findCustomer = function (customerId) { return __awaiter(void 0, void 0, void 0, function () {
     var customer;
     return __generator(this, function (_a) {
@@ -139,6 +140,7 @@ var createCheckoutOrder = function (req, res, next) { return __awaiter(void 0, v
             case 4:
                 contractor = _b.sent();
                 contractorId = contractor.id;
+                logger_1.Logger.info("createCheckoutOrder", { quotationId: quotationId, isChangeOrder: isChangeOrder });
                 if (!isChangeOrder) return [3 /*break*/, 9];
                 changeOrderEstimate = quotation.changeOrderEstimate;
                 if (!changeOrderEstimate)

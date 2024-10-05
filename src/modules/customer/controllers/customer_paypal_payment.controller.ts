@@ -76,6 +76,8 @@ export const createCheckoutOrder = async (req: any, res: Response, next: NextFun
         const contractorId = contractor.id
 
 
+        Logger.info("createCheckoutOrder", {quotationId, isChangeOrder})
+
 
         if(isChangeOrder){
             const changeOrderEstimate: any = quotation.changeOrderEstimate
