@@ -158,8 +158,7 @@ export const createJobListing = async (
         const dateParts = date.split('-').map((part: any) => part.padStart(2, '0'));
         const formattedDate = dateParts.join('-');
 
-        // let dateTimeString = `${new Date(formattedDate).toISOString().split('T')[0]}T${'23:59:59.000Z'}`; // Combine date and time
-        let dateTimeString = `${new Date(formattedDate).toISOString()}`; // Combine date and time
+        let dateTimeString = `${new Date(formattedDate).toISOString().split('T')[0]}T${'23:59:59.000Z'}`; // Combine date and time
         let jobDate = new Date(dateTimeString);
 
 
@@ -170,8 +169,6 @@ export const createJobListing = async (
             return res.status(400).json({ success: false, message: 'Invalid date format' });
         }
 
-
-        console.log('jobDate', jobDate)
         if ((!isFuture(new Date(jobDate)) && new Date(jobDate) < startOfToday)) {
             return res.status(400).json({ success: false, message: 'Selected Job Date is in the past' });
         }
