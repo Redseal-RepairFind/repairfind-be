@@ -145,7 +145,7 @@ Logger.info(`Current timezone: ${InittimeZone}`);
 
 
 // Set the default timezone to PST (Pacific Standard Time)
-process.env.TZ = 'America/Los_Angeles';
+// process.env.TZ = 'America/Los_Angeles';
 
 
 // Initialize server
