@@ -305,9 +305,9 @@ ContractorSchema.virtual('certnStatus').get(function () {
         }
     }
     // temp fix until app is updated
-    if (status === 'COMPLETE') {
-        status = 'COMPLETED';
-    }
+    // if(status === 'COMPLETE'){
+    //   status = 'COMPLETED'
+    // }
     return status;
 });
 ContractorSchema.virtual('certnReport').get(function () {
@@ -336,9 +336,9 @@ ContractorSchema.virtual('certnReport').get(function () {
         action = certnDetails.application.applicant.application_url;
     }
     // temp fix until app is updated
-    if (status === 'COMPLETE') {
-        status = 'COMPLETED';
-    }
+    // if(status === 'COMPLETE'){
+    //   status = 'COMPLETED'
+    // }
     return { status: status, action: action };
 });
 ContractorSchema.virtual('rating').get(function () {
