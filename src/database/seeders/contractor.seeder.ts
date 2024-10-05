@@ -45,9 +45,7 @@ const contractors = [
       },
       phoneNumber: "3234234",
       previousJobPhotos: [
-        {
-          url: "string",
-        }
+        { url: "https://repairfindbucket.s3-eu-west-3.amazonaws.com/39f0663f-b29f-40ec-9ce5-7b7fa3fbd7c0.jpeg"}
       ],
       previousJobVideos: [
         {

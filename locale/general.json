@@ -27,7 +27,8 @@
   },
   "email_verification": {
     "es": "Verificación de correo electrónico",
-    "fr": "Vérification par e-mail"
+    "fr": "Vérification par e-mail",
+    "en": "Email Verification"
   },
   "new_job_bid": {
     "zh": "新工作投标"
@@ -84,6 +85,7 @@
     "zh": "您在公司工作的时间安排在今天东欧夏令时间 2024 年 10 月 5 日星期六下午 6:13"
   },
   "welcome_to_repairfind": {
-    "es": "Bienvenido a Repairfind"
+    "es": "Bienvenido a Repairfind",
+    "en": "Welcome to Repairfind"
   }
 }
