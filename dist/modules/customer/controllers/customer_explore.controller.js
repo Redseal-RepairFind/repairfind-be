@@ -76,24 +76,29 @@ var customer_model_1 = __importDefault(require("../../../database/customer/model
 var job_model_1 = require("../../../database/common/job.model");
 var job_quotation_model_1 = require("../../../database/common/job_quotation.model");
 var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var errors, customerId, customer, _a, searchName, listing, minDistance, maxDistance, radius, _b, latitude, _c, longitude, emergencyJobs, category, location_1, city, country, address, accountType, date, isOffDuty, availability, experienceYear, gstNumber, _d, page, _e, limit, sort, minResponseTime, maxResponseTime, sortByResponseTime, availableDaysArray, skip, toRadians, pipeline, contractorIdsWithDateInSchedule, _f, sortField, sortOrder, sortStage, result, contractors, metadata, err_1;
-    var _g;
-    var _h, _j, _k;
-    return __generator(this, function (_l) {
-        switch (_l.label) {
+    var errors, customerId, _a, data, error, customer, _b, searchName, listing, minDistance, maxDistance, radius, _c, latitude, _d, longitude, emergencyJobs, category, location_1, city, country, address, accountType, date, isOffDuty, availability, experienceYear, gstNumber, _e, page, _f, limit, sort, minResponseTime, maxResponseTime, sortByResponseTime, availableDaysArray, skip, toRadians, pipeline, contractorIdsWithDateInSchedule, _g, sortField, sortOrder, sortStage, result, contractors, metadata, err_1;
+    var _h;
+    var _j, _k, _l;
+    return __generator(this, function (_m) {
+        switch (_m.label) {
             case 0:
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
                 }
-                customerId = (_h = req === null || req === void 0 ? void 0 : req.customer) === null || _h === void 0 ? void 0 : _h.id;
-                return [4 /*yield*/, customer_model_1.default.findById(customerId)];
+                customerId = (_j = req === null || req === void 0 ? void 0 : req.customer) === null || _j === void 0 ? void 0 : _j.id;
+                if (!!customerId) return [3 /*break*/, 2];
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(contractor_model_1.ContractorModel.find(), {})];
             case 1:
-                customer = _l.sent();
-                _l.label = 2;
-            case 2:
-                _l.trys.push([2, 6, , 7]);
-                _a = req.query, searchName = _a.searchName, listing = _a.listing, minDistance = _a.minDistance, maxDistance = _a.maxDistance, radius = _a.radius, _b = _a.latitude, latitude = _b === void 0 ? Number((_j = customer === null || customer === void 0 ? void 0 : customer.location) === null || _j === void 0 ? void 0 : _j.latitude) : _b, _c = _a.longitude, longitude = _c === void 0 ? Number((_k = customer === null || customer === void 0 ? void 0 : customer.location) === null || _k === void 0 ? void 0 : _k.longitude) : _c, emergencyJobs = _a.emergencyJobs, category = _a.category, location_1 = _a.location, city = _a.city, country = _a.country, address = _a.address, accountType = _a.accountType, date = _a.date, isOffDuty = _a.isOffDuty, availability = _a.availability, experienceYear = _a.experienceYear, gstNumber = _a.gstNumber, _d = _a.page, page = _d === void 0 ? 1 : _d, _e = _a.limit, limit = _e === void 0 ? 10 : _e, sort = _a.sort, minResponseTime = _a.minResponseTime, maxResponseTime = _a.maxResponseTime, sortByResponseTime = _a.sortByResponseTime;
+                _a = _m.sent(), data = _a.data, error = _a.error;
+                return [2 /*return*/, res.status(200).json({ success: true, message: 'Contractors retrieved successfully', data: data })];
+            case 2: return [4 /*yield*/, customer_model_1.default.findById(customerId)];
+            case 3:
+                customer = _m.sent();
+                _m.label = 4;
+            case 4:
+                _m.trys.push([4, 8, , 9]);
+                _b = req.query, searchName = _b.searchName, listing = _b.listing, minDistance = _b.minDistance, maxDistance = _b.maxDistance, radius = _b.radius, _c = _b.latitude, latitude = _c === void 0 ? Number((_k = customer === null || customer === void 0 ? void 0 : customer.location) === null || _k === void 0 ? void 0 : _k.latitude) : _c, _d = _b.longitude, longitude = _d === void 0 ? Number((_l = customer === null || customer === void 0 ? void 0 : customer.location) === null || _l === void 0 ? void 0 : _l.longitude) : _d, emergencyJobs = _b.emergencyJobs, category = _b.category, location_1 = _b.location, city = _b.city, country = _b.country, address = _b.address, accountType = _b.accountType, date = _b.date, isOffDuty = _b.isOffDuty, availability = _b.availability, experienceYear = _b.experienceYear, gstNumber = _b.gstNumber, _e = _b.page, page = _e === void 0 ? 1 : _e, _f = _b.limit, limit = _f === void 0 ? 10 : _f, sort = _b.sort, minResponseTime = _b.minResponseTime, maxResponseTime = _b.maxResponseTime, sortByResponseTime = _b.sortByResponseTime;
                 availableDaysArray = availability ? availability.split(',') : [];
                 skip = (parseInt(page) - 1) * parseInt(limit);
                 toRadians = function (degrees) { return degrees * (Math.PI / 180); };
@@ -299,13 +304,13 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
                 if (gstNumber) {
                     pipeline.push({ $match: { "profile.gstNumber": gstNumber } });
                 }
-                if (!date) return [3 /*break*/, 4];
+                if (!date) return [3 /*break*/, 6];
                 return [4 /*yield*/, (0, schedule_util_1.getContractorIdsWithDateInSchedule)(new Date(date))];
-            case 3:
-                contractorIdsWithDateInSchedule = _l.sent();
+            case 5:
+                contractorIdsWithDateInSchedule = _m.sent();
                 pipeline.push({ $match: { "profile.contractor": { $in: contractorIdsWithDateInSchedule } } });
-                _l.label = 4;
-            case 4:
+                _m.label = 6;
+            case 6:
                 if (availability) {
                     pipeline.push({ $match: { "profile.availability": { $in: availableDaysArray } } });
                 }
@@ -331,10 +336,10 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
                 //     pipeline.push({ $sort: { avgResponseTime: sortOrder } });
                 // }
                 if (sort) {
-                    _f = sort.startsWith('-') ? [sort.slice(1), -1] : [sort, 1], sortField = _f[0], sortOrder = _f[1];
+                    _g = sort.startsWith('-') ? [sort.slice(1), -1] : [sort, 1], sortField = _g[0], sortOrder = _g[1];
                     sortStage = {
                         //@ts-ignore
-                        $sort: (_g = {}, _g[sortField] = sortOrder, _g)
+                        $sort: (_h = {}, _h[sortField] = sortOrder, _h)
                     };
                     pipeline.push(sortStage);
                 }
@@ -368,19 +373,19 @@ var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, 
                     }
                 });
                 return [4 /*yield*/, contractor_model_1.ContractorModel.aggregate(pipeline)];
-            case 5:
-                result = _l.sent();
+            case 7:
+                result = _m.sent();
                 contractors = result[0].data;
                 metadata = result[0].metadata[0];
                 // Send response
                 res.status(200).json({ success: true, data: __assign(__assign({}, metadata), { data: contractors }) });
-                return [3 /*break*/, 7];
-            case 6:
-                err_1 = _l.sent();
+                return [3 /*break*/, 9];
+            case 8:
+                err_1 = _m.sent();
                 console.error("Error fetching contractors:", err_1);
                 res.status(400).json({ message: 'Something went wrong' });
-                return [3 /*break*/, 7];
-            case 7: return [2 /*return*/];
+                return [3 /*break*/, 9];
+            case 9: return [2 /*return*/];
         }
     });
 }); };

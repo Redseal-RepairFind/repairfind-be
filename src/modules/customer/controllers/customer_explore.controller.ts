@@ -35,8 +35,16 @@ export const exploreContractors = async (
         return res.status(400).json({ errors: errors.array() });
     }
     const customerId = req?.customer?.id
+
+    if (!customerId) {
+        const { data, error } = await applyAPIFeature(ContractorModel.find(), {})
+        return res.status(200).json({ success: true, message: 'Contractors retrieved successfully', data: data });
+    }
+
+
     const customer = await CustomerModel.findById(customerId);
     try {
+
         let {
             searchName,
             listing,
@@ -96,7 +104,7 @@ export const exploreContractors = async (
                     },
                     rating: { $avg: '$reviews.averageRating' }, // Calculate average rating using $avg
                     reviewCount: { $size: '$reviews' }, // Calculate average rating using $avg
-                    
+
                     stripeAccountStatus: {
                         details_submitted: "$stripeAccount.details_submitted",
                         payouts_enabled: "$stripeAccount.payouts_enabled",
@@ -223,7 +231,7 @@ export const exploreContractors = async (
 
 
             // filter out contractors without certn approval
-             { $match: { "certnDetails.report_status": 'COMPLETE' } },
+            { $match: { "certnDetails.report_status": 'COMPLETE' } },
 
             //example filter out employees and contractors 
             { $match: { accountType: { $ne: CONTRACTOR_TYPES.Employee } } },
@@ -261,7 +269,7 @@ export const exploreContractors = async (
                 }
             );
         }
-        
+
 
         if (searchName) {
             pipeline.push({ $match: { "name": { $regex: new RegExp(searchName, 'i') } } });
