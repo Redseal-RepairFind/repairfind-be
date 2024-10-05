@@ -1203,6 +1203,9 @@ exports.JobEvent.on('NEW_JOB_RESCHEDULE_REQUEST', function (payload) {
                 case 10:
                     _e.sent();
                     conversation.lastMessageAt = new Date();
+                    conversation.lastMessage = "Job reschedule requested";
+                    conversation.entity = job.id;
+                    conversation.entityType = conversations_schema_1.ConversationEntityType.JOB;
                     return [4 /*yield*/, conversation.save()];
                 case 11:
                     _e.sent();

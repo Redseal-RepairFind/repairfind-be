@@ -158,7 +158,7 @@ var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 7, , 8]);
+                _a.trys.push([0, 8, , 9]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -223,15 +223,22 @@ var acceptJobRequest = function (req, res, next) { return __awaiter(void 0, void
                 return [4 /*yield*/, message.save()];
             case 6:
                 _a.sent();
+                conversation.lastMessage = "Job Request accepted";
+                conversation.lastMessageAt = new Date();
+                conversation.entityType = conversations_schema_1.ConversationEntityType.JOB;
+                conversation.entity = job.id;
+                return [4 /*yield*/, conversation.save()];
+            case 7:
+                _a.sent();
                 events_1.ConversationEvent.emit('NEW_MESSAGE', { message: message });
                 events_1.JobEvent.emit('JOB_REQUEST_ACCEPTED', { job: job });
                 // Return success response
                 res.json({ success: true, message: 'Job request accepted successfully' });
-                return [3 /*break*/, 8];
-            case 7:
+                return [3 /*break*/, 9];
+            case 8:
                 error_2 = _a.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError('Something went wrong', error_2))];
-            case 8: return [2 /*return*/];
+            case 9: return [2 /*return*/];
         }
     });
 }); };
@@ -241,7 +248,7 @@ var rejectJobRequest = function (req, res) { return __awaiter(void 0, void 0, vo
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 4, , 5]);
+                _a.trys.push([0, 5, , 6]);
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -291,16 +298,23 @@ var rejectJobRequest = function (req, res) { return __awaiter(void 0, void 0, vo
                     entity: job.id,
                     entityType: 'jobs'
                 });
+                conversation.lastMessage = "Job Request rejected";
+                conversation.lastMessageAt = new Date();
+                conversation.entityType = conversations_schema_1.ConversationEntityType.JOB;
+                conversation.entity = job.id;
+                return [4 /*yield*/, conversation.save()];
+            case 4:
+                _a.sent();
                 events_1.ConversationEvent.emit('NEW_MESSAGE', { message: message });
                 events_1.JobEvent.emit('JOB_REQUEST_REJECTED', { job: job });
                 res.json({ success: true, message: 'Job request rejected successfully' });
-                return [3 /*break*/, 5];
-            case 4:
+                return [3 /*break*/, 6];
+            case 5:
                 error_3 = _a.sent();
                 console.error('Error rejecting job request:', error_3);
                 res.status(500).json({ success: false, message: 'Internal Server Error' });
-                return [3 /*break*/, 5];
-            case 5: return [2 /*return*/];
+                return [3 /*break*/, 6];
+            case 6: return [2 /*return*/];
         }
     });
 }); };
@@ -488,7 +502,7 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
     return __generator(this, function (_d) {
         switch (_d.label) {
             case 0:
-                _d.trys.push([0, 11, , 12]);
+                _d.trys.push([0, 12, , 13]);
                 jobId = req.params.jobId;
                 contractorId = req.contractor.id;
                 _a = req.body, startDate = _a.startDate, endDate = _a.endDate, siteVisit = _a.siteVisit, estimatedDuration = _a.estimatedDuration, _b = _a.estimates, estimates = _b === void 0 ? [] : _b;
@@ -609,6 +623,13 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                 return [4 /*yield*/, message.save()];
             case 10:
                 _d.sent();
+                conversation.lastMessage = "Job estimate submitted";
+                conversation.lastMessageAt = new Date();
+                conversation.entityType = conversations_schema_1.ConversationEntityType.QUOTATION;
+                conversation.entity = jobQuotation_1.id;
+                return [4 /*yield*/, conversation.save()];
+            case 11:
+                _d.sent();
                 events_1.JobEvent.emit('NEW_JOB_QUOTATION', { job: job, quotation: jobQuotation_1 });
                 events_1.ConversationEvent.emit('NEW_MESSAGE', { message: message });
                 res.json({
@@ -616,11 +637,11 @@ var sendJobQuotation = function (req, res, next) { return __awaiter(void 0, void
                     message: "Job quotation successfully sent",
                     data: jobQuotation_1
                 });
-                return [3 /*break*/, 12];
-            case 11:
+                return [3 /*break*/, 13];
+            case 12:
                 err_1 = _d.sent();
                 return [2 /*return*/, next(new custom_errors_1.InternalServerError('Error sending job quotation', err_1))];
-            case 12: return [2 /*return*/];
+            case 13: return [2 /*return*/];
         }
     });
 }); };

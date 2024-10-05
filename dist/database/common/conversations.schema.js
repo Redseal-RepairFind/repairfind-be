@@ -67,6 +67,7 @@ var ConversationEntityType;
 (function (ConversationEntityType) {
     ConversationEntityType["BOOKING"] = "bookings";
     ConversationEntityType["JOB"] = "jobs";
+    ConversationEntityType["QUOTATION"] = "job_quotations";
 })(ConversationEntityType || (exports.ConversationEntityType = ConversationEntityType = {}));
 var CONVERSATION_TYPE;
 (function (CONVERSATION_TYPE) {
@@ -88,7 +89,6 @@ var ConversationSchema = new mongoose_1.default.Schema({
     },
     entityType: {
         type: String,
-        required: true,
         enum: Object.values(ConversationEntityType)
     },
     heading: {

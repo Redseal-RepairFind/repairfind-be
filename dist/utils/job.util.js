@@ -102,6 +102,7 @@ var populate = function (job, options) {
                             return __generator(this, function (_d) {
                                 switch (_d.label) {
                                     case 0:
+                                        if (!myQuotation) return [3 /*break*/, 5];
                                         _a = myQuotation;
                                         return [4 /*yield*/, myQuotation.calculateCharges()];
                                     case 1:

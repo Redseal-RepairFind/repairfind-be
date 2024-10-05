@@ -46,7 +46,7 @@ var contractor_model_1 = require("../../../database/contractor/models/contractor
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
 var logger_1 = require("../../logger");
 var jobDayScheduleCheck = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var jobs, _i, jobs_1, job, customer, contractor, currentDate, jobStartDate, timeDifference, daysDifference, hourDifference, minuteDifference, formattedJobStartDate, error_1, error_2;
+    var jobs, _i, jobs_1, job, customer, contractor, currentDate, jobStartDate, timeDifference, daysDifference, hourDifference, minuteDifference, dateTimeOptions, formattedJobStartDate, formattedJobStartDateTz, error_1, error_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -77,8 +77,20 @@ var jobDayScheduleCheck = function () { return __awaiter(void 0, void 0, void 0,
                 daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
                 hourDifference = Math.floor(timeDifference / (1000 * 60 * 60));
                 minuteDifference = Math.floor(timeDifference / (1000 * 60));
+                dateTimeOptions = {
+                    weekday: 'short',
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    hour12: true,
+                    timeZone: contractor === null || contractor === void 0 ? void 0 : contractor.currentTimezone,
+                    timeZoneName: 'long'
+                };
                 formattedJobStartDate = "".concat(jobStartDate.toDateString(), " at ").concat(get12HourFormat(jobStartDate));
-                logger_1.Logger.info("JobSchedule Reminder: currentDate: ".concat(currentDate, " jobStartDate: ").concat(jobStartDate, " formattedJobStartDate: ").concat(formattedJobStartDate, " daysDifference: ").concat(daysDifference, " hourDifference: ").concat(hourDifference));
+                formattedJobStartDateTz = new Intl.DateTimeFormat('en-GB', dateTimeOptions).format(new Date(formattedJobStartDate));
+                logger_1.Logger.info("JobSchedule Reminder: formattedJobStartDateTz: ".concat(formattedJobStartDateTz, ", currentDate: ").concat(currentDate, " jobStartDate: ").concat(jobStartDate, " formattedJobStartDate: ").concat(formattedJobStartDate, " daysDifference: ").concat(daysDifference, " hourDifference: ").concat(hourDifference));
                 if (!(customer && contractor)) return [3 /*break*/, 20];
                 if (daysDifference <= -1) {
                     // if (!job.reminders.includes(JOB_SCHEDULE_REMINDER.NOT_STARTED)) {
@@ -143,12 +155,9 @@ var jobDayScheduleCheck = function () { return __awaiter(void 0, void 0, void 0,
                 _a.sent();
                 _a.label = 19;
             case 19: return [3 /*break*/, 22];
-            case 20:
-                logger_1.Logger.info("Processed job day reminder: daysDifference: ".concat(daysDifference, " - JobId: ").concat(job.id));
-                return [3 /*break*/, 22];
+            case 20: return [3 /*break*/, 22];
             case 21:
                 error_1 = _a.sent();
-                logger_1.Logger.error("Error sending job day reminder for job ID ".concat(job.id, ":"), error_1);
                 return [3 /*break*/, 22];
             case 22:
                 _i++;

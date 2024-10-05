@@ -85,6 +85,8 @@ var job_model_1 = require("../../database/common/job.model");
 var job_quotation_model_1 = require("../../database/common/job_quotation.model");
 var paypal_payment_log_model_1 = require("../../database/common/paypal_payment_log.model");
 var _1 = require(".");
+var messages_schema_1 = require("../../database/common/messages.schema");
+var conversation_util_1 = require("../../utils/conversation.util");
 var PAYPAL_WEBHOOK_SECRET = process.env.PAYPAL_WEBHOOK_SECRET;
 var PayPalWebhookHandler = function (req) { return __awaiter(void 0, void 0, void 0, function () {
     var event_1, eventType, resourceType, eventData;
@@ -122,7 +124,7 @@ var PayPalWebhookHandler = function (req) { return __awaiter(void 0, void 0, voi
 }); };
 exports.PayPalWebhookHandler = PayPalWebhookHandler;
 var paymentCaptureCompleted = function (payload, resourceType) { return __awaiter(void 0, void 0, void 0, function () {
-    var custom_id, amount, value, currency_code, metaId, meta, metadata, user, _a, captureDto, paymentDTO, payment, transaction, jobId, paymentType, quotationId, job, quotation, charges, changeOrderEstimate, error_1;
+    var custom_id, amount, value, currency_code, metaId, meta, metadata, user, _a, captureDto, paymentDTO, payment, transaction, jobId, paymentType, quotationId, job, quotation, charges, conversation, newMessage, conversation, newMessage, changeOrderEstimate, conversation, newMessage, error_1;
     var _b;
     return __generator(this, function (_c) {
         switch (_c.label) {
@@ -130,7 +132,7 @@ var paymentCaptureCompleted = function (payload, resourceType) { return __awaite
                 logger_1.Logger.info('PayPal Event Handler: paymentCaptureCompleted', payload);
                 _c.label = 1;
             case 1:
-                _c.trys.push([1, 20, , 21]);
+                _c.trys.push([1, 30, , 31]);
                 // Ensure the payload is of type capture
                 if (resourceType !== 'capture')
                     return [2 /*return*/];
@@ -164,7 +166,7 @@ var paymentCaptureCompleted = function (payload, resourceType) { return __awaite
                     })];
             case 7:
                 payment = _c.sent();
-                if (!payment) return [3 /*break*/, 19];
+                if (!payment) return [3 /*break*/, 29];
                 transaction = new transaction_model_1.default({
                     type: metadata.paymentType,
                     amount: paymentDTO.amount,
@@ -184,11 +186,11 @@ var paymentCaptureCompleted = function (payload, resourceType) { return __awaite
                     status: transaction_model_1.TRANSACTION_STATUS.SUCCESSFUL
                 });
                 payment.transaction = transaction._id;
-                if (!metadata.jobId) return [3 /*break*/, 17];
+                if (!metadata.jobId) return [3 /*break*/, 27];
                 jobId = metadata.jobId;
                 paymentType = metadata.paymentType;
                 quotationId = metadata.quotationId;
-                if (!(jobId && paymentType && quotationId)) return [3 /*break*/, 17];
+                if (!(jobId && paymentType && quotationId)) return [3 /*break*/, 27];
                 return [4 /*yield*/, job_model_1.JobModel.findById(jobId)];
             case 8:
                 job = _c.sent();
@@ -204,7 +206,7 @@ var paymentCaptureCompleted = function (payload, resourceType) { return __awaite
                     items: quotation.estimates,
                     charges: charges
                 };
-                if (!(paymentType == payment_schema_1.PAYMENT_TYPE.JOB_DAY_PAYMENT)) return [3 /*break*/, 12];
+                if (!(paymentType == payment_schema_1.PAYMENT_TYPE.JOB_DAY_PAYMENT)) return [3 /*break*/, 15];
                 job.status = job_model_1.JOB_STATUS.BOOKED;
                 job.contract = quotation.id;
                 job.contractor = quotation.contractor;
@@ -218,19 +220,42 @@ var paymentCaptureCompleted = function (payload, resourceType) { return __awaite
                     remark: 'Initial job schedule'
                 };
                 job.status = job_model_1.JOB_STATUS.BOOKED;
+                job.bookingViewedByContractor = false;
                 return [4 /*yield*/, Promise.all([
                         quotation.save(),
                         job.save()
                     ])];
             case 11:
                 _c.sent();
-                events_1.JobEvent.emit('JOB_BOOKED', { jobId: jobId, contractorId: quotation.contractor, customerId: job.customer, quotationId: quotationId, paymentType: paymentType });
-                _c.label = 12;
+                return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(job.customer, 'customers', job.contractor, 'contractors')];
             case 12:
-                if (!(paymentType == payment_schema_1.PAYMENT_TYPE.SITE_VISIT_PAYMENT)) return [3 /*break*/, 14];
+                conversation = _c.sent();
+                return [4 /*yield*/, messages_schema_1.MessageModel.create({
+                        conversation: conversation._id,
+                        sender: job.customer,
+                        senderType: 'customers',
+                        message: "New Job Payment",
+                        messageType: messages_schema_1.MessageType.ALERT,
+                        createdAt: new Date(),
+                        entity: jobId,
+                        entityType: 'jobs'
+                    })];
+            case 13:
+                newMessage = _c.sent();
+                conversation.lastMessage = 'New Job Payment';
+                conversation.lastMessageAt = new Date();
+                return [4 /*yield*/, conversation.save()];
+            case 14:
+                _c.sent();
+                events_1.ConversationEvent.emit('NEW_MESSAGE', { message: newMessage });
+                events_1.JobEvent.emit('JOB_BOOKED', { jobId: jobId, contractorId: quotation.contractor, customerId: job.customer, quotationId: quotationId, paymentType: paymentType });
+                _c.label = 15;
+            case 15:
+                if (!(paymentType == payment_schema_1.PAYMENT_TYPE.SITE_VISIT_PAYMENT)) return [3 /*break*/, 20];
                 job.status = job_model_1.JOB_STATUS.BOOKED;
                 job.contract = quotation.id;
                 job.contractor = quotation.contractor;
+                job.bookingViewedByContractor = false;
                 quotation.siteVisitEstimate.isPaid = true;
                 quotation.siteVisitEstimate.payment = payment.id;
                 quotation.status = job_quotation_model_1.JOB_QUOTATION_STATUS.ACCEPTED;
@@ -249,19 +274,61 @@ var paymentCaptureCompleted = function (payload, resourceType) { return __awaite
                         quotation.save(),
                         job.save()
                     ])];
-            case 13:
+            case 16:
                 _c.sent();
                 events_1.JobEvent.emit('JOB_BOOKED', { jobId: jobId, contractorId: quotation.contractor, customerId: job.customer, quotationId: quotationId, paymentType: paymentType });
-                _c.label = 14;
-            case 14:
-                if (paymentType == payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) {
-                    changeOrderEstimate = quotation.changeOrderEstimate;
-                    if (!changeOrderEstimate)
-                        return [2 /*return*/];
-                    changeOrderEstimate.isPaid = true;
-                    changeOrderEstimate.payment = payment.id;
-                    events_1.JobEvent.emit('CHANGE_ORDER_ESTIMATE_PAID', { job: job, quotation: quotation, changeOrderEstimate: changeOrderEstimate });
-                }
+                return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(job.customer, 'customers', job.contractor, 'contractors')];
+            case 17:
+                conversation = _c.sent();
+                return [4 /*yield*/, messages_schema_1.MessageModel.create({
+                        conversation: conversation._id,
+                        sender: job.customer,
+                        senderType: 'customers',
+                        message: "New Site Visit Payment",
+                        messageType: messages_schema_1.MessageType.ALERT,
+                        createdAt: new Date(),
+                        entity: jobId,
+                        entityType: 'jobs'
+                    })];
+            case 18:
+                newMessage = _c.sent();
+                conversation.lastMessage = 'New Site Visit Payment';
+                conversation.lastMessageAt = new Date();
+                return [4 /*yield*/, conversation.save()];
+            case 19:
+                _c.sent();
+                _c.label = 20;
+            case 20:
+                if (!(paymentType == payment_schema_1.PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)) return [3 /*break*/, 24];
+                changeOrderEstimate = quotation.changeOrderEstimate;
+                if (!changeOrderEstimate)
+                    return [2 /*return*/];
+                changeOrderEstimate.isPaid = true;
+                changeOrderEstimate.payment = payment.id;
+                events_1.JobEvent.emit('CHANGE_ORDER_ESTIMATE_PAID', { job: job, quotation: quotation, changeOrderEstimate: changeOrderEstimate });
+                events_1.JobEvent.emit('JOB_BOOKED', { jobId: jobId, contractorId: quotation.contractor, customerId: job.customer, quotationId: quotationId, paymentType: paymentType });
+                return [4 /*yield*/, conversation_util_1.ConversationUtil.updateOrCreateConversation(job.customer, 'customers', job.contractor, 'contractors')];
+            case 21:
+                conversation = _c.sent();
+                return [4 /*yield*/, messages_schema_1.MessageModel.create({
+                        conversation: conversation._id,
+                        sender: job.customer,
+                        senderType: 'customers',
+                        message: "New Change Order Payment",
+                        messageType: messages_schema_1.MessageType.ALERT,
+                        createdAt: new Date(),
+                        entity: jobId,
+                        entityType: 'jobs'
+                    })];
+            case 22:
+                newMessage = _c.sent();
+                conversation.lastMessage = 'New Change Order Payment';
+                conversation.lastMessageAt = new Date();
+                return [4 /*yield*/, conversation.save()];
+            case 23:
+                _c.sent();
+                _c.label = 24;
+            case 24:
                 if (!job.payments.includes(payment.id))
                     job.payments.push(payment.id);
                 // Create Escrow Transaction here
@@ -288,23 +355,23 @@ var paymentCaptureCompleted = function (payload, resourceType) { return __awaite
                         job: job.id,
                         payment: payment.id,
                     })];
-            case 15:
+            case 25:
                 // Create Escrow Transaction here
                 _c.sent();
                 return [4 /*yield*/, Promise.all([quotation.save(), job.save()])];
-            case 16:
+            case 26:
                 _c.sent();
-                _c.label = 17;
-            case 17: return [4 /*yield*/, Promise.all([payment.save(), transaction.save()])];
-            case 18:
+                _c.label = 27;
+            case 27: return [4 /*yield*/, Promise.all([payment.save(), transaction.save()])];
+            case 28:
                 _c.sent();
-                _c.label = 19;
-            case 19: return [3 /*break*/, 21];
-            case 20:
+                _c.label = 29;
+            case 29: return [3 /*break*/, 31];
+            case 30:
                 error_1 = _c.sent();
                 logger_1.Logger.info('Error handling paymentCaptureCompleted PayPal webhook event', error_1);
-                return [3 /*break*/, 21];
-            case 21: return [2 /*return*/];
+                return [3 /*break*/, 31];
+            case 31: return [2 /*return*/];
         }
     });
 }); };

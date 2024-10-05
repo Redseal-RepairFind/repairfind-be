@@ -158,7 +158,7 @@ fcm_1.FCMNotification.initializeFirebase();
 var InittimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 logger_1.Logger.info("Current timezone: ".concat(InittimeZone));
 // Set the default timezone to PST (Pacific Standard Time)
-process.env.TZ = 'America/Los_Angeles';
+// process.env.TZ = 'America/Los_Angeles';
 // Initialize server
 var port = process.env.PORT || 3000;
 var FirsttimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;

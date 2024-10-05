@@ -49,7 +49,6 @@ var transaction_model_1 = require("../../../database/common/transaction.model");
 var job_quotation_model_1 = require("../../../database/common/job_quotation.model");
 var events_1 = require("../../../events");
 var payment_schema_1 = require("../../../database/common/payment.schema");
-var conversations_schema_1 = require("../../../database/common/conversations.schema");
 var messages_schema_1 = require("../../../database/common/messages.schema");
 var paypal_1 = require("../../../services/paypal");
 var conversation_util_1 = require("../../../utils/conversation.util");
@@ -189,12 +188,12 @@ var createCheckoutOrder = function (req, res, next) { return __awaiter(void 0, v
 }); };
 exports.createCheckoutOrder = createCheckoutOrder;
 var captureCheckoutOrder = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, quotationId, paymentMethodId_1, orderId, jobId, customerId, customer, job, quotation, contractor, contractorId, paymentMethod, paymentType, transactionType, charges, metadata, capture, conversationMembers, conversation, newMessage, err_2;
+    var _a, quotationId, paymentMethodId, orderId, jobId, customerId, customer, job, quotation, contractor, contractorId, capture, err_2;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 10, , 11]);
-                _a = req.body, quotationId = _a.quotationId, paymentMethodId_1 = _a.paymentMethodId, orderId = _a.orderId;
+                _b.trys.push([0, 7, , 8]);
+                _a = req.body, quotationId = _a.quotationId, paymentMethodId = _a.paymentMethodId, orderId = _a.orderId;
                 jobId = req.params.jobId;
                 customerId = req.customer.id;
                 return [4 /*yield*/, findCustomer(customerId)];
@@ -210,89 +209,29 @@ var captureCheckoutOrder = function (req, res, next) { return __awaiter(void 0, 
             case 4:
                 contractor = _b.sent();
                 contractorId = contractor.id;
-                paymentMethod = customer.stripePaymentMethods.find(function (method) { return method.id === paymentMethodId_1; });
-                if (!paymentMethod) {
-                    paymentMethod = customer.stripePaymentMethods[0];
-                }
-                if (!paymentMethod)
-                    throw new Error('No such payment method');
-                if (job.status === job_model_1.JOB_STATUS.BOOKED) {
-                    return [2 /*return*/, res.status(400).json({ success: false, message: 'This job is not pending, so new payment is not possible' })];
-                }
-                paymentType = payment_schema_1.PAYMENT_TYPE.JOB_DAY_PAYMENT;
-                transactionType = quotation.type;
-                if (transactionType == job_quotation_model_1.JOB_QUOTATION_TYPE.SITE_VISIT)
-                    paymentType = payment_schema_1.PAYMENT_TYPE.SITE_VISIT_PAYMENT;
-                if (transactionType == job_quotation_model_1.JOB_QUOTATION_TYPE.JOB_DAY)
-                    paymentType = payment_schema_1.PAYMENT_TYPE.JOB_DAY_PAYMENT;
-                return [4 /*yield*/, quotation.calculateCharges(paymentType)];
+                return [4 /*yield*/, paypal_1.PayPalService.payment.captureOrder(orderId)];
             case 5:
-                charges = _b.sent();
-                metadata = {
-                    customerId: customer.id,
-                    contractorId: contractor === null || contractor === void 0 ? void 0 : contractor.id,
-                    quotationId: quotation.id,
-                    paymentType: paymentType,
-                    paymentMethod: paymentMethod.id,
-                    jobId: jobId,
-                    email: customer.email,
-                    remark: 'initial_job_payment',
-                };
-                return [4 /*yield*/, paypal_1.PayPalService.payment.captureOrder(orderId)
-                    //  job.status = JOB_STATUS.BOOKED;
-                ];
-            case 6:
                 capture = _b.sent();
-                //  job.status = JOB_STATUS.BOOKED;
-                job.bookingViewedByContractor = false;
                 return [4 /*yield*/, job.save()];
-            case 7:
+            case 6:
                 _b.sent();
-                conversationMembers = [
-                    { memberType: 'customers', member: customerId },
-                    { memberType: 'contractors', member: contractorId }
-                ];
-                return [4 /*yield*/, conversations_schema_1.ConversationModel.findOneAndUpdate({
-                        $and: [
-                            { members: { $elemMatch: { member: customerId } } },
-                            { members: { $elemMatch: { member: contractorId } } }
-                        ]
-                    }, {
-                        members: conversationMembers,
-                    }, { new: true, upsert: true })];
-            case 8:
-                conversation = _b.sent();
-                return [4 /*yield*/, messages_schema_1.MessageModel.create({
-                        conversation: conversation._id,
-                        sender: customerId,
-                        senderType: 'customers',
-                        message: "New Job Payment",
-                        messageType: messages_schema_1.MessageType.ALERT,
-                        createdAt: new Date(),
-                        entity: jobId,
-                        entityType: 'jobs'
-                    })];
-            case 9:
-                newMessage = _b.sent();
-                events_1.ConversationEvent.emit('NEW_MESSAGE', { message: newMessage });
-                // JobEvent.emit('JOB_BOOKED', { jobId, contractorId, customerId, quotationId, paymentType })
                 res.json({ success: true, message: 'Payment intent created', data: capture });
-                return [3 /*break*/, 11];
-            case 10:
+                return [3 /*break*/, 8];
+            case 7:
                 err_2 = _b.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError(err_2.message, err_2))];
-            case 11: return [2 /*return*/];
+            case 8: return [2 /*return*/];
         }
     });
 }); };
 exports.captureCheckoutOrder = captureCheckoutOrder;
 var createOrderEstimatePaymentCheckout = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, quotationId, paymentMethodId_2, jobId, errors, customerId, customer, job, quotation, contractor, changeOrderEstimate, paymentMethod, paymentType, transactionType, charges, metadata, err_3;
+    var _a, quotationId, paymentMethodId_1, jobId, errors, customerId, customer, job, quotation, contractor, changeOrderEstimate, paymentMethod, paymentType, transactionType, charges, metadata, err_3;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
                 _b.trys.push([0, 7, , 8]);
-                _a = req.body, quotationId = _a.quotationId, paymentMethodId_2 = _a.paymentMethodId;
+                _a = req.body, quotationId = _a.quotationId, paymentMethodId_1 = _a.paymentMethodId;
                 jobId = req.params.jobId;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
@@ -316,7 +255,7 @@ var createOrderEstimatePaymentCheckout = function (req, res, next) { return __aw
                     throw new Error('No  changeOrder estimate for this job');
                 if (changeOrderEstimate.isPaid)
                     throw new Error('Extra estimate already paid');
-                paymentMethod = customer.stripePaymentMethods.find(function (method) { return method.id === paymentMethodId_2; });
+                paymentMethod = customer.stripePaymentMethods.find(function (method) { return method.id === paymentMethodId_1; });
                 if (!paymentMethod) {
                     paymentMethod = customer.stripePaymentMethods[0];
                 }
@@ -356,12 +295,12 @@ var createOrderEstimatePaymentCheckout = function (req, res, next) { return __aw
 }); };
 exports.createOrderEstimatePaymentCheckout = createOrderEstimatePaymentCheckout;
 var captureOrderEstimatePaymentCheckout = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, quotationId, paymentMethodId_3, jobId, errors, customerId, customer, job, quotation, contractor, changeOrderEstimate, paymentMethod, paymentType, transactionType, charges, metadata, err_4;
+    var _a, quotationId, paymentMethodId_2, jobId, errors, customerId, customer, job, quotation, contractor, changeOrderEstimate, paymentMethod, paymentType, transactionType, charges, metadata, err_4;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
                 _b.trys.push([0, 7, , 8]);
-                _a = req.body, quotationId = _a.quotationId, paymentMethodId_3 = _a.paymentMethodId;
+                _a = req.body, quotationId = _a.quotationId, paymentMethodId_2 = _a.paymentMethodId;
                 jobId = req.params.jobId;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
@@ -385,7 +324,7 @@ var captureOrderEstimatePaymentCheckout = function (req, res, next) { return __a
                     throw new Error('No  changeOrder estimate for this job');
                 if (changeOrderEstimate.isPaid)
                     throw new Error('Extra estimate already paid');
-                paymentMethod = customer.stripePaymentMethods.find(function (method) { return method.id === paymentMethodId_3; });
+                paymentMethod = customer.stripePaymentMethods.find(function (method) { return method.id === paymentMethodId_2; });
                 if (!paymentMethod) {
                     paymentMethod = customer.stripePaymentMethods[0];
                 }

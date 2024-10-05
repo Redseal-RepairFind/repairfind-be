@@ -171,6 +171,7 @@ export const paymentCaptureCompleted = async (payload: any, resourceType: any) =
                             job.save()
                         ])
 
+                        JobEvent.emit('JOB_BOOKED', { jobId, contractorId: quotation.contractor, customerId: job.customer, quotationId, paymentType })
 
                         const conversation = await ConversationUtil.updateOrCreateConversation(job.customer, 'customers', job.contractor, 'contractors')
                         const newMessage: IMessage = await MessageModel.create({
@@ -186,9 +187,8 @@ export const paymentCaptureCompleted = async (payload: any, resourceType: any) =
                         conversation.lastMessage = 'New Job Payment'
                         conversation.lastMessageAt = new Date()
                         await conversation.save()
-
                         ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
-                        JobEvent.emit('JOB_BOOKED', { jobId, contractorId: quotation.contractor, customerId: job.customer, quotationId, paymentType })
+
 
                     }
 
