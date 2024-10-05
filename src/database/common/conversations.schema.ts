@@ -6,6 +6,7 @@ import { BlockedUserUtil } from '../../utils/blockeduser.util';
 export enum ConversationEntityType {
     BOOKING = 'bookings',
     JOB = 'jobs',
+    QUOTATION = 'quotations',
 }
 
 export enum CONVERSATION_TYPE {

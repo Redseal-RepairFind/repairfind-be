@@ -8,7 +8,7 @@ import { addHours, isFuture, isValid, startOfDay } from "date-fns";
 import { IJob, JobModel, JOB_STATUS, JobType } from "../../../database/common/job.model";
 import { BadRequestError, InternalServerError } from "../../../utils/custom.errors";
 import { applyAPIFeature } from "../../../utils/api.feature";
-import { ConversationModel } from "../../../database/common/conversations.schema";
+import { ConversationEntityType, ConversationModel } from "../../../database/common/conversations.schema";
 import { IMessage, MessageModel, MessageType } from "../../../database/common/messages.schema";
 import { JOB_QUOTATION_STATUS, JobQuotationModel } from "../../../database/common/job_quotation.model";
 import { ConversationEvent, JobEvent } from "../../../events";
@@ -112,6 +112,8 @@ export const createJobRequest = async (
             entityType: 'jobs'
         });
         conversation.lastMessage = 'New job request'
+        conversation.entityType =  ConversationEntityType.JOB
+        conversation.entity =  newJob.id
         await conversation.save()
         ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
         JobEvent.emit('NEW_JOB_REQUEST', { jobId: newJob.id, contractorId, customerId, conversationId: conversation.id })
@@ -602,6 +604,8 @@ export const acceptJobQuotation = async (req: any, res: Response, next: NextFunc
 
 
         conversation.lastMessage = 'Job estimate accepted'
+        conversation.entityType =  ConversationEntityType.QUOTATION
+        conversation.entity =  quotation.id
         await conversation.save()
         ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
 
@@ -747,6 +751,8 @@ export const declineJobQuotation = async (req: any, res: Response, next: NextFun
 
 
         conversation.lastMessage = 'Job estimate declined'
+        conversation.entityType =  ConversationEntityType.QUOTATION
+        conversation.entity =  quotation.id
         await conversation.save()
         ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
 
