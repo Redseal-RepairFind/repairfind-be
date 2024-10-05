@@ -52,10 +52,12 @@ const populate = async (
 
     if (options.myQuotation) {
         const myQuotationTask = job.getMyQuotation(options.myQuotation).then( async (myQuotation: any) => {
-            myQuotation.charges = await myQuotation.calculateCharges()
-            if(myQuotation.siteVisitEstimate)myQuotation.siteVisitEstimate.charges = await myQuotation.calculateCharges(PAYMENT_TYPE.SITE_VISIT_PAYMENT)
-            if(myQuotation.changeOrderEstimate)myQuotation.changeOrderEstimate.charges = await myQuotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
-            result.myQuotation = myQuotation;
+            if(myQuotation){
+                myQuotation.charges = await myQuotation.calculateCharges()
+                if(myQuotation.siteVisitEstimate)myQuotation.siteVisitEstimate.charges = await myQuotation.calculateCharges(PAYMENT_TYPE.SITE_VISIT_PAYMENT)
+                if(myQuotation.changeOrderEstimate)myQuotation.changeOrderEstimate.charges = await myQuotation.calculateCharges(PAYMENT_TYPE.CHANGE_ORDER_PAYMENT)
+                result.myQuotation = myQuotation;
+            }
         });
         tasks.push(myQuotationTask);
     }
