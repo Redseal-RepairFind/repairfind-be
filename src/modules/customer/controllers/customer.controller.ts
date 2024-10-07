@@ -60,6 +60,8 @@ export const updateAccount = async (
       },
       { new: true }
     )
+    AccountEvent.emit('ACCOUNT_UPDATED', {user: customer, userType: 'customers' })
+
     return res.status(200).json({ success: true, message: "Customer account successfully updated", data: updatedCustomer });
   } catch (err: any) {
     res.status(500).json({ message: err.message });

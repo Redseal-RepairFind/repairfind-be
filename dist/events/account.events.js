@@ -50,19 +50,61 @@ var i18n_1 = require("../i18n");
 exports.AccountEvent = new events_1.EventEmitter();
 exports.AccountEvent.on('ACCOUNT_DELETED', function (payload) {
     return __awaiter(this, void 0, void 0, function () {
-        var user, emailSubject, emailContent, html;
+        var user, emailSubject, emailContent, html, translatedHtml, translatedSubject, error_1;
         return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 3, , 4]);
+                    logger_1.Logger.info("handling ACCOUNT_DELETED event");
+                    user = payload.user;
+                    emailSubject = 'Account Deleted ';
+                    emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p style=\"color: #333333;\">Your has been deleted successfully, </p>\n                <p style=\"color: #333333;\">All pending transactions will be processed and settled in 5 business days</p>\n                 <p style=\"color: #333333;\">If you have any enquiry kindly reach via any of our available channels</p>\n                <p style=\"color: #333333;\">Thanks for your patronage</p>\n                ");
+                    html = (0, generic_email_1.GenericEmailTemplate)({ name: user.firstName, subject: emailSubject, content: emailContent });
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: html, targetLang: user.language, saveToFile: false, useGoogle: true, contentType: 'html' })];
+                case 1:
+                    translatedHtml = (_a.sent()) || html;
+                    return [4 /*yield*/, i18n_1.i18n.getTranslation({ phraseOrSlug: emailSubject, targetLang: user.language })];
+                case 2:
+                    translatedSubject = (_a.sent()) || emailSubject;
+                    services_1.EmailService.send(user.email, translatedSubject, translatedHtml);
+                    return [3 /*break*/, 4];
+                case 3:
+                    error_1 = _a.sent();
+                    logger_1.Logger.error("Error handling ACCOUNT_DELETED event: ".concat(error_1));
+                    return [3 /*break*/, 4];
+                case 4: return [2 /*return*/];
+            }
+        });
+    });
+});
+exports.AccountEvent.on('ACCOUNT_UPDATED', function (payload) {
+    var _a;
+    return __awaiter(this, void 0, void 0, function () {
+        var user, userType;
+        return __generator(this, function (_b) {
             try {
-                logger_1.Logger.info("handling ACCOUNT_DELETED event");
+                logger_1.Logger.info("handling ACCOUNT_UPDATED event");
                 user = payload.user;
-                emailSubject = 'Account Deleted ';
-                emailContent = "\n                <h2>".concat(emailSubject, "</h2>\n                <p style=\"color: #333333;\">Your has been deleted successfully, </p>\n                <p style=\"color: #333333;\">All pending transactions will be processed and settled in 5 business days</p>\n                 <p style=\"color: #333333;\">If you have any enquiry kindly reach via any of our available channels</p>\n                <p style=\"color: #333333;\">Thanks for your patronage</p>\n                ");
-                html = (0, generic_email_1.GenericEmailTemplate)({ name: user.firstName, subject: emailSubject, content: emailContent });
-                services_1.EmailService.send(user.email, emailSubject, html);
-                // TODO: check all pending transactions and handle appropriately
+                userType = payload.userType;
+                //TODO: 07/10/2024
+                services_1.NotificationService.sendNotification({
+                    user: user.id,
+                    userType: userType,
+                    title: 'Account Updated',
+                    type: 'ACCOUNT_UPDATED',
+                    message: "Your account was updated",
+                    heading: { name: "".concat(user.name), image: (_a = user.profilePhoto) === null || _a === void 0 ? void 0 : _a.url },
+                    payload: {
+                        entity: user.id,
+                        entityType: userType == 'customers' ? 'customers' : 'contractors',
+                        message: "Your account was updated",
+                        language: user.language,
+                        event: 'ACCOUNT_UPDATED',
+                    }
+                }, { socket: true });
             }
             catch (error) {
-                logger_1.Logger.error("Error handling ACCOUNT_DELETED event: ".concat(error));
+                logger_1.Logger.error("Error handling ACCOUNT_UPDATED event: ".concat(error));
             }
             return [2 /*return*/];
         });
@@ -70,7 +112,7 @@ exports.AccountEvent.on('ACCOUNT_DELETED', function (payload) {
 });
 exports.AccountEvent.on('ACCOUNT_REPORTED', function (payload) {
     return __awaiter(this, void 0, void 0, function () {
-        var report, reportedUser, _a, emailSubject, emailContent, html, translatedHtml, translatedSubject, error_1;
+        var report, reportedUser, _a, emailSubject, emailContent, html, translatedHtml, translatedSubject, error_2;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -102,8 +144,8 @@ exports.AccountEvent.on('ACCOUNT_REPORTED', function (payload) {
                     _b.label = 7;
                 case 7: return [3 /*break*/, 9];
                 case 8:
-                    error_1 = _b.sent();
-                    logger_1.Logger.error("Error handling ACCOUNT_REPORTED event: ".concat(error_1));
+                    error_2 = _b.sent();
+                    logger_1.Logger.error("Error handling ACCOUNT_REPORTED event: ".concat(error_2));
                     return [3 /*break*/, 9];
                 case 9: return [2 /*return*/];
             }

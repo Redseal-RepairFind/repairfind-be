@@ -414,7 +414,8 @@ class ProfileHandler extends Base {
         { new: true }
       );
 
-
+      AccountEvent.emit('ACCOUNT_UPDATED', {user: account, userType: 'contractors' })
+      
       account.onboarding = await account.getOnboarding()
       res.json({
         success: true,

@@ -222,7 +222,7 @@ export const signIn = async (
     }
 
     if (!customer.emailOtp.verified) {
-      return res.status(401).json({ success: false, message: "The email or password you entered is incorrect" });
+      return res.status(401).json({ success: false, message: "The email is not verified" });
     }
 
     const profile = await CustomerModel.findOne({ email }).select('-password');

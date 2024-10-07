@@ -3,7 +3,7 @@ import { Logger } from '../services/logger';
 import { ICustomer } from '../database/customer/interface/customer.interface';
 import { IContractor } from '../database/contractor/interface/contractor.interface';
 import { GenericEmailTemplate } from '../templates/common/generic_email';
-import { EmailService } from '../services';
+import { EmailService, NotificationService } from '../services';
 import { IAbuseReport } from '../database/common/abuse_reports.model';
 import CustomerModel from '../database/customer/models/customer.model';
 import { ContractorModel } from '../database/contractor/models/contractor.model';
@@ -27,7 +27,10 @@ AccountEvent.on('ACCOUNT_DELETED', async function (payload: { user: ICustomer|IC
                 <p style="color: #333333;">Thanks for your patronage</p>
                 `
         let html = GenericEmailTemplate({ name: user.firstName, subject: emailSubject, content: emailContent })
-        EmailService.send(user.email, emailSubject, html)
+
+        const translatedHtml = await i18n.getTranslation({phraseOrSlug: html, targetLang: user.language, saveToFile: false, useGoogle: true, contentType: 'html'}) || html;            
+        const translatedSubject = await i18n.getTranslation({phraseOrSlug: emailSubject, targetLang: user.language}) || emailSubject;
+        EmailService.send(user.email, translatedSubject, translatedHtml)
 
 
         // TODO: check all pending transactions and handle appropriately
@@ -35,6 +38,36 @@ AccountEvent.on('ACCOUNT_DELETED', async function (payload: { user: ICustomer|IC
         
     } catch (error) {
         Logger.error(`Error handling ACCOUNT_DELETED event: ${error}`);
+    }
+});
+
+
+AccountEvent.on('ACCOUNT_UPDATED', async function (payload: { user: ICustomer|IContractor, userType: string}) {
+    try {
+
+        Logger.info(`handling ACCOUNT_UPDATED event`);
+        const user = payload.user
+        const userType = payload.userType
+        //TODO: 07/10/2024
+
+        NotificationService.sendNotification({
+            user: user.id,
+            userType: userType,
+            title: 'Account Updated',
+            type: 'ACCOUNT_UPDATED',
+            message: `Your account was updated`,
+            heading: { name: `${user.name}`, image: user.profilePhoto?.url },
+            payload: {
+                entity: user.id,
+                entityType: userType == 'customers'? 'customers' : 'contractors',
+                message: `Your account was updated`,
+                language: user.language,
+                event: 'ACCOUNT_UPDATED',
+            }
+        }, { socket: true });
+        
+    } catch (error) {
+        Logger.error(`Error handling ACCOUNT_UPDATED event: ${error}`);
     }
 });
 

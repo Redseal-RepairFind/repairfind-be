@@ -83,6 +83,7 @@ var updateAccount = function (req, res) { return __awaiter(void 0, void 0, void 
                     }, { new: true })];
             case 2:
                 updatedCustomer = _b.sent();
+                events_1.AccountEvent.emit('ACCOUNT_UPDATED', { user: customer, userType: 'customers' });
                 return [2 /*return*/, res.status(200).json({ success: true, message: "Customer account successfully updated", data: updatedCustomer })];
             case 3:
                 err_1 = _b.sent();

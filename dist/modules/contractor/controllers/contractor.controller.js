@@ -441,6 +441,7 @@ var ProfileHandler = /** @class */ (function (_super) {
                         return [4 /*yield*/, contractor_model_1.ContractorModel.findOneAndUpdate({ _id: contractorId }, payload, { new: true })];
                     case 3:
                         _c.sent();
+                        events_1.AccountEvent.emit('ACCOUNT_UPDATED', { user: account, userType: 'contractors' });
                         _b = account;
                         return [4 /*yield*/, account.getOnboarding()];
                     case 4:

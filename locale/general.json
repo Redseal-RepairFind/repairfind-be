@@ -28,7 +28,8 @@
   "email_verification": {
     "es": "Verificación de correo electrónico",
     "fr": "Vérification par e-mail",
-    "en": "Email Verification"
+    "en": "Email Verification",
+    "zh": "电子邮件验证"
   },
   "new_job_bid": {
     "zh": "新工作投标"

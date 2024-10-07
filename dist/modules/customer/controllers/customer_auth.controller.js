@@ -219,7 +219,7 @@ var signIn = function (req, res) { return __awaiter(void 0, void 0, void 0, func
                     return [2 /*return*/, res.status(401).json({ success: false, message: "Incorrect credential." })];
                 }
                 if (!customer.emailOtp.verified) {
-                    return [2 /*return*/, res.status(401).json({ success: false, message: "The email or password you entered is incorrect" })];
+                    return [2 /*return*/, res.status(401).json({ success: false, message: "The email is not verified" })];
                 }
                 return [4 /*yield*/, customer_model_1.default.findOne({ email: email }).select('-password')];
             case 3:
