@@ -256,21 +256,26 @@ export const addPermissionToStaff = async (
         const validPermissions = await PermissionModel.find({ _id:{ $in: permissions } });
 
         if (validPermissions.length === 0) {
+            subAdmin.permissions = [];
+            await subAdmin.save();
             return res
-                .status(400)
-                .json({success: false, message: "Invalid permissions" });
+                .json({message: "All permissions are invalid. Staff's permissions cleared.", addedPermissions: [], invalidPermissions: permissions  });
         }
 
         const validPermissionIds = validPermissions.map((permission)=> permission._id.toString());
+        const invalidPermissions = permissions.filter((permission: string)=> !validPermissionIds.includes(permission));
 
         const existingPermissions = subAdmin.permissions.map((permission)=> permission.toString());
         const newPermissions = Array.from(new Set([...existingPermissions, ...validPermissionIds]));
 
         // Check if the permission have changed
         if (existingPermissions.length === newPermissions.length) {
-            return res
-                .status(400)
-                .json({success: false, message: "Staff already has these permissions" });
+            return res.json({
+                success: true,
+                message: "No new persmissions added.",
+                addedPermissions: [],
+                invalidPermissions
+            });
         }
 
         subAdmin.permissions = newPermissions;
@@ -278,6 +283,8 @@ export const addPermissionToStaff = async (
 
         res.json({
             message: `Permissions added successfully`,
+            addedPermissions: validPermissions,
+            invalidPermissions
         });
 
 
