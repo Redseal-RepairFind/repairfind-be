@@ -166,7 +166,9 @@ export const AddStaffParams = [
 
 export const AddPermissionParams = [
     body("staffId").notEmpty(),
-    body("permision").notEmpty(),
+    body("permissions").isArray()
+    .custom((array) => array.every((item: any) => typeof item === 'string'))
+    .withMessage("permisions must be an array of strings")
 ];
 
 export const DisputeStatusParams = [
