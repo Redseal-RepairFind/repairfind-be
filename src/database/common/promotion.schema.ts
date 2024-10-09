@@ -4,12 +4,14 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface IPromotion extends Document {
   name: string;
   code: string;
-  startDate?: Date;
-  endDate?: Date;
-  target?: 'contractors' | 'customers' | 'both';
+  startDate: Date;
+  endDate: Date;
+  target: 'contractors' | 'customers' | 'both';
   criteria?: string;
-  description?: string;
-  status?: 'active' | 'inactive';
+  value: number; // eg 200
+  valueType: 'fixed' | 'percentage'
+  description: string;
+  status: 'active' | 'inactive';
 }
 
 // Define the Promotion schema
@@ -24,6 +26,8 @@ const PromotionSchema: Schema<IPromotion> = new Schema({
     default: 'both' 
   },
   criteria: { type: String },
+  value: { type: Number },
+  valueType: { type: String, enum: ['fixed', 'percentage'], required: true },
   description: { type: String },
   status: { 
     type: String, 

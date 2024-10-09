@@ -408,19 +408,19 @@ class ProfileHandler extends Base {
         payload = { profilePhoto, phoneNumber, firstName, lastName, dateOfBirth, language }
       }
 
-      await ContractorModel.findOneAndUpdate(
+      const updatedContractor = await ContractorModel.findOneAndUpdate(
         { _id: contractorId },
         payload,
-        { new: true }
+        { new: true, upsert: true }
       );
 
-      AccountEvent.emit('ACCOUNT_UPDATED', {user: account, userType: 'contractors' })
+      AccountEvent.emit('ACCOUNT_UPDATED', {user: updatedContractor, userType: 'contractors' })
       
-      account.onboarding = await account.getOnboarding()
+      updatedContractor.onboarding = await account.getOnboarding()
       res.json({
         success: true,
         message: 'Account updated successfully',
-        data: account,
+        data: updatedContractor,
       });
     } catch (err: any) {
       console.log('error', err);

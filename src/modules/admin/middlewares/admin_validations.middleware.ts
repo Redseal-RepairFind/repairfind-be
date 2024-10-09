@@ -247,6 +247,47 @@ export const validateAppVersionUpdate = [
     body("isCurrent").optional().isBoolean().withMessage("isCurrent must be a boolean"),
 ];
 
+
+
+export const validatePromotionCreation = [
+    body("name").notEmpty().withMessage("Name is required"),
+    body("code").optional(),
+    body("startDate").optional().isDate().withMessage("Start date must be a valid date"),
+    body("endDate").optional().isDate().withMessage("End date must be a valid date"),
+    body("target")
+        .optional()
+        .isIn(["contractors", "customers", "both"])
+        .withMessage("Target must be one of 'contractors', 'customers', 'both'"),
+    body("criteria").optional().notEmpty().withMessage("Criteria must be provided"),
+    body("value").optional().isNumeric().withMessage("Value must be a number"),
+    body("valueType").notEmpty().isIn(["fixed", "percentage"]).withMessage("Value must be specified"),
+    body("description").optional().notEmpty().withMessage("Description must be provided"),
+    body("status")
+        .optional()
+        .isIn(["active", "inactive"])
+        .withMessage("Status must be either 'active' or 'inactive'"),
+];
+
+
+
+export const validatePromotionUpdate = [
+    body("name").optional().notEmpty().withMessage("Updating name is not allowed"),
+    body("code").isEmpty().withMessage("Updating code is not allowed"),
+    body("startDate").optional().isDate().withMessage("Start date must be a valid date"),
+    body("endDate").optional().isDate().withMessage("End date must be a valid date"),
+    body("target")
+        .optional()
+        .isIn(["contractors", "customers", "both"])
+        .withMessage("Target must be one of 'contractors', 'customers', 'both'"),
+    body("criteria").isEmpty().withMessage("Updating criteria is not allowed"),
+    body("value").optional().isNumeric().withMessage("Value must be a number"),
+    body("description").optional().notEmpty().withMessage("Description must be provided"),
+    body("status")
+        .optional()
+        .isIn(["active", "inactive"])
+        .withMessage("Status must be either 'active' or 'inactive'"),
+];
+
 export const Validations = {
     PermissionCreationParam,
     EditPermissionParams,
@@ -262,5 +303,7 @@ export const Validations = {
     updateAccount,
     sendCustomEmail,
     validateAppVersionUpdate,
-    validateAppVersionCreation
+    validateAppVersionCreation,
+    validatePromotionCreation,
+    validatePromotionUpdate
 }

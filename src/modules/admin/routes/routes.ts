@@ -20,6 +20,7 @@ import { AdminStaffController } from "../controllers/admin_staff.controller";
 import { AdminAnalyticsController } from "../controllers/admin_analytics.controller";
 import { AppVersionController } from "../controllers/app_version.controller";
 import { AdminReportController } from "../controllers/admin_report.controller";
+import { PromotionController } from "../controllers/promotion.controller";
 
 const express = require("express");
 const router = express.Router();
@@ -169,5 +170,15 @@ router.delete("/questions/:questionId", checkAdminRole, AdminQuizController.Dele
 router.post("/contractors/:contractorId/attach-stripe-account",  AdminContractorController.attachStripeAccount ); //
 router.post("/contractors/:contractorId/remove-stripe-account",  AdminContractorController.removeStripeAccount ); //
 router.post("/contractors/:contractorId/attach-certn-details",  AdminContractorController.attachCertnDetails ); //
+
+
+// App Versions
+router.post("/promotions", Validations.validatePromotionCreation, checkAdminRole, PromotionController.addPromotion ); 
+router.get("/promotions", checkAdminRole, PromotionController.getPromotions ); 
+router.get("/promotions/:id",  checkAdminRole, PromotionController.getSinglePromotion ); 
+router.patch("/promotions/:id", Validations.validatePromotionUpdate, checkAdminRole, PromotionController.updatePromotion ); 
+router.delete("/promotions/:id",  checkAdminRole, PromotionController.deletePromotion ); 
+
+
 
 export default router;

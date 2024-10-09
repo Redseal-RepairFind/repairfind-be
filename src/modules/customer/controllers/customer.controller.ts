@@ -58,9 +58,9 @@ export const updateAccount = async (
         profilePhoto,
         language
       },
-      { new: true }
+      { new: true, upsert: true }
     )
-    AccountEvent.emit('ACCOUNT_UPDATED', {user: customer, userType: 'customers' })
+    AccountEvent.emit('ACCOUNT_UPDATED', {user: updatedCustomer, userType: 'customers' })
 
     return res.status(200).json({ success: true, message: "Customer account successfully updated", data: updatedCustomer });
   } catch (err: any) {

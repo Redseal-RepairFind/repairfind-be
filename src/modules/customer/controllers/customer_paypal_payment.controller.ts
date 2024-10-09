@@ -58,7 +58,7 @@ const findContractor = async (contractorId: ObjectId) => {
 
 export const createCheckoutOrder = async (req: any, res: Response, next: NextFunction) => {
     try {
-        const { quotationId, isChangeOrder } = req.body;
+        const { quotationId, isChangeOrder, couponCode } = req.body;
         const jobId = req.params.jobId;
 
 
@@ -74,10 +74,6 @@ export const createCheckoutOrder = async (req: any, res: Response, next: NextFun
         const quotation = await findQuotation(quotationId);
         const contractor = await findContractor(quotation.contractor);
         const contractorId = contractor.id
-
-
-        Logger.info("createCheckoutOrder", {quotationId, isChangeOrder})
-
 
 
         if( isChangeOrder === "true") {
@@ -131,6 +127,11 @@ export const createCheckoutOrder = async (req: any, res: Response, next: NextFun
         let paymentType = PAYMENT_TYPE.JOB_DAY_PAYMENT
         if(quotation.type == JOB_QUOTATION_TYPE.SITE_VISIT) paymentType = PAYMENT_TYPE.SITE_VISIT_PAYMENT
         if(quotation.type == JOB_QUOTATION_TYPE.JOB_DAY) paymentType = PAYMENT_TYPE.JOB_DAY_PAYMENT
+
+        // Apply couponCode to quotation
+        if(couponCode){
+            // const coupon = 
+        }
         const charges = await quotation.calculateCharges(paymentType);
 
         const metadata = {
@@ -160,7 +161,7 @@ export const createCheckoutOrder = async (req: any, res: Response, next: NextFun
         }
         const capture = await PayPalService.payment.createOrder(payload)
 
-        res.json({ success: true, message: 'Payment intent created', data: capture });
+        res.json({ success: true, message: 'Payment intent created', data: {capture, ...charges} });
     } catch (err: any) {
         return next(new BadRequestError(err.message, err));
     }

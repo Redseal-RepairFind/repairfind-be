@@ -51,6 +51,8 @@ export interface IJobQuotation extends Document {
     siteVisitEstimate: IExtraEstimate;
     responseTime: number;
     estimatedDuration: number;
+    customerDiscount: {coupon: ObjectId, value: number}  // {code: "CUSHY43", value: 10} 
+    contractorDiscount: {coupon: ObjectId, value: number}  // {code: "CUSHY43", value: 10}
     calculateCharges: (type?: string)  => {
         subtotal: number, 
         gstAmount: number, 
@@ -63,9 +65,7 @@ export interface IJobQuotation extends Document {
         repairfindServiceFeeRate:number,
         contractorProcessingFeeRate:number,
         customerProcessingFeeRate:number,
-
-
-    }; // type can be to calc charges for SITE_VISIT, JOB_DAY, CHANGE_ORDER
+    }; 
 
 }
 
@@ -104,6 +104,9 @@ const JobQuotationSchema = new Schema<IJobQuotation>({
     siteVisitEstimate: { type: ExtraEstimateSchema },
     responseTime: { type: Number, default: 0 },
     estimatedDuration: { type: Number, default: 0 },
+    customerDiscount: {coupon: {type: Schema.Types.ObjectId, ref: 'user_coupons'}, value: {type: Number}}, 
+    contractorDiscount: {coupon: {type: Schema.Types.ObjectId, ref: 'user_coupons'}, value: {type: Number}} 
+
 }, { timestamps: true });
 
 
