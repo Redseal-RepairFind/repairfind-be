@@ -100,6 +100,7 @@ router.get("/jobs/:jobId/enquiries", checkCustomerRole, CustomerJobController.ge
 router.get("/jobs/:jobId/enquiries/:enquiryId", checkCustomerRole, CustomerJobController.getJobSingleEnquiry ); 
 router.post("/jobs/:jobId/enquiry-reply", checkCustomerRole, CustomerJobController.replyJobEnquiry ); 
 router.get('/quotations', checkCustomerRole, CustomerJobController.getAllQuotations) // 
+router.post("/quotations/:quotationId/apply-coupon", checkCustomerRole, CustomerJobController.applyCouponToJobQuotation ); 
 router.get('/quotations/:quotationId', checkCustomerRole, CustomerJobController.getQuotation) // 
 
 

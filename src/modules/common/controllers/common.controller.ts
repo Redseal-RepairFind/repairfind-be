@@ -151,7 +151,7 @@ export const calculateCharges = async (
     const {amount = 0} = req.body
 
   
-    const charges = await PaymentUtil.calculateCharges(Number(amount))
+    const charges = await PaymentUtil.calculateCharges( {totalEstimateAmount: Number(amount)} )
     return res.json({ success: true, message: "Payment charges calculated", data: charges });
 
   } catch (err: any) {

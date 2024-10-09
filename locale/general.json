@@ -32,10 +32,12 @@
     "zh": "电子邮件验证"
   },
   "new_job_bid": {
-    "zh": "新工作投标"
+    "zh": "新工作投标",
+    "fr": "Nouvelle offre d'emploi"
   },
   "your_job_on_repairfind_has_received_a_new_bid": {
-    "zh": "您在 Repairfind 上的工作已收到新的出价"
+    "zh": "您在 Repairfind 上的工作已收到新的出价",
+    "fr": "Votre travail sur Repairfind a reçu une nouvelle offre"
   },
   "new_job_payment": {
     "en": "New Job Payment",

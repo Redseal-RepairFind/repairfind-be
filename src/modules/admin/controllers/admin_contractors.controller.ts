@@ -22,6 +22,9 @@ import { ContractorQuizPipeline } from "../../../database/contractor/pipelines/c
 import { ContractorStripeAccountPipeline } from "../../../database/contractor/pipelines/contractor_stripe_account.pipeline";
 import { GenericEmailTemplate } from "../../../templates/common/generic_email";
 import { EmailService } from "../../../services";
+import { PromotionModel } from "../../../database/common/promotion.schema";
+import { UserCouponModel } from "../../../database/common/user_coupon.schema";
+import { generateCouponCode } from "../../../utils/couponCodeGenerator";
 
 
 
@@ -757,11 +760,7 @@ export const attachCertnDetails = async (
       certnId: certnDetails.application.id,
       certnDetails: certnDetails
     })
-    // contractor.certnId = certnDetails.application.id; // Attach the certnId
-    // contractor.certnDetails = certnDetails; // Attach the certnDetails
-
-    // Save the updated contractor
-    // await contractor.save();
+   
 
     // Respond with success message
     return res.json({ success: true, message: 'Certn details attached', data: contractor });
@@ -772,6 +771,51 @@ export const attachCertnDetails = async (
 };
 
 
+
+export const issueCoupon = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { promotionId } = req.body; // Extract promotionId from the request body
+    const { contractorId } = req.params; // Extract userId from the request parameters
+
+    // Find the promotion by ID
+    const promotion = await PromotionModel.findById(promotionId);
+    if (!promotion) {
+      return res.status(404).json({ success: false, message: 'Promotion not found' });
+    }
+
+    // Check if the promotion is active
+    if (promotion.status !== 'active') {
+      return res.status(400).json({ success: false, message: 'Promotion is not active' });
+    }
+
+    // Create a new user coupon with promotion details
+    const newUserCoupon = new UserCouponModel({
+      promotion: promotion._id, // Attach promotion ID
+      name: promotion.name, 
+      code: generateCouponCode(7), // generate coupon code here
+      user: contractorId, 
+      userType: 'contractors',
+      valueType: promotion.valueType, 
+      value: promotion.value, 
+      applicableAtCheckout: true, 
+      expiryDate: promotion.endDate, 
+      status: 'active' 
+    });
+
+    // Save the new coupon
+    await newUserCoupon.save();
+
+    // Respond with success message
+    return res.json({ success: true, message: 'Promotion attached to user as coupon', data: newUserCoupon });
+  } catch (error: any) {
+    // Handle any errors that occur
+    return next(new InternalServerError(`Error attaching promotion to user coupon: ${error.message}`, error));
+  }
+};
 
 
 export const AdminContractorController = {
@@ -784,6 +828,7 @@ export const AdminContractorController = {
   updateGstDetails,
   updateAccountStatus,
   sendCustomEmail,
-  attachCertnDetails
+  attachCertnDetails,
+  issueCoupon
 
 }

@@ -1,11 +1,15 @@
 import { validationResult } from "express-validator";
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import AdminRegModel from "../../../database/admin/models/admin.model";
 import CustomerRegModel from "../../../database/customer/models/customer.model";
-// import {ContractorModel} from "../../../database/contractor/models/contractor.model";
 import { JobModel } from "../../../database/common/job.model";
 import CustomerRatingModel from "../../../database/customer/models/customerRating.model";
 import { InvoiceModel } from "../../../database/common/invoices.shema";
+import { PromotionModel } from "../../../database/common/promotion.schema";
+import { UserCouponModel } from "../../../database/common/user_coupon.schema";
+import { generateCouponCode } from "../../../utils/couponCodeGenerator";
+import { InternalServerError } from "../../../utils/custom.errors";
+
 
 //get customer detail /////////////
 export const AdminGetCustomerDetailController = async (
@@ -41,45 +45,6 @@ export const AdminGetCustomerDetailController = async (
       .limit(limit);
 
       const totalCustomer = await CustomerRegModel.countDocuments()
-
-      // let customers = [];
-
-      // for (let i = 0; i < customersDetail.length; i++) {
-      //   const customer = customersDetail[i];
-        
-      //   const jobRequests = await JobModel.find({customerId: customer._id}).sort({ createdAt: -1 })
-
-      //   let jobRequested = []
-
-      //   let rating = null
-
-      //   const customerRating = await CustomerRatingModel.findOne({customerId: customer._id})
-      //   if (customerRating) {
-      //     rating = customerRating
-      //   }
-
-      //   for (let i = 0; i < jobRequests.length; i++) {
-      //     const jobRequest = jobRequests[i];
-          
-      //     const contractor = await ContractorModel.findOne({_id: jobRequest.contractorId}).select('-password');
-
-      //     const obj = {
-      //       job: jobRequest,
-      //       contractor
-      //     }
-
-      //     jobRequested.push(obj)
-          
-      //   }
-
-      //   const objTwo = {
-      //     customer,
-      //     rating,
-      //     jobHistory: jobRequested
-      //   }
-
-      //   customers.push(objTwo)
-      // }
 
       res.json({  
         currentPage: page,
@@ -297,9 +262,59 @@ export const AdminChangeCustomerAccountStatusController = async (
   }
 }
 
+
+
+
+export const issueCoupon = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { promotionId } = req.body; // Extract promotionId from the request body
+    const { customerId } = req.params; // Extract userId from the request parameters
+
+    // Find the promotion by ID
+    const promotion = await PromotionModel.findById(promotionId);
+    if (!promotion) {
+      return res.status(404).json({ success: false, message: 'Promotion not found' });
+    }
+
+    // Check if the promotion is active
+    if (promotion.status !== 'active') {
+      return res.status(400).json({ success: false, message: 'Promotion is not active' });
+    }
+
+    // Create a new user coupon with promotion details
+    const newUserCoupon = new UserCouponModel({
+      promotion: promotion._id, // Attach promotion ID
+      name: promotion.name, 
+      code: generateCouponCode(7), // generate coupon code here
+      user: customerId, 
+      userType: 'customers',
+      valueType: promotion.valueType, 
+      value: promotion.value, 
+      applicableAtCheckout: true, 
+      expiryDate: promotion.endDate, 
+      status: 'active' 
+    });
+
+    // Save the new coupon
+    await newUserCoupon.save();
+
+    // Respond with success message
+    return res.json({ success: true, message: 'Promotion attached to user as coupon', data: newUserCoupon });
+  } catch (error: any) {
+    // Handle any errors that occur
+    return next(new InternalServerError(`Error attaching promotion to user coupon: ${error.message}`, error));
+  }
+};
+
+
 export const AdminCustomerController = {
   AdminGetCustomerDetailController,
   AdminGetSingleCustomerDetailController,
   AdminGetSingleCustomerJobDetailController,
   AdminChangeCustomerAccountStatusController,
+  issueCoupon,
 }

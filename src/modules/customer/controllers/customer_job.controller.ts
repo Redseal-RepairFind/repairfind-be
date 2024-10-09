@@ -10,7 +10,7 @@ import { BadRequestError, InternalServerError } from "../../../utils/custom.erro
 import { applyAPIFeature } from "../../../utils/api.feature";
 import { ConversationEntityType, ConversationModel } from "../../../database/common/conversations.schema";
 import { IMessage, MessageModel, MessageType } from "../../../database/common/messages.schema";
-import { JOB_QUOTATION_STATUS, JobQuotationModel } from "../../../database/common/job_quotation.model";
+import { JOB_QUOTATION_STATUS, JOB_QUOTATION_TYPE, JobQuotationModel } from "../../../database/common/job_quotation.model";
 import { ConversationEvent, JobEvent } from "../../../events";
 import mongoose from "mongoose";
 import { ContractorProfileModel } from "../../../database/contractor/models/contractor_profile.model";
@@ -18,6 +18,7 @@ import { JobEnquiryModel } from "../../../database/common/job_enquiry.model";
 import { ConversationUtil } from "../../../utils/conversation.util";
 import { PAYMENT_TYPE } from "../../../database/common/payment.schema";
 import { JobUtil } from "../../../utils/job.util";
+import { UserCouponModel } from "../../../database/common/user_coupon.schema";
 
 
 
@@ -112,12 +113,12 @@ export const createJobRequest = async (
             entityType: 'jobs'
         });
         conversation.lastMessage = 'New job request'
-        conversation.entityType =  ConversationEntityType.JOB
-        conversation.entity =  newJob.id
+        conversation.entityType = ConversationEntityType.JOB
+        conversation.entity = newJob.id
         await conversation.save()
         ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
         JobEvent.emit('NEW_JOB_REQUEST', { jobId: newJob.id, contractorId, customerId, conversationId: conversation.id })
-        
+
         // const html = htmlJobRequestTemplate(customer.firstName, customer.firstName, `${newJob.date}`, description)
         // EmailService.send(contractor.email, 'Job request from customer', html)
 
@@ -606,8 +607,8 @@ export const acceptJobQuotation = async (req: any, res: Response, next: NextFunc
 
 
         conversation.lastMessage = 'Job estimate accepted'
-        conversation.entityType =  ConversationEntityType.QUOTATION
-        conversation.entity =  quotation.id
+        conversation.entityType = ConversationEntityType.QUOTATION
+        conversation.entity = quotation.id
         await conversation.save()
         ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
 
@@ -630,6 +631,60 @@ export const acceptJobQuotation = async (req: any, res: Response, next: NextFunc
 
         quotation.charges = await quotation.calculateCharges()
         res.json({ success: true, message: 'Job quotation accepted' });
+    } catch (error: any) {
+        return next(new BadRequestError('An error occurred ', error))
+    }
+};
+
+
+
+export const applyCouponToJobQuotation = async (req: any, res: Response, next: NextFunction) => {
+    try {
+        const customerId = req.customer.id;
+        const { quotationId } = req.params;
+        const { couponCode } = req.body;
+
+        const quotation = await JobQuotationModel.findOne({ _id: quotationId });
+
+        // check if contractor exists
+        if (!quotation) {
+            return res.status(404).json({ success: false, message: 'Qoutation not found' });
+        }
+
+        const coupon = await UserCouponModel.findOne({ code: couponCode })
+        if (!coupon) return res.json({ success: false, message: 'Coupon is invalid' });
+        if (['pending', 'redeemed', 'expired'].includes(coupon.status)) {
+            return res.status(400).json({ message: `Coupon is ${coupon.status}` });
+        }
+
+        if (quotation.type == JOB_QUOTATION_TYPE.SITE_VISIT) {
+            if (quotation.siteVisitEstimate.hasOwnProperty('customerDiscount')) return res.status(400).json({ success: false, message: 'Quotation already has a coupon applied' });
+            if (quotation.siteVisitEstimate.isPaid) return res.status(400).json({ success: false, message: 'Site Estimate visit is already paid' });
+            quotation.siteVisitEstimate.customerDiscount = {
+                coupon: coupon.id,
+                value: coupon.value,
+                valueType: coupon.valueType,
+            }
+        }
+
+        if (quotation.type == JOB_QUOTATION_TYPE.JOB_DAY) {
+            if (quotation.hasOwnProperty('customerDiscount')) return res.status(400).json({ success: false, message: 'Quotation already has a coupon applied' });
+            if (quotation.isPaid) return res.status(400).json({ success: false, message: 'Job Estimate visit is already paid' });
+            quotation.siteVisitEstimate.customerDiscount = {
+                coupon: coupon.id,
+                value: coupon.value,
+                valueType: coupon.valueType,
+            }
+        }
+
+        coupon.status = 'pending'
+        await Promise.all([
+            coupon.save(),
+            quotation.save()
+        ])
+
+        quotation.charges = await quotation.calculateCharges()
+        res.json({ success: true, message: 'Coupon applied to quotation', data: quotation });
     } catch (error: any) {
         return next(new BadRequestError('An error occurred ', error))
     }
@@ -753,8 +808,8 @@ export const declineJobQuotation = async (req: any, res: Response, next: NextFun
 
 
         conversation.lastMessage = 'Job estimate declined'
-        conversation.entityType =  ConversationEntityType.QUOTATION
-        conversation.entity =  quotation.id
+        conversation.entityType = ConversationEntityType.QUOTATION
+        conversation.entity = quotation.id
         await conversation.save()
         ConversationEvent.emit('NEW_MESSAGE', { message: newMessage })
 
@@ -883,7 +938,8 @@ export const CustomerJobController = {
     replyJobEnquiry,
     getAllQuotations,
     getJobEnquiries,
-    getJobSingleEnquiry
+    getJobSingleEnquiry,
+    applyCouponToJobQuotation
 }
 
 

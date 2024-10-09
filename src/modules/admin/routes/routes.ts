@@ -2,7 +2,7 @@ import { memoryUpload } from "../../../utils/upload.utility";
 import { AdminJobController } from "../controllers/admin_job.controller";
 import { AdminSkillController } from "../controllers/admin_skill.controller";
 import { AdminContractorController } from "../controllers/admin_contractors.controller";
-import { AdminCustomerController } from "../controllers/adminGetCustomerDetail.contractor";
+import { AdminCustomerController } from "../controllers/admin_customer.controller";
 import { AdminNotificationController } from "../controllers/admin_notification.controller";
 import { AdminGetAppDetailController } from "../controllers/appDetails.Controller";
 import { AdminGetRevenueAnalysisControlleer } from "../controllers/averageRevenue.controller";
@@ -71,7 +71,7 @@ router.patch("/abuse-reports/:id", Validations.validateAppVersionUpdate, checkAd
 
 
 
-//refactored contractor
+// CONTRACTOR
 router.get("/contractors", checkAdminRole, AdminContractorController.exploreContractors ); // admin get contractor detail
 router.get("/contractors/:contractorId", checkAdminRole, AdminContractorController.getSingleContractor ); // admin get single contractor detail
 router.get("/contractors/:contractorId/jobs", checkAdminRole, AdminContractorController.getJobHistory ); // admin get single contractor detail
@@ -80,12 +80,18 @@ router.patch("/contractors/:contractorId/gst", Validations.updateGstDetails, che
 router.patch("/contractors/:contractorId/status", Validations.updateAccount, checkAdminRole, AdminContractorController.updateAccountStatus ); // admin change contractor gst
 router.post("/contractors/:contractorId/sendmail", Validations.sendCustomEmail, checkAdminRole, AdminContractorController.sendCustomEmail ); // admin change contractor gst
 
+router.post("/contractors/:contractorId/attach-stripe-account",  AdminContractorController.attachStripeAccount ); //
+router.post("/contractors/:contractorId/remove-stripe-account",  AdminContractorController.removeStripeAccount ); //
+router.post("/contractors/:contractorId/attach-certn-details",  AdminContractorController.attachCertnDetails ); //
+router.post("/contractors/:contractorId/issue-coupon",  AdminContractorController.issueCoupon ); //
+
 
 //done
 router.get("/customer/detail", checkAdminRole, AdminCustomerController.AdminGetCustomerDetailController ); // admin get customer detail
 router.get("/customer/detail/:customerId", checkAdminRole, AdminCustomerController.AdminGetSingleCustomerDetailController ); // admin get single customer detail
 router.get("/customer/job/detail/:customerId", checkAdminRole, AdminCustomerController.AdminGetSingleCustomerJobDetailController ); // admin get single customer  job detail
 router.post("/customer/account/status", Validations.CustomerChangeStatusParams, checkAdminRole, AdminCustomerController.AdminChangeCustomerAccountStatusController); // admin change customer account status
+router.post("/customers/:customerId/issue-coupon",  AdminCustomerController.issueCoupon ); //
 
 
 
@@ -166,10 +172,6 @@ router.patch("/questions/:questionId", validateEditQuestionParams, checkAdminRol
 router.delete("/questions/:questionId", checkAdminRole, AdminQuizController.DeleteQuestion ); // admin delete question
 
 
-// CONTRACTOR
-router.post("/contractors/:contractorId/attach-stripe-account",  AdminContractorController.attachStripeAccount ); //
-router.post("/contractors/:contractorId/remove-stripe-account",  AdminContractorController.removeStripeAccount ); //
-router.post("/contractors/:contractorId/attach-certn-details",  AdminContractorController.attachCertnDetails ); //
 
 
 // App Versions

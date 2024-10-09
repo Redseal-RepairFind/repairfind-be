@@ -132,8 +132,9 @@ export const createCheckoutOrder = async (req: any, res: Response, next: NextFun
         // Apply couponCode to quotation
         if(couponCode){
             const coupon = await UserCouponModel.findOne({code: couponCode})
-            if(coupon) return res.json({ success: false, message: 'Payment intent created'});
+            if(!coupon) return res.json({ success: false, message: 'Coupon is invalid'});
         }
+        
         const charges = await quotation.calculateCharges(paymentType);
 
         const metadata = {

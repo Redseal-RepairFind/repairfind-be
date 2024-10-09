@@ -16,6 +16,7 @@ import ContractorSavedJobModel from "../../../database/contractor/models/contrac
 import { ConversationUtil } from "../../../utils/conversation.util";
 import { JobUtil } from "../../../utils/job.util";
 import { PAYMENT_TYPE } from "../../../database/common/payment.schema";
+import { UserCouponModel } from "../../../database/common/user_coupon.schema";
 
 
 export const getJobRequests = async (req: any, res: Response) => {
@@ -176,8 +177,8 @@ export const acceptJobRequest = async (req: any, res: Response, next: NextFuncti
 
     conversation.lastMessage = "Job Request accepted"
     conversation.lastMessageAt = new Date()
-    conversation.entityType =  ConversationEntityType.JOB
-    conversation.entity =  job.id
+    conversation.entityType = ConversationEntityType.JOB
+    conversation.entity = job.id
     await conversation.save()
 
     ConversationEvent.emit('NEW_MESSAGE', { message })
@@ -257,8 +258,8 @@ export const rejectJobRequest = async (req: any, res: Response) => {
 
     conversation.lastMessage = "Job Request rejected"
     conversation.lastMessageAt = new Date()
-    conversation.entityType =  ConversationEntityType.JOB
-    conversation.entity =  job.id
+    conversation.entityType = ConversationEntityType.JOB
+    conversation.entity = job.id
     await conversation.save()
 
     ConversationEvent.emit('NEW_MESSAGE', { message })
@@ -416,7 +417,7 @@ export const sendJobQuotation = async (
   try {
     const { jobId } = req.params;
     const contractorId = req.contractor.id;
-    let { startDate, endDate, siteVisit, estimatedDuration, estimates = [] } = req.body;
+    let { startDate, endDate, siteVisit, estimatedDuration, couponCode, estimates = [] } = req.body;
 
     // Validate request body
     const errors = validationResult(req);
@@ -438,7 +439,7 @@ export const sendJobQuotation = async (
     if (!customer) {
       return res
         .status(401)
-        .json({ message: "invalid customer Id" });
+        .json({ message: "Invalid customer Id" });
     }
 
 
@@ -465,11 +466,23 @@ export const sendJobQuotation = async (
       return res.status(400).json({ success: false, message: "You have already submitted a quotation for this job" });
     }
 
-
-
     const scheduleStartDate = startDate ? new Date(startDate) : new Date()
     const scheduleEndDate = endDate ? new Date(startDate) : null
     const scheduleSiteVisitDate = siteVisit ? new Date(siteVisit) : null
+
+
+    let contractorDiscount = null
+    if (couponCode) {
+      const coupon = await UserCouponModel.findOne({ code: couponCode });
+      if (!coupon) return res.status(400).json({success: false, message: "Invalid coupon code" });
+      if (['pending', 'redeemed', 'expired'].includes(coupon.status)) {
+        return res.status(400).json({success: false, message: `Coupon is ${coupon.status}` });
+      }
+      contractorDiscount = { coupon: coupon.id, value: coupon.value, valueType: coupon.valueType };
+      coupon.status = 'pending';
+      await coupon.save();
+    }
+
 
     // Create or update job quotation
     let jobQuotation = await JobQuotationModel.findOneAndUpdate(
@@ -478,7 +491,8 @@ export const sendJobQuotation = async (
       { new: true, upsert: true }
     );
 
-    // Prepare estimates
+
+    // Prepare site visit estimates
     if (siteVisit) {
       const siteVisitEstimate = {
         isPaid: false,
@@ -487,6 +501,9 @@ export const sendJobQuotation = async (
       };
       jobQuotation.siteVisitEstimate = siteVisitEstimate as IExtraEstimate;
       jobQuotation.type = JOB_QUOTATION_TYPE.SITE_VISIT
+      if(contractorDiscount)jobQuotation.siteVisitEstimate.contractorDiscount = contractorDiscount
+    }else{
+      if(contractorDiscount)jobQuotation.contractorDiscount = contractorDiscount
     }
 
 
@@ -515,27 +532,9 @@ export const sendJobQuotation = async (
     // Save changes to the job
     await job.save();
     await jobQuotation.save()
-    // Do other actions such as sending emails or notifications...
-
 
     // Create or update conversation
-    const conversationMembers = [
-      { memberType: 'customers', member: job.customer },
-      { memberType: 'contractors', member: contractorId }
-    ];
-    const conversation = await ConversationModel.findOneAndUpdate(
-      {
-        $and: [
-          { members: { $elemMatch: { member: job.customer } } },
-          { members: { $elemMatch: { member: contractorId } } }
-        ]
-      },
-
-      {
-        members: conversationMembers,
-      },
-      { new: true, upsert: true });
-
+    const conversation = await ConversationUtil.updateOrCreateConversation(customer.id, 'customers', contractorId, 'contractors')
 
     // Send a message to the customer
     const message = new MessageModel({
@@ -559,8 +558,8 @@ export const sendJobQuotation = async (
 
     conversation.lastMessage = "Job estimate submitted"
     conversation.lastMessageAt = new Date()
-    conversation.entityType =  ConversationEntityType.QUOTATION
-    conversation.entity =  jobQuotation.id
+    conversation.entityType = ConversationEntityType.QUOTATION
+    conversation.entity = jobQuotation.id
     await conversation.save()
 
     JobEvent.emit('NEW_JOB_QUOTATION', { job, quotation: jobQuotation });
@@ -824,8 +823,8 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
   const contractorId = req?.contractor?.id
 
   // Assume isGuest
-  if(!contractorId){
-    const {data, error} = await applyAPIFeature(JobModel.find({status: JOB_STATUS.PENDING, type: JobType.LISTING}), req.query)
+  if (!contractorId) {
+    const { data, error } = await applyAPIFeature(JobModel.find({ status: JOB_STATUS.PENDING, type: JobType.LISTING }), req.query)
     return res.status(200).json({ success: true, message: 'Jobs retrieved successfully', data: data });
   }
   const profile = await ContractorProfileModel.findOne({ contractor: contractorId });
@@ -959,7 +958,7 @@ export const getJobListings = async (req: any, res: Response, next: NextFunction
     pipeline.push({ $match: { type: JobType.LISTING } });
     pipeline.push({ $match: { category: category } });
     pipeline.push({ $match: { status: JOB_STATUS.PENDING } });
-    pipeline.push({ $match: { "expiresIn": {$gt: 0} } });
+    pipeline.push({ $match: { "expiresIn": { $gt: 0 } } });
 
 
     if (!showHidden) {
@@ -1226,12 +1225,12 @@ export const createJobEnquiry = async (req: any, res: Response, next: NextFuncti
     }
 
 
-     // Check if contractor has a verified connected account
-     contractor.onboarding = await contractor.getOnboarding()
-     if (!(contractor.onboarding.hasStripeIdentity) ) {
-       return res.status(400).json({ success: false, message: "Kindly complete your identity process" });
-     }
- 
+    // Check if contractor has a verified connected account
+    contractor.onboarding = await contractor.getOnboarding()
+    if (!(contractor.onboarding.hasStripeIdentity)) {
+      return res.status(400).json({ success: false, message: "Kindly complete your identity process" });
+    }
+
     //  if (!contractor.onboarding.hasStripeAccount || !(contractor.stripeAccountStatus && contractor.stripeAccountStatus.card_payments_enabled && contractor.stripeAccountStatus.transfers_enabled)) {
     //    return res.status(400).json({ success: false, message: "Kindly connect your bank account to receive payment" });
     //  }
@@ -1239,8 +1238,8 @@ export const createJobEnquiry = async (req: any, res: Response, next: NextFuncti
 
 
     //check if it contains bad inputs
-    const {isRestricted, errorMessage} = await ConversationUtil.containsRestrictedMessageContent(question)
-    if(isRestricted){
+    const { isRestricted, errorMessage } = await ConversationUtil.containsRestrictedMessageContent(question)
+    if (isRestricted) {
       return res.status(400).json({ success: false, message: "You are not allowed to send restricted contents such as email, phone number or other personal information" });
     }
     const enquiry = new JobEnquiryModel({

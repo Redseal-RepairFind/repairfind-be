@@ -23,6 +23,12 @@ export interface IJobQuotationEstimate {
     amount?: number;
 }
 
+export interface IQuotationDiscount {
+    coupon: ObjectId;
+    value: number;
+    valueType: 'fixed' | 'percentage'
+}
+
 
 // Define interface for extra estimates
 export interface IExtraEstimate extends Document {
@@ -31,6 +37,8 @@ export interface IExtraEstimate extends Document {
     payment?: ObjectId;
     date: Date;
     charges: object
+    customerDiscount: IQuotationDiscount
+    contractorDiscount: IQuotationDiscount
 }
 
 
@@ -51,8 +59,8 @@ export interface IJobQuotation extends Document {
     siteVisitEstimate: IExtraEstimate;
     responseTime: number;
     estimatedDuration: number;
-    customerDiscount: {coupon: ObjectId, value: number}  // {code: "CUSHY43", value: 10} 
-    contractorDiscount: {coupon: ObjectId, value: number}  // {code: "CUSHY43", value: 10}
+    customerDiscount: IQuotationDiscount
+    contractorDiscount: IQuotationDiscount
     calculateCharges: (type?: string)  => {
         subtotal: number, 
         gstAmount: number, 
@@ -77,13 +85,22 @@ const JobQuotationEstimateSchema = new Schema<IJobQuotationEstimate>({
     amount: { type: Number }
 });
 
+const QuotationDiscountSchema = new Schema<IQuotationDiscount>({
+    coupon: {type: Schema.Types.ObjectId, ref: 'user_coupons'}, 
+    value: {type: Number}, 
+    valueType: { type: String, enum: ['fixed', 'percentage']},
+});
+
+
 // Define schema for extra estimates
 export const ExtraEstimateSchema = new Schema<IExtraEstimate>({
     estimates: { type: [JobQuotationEstimateSchema], required: true },
     isPaid: { type: Boolean, default: false },
     payment: { type: Schema.Types.ObjectId, ref: 'payments' },
     date: { type: Date, required: true },
-    charges: { type: Schema.Types.Mixed }
+    charges: { type: Schema.Types.Mixed },
+    customerDiscount: QuotationDiscountSchema, 
+    contractorDiscount: QuotationDiscountSchema
 });
 
 
@@ -104,8 +121,8 @@ const JobQuotationSchema = new Schema<IJobQuotation>({
     siteVisitEstimate: { type: ExtraEstimateSchema },
     responseTime: { type: Number, default: 0 },
     estimatedDuration: { type: Number, default: 0 },
-    customerDiscount: {coupon: {type: Schema.Types.ObjectId, ref: 'user_coupons'}, value: {type: Number}}, 
-    contractorDiscount: {coupon: {type: Schema.Types.ObjectId, ref: 'user_coupons'}, value: {type: Number}} 
+    customerDiscount: QuotationDiscountSchema, 
+    contractorDiscount: QuotationDiscountSchema 
 
 }, { timestamps: true });
 
@@ -116,6 +133,8 @@ JobQuotationSchema.methods.calculateCharges = async function (type = null) {
 
     let estimates = this.estimates
     let totalEstimateAmount = 0
+    let customerDiscount = this.customerDiscount
+    let contractorDiscount = this.contractorDiscount
 
     if(type){
         if (type == PAYMENT_TYPE.CHANGE_ORDER_PAYMENT) {
@@ -124,6 +143,8 @@ JobQuotationSchema.methods.calculateCharges = async function (type = null) {
     
         if (type == PAYMENT_TYPE.SITE_VISIT_PAYMENT) {
             estimates = this?.siteVisitEstimate?.estimates
+            customerDiscount = this.siteVisitEstimate.customerDiscount
+            contractorDiscount = this.siteVisitEstimate.contractorDiscount
         }
     }else{
         //merge all arrays
@@ -144,109 +165,9 @@ JobQuotationSchema.methods.calculateCharges = async function (type = null) {
     }
    
 
-    const charges = await PaymentUtil.calculateCharges(totalEstimateAmount)
+    const charges = await PaymentUtil.calculateCharges({totalEstimateAmount, customerDiscount, contractorDiscount})
     return charges
 };
-
-
-
-
-// JobQuotationSchema.virtual('charges').get(function () {
-//     let totalEstimateAmount = 0;
-//     let estimates: any = this.estimates
-
-//     estimates.forEach((estimate: any) => {
-//         totalEstimateAmount += estimate.rate * estimate.quantity;
-//     });
-
-//     let subtotal, repairfindServiceFee, gst, totalAmount, contractorAmount, customerProcessingFee, contractorProcessingFee, siteVisitAmount = 0;
-
-//     if (totalEstimateAmount <= 1000) {
-//         repairfindServiceFee = parseFloat(((10 / 100) * totalEstimateAmount).toFixed(2));
-//     } else if (totalEstimateAmount <= 5000) {
-//         repairfindServiceFee = parseFloat(((8 / 100) * totalEstimateAmount).toFixed(2));
-//     } else {
-//         repairfindServiceFee = parseFloat(((5 / 100) * totalEstimateAmount).toFixed(2));
-//     }
-
-//     customerProcessingFee   = parseFloat(((3 / 100) * totalEstimateAmount).toFixed(2));
-//     contractorProcessingFee   = parseFloat(((3 / 100) * totalEstimateAmount).toFixed(2));
-
-//     gst = parseFloat(((5 / 100) * totalEstimateAmount).toFixed(2));
-//     subtotal = totalEstimateAmount;
-//     totalAmount = (subtotal + repairfindServiceFee + gst + customerProcessingFee).toFixed(2);
-//     contractorAmount = (subtotal + gst - contractorProcessingFee).toFixed(2);
-
-    
-//     return { subtotal, repairfindServiceFee, gst, totalAmount, contractorAmount, customerProcessingFee, contractorProcessingFee };
-// });
-
-
-
-// JobQuotationSchema.virtual('changeOrderEstimate.charges').get(function () {
-
-
-//     let totalEstimateAmount = 0;
-
-//     let estimates: any = []
-//     if (this.changeOrderEstimate) {
-//         estimates = this.changeOrderEstimate.estimates
-//     }
-
-//     estimates.forEach((estimate: any) => {
-//         totalEstimateAmount += estimate.rate * estimate.quantity;
-//     });
-
-//     let subtotal, processingFee, gst, totalAmount, contractorAmount, siteVisitAmount = 0;
-
-//     if (totalEstimateAmount <= 1000) {
-//         processingFee = parseFloat(((20 / 100) * totalEstimateAmount).toFixed(2));
-//     } else if (totalEstimateAmount <= 5000) {
-//         processingFee = parseFloat(((15 / 100) * totalEstimateAmount).toFixed(2));
-//     } else {
-//         processingFee = parseFloat(((10 / 100) * totalEstimateAmount).toFixed(2));
-//     }
-
-//     gst = parseFloat(((5 / 100) * totalEstimateAmount).toFixed(2));
-//     subtotal = totalEstimateAmount;
-//     totalAmount = (subtotal + processingFee + gst).toFixed(2);
-//     contractorAmount = (subtotal + gst).toFixed(2);
-
-//     return { subtotal, processingFee, gst, totalAmount, contractorAmount };
-// });
-
-
-
-// JobQuotationSchema.virtual('siteVisitEstimate.charges').get(function () {
-
-//     let totalEstimateAmount = 0;
-
-//     let estimates: any = []
-//     if (this.siteVisitEstimate) {
-//         estimates = this.siteVisitEstimate.estimates
-//     }
-
-//     estimates.forEach((estimate: any) => {
-//         totalEstimateAmount += estimate.rate * estimate.quantity;
-//     });
-
-//     let subtotal, processingFee, gst, totalAmount, contractorAmount, siteVisitAmount = 0;
-
-//     if (totalEstimateAmount <= 1000) {
-//         processingFee = parseFloat(((20 / 100) * totalEstimateAmount).toFixed(2));
-//     } else if (totalEstimateAmount <= 5000) {
-//         processingFee = parseFloat(((15 / 100) * totalEstimateAmount).toFixed(2));
-//     } else {
-//         processingFee = parseFloat(((10 / 100) * totalEstimateAmount).toFixed(2));
-//     }
-
-//     gst = parseFloat(((5 / 100) * totalEstimateAmount).toFixed(2));
-//     subtotal = totalEstimateAmount;
-//     totalAmount = (subtotal + processingFee + gst).toFixed(2);
-//     contractorAmount = (subtotal + gst).toFixed(2);
-
-//     return { subtotal, processingFee, gst, totalAmount, contractorAmount };
-// });
 
 
 

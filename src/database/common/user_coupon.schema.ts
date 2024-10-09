@@ -13,7 +13,7 @@ export interface IUserCoupon extends Document {
   applicableAtCheckout: boolean; // Ensures the coupon can be applied during checkout
   redeemedAt?: Date; // Date when coupon is redeemed                
   expiryDate: Date; // Expiration date of the coupon
-  status: 'pending' | 'expired' | 'redeemed'; // The status of the coupon
+  status: 'pending' | 'expired' | 'redeemed' | 'active' ; // The status of the coupon
 }
 
 // Define the UserCoupon schema
@@ -27,10 +27,12 @@ const UserCouponSchema: Schema<IUserCoupon> = new Schema({
   value: { type: Number, required: true }, // Coupon value (dollar or percentage)
   applicableAtCheckout: { type: Boolean, default: true }, // Can be applied at checkout
   redeemedAt: { type: Date }, // Optional redeemed date
-  expiryDate: { type: Date, required: true }, // Expiry date of the coupon
+  expiryDate: { type: Date }, // Expiry date of the coupon
+  // active means it can be applied, pending means that its not immediately available, either
+  // because its already applied to a pending transaction or its not yet approved 
   status: { 
     type: String, 
-    enum: ['pending', 'expired', 'redeemed'], 
+    enum: ['pending', 'expired', 'redeemed', 'active'],  
     default: 'pending' // Default status is pending
   }
 }, { timestamps: true });
