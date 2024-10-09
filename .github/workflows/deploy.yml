@@ -24,6 +24,9 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@35.181.176.57 << 'EOF'
             cd /home/ubuntu/repairfind-be
+            # git add locale/general.json          
+            # git commit -m "Server changes"
+            git update-index --assume-unchanged locale/general.json  # Ignore further changes to the file      
             git pull origin production
             npm install
             npm run build
@@ -47,6 +50,9 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@13.39.11.80 << 'EOF'
             cd /home/ubuntu/repairfind-be
+            # git add locale/general.json
+            # git commit -m "Server changes"
+            git update-index --assume-unchanged locale/general.json  # Ignore further changes to the file
             git pull origin dev
             npm install
             pm2 restart repairfind
