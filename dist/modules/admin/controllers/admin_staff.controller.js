@@ -35,6 +35,15 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -71,7 +80,9 @@ var getAdminStaffs = function (req, res, next) { return __awaiter(void 0, void 0
                             .status(401)
                             .json({ success: false, message: "Only super admin can perform this action" })];
                 }
-                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(admin_model_1.default.find().select('-password'), req.query)];
+                return [4 /*yield*/, (0, api_feature_1.applyAPIFeature)(admin_model_1.default.find()
+                        .select('-password')
+                        .populate({ path: 'permissions', model: 'permissions', select: '_id name' }), req.query)];
             case 2:
                 _b = _c.sent(), data = _b.data, error = _b.error;
                 return [2 /*return*/, res.json({ success: true, data: data })];
@@ -204,12 +215,12 @@ var addStaff = function (req, res, next) { return __awaiter(void 0, void 0, void
 }); };
 exports.addStaff = addStaff;
 var addPermissionToStaff = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, staffId, permision, errors, admin, adminId, checkAdmin, subAdmin, checkPermission, permissions, i, availabePermission, error_4;
+    var _a, staffId, permissions, errors, admin, adminId, checkAdmin, subAdmin, validPermissions, validPermissionIds_1, invalidPermissions, existingPermissions, newPermissions, error_4;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 5, , 6]);
-                _a = req.body, staffId = _a.staffId, permision = _a.permision;
+                _b.trys.push([0, 7, , 8]);
+                _a = req.body, staffId = _a.staffId, permissions = _a.permissions;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
                     return [2 /*return*/, res.status(400).json({ errors: errors.array() })];
@@ -229,40 +240,48 @@ var addPermissionToStaff = function (req, res, next) { return __awaiter(void 0, 
                 subAdmin = _b.sent();
                 if (!subAdmin) {
                     return [2 /*return*/, res
-                            .status(401)
+                            .status(404)
                             .json({ message: "staff does not exist" })];
                 }
-                return [4 /*yield*/, permission_model_1.default.findOne({ _id: permision })];
+                return [4 /*yield*/, permission_model_1.default.find({ _id: { $in: permissions } })];
             case 3:
-                checkPermission = _b.sent();
-                if (!checkPermission) {
-                    return [2 /*return*/, res
-                            .status(401)
-                            .json({ success: false, message: "Invalid permission" })];
-                }
-                permissions = [permision];
-                for (i = 0; i < subAdmin.permissions.length; i++) {
-                    availabePermission = subAdmin.permissions[i];
-                    if (availabePermission == permision) {
-                        return [2 /*return*/, res
-                                .status(401)
-                                .json({ success: false, message: "Staff already has this permission" })];
-                    }
-                    permissions.push(availabePermission);
-                }
-                subAdmin.permissions = permissions;
+                validPermissions = _b.sent();
+                if (!(validPermissions.length === 0)) return [3 /*break*/, 5];
+                subAdmin.permissions = [];
                 return [4 /*yield*/, subAdmin.save()];
             case 4:
                 _b.sent();
-                res.json({
-                    message: "permission added successfully",
-                });
-                return [3 /*break*/, 6];
+                return [2 /*return*/, res
+                        .json({ message: "All permissions are invalid. Staff's permissions cleared.", addedPermissions: [], invalidPermissions: permissions })];
             case 5:
+                validPermissionIds_1 = validPermissions.map(function (permission) { return permission._id.toString(); });
+                invalidPermissions = permissions.filter(function (permission) { return !validPermissionIds_1.includes(permission); });
+                existingPermissions = subAdmin.permissions.map(function (permission) { return permission.toString(); });
+                newPermissions = Array.from(new Set(__spreadArray(__spreadArray([], existingPermissions, true), validPermissionIds_1, true)));
+                // Check if the permission have changed
+                if (existingPermissions.length === newPermissions.length) {
+                    return [2 /*return*/, res.json({
+                            success: true,
+                            message: "No new persmissions added.",
+                            addedPermissions: [],
+                            invalidPermissions: invalidPermissions
+                        })];
+                }
+                subAdmin.permissions = newPermissions;
+                return [4 /*yield*/, subAdmin.save()];
+            case 6:
+                _b.sent();
+                res.json({
+                    message: "Permissions added successfully",
+                    addedPermissions: validPermissions,
+                    invalidPermissions: invalidPermissions
+                });
+                return [3 /*break*/, 8];
+            case 7:
                 error_4 = _b.sent();
                 next(new custom_errors_1.InternalServerError("An error occurred", error_4));
-                return [3 /*break*/, 6];
-            case 6: return [2 /*return*/];
+                return [3 /*break*/, 8];
+            case 8: return [2 /*return*/];
         }
     });
 }); };

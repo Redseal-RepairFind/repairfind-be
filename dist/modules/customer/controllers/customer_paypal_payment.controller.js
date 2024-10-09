@@ -1,4 +1,15 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -53,7 +64,7 @@ var messages_schema_1 = require("../../../database/common/messages.schema");
 var paypal_1 = require("../../../services/paypal");
 var conversation_util_1 = require("../../../utils/conversation.util");
 var paypal_payment_log_model_1 = require("../../../database/common/paypal_payment_log.model");
-var logger_1 = require("../../../services/logger");
+var user_coupon_schema_1 = require("../../../database/common/user_coupon.schema");
 var findCustomer = function (customerId) { return __awaiter(void 0, void 0, void 0, function () {
     var customer;
     return __generator(this, function (_a) {
@@ -115,12 +126,12 @@ var findContractor = function (contractorId) { return __awaiter(void 0, void 0, 
     });
 }); };
 var createCheckoutOrder = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, quotationId, isChangeOrder, jobId, errors, customerId, customer, job, quotation, contractor, contractorId, changeOrderEstimate, paymentType_1, transactionType, charges_1, metadata_1, paypalPaymentLog_1, payload_1, capture_1, paymentType, charges, metadata, paypalPaymentLog, payload, capture, err_1;
+    var _a, quotationId, isChangeOrder, couponCode, jobId, errors, customerId, customer, job, quotation, contractor, contractorId, changeOrderEstimate, paymentType_1, transactionType, charges_1, metadata_1, paypalPaymentLog_1, payload_1, capture_1, paymentType, coupon, charges, metadata, paypalPaymentLog, payload, capture, err_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 13, , 14]);
-                _a = req.body, quotationId = _a.quotationId, isChangeOrder = _a.isChangeOrder;
+                _b.trys.push([0, 15, , 16]);
+                _a = req.body, quotationId = _a.quotationId, isChangeOrder = _a.isChangeOrder, couponCode = _a.couponCode;
                 jobId = req.params.jobId;
                 errors = (0, express_validator_1.validationResult)(req);
                 if (!errors.isEmpty()) {
@@ -140,7 +151,6 @@ var createCheckoutOrder = function (req, res, next) { return __awaiter(void 0, v
             case 4:
                 contractor = _b.sent();
                 contractorId = contractor.id;
-                logger_1.Logger.info("createCheckoutOrder", { quotationId: quotationId, isChangeOrder: isChangeOrder });
                 if (!(isChangeOrder === "true")) return [3 /*break*/, 9];
                 changeOrderEstimate = quotation.changeOrderEstimate;
                 if (!changeOrderEstimate)
@@ -193,8 +203,15 @@ var createCheckoutOrder = function (req, res, next) { return __awaiter(void 0, v
                     paymentType = payment_schema_1.PAYMENT_TYPE.SITE_VISIT_PAYMENT;
                 if (quotation.type == job_quotation_model_1.JOB_QUOTATION_TYPE.JOB_DAY)
                     paymentType = payment_schema_1.PAYMENT_TYPE.JOB_DAY_PAYMENT;
-                return [4 /*yield*/, quotation.calculateCharges(paymentType)];
+                if (!couponCode) return [3 /*break*/, 11];
+                return [4 /*yield*/, user_coupon_schema_1.UserCouponModel.findOne({ code: couponCode })];
             case 10:
+                coupon = _b.sent();
+                if (coupon)
+                    return [2 /*return*/, res.json({ success: false, message: 'Payment intent created' })];
+                _b.label = 11;
+            case 11: return [4 /*yield*/, quotation.calculateCharges(paymentType)];
+            case 12:
                 charges = _b.sent();
                 metadata = {
                     customerId: customer.id,
@@ -211,7 +228,7 @@ var createCheckoutOrder = function (req, res, next) { return __awaiter(void 0, v
                         'userType': 'customers',
                         metadata: metadata
                     })];
-            case 11:
+            case 13:
                 paypalPaymentLog = _b.sent();
                 payload = {
                     amount: charges.customerPayable,
@@ -221,14 +238,14 @@ var createCheckoutOrder = function (req, res, next) { return __awaiter(void 0, v
                     returnUrl: "https://repairfind.ca/payment-success"
                 };
                 return [4 /*yield*/, paypal_1.PayPalService.payment.createOrder(payload)];
-            case 12:
+            case 14:
                 capture = _b.sent();
-                res.json({ success: true, message: 'Payment intent created', data: capture });
-                return [3 /*break*/, 14];
-            case 13:
+                res.json({ success: true, message: 'Payment intent created', data: __assign({ capture: capture }, charges) });
+                return [3 /*break*/, 16];
+            case 15:
                 err_1 = _b.sent();
                 return [2 /*return*/, next(new custom_errors_1.BadRequestError(err_1.message, err_1))];
-            case 14: return [2 /*return*/];
+            case 16: return [2 /*return*/];
         }
     });
 }); };

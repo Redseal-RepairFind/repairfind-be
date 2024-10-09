@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Validations = exports.validateAppVersionUpdate = exports.validateAppVersionCreation = exports.sendMessageParams = exports.StartCoversaionParams = exports.CustomerChangeStatusParams = exports.ContractorChangeStatusParams = exports.SettleDisputeParams = exports.DisputeStatusParams = exports.AddPermissionParams = exports.AddStaffParams = exports.EditPermissionParams = exports.PermissionCreationParam = exports.validateResolvedEmergecyIdParams = exports.validateEmergecyIdParams = exports.validatePayoutIDPayContractorParams = exports.validatePayoutIDParams = exports.validateRevenueDateParams = exports.validateDeleteQuestionValidationParams = exports.validateEditQuestionParams = exports.validateQuestionIdValidationParams = exports.createQuizParams = exports.validateAddQuestionParams = exports.validateTRansactionIdValidationParams = exports.validateJobIdValidationParams = exports.validateAddSkillParams = exports.validateContractoDocumentIdValidationParams = exports.sendCustomEmail = exports.updateAccount = exports.updateGstDetails = exports.validateCustomerIdValidationParams = exports.validateContractorIdValidationParams = exports.validateSuperAdmiCchangeStatusParams = exports.validateAdminResetPasswprdParams = exports.validateAdminChangePasswordParams = exports.validateAdminForgotPasswordParams = exports.validateAdminLoginParams = exports.validatAdminEmailverificationParams = exports.validateSignupParams = void 0;
+exports.Validations = exports.validatePromotionUpdate = exports.validatePromotionCreation = exports.validateAppVersionUpdate = exports.validateAppVersionCreation = exports.sendMessageParams = exports.StartCoversaionParams = exports.CustomerChangeStatusParams = exports.ContractorChangeStatusParams = exports.SettleDisputeParams = exports.DisputeStatusParams = exports.AddPermissionParams = exports.AddStaffParams = exports.EditPermissionParams = exports.PermissionCreationParam = exports.validateResolvedEmergecyIdParams = exports.validateEmergecyIdParams = exports.validatePayoutIDPayContractorParams = exports.validatePayoutIDParams = exports.validateRevenueDateParams = exports.validateDeleteQuestionValidationParams = exports.validateEditQuestionParams = exports.validateQuestionIdValidationParams = exports.createQuizParams = exports.validateAddQuestionParams = exports.validateTRansactionIdValidationParams = exports.validateJobIdValidationParams = exports.validateAddSkillParams = exports.validateContractoDocumentIdValidationParams = exports.sendCustomEmail = exports.updateAccount = exports.updateGstDetails = exports.validateCustomerIdValidationParams = exports.validateContractorIdValidationParams = exports.validateSuperAdmiCchangeStatusParams = exports.validateAdminResetPasswprdParams = exports.validateAdminChangePasswordParams = exports.validateAdminForgotPasswordParams = exports.validateAdminLoginParams = exports.validatAdminEmailverificationParams = exports.validateSignupParams = void 0;
 var express_validator_1 = require("express-validator");
 var admin_interface_1 = require("../../../database/admin/interface/admin.interface");
 var job_dispute_model_1 = require("../../../database/common/job_dispute.model");
@@ -136,7 +136,9 @@ exports.AddStaffParams = [
 ];
 exports.AddPermissionParams = [
     (0, express_validator_1.body)("staffId").notEmpty(),
-    (0, express_validator_1.body)("permision").notEmpty(),
+    (0, express_validator_1.body)("permissions").isArray()
+        .custom(function (array) { return array.every(function (item) { return typeof item === 'string'; }); })
+        .withMessage("permisions must be an array of strings")
 ];
 exports.DisputeStatusParams = [
     (0, express_validator_1.query)("status").isIn(Object.values(job_dispute_model_1.JOB_DISPUTE_STATUS)),
@@ -203,6 +205,41 @@ exports.validateAppVersionUpdate = [
     (0, express_validator_1.body)("changelogs.*.description").optional().notEmpty().withMessage("Each changelog must have a description"),
     (0, express_validator_1.body)("isCurrent").optional().isBoolean().withMessage("isCurrent must be a boolean"),
 ];
+exports.validatePromotionCreation = [
+    (0, express_validator_1.body)("name").notEmpty().withMessage("Name is required"),
+    (0, express_validator_1.body)("code").optional(),
+    (0, express_validator_1.body)("startDate").optional().isDate().withMessage("Start date must be a valid date"),
+    (0, express_validator_1.body)("endDate").optional().isDate().withMessage("End date must be a valid date"),
+    (0, express_validator_1.body)("target")
+        .optional()
+        .isIn(["contractors", "customers", "both"])
+        .withMessage("Target must be one of 'contractors', 'customers', 'both'"),
+    (0, express_validator_1.body)("criteria").optional().notEmpty().withMessage("Criteria must be provided"),
+    (0, express_validator_1.body)("value").optional().isNumeric().withMessage("Value must be a number"),
+    (0, express_validator_1.body)("valueType").notEmpty().isIn(["fixed", "percentage"]).withMessage("Value must be specified"),
+    (0, express_validator_1.body)("description").optional().notEmpty().withMessage("Description must be provided"),
+    (0, express_validator_1.body)("status")
+        .optional()
+        .isIn(["active", "inactive"])
+        .withMessage("Status must be either 'active' or 'inactive'"),
+];
+exports.validatePromotionUpdate = [
+    (0, express_validator_1.body)("name").optional().notEmpty().withMessage("Updating name is not allowed"),
+    (0, express_validator_1.body)("code").isEmpty().withMessage("Updating code is not allowed"),
+    (0, express_validator_1.body)("startDate").optional().isDate().withMessage("Start date must be a valid date"),
+    (0, express_validator_1.body)("endDate").optional().isDate().withMessage("End date must be a valid date"),
+    (0, express_validator_1.body)("target")
+        .optional()
+        .isIn(["contractors", "customers", "both"])
+        .withMessage("Target must be one of 'contractors', 'customers', 'both'"),
+    (0, express_validator_1.body)("criteria").isEmpty().withMessage("Updating criteria is not allowed"),
+    (0, express_validator_1.body)("value").optional().isNumeric().withMessage("Value must be a number"),
+    (0, express_validator_1.body)("description").optional().notEmpty().withMessage("Description must be provided"),
+    (0, express_validator_1.body)("status")
+        .optional()
+        .isIn(["active", "inactive"])
+        .withMessage("Status must be either 'active' or 'inactive'"),
+];
 exports.Validations = {
     PermissionCreationParam: exports.PermissionCreationParam,
     EditPermissionParams: exports.EditPermissionParams,
@@ -218,5 +255,7 @@ exports.Validations = {
     updateAccount: exports.updateAccount,
     sendCustomEmail: exports.sendCustomEmail,
     validateAppVersionUpdate: exports.validateAppVersionUpdate,
-    validateAppVersionCreation: exports.validateAppVersionCreation
+    validateAppVersionCreation: exports.validateAppVersionCreation,
+    validatePromotionCreation: exports.validatePromotionCreation,
+    validatePromotionUpdate: exports.validatePromotionUpdate
 };

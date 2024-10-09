@@ -44,9 +44,10 @@ var AdminSchema = new mongoose_1.Schema({
             url: 'https://ipalas3bucket.s3.us-east-2.amazonaws.com/avatar.png'
         }
     },
-    permissions: {
-        type: (Array)
-    },
+    permissions: [{
+            type: mongoose_1.Schema.Types.ObjectId,
+            ref: 'PermissionModel'
+        }],
     status: {
         type: String,
         enum: Object.values(admin_interface_1.AdminStatus),

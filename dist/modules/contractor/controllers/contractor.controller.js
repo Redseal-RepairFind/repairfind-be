@@ -410,7 +410,7 @@ var ProfileHandler = /** @class */ (function (_super) {
     };
     ProfileHandler.prototype.updateAccount = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var req, res, contractor, contractorId, account, _a, firstName, lastName, companyName, profilePhoto, phoneNumber, dateOfBirth, language, payload, _b, err_5;
+            var req, res, contractor, contractorId, account, _a, firstName, lastName, companyName, profilePhoto, phoneNumber, dateOfBirth, language, payload, updatedContractor, _b, err_5;
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
@@ -438,18 +438,18 @@ var ProfileHandler = /** @class */ (function (_super) {
                         if (account && account.accountType == 'Employee') {
                             payload = { profilePhoto: profilePhoto, phoneNumber: phoneNumber, firstName: firstName, lastName: lastName, dateOfBirth: dateOfBirth, language: language };
                         }
-                        return [4 /*yield*/, contractor_model_1.ContractorModel.findOneAndUpdate({ _id: contractorId }, payload, { new: true })];
+                        return [4 /*yield*/, contractor_model_1.ContractorModel.findOneAndUpdate({ _id: contractorId }, payload, { new: true, upsert: true })];
                     case 3:
-                        _c.sent();
-                        events_1.AccountEvent.emit('ACCOUNT_UPDATED', { user: account, userType: 'contractors' });
-                        _b = account;
+                        updatedContractor = _c.sent();
+                        events_1.AccountEvent.emit('ACCOUNT_UPDATED', { user: updatedContractor, userType: 'contractors' });
+                        _b = updatedContractor;
                         return [4 /*yield*/, account.getOnboarding()];
                     case 4:
                         _b.onboarding = _c.sent();
                         res.json({
                             success: true,
                             message: 'Account updated successfully',
-                            data: account,
+                            data: updatedContractor,
                         });
                         return [3 /*break*/, 6];
                     case 5:

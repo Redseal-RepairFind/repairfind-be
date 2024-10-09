@@ -92,6 +92,8 @@ var JobQuotationSchema = new mongoose_1.Schema({
     siteVisitEstimate: { type: exports.ExtraEstimateSchema },
     responseTime: { type: Number, default: 0 },
     estimatedDuration: { type: Number, default: 0 },
+    customerDiscount: { coupon: { type: mongoose_1.Schema.Types.ObjectId, ref: 'user_coupons' }, value: { type: Number } },
+    contractorDiscount: { coupon: { type: mongoose_1.Schema.Types.ObjectId, ref: 'user_coupons' }, value: { type: Number } }
 }, { timestamps: true });
 // Define the static method to calculate charges
 JobQuotationSchema.methods.calculateCharges = function (type) {

@@ -37,6 +37,8 @@ var PromotionSchema = new mongoose_1.Schema({
         default: 'both'
     },
     criteria: { type: String },
+    value: { type: Number },
+    valueType: { type: String, enum: ['fixed', 'percentage'], required: true },
     description: { type: String },
     status: {
         type: String,

@@ -21,6 +21,7 @@ var admin_staff_controller_1 = require("../controllers/admin_staff.controller");
 var admin_analytics_controller_1 = require("../controllers/admin_analytics.controller");
 var app_version_controller_1 = require("../controllers/app_version.controller");
 var admin_report_controller_1 = require("../controllers/admin_report.controller");
+var promotion_controller_1 = require("../controllers/promotion.controller");
 var express = require("express");
 var router = express.Router();
 //refactored authecation
@@ -123,4 +124,10 @@ router.delete("/questions/:questionId", adminRoleChecker_middleware_1.checkAdmin
 router.post("/contractors/:contractorId/attach-stripe-account", admin_contractors_controller_1.AdminContractorController.attachStripeAccount); //
 router.post("/contractors/:contractorId/remove-stripe-account", admin_contractors_controller_1.AdminContractorController.removeStripeAccount); //
 router.post("/contractors/:contractorId/attach-certn-details", admin_contractors_controller_1.AdminContractorController.attachCertnDetails); //
+// App Versions
+router.post("/promotions", admin_validations_middleware_1.Validations.validatePromotionCreation, adminRoleChecker_middleware_1.checkAdminRole, promotion_controller_1.PromotionController.addPromotion);
+router.get("/promotions", adminRoleChecker_middleware_1.checkAdminRole, promotion_controller_1.PromotionController.getPromotions);
+router.get("/promotions/:id", adminRoleChecker_middleware_1.checkAdminRole, promotion_controller_1.PromotionController.getSinglePromotion);
+router.patch("/promotions/:id", admin_validations_middleware_1.Validations.validatePromotionUpdate, adminRoleChecker_middleware_1.checkAdminRole, promotion_controller_1.PromotionController.updatePromotion);
+router.delete("/promotions/:id", adminRoleChecker_middleware_1.checkAdminRole, promotion_controller_1.PromotionController.deletePromotion);
 exports.default = router;

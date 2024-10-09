@@ -23,20 +23,25 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UserPromotionModel = void 0;
+exports.UserCouponModel = void 0;
 var mongoose_1 = __importStar(require("mongoose"));
-// Define the UserPromotion schema
-var UserPromotionSchema = new mongoose_1.Schema({
-    promotionId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'promotions', required: true },
-    user: { type: mongoose_1.Schema.Types.ObjectId, required: true, refPath: 'userType' },
-    userType: { type: String, enum: ['contractors', 'customers'], required: true },
-    redeemedAt: { type: Date },
-    expiryDate: { type: Date },
+// Define the UserCoupon schema
+var UserCouponSchema = new mongoose_1.Schema({
+    promotion: { type: mongoose_1.Schema.Types.ObjectId, ref: 'promotions', required: true }, // Reference to the coupon
+    name: { type: String, required: true }, // Name of the coupon
+    code: { type: String, required: true, unique: true }, // Coupon code for checkout
+    user: { type: mongoose_1.Schema.Types.ObjectId, required: true, refPath: 'userType' }, // Reference to the user
+    userType: { type: String, enum: ['contractors', 'customers'], required: true }, // Type of user
+    valueType: { type: String, enum: ['fixed', 'percentage'], required: true }, // Type of discount
+    value: { type: Number, required: true }, // Coupon value (dollar or percentage)
+    applicableAtCheckout: { type: Boolean, default: true }, // Can be applied at checkout
+    redeemedAt: { type: Date }, // Optional redeemed date
+    expiryDate: { type: Date, required: true }, // Expiry date of the coupon
     status: {
         type: String,
         enum: ['pending', 'expired', 'redeemed'],
-        default: 'pending'
+        default: 'pending' // Default status is pending
     }
 }, { timestamps: true });
-// Export the UserPromotion model
-exports.UserPromotionModel = mongoose_1.default.model('UserPromotion', UserPromotionSchema);
+// Export the UserCoupon model
+exports.UserCouponModel = mongoose_1.default.model('user_coupons', UserCouponSchema);
