@@ -194,7 +194,7 @@ var calculateCharges = function (req, res, next) { return __awaiter(void 0, void
             case 0:
                 _b.trys.push([0, 2, , 3]);
                 _a = req.body.amount, amount = _a === void 0 ? 0 : _a;
-                return [4 /*yield*/, payment_util_1.PaymentUtil.calculateCharges(Number(amount))];
+                return [4 /*yield*/, payment_util_1.PaymentUtil.calculateCharges({ totalEstimateAmount: Number(amount) })];
             case 1:
                 charges = _b.sent();
                 return [2 /*return*/, res.json({ success: true, message: "Payment charges calculated", data: charges })];

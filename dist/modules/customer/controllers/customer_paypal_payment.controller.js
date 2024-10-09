@@ -207,8 +207,8 @@ var createCheckoutOrder = function (req, res, next) { return __awaiter(void 0, v
                 return [4 /*yield*/, user_coupon_schema_1.UserCouponModel.findOne({ code: couponCode })];
             case 10:
                 coupon = _b.sent();
-                if (coupon)
-                    return [2 /*return*/, res.json({ success: false, message: 'Payment intent created' })];
+                if (!coupon)
+                    return [2 /*return*/, res.json({ success: false, message: 'Coupon is invalid' })];
                 _b.label = 11;
             case 11: return [4 /*yield*/, quotation.calculateCharges(paymentType)];
             case 12:

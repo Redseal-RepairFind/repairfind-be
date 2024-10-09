@@ -39,13 +39,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AdminCustomerController = exports.AdminChangeCustomerAccountStatusController = exports.AdminGetSingleCustomerJobDetailController = exports.AdminGetSingleCustomerDetailController = exports.AdminGetCustomerDetailController = void 0;
+exports.AdminCustomerController = exports.issueCoupon = exports.AdminChangeCustomerAccountStatusController = exports.AdminGetSingleCustomerJobDetailController = exports.AdminGetSingleCustomerDetailController = exports.AdminGetCustomerDetailController = void 0;
 var express_validator_1 = require("express-validator");
 var admin_model_1 = __importDefault(require("../../../database/admin/models/admin.model"));
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
-// import {ContractorModel} from "../../../database/contractor/models/contractor.model";
 var job_model_1 = require("../../../database/common/job.model");
 var invoices_shema_1 = require("../../../database/common/invoices.shema");
+var promotion_schema_1 = require("../../../database/common/promotion.schema");
+var user_coupon_schema_1 = require("../../../database/common/user_coupon.schema");
+var couponCodeGenerator_1 = require("../../../utils/couponCodeGenerator");
+var custom_errors_1 = require("../../../utils/custom.errors");
 //get customer detail /////////////
 var AdminGetCustomerDetailController = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, page, limit, errors, admin, adminId, skip, customersDetail, totalCustomer, err_1;
@@ -70,62 +73,9 @@ var AdminGetCustomerDetailController = function (req, res) { return __awaiter(vo
                         .limit(limit)];
             case 1:
                 customersDetail = _b.sent();
-                return [4 /*yield*/, customer_model_1.default.countDocuments()
-                    // let customers = [];
-                    // for (let i = 0; i < customersDetail.length; i++) {
-                    //   const customer = customersDetail[i];
-                    //   const jobRequests = await JobModel.find({customerId: customer._id}).sort({ createdAt: -1 })
-                    //   let jobRequested = []
-                    //   let rating = null
-                    //   const customerRating = await CustomerRatingModel.findOne({customerId: customer._id})
-                    //   if (customerRating) {
-                    //     rating = customerRating
-                    //   }
-                    //   for (let i = 0; i < jobRequests.length; i++) {
-                    //     const jobRequest = jobRequests[i];
-                    //     const contractor = await ContractorModel.findOne({_id: jobRequest.contractorId}).select('-password');
-                    //     const obj = {
-                    //       job: jobRequest,
-                    //       contractor
-                    //     }
-                    //     jobRequested.push(obj)
-                    //   }
-                    //   const objTwo = {
-                    //     customer,
-                    //     rating,
-                    //     jobHistory: jobRequested
-                    //   }
-                    //   customers.push(objTwo)
-                    // }
-                ];
+                return [4 /*yield*/, customer_model_1.default.countDocuments()];
             case 2:
                 totalCustomer = _b.sent();
-                // let customers = [];
-                // for (let i = 0; i < customersDetail.length; i++) {
-                //   const customer = customersDetail[i];
-                //   const jobRequests = await JobModel.find({customerId: customer._id}).sort({ createdAt: -1 })
-                //   let jobRequested = []
-                //   let rating = null
-                //   const customerRating = await CustomerRatingModel.findOne({customerId: customer._id})
-                //   if (customerRating) {
-                //     rating = customerRating
-                //   }
-                //   for (let i = 0; i < jobRequests.length; i++) {
-                //     const jobRequest = jobRequests[i];
-                //     const contractor = await ContractorModel.findOne({_id: jobRequest.contractorId}).select('-password');
-                //     const obj = {
-                //       job: jobRequest,
-                //       contractor
-                //     }
-                //     jobRequested.push(obj)
-                //   }
-                //   const objTwo = {
-                //     customer,
-                //     rating,
-                //     jobHistory: jobRequested
-                //   }
-                //   customers.push(objTwo)
-                // }
                 res.json({
                     currentPage: page,
                     totalCustomer: totalCustomer,
@@ -323,9 +273,56 @@ var AdminChangeCustomerAccountStatusController = function (req, res) { return __
     });
 }); };
 exports.AdminChangeCustomerAccountStatusController = AdminChangeCustomerAccountStatusController;
+var issueCoupon = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var promotionId, customerId, promotion, newUserCoupon, error_1;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 3, , 4]);
+                promotionId = req.body.promotionId;
+                customerId = req.params.customerId;
+                return [4 /*yield*/, promotion_schema_1.PromotionModel.findById(promotionId)];
+            case 1:
+                promotion = _a.sent();
+                if (!promotion) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Promotion not found' })];
+                }
+                // Check if the promotion is active
+                if (promotion.status !== 'active') {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Promotion is not active' })];
+                }
+                newUserCoupon = new user_coupon_schema_1.UserCouponModel({
+                    promotion: promotion._id, // Attach promotion ID
+                    name: promotion.name,
+                    code: (0, couponCodeGenerator_1.generateCouponCode)(7), // generate coupon code here
+                    user: customerId,
+                    userType: 'customers',
+                    valueType: promotion.valueType,
+                    value: promotion.value,
+                    applicableAtCheckout: true,
+                    expiryDate: promotion.endDate,
+                    status: 'active'
+                });
+                // Save the new coupon
+                return [4 /*yield*/, newUserCoupon.save()];
+            case 2:
+                // Save the new coupon
+                _a.sent();
+                // Respond with success message
+                return [2 /*return*/, res.json({ success: true, message: 'Promotion attached to user as coupon', data: newUserCoupon })];
+            case 3:
+                error_1 = _a.sent();
+                // Handle any errors that occur
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError("Error attaching promotion to user coupon: ".concat(error_1.message), error_1))];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.issueCoupon = issueCoupon;
 exports.AdminCustomerController = {
     AdminGetCustomerDetailController: exports.AdminGetCustomerDetailController,
     AdminGetSingleCustomerDetailController: exports.AdminGetSingleCustomerDetailController,
     AdminGetSingleCustomerJobDetailController: exports.AdminGetSingleCustomerJobDetailController,
     AdminChangeCustomerAccountStatusController: exports.AdminChangeCustomerAccountStatusController,
+    issueCoupon: exports.issueCoupon,
 };

@@ -37,45 +37,78 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PaymentUtil = void 0;
-var calculateCharges = function (totalEstimateAmount) { return __awaiter(void 0, void 0, void 0, function () {
-    var subtotal, repairfindServiceFee, gstAmount, totalAmount, customerPayable, contractorPayable, customerProcessingFee, contractorProcessingFee, siteVisitAmount, repairfindServiceFeeRate, customerProcessingFeeRate, contractorProcessingFeeRate, gstRate;
-    return __generator(this, function (_a) {
-        siteVisitAmount = 0;
-        if (totalEstimateAmount <= 5000) {
-            repairfindServiceFeeRate = 10;
-        }
-        else if (totalEstimateAmount <= 10000) {
-            repairfindServiceFeeRate = 8;
-        }
-        else {
-            repairfindServiceFeeRate = 5;
-        }
-        customerProcessingFeeRate = 3;
-        contractorProcessingFeeRate = 3;
-        gstRate = 5;
-        repairfindServiceFee = parseFloat(((repairfindServiceFeeRate / 100) * totalEstimateAmount).toFixed(2));
-        customerProcessingFee = parseFloat(((customerProcessingFeeRate / 100) * totalEstimateAmount).toFixed(2));
-        contractorProcessingFee = parseFloat(((contractorProcessingFeeRate / 100) * totalEstimateAmount).toFixed(2));
-        gstAmount = parseFloat(((gstRate / 100) * totalEstimateAmount).toFixed(2));
-        subtotal = totalEstimateAmount;
-        customerPayable = parseFloat((subtotal + customerProcessingFee + gstAmount).toFixed(2));
-        contractorPayable = parseFloat(((subtotal + gstAmount) - (contractorProcessingFee + repairfindServiceFee)).toFixed(2));
-        return [2 /*return*/, {
-                subtotal: subtotal,
-                gstAmount: gstAmount,
-                customerPayable: customerPayable,
-                contractorPayable: contractorPayable,
-                repairfindServiceFee: repairfindServiceFee,
-                customerProcessingFee: customerProcessingFee,
-                contractorProcessingFee: contractorProcessingFee,
-                // Return rates as well
-                gstRate: gstRate,
-                repairfindServiceFeeRate: repairfindServiceFeeRate,
-                contractorProcessingFeeRate: contractorProcessingFeeRate,
-                customerProcessingFeeRate: customerProcessingFeeRate,
-            }];
+var calculateCharges = function (_a) {
+    var totalEstimateAmount = _a.totalEstimateAmount, customerDiscount = _a.customerDiscount, contractorDiscount = _a.contractorDiscount;
+    return __awaiter(void 0, void 0, void 0, function () {
+        var _b, subtotal, repairfindServiceFee, gstAmount, totalAmount, customerPayable, contractorPayable, customerProcessingFee, contractorProcessingFee, siteVisitAmount, customerDiscountValue, contractorDiscountValue, repairfindServiceFeeRate, customerProcessingFeeRate, contractorProcessingFeeRate, gstRate;
+        return __generator(this, function (_c) {
+            _b = Array(15).fill(0), subtotal = _b[0], repairfindServiceFee = _b[1], gstAmount = _b[2], totalAmount = _b[3], customerPayable = _b[4], contractorPayable = _b[5], customerProcessingFee = _b[6], contractorProcessingFee = _b[7], siteVisitAmount = _b[8], customerDiscountValue = _b[9], contractorDiscountValue = _b[10], repairfindServiceFeeRate = _b[11], customerProcessingFeeRate = _b[12], contractorProcessingFeeRate = _b[13], gstRate = _b[14];
+            // Set service fee rates based on total estimate amount
+            if (totalEstimateAmount <= 5000) {
+                repairfindServiceFeeRate = 10;
+            }
+            else if (totalEstimateAmount <= 10000) {
+                repairfindServiceFeeRate = 8;
+            }
+            else {
+                repairfindServiceFeeRate = 5;
+            }
+            customerProcessingFeeRate = 3;
+            contractorProcessingFeeRate = 3;
+            gstRate = 5;
+            repairfindServiceFee = parseFloat(((repairfindServiceFeeRate / 100) * totalEstimateAmount).toFixed(2));
+            // Calculate customer discount based on valueType
+            if (customerDiscount) {
+                if (customerDiscount.valueType === 'fixed') {
+                    customerDiscountValue = customerDiscount.value;
+                }
+                else if (customerDiscount.valueType === 'percentage') {
+                    customerDiscountValue = parseFloat(((customerDiscount.value / 100) * totalEstimateAmount).toFixed(2));
+                }
+                // Ensure discount doesn't exceed total amount
+                customerDiscountValue = Math.min(customerDiscountValue, totalEstimateAmount);
+            }
+            // Calculate contractor discount based on valueType
+            if (contractorDiscount) {
+                if (contractorDiscount.valueType === 'fixed') {
+                    contractorDiscountValue = contractorDiscount.value;
+                }
+                else if (contractorDiscount.valueType === 'percentage') {
+                    contractorDiscountValue = parseFloat(((contractorDiscount.value / 100) * repairfindServiceFee).toFixed(2));
+                }
+                // Ensure discount doesn't exceed total amount
+                contractorDiscountValue = Math.min(contractorDiscountValue, repairfindServiceFee);
+            }
+            customerProcessingFee = parseFloat(((customerProcessingFeeRate / 100) * totalEstimateAmount).toFixed(2));
+            contractorProcessingFee = parseFloat(((contractorProcessingFeeRate / 100) * totalEstimateAmount).toFixed(2));
+            gstAmount = parseFloat(((gstRate / 100) * totalEstimateAmount).toFixed(2));
+            subtotal = totalEstimateAmount;
+            customerPayable = parseFloat((subtotal + customerProcessingFee + gstAmount - customerDiscountValue).toFixed(2));
+            contractorPayable = parseFloat((subtotal + gstAmount - (contractorProcessingFee + (repairfindServiceFee - contractorDiscountValue))).toFixed(2));
+            return [2 /*return*/, {
+                    subtotal: subtotal,
+                    gstAmount: gstAmount,
+                    customerPayable: customerPayable,
+                    contractorPayable: contractorPayable,
+                    repairfindServiceFee: repairfindServiceFee,
+                    customerProcessingFee: customerProcessingFee,
+                    contractorProcessingFee: contractorProcessingFee,
+                    // Return rates as well
+                    gstRate: gstRate,
+                    repairfindServiceFeeRate: repairfindServiceFeeRate,
+                    contractorProcessingFeeRate: contractorProcessingFeeRate,
+                    customerProcessingFeeRate: customerProcessingFeeRate,
+                    // Correctly apply customer and contractor discounts
+                    customerDiscount: (customerDiscount === null || customerDiscount === void 0 ? void 0 : customerDiscount.value)
+                        ? { amount: customerDiscountValue, value: customerDiscount.value, valueType: customerDiscount.valueType }
+                        : null,
+                    contractorDiscount: (contractorDiscount === null || contractorDiscount === void 0 ? void 0 : contractorDiscount.value)
+                        ? { amount: contractorDiscountValue, value: contractorDiscount.value, valueType: contractorDiscount.valueType }
+                        : null,
+                }];
+        });
     });
-}); };
+};
 exports.PaymentUtil = {
-    calculateCharges: calculateCharges
+    calculateCharges: calculateCharges,
 };

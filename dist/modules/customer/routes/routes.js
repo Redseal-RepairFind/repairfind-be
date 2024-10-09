@@ -80,6 +80,7 @@ router.get("/jobs/:jobId/enquiries", customerRoleChecker_middleware_1.checkCusto
 router.get("/jobs/:jobId/enquiries/:enquiryId", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.getJobSingleEnquiry);
 router.post("/jobs/:jobId/enquiry-reply", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.replyJobEnquiry);
 router.get('/quotations', customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.getAllQuotations); // 
+router.post("/quotations/:quotationId/apply-coupon", customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.applyCouponToJobQuotation);
 router.get('/quotations/:quotationId', customerRoleChecker_middleware_1.checkCustomerRole, customer_job_controller_1.CustomerJobController.getQuotation); // 
 // BOOKING
 router.get("/bookings", customerRoleChecker_middleware_1.checkCustomerRole, customer_booking_controller_1.CustomerBookingController.getMyBookings);

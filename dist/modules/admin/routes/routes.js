@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var admin_job_controller_1 = require("../controllers/admin_job.controller");
 var admin_skill_controller_1 = require("../controllers/admin_skill.controller");
 var admin_contractors_controller_1 = require("../controllers/admin_contractors.controller");
-var adminGetCustomerDetail_contractor_1 = require("../controllers/adminGetCustomerDetail.contractor");
+var admin_customer_controller_1 = require("../controllers/admin_customer.controller");
 var admin_notification_controller_1 = require("../controllers/admin_notification.controller");
 var appDetails_Controller_1 = require("../controllers/appDetails.Controller");
 var averageRevenue_controller_1 = require("../controllers/averageRevenue.controller");
@@ -54,7 +54,7 @@ router.delete("/app-versions/:id", adminRoleChecker_middleware_1.checkAdminRole,
 router.get("/abuse-reports", adminRoleChecker_middleware_1.checkAdminRole, admin_report_controller_1.AdminReportController.getAllReports);
 router.get("/abuse-reports/:id", adminRoleChecker_middleware_1.checkAdminRole, admin_report_controller_1.AdminReportController.getReportById);
 router.patch("/abuse-reports/:id", admin_validations_middleware_1.Validations.validateAppVersionUpdate, adminRoleChecker_middleware_1.checkAdminRole, admin_report_controller_1.AdminReportController.updateReport);
-//refactored contractor
+// CONTRACTOR
 router.get("/contractors", adminRoleChecker_middleware_1.checkAdminRole, admin_contractors_controller_1.AdminContractorController.exploreContractors); // admin get contractor detail
 router.get("/contractors/:contractorId", adminRoleChecker_middleware_1.checkAdminRole, admin_contractors_controller_1.AdminContractorController.getSingleContractor); // admin get single contractor detail
 router.get("/contractors/:contractorId/jobs", adminRoleChecker_middleware_1.checkAdminRole, admin_contractors_controller_1.AdminContractorController.getJobHistory); // admin get single contractor detail
@@ -62,11 +62,16 @@ router.get("/contractors/:contractorId/jobs/:jobId", adminRoleChecker_middleware
 router.patch("/contractors/:contractorId/gst", admin_validations_middleware_1.Validations.updateGstDetails, adminRoleChecker_middleware_1.checkAdminRole, admin_contractors_controller_1.AdminContractorController.updateGstDetails); // admin change contractor gst
 router.patch("/contractors/:contractorId/status", admin_validations_middleware_1.Validations.updateAccount, adminRoleChecker_middleware_1.checkAdminRole, admin_contractors_controller_1.AdminContractorController.updateAccountStatus); // admin change contractor gst
 router.post("/contractors/:contractorId/sendmail", admin_validations_middleware_1.Validations.sendCustomEmail, adminRoleChecker_middleware_1.checkAdminRole, admin_contractors_controller_1.AdminContractorController.sendCustomEmail); // admin change contractor gst
+router.post("/contractors/:contractorId/attach-stripe-account", admin_contractors_controller_1.AdminContractorController.attachStripeAccount); //
+router.post("/contractors/:contractorId/remove-stripe-account", admin_contractors_controller_1.AdminContractorController.removeStripeAccount); //
+router.post("/contractors/:contractorId/attach-certn-details", admin_contractors_controller_1.AdminContractorController.attachCertnDetails); //
+router.post("/contractors/:contractorId/issue-coupon", admin_contractors_controller_1.AdminContractorController.issueCoupon); //
 //done
-router.get("/customer/detail", adminRoleChecker_middleware_1.checkAdminRole, adminGetCustomerDetail_contractor_1.AdminCustomerController.AdminGetCustomerDetailController); // admin get customer detail
-router.get("/customer/detail/:customerId", adminRoleChecker_middleware_1.checkAdminRole, adminGetCustomerDetail_contractor_1.AdminCustomerController.AdminGetSingleCustomerDetailController); // admin get single customer detail
-router.get("/customer/job/detail/:customerId", adminRoleChecker_middleware_1.checkAdminRole, adminGetCustomerDetail_contractor_1.AdminCustomerController.AdminGetSingleCustomerJobDetailController); // admin get single customer  job detail
-router.post("/customer/account/status", admin_validations_middleware_1.Validations.CustomerChangeStatusParams, adminRoleChecker_middleware_1.checkAdminRole, adminGetCustomerDetail_contractor_1.AdminCustomerController.AdminChangeCustomerAccountStatusController); // admin change customer account status
+router.get("/customer/detail", adminRoleChecker_middleware_1.checkAdminRole, admin_customer_controller_1.AdminCustomerController.AdminGetCustomerDetailController); // admin get customer detail
+router.get("/customer/detail/:customerId", adminRoleChecker_middleware_1.checkAdminRole, admin_customer_controller_1.AdminCustomerController.AdminGetSingleCustomerDetailController); // admin get single customer detail
+router.get("/customer/job/detail/:customerId", adminRoleChecker_middleware_1.checkAdminRole, admin_customer_controller_1.AdminCustomerController.AdminGetSingleCustomerJobDetailController); // admin get single customer  job detail
+router.post("/customer/account/status", admin_validations_middleware_1.Validations.CustomerChangeStatusParams, adminRoleChecker_middleware_1.checkAdminRole, admin_customer_controller_1.AdminCustomerController.AdminChangeCustomerAccountStatusController); // admin change customer account status
+router.post("/customers/:customerId/issue-coupon", admin_customer_controller_1.AdminCustomerController.issueCoupon); //
 //done skill
 router.post("/skills", admin_validations_middleware_1.validateAddSkillParams, adminRoleChecker_middleware_1.checkAdminRole, admin_skill_controller_1.AdminSkillController.AddNew); // admin add skill
 router.post("/skills/bulk", adminRoleChecker_middleware_1.checkAdminRole, admin_skill_controller_1.AdminSkillController.AddMultipleSkills); // admin add skilll
@@ -120,10 +125,6 @@ router.get("/questions", adminRoleChecker_middleware_1.checkAdminRole, quiz_cont
 router.get("/questions/:questionId", adminRoleChecker_middleware_1.checkAdminRole, quiz_controller_1.AdminQuizController.GetSingleQuestion); // admin get single question
 router.patch("/questions/:questionId", admin_validations_middleware_1.validateEditQuestionParams, adminRoleChecker_middleware_1.checkAdminRole, quiz_controller_1.AdminQuizController.EditQuestion); // admin edit question
 router.delete("/questions/:questionId", adminRoleChecker_middleware_1.checkAdminRole, quiz_controller_1.AdminQuizController.DeleteQuestion); // admin delete question
-// CONTRACTOR
-router.post("/contractors/:contractorId/attach-stripe-account", admin_contractors_controller_1.AdminContractorController.attachStripeAccount); //
-router.post("/contractors/:contractorId/remove-stripe-account", admin_contractors_controller_1.AdminContractorController.removeStripeAccount); //
-router.post("/contractors/:contractorId/attach-certn-details", admin_contractors_controller_1.AdminContractorController.attachCertnDetails); //
 // App Versions
 router.post("/promotions", admin_validations_middleware_1.Validations.validatePromotionCreation, adminRoleChecker_middleware_1.checkAdminRole, promotion_controller_1.PromotionController.addPromotion);
 router.get("/promotions", adminRoleChecker_middleware_1.checkAdminRole, promotion_controller_1.PromotionController.getPromotions);

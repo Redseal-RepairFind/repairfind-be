@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CustomerJobController = exports.getJobEnquiries = exports.getJobSingleEnquiry = exports.replyJobEnquiry = exports.declineJobQuotation = exports.scheduleJob = exports.acceptJobQuotation = exports.getSingleQuotation = exports.getQuotation = exports.getAllQuotations = exports.getJobQuotations = exports.getSingleJob = exports.getJobHistory = exports.getMyJobs = exports.createJobListing = exports.createJobRequest = void 0;
+exports.CustomerJobController = exports.getJobEnquiries = exports.getJobSingleEnquiry = exports.replyJobEnquiry = exports.declineJobQuotation = exports.scheduleJob = exports.applyCouponToJobQuotation = exports.acceptJobQuotation = exports.getSingleQuotation = exports.getQuotation = exports.getAllQuotations = exports.getJobQuotations = exports.getSingleJob = exports.getJobHistory = exports.getMyJobs = exports.createJobListing = exports.createJobRequest = void 0;
 var express_validator_1 = require("express-validator");
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
 var customer_model_1 = __importDefault(require("../../../database/customer/models/customer.model"));
@@ -57,6 +57,7 @@ var job_enquiry_model_1 = require("../../../database/common/job_enquiry.model");
 var conversation_util_1 = require("../../../utils/conversation.util");
 var payment_schema_1 = require("../../../database/common/payment.schema");
 var job_util_1 = require("../../../utils/job.util");
+var user_coupon_schema_1 = require("../../../database/common/user_coupon.schema");
 var createJobRequest = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, contractorId, category, language, description, location_1, date, _b, expiresIn, emergency, media, voiceDescription, time, customerId, customer, contractor, contractorProfile, currentDate, expiryDate, newJob, conversationMembers, conversation, newMessage, error_1;
     return __generator(this, function (_c) {
@@ -737,8 +738,75 @@ var acceptJobQuotation = function (req, res, next) { return __awaiter(void 0, vo
     });
 }); };
 exports.acceptJobQuotation = acceptJobQuotation;
+var applyCouponToJobQuotation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var customerId, quotationId, couponCode, quotation, coupon, _a, error_11;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 5, , 6]);
+                customerId = req.customer.id;
+                quotationId = req.params.quotationId;
+                couponCode = req.body.couponCode;
+                return [4 /*yield*/, job_quotation_model_1.JobQuotationModel.findOne({ _id: quotationId })];
+            case 1:
+                quotation = _b.sent();
+                // check if contractor exists
+                if (!quotation) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Qoutation not found' })];
+                }
+                return [4 /*yield*/, user_coupon_schema_1.UserCouponModel.findOne({ code: couponCode })];
+            case 2:
+                coupon = _b.sent();
+                if (!coupon)
+                    return [2 /*return*/, res.json({ success: false, message: 'Coupon is invalid' })];
+                if (['pending', 'redeemed', 'expired'].includes(coupon.status)) {
+                    return [2 /*return*/, res.status(400).json({ message: "Coupon is ".concat(coupon.status) })];
+                }
+                if (quotation.type == job_quotation_model_1.JOB_QUOTATION_TYPE.SITE_VISIT) {
+                    if (quotation.siteVisitEstimate.hasOwnProperty('customerDiscount'))
+                        return [2 /*return*/, res.status(400).json({ success: false, message: 'Quotation already has a coupon applied' })];
+                    if (quotation.siteVisitEstimate.isPaid)
+                        return [2 /*return*/, res.status(400).json({ success: false, message: 'Site Estimate visit is already paid' })];
+                    quotation.siteVisitEstimate.customerDiscount = {
+                        coupon: coupon.id,
+                        value: coupon.value,
+                        valueType: coupon.valueType,
+                    };
+                }
+                if (quotation.type == job_quotation_model_1.JOB_QUOTATION_TYPE.JOB_DAY) {
+                    if (quotation.hasOwnProperty('customerDiscount'))
+                        return [2 /*return*/, res.status(400).json({ success: false, message: 'Quotation already has a coupon applied' })];
+                    if (quotation.isPaid)
+                        return [2 /*return*/, res.status(400).json({ success: false, message: 'Job Estimate visit is already paid' })];
+                    quotation.siteVisitEstimate.customerDiscount = {
+                        coupon: coupon.id,
+                        value: coupon.value,
+                        valueType: coupon.valueType,
+                    };
+                }
+                coupon.status = 'pending';
+                return [4 /*yield*/, Promise.all([
+                        coupon.save(),
+                        quotation.save()
+                    ])];
+            case 3:
+                _b.sent();
+                _a = quotation;
+                return [4 /*yield*/, quotation.calculateCharges()];
+            case 4:
+                _a.charges = _b.sent();
+                res.json({ success: true, message: 'Coupon applied to quotation', data: quotation });
+                return [3 /*break*/, 6];
+            case 5:
+                error_11 = _b.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_11))];
+            case 6: return [2 /*return*/];
+        }
+    });
+}); };
+exports.applyCouponToJobQuotation = applyCouponToJobQuotation;
 var scheduleJob = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, _a, jobId, quotationId_2, _b, date, time, jobDateTime, quotation, job, dateParts, formattedDate, foundQuotationIndex, contractor, customer, _c, error_11;
+    var customerId, _a, jobId, quotationId_2, _b, date, time, jobDateTime, quotation, job, dateParts, formattedDate, foundQuotationIndex, contractor, customer, _c, error_12;
     return __generator(this, function (_d) {
         switch (_d.label) {
             case 0:
@@ -792,15 +860,15 @@ var scheduleJob = function (req, res, next) { return __awaiter(void 0, void 0, v
                 res.json({ success: true, message: 'Job scheduled' });
                 return [3 /*break*/, 9];
             case 8:
-                error_11 = _d.sent();
-                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred ', error_11))];
+                error_12 = _d.sent();
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred ', error_12))];
             case 9: return [2 /*return*/];
         }
     });
 }); };
 exports.scheduleJob = scheduleJob;
 var declineJobQuotation = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, _a, jobId, quotationId_3, reason, quotation, job, foundQuotationIndex, conversationMembers, conversation, newMessage, contractor, customer, error_12;
+    var customerId, _a, jobId, quotationId_3, reason, quotation, job, foundQuotationIndex, conversationMembers, conversation, newMessage, contractor, customer, error_13;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -883,15 +951,15 @@ var declineJobQuotation = function (req, res, next) { return __awaiter(void 0, v
                 res.json({ success: true, message: 'Job quotation declined' });
                 return [3 /*break*/, 11];
             case 10:
-                error_12 = _b.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_12))];
+                error_13 = _b.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred ', error_13))];
             case 11: return [2 /*return*/];
         }
     });
 }); };
 exports.declineJobQuotation = declineJobQuotation;
 var replyJobEnquiry = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, jobId, _a, replyText, enquiryId, job, question, _b, isRestricted, errorMessage, error_13;
+    var customerId, jobId, _a, replyText, enquiryId, job, question, _b, isRestricted, errorMessage, error_14;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
@@ -926,15 +994,15 @@ var replyJobEnquiry = function (req, res, next) { return __awaiter(void 0, void 
                 res.json({ success: true, message: 'Reply added', question: question });
                 return [3 /*break*/, 6];
             case 5:
-                error_13 = _c.sent();
-                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_13))];
+                error_14 = _c.sent();
+                return [2 /*return*/, next(new custom_errors_1.BadRequestError('An error occurred', error_14))];
             case 6: return [2 /*return*/];
         }
     });
 }); };
 exports.replyJobEnquiry = replyJobEnquiry;
 var getJobSingleEnquiry = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var customerId, _a, jobId, enquiryId, job, enquiry, error_14;
+    var customerId, _a, jobId, enquiryId, job, enquiry, error_15;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -973,16 +1041,16 @@ var getJobSingleEnquiry = function (req, res, next) { return __awaiter(void 0, v
                 res.json({ success: true, message: 'Reply added', enquiry: enquiry });
                 return [3 /*break*/, 5];
             case 4:
-                error_14 = _b.sent();
-                console.log(error_14);
-                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred', error_14))];
+                error_15 = _b.sent();
+                console.log(error_15);
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError('An error occurred', error_15))];
             case 5: return [2 /*return*/];
         }
     });
 }); };
 exports.getJobSingleEnquiry = getJobSingleEnquiry;
 var getJobEnquiries = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var jobId, job, enquiries, error_15;
+    var jobId, job, enquiries, error_16;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -1002,8 +1070,8 @@ var getJobEnquiries = function (req, res, next) { return __awaiter(void 0, void 
                 enquiries = _a.sent();
                 return [2 /*return*/, res.status(200).json({ success: true, message: "Enquiries retrieved", data: enquiries })];
             case 3:
-                error_15 = _a.sent();
-                next(error_15);
+                error_16 = _a.sent();
+                next(error_16);
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
         }
@@ -1025,5 +1093,6 @@ exports.CustomerJobController = {
     replyJobEnquiry: exports.replyJobEnquiry,
     getAllQuotations: exports.getAllQuotations,
     getJobEnquiries: exports.getJobEnquiries,
-    getJobSingleEnquiry: exports.getJobSingleEnquiry
+    getJobSingleEnquiry: exports.getJobSingleEnquiry,
+    applyCouponToJobQuotation: exports.applyCouponToJobQuotation
 };

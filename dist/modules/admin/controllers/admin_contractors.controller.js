@@ -59,7 +59,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AdminContractorController = exports.attachCertnDetails = exports.attachStripeAccount = exports.removeStripeAccount = exports.AdminChangeContractorAccountStatusController = exports.updateAccountStatus = exports.sendCustomEmail = exports.updateGstDetails = exports.getSingleJob = exports.getJobHistory = exports.getSingleContractor = exports.exploreContractors = void 0;
+exports.AdminContractorController = exports.issueCoupon = exports.attachCertnDetails = exports.attachStripeAccount = exports.removeStripeAccount = exports.AdminChangeContractorAccountStatusController = exports.updateAccountStatus = exports.sendCustomEmail = exports.updateGstDetails = exports.getSingleJob = exports.getJobHistory = exports.getSingleContractor = exports.exploreContractors = void 0;
 var express_validator_1 = require("express-validator");
 var admin_model_1 = __importDefault(require("../../../database/admin/models/admin.model"));
 var contractor_model_1 = require("../../../database/contractor/models/contractor.model");
@@ -76,6 +76,9 @@ var contractor_quize_pipeline_1 = require("../../../database/contractor/pipeline
 var contractor_stripe_account_pipeline_1 = require("../../../database/contractor/pipelines/contractor_stripe_account.pipeline");
 var generic_email_1 = require("../../../templates/common/generic_email");
 var services_1 = require("../../../services");
+var promotion_schema_1 = require("../../../database/common/promotion.schema");
+var user_coupon_schema_1 = require("../../../database/common/user_coupon.schema");
+var couponCodeGenerator_1 = require("../../../utils/couponCodeGenerator");
 var exploreContractors = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var errors, _a, searchName, listing, minDistance, maxDistance, radius, latitude, longitude, emergencyJobs, category, location_1, city, country, address, accountType, date, isOffDuty, availability, experienceYear, gstNumber, _b, page, _c, limit, sort, minResponseTime, maxResponseTime, sortByResponseTime, hasPassedQuiz, gstStatus, stripeAccountStatus, availableDaysArray, skip, toRadians, mergedPipelines, pipeline, _d, sortField, sortOrder, sortStage, result, contractors, metadata, err_1;
     var _e;
@@ -719,19 +722,11 @@ var attachCertnDetails = function (req, res, next) { return __awaiter(void 0, vo
                         certnId: certnDetails.application.id,
                         certnDetails: certnDetails
                     })
-                    // contractor.certnId = certnDetails.application.id; // Attach the certnId
-                    // contractor.certnDetails = certnDetails; // Attach the certnDetails
-                    // Save the updated contractor
-                    // await contractor.save();
                     // Respond with success message
                 ];
             case 2:
                 // Attach certnDetails to the contractor
                 _a.sent();
-                // contractor.certnId = certnDetails.application.id; // Attach the certnId
-                // contractor.certnDetails = certnDetails; // Attach the certnDetails
-                // Save the updated contractor
-                // await contractor.save();
                 // Respond with success message
                 return [2 /*return*/, res.json({ success: true, message: 'Certn details attached', data: contractor })];
             case 3:
@@ -743,6 +738,52 @@ var attachCertnDetails = function (req, res, next) { return __awaiter(void 0, vo
     });
 }); };
 exports.attachCertnDetails = attachCertnDetails;
+var issueCoupon = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
+    var promotionId, contractorId, promotion, newUserCoupon, error_6;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 3, , 4]);
+                promotionId = req.body.promotionId;
+                contractorId = req.params.contractorId;
+                return [4 /*yield*/, promotion_schema_1.PromotionModel.findById(promotionId)];
+            case 1:
+                promotion = _a.sent();
+                if (!promotion) {
+                    return [2 /*return*/, res.status(404).json({ success: false, message: 'Promotion not found' })];
+                }
+                // Check if the promotion is active
+                if (promotion.status !== 'active') {
+                    return [2 /*return*/, res.status(400).json({ success: false, message: 'Promotion is not active' })];
+                }
+                newUserCoupon = new user_coupon_schema_1.UserCouponModel({
+                    promotion: promotion._id, // Attach promotion ID
+                    name: promotion.name,
+                    code: (0, couponCodeGenerator_1.generateCouponCode)(7), // generate coupon code here
+                    user: contractorId,
+                    userType: 'contractors',
+                    valueType: promotion.valueType,
+                    value: promotion.value,
+                    applicableAtCheckout: true,
+                    expiryDate: promotion.endDate,
+                    status: 'active'
+                });
+                // Save the new coupon
+                return [4 /*yield*/, newUserCoupon.save()];
+            case 2:
+                // Save the new coupon
+                _a.sent();
+                // Respond with success message
+                return [2 /*return*/, res.json({ success: true, message: 'Promotion attached to user as coupon', data: newUserCoupon })];
+            case 3:
+                error_6 = _a.sent();
+                // Handle any errors that occur
+                return [2 /*return*/, next(new custom_errors_1.InternalServerError("Error attaching promotion to user coupon: ".concat(error_6.message), error_6))];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.issueCoupon = issueCoupon;
 exports.AdminContractorController = {
     exploreContractors: exports.exploreContractors,
     removeStripeAccount: exports.removeStripeAccount,
@@ -753,5 +794,6 @@ exports.AdminContractorController = {
     updateGstDetails: exports.updateGstDetails,
     updateAccountStatus: exports.updateAccountStatus,
     sendCustomEmail: exports.sendCustomEmail,
-    attachCertnDetails: exports.attachCertnDetails
+    attachCertnDetails: exports.attachCertnDetails,
+    issueCoupon: exports.issueCoupon
 };
