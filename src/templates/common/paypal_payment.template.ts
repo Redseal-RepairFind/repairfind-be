@@ -132,9 +132,6 @@ export const PaypalPaymentCheckoutTemplate = (payload: {token: string, paypalCli
               submitButton.classList.add('disabled');
               loader.style.display = 'inline-block';
 
-
-              
-
                 cardField
                 .submit({
                   createOrder: createOrderCallback,
@@ -167,17 +164,3 @@ export const PaypalPaymentCheckoutTemplate = (payload: {token: string, paypalCli
 `;
 
 
-// window.history.back();
-
-
-
-// cardField
-// .submit({
-
-// })
-// .catch((error) => {
-// loader.style.display = 'none';
-// submitButton.classList.remove('disabled');
-// console.log(error)
-// alert(\`Error initiating payment...\`);
-// });

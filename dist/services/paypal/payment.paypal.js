@@ -91,11 +91,11 @@ var createOrder = function (payload) { return __awaiter(void 0, void 0, void 0, 
                                 },
                             },
                         ],
-                        "payment_source": {
-                            "card": {
-                                "attributes": {
-                                    "vault": {
-                                        "store_in_vault": "ON_SUCCESS"
+                        payment_source: {
+                            card: {
+                                attributes: {
+                                    vault: {
+                                        store_in_vault: "ON_SUCCESS"
                                     }
                                 }
                             }
@@ -103,6 +103,14 @@ var createOrder = function (payload) { return __awaiter(void 0, void 0, void 0, 
                         application_context: {
                             return_url: (_a = payload.returnUrl) !== null && _a !== void 0 ? _a : 'https://repairfind.ca/payment-success',
                             cancel_url: 'https://repairfind.ca/action-cancelled-successfully',
+                            shipping_preference: "NO_SHIPPING" // Set to NO_SHIPPING
+                        },
+                        payer: {
+                            name: {
+                                given_name: payload.payer.firstName, // Payer's first name
+                                surname: payload.payer.lastName, // Payer's last name
+                            },
+                            email_address: payload.payer.email, // Payer's email address
                         },
                     }, {
                         headers: {

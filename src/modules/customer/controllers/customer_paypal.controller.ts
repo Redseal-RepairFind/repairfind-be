@@ -26,7 +26,17 @@ export const createPaymentMethodOrder = async (
         // const paypalCustomer = PayPalService.customer.createPayPalCustomer({email: customer.email, firstName: customer.firstName, lastName: customer.lastName})
         // console.log("paypalCustomer", paypalCustomer)
 
-        const payload = { amount: 1, intent: 'AUTHORIZE', returnUrl: 'https://repairfind.ca/card-connected-successfully'  }
+        const payload = { 
+            amount: 1, 
+            intent: 'AUTHORIZE', 
+            returnUrl: 'https://repairfind.ca/card-connected-successfully',
+            payer: {
+                firstName: customer.firstName,
+                lastName: customer.lastName,
+                email: customer.email
+                // No billing address included because, NO_SHIPPING is configured in application context
+            }
+          }
         const response = await PayPalService.payment.createOrder(payload)
         return res.status(200).json(response)
     } catch (err: any) {

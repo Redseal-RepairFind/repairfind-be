@@ -60,7 +60,17 @@ var createPaymentMethodOrder = function (req, res) { return __awaiter(void 0, vo
                 if (!customer) {
                     return [2 /*return*/, res.status(400).json({ success: false, message: "customer not found" })];
                 }
-                payload = { amount: 1, intent: 'AUTHORIZE', returnUrl: 'https://repairfind.ca/card-connected-successfully' };
+                payload = {
+                    amount: 1,
+                    intent: 'AUTHORIZE',
+                    returnUrl: 'https://repairfind.ca/card-connected-successfully',
+                    payer: {
+                        firstName: customer.firstName,
+                        lastName: customer.lastName,
+                        email: customer.email
+                        // No billing address included because, NO_SHIPPING is configured in application context
+                    }
+                };
                 return [4 /*yield*/, paypal_1.PayPalService.payment.createOrder(payload)];
             case 3:
                 response = _a.sent();

@@ -50,11 +50,11 @@ export const createOrder = async (payload: any) => {
             },
           },
         ],
-        "payment_source": {
-          "card": {
-            "attributes": {
-              "vault": {
-                "store_in_vault": "ON_SUCCESS"
+        payment_source: {
+          card: {
+            attributes: {
+              vault: {
+                store_in_vault: "ON_SUCCESS"
               }
             }
           }
@@ -62,6 +62,14 @@ export const createOrder = async (payload: any) => {
         application_context: {
           return_url: payload.returnUrl ?? 'https://repairfind.ca/payment-success',
           cancel_url: 'https://repairfind.ca/action-cancelled-successfully',
+          shipping_preference: "NO_SHIPPING" // Set to NO_SHIPPING
+        },
+        payer: {
+          name: {
+            given_name: payload.payer.firstName, // Payer's first name
+            surname: payload.payer.lastName, // Payer's last name
+          },
+          email_address: payload.payer.email, // Payer's email address
         },
       },
       {
@@ -78,6 +86,8 @@ export const createOrder = async (payload: any) => {
     throw new Error(error.response?.data?.message || error.message);
   }
 };
+
+
 
 
 

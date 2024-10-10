@@ -59,7 +59,7 @@ const findContractor = async (contractorId: ObjectId) => {
 
 export const createCheckoutOrder = async (req: any, res: Response, next: NextFunction) => {
     try {
-        const { quotationId, isChangeOrder, couponCode } = req.body;
+        const { quotationId, isChangeOrder } = req.body;
         const jobId = req.params.jobId;
 
 
@@ -110,7 +110,13 @@ export const createCheckoutOrder = async (req: any, res: Response, next: NextFun
                 intent: "CAPTURE",
                 description: `Job Change Order Payment - ${jobId}`,
                 metaId: paypalPaymentLog.id,
-                returnUrl: "https://repairfind.ca/payment-success"
+                returnUrl: "https://repairfind.ca/payment-success",
+                payer: {
+                    firstName: customer.firstName,
+                    lastName: customer.lastName,
+                    email: customer.email
+                    // No billing address included because, NO_SHIPPING is configured in application context
+                }
             }
             const capture = await PayPalService.payment.createOrder(payload)
     
@@ -129,11 +135,6 @@ export const createCheckoutOrder = async (req: any, res: Response, next: NextFun
         if(quotation.type == JOB_QUOTATION_TYPE.SITE_VISIT) paymentType = PAYMENT_TYPE.SITE_VISIT_PAYMENT
         if(quotation.type == JOB_QUOTATION_TYPE.JOB_DAY) paymentType = PAYMENT_TYPE.JOB_DAY_PAYMENT
 
-        // Apply couponCode to quotation
-        if(couponCode){
-            const coupon = await UserCouponModel.findOne({code: couponCode})
-            if(!coupon) return res.json({ success: false, message: 'Coupon is invalid'});
-        }
         
         const charges = await quotation.calculateCharges(paymentType);
 
@@ -160,7 +161,13 @@ export const createCheckoutOrder = async (req: any, res: Response, next: NextFun
             intent: "CAPTURE",
             description: `Job Payment - ${jobId}`,
             metaId: paypalPaymentLog.id,
-            returnUrl: "https://repairfind.ca/payment-success"
+            returnUrl: "https://repairfind.ca/payment-success",
+            payer: {
+                firstName: customer.firstName,
+                lastName: customer.lastName,
+                email: customer.email
+                // No billing address included because, NO_SHIPPING is configured in application context
+            }
         }
         const capture = await PayPalService.payment.createOrder(payload)
 
